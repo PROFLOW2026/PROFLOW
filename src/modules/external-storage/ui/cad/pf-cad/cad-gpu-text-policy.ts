@@ -4,10 +4,10 @@ import type { CadText } from './types';
  * P8 GPU text handoff policy (regression guard).
  * WASM may emit `gpu:true` only for record-complete geometry; Canvas stays on until enabled here.
  */
-export const P8_GPU_TEXT_HANDOFF_ENABLED = false;
+export const P8_GPU_TEXT_HANDOFF_ENABLED = true;
 
 /** Minimum stroke segments required before a record may skip Canvas when handoff is enabled. */
-export const P8_MIN_GPU_SEGMENTS_PER_TEXT_RECORD = Number.POSITIVE_INFINITY;
+export const P8_MIN_GPU_SEGMENTS_PER_TEXT_RECORD = 1;
 
 export function mayMarkTextGpu(segmentsAdded: number, glyphsExpected: number): boolean {
   if (!P8_GPU_TEXT_HANDOFF_ENABLED) return false;

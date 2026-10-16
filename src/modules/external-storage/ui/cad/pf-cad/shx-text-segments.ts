@@ -7,6 +7,10 @@ import {
 import { shxGlyphAdvance, type ShxSegment } from './cad-shx-font';
 import { attachmentToAlign, anchorOffset, mirrorScale } from './draw-cad-text';
 import { maybeDecodeHebrewShxText } from './hebrew-shx-decode';
+import {
+  P8_GPU_TEXT_HANDOFF_ENABLED,
+  P8_MIN_GPU_SEGMENTS_PER_TEXT_RECORD,
+} from './cad-gpu-text-policy';
 import { SEGMENT_STRIDE } from './renderer/segment-format';
 
 const TEXT_LINE_WEIGHT = 13;
@@ -137,6 +141,31 @@ function emitGlyphSegments(
   return count;
 }
 
+/** True when every drawable SHX glyph has stroke geometry (no partial handoff). */
+export function isShxTextRecordGpuComplete(tx: CadText, origin: [number, number]): boolean {
+  if (tx.invisible) return false;
+  const layout = layoutShxText(tx, origin);
+  if (!layout) return false;
+  const { lines, capH, anchorX, spacing, shxCtx, shxPrimary } = layout;
+  let drawable = 0;
+  for (let li = 0; li < lines.length; li += 1) {
+    const line = lines[li]!;
+    for (const ch of line) {
+      if (ch === ' ' || ch === '\t') continue;
+      if (ch.trim().length === 0) continue;
+      drawable += 1;
+      const raw = ch.charCodeAt(0);
+      const mapped = shxCtx.mapCode(raw);
+      const active = shxCtx.pickFont(raw, mapped) ?? shxPrimary;
+      const glyph = active.glyphs.get(mapped);
+      if (!glyph || glyph.length === 0) return false;
+    }
+  }
+  if (drawable === 0) return false;
+  const segs = countShxTextSegments(tx, origin);
+  return segs >= drawable && segs >= P8_MIN_GPU_SEGMENTS_PER_TEXT_RECORD;
+}
+
 export function countShxTextSegments(tx: CadText, origin: [number, number]): number {
   if (tx.invisible || tx.gpu) return 0;
   const layout = layoutShxText(tx, origin);
@@ -219,13 +248,45 @@ export type ShxGpuAppendResult = {
 };
 
 /**
- * SHX → WebGL handoff disabled until a text record is proven complete on GPU.
- * Partial stroke geometry + Canvas skip caused full text loss regressions.
+ * Append SHX stroke segments for record-complete texts; marks `gpu:true` for Canvas skip.
  */
 export function appendShxGpuSegments(
   wasmSegments: Float32Array,
   scene: { texts: CadText[]; gpuTexts?: number; segmentStride?: number },
-  _origin: [number, number],
+  origin: [number, number],
 ): ShxGpuAppendResult {
-  return { segments: wasmSegments, scene, shxGpuCount: 0 };
+  if (!P8_GPU_TEXT_HANDOFF_ENABLED) {
+    return { segments: wasmSegments, scene, shxGpuCount: 0 };
+  }
+  const stride = scene.segmentStride ?? SEGMENT_STRIDE;
+  const texts = scene.texts.map((t) => ({ ...t }));
+  const floats: number[] = [];
+  for (let i = 0; i < wasmSegments.length; i += 1) {
+    floats.push(wasmSegments[i]!);
+  }
+  let baseOrder = maxSegmentDrawOrder(wasmSegments, stride);
+  let shxGpuCount = 0;
+  let gpuTexts = scene.gpuTexts ?? 0;
+
+  for (const tx of texts) {
+    if (tx.gpu || tx.invisible) continue;
+    const style = tx.style != null ? String(tx.style) : '';
+    if (!resolveShxDrawContext(style).primary && !lookupShxFont(style)) continue;
+    if (!isShxTextRecordGpuComplete(tx, origin)) continue;
+    const added = appendShxTextSegmentRecords(floats, tx, origin, baseOrder + 1);
+    if (added < P8_MIN_GPU_SEGMENTS_PER_TEXT_RECORD) continue;
+    tx.gpu = true;
+    shxGpuCount += 1;
+    gpuTexts += 1;
+    baseOrder += 1;
+  }
+
+  if (shxGpuCount === 0) {
+    return { segments: wasmSegments, scene: { ...scene, texts }, shxGpuCount: 0 };
+  }
+  return {
+    segments: new Float32Array(floats),
+    scene: { ...scene, texts, gpuTexts },
+    shxGpuCount,
+  };
 }

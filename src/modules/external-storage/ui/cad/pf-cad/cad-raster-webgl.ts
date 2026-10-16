@@ -88,6 +88,7 @@ export class CadRasterWebGlPass {
     this.resolveUrl = resolveUrl;
     this.dirty = true;
     this.loaded = [];
+    this.loading.clear();
   }
 
   updateHiddenLayers(hiddenLayers: Set<number>): void {

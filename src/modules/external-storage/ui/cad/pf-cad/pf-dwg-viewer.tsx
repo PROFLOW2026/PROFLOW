@@ -25,6 +25,7 @@ import {
   registerCadOverlayFonts,
   resolveCadTextFontFamily,
 } from './cad-dynamic-font-faces';
+import { applyCadP8GpuTextHandoff } from './apply-p8-text-handoff';
 import { shouldDrawTextOnCanvas } from './cad-gpu-text-policy';
 import { P9_RASTER_WEBGL_ENABLED } from './cad-raster-webgl';
 import { drawCadText } from './draw-cad-text';
@@ -504,8 +505,10 @@ function PfDwgViewerInner({
           fontResolve.missingFonts,
         );
         let scene: ScenePayload = { ...res.scene, report: reportWithFonts };
+        const p8 = applyCadP8GpuTextHandoff(res.segments, scene);
+        scene = p8.scene;
         const triangles = res.triangles ?? new Float32Array(0);
-        const payload: DrawingPayload = { scene, segments: res.segments, triangles };
+        const payload: DrawingPayload = { scene, segments: p8.segments, triangles };
         drawingRef.current = payload;
         setSpaces(scene.spaces ?? []);
         setActiveSpace(scene.space ?? '');
@@ -517,7 +520,7 @@ function PfDwgViewerInner({
         const uiLayersInitial = cadLayersToUi(res.scene.layers);
         const fitExtent = scene.contentExtent ?? scene.robustExtent;
         await rendererRef.current?.setDrawingAsync(
-          res.segments,
+          p8.segments,
           fitExtent,
           uiLayersInitial,
           scene.fullExtent,
@@ -629,9 +632,11 @@ function PfDwgViewerInner({
             res.scene.report,
             fontResolve.missingFonts,
           );
-          const scene: ScenePayload = { ...res.scene, report: reportWithFonts };
+          let scene: ScenePayload = { ...res.scene, report: reportWithFonts };
+          const p8 = applyCadP8GpuTextHandoff(res.segments, scene);
+          scene = p8.scene;
           const triangles = res.triangles ?? new Float32Array(0);
-          const payload: DrawingPayload = { scene, segments: res.segments, triangles };
+          const payload: DrawingPayload = { scene, segments: p8.segments, triangles };
           drawingRef.current = payload;
           setActiveSpace(scene.space ?? space);
           setUiLayers(cadLayersToUi(scene.layers));
@@ -639,7 +644,7 @@ function PfDwgViewerInner({
           await yieldToMain();
           const fitExtent = scene.contentExtent ?? scene.robustExtent;
           await rendererRef.current?.setDrawingAsync(
-            res.segments,
+            p8.segments,
             fitExtent,
             cadLayersToUi(scene.layers),
             scene.fullExtent,
@@ -685,15 +690,17 @@ function PfDwgViewerInner({
             res.scene.report,
             fontResolve?.missingFonts ?? [],
           );
-          const scene: ScenePayload = { ...res.scene, report: reportWithFonts };
+          let scene: ScenePayload = { ...res.scene, report: reportWithFonts };
+          const p8 = applyCadP8GpuTextHandoff(res.segments, scene);
+          scene = p8.scene;
           const triangles = res.triangles ?? new Float32Array(0);
-          drawingRef.current = { scene, segments: res.segments, triangles };
+          drawingRef.current = { scene, segments: p8.segments, triangles };
           setUiLayers(cadLayersToUi(scene.layers));
           setCompat(reportWithFonts);
           await yieldToMain();
           const fitExtent = scene.contentExtent ?? scene.robustExtent;
           await rendererRef.current?.setDrawingAsync(
-            res.segments,
+            p8.segments,
             fitExtent,
             cadLayersToUi(scene.layers),
             scene.fullExtent,

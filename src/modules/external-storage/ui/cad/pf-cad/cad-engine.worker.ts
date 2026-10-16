@@ -1,3 +1,4 @@
+import { P8_GPU_TEXT_HANDOFF_ENABLED } from './cad-gpu-text-policy';
 import { PF_CAD_WASM_BINARY_URL, PF_CAD_WASM_GLUE_URL } from './pf-cad-config';
 import type { ScenePayload } from './types';
 import type { WorkerIn, WorkerOut } from './types';
@@ -22,6 +23,7 @@ type WasmApi = {
   ) => number;
   set_plot_mode: (on: number) => void;
   set_plot_ctb: (ptr: number, len: number) => number;
+  set_p8_gpu_text_handoff: (on: number) => void;
 };
 
 type WasmInitModule = {
@@ -122,6 +124,7 @@ self.onmessage = async (event: MessageEvent<WorkerIn>) => {
     applyXrefDeps(w, req.hostPath, req.deps);
     plotMode = req.plotMode === true;
     w.set_plot_mode(plotMode ? 1 : 0);
+    w.set_p8_gpu_text_handoff(P8_GPU_TEXT_HANDOFF_ENABLED ? 1 : 0);
     if (plotMode && req.plotCtbBytes && req.plotCtbBytes.byteLength > 0) {
       const ctb = new Uint8Array(req.plotCtbBytes);
       const ctbPtr = w.alloc(ctb.length);

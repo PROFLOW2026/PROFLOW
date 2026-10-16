@@ -3,7 +3,7 @@ import { appendShxGpuSegments } from '@/modules/external-storage/ui/cad/pf-cad/s
 import type { CadText } from '@/modules/external-storage/ui/cad/pf-cad/types';
 
 describe('cad text canvas handoff regression', () => {
-  it('does not mark SHX texts gpu or mutate segment buffer while handoff is disabled', () => {
+  it('does not mark SHX texts gpu without a loaded SHX font (Canvas fallback)', () => {
     const texts: CadText[] = [
       {
         k: 'text',

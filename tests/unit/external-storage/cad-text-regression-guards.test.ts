@@ -39,7 +39,7 @@ describe('CAD text regression guards', () => {
     expect(mirrorScale(1)).toBe(1);
   });
 
-  it('gpu-marked records still draw on Canvas while P8 handoff is disabled', () => {
+  it('gpu-marked records skip Canvas when P8 handoff is enabled', () => {
     expect(
       shouldDrawTextOnCanvas({
         k: 'text',
@@ -52,12 +52,13 @@ describe('CAD text regression guards', () => {
         layer: 0,
         gpu: true,
       }),
-    ).toBe(true);
+    ).toBe(false);
   });
 
-  it('P8 GPU handoff stays disabled and partial segments cannot mark gpu', () => {
-    expect(P8_GPU_TEXT_HANDOFF_ENABLED).toBe(false);
-    expect(mayMarkTextGpu(1000, 10)).toBe(false);
+  it('P8 GPU handoff requires minimum segments per record', () => {
+    expect(P8_GPU_TEXT_HANDOFF_ENABLED).toBe(true);
+    expect(mayMarkTextGpu(0, 10)).toBe(false);
+    expect(mayMarkTextGpu(5, 10)).toBe(true);
     const texts: CadText[] = [
       {
         k: 'text',

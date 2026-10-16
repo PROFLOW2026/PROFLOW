@@ -13,6 +13,7 @@ export interface InitOutput {
     readonly json_ptr: () => number;
     readonly segs_ptr: () => number;
     readonly set_host_path: (a: number, b: number) => void;
+    readonly set_p8_gpu_text_handoff: (a: number) => void;
     readonly set_plot_ctb: (a: number, b: number) => number;
     readonly set_plot_mode: (a: number) => void;
     readonly set_space: (a: number, b: number) => void;
