@@ -5,6 +5,7 @@ import { mirrorScale } from '@/modules/external-storage/ui/cad/pf-cad/draw-cad-t
 import {
   mayMarkTextGpu,
   P8_GPU_TEXT_HANDOFF_ENABLED,
+  shxTextRequiresCanvasFallback,
   shouldDrawTextOnCanvas,
 } from '@/modules/external-storage/ui/cad/pf-cad/cad-gpu-text-policy';
 import { appendShxGpuSegments } from '@/modules/external-storage/ui/cad/pf-cad/shx-text-segments';
@@ -39,7 +40,7 @@ describe('CAD text regression guards', () => {
     expect(mirrorScale(1)).toBe(1);
   });
 
-  it('gpu-marked records skip Canvas when P8 handoff is enabled', () => {
+  it('gpu-marked Latin records skip Canvas when P8 handoff is enabled', () => {
     expect(
       shouldDrawTextOnCanvas({
         k: 'text',
@@ -53,6 +54,23 @@ describe('CAD text regression guards', () => {
         gpu: true,
       }),
     ).toBe(false);
+  });
+
+  it('Hebrew SHX always uses Canvas even when gpu is set', () => {
+    const tx = {
+      k: 'text',
+      t: 'test',
+      x: 0,
+      y: 0,
+      h: 2,
+      r: 0,
+      c: 0xff000000,
+      layer: 0,
+      style: 'simplex.shx',
+      gpu: true as const,
+    };
+    expect(shxTextRequiresCanvasFallback({ ...tx, t: 'שלום' })).toBe(true);
+    expect(shouldDrawTextOnCanvas({ ...tx, t: 'שלום' })).toBe(true);
   });
 
   it('P8 GPU handoff requires minimum segments per record', () => {

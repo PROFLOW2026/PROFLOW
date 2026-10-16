@@ -10,6 +10,7 @@ import { maybeDecodeHebrewShxText } from './hebrew-shx-decode';
 import {
   P8_GPU_TEXT_HANDOFF_ENABLED,
   P8_MIN_GPU_SEGMENTS_PER_TEXT_RECORD,
+  shxTextRequiresCanvasFallback,
 } from './cad-gpu-text-policy';
 import { SEGMENT_STRIDE } from './renderer/segment-format';
 
@@ -204,7 +205,8 @@ export function appendShxTextSegmentRecords(
   for (let li = 0; li < lines.length; li += 1) {
     const lineY = li * spacing;
     const line = lines[li]!;
-    let penX = -anchorX;
+    const lineM = mul(m, translate(anchorX, lineY));
+    let penX = 0;
     for (const ch of line) {
       const raw = ch.charCodeAt(0);
       const mapped = shxCtx.mapCode(raw);
@@ -216,9 +218,9 @@ export function appendShxTextSegmentRecords(
           active,
           glyph,
           penX,
-          lineY,
+          0,
           capH,
-          m,
+          lineM,
           colorF,
           layerF,
           lwF,
@@ -270,6 +272,7 @@ export function appendShxGpuSegments(
 
   for (const tx of texts) {
     if (tx.gpu || tx.invisible) continue;
+    if (shxTextRequiresCanvasFallback(tx)) continue;
     const style = tx.style != null ? String(tx.style) : '';
     if (!resolveShxDrawContext(style).primary && !lookupShxFont(style)) continue;
     if (!isShxTextRecordGpuComplete(tx, origin)) continue;
