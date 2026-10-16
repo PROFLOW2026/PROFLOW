@@ -1,8 +1,8 @@
-import type { CadText } from './types';
 import {
-  cadTextStyleUsesClientShx,
-  isShxTextRecordGpuComplete,
-} from './shx-text-segments';
+  hasHebrewBlock,
+  maybeDecodeHebrewShxText,
+} from './hebrew-shx-decode';
+import type { CadText } from './types';
 
 /**
  * P8 GPU text handoff policy (regression guard).
@@ -21,18 +21,22 @@ export function mayMarkTextGpu(segmentsAdded: number, glyphsExpected: number): b
   return segmentsAdded >= glyphsExpected;
 }
 
+/** Hebrew / keyboard-latin SHX labels must use Canvas (decode + Noto / TTF fill), not WASM gpu stubs. */
+export function shxTextRequiresCanvasFallback(tx: CadText): boolean {
+  if (tx.invisible) return false;
+  const raw = tx.lines?.length ? tx.lines.join('\n') : tx.t;
+  if (hasHebrewBlock(raw)) return true;
+  const decoded = maybeDecodeHebrewShxText(raw, tx.style);
+  return hasHebrewBlock(decoded);
+}
+
 /**
  * Canvas overlay when handoff is off or the record is not GPU-complete (`gpu` unset upstream).
  * Never double-draw: `gpu:true` is only set after record-complete geometry is in the segment buffer.
  */
-export function shouldDrawTextOnCanvas(
-  text: CadText,
-  origin: [number, number] = [0, 0],
-): boolean {
-  if (!P8_GPU_TEXT_HANDOFF_ENABLED) return true;
+export function shouldDrawTextOnCanvas(text: CadText): boolean {
+  if (shxTextRequiresCanvasFallback(text)) return true;
   if (!text.gpu) return true;
-  if (cadTextStyleUsesClientShx(text) && !isShxTextRecordGpuComplete(text, origin)) {
-    return true;
-  }
+  if (!P8_GPU_TEXT_HANDOFF_ENABLED) return true;
   return false;
 }

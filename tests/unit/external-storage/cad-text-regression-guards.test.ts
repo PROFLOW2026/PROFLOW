@@ -203,6 +203,29 @@ describe('CAD text regression guards', () => {
       gpu: true,
     };
     expect(isShxTextRecordGpuComplete(tx, origin)).toBe(false);
-    expect(shouldDrawTextOnCanvas(tx, origin)).toBe(true);
+    expect(shouldDrawTextOnCanvas(tx)).toBe(true);
+  });
+
+  it('3096 TRHEBTXT keyboard-latin strips wasm gpu and keeps Canvas after P8 handoff', () => {
+    const tx: CadText = {
+      k: 'text',
+      t: 'neuo anur',
+      x: 0,
+      y: 0,
+      h: 2,
+      r: 0,
+      c: 0xff000000,
+      layer: 0,
+      style: 'TRHEBTXT',
+      gpu: true,
+    };
+    const out = applyCadP8GpuTextHandoff(new Float32Array(0), {
+      texts: [tx],
+      origin: [0, 0],
+      gpuTexts: 1,
+    } as never);
+    expect(out.scene.texts[0]?.gpu).toBeUndefined();
+    expect(shouldDrawTextOnCanvas(out.scene.texts[0]!)).toBe(true);
+    expect(maybeDecodeHebrewShxText('neuo anur', 'TRHEBTXT')).toBe('מקום שמור');
   });
 });

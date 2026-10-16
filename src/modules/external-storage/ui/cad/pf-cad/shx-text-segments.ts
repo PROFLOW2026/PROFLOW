@@ -10,6 +10,7 @@ import { maybeDecodeHebrewShxText } from './hebrew-shx-decode';
 import {
   mayMarkTextGpu,
   P8_GPU_TEXT_HANDOFF_ENABLED,
+  shxTextRequiresCanvasFallback,
 } from './cad-gpu-text-policy';
 import { SEGMENT_STRIDE } from './renderer/segment-format';
 
@@ -310,7 +311,7 @@ export function stripUpstreamClientShxGpuFlags<T extends { texts: CadText[]; gpu
   let gpuTexts = 0;
   const texts = scene.texts.map((t) => {
     if (!t.gpu) return t;
-    if (cadTextStyleUsesClientShx(t)) {
+    if (shxTextRequiresCanvasFallback(t) || cadTextStyleUsesClientShx(t)) {
       const { gpu: _gpu, ...rest } = t;
       return rest;
     }
@@ -329,6 +330,10 @@ export function sanitizeSceneGpuTextFlags<T extends { texts: CadText[]; gpuTexts
   const texts = scene.texts.map((t) => {
     if (!t.gpu) return t;
     if (!P8_GPU_TEXT_HANDOFF_ENABLED) {
+      const { gpu: _gpu, ...rest } = t;
+      return rest;
+    }
+    if (shxTextRequiresCanvasFallback(t)) {
       const { gpu: _gpu, ...rest } = t;
       return rest;
     }
@@ -369,6 +374,7 @@ export function appendShxGpuSegments(
 
   for (const tx of texts) {
     if (tx.gpu || tx.invisible) continue;
+    if (shxTextRequiresCanvasFallback(tx)) continue;
     const style = tx.style != null ? String(tx.style) : '';
     if (!resolveShxDrawContext(style).primary && !lookupShxFont(style)) continue;
     if (!isShxTextRecordGpuComplete(tx, origin)) continue;

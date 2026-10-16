@@ -1,3 +1,4 @@
+import { entityStyleFontNameCandidates } from './cad-entity-text-style';
 import type { ResolvedCadFont } from './font-resolver';
 import type { CadTextStyleTableEntry } from './types';
 import {
@@ -119,6 +120,39 @@ export function registerCadShxStyleTable(entries: CadTextStyleTableEntry[] | und
           primaryForBigfont.set(bk.toLowerCase(), primaryKey);
         }
       }
+    }
+  }
+  return linked;
+}
+
+/** Copy loaded SHX keys from documented prefix variants (e.g. TRHEBTXT → HEBTXT after TR strip). */
+export function registerCadShxEntityStylePrefixBindings(
+  texts: ReadonlyArray<{ style?: string | number }> | undefined,
+): number {
+  if (!texts?.length) return 0;
+  let linked = 0;
+  const seen = new Set<string>();
+  for (const tx of texts) {
+    const name = tx.style != null ? String(tx.style).trim() : '';
+    if (!name || seen.has(name.toLowerCase())) continue;
+    seen.add(name.toLowerCase());
+    if (lookupShxFont(name)) continue;
+    for (const variant of entityStyleFontNameCandidates(name)) {
+      if (variant.toLowerCase() === name.toLowerCase()) continue;
+      const sourceFont = lookupShxFont(variant);
+      if (!sourceFont) continue;
+      for (const sk of styleKeysForFontName(name)) {
+        shxByStyleKey.set(sk.toLowerCase(), sourceFont);
+      }
+      const big = lookupBigfontBundle(variant);
+      if (big) {
+        for (const sk of styleKeysForFontName(name)) {
+          const k = sk.toLowerCase();
+          bigfontByStyleKey.set(k, big);
+        }
+      }
+      linked += 1;
+      break;
     }
   }
   return linked;

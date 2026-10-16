@@ -36,7 +36,7 @@ describe('cad text canvas handoff regression', () => {
     expect(out.scene.gpuTexts).toBe(0);
   });
 
-  it('Hebrew SHX can skip Canvas when bigfont provides every glyph', () => {
+  it('Hebrew SHX stays on Canvas even when bigfont has glyph strokes (parity guard)', () => {
     clearCadShxFonts();
     const primary = new Uint8Array(48);
     primary.set(new TextEncoder().encode('AutoCAD-86 shapes 1.0'), 0);
@@ -73,10 +73,9 @@ describe('cad text canvas handoff regression', () => {
       segmentStride: 8,
     } as never);
 
-    expect(handoff.scene.texts[0]?.gpu).toBe(true);
-    expect(handoff.scene.gpuTexts).toBe(1);
-    expect(handoff.segments.length).toBeGreaterThan(segments.length);
-    expect(shouldDrawTextOnCanvas(handoff.scene.texts[0]!)).toBe(false);
+    expect(handoff.scene.texts[0]?.gpu).toBeUndefined();
+    expect(handoff.scene.gpuTexts).toBe(0);
+    expect(shouldDrawTextOnCanvas(handoff.scene.texts[0]!)).toBe(true);
     clearCadShxFonts();
   });
 });

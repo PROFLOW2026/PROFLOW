@@ -38,6 +38,7 @@ import {
   lookupShxFont,
   registerCadShxFonts,
   registerCadShxStyleTable,
+  registerCadShxEntityStylePrefixBindings,
   registerCadShxTextStyleAliases,
 } from './cad-shx-registry';
 import {
@@ -337,7 +338,7 @@ function PfDwgViewerInner({
       for (; idx < end; idx += 1) {
         const tx = texts[idx]!;
         if (hidden.has(tx.layer) || tx.invisible) continue;
-        if (!shouldDrawTextOnCanvas(tx, d.scene.origin)) continue;
+        if (!shouldDrawTextOnCanvas(tx)) continue;
         drawCadText(drawCtx, tx, view.zoom);
       }
       if (idx < texts.length && gen === textDrawGenRef.current) {
@@ -542,6 +543,7 @@ function PfDwgViewerInner({
         registerCadShxFonts(fontResolve.resolved);
         registerCadShxStyleTable(res.scene.textStyleTable);
         registerCadShxTextStyleAliases(res.scene.texts);
+        registerCadShxEntityStylePrefixBindings(res.scene.texts);
         const reportWithFonts = mergeMissingFontsIntoReport(
           res.scene.report,
           fontResolve.missingFonts,
@@ -664,6 +666,7 @@ function PfDwgViewerInner({
           );
           registerCadShxStyleTable(res.scene.textStyleTable);
           registerCadShxTextStyleAliases(res.scene.texts);
+          registerCadShxEntityStylePrefixBindings(res.scene.texts);
           let scene: ScenePayload = { ...res.scene, report: reportWithFonts };
           const p8 = applyCadP8GpuTextHandoff(res.segments, scene);
           scene = p8.scene;
@@ -726,6 +729,7 @@ function PfDwgViewerInner({
           );
           registerCadShxStyleTable(res.scene.textStyleTable);
           registerCadShxTextStyleAliases(res.scene.texts);
+          registerCadShxEntityStylePrefixBindings(res.scene.texts);
           let scene: ScenePayload = { ...res.scene, report: reportWithFonts };
           const p8 = applyCadP8GpuTextHandoff(res.segments, scene);
           scene = p8.scene;

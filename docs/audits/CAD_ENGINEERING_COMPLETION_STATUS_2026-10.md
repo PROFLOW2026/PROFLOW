@@ -1,9 +1,9 @@
 # CAD engineering completion status (2026-10)
 
-**ProjectFlow HEAD:** `4f36a0d6` (integration commits `51c8cf21`, `1c35263c`) · **Engine WASM:** `2d17b6a`  
-**Plan:** `.cursor/plans/cad_viewer_professional_compatibility.plan.md`  
-**Vitest:** `tests/unit/external-storage/cad-*` + `pf-cad-fixture-dev-only` → **74 passed** (2026-10-16)  
-**Push / deploy / SQL / Owner PDF gate:** out of scope
+**ProjectFlow HEAD:** see git after Hebrew regression fix · **Engine WASM:** `2d17b6a`  
+**Hebrew regression report:** `docs/audits/CAD_HEBREW_TEXT_REGRESSION_2026-10.md`  
+**Vitest:** `cad-*` + `hebrew-shx-decode` → **85 passed**  
+**Push / deploy / SQL:** out of scope
 
 Three independent statuses (do not conflate):
 
