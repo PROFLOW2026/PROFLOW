@@ -25,6 +25,8 @@ import {
   registerCadOverlayFonts,
   resolveCadTextFontFamily,
 } from './cad-dynamic-font-faces';
+import { shouldDrawTextOnCanvas } from './cad-gpu-text-policy';
+import { P9_RASTER_WEBGL_ENABLED } from './cad-raster-webgl';
 import { drawCadText } from './draw-cad-text';
 import { drawCadRaster } from './draw-cad-raster';
 import { findPlotCtbBytes } from './cad-plot-ctb';
@@ -326,6 +328,7 @@ function PfDwgViewerInner({
       for (; idx < end; idx += 1) {
         const tx = texts[idx]!;
         if (hidden.has(tx.layer) || tx.invisible) continue;
+        if (!shouldDrawTextOnCanvas(tx)) continue;
         drawCadText(drawCtx, tx, view.zoom);
       }
       if (idx < texts.length && gen === textDrawGenRef.current) {
@@ -333,7 +336,7 @@ function PfDwgViewerInner({
         return;
       }
       const images = d.scene.images ?? [];
-      if (images.length === 0 || gen !== textDrawGenRef.current) return;
+      if (P9_RASTER_WEBGL_ENABLED || images.length === 0 || gen !== textDrawGenRef.current) return;
       const hostPath = normalizeCadPath(fileName);
       void (async () => {
         for (const img of images) {
@@ -521,6 +524,21 @@ function PfDwgViewerInner({
           triangles,
           scene.segmentStride,
         );
+        const glRenderer = rendererRef.current?.getRenderer();
+        if (glRenderer && scene.images?.length) {
+          const hostPath = normalizeCadPath(fileName);
+          glRenderer.setRasterScene(scene.images, scene.origin, new Set(), async (path) => {
+            const hit = lookupInIndex(fileIndex, hostPath, path);
+            if (!hit) return null;
+            try {
+              const bytes = await hit.getBytes();
+              const blob = new Blob([Uint8Array.from(bytes)], { type: 'image/png' });
+              return URL.createObjectURL(blob);
+            } catch {
+              return null;
+            }
+          });
+        }
         rendererRef.current?.fit();
         rendererRef.current?.draw();
         const timeToFirstFrameMs = performance.now() - loadStarted;

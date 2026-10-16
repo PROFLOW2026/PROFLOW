@@ -15,6 +15,8 @@ import {
 import { FILL_VERT, LINE_FRAG, WIDE_LINE_VERT } from './shaders';
 import { wideLineMeshFromPairs } from './wide-line-batch';
 import { computeFitView, type CadView, type ViewportSize } from './view-math';
+import type { CadRasterImage } from '../types';
+import { CadRasterWebGlPass, P9_RASTER_WEBGL_ENABLED } from '../cad-raster-webgl';
 
 export type CadWebGlRendererOptions = {
   clearColor?: [number, number, number, number];
@@ -96,6 +98,8 @@ export class CadWebGlRenderer {
 
   private contextLost = false;
   private boundContextHandlers = false;
+  private readonly rasterPass = new CadRasterWebGlPass();
+  private rasterLoadGen = 0;
 
   constructor(canvas: HTMLCanvasElement, options: CadWebGlRendererOptions = {}) {
     this.canvas = canvas;
@@ -221,6 +225,39 @@ export class CadWebGlRenderer {
         gl.drawArrays(gl.TRIANGLES, 0, batch.drawVertexCount);
       }
     }
+
+    if (P9_RASTER_WEBGL_ENABLED) {
+      this.rasterPass.init(gl);
+      this.rasterPass.draw(gl, this.view, this.viewport);
+    }
+  }
+
+  setRasterScene(
+    images: CadRasterImage[] | undefined,
+    origin: [number, number],
+    hiddenLayers: Set<number>,
+    resolveImageUrl: (path: string) => Promise<string | null>,
+  ): void {
+    if (!P9_RASTER_WEBGL_ENABLED) return;
+    this.rasterPass.setScene(images, origin, hiddenLayers, resolveImageUrl);
+    void this.loadRastersAsync();
+  }
+
+  updateRasterHiddenLayers(hiddenLayers: Set<number>): void {
+    if (!P9_RASTER_WEBGL_ENABLED) return;
+    this.rasterPass.updateHiddenLayers(hiddenLayers);
+    this.draw();
+  }
+
+  private async loadRastersAsync(): Promise<void> {
+    const gl = this.gl;
+    if (!gl || this.contextLost || !P9_RASTER_WEBGL_ENABLED) return;
+    this.rasterPass.init(gl);
+    const gen = ++this.rasterLoadGen;
+    await this.rasterPass.ensureLoaded(gl);
+    if (gen === this.rasterLoadGen) {
+      this.draw();
+    }
   }
 
   destroy(): void {
@@ -230,6 +267,7 @@ export class CadWebGlRenderer {
     this.cpuBatches = [];
     this.disposeGpu();
     const gl = this.gl;
+    this.rasterPass.dispose(gl);
     if (gl) {
       if (this.wideLineProgram) gl.deleteProgram(this.wideLineProgram);
       if (this.fillProgram) gl.deleteProgram(this.fillProgram);

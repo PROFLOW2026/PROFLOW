@@ -5,6 +5,7 @@ import { mirrorScale } from '@/modules/external-storage/ui/cad/pf-cad/draw-cad-t
 import {
   mayMarkTextGpu,
   P8_GPU_TEXT_HANDOFF_ENABLED,
+  shouldDrawTextOnCanvas,
 } from '@/modules/external-storage/ui/cad/pf-cad/cad-gpu-text-policy';
 import { appendShxGpuSegments } from '@/modules/external-storage/ui/cad/pf-cad/shx-text-segments';
 import type { CadText } from '@/modules/external-storage/ui/cad/pf-cad/types';
@@ -36,6 +37,22 @@ describe('CAD text regression guards', () => {
     expect(mirrorScale(true)).toBe(-1);
     expect(mirrorScale(false)).toBe(1);
     expect(mirrorScale(1)).toBe(1);
+  });
+
+  it('gpu-marked records still draw on Canvas while P8 handoff is disabled', () => {
+    expect(
+      shouldDrawTextOnCanvas({
+        k: 'text',
+        t: 'X',
+        x: 0,
+        y: 0,
+        h: 2,
+        r: 0,
+        c: 0xff000000,
+        layer: 0,
+        gpu: true,
+      }),
+    ).toBe(true);
   });
 
   it('P8 GPU handoff stays disabled and partial segments cannot mark gpu', () => {

@@ -62,3 +62,33 @@ void main() {
   gl_Position = vec4(clip, 0.0, 1.0);
 }
 `;
+
+export const RASTER_VERT = `#version 300 es
+precision highp float;
+layout(location = 0) in vec2 a_pos;
+layout(location = 1) in vec2 a_uv;
+uniform vec2 u_pan;
+uniform float u_zoom;
+uniform vec2 u_viewport;
+out vec2 v_uv;
+void main() {
+  vec2 clip = vec2(
+    (2.0 * (a_pos.x - u_pan.x) * u_zoom) / u_viewport.x,
+    (2.0 * (a_pos.y - u_pan.y) * u_zoom) / u_viewport.y
+  );
+  gl_Position = vec4(clip, 0.0, 1.0);
+  v_uv = a_uv;
+}
+`;
+
+export const RASTER_FRAG = `#version 300 es
+precision highp float;
+uniform sampler2D u_texture;
+uniform vec4 u_color;
+in vec2 v_uv;
+out vec4 outColor;
+void main() {
+  vec4 tex = texture(u_texture, v_uv);
+  outColor = vec4(tex.rgb * u_color.rgb, tex.a * u_color.a);
+}
+`;
