@@ -6,9 +6,13 @@ import { describe, expect, it } from 'vitest';
 const fixtureRoot =
   process.env.PF_CAD_FIXTURES ??
   'C:/Users/ERAN YOSEF/Desktop/final projects/cad-xref-test-fixtures';
-const host3096 = path.join(fixtureRoot, '3096-EL', '3096-EL.dwg');
+const hostCandidates = [
+  path.join(process.cwd(), 'tmp-3096-el', '3096-EL.dwg'),
+  path.join(fixtureRoot, '3096-EL', '3096-EL.dwg'),
+];
+const host3096 = hostCandidates.find((p) => fs.existsSync(p));
 const wasmDir = path.join(process.cwd(), 'public/pf-cad/wasm');
-const hasFixture = fs.existsSync(host3096) && fs.existsSync(path.join(wasmDir, 'pf_cad_wasm.js'));
+const hasFixture = Boolean(host3096) && fs.existsSync(path.join(wasmDir, 'pf_cad_wasm.js'));
 
 describe.skipIf(!hasFixture)('cad P9 WASM smoke (3096-EL)', () => {
   it('emit_multileader contributes segments (WebGL path uses same buffer as lines)', async () => {
@@ -26,18 +30,19 @@ describe.skipIf(!hasFixture)('cad P9 WASM smoke (3096-EL)', () => {
       return [put(b), b.length] as const;
     }
     w.set_p8_gpu_text_handoff(1);
-    w.set_host_path(...str(path.dirname(host3096).replace(/\\/g, '/')));
+    w.set_host_path(...str(path.dirname(host3096!).replace(/\\/g, '/')));
     w.set_space(...str('*Model_Space'));
-    const data = fs.readFileSync(host3096);
+    const data = fs.readFileSync(host3096!);
     w.build_dl(put(data), data.length);
     const json = JSON.parse(
       new TextDecoder().decode(new Uint8Array(w.memory.buffer, w.json_ptr(), w.json_len())),
     ) as {
       segmentCount: number;
-      report: { rendered: Record<string, number> };
+      report: { rendered: Record<string, number>; skipped: Record<string, number> };
     };
     const ml = json.report.rendered.MultiLeader ?? json.report.rendered.MLeader ?? 0;
     expect(ml).toBeGreaterThan(0);
-    expect(json.segmentCount).toBeGreaterThan(0);
+    expect(json.segmentCount).toBeGreaterThanOrEqual(ml);
+    expect(json.report.skipped.MultiLeader ?? json.report.skipped.MLeader ?? 0).toBe(0);
   });
 });

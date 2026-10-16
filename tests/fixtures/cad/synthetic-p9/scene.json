@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "space": "*Model_Space",
+  "origin": [
+    100,
+    200
+  ],
+  "contentExtent": [
+    108,
+    198,
+    132,
+    222
+  ],
+  "robustExtent": [
+    108,
+    198,
+    132,
+    222
+  ],
+  "fullExtent": [
+    108,
+    198,
+    132,
+    222
+  ],
+  "segmentCount": 0,
+  "segmentStride": 8,
+  "texts": [],
+  "layers": [
+    {
+      "i": 0,
+      "name": "RASTER_REF",
+      "off": false,
+      "frozen": false
+    }
+  ],
+  "spaces": [
+    "*Model_Space"
+  ],
+  "report": {
+    "rendered": {
+      "Image": 1
+    },
+    "skipped": {},
+    "missingBlocks": {},
+    "xrefs": {},
+    "depthCut": 0,
+    "parserErrors": 0
+  },
+  "images": [
+    {
+      "path": "p9-raster-tile.png",
+      "layer": 0,
+      "c": 4294967295,
+      "corners": [
+        [
+          110,
+          200
+        ],
+        [
+          130,
+          200
+        ],
+        [
+          130,
+          220
+        ],
+        [
+          110,
+          220
+        ]
+      ],
+      "clip": [
+        [
+          112,
+          202
+        ],
+        [
+          128,
+          202
+        ],
+        [
+          128,
+          218
+        ],
+        [
+          112,
+          218
+        ]
+      ]
+    }
+  ]
+}

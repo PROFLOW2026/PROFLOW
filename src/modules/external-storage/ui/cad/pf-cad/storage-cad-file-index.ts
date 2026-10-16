@@ -5,7 +5,8 @@ import { fetchStoragePreviewBytes } from '../fetch-storage-preview-bytes';
 import { buildFileIndex, type CadIndexedFile, type FileIndex } from './xref-resolver';
 
 /** Sibling files that may satisfy DWG XREF / font dependencies in the same folder listing. */
-const CAD_SUPPORT_NAME = /\.(dwg|dxf|shx|pat|lin|ttf|otf)$/i;
+const CAD_SUPPORT_NAME =
+  /\.(dwg|dxf|shx|pat|lin|ttf|otf|png|jpe?g|webp|gif|bmp|tiff?)$/i;
 
 const storageBytesCache = new Map<string, Promise<Uint8Array>>();
 
