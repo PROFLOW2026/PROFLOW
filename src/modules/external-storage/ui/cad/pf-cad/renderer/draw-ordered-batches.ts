@@ -20,6 +20,7 @@ export type FillDrawBatch = {
 export type LineDrawBatch = {
   kind: 'line';
   colorBits: number;
+  lineWeightHundredths: number;
   positions: Float32Array;
   vertexCount: number;
 };
@@ -126,13 +127,19 @@ function collectPrims(
   return prims;
 }
 
-function flushLineBatch(batches: DrawBatch[], colorBits: number, floats: number[]): void {
+function flushLineBatch(
+  batches: DrawBatch[],
+  colorBits: number,
+  lineWeightHundredths: number,
+  floats: number[],
+): void {
   if (floats.length === 0) {
     return;
   }
   batches.push({
     kind: 'line',
     colorBits,
+    lineWeightHundredths,
     positions: Float32Array.from(floats),
     vertexCount: floats.length / 2,
   });
@@ -155,6 +162,7 @@ export function buildOrderedDrawBatches(
   triangles: Float32Array,
   visibility: LayerVisibilityState,
   segStride = SEGMENT_STRIDE,
+  lineAsQuads = false,
 ): DrawBatch[] {
   const prims = collectPrims(segments, triangles, visibility, segStride);
   const batches: DrawBatch[] = [];
@@ -169,7 +177,7 @@ export function buildOrderedDrawBatches(
   for (const p of prims) {
     if (p.kind === 'fill') {
       if (lineFloats.length > 0) {
-        flushLineBatch(batches, lineColor, lineFloats);
+        flushLineBatch(batches, lineColor, lineLw, lineFloats);
         lineFloats = [];
         lineColor = -1;
       }
@@ -190,17 +198,45 @@ export function buildOrderedDrawBatches(
         (lineColor !== p.colorBits || lineLw !== p.lw || lineOrder !== p.order) &&
         lineFloats.length > 0
       ) {
-        flushLineBatch(batches, lineColor, lineFloats);
+        flushLineBatch(batches, lineColor, lineLw, lineFloats);
         lineFloats = [];
       }
       lineColor = p.colorBits;
       lineLw = p.lw;
       lineOrder = p.order;
-      pushLineQuad(lineFloats, p.x1, p.y1, p.x2, p.y2, halfWidthWorld(p.lw));
+      if (lineAsQuads) {
+        pushLineQuad(lineFloats, p.x1, p.y1, p.x2, p.y2, halfWidthWorld(p.lw));
+      } else {
+        lineFloats.push(p.x1, p.y1, p.x2, p.y2);
+      }
     }
   }
   flushFillBatch(batches, fillColor, fillFloats);
-  flushLineBatch(batches, lineColor, lineFloats);
+  flushLineBatch(batches, lineColor, lineLw, lineFloats);
+  return batches;
+}
+
+/** Fill triangles only, sorted by draw order (for hybrid line + fill rendering). */
+export function buildFillDrawBatches(
+  triangles: Float32Array,
+  visibility: LayerVisibilityState,
+): FillDrawBatch[] {
+  const prims = collectPrims(new Float32Array(0), triangles, visibility, SEGMENT_STRIDE);
+  const batches: FillDrawBatch[] = [];
+  let fillColor = -1;
+  let fillOrder = -1;
+  let fillFloats: number[] = [];
+  for (const p of prims) {
+    if (p.kind !== 'fill') continue;
+    if ((fillColor !== p.colorBits || fillOrder !== p.order) && fillFloats.length > 0) {
+      flushFillBatch(batches, fillColor, fillFloats);
+      fillFloats = [];
+    }
+    fillColor = p.colorBits;
+    fillOrder = p.order;
+    fillFloats.push(p.x1, p.y1, p.x2, p.y2, p.x3, p.y3);
+  }
+  flushFillBatch(batches, fillColor, fillFloats);
   return batches;
 }
 
@@ -209,10 +245,11 @@ export async function buildOrderedDrawBatchesAsync(
   triangles: Float32Array,
   visibility: LayerVisibilityState,
   segStride = SEGMENT_STRIDE,
+  lineAsQuads = false,
 ): Promise<DrawBatch[]> {
   if (segmentCount(segments, segStride) + triangleCount(triangles) <= SEGMENTS_PER_YIELD) {
-    return buildOrderedDrawBatches(segments, triangles, visibility, segStride);
+    return buildOrderedDrawBatches(segments, triangles, visibility, segStride, lineAsQuads);
   }
   await yieldToMain();
-  return buildOrderedDrawBatches(segments, triangles, visibility, segStride);
+  return buildOrderedDrawBatches(segments, triangles, visibility, segStride, lineAsQuads);
 }

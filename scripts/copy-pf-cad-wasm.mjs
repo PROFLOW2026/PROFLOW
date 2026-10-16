@@ -58,12 +58,24 @@ if (fs.existsSync(enginePkgPath)) {
   engineVersion = JSON.parse(fs.readFileSync(enginePkgPath, 'utf8')).version ?? engineVersion;
 }
 
+let engineCommitSha = 'unknown';
+try {
+  const { execSync } = await import('node:child_process');
+  engineCommitSha = execSync('git rev-parse HEAD', {
+    cwd: engineRoot,
+    encoding: 'utf8',
+  }).trim();
+} catch {
+  /* engine repo may be absent in CI copy-only path */
+}
+
 fs.writeFileSync(
   manifestPath,
   `${JSON.stringify(
     {
       engine: 'projectflow-cad-engine',
       engineVersion,
+      engineCommitSha,
       wasm: 'pf_cad_wasm_bg.wasm',
       glue: 'pf_cad_wasm.js',
     },

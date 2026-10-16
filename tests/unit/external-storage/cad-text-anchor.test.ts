@@ -6,6 +6,7 @@ import {
   FONT_SIZE_FACTOR,
   mirrorScale,
 } from '@/modules/external-storage/ui/cad/pf-cad/draw-cad-text';
+import { maybeDecodeHebrewShxText } from '@/modules/external-storage/ui/cad/pf-cad/hebrew-shx-decode';
 
 describe('cad text anchor math', () => {
   it('uses Noto cap height constants', () => {
@@ -42,5 +43,12 @@ describe('cad text anchor math', () => {
     expect(anchorOffset(0, 1, w, capH, descent, blockH).dy).toBe(-20);
     expect(anchorOffset(0, 2, w, capH, descent, blockH).dy).toBe(-14);
     expect(anchorOffset(0, 3, w, capH, descent, blockH).dy).toBe(-22);
+  });
+});
+
+describe('hebrew SHX decode', () => {
+  it('maps keyboard-latin placeholder to Hebrew for Hebrew SHX styles', () => {
+    const decoded = maybeDecodeHebrewShxText('neuo anur', 'HEBTXT');
+    expect(decoded).toBe('מקום שמור');
   });
 });

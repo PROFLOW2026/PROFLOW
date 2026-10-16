@@ -1,6 +1,7 @@
 {
   "engine": "projectflow-cad-engine",
   "engineVersion": "unknown",
+  "engineCommitSha": "be1d77813785c2d774be250431936f3d1fb7d94f",
   "wasm": "pf_cad_wasm_bg.wasm",
   "glue": "pf_cad_wasm.js"
 }

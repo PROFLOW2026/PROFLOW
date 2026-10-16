@@ -9,7 +9,11 @@ import {
   buildOrderedDrawBatchesAsync,
   type DrawBatch,
 } from './draw-ordered-batches';
-import { PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS } from '../pf-cad-config';
+import {
+  PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS,
+  PF_CAD_GPU_LINE_QUADS,
+  PF_CAD_GPU_TRIANGLE_FILLS,
+} from '../pf-cad-config';
 import { yieldToMain } from '../yield-to-main';
 import { colorBitsToRgb01, SEGMENT_STRIDE } from './segment-format';
 import type { CadExtent } from './segment-format';
@@ -186,14 +190,27 @@ export class CadWebGlRenderer {
     gl.uniform1f(this.uniforms.zoom, this.view.zoom);
     gl.uniform2f(this.uniforms.viewport, this.viewport.width, this.viewport.height);
 
-    if (PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS) {
+    const useOrdered =
+      PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS ||
+      PF_CAD_GPU_LINE_QUADS ||
+      (PF_CAD_GPU_TRIANGLE_FILLS && this.triangles.length > 0);
+
+    if (useOrdered && this.gpuExpBatches.length > 0) {
+      const zoom = this.view.zoom;
+      const allQuads =
+        PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS || PF_CAD_GPU_LINE_QUADS;
       for (const batch of this.gpuExpBatches) {
         const [r, g, b] = colorBitsToRgb01(batch.colorBits);
         gl.uniform4f(this.uniforms.color, r, g, b, 1);
         gl.bindBuffer(gl.ARRAY_BUFFER, batch.vbo);
         gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(0);
-        gl.drawArrays(gl.TRIANGLES, 0, batch.vertexCount);
+        if (batch.kind === 'fill' || allQuads) {
+          gl.drawArrays(gl.TRIANGLES, 0, batch.vertexCount);
+        } else {
+          gl.lineWidth(lineWidthPxFromHundredths(batch.lineWeightHundredths, zoom));
+          gl.drawArrays(gl.LINES, 0, batch.vertexCount);
+        }
       }
       return;
     }
@@ -294,13 +311,21 @@ export class CadWebGlRenderer {
       this.cpuExpBatches = [];
       return;
     }
-    if (PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS) {
+    const useOrdered =
+      PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS ||
+      PF_CAD_GPU_LINE_QUADS ||
+      (PF_CAD_GPU_TRIANGLE_FILLS && this.triangles.length > 0);
+    if (useOrdered) {
+      const lineAsQuads =
+        PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS || PF_CAD_GPU_LINE_QUADS;
       this.cpuExpBatches = buildOrderedDrawBatches(
         this.segments,
         this.triangles,
         this.layerVisibility,
         this.segmentStride,
+        lineAsQuads,
       );
+      this.cpuLineBatches = [];
       return;
     }
     if (!force && this.cpuLineBatches.length > 0) {
@@ -321,13 +346,21 @@ export class CadWebGlRenderer {
       this.cpuExpBatches = [];
       return;
     }
-    if (PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS) {
+    const useOrdered =
+      PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS ||
+      PF_CAD_GPU_LINE_QUADS ||
+      (PF_CAD_GPU_TRIANGLE_FILLS && this.triangles.length > 0);
+    if (useOrdered) {
+      const lineAsQuads =
+        PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS || PF_CAD_GPU_LINE_QUADS;
       this.cpuExpBatches = await buildOrderedDrawBatchesAsync(
         this.segments,
         this.triangles,
         this.layerVisibility,
         this.segmentStride,
+        lineAsQuads,
       );
+      this.cpuLineBatches = [];
       return;
     }
     if (!force && this.cpuLineBatches.length > 0) {
@@ -348,7 +381,11 @@ export class CadWebGlRenderer {
     if (!gl || this.contextLost) {
       return;
     }
-    if (PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS) {
+    const useOrdered =
+      PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS ||
+      PF_CAD_GPU_LINE_QUADS ||
+      (PF_CAD_GPU_TRIANGLE_FILLS && this.triangles.length > 0);
+    if (useOrdered) {
       this.gpuExpBatches = this.cpuExpBatches.map((batch) => {
         const vbo = gl.createBuffer();
         if (!vbo) {
