@@ -9,6 +9,10 @@ import {
   PF_CAD_WASM_BINARY_URL as V1_WASM_URL,
   PF_CAD_WASM_GLUE_URL as V1_GLUE_URL,
 } from '@/modules/external-storage/ui/cad/pf-cad-v1/pf-cad-config';
+import {
+  PF_CAD_WASM_BINARY_URL as V3_WASM_URL,
+  PF_CAD_WASM_GLUE_URL as V3_GLUE_URL,
+} from '@/modules/external-storage/ui/cad/pf-cad-v3/pf-cad-config';
 import { DEFAULT_CAD_VIEWER_VERSION } from '@/modules/external-storage/ui/cad/cad-viewer-version-select';
 
 const root = process.cwd();
@@ -47,6 +51,10 @@ describe('pf-cad wasm static assets', () => {
     expect(V1_WASM_URL).toBe('/pf-cad/v1/wasm/pf_cad_wasm_bg.wasm');
     expect(V1_GLUE_URL).toBe('/pf-cad/v1/wasm/pf_cad_wasm.js');
     expect(V1_WASM_URL).not.toBe(PF_CAD_WASM_BINARY_URL);
+    expect(V3_WASM_URL).toBe('/pf-cad/v3/wasm/pf_cad_wasm_bg.wasm');
+    expect(V3_GLUE_URL).toBe('/pf-cad/v3/wasm/pf_cad_wasm.js');
+    expect(V3_WASM_URL).not.toBe(PF_CAD_WASM_BINARY_URL);
+    expect(V3_WASM_URL).not.toBe(V1_WASM_URL);
     expect(DEFAULT_CAD_VIEWER_VERSION).toBe('v1');
     const versionedViewer = fs.readFileSync(
       path.join(root, 'src/modules/external-storage/ui/cad/pf-dwg-versioned-viewer.tsx'),
@@ -54,6 +62,7 @@ describe('pf-cad wasm static assets', () => {
     );
     expect(versionedViewer).toContain("v1: () => import('./pf-cad/pf-dwg-viewer')");
     expect(versionedViewer).toContain("v2: () => import('./pf-cad-v1/pf-dwg-viewer')");
+    expect(versionedViewer).toContain("v3: () => import('./pf-cad-v3/pf-dwg-viewer')");
     const v1Wasm = path.join(root, 'public', 'pf-cad', 'v1', 'wasm', 'pf_cad_wasm_bg.wasm');
     expect(fs.existsSync(v1Wasm)).toBe(true);
     expect(fs.statSync(v1Wasm).size).toBeGreaterThan(1_000_000);
@@ -69,5 +78,15 @@ describe('pf-cad wasm static assets', () => {
     expect(v1Worker).not.toContain('/pf-cad/v2/');
     expect(v2Worker).toContain('PF_CAD_WASM_VERSION_URL');
     expect(v2Worker).not.toContain('/pf-cad/v1/');
+    const v3Wasm = path.join(root, 'public', 'pf-cad', 'v3', 'wasm', 'pf_cad_wasm_bg.wasm');
+    expect(fs.existsSync(v3Wasm)).toBe(true);
+    expect(fs.statSync(v3Wasm).size).toBe(fs.statSync(wasmPath).size);
+    const v3Worker = fs.readFileSync(
+      path.join(root, 'src/modules/external-storage/ui/cad/pf-cad-v3/cad-engine.worker.ts'),
+      'utf8',
+    );
+    expect(v3Worker).toContain("from './pf-cad-config'");
+    expect(v3Worker).not.toContain('/pf-cad/v1/');
+    expect(v3Worker).not.toContain('/pf-cad/v2/');
   });
 });

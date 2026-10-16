@@ -38,6 +38,7 @@ export function StorageFilePreviewShell({
   onClose,
   closeLabel,
   title,
+  headerLeading,
   headerActions,
   children,
 }: {
@@ -45,6 +46,7 @@ export function StorageFilePreviewShell({
   onClose: () => void;
   closeLabel: string;
   title: string;
+  headerLeading?: ReactNode;
   headerActions?: ReactNode;
   children: ReactNode;
 }) {
@@ -76,10 +78,11 @@ export function StorageFilePreviewShell({
         'md:inset-auto md:left-1/2 md:top-1/2 md:h-[92vh] md:w-[92vw] md:max-h-[92vh] md:max-w-[92vw] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-lg md:border md:border-[var(--pf-border-default)] md:shadow-[var(--pf-shadow-lg)]',
       )}
     >
-      <header className="flex shrink-0 items-center gap-2 border-b border-[var(--pf-border-default)] px-2 py-2 md:px-3">
+      <header className="flex min-w-0 shrink-0 items-center gap-2 overflow-x-hidden border-b border-[var(--pf-border-default)] px-2 py-2 md:px-3">
         <Button type="button" variant="ghost" size="sm" onClick={onClose} aria-label={closeLabel}>
           <X className="size-5" aria-hidden />
         </Button>
+        {headerLeading ? <div className="shrink-0">{headerLeading}</div> : null}
         <p
           className="min-w-0 flex-1 truncate text-sm font-medium md:text-base"
           dir="ltr"

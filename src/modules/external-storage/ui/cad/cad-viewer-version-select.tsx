@@ -2,16 +2,17 @@
 
 import { Button } from '@/components/ui/button';
 
-export type CadViewerVersion = 'v1' | 'v2';
+export type CadViewerVersion = 'v1' | 'v2' | 'v3';
 
 export const DEFAULT_CAD_VIEWER_VERSION: CadViewerVersion = 'v1';
 
 const OPTIONS: readonly { id: CadViewerVersion; label: string }[] = [
   { id: 'v1', label: 'גרסה 1' },
   { id: 'v2', label: 'גרסה 2' },
+  { id: 'v3', label: 'גרסה 3' },
 ];
 
-/** Compact two-way switch. Does not load or render a CAD engine. */
+/** Compact version switch. Does not load or render a CAD engine. */
 export function CadViewerVersionSelect({
   value,
   onChange,

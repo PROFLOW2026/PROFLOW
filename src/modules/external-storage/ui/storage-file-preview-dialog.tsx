@@ -25,6 +25,7 @@ import {
   translatePreviewOpenInProvider,
   translatePreviewUnsupportedWithProvider,
 } from './preview-open-in-provider-label';
+import { CadAlternateFontsButton } from './cad/cad-alternate-fonts-button';
 import { StorageFilePreviewShell } from './storage-file-preview-shell';
 import { StorageLoadingOverlay } from './storage-loading-overlay';
 import { useShareStorageFile } from './use-share-storage-file';
@@ -200,6 +201,7 @@ export function StorageFilePreviewDialog({
       onClose={handleClose}
       closeLabel={tCommon('actions.close')}
       title={activeFile.filename}
+      headerLeading={showCad ? <CadAlternateFontsButton /> : null}
       headerActions={
         <Button
           type="button"

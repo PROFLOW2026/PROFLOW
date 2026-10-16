@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import type { CadIndexedFile } from './xref-resolver';
+import { CadAlternateFontsButton } from '../cad-alternate-fonts-button';
 import { PfDwgVersionedViewer } from '../pf-dwg-versioned-viewer';
 
 const SAMPLES = [
@@ -85,7 +86,8 @@ export function PfCadLocalDevPage({ locale }: { locale: string }) {
   return (
     <div className="flex h-dvh flex-col bg-background">
       <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2 text-sm">
-        <span className="font-medium">PF CAD local viewer ({locale})</span>
+        <span className="min-w-0 flex-1 truncate font-medium">PF CAD local viewer ({locale})</span>
+        <CadAlternateFontsButton />
         {SAMPLES.map((s) => (
           <button
             key={s.id}

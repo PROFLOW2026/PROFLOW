@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { CadDwgCompactAlerts } from './cad-dwg-compact-alerts';
 import { CadDwgSpaceSelect } from './cad-dwg-space-select';
 import type { CadDwgBanner } from './cad-ui-messages';
-import { CadAlternateFontsButton } from '../cad-alternate-fonts-button';
 import {
   CadViewerVersionSelect,
   type CadViewerVersion,
@@ -41,7 +40,6 @@ export function CadDwgViewerToolbar({
       className="pointer-events-none absolute inset-x-0 top-0 z-10 grid grid-cols-[auto_minmax(0,1fr)] items-start gap-2 px-2 py-1.5 sm:gap-3"
     >
       <div className="pointer-events-auto flex min-w-0 items-center justify-self-start gap-1">
-        <CadAlternateFontsButton />
         <CadDwgCompactAlerts banners={visibleBanners} locale={locale} />
       </div>
       <div className="pointer-events-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-1.5 sm:gap-2">

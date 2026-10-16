@@ -1,0 +1,69 @@
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { CadDwgCompactAlerts } from './cad-dwg-compact-alerts';
+import { CadDwgSpaceSelect } from './cad-dwg-space-select';
+import type { CadDwgBanner } from './cad-ui-messages';
+import {
+  CadViewerVersionSelect,
+  type CadViewerVersion,
+} from '../cad-viewer-version-select';
+
+/** Model/Layout selector (right) + compact warnings (left) on one row. */
+export function CadDwgViewerToolbar({
+  spaces,
+  activeSpace,
+  onSpaceChange,
+  banners,
+  locale,
+  plotView,
+  onPlotViewChange,
+  viewerVersion,
+  onViewerVersionChange,
+}: {
+  spaces: readonly string[];
+  activeSpace: string;
+  onSpaceChange: (space: string) => void;
+  banners: readonly CadDwgBanner[];
+  locale: string;
+  plotView: boolean;
+  onPlotViewChange: (on: boolean) => void;
+  viewerVersion?: CadViewerVersion;
+  onViewerVersionChange?: (version: CadViewerVersion) => void;
+}) {
+  const showSpace = spaces.length > 1;
+  const visibleBanners = banners.filter((banner) => banner.key !== 'cadDwgFontsMissing');
+
+  return (
+    <div
+      dir="ltr"
+      className="pointer-events-none absolute inset-x-0 top-0 z-10 grid grid-cols-[auto_minmax(0,1fr)] items-start gap-2 px-2 py-1.5 sm:gap-3"
+    >
+      <div className="pointer-events-auto flex min-w-0 items-center justify-self-start gap-1">
+        <CadDwgCompactAlerts banners={visibleBanners} locale={locale} />
+      </div>
+      <div className="pointer-events-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+        {viewerVersion && onViewerVersionChange ? (
+          <CadViewerVersionSelect value={viewerVersion} onChange={onViewerVersionChange} />
+        ) : null}
+        <Button
+          type="button"
+          size="sm"
+          variant={plotView ? 'primary' : 'secondary'}
+          className="h-9 min-h-9 px-2.5 text-xs font-medium"
+          onClick={() => onPlotViewChange(!plotView)}
+        >
+          Plot view
+        </Button>
+        {showSpace ? (
+          <CadDwgSpaceSelect
+            spaces={spaces}
+            value={activeSpace}
+            onValueChange={onSpaceChange}
+            triggerClassName="h-9 min-h-9 w-auto min-w-[7.5rem] max-w-[min(100vw-8rem,14rem)] sm:max-w-xs"
+          />
+        ) : null}
+      </div>
+    </div>
+  );
+}
