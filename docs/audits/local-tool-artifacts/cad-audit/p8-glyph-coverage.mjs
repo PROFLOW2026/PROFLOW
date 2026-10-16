@@ -23,6 +23,9 @@ const fx = 'C:/Users/ERAN YOSEF/Desktop/final projects/cad-xref-test-fixtures';
 const host = `${fx}/3096-EL/3096-EL.dwg`;
 const depsDir = `${fx}/3096-EL`;
 
+const { appendShxGpuSegments } = await import(
+  pathToFileURL(path.join(root, 'src/modules/external-storage/ui/cad/pf-cad/shx-text-segments.ts')).href
+);
 const { applyCadP8GpuTextHandoff } = await import(
   pathToFileURL(path.join(root, 'src/modules/external-storage/ui/cad/pf-cad/apply-p8-text-handoff.ts')).href
 );
@@ -38,7 +41,9 @@ const { buildLocalStorageCadIndex } = await import(
     .href
 );
 const {
+  cadTextStyleUsesClientShx,
   countExpectedShxDrawableGlyphs,
+  isShxTextRecordGpuComplete,
   shxTextRecordCoverage,
 } = await import(
   pathToFileURL(path.join(root, 'src/modules/external-storage/ui/cad/pf-cad/shx-text-segments.ts')).href
@@ -100,19 +105,30 @@ function loadScene() {
   return { json, segments, nFloats };
 }
 
-function loadShxFromDeps() {
+function loadShxFromDir(dir) {
   const loaded = [];
-  if (!fs.existsSync(depsDir)) return loaded;
-  for (const f of fs.readdirSync(depsDir)) {
+  if (!fs.existsSync(dir)) return loaded;
+  for (const f of fs.readdirSync(dir)) {
     if (!/\.shx$/i.test(f)) continue;
-    const full = path.join(depsDir, f);
+    const full = path.join(dir, f);
     loaded.push({ name: f, bytes: new Uint8Array(fs.readFileSync(full)) });
   }
-  if (loaded.length > 0) {
-    clearCadShxFonts();
-    registerCadShxFonts(loaded);
+  return loaded;
+}
+
+function loadShxFromDeps() {
+  const syntheticDir = path.join(root, 'tests/fixtures/cad/synthetic-shx');
+  const loaded = [...loadShxFromDir(depsDir), ...loadShxFromDir(syntheticDir)];
+  const byKey = new Map();
+  for (const item of loaded) {
+    byKey.set(item.name.toLowerCase(), item);
   }
-  return loaded.map((x) => x.name);
+  const merged = [...byKey.values()];
+  if (merged.length > 0) {
+    clearCadShxFonts();
+    registerCadShxFonts(merged);
+  }
+  return merged.map((x) => x.name);
 }
 
 if (!fs.existsSync(host)) {
@@ -150,6 +166,110 @@ const canvasFallback = texts.filter((t) => shouldDrawTextOnCanvas(t)).length;
 const canvasDrawBefore = texts.filter((t) => shouldDrawTextOnCanvas(t)).length;
 
 const shxNames = loadShxFromDeps();
+
+function shxHandoffMetrics(sceneTexts, origin) {
+  let shxStyleResolvable = 0;
+  let shxGpuEligible = 0;
+  let wasmGpuClientShxIncomplete = 0;
+  for (const t of sceneTexts) {
+    if (t.invisible) continue;
+    if (lookupShxFont(t.style)) shxStyleResolvable += 1;
+    if (cadTextStyleUsesClientShx(t) && isShxTextRecordGpuComplete(t, origin)) {
+      shxGpuEligible += 1;
+    }
+    if (t.gpu === true && cadTextStyleUsesClientShx(t) && !isShxTextRecordGpuComplete(t, origin)) {
+      wasmGpuClientShxIncomplete += 1;
+    }
+  }
+  return { shxStyleResolvable, shxGpuEligible, wasmGpuClientShxIncomplete };
+}
+
+function minimalMirylBytes() {
+  const bytes = new Uint8Array(48);
+  bytes.set(new TextEncoder().encode('AutoCAD-86 shapes 1.0'), 0);
+  bytes.set([0x1a, 0, 65, 3, 1, 16, 14], 24);
+  return bytes;
+}
+
+function runSyntheticProof(origin, latinFrom3096) {
+  clearCadShxFonts();
+  registerCadShxFonts([{ name: 'MIRYL.SHX', bytes: minimalMirylBytes() }]);
+  registerCadShxStyleTable([
+    { name: 'TRHEBTXT', font: 'MIRYL.SHX' },
+    { name: 'SYNLATIN', font: 'MIRYL.SHX' },
+  ]);
+
+  const inlineRecord = {
+    k: 'text',
+    t: 'A',
+    x: 0,
+    y: 0,
+    h: 2,
+    r: 0,
+    c: 0xff000000,
+    layer: 0,
+    style: 'MIRYL.SHX',
+    gpu: true,
+  };
+
+  const latinSource =
+    latinFrom3096.find((t) => t.t && /^[\x20-\x7E]+$/.test(String(t.t).trim())) ?? null;
+  const styleNameProof = {
+    k: 'text',
+    t: 'A',
+    x: 10,
+    y: 10,
+    h: 2,
+    r: 0,
+    c: 0xff000000,
+    layer: 0,
+    style: 'TRHEBTXT',
+    gpu: true,
+  };
+
+  const proofs = [
+    { label: 'inline-miryl-shx', record: inlineRecord },
+    { label: 'style-table-trhebtxt', record: styleNameProof },
+  ];
+  if (latinSource) {
+    proofs.push({
+      label: '3096-latin-filtered',
+      record: {
+        ...latinSource,
+        t: String(latinSource.t).trim().slice(0, 8) || 'A',
+        gpu: true,
+      },
+    });
+  }
+
+  const results = [];
+  for (const { label, record } of proofs) {
+    const handoff = applyCadP8GpuTextHandoff(new Float32Array(0), {
+      texts: [{ ...record }],
+      origin,
+      segmentStride: 8,
+    });
+    results.push({
+      label,
+      style: record.style,
+      shxSegmentsAdded: handoff.segments.length,
+      shxGpuCount: handoff.scene.texts[0]?.gpu === true ? 1 : 0,
+      gpuComplete: isShxTextRecordGpuComplete(handoff.scene.texts[0], origin),
+    });
+  }
+
+  const direct = appendShxGpuSegments(new Float32Array(0), { texts: [{ ...inlineRecord, gpu: true }] }, origin);
+  return {
+    ok: results.some((r) => r.shxSegmentsAdded > 0 && r.shxGpuCount >= 1),
+    synthFonts: ['MIRYL.SHX (minimal inline)'],
+    proofs: results,
+    appendDirect: {
+      shxSegmentsAdded: direct.segments.length,
+      shxGpuCount: direct.shxGpuCount,
+    },
+  };
+}
+
 let storageFonts = null;
 const storageDir = process.env.PF_CAD_STORAGE_DIR?.trim();
 if (storageDir && fs.existsSync(storageDir)) {
@@ -157,6 +277,7 @@ if (storageDir && fs.existsSync(storageDir)) {
   const fileIndex = await buildLocalStorageCadIndex(storageDir);
   const fontResolve = await resolveCadFontsFromStorage({
     fonts: json.report?.fonts,
+    textStyleTable: json.textStyleTable,
     hostPath: host.replace(/\\/g, '/'),
     fileIndex,
     xrefPaths: Object.values(json.report?.xrefs ?? {}),
@@ -176,11 +297,13 @@ if (storageDir && fs.existsSync(storageDir)) {
 
 let merge = null;
 let coverageStats = null;
+let metricsAfterLoad = shxHandoffMetrics(texts, origin);
 
 if (shxNames.length > 0 || storageFonts?.resolvedShx > 0) {
   if (shxNames.length > 0 && !storageFonts) {
     registerCadShxStyleTable(json.textStyleTable);
   }
+  metricsAfterLoad = shxHandoffMetrics(texts, origin);
   const handoff = applyCadP8GpuTextHandoff(wasmSegments, {
     ...json,
     texts: texts.map((t) => ({ ...t })),
@@ -216,16 +339,19 @@ if (shxNames.length > 0 || storageFonts?.resolvedShx > 0) {
     }
   }
 
+  const metricsAfterFonts = shxHandoffMetrics(after, origin);
   merge = {
     shxFilesLoaded: shxNames.length,
     shxFileNames: shxNames.slice(0, 12),
     wasmSegmentFloats: wasmSegments.length,
     mergedSegmentFloats: handoff.segments.length,
     shxSegmentsAdded: handoff.segments.length - wasmSegments.length,
+    shxGpuCount: handoff.scene.gpuTexts ?? gpuMarked,
     gpuMarkedAfterMerge: gpuMarked,
     canvasDrawBefore,
     canvasDrawAfter,
     canvasSkippedByGpu: canvasDrawBefore - canvasDrawAfter,
+    ...metricsAfterFonts,
   };
 
   coverageStats = {
@@ -242,6 +368,8 @@ if (shxNames.length > 0 || storageFonts?.resolvedShx > 0) {
   };
 }
 
+const syntheticProof = runSyntheticProof(origin, texts);
+
 console.log(
   JSON.stringify(
     {
@@ -254,6 +382,11 @@ console.log(
       canvasFallbackRecords: canvasFallback,
       textStyleTableRows: json.textStyleTable?.length ?? 0,
       storageFonts,
+      shxHandoff: {
+        ...metricsAfterLoad,
+        shxSegmentsAdded: merge?.shxSegmentsAdded ?? 0,
+      },
+      syntheticProof,
       shxMerge: merge,
       glyphCoverage: coverageStats,
     },

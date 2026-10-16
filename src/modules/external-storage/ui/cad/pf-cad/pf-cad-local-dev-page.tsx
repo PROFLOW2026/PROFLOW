@@ -27,18 +27,40 @@ async function fetchFixtureDwg(bundle: string, name: string): Promise<Uint8Array
   return new Uint8Array(await res.arrayBuffer());
 }
 
+async function fetchDevFont(name: string): Promise<Uint8Array> {
+  const res = await fetch(
+    `/api/dev/pf-cad-fixture?source=font&name=${encodeURIComponent(name)}`,
+    { credentials: 'include' },
+  );
+  if (!res.ok) throw new Error(`dev font ${name}: ${res.status}`);
+  return new Uint8Array(await res.arrayBuffer());
+}
+
+const DEV_SYNTHETIC_FONTS = [
+  'MIRYL.SHX',
+  'MIRYLB.SHX',
+  'HEBTXT.SHX',
+  'miryl.shx',
+  'mirylb.shx',
+  'hebtxt.shx',
+] as const;
+
 function devIndexedFiles(
   hostName: string,
   siblingNames: readonly string[],
   xrefBundle: string | null,
 ): CadIndexedFile[] {
-  const all = new Set<string>([hostName, ...siblingNames]);
+  const all = new Set<string>([hostName, ...siblingNames, ...DEV_SYNTHETIC_FONTS]);
   return [...all].map((name) => ({
     name,
-    getBytes: () =>
-      name === hostName || !xrefBundle
+    getBytes: () => {
+      if (/\.(shx|ttf|otf)$/i.test(name)) {
+        return fetchDevFont(name);
+      }
+      return name === hostName || !xrefBundle
         ? fetchLocalDwg(name).catch(() => fetchFixtureDwg(xrefBundle ?? '3096-EL', name))
-        : fetchFixtureDwg(xrefBundle, name),
+        : fetchFixtureDwg(xrefBundle, name);
+    },
   }));
 }
 

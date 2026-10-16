@@ -302,7 +302,25 @@ export type ShxGpuAppendResult = {
   shxGpuCount: number;
 };
 
-/** Drop `gpu` on client SHX records that are not geometry-complete; recompute `gpuTexts`. */
+/** Remove upstream `gpu` on client-SHX records so appendShxGpuSegments can emit strokes. */
+export function stripUpstreamClientShxGpuFlags<T extends { texts: CadText[]; gpuTexts?: number }>(
+  scene: T,
+): T {
+  if (!P8_GPU_TEXT_HANDOFF_ENABLED) return scene;
+  let gpuTexts = 0;
+  const texts = scene.texts.map((t) => {
+    if (!t.gpu) return t;
+    if (cadTextStyleUsesClientShx(t)) {
+      const { gpu: _gpu, ...rest } = t;
+      return rest;
+    }
+    gpuTexts += 1;
+    return t;
+  });
+  return { ...scene, texts, gpuTexts };
+}
+
+/** Drop `gpu` on records that are not geometry-complete; recompute `gpuTexts`. */
 export function sanitizeSceneGpuTextFlags<T extends { texts: CadText[]; gpuTexts?: number }>(
   scene: T,
   origin: [number, number],
@@ -314,9 +332,13 @@ export function sanitizeSceneGpuTextFlags<T extends { texts: CadText[]; gpuTexts
       const { gpu: _gpu, ...rest } = t;
       return rest;
     }
-    if (cadTextStyleUsesClientShx(t) && !isShxTextRecordGpuComplete(t, origin)) {
-      const { gpu: _gpu, ...rest } = t;
-      return rest;
+    if (cadTextStyleUsesClientShx(t)) {
+      if (!isShxTextRecordGpuComplete(t, origin)) {
+        const { gpu: _gpu, ...rest } = t;
+        return rest;
+      }
+      gpuTexts += 1;
+      return t;
     }
     gpuTexts += 1;
     return t;

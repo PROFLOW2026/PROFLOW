@@ -231,6 +231,7 @@ export function drawCadText(
           baseFamily: draw.fontFamily,
           hebrewWhenMissing: true,
           hasHebrew: hasHebrewBlock,
+          fillWhenMissing: true,
         },
       );
       draw.ctx.restore();

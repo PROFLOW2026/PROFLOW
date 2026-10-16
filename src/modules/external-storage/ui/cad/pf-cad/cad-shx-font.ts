@@ -276,6 +276,7 @@ export function shxMissingGlyphStroke(font: ShxFont): ShxSegment[] {
   ];
 }
 
+/** Real SHX vectors only — never placeholder boxes (Canvas/GPU use TTF or skip). */
 export function resolveShxGlyphStroke(
   font: ShxFont,
   mappedCode: number,
@@ -284,7 +285,7 @@ export function resolveShxGlyphStroke(
   const glyph = font.glyphs.get(mappedCode);
   if (glyph && glyph.length > 0) return glyph;
   if (!isDrawableShxCharacter(ch)) return null;
-  return shxMissingGlyphStroke(font);
+  return null;
 }
 
 export function shxGlyphAdvance(font: ShxFont, code: number): number {
@@ -340,6 +341,8 @@ export type ShxTtfGlyphFallback = {
   /** When true, draw Hebrew via fillText if the SHX shape is missing. */
   hebrewWhenMissing?: boolean;
   hasHebrew?: (text: string) => boolean;
+  /** When true, draw any missing SHX shape via fillText (no placeholder rectangles). */
+  fillWhenMissing?: boolean;
 };
 
 export function drawShxLine(
@@ -365,12 +368,13 @@ export function drawShxLine(
     const native = active.glyphs.get(mapped);
     const stroke = resolveShxGlyphStroke(active, mapped, ch);
     const missingShape = !native || native.length === 0;
-    if (
-      stroke &&
+    const useTtfFill =
       missingShape &&
-      ttfFallback?.hebrewWhenMissing &&
-      ttfFallback.hasHebrew?.(ch)
-    ) {
+      ttfFallback &&
+      isDrawableShxCharacter(ch) &&
+      (ttfFallback.fillWhenMissing ||
+        (ttfFallback.hebrewWhenMissing && ttfFallback.hasHebrew?.(ch)));
+    if (useTtfFill) {
       ctx.font = `${ttfFallback.fontPx}px ${ttfFallback.family}, ${ttfFallback.baseFamily}`;
       ctx.fillStyle = fillStyle;
       ctx.fillText(ch, penX, 0);

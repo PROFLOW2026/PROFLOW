@@ -4,6 +4,7 @@ import {
   type CadIndexedFile,
   type FileIndex,
 } from './xref-resolver';
+import type { CadTextStyleTableEntry } from './types';
 
 export type ResolvedCadFont = {
   /** Font file name as reported by the WASM engine (e.g. `sivan.shx`). */
@@ -34,6 +35,35 @@ function fontLookupPath(fontFile: string): string {
     return trimmed;
   }
   return `${trimmed}.shx`;
+}
+
+/** Candidate paths for storage index lookup (case/extension tolerant). */
+export function fontLookupCandidates(fontFile: string): string[] {
+  const trimmed = fontFile.trim();
+  if (!trimmed) return [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const push = (candidate: string) => {
+    const key = candidate.toLowerCase();
+    if (!candidate || seen.has(key)) return;
+    seen.add(key);
+    out.push(candidate);
+  };
+
+  push(trimmed);
+  push(fontLookupPath(trimmed));
+  const base = trimmed.replace(/\.(shx|ttf|otf|ttc)$/i, '');
+  if (base) {
+    push(base);
+    push(`${base}.shx`);
+    push(`${base}.SHX`);
+    push(`${base}.ttf`);
+    push(`${base}.TTF`);
+    push(base.toUpperCase());
+    push(`${base.toUpperCase()}.SHX`);
+  }
+  push(trimmed.replace(/\.shx$/i, '.ttf'));
+  return out;
 }
 
 /** Host paths whose sibling folders should be searched for fonts (host + XREF directories). */
@@ -75,11 +105,7 @@ export function lookupFontInIndex(
   hostPath: string,
   fontFile: string,
 ): CadIndexedFile | null {
-  const candidates = [
-    fontFile,
-    fontLookupPath(fontFile),
-    fontFile.replace(/\.shx$/i, '.ttf'),
-  ];
+  const candidates = fontLookupCandidates(fontFile);
   for (const candidate of candidates) {
     const hit = lookupInIndex(index, hostPath, candidate);
     if (hit) {
@@ -102,18 +128,39 @@ export function lookupFontAcrossSearchPaths(
   return null;
 }
 
+/** Union of WASM font report keys and DWG text-style primary/bigfont file names. */
+export function cadFontNamesFromScene(input: {
+  fonts?: Record<string, number>;
+  textStyleTable?: CadTextStyleTableEntry[];
+}): string[] {
+  const names = new Set<string>();
+  for (const key of Object.keys(input.fonts ?? {})) {
+    const trimmed = key.trim();
+    if (trimmed) names.add(trimmed);
+  }
+  for (const row of input.textStyleTable ?? []) {
+    if (row.font?.trim()) names.add(row.font.trim());
+    if (row.big?.trim()) names.add(row.big.trim());
+  }
+  return [...names];
+}
+
 /**
  * Resolve font bytes from storage siblings for each key in `report.fonts`.
  * Returns resolved fonts for optional future worker registration and `missingFonts` for UI banners.
  */
 export async function resolveCadFontsFromStorage(input: {
   fonts: Record<string, number> | undefined;
+  textStyleTable?: CadTextStyleTableEntry[];
   hostPath: string;
   fileIndex: FileIndex;
   /** Resolved XREF paths from compat report — search their folders for SHX/TTF siblings. */
   xrefPaths?: ReadonlyArray<string>;
 }): Promise<{ resolved: ResolvedCadFont[]; missingFonts: string[] }> {
-  const names = Object.keys(input.fonts ?? {}).filter((n) => n.trim().length > 0);
+  const names = cadFontNamesFromScene({
+    fonts: input.fonts,
+    textStyleTable: input.textStyleTable,
+  });
   const resolved: ResolvedCadFont[] = [];
   const missingFonts: string[] = [];
   const searchHosts = fontSearchHostPaths(input.hostPath, input.xrefPaths);

@@ -31,6 +31,7 @@ import { P9_RASTER_WEBGL_ENABLED } from './cad-raster-webgl';
 import { hiddenRasterLayersFromUi } from './cad-raster-layers';
 import { drawCadText } from './draw-cad-text';
 import { drawCadRaster } from './draw-cad-raster';
+import { cadRasterMimeFromPath } from './cad-raster-mime';
 import { findPlotCtbBytes } from './cad-plot-ctb';
 import {
   clearCadShxFonts,
@@ -360,7 +361,9 @@ function PfDwgViewerInner({
                 if (!hit) return null;
                 try {
                   const bytes = await hit.getBytes();
-                  const blob = new Blob([Uint8Array.from(bytes)], { type: 'image/png' });
+                  const blob = new Blob([Uint8Array.from(bytes)], {
+                    type: cadRasterMimeFromPath(path),
+                  });
                   return URL.createObjectURL(blob);
                 } catch {
                   return null;
@@ -393,7 +396,9 @@ function PfDwgViewerInner({
           if (!hit) return null;
           try {
             const bytes = await hit.getBytes();
-            const blob = new Blob([Uint8Array.from(bytes)], { type: 'image/png' });
+            const blob = new Blob([Uint8Array.from(bytes)], {
+              type: cadRasterMimeFromPath(path),
+            });
             return URL.createObjectURL(blob);
           } catch {
             return null;
@@ -524,6 +529,7 @@ function PfDwgViewerInner({
         if (cancelled) return;
         const fontResolve = await resolveCadFontsFromStorage({
           fonts: res.scene.report.fonts,
+          textStyleTable: res.scene.textStyleTable,
           hostPath: normalizeCadPath(fileName),
           fileIndex,
           xrefPaths: Object.values(res.scene.report.xrefs ?? {}),
@@ -643,6 +649,7 @@ function PfDwgViewerInner({
             resolvedFontsRef.current ??
             (await resolveCadFontsFromStorage({
               fonts: res.scene.report.fonts,
+              textStyleTable: res.scene.textStyleTable,
               hostPath: normalizeCadPath(fileName),
               fileIndex: ctx.fileIndex,
               xrefPaths: Object.values(res.scene.report.xrefs ?? {}),

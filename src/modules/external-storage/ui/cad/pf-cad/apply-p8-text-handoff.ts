@@ -1,5 +1,9 @@
 import { P8_GPU_TEXT_HANDOFF_ENABLED } from './cad-gpu-text-policy';
-import { appendShxGpuSegments, sanitizeSceneGpuTextFlags } from './shx-text-segments';
+import {
+  appendShxGpuSegments,
+  sanitizeSceneGpuTextFlags,
+  stripUpstreamClientShxGpuFlags,
+} from './shx-text-segments';
 import type { ScenePayload } from './types';
 
 /** Merge SHX stroke segments into the WASM buffer after fonts are registered (P8). */
@@ -8,7 +12,7 @@ export function applyCadP8GpuTextHandoff(
   scene: ScenePayload,
 ): { segments: Float32Array; scene: ScenePayload } {
   const origin = scene.origin ?? [0, 0];
-  let nextScene = sanitizeSceneGpuTextFlags(scene, origin);
+  let nextScene = stripUpstreamClientShxGpuFlags(scene);
   if (!P8_GPU_TEXT_HANDOFF_ENABLED) {
     return { segments, scene: nextScene };
   }

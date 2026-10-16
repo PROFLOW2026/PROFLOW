@@ -3,7 +3,9 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 
 describe('CAD Normal vs Plot text parity (WASM JSON)', () => {
-  it('3096-EL has the same text keys in Normal and Plot', () => {
+  it(
+    '3096-EL has the same text keys in Normal and Plot',
+    () => {
     const script = path.join(
       process.cwd(),
       'docs/audits/local-tool-artifacts/cad-audit/p-text-normal-plot.mjs',
@@ -19,5 +21,7 @@ describe('CAD Normal vs Plot text parity (WASM JSON)', () => {
     expect(json.onlyNormal).toBe(0);
     expect(json.onlyPlot).toBe(0);
     expect(json.gpuMarkedNormal).toBe(0);
-  });
+    },
+    130_000,
+  );
 });

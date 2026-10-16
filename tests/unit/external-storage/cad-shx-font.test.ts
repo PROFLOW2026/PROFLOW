@@ -7,6 +7,7 @@ import {
   parseShxBigfontFile,
   parseShxFont,
   parseUnicodeShapesPayload,
+  drawShxLine,
   resolveShxGlyphStroke,
   shxMissingGlyphStroke,
 } from '@/modules/external-storage/ui/cad/pf-cad/cad-shx-font';
@@ -62,17 +63,57 @@ describe('cad-shx-font', () => {
     clearCadShxFonts();
   });
 
-  it('returns placeholder stroke for missing drawable glyphs', () => {
+  it('resolveShxGlyphStroke never returns placeholder boxes (legacy shxMissingGlyphStroke is unused in draw path)', () => {
     const bytes = new Uint8Array(48);
     bytes.set(new TextEncoder().encode('AutoCAD-86 shapes 1.0'), 0);
     bytes.set([0x1a, 0, 65, 3, 1, 16, 14], 24);
     const font = parseShxFont('test.shx', bytes)!;
     expect(isDrawableShxCharacter(' ')).toBe(false);
     expect(isDrawableShxCharacter('?')).toBe(true);
-    expect(resolveShxGlyphStroke(font, 0x9999, '?')?.length).toBe(
-      shxMissingGlyphStroke(font).length,
-    );
+    expect(resolveShxGlyphStroke(font, 0x9999, '?')).toBeNull();
+    expect(shxMissingGlyphStroke(font).length).toBeGreaterThan(0);
     expect(resolveShxGlyphStroke(font, 65, 'A')?.length).toBeGreaterThan(0);
+  });
+
+  it('drawShxLine with fillWhenMissing uses TTF fill, not placeholder stroke rectangles', () => {
+    const bytes = new Uint8Array(48);
+    bytes.set(new TextEncoder().encode('AutoCAD-86 shapes 1.0'), 0);
+    bytes.set([0x1a, 0, 65, 3, 1, 16, 14], 24);
+    const font = parseShxFont('test.shx', bytes)!;
+    let strokeCalls = 0;
+    let fillTextCalls = 0;
+    const ctx = {
+      strokeStyle: '',
+      fillStyle: '',
+      lineWidth: 0,
+      lineCap: 'butt',
+      lineJoin: 'miter',
+      font: '',
+      beginPath() {},
+      moveTo() {},
+      lineTo() {},
+      stroke() {
+        strokeCalls += 1;
+      },
+      fillText(_ch: string) {
+        fillTextCalls += 1;
+      },
+    } as unknown as CanvasRenderingContext2D;
+
+    drawShxLine(ctx, font, '?', 10, '#000', undefined, undefined, {
+      fontPx: 10,
+      family: 'Arial',
+      baseFamily: 'sans-serif',
+      fillWhenMissing: true,
+    });
+    expect(strokeCalls).toBe(0);
+    expect(fillTextCalls).toBe(1);
+
+    strokeCalls = 0;
+    fillTextCalls = 0;
+    drawShxLine(ctx, font, '?', 10, '#000');
+    expect(strokeCalls).toBe(0);
+    expect(fillTextCalls).toBe(0);
   });
 
   it('uses SHX metrics for block measurement', () => {

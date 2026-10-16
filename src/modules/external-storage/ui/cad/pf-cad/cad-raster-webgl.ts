@@ -91,6 +91,11 @@ export class CadRasterWebGlPass {
 
   /** Drop GPU textures from the previous scene (keeps program/buffer). */
   releaseSceneTextures(gl: WebGL2RenderingContext): void {
+    for (const url of this.urlToTexture.keys()) {
+      if (url.startsWith('blob:')) {
+        URL.revokeObjectURL(url);
+      }
+    }
     for (const tex of this.urlToTexture.values()) {
       gl.deleteTexture(tex);
     }
