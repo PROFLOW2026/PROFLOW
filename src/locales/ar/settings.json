@@ -2295,5 +2295,9 @@
       "endMustBeAfterStart": "يجب أن يكون وقت النهاية بعد وقت البداية",
       "invalidComponentKey": "مفتاح المكوّن غير صالح"
     }
+  },
+  "openSourceCad": {
+    "breadcrumb": "مصدر مفتوح",
+    "title": "إشعارات المصدر المفتوح (عارض CAD)"
   }
 }

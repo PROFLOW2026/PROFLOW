@@ -2295,5 +2295,9 @@
       "endMustBeAfterStart": "Время окончания должно быть позже времени начала",
       "invalidComponentKey": "Недопустимый ключ компонента"
     }
+  },
+  "openSourceCad": {
+    "breadcrumb": "Открытый код",
+    "title": "Уведомления об открытом коде (CAD viewer)"
   }
 }

@@ -2295,5 +2295,9 @@
       "endMustBeAfterStart": "End time must be after start time",
       "invalidComponentKey": "Invalid component key"
     }
+  },
+  "openSourceCad": {
+    "breadcrumb": "Open source",
+    "title": "Open source notices (CAD viewer)"
   }
 }

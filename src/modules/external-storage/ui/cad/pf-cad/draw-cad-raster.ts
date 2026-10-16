@@ -33,7 +33,7 @@ function loadImage(url: string): Promise<HTMLImageElement | null> {
 export async function drawCadRaster(
   draw: RasterDrawContext,
   img: CadRasterImage,
-  zoom: number,
+  _zoom: number,
 ): Promise<void> {
   if (!img.path?.trim() || img.corners.length < 4) return;
   const url = await draw.resolveImageUrl(img.path);

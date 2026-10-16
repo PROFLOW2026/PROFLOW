@@ -23,7 +23,7 @@ export function registerCadOverlayFonts(
       styleToFamily.set(lower, family);
       continue;
     }
-    const blob = new Blob([font.bytes], { type: 'font/ttf' });
+    const blob = new Blob([Uint8Array.from(font.bytes)], { type: 'font/ttf' });
     const url = URL.createObjectURL(blob);
     const style = document.createElement('style');
     style.textContent = `@font-face{font-family:"${family}";src:url("${url}") format("truetype");font-weight:400;font-style:normal;font-display:swap;}`;

@@ -2295,5 +2295,9 @@
       "endMustBeAfterStart": "שעת הסיום חייבת להיות אחרי שעת ההתחלה",
       "invalidComponentKey": "מפתח רכיב לא תקין"
     }
+  },
+  "openSourceCad": {
+    "breadcrumb": "קוד פתוח",
+    "title": "הודעות קוד פתוח (מציג CAD)"
   }
 }

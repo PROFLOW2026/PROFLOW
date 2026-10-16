@@ -37,7 +37,7 @@ export function CadDwgViewerToolbar({
         <Button
           type="button"
           size="sm"
-          variant={plotView ? 'default' : 'outline'}
+          variant={plotView ? 'primary' : 'secondary'}
           className="h-9 min-h-9 px-2.5 text-xs font-medium"
           onClick={() => onPlotViewChange(!plotView)}
         >

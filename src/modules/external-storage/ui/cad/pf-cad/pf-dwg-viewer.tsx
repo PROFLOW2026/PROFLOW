@@ -292,7 +292,7 @@ function PfDwgViewerInner({
                 if (!hit) return null;
                 try {
                   const bytes = await hit.getBytes();
-                  const blob = new Blob([bytes], { type: 'image/png' });
+                  const blob = new Blob([Uint8Array.from(bytes)], { type: 'image/png' });
                   return URL.createObjectURL(blob);
                 } catch {
                   return null;

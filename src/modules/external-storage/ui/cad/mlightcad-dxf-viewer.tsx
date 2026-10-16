@@ -89,8 +89,6 @@ function MlightcadDxfViewerInner({
           },
           checkWorkersOnInit: true,
         });
-        docManager.baseUrl = CAD_FONT_BASE_URL;
-
         if (!docManager) {
           throw new Error('doc_manager_failed');
         }
