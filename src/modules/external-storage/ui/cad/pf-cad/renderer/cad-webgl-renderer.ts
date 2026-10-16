@@ -5,7 +5,7 @@ import {
   type DrawBatch,
 } from './draw-ordered-batches';
 import { yieldToMain } from '../yield-to-main';
-import { colorBitsToRgb01, SEGMENT_STRIDE } from './segment-format';
+import { colorBitsToRgba01, SEGMENT_STRIDE } from './segment-format';
 import type { CadExtent } from './segment-format';
 import {
   normalizeLayerVisibility,
@@ -183,17 +183,19 @@ export class CadWebGlRenderer {
     const gl = this.gl;
     gl.clearColor(...this.clearColor);
     gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     const zoom = this.view.zoom;
     for (const batch of this.gpuBatches) {
-      const [r, g, b] = colorBitsToRgb01(batch.colorBits);
+      const [r, g, b, a] = colorBitsToRgba01(batch.colorBits);
       gl.bindBuffer(gl.ARRAY_BUFFER, batch.vbo);
       if (batch.kind === 'fill') {
         gl.useProgram(this.fillProgram);
         gl.uniform2f(this.fillUniforms.pan, this.view.panX, this.view.panY);
         gl.uniform1f(this.fillUniforms.zoom, zoom);
         gl.uniform2f(this.fillUniforms.viewport, this.viewport.width, this.viewport.height);
-        gl.uniform4f(this.fillUniforms.color, r, g, b, 1);
+        gl.uniform4f(this.fillUniforms.color, r, g, b, a);
         gl.enableVertexAttribArray(0);
         gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.TRIANGLES, 0, batch.drawVertexCount);
@@ -202,7 +204,7 @@ export class CadWebGlRenderer {
         gl.uniform2f(this.wideUniforms.pan, this.view.panX, this.view.panY);
         gl.uniform1f(this.wideUniforms.zoom, zoom);
         gl.uniform2f(this.wideUniforms.viewport, this.viewport.width, this.viewport.height);
-        gl.uniform4f(this.wideUniforms.color, r, g, b, 1);
+        gl.uniform4f(this.wideUniforms.color, r, g, b, a);
         gl.uniform1f(
           this.wideUniforms.lineWidthPx,
           lineWidthPxFromHundredths(batch.lineWeightHundredths, zoom),
@@ -273,7 +275,7 @@ export class CadWebGlRenderer {
   private initGl(): void {
     const gl =
       this.canvas.getContext('webgl2', {
-        alpha: false,
+        alpha: true,
         antialias: true,
         depth: false,
         stencil: false,

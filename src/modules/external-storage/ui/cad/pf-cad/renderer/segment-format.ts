@@ -49,8 +49,16 @@ export function lineWeightHundredthsFromSegment(lwField: number): number {
 }
 
 export function colorBitsToRgb01(colorBits: number): [number, number, number] {
+  const [r, g, b] = colorBitsToRgba01(colorBits);
+  return [r, g, b];
+}
+
+/** RGBA from packed display color (opacity in high byte; 0 high byte = opaque). */
+export function colorBitsToRgba01(colorBits: number): [number, number, number, number] {
+  const aByte = (colorBits >> 24) & 0xff;
+  const a = aByte === 0 ? 1 : aByte / 255;
   const r = ((colorBits >> 16) & 0xff) / 255;
   const g = ((colorBits >> 8) & 0xff) / 255;
   const b = (colorBits & 0xff) / 255;
-  return [r, g, b];
+  return [r, g, b, a];
 }
