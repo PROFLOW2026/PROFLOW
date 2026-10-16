@@ -1,6 +1,6 @@
 /**
  * Legal minimal SHX fixtures for P8 audits (not proprietary Autodesk fonts).
- * Layout matches tests/unit/external-storage/cad-shx-font.test.ts (parseShxFont-compatible).
+ * Each glyph uses decodeShapeVectors-compatible stroke specs (direction + length + 14).
  * Run: node tests/fixtures/cad/synthetic-shx/generate-fixtures.mjs
  */
 import fs from 'node:fs';
@@ -9,10 +9,17 @@ import { fileURLToPath } from 'node:url';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 
-function shapes10Single(shapeNum, spec) {
-  const bytes = new Uint8Array(48);
+/** Single horizontal stroke in font units (matches cad-shx-font.test.ts). */
+const strokeSpec = (dirByte) => [dirByte, 16, 14];
+
+function shapes10Multi(entries) {
+  const payload = [];
+  for (const { shapeNum, spec } of entries) {
+    payload.push(shapeNum, spec.length, ...spec);
+  }
+  const bytes = new Uint8Array(24 + payload.length + 8);
   bytes.set(new TextEncoder().encode('AutoCAD-86 shapes 1.0'), 0);
-  bytes.set([0x1a, 0, shapeNum, spec.length, ...spec], 24);
+  bytes.set([0x1a, 0, ...payload], 24);
   return bytes;
 }
 
@@ -26,18 +33,35 @@ function bigfontSingle(code, spec) {
   return bytes;
 }
 
-const line = [1, 16, 14];
-const latinA = shapes10Single(65, line);
-const latinB = shapes10Single(66, line);
-const bigYod = bigfontSingle(0x05d9, line);
+function latinGlyphs() {
+  const entries = [];
+  let dir = 1;
+  for (let c = 65; c <= 90; c += 1) {
+    entries.push({ shapeNum: c, spec: strokeSpec(((dir - 1) % 8) + 1) });
+    dir += 1;
+  }
+  for (let c = 48; c <= 57; c += 1) {
+    entries.push({ shapeNum: c, spec: strokeSpec(((dir - 1) % 8) + 1) });
+    dir += 1;
+  }
+  for (const c of ['!', '.', ',', '-', '(', ')', ':', ';', '?']) {
+    entries.push({ shapeNum: c.charCodeAt(0), spec: strokeSpec(((dir - 1) % 8) + 1) });
+    dir += 1;
+  }
+  return shapes10Multi(entries);
+}
+
+const latinMulti = latinGlyphs();
+const latinB = shapes10Multi([{ shapeNum: 66, spec: strokeSpec(2) }]);
+const bigYod = bigfontSingle(0x05d9, strokeSpec(3));
 
 const files = {
-  'miryl.shx': latinA,
-  'MIRYL.SHX': latinA,
-  'hebtxt.shx': latinA,
-  'HEBTXT.SHX': latinA,
+  'miryl.shx': latinMulti,
+  'MIRYL.SHX': latinMulti,
+  'hebtxt.shx': latinMulti,
+  'HEBTXT.SHX': latinMulti,
   'TXT.shx': latinB,
-  'HEB.shx': latinA,
+  'HEB.shx': latinMulti,
   'mirylb.shx': bigYod,
   'MIRYLB.SHX': bigYod,
 };

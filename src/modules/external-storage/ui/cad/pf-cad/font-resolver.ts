@@ -4,10 +4,6 @@ import {
   type CadIndexedFile,
   type FileIndex,
 } from './xref-resolver';
-import {
-  entityStyleFontNameCandidates,
-  tableRowsEmbeddedInEntityStyle,
-} from './cad-entity-text-style';
 import type { CadTextStyleTableEntry } from './types';
 
 export type ResolvedCadFont = {
@@ -136,7 +132,7 @@ export function lookupFontAcrossSearchPaths(
 export function cadFontNamesFromScene(input: {
   fonts?: Record<string, number>;
   textStyleTable?: CadTextStyleTableEntry[];
-  /** Entity `style` strings — fetch fonts for XREF/block-only style names (e.g. TRHEBTXT). */
+  /** Accepted for call-site compatibility; not used for font name guessing. */
   texts?: ReadonlyArray<{ style?: string | number }>;
 }): string[] {
   const names = new Set<string>();
@@ -147,24 +143,6 @@ export function cadFontNamesFromScene(input: {
   for (const row of input.textStyleTable ?? []) {
     if (row.font?.trim()) names.add(row.font.trim());
     if (row.big?.trim()) names.add(row.big.trim());
-  }
-  const tableNames = new Set(
-    (input.textStyleTable ?? []).map((r) => r.name.trim().toLowerCase()).filter(Boolean),
-  );
-  const seenEntity = new Set<string>();
-  for (const tx of input.texts ?? []) {
-    const style = tx.style != null ? String(tx.style).trim() : '';
-    if (!style || seenEntity.has(style.toLowerCase())) continue;
-    seenEntity.add(style.toLowerCase());
-    for (const candidate of entityStyleFontNameCandidates(style)) {
-      names.add(candidate);
-    }
-    if (!tableNames.has(style.toLowerCase())) {
-      for (const row of tableRowsEmbeddedInEntityStyle(style, input.textStyleTable)) {
-        if (row.font?.trim()) names.add(row.font.trim());
-        if (row.big?.trim()) names.add(row.big.trim());
-      }
-    }
   }
   return [...names];
 }

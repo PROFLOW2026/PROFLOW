@@ -35,13 +35,14 @@ describe('cad-font-resolver', () => {
     expect(names).toContain('MIRYLB.SHX');
   });
 
-  it('includes entity-only styles and embedded table fonts in resolve name set', () => {
+  it('does not guess fonts from entity-only style strings', () => {
     const names = cadFontNamesFromScene({
       fonts: {},
       textStyleTable: [{ name: 'HEBTXT', font: 'HEBTXT.SHX' }],
       texts: [{ style: 'TRHEBTXT' }],
     });
     expect(names).toContain('HEBTXT.SHX');
-    expect(names).toContain('TRHEBTXT');
+    expect(names).not.toContain('TRHEBTXT');
+    expect(names).not.toContain('MIRYLB.SHX');
   });
 });

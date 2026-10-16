@@ -16,7 +16,7 @@ import {
   p9UiLayers,
   readP9RasterBytes,
   syncP9RasterScene,
-} from '../../fixtures/cad/synthetic-p9/harness';
+} from '../../../tests/fixtures/cad/synthetic-p9/harness';
 
 vi.mock('@/modules/external-storage/ui/cad/fetch-storage-preview-bytes', () => ({
   fetchStoragePreviewBytes: vi.fn(async () => readP9RasterBytes().buffer),
