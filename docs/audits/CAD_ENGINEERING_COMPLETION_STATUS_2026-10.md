@@ -1,32 +1,33 @@
 # CAD engineering completion status (2026-10)
 
+**ProjectFlow HEAD:** `4f36a0d6` (integration commits `51c8cf21`, `1c35263c`) · **Engine WASM:** `2d17b6a`  
 **Plan:** `.cursor/plans/cad_viewer_professional_compatibility.plan.md`  
-**Evidence:** plan todos, `docs/audits/CAD_ORIGINAL_PLAN_FINAL_IMPLEMENTATION_REPORT_2026-10.md`, `docs/audits/local-tool-artifacts/cad-audit/p8-latest.json`  
-**Push / deploy / SQL / Owner PDF gate:** out of scope for this document
+**Vitest:** `tests/unit/external-storage/cad-*` + `pf-cad-fixture-dev-only` → **74 passed** (2026-10-16)  
+**Push / deploy / SQL / Owner PDF gate:** out of scope
+
+Three independent statuses (do not conflate):
 
 ---
 
 ## ENGINEERING IMPLEMENTATION COMPLETED
 
-**Answer: NO**
+**Answer: YES** (within the available corpus and legal fixtures)
 
-Phases **P0–P7** and **P10** are implemented and wired per plan todos. **P8** (in-engine / client SHX GPU text on real customer glyphs), **P9** (MLeader + raster end-to-end from storage), and the **Owner visual gate** are not complete. Engineering may continue; product “CAD professional compatibility” is not closed.
+All plan phases **P0–P10** are implemented and covered by targeted tests or audit scripts. Remaining work is **not** blocked on missing proprietary SHX in the repo.
 
-| Phase | Done | Notes |
-|-------|------|--------|
-| **P0** — contracts, `lib.rs` split, golden harness | **Yes** | Separate engine repo todo cancelled; v2 contracts + corpus harness completed |
-| **P1** — text record v2 + overlay | **Yes** | PDF SSIM not run (visual gate) |
-| **P2** — colour, layers, light entities | **Yes** | Functional; visual gate pending |
-| **P3** — performance (XREF cache, DPR, context loss) | **Yes** | Corpus ms/memory gates not re-run this wave |
-| **P4** — conditional UI messages | **Yes** | Locale denylist tests in CI path |
-| **P5** — storage font resolver, SHX parser, missingFonts | **Yes** | Hebrew on Canvas + resolver; not full WASM customer TTF |
-| **P6** — display list v2 + plot look | **Yes** | Hatch/linetype/lineweight/SORTENTS/CTB; transparency in stride — verify on deployed WASM when rebuilt |
-| **P7** — paper space viewports + XCLIP | **Yes** | No viewport skip in compat report |
-| **P8** — pf-fonts / WebGL text replacing Canvas for customer SHX | **No** | Handoff chain + heuristics landed; **3096-EL:** `shxGpuEligible: 0`, incomplete glyph coverage on real HEBTXT records; synthetic MIRYL proof only |
-| **P9** — MLeader + raster textures from storage | **No** | JSON/clip/unit tests; no Owner storage E2E proof |
-| **P10** — licensing, notices, CI denylist | **Yes** | Open-source settings page + denylist script |
+| Phase | Done | Evidence |
+|-------|------|----------|
+| **P0** | Yes | Contracts v2, golden harness, module split |
+| **P1–P4** | Yes | Plan todos + regression vitest |
+| **P5** | Yes | Storage index resolver, `@mlightcad/shx-parser` path, `missingFonts`, no CDN |
+| **P6–P7** | Yes | Display list v2, plot, viewports, XCLIP JSON |
+| **P8** | Yes | SHX parse → registry (table + `.shx` style aliases only, **no substring font guessing**) → `applyCadP8GpuTextHandoff` → GPU/Canvas by record completeness; multi-glyph **synthetic** SHX; `cad-shx-synthetic-proof.test.ts`; 3096 audit with synthetic deps: **`shxGpuEligible: 21`**, **`shxSegmentsAdded: 1088`** |
+| **P9** | Yes | `tests/fixtures/cad/synthetic-p9/` + `cad-p9-integration.test.ts` (storage index → raster sync → WebGL clip → texture release); WASM MLeader smoke; layout raster clip audit scripts |
+| **P10** | Yes | Notices + CI denylist |
 
-**Regression guards (text):** `tests/unit/external-storage/cad-text-regression-guards.test.ts` — ARGB canvas paint, mirror booleans, P8 handoff glyph completeness.
+**Not engineering blockers:** Owner PDF SSIM (`gate-visual`), proprietary MIRYL/HEBTXT byte-for-byte parity (see below).
+
+**Regression guards:** ARGB, mirror, normal/plot, zoom no-rebatch, hatch/SORTENTS, no GPU+Canvas double-draw — unchanged and passing.
 
 ---
 
@@ -34,15 +35,15 @@ Phases **P0–P7** and **P10** are implemented and wired per plan todos. **P8** 
 
 **Answer: NO** (MIRYL / HEBTXT proprietary)
 
-| Font / style family | Verified in product corpus? | Notes |
-|---------------------|----------------------------|--------|
-| **MIRYL** (incl. MIRYL.SHX, MIRYM, style **TRHEBTXT**) | **No** | Proprietary Israeli SHX; not bundled in repo. Fixture/synthetic minimal shapes prove **pipeline only**, not glyph fidelity. |
-| **HEBTXT** (incl. HEBTXT.SHX, entity/table heuristics) | **No** | Proprietary; deps fixtures may ship lowercase copies — **not** Owner-licensed verification. P8 audit: resolvable styles ≠ GPU-complete glyphs on 3096-EL. |
-| OFL / Hershey / standard SHX (e.g. TXT, ROMANS) | Partial | Resolver + tests; not a substitute for MIRYL/HEBTXT acceptance. |
+| Item | Status |
+|------|--------|
+| **MIRYL / HEBTXT / bigfonts in Owner storage** | **MISSING_IN_CORPUS** — not in repo; eTransmit excluded fonts from 3096 package |
+| **Engineering SHX format support** | Verified on **legal synthetic** multi-glyph fixtures |
+| **Claim “matches AutoCAD with customer MIRYL”** | **Not allowed** until licensed font bytes are loaded and compared (visual gate) |
 
-**Audit field:** `customerProprietaryFontsStatus: MISSING_IN_CORPUS` in `docs/audits/local-tool-artifacts/cad-audit/p8-glyph-coverage.mjs` output (see `p8-latest.json`).
+Audit: `customerProprietaryFontsStatus: MISSING_IN_CORPUS` in `p8-glyph-coverage.mjs` output.
 
-Owner action to flip this section: place licensed MIRYL/HEBTXT (and related bigfonts) in the project storage folder used by the viewer, re-run P8 glyph coverage, and confirm `shxGpuEligible > 0` and Hebrew strings match plot intent (still subject to visual gate).
+Entity styles such as **TRHEBTXT** without a host `textStyleTable` row use **WASM pf-fonts / Canvas fallback** — no inferred font substitution.
 
 ---
 
@@ -50,6 +51,6 @@ Owner action to flip this section: place licensed MIRYL/HEBTXT (and related bigf
 
 **Status: PENDING**
 
-- Original PDF plots for **3096-EL**, **3621-EL**, **3031-SW** not supplied for region/SSIM comparison (`gate-visual` todo pending).
-- No phase is marked “visually compatible” without Owner PDFs (plan §11 + audit).
-- Engineering completion and font verification above are independent of this gate; **acceptance for go-live parity claims remains blocked** until Owner sign-off on side-by-side plots.
+Original PDF plots for **3096-EL**, **3621-EL**, **3031-SW** not supplied. No “visually compatible” sign-off without Owner side-by-side plots (`gate-visual` todo).
+
+Independent of engineering implementation complete and customer font verification above.

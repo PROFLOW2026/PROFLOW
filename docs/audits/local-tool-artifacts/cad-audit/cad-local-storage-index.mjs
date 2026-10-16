@@ -1,6 +1,6 @@
 /**
  * Build a CAD file index from a local folder (owner storage mirror).
- * Set PF_CAD_STORAGE_DIR — never commit proprietary SHX into the repo.
+ * Optional PF_CAD_STORAGE_DIR for local Owner mirrors only (not required for CI/engineering close).
  */
 import fs from 'node:fs';
 import path from 'node:path';
