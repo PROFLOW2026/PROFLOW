@@ -26,8 +26,16 @@ const depsDir = `${fx}/3096-EL`;
 const { applyCadP8GpuTextHandoff } = await import(
   pathToFileURL(path.join(root, 'src/modules/external-storage/ui/cad/pf-cad/apply-p8-text-handoff.ts')).href
 );
-const { registerCadShxFonts, clearCadShxFonts } = await import(
-  pathToFileURL(path.join(root, 'src/modules/external-storage/ui/cad/pf-cad/cad-shx-registry.ts')).href
+const { registerCadShxFonts, registerCadShxStyleTable, clearCadShxFonts, lookupShxFont } =
+  await import(
+    pathToFileURL(path.join(root, 'src/modules/external-storage/ui/cad/pf-cad/cad-shx-registry.ts')).href
+  );
+const { resolveCadFontsFromStorage } = await import(
+  pathToFileURL(path.join(root, 'src/modules/external-storage/ui/cad/pf-cad/font-resolver.ts')).href
+);
+const { buildLocalStorageCadIndex } = await import(
+  pathToFileURL(path.join(root, 'docs/audits/local-tool-artifacts/cad-audit/cad-local-storage-index.mjs'))
+    .href
 );
 const {
   countExpectedShxDrawableGlyphs,
@@ -142,10 +150,37 @@ const canvasFallback = texts.filter((t) => shouldDrawTextOnCanvas(t)).length;
 const canvasDrawBefore = texts.filter((t) => shouldDrawTextOnCanvas(t)).length;
 
 const shxNames = loadShxFromDeps();
+let storageFonts = null;
+const storageDir = process.env.PF_CAD_STORAGE_DIR?.trim();
+if (storageDir && fs.existsSync(storageDir)) {
+  clearCadShxFonts();
+  const fileIndex = await buildLocalStorageCadIndex(storageDir);
+  const fontResolve = await resolveCadFontsFromStorage({
+    fonts: json.report?.fonts,
+    hostPath: host.replace(/\\/g, '/'),
+    fileIndex,
+    xrefPaths: Object.values(json.report?.xrefs ?? {}),
+  });
+  registerCadShxFonts(fontResolve.resolved);
+  const styleLinked = registerCadShxStyleTable(json.textStyleTable);
+  const shxResolvable = texts.filter((t) => lookupShxFont(t.style)).length;
+  storageFonts = {
+    storageDir,
+    resolvedShx: fontResolve.resolved.filter((f) => /\.shx$/i.test(f.name)).length,
+    missingFonts: fontResolve.missingFonts.length,
+    textStyleTableRows: json.textStyleTable?.length ?? 0,
+    styleAliasesLinked: styleLinked,
+    shxResolvableTextRecords: shxResolvable,
+  };
+}
+
 let merge = null;
 let coverageStats = null;
 
-if (shxNames.length > 0) {
+if (shxNames.length > 0 || storageFonts?.resolvedShx > 0) {
+  if (shxNames.length > 0 && !storageFonts) {
+    registerCadShxStyleTable(json.textStyleTable);
+  }
   const handoff = applyCadP8GpuTextHandoff(wasmSegments, {
     ...json,
     texts: texts.map((t) => ({ ...t })),
@@ -216,7 +251,9 @@ console.log(
       opaqueArgbTexts: opaquePacked,
       opaqueNotBrokenCssPaint: brokenCssWouldHide,
       mirrorFlagRecords: mirrorTrue,
-      hebrewCanvasFallback: canvasFallback,
+      canvasFallbackRecords: canvasFallback,
+      textStyleTableRows: json.textStyleTable?.length ?? 0,
+      storageFonts,
       shxMerge: merge,
       glyphCoverage: coverageStats,
     },

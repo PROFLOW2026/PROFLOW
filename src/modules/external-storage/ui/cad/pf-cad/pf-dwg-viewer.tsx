@@ -32,7 +32,12 @@ import { hiddenRasterLayersFromUi } from './cad-raster-layers';
 import { drawCadText } from './draw-cad-text';
 import { drawCadRaster } from './draw-cad-raster';
 import { findPlotCtbBytes } from './cad-plot-ctb';
-import { clearCadShxFonts, lookupShxFont, registerCadShxFonts } from './cad-shx-registry';
+import {
+  clearCadShxFonts,
+  lookupShxFont,
+  registerCadShxFonts,
+  registerCadShxStyleTable,
+} from './cad-shx-registry';
 import {
   createCadRenderer,
   type CadRendererHandle,
@@ -527,6 +532,7 @@ function PfDwgViewerInner({
         overlayFontMapRef.current = registerCadOverlayFonts(fontResolve.resolved);
         clearCadShxFonts();
         registerCadShxFonts(fontResolve.resolved);
+        registerCadShxStyleTable(res.scene.textStyleTable);
         const reportWithFonts = mergeMissingFontsIntoReport(
           res.scene.report,
           fontResolve.missingFonts,
@@ -645,6 +651,7 @@ function PfDwgViewerInner({
             res.scene.report,
             fontResolve.missingFonts,
           );
+          registerCadShxStyleTable(res.scene.textStyleTable);
           let scene: ScenePayload = { ...res.scene, report: reportWithFonts };
           const p8 = applyCadP8GpuTextHandoff(res.segments, scene);
           scene = p8.scene;
@@ -705,6 +712,7 @@ function PfDwgViewerInner({
             res.scene.report,
             fontResolve?.missingFonts ?? [],
           );
+          registerCadShxStyleTable(res.scene.textStyleTable);
           let scene: ScenePayload = { ...res.scene, report: reportWithFonts };
           const p8 = applyCadP8GpuTextHandoff(res.segments, scene);
           scene = p8.scene;

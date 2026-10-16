@@ -28,6 +28,14 @@ export type CadRasterImage = {
   clip?: [number, number][];
 };
 
+/** One row from the DWG text style table (WASM `textStyleTable`). */
+export type CadTextStyleTableEntry = {
+  name: string;
+  font?: string;
+  big?: string;
+  ttf?: string;
+};
+
 export type CadText = {
   x: number;
   y: number;
@@ -74,6 +82,8 @@ export type ScenePayload = {
   triangleStride?: number;
   /** Count of text records also emitted as GPU stroke segments (P8). */
   gpuTexts?: number;
+  /** Style name → SHX/TTF files; used to bind TRHEBTXT-style names to loaded fonts. */
+  textStyleTable?: CadTextStyleTableEntry[];
   texts: CadText[];
   images?: CadRasterImage[];
   layers: CadLayer[];

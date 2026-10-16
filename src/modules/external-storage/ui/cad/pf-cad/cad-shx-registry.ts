@@ -1,4 +1,5 @@
 import type { ResolvedCadFont } from './font-resolver';
+import type { CadTextStyleTableEntry } from './types';
 import {
   parseShxBigfontFile,
   parseShxFont,
@@ -69,6 +70,58 @@ export function registerCadShxFonts(resolved: ResolvedCadFont[]): string[] {
     }
   }
   return loaded;
+}
+
+function loadedShxKeyForFontFile(fontFile: string): string | undefined {
+  const trimmed = fontFile.trim();
+  if (!trimmed) return undefined;
+  for (const key of styleKeysForFontName(trimmed)) {
+    const k = key.toLowerCase();
+    if (shxByStyleKey.has(k) || bigfontByStyleKey.has(k)) return k;
+  }
+  return undefined;
+}
+
+/** Map DWG style names (e.g. TRHEBTXT) to registered SHX font keys (e.g. miryl.shx). */
+export function registerCadShxStyleTable(entries: CadTextStyleTableEntry[] | undefined): number {
+  if (!entries?.length) return 0;
+  let linked = 0;
+  for (const entry of entries) {
+    const styleKeys = styleKeysForFontName(entry.name);
+    const primaryKey = entry.font ? loadedShxKeyForFontFile(entry.font) : undefined;
+    const bigKey = entry.big ? loadedShxKeyForFontFile(entry.big) : undefined;
+
+    if (primaryKey) {
+      const font = shxByStyleKey.get(primaryKey)!;
+      for (const sk of styleKeys) {
+        shxByStyleKey.set(sk.toLowerCase(), font);
+      }
+      linked += 1;
+    }
+
+    if (bigKey) {
+      const bundle = bigfontByStyleKey.get(bigKey);
+      if (bundle) {
+        for (const sk of styleKeys) {
+          const k = sk.toLowerCase();
+          bigfontByStyleKey.set(k, bundle);
+          shxByStyleKey.set(k, bundle.font);
+        }
+      }
+    }
+
+    if (primaryKey && bigKey) {
+      for (const sk of styleKeys) {
+        primaryForBigfont.set(sk.toLowerCase(), primaryKey);
+      }
+      if (entry.big) {
+        for (const bk of styleKeysForFontName(entry.big)) {
+          primaryForBigfont.set(bk.toLowerCase(), primaryKey);
+        }
+      }
+    }
+  }
+  return linked;
 }
 
 export function clearCadShxFonts(): void {
