@@ -33,6 +33,7 @@ const {
   registerCadShxFonts,
   registerCadShxStyleTable,
   registerCadShxTextStyleAliases,
+  registerCadShxEntityStyleHeuristics,
   clearCadShxFonts,
   lookupShxFont,
 } =
@@ -59,6 +60,10 @@ const { shouldDrawTextOnCanvas } = await import(
 );
 const { mirrorScale } = await import(
   pathToFileURL(path.join(root, 'src/modules/external-storage/ui/cad/pf-cad/draw-cad-text.ts')).href
+);
+const { collectEntityTextStyleDiagnostics } = await import(
+  pathToFileURL(path.join(root, 'src/modules/external-storage/ui/cad/pf-cad/cad-entity-text-style.ts'))
+    .href
 );
 const { cadTextCanvasPaint } = await import(
   pathToFileURL(path.join(root, 'src/modules/external-storage/ui/cad/pf-cad/cad-text-canvas-color.ts')).href
@@ -285,12 +290,14 @@ if (storageDir && fs.existsSync(storageDir)) {
   const fontResolve = await resolveCadFontsFromStorage({
     fonts: json.report?.fonts,
     textStyleTable: json.textStyleTable,
+    texts,
     hostPath: host.replace(/\\/g, '/'),
     fileIndex,
     xrefPaths: Object.values(json.report?.xrefs ?? {}),
   });
   registerCadShxFonts(fontResolve.resolved);
   const styleLinked = registerCadShxStyleTable(json.textStyleTable);
+  registerCadShxEntityStyleHeuristics(texts, json.textStyleTable);
   const shxResolvable = texts.filter((t) => lookupShxFont(t.style)).length;
   storageFonts = {
     storageDir,
@@ -309,9 +316,11 @@ let metricsAfterLoad = shxHandoffMetrics(texts, origin);
 
 if (shxNames.length > 0 || storageFonts?.resolvedShx > 0) {
   let styleAliasesLinked = storageFonts?.styleAliasesLinked ?? 0;
+  let entityHeuristicsLinked = 0;
   let textStyleAliasesLinked = 0;
   if (shxNames.length > 0 && !storageFonts) {
     styleAliasesLinked = registerCadShxStyleTable(json.textStyleTable);
+    entityHeuristicsLinked = registerCadShxEntityStyleHeuristics(texts, json.textStyleTable);
     textStyleAliasesLinked = registerCadShxTextStyleAliases(texts);
   }
   const styleCounts = new Map();
@@ -321,6 +330,7 @@ if (shxNames.length > 0 || storageFonts?.resolvedShx > 0) {
   }
   styleBinding = {
     styleAliasesLinked,
+    entityHeuristicsLinked,
     textStyleAliasesLinked,
     textStyleTableSample: (json.textStyleTable ?? []).slice(0, 8),
     reportFontKeysSample: Object.keys(json.report?.fonts ?? {}).slice(0, 12),
@@ -411,6 +421,10 @@ console.log(
       mirrorFlagRecords: mirrorTrue,
       canvasFallbackRecords: canvasFallback,
       textStyleTableRows: json.textStyleTable?.length ?? 0,
+      entityTextStyles: collectEntityTextStyleDiagnostics({
+        texts,
+        textStyleTable: json.textStyleTable,
+      }).slice(0, 15),
       storageFonts,
       styleBinding,
       shxHandoff: {

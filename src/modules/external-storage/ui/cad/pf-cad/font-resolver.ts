@@ -4,6 +4,10 @@ import {
   type CadIndexedFile,
   type FileIndex,
 } from './xref-resolver';
+import {
+  entityStyleFontNameCandidates,
+  tableRowsEmbeddedInEntityStyle,
+} from './cad-entity-text-style';
 import type { CadTextStyleTableEntry } from './types';
 
 export type ResolvedCadFont = {
@@ -132,6 +136,8 @@ export function lookupFontAcrossSearchPaths(
 export function cadFontNamesFromScene(input: {
   fonts?: Record<string, number>;
   textStyleTable?: CadTextStyleTableEntry[];
+  /** Entity `style` strings — fetch fonts for XREF/block-only style names (e.g. TRHEBTXT). */
+  texts?: ReadonlyArray<{ style?: string | number }>;
 }): string[] {
   const names = new Set<string>();
   for (const key of Object.keys(input.fonts ?? {})) {
@@ -141,6 +147,24 @@ export function cadFontNamesFromScene(input: {
   for (const row of input.textStyleTable ?? []) {
     if (row.font?.trim()) names.add(row.font.trim());
     if (row.big?.trim()) names.add(row.big.trim());
+  }
+  const tableNames = new Set(
+    (input.textStyleTable ?? []).map((r) => r.name.trim().toLowerCase()).filter(Boolean),
+  );
+  const seenEntity = new Set<string>();
+  for (const tx of input.texts ?? []) {
+    const style = tx.style != null ? String(tx.style).trim() : '';
+    if (!style || seenEntity.has(style.toLowerCase())) continue;
+    seenEntity.add(style.toLowerCase());
+    for (const candidate of entityStyleFontNameCandidates(style)) {
+      names.add(candidate);
+    }
+    if (!tableNames.has(style.toLowerCase())) {
+      for (const row of tableRowsEmbeddedInEntityStyle(style, input.textStyleTable)) {
+        if (row.font?.trim()) names.add(row.font.trim());
+        if (row.big?.trim()) names.add(row.big.trim());
+      }
+    }
   }
   return [...names];
 }
@@ -152,6 +176,7 @@ export function cadFontNamesFromScene(input: {
 export async function resolveCadFontsFromStorage(input: {
   fonts: Record<string, number> | undefined;
   textStyleTable?: CadTextStyleTableEntry[];
+  texts?: ReadonlyArray<{ style?: string | number }>;
   hostPath: string;
   fileIndex: FileIndex;
   /** Resolved XREF paths from compat report — search their folders for SHX/TTF siblings. */
@@ -160,6 +185,7 @@ export async function resolveCadFontsFromStorage(input: {
   const names = cadFontNamesFromScene({
     fonts: input.fonts,
     textStyleTable: input.textStyleTable,
+    texts: input.texts,
   });
   const resolved: ResolvedCadFont[] = [];
   const missingFonts: string[] = [];

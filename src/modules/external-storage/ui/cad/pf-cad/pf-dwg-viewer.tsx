@@ -38,6 +38,7 @@ import {
   lookupShxFont,
   registerCadShxFonts,
   registerCadShxStyleTable,
+  registerCadShxEntityStyleHeuristics,
   registerCadShxTextStyleAliases,
 } from './cad-shx-registry';
 import {
@@ -531,6 +532,7 @@ function PfDwgViewerInner({
         const fontResolve = await resolveCadFontsFromStorage({
           fonts: res.scene.report.fonts,
           textStyleTable: res.scene.textStyleTable,
+          texts: res.scene.texts,
           hostPath: normalizeCadPath(fileName),
           fileIndex,
           xrefPaths: Object.values(res.scene.report.xrefs ?? {}),
@@ -540,6 +542,7 @@ function PfDwgViewerInner({
         clearCadShxFonts();
         registerCadShxFonts(fontResolve.resolved);
         registerCadShxStyleTable(res.scene.textStyleTable);
+        registerCadShxEntityStyleHeuristics(res.scene.texts, res.scene.textStyleTable);
         registerCadShxTextStyleAliases(res.scene.texts);
         const reportWithFonts = mergeMissingFontsIntoReport(
           res.scene.report,
@@ -652,6 +655,7 @@ function PfDwgViewerInner({
             (await resolveCadFontsFromStorage({
               fonts: res.scene.report.fonts,
               textStyleTable: res.scene.textStyleTable,
+              texts: res.scene.texts,
               hostPath: normalizeCadPath(fileName),
               fileIndex: ctx.fileIndex,
               xrefPaths: Object.values(res.scene.report.xrefs ?? {}),
@@ -661,6 +665,7 @@ function PfDwgViewerInner({
             fontResolve.missingFonts,
           );
           registerCadShxStyleTable(res.scene.textStyleTable);
+          registerCadShxEntityStyleHeuristics(res.scene.texts, res.scene.textStyleTable);
           registerCadShxTextStyleAliases(res.scene.texts);
           let scene: ScenePayload = { ...res.scene, report: reportWithFonts };
           const p8 = applyCadP8GpuTextHandoff(res.segments, scene);
@@ -723,6 +728,7 @@ function PfDwgViewerInner({
             fontResolve?.missingFonts ?? [],
           );
           registerCadShxStyleTable(res.scene.textStyleTable);
+          registerCadShxEntityStyleHeuristics(res.scene.texts, res.scene.textStyleTable);
           registerCadShxTextStyleAliases(res.scene.texts);
           let scene: ScenePayload = { ...res.scene, report: reportWithFonts };
           const p8 = applyCadP8GpuTextHandoff(res.segments, scene);

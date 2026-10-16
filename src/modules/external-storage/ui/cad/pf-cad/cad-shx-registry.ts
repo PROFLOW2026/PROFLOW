@@ -1,3 +1,7 @@
+import {
+  entityStyleFontNameCandidates,
+  tableRowsEmbeddedInEntityStyle,
+} from './cad-entity-text-style';
 import type { ResolvedCadFont } from './font-resolver';
 import type { CadTextStyleTableEntry } from './types';
 import {
@@ -125,6 +129,99 @@ export function registerCadShxStyleTable(entries: CadTextStyleTableEntry[] | und
 }
 
 /** Bind entity `style` strings to loaded SHX when they name a font file (not only table rows). */
+function linkEntityStyleToTableRow(entityStyle: string, entry: CadTextStyleTableEntry): boolean {
+  const styleKeys = styleKeysForFontName(entityStyle);
+  const primaryKey = entry.font ? loadedShxKeyForFontFile(entry.font) : undefined;
+  const bigKey = entry.big ? loadedShxKeyForFontFile(entry.big) : undefined;
+  let linked = false;
+
+  if (primaryKey) {
+    const font = shxByStyleKey.get(primaryKey)!;
+    for (const sk of styleKeys) {
+      shxByStyleKey.set(sk.toLowerCase(), font);
+    }
+    linked = true;
+  }
+
+  if (bigKey) {
+    const bundle = bigfontByStyleKey.get(bigKey);
+    if (bundle) {
+      for (const sk of styleKeys) {
+        const k = sk.toLowerCase();
+        bigfontByStyleKey.set(k, bundle);
+        shxByStyleKey.set(k, bundle.font);
+      }
+      linked = true;
+    }
+  }
+
+  if (primaryKey && bigKey) {
+    for (const sk of styleKeys) {
+      primaryForBigfont.set(sk.toLowerCase(), primaryKey);
+    }
+    if (entry.big) {
+      for (const bk of styleKeysForFontName(entry.big)) {
+        primaryForBigfont.set(bk.toLowerCase(), primaryKey);
+      }
+    }
+  }
+  return linked;
+}
+
+/**
+ * Bind entity-only style names (XREF/blocks) using host table rows embedded in the name
+ * (TRHEBTXT → HEBTXT) and prefix variants — no requirement for TRHEBTXT.SHX on disk.
+ */
+export function registerCadShxEntityStyleHeuristics(
+  texts: ReadonlyArray<{ style?: string | number }> | undefined,
+  textStyleTable: CadTextStyleTableEntry[] | undefined,
+): number {
+  if (!texts?.length) return 0;
+  const tableNames = new Set(
+    (textStyleTable ?? []).map((r) => r.name.trim().toLowerCase()).filter(Boolean),
+  );
+  let linked = 0;
+  const seen = new Set<string>();
+  for (const tx of texts) {
+    const name = tx.style != null ? String(tx.style).trim() : '';
+    if (!name || seen.has(name.toLowerCase())) continue;
+    seen.add(name.toLowerCase());
+    if (lookupShxFont(name)) continue;
+    if (tableNames.has(name.toLowerCase())) continue;
+
+    for (const row of tableRowsEmbeddedInEntityStyle(name, textStyleTable)) {
+      if (linkEntityStyleToTableRow(name, row)) {
+        linked += 1;
+        break;
+      }
+    }
+    if (lookupShxFont(name)) continue;
+
+    for (const variant of entityStyleFontNameCandidates(name)) {
+      if (variant === name) continue;
+      if (textStyleTable && tableNames.has(variant.toLowerCase())) {
+        const row = textStyleTable.find(
+          (r) => r.name.trim().toLowerCase() === variant.toLowerCase(),
+        );
+        if (row && linkEntityStyleToTableRow(name, row)) {
+          linked += 1;
+          break;
+        }
+      }
+      const primaryKey = loadedShxKeyForFontFile(variant);
+      if (!primaryKey) continue;
+      const font = shxByStyleKey.get(primaryKey);
+      if (!font) continue;
+      for (const sk of styleKeysForFontName(name)) {
+        shxByStyleKey.set(sk.toLowerCase(), font);
+      }
+      linked += 1;
+      break;
+    }
+  }
+  return linked;
+}
+
 export function registerCadShxTextStyleAliases(
   texts: ReadonlyArray<{ style?: string | number }> | undefined,
 ): number {

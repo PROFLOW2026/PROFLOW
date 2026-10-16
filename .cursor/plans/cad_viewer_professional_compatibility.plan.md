@@ -143,7 +143,7 @@ The full list is in section 11 of the audit.
 | p6-plot-look | **completed** | CTB + plot mode + ACI 7 דינמי; visual gate pending |
 | text regression guards | **completed** | `cad-text-canvas-color`, `cad-gpu-text-policy`, vitest + `p-text-normal-plot.mjs` |
 | p7-paperspace | **completed** | viewports + XCLIP; compat ללא skip viewport |
-| p8-engine-text | **pending** | `P8_GPU_TEXT_HANDOFF` פעיל (worker + WASM); 3096: **1756/3266** `gpu:true` מ-pf-fonts (`p8-gpu-stats.mjs`); SHX merge + `sanitizeSceneGpuTextFlags` ב-TS; Canvas לרשומות לא שלמות; חסר אימות עם קבצי SHX מהאחסון |
+| p8-engine-text | **pending** | Handoff chain + `registerCadShxEntityStyleHeuristics` (TRHEBTXT→HEBTXT table); 3096 audit **1287** `shxStyleResolvable`; **`shxGpuEligible: 0`** until proprietary SHX bytes from storage (synthetic ≠ proof); WASM pf-fonts `gpu` נשאר לטקסט TTF/שלם |
 | p9-secondary | **pending** | MLeader + raster WebGL + `clip` JSON + viewport raster ב-engine; vitest `cad-raster-clip`; אימות end-to-end עם תמונות מהאחסון — לא ב-fixtures |
 | p10-licensing | **completed** | OPEN_SOURCE_NOTICES + engine LICENSE + denylist CI |
 | gate-visual | **pending** | Owner PDFs |
