@@ -54,6 +54,8 @@ export type CadText = {
   /** Text style name from DWG (JSON string from WASM). */
   style?: string | number;
   invisible?: boolean;
+  /** When true, stroke geometry is in the WASM segment buffer (WebGL); skip Canvas overlay. */
+  gpu?: boolean;
 };
 
 export type ScenePayload = {
@@ -68,6 +70,8 @@ export type ScenePayload = {
   segmentStride: number;
   triangleCount?: number;
   triangleStride?: number;
+  /** Count of text records also emitted as GPU stroke segments (P8). */
+  gpuTexts?: number;
   texts: CadText[];
   images?: CadRasterImage[];
   layers: CadLayer[];

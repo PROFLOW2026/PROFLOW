@@ -324,7 +324,7 @@ function PfDwgViewerInner({
       const end = Math.min(texts.length, idx + TEXTS_PER_SLICE);
       for (; idx < end; idx += 1) {
         const tx = texts[idx]!;
-        if (hidden.has(tx.layer) || tx.invisible) continue;
+        if (hidden.has(tx.layer) || tx.invisible || tx.gpu) continue;
         drawCadText(drawCtx, tx, view.zoom);
       }
       if (idx < texts.length && gen === textDrawGenRef.current) {

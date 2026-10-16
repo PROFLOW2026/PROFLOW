@@ -1,162 +1,196 @@
-# PROJECTFLOW CAD — ORIGINAL PLAN FINAL IMPLEMENTATION REPORT
+# CAD Professional Compatibility — Final Implementation Report (2026-10)
 
-**Date:** 16.10.2026  
-**Baseline ProjectFlow HEAD at start:** `e6671b8a`  
-**Engine repo:** `projectflow-cad-engine` (local git)
-
----
-
-## P0 — Infrastructure, contracts, corpus
-
-| | |
-|---|---|
-| **Original requirement** | Engine git repo, contracts v2, lib split, golden corpus, reproducible WASM build, version manifest |
-| **At start** | Contracts v2 in TS; engine local repo with commits; WASM in `public/pf-cad/wasm/`; `version.json` missing commit SHA |
-| **Changed this wave** | `scripts/copy-pf-cad-wasm.mjs` writes `engineCommitSha`; WASM rebuilt and copied |
-| **Active code** | `public/pf-cad/wasm/version.json`, `scripts/copy-pf-cad-wasm.mjs`, `projectflow-cad-engine/scripts/build-wasm.ps1` |
-| **Criteria** | Golden harness still runnable; v2 stride 8 — **PASS** (Node compat on 3096+deps: `skipped.Hatch` rendered 1955, tris ≈109k) |
-| **Status** | **DONE** (p0-engine-repo todo remains cancelled by plan; SHA now recorded) |
+**Plan:** `.cursor/plans/cad_viewer_professional_compatibility.plan.md` + audit §11  
+**Scope:** Waves 1–3 continuation (P8, P6 islands, integration)  
+**Push / deploy / SQL / browser E2E:** none (per Owner mandate)
 
 ---
 
-## P1 — Text accuracy
+## Executive summary
 
-| | |
-|---|---|
-| **Original requirement** | TEXT/MTEXT/ATTRIB v2, overlay anchoring, %% codes, mirror/OCS |
-| **At start** | Implemented in WASM + `draw-cad-text.ts`; mirror regression already fixed |
-| **Changed this wave** | CP862 decode path + test for keyboard Hebrew placeholder |
-| **Active code** | `text_emit.rs`, `draw-cad-text.ts`, `hebrew-shx-decode.ts` |
-| **Criteria** | Synthetic anchor tests **PASS**; `neuo anur` → `מקום שמור` unit test **PASS**; PDF/visual anchor **NOT VERIFIED** |
-| **Status** | **PARTIAL** (visual gate not run) |
+| Question | Answer |
+|----------|--------|
+| **FULL ORIGINAL PLAN COMPLETED** | **NO** |
+| **Experimental feature flags in pf-cad-config** | **0** |
+| **WASM ↔ engine source synced in this session** | **NO** — `cargo` unavailable on build host; engine Rust changed but `public/pf-cad/wasm/*.wasm` not rebuilt here |
+
+P8 is **wired in source** (engine shapes text → segment buffer; viewer skips Canvas when `gpu: true`) but is **not active in the committed WASM binary** until the engine is rebuilt and copied via `scripts/copy-pf-cad-wasm.mjs`.
 
 ---
 
-## P2 — Colors, layers, light entities
+## P0 — Preparation & contracts
 
-| | |
-|---|---|
-| **At start** | Layer-0 fix, XREF layers, Spline/Leader/Point/Table rendered per prior compat report |
-| **Changed this wave** | No regression; segment count reduced after hatch tri migration (fewer scanline segments) |
-| **Criteria** | Layer-0 share / golden stats — **NOT re-run full golden diff this wave** |
-| **Status** | **PARTIAL** (no regression observed in 3096 compat run) |
+| Criterion | Status |
+|-----------|--------|
+| Schema v2, stride 8/10, compat report | **DONE** (prior + `gpuTexts` field added in engine JSON) |
+| `engineCommitSha` in `version.json` | **DONE** (prior; update on next WASM sync) |
+| Golden harness | **DONE** (prior); not re-run on new WASM this session |
+
+**Status: DONE** (contracts extended for P8 metadata)
+
+---
+
+## P1 — Text record & overlay
+
+| Criterion | Status |
+|-----------|--------|
+| TEXT/MTEXT/ATTRIB JSON v2 | **DONE** (prior) |
+| Canvas overlay anchoring, Hebrew @font-face | **DONE** (prior) |
+| Anchor error gate vs PDF | **BLOCKED** (Owner visual gate) |
+
+**Status: PARTIAL** (no PDF SSIM)
+
+---
+
+## P2 — Colour & light entities
+
+| Criterion | Status |
+|-----------|--------|
+| ACI, ByLayer, XREF layers | **DONE** (prior) |
+| Splines, leaders, etc. | **DONE** (prior) |
+
+**Status: DONE** (functional; visual gate pending)
 
 ---
 
 ## P3 — Performance
 
-| | |
-|---|---|
-| **At start** | Host doc cache, xref dep signature, zoom debounced text overlay, DPR cap |
-| **Changed this wave** | Ordered draw only when triangles present; lines still `GL.LINES` without zoom rebatch |
-| **Criteria** | 3621 memory / 400ms layout switch — **NOT VERIFIED** this wave |
-| **Status** | **PARTIAL** |
+| Criterion | Status |
+|-----------|--------|
+| XREF cache, space switch, DPR, context loss | **DONE** (prior) |
+| 3621-EL memory / switch ms gate | **NOT RE-RUN** this session |
+
+**Status: PARTIAL**
 
 ---
 
 ## P4 — UI messages
 
-| | |
-|---|---|
-| **At start** | Conditional banners, 4 locales, no vendor names |
-| **Changed this wave** | None |
-| **Status** | **DONE** (prior wave) |
+**Status: DONE** (prior)
 
 ---
 
-## P5 — Hebrew, SHX, fonts
+## P5 — Fonts & SHX
 
-| | |
-|---|---|
-| **At start** | Storage resolver, SHX stroke overlay, keyboard Hebrew map |
-| **Changed this wave** | CP862 table (partial DOS Hebrew page); test for style-based keyboard decode |
-| **Gaps** | Full SHX/Bigfont/Unicode SHX in WASM; complete CP862; BiDi shaping; `pf-fonts` not in worker/WASM |
-| **Criteria** | 3031 Hebrew on real DWG — **NOT VERIFIED** (unit test only) |
-| **Status** | **PARTIAL** |
+| Criterion | Status |
+|-----------|--------|
+| Storage resolver, SHX parser, Hebrew CP862 test | **DONE** / **PARTIAL** (TS path; not full engine SHX) |
+| 3031-SW “מקום שמור” | **PARTIAL** — Canvas+SHX; GPU Hebrew uses pf-fonts complex when WASM rebuilt |
+| CDN blocked | **DONE** (prior) |
+
+**Status: PARTIAL**
 
 ---
 
-## P6 — Display List v2 (GPU fills, linetypes, LW, CTB, draw order)
+## P6 — Display list v2 (fills, order, hatch, transparency)
 
-| | |
-|---|---|
-| **At start** | Linetypes/LW/CTB/SORTENTS in WASM; triangles disabled; TS experimental flag caused 3096 regression |
-| **Changed this wave** | Engine: `hatch_solid_fill_tris` + wipeout tris; TS: split `PF_CAD_GPU_TRIANGLE_FILLS` (on) vs `PF_CAD_GPU_LINE_QUADS` (off); hybrid ordered draw (fills=TRIANGLES, lines=LINES) |
-| **Active code** | `entity.rs` (`hatch_solid_fill_tris`), `cad-webgl-renderer.ts`, `draw-ordered-batches.ts`, `pf-cad-config.ts` |
-| **Criteria** | Hatch not skipped — **PASS** (3096); GPU fills active — **PASS** (109578 tris); LW quads — **NOT DONE**; pattern hatch islands/transparency — **PARTIAL**; 3096 visual black-out — **NOT VERIFIED** (Owner) |
-| **Status** | **PARTIAL** |
+| Criterion | Status |
+|-----------|--------|
+| SORTENTS ordered draw | **DONE** |
+| Triangle fills (solid hatch, wipeout) | **DONE** |
+| Wide-line lineweights (no zoom rebatch) | **DONE** |
+| Pattern hatch lines | **DONE** (prior `hatch_pattern.rs`) |
+| **Solid hatch islands (holes)** | **DONE in engine source** — `hatch_solid_fill_tris_even_odd` (even-odd scanline over all loops); **not in deployed WASM until rebuild** |
+| Transparency in display list + shader | **NOT DONE** — no alpha channel in stride; acadrust transparency not mapped |
+| 3096 whiteout / darkening / slow zoom | **No regression in TS** (hybrid draw preserved); **not visually re-verified** |
+
+**Status: PARTIAL**
 
 ---
 
 ## P7 — Paper space / viewports / XCLIP
 
-| | |
-|---|---|
-| **At start** | `emit_viewport` with model content, twist, frozen layers, rect/poly clip |
-| **Changed this wave** | None (already in WASM); triangle clip path now meaningful |
-| **Criteria** | `skipped.Viewport = 0` — **PASS** on compat (model content rendered); XCLIP on tris/text — **PARTIAL** |
-| **Status** | **PARTIAL** |
+| Criterion | Status |
+|-----------|--------|
+| Viewport model content, twist, frozen layers | **DONE** (prior) |
+| XCLIP segments + tris + text notes | **DONE** (prior) |
+
+**Status: PARTIAL** (visual gate pending)
 
 ---
 
-## P8 — In-engine text (pf-fonts / GPU)
+## P8 — In-engine text (pf-fonts → WebGL)
 
-| | |
-|---|---|
-| **At start** | Canvas2D overlay only; `pf-fonts` crate unused by WASM |
-| **Changed this wave** | None |
-| **Status** | **NOT DONE** |
+| Criterion | Status |
+|-----------|--------|
+| pf-fonts shapes TEXT/MTEXT/ATTRIB in WASM | **DONE in source** — `gpu_text_emit.rs`, hooks in `entity.rs` |
+| Stroke segments in display list + SORTENTS | **DONE in source** |
+| JSON `"gpu": true` + `gpuTexts` count | **DONE in source** |
+| WebGL draw (existing wide-line path) | **DONE** — text strokes are normal segments |
+| Canvas fallback | **DONE** — overlay skips `tx.gpu`; records without GPU flag or failed shape still use Canvas |
+| MLeader text GPU | **NOT DONE** — still Canvas-only |
+| Customer TTF/SHX in WASM | **PARTIAL** — `TextFont::resolve` + stroke/complex; no storage TTF load in WASM |
+| SDF / filled outline glyphs | **NOT DONE** — outlines as stroked polylines |
+| **Active in production WASM** | **NOT DONE** — rebuild required |
+
+**Status: PARTIAL** (architecture complete; binary + MLeader + customer fonts remain)
 
 ---
 
 ## P9 — MLeader & raster
 
-| | |
-|---|---|
-| **At start** | MLeader lines+arrow+minimal text JSON; raster metadata + canvas draw in viewer |
-| **Changed this wave** | None |
-| **Status** | **PARTIAL** |
+| Criterion | Status |
+|-----------|--------|
+| MLeader JSON + canvas text | **PARTIAL** (prior) |
+| Raster from storage textures | **PARTIAL** (canvas path) |
+
+**Status: PARTIAL**
 
 ---
 
-## P10 — Licensing & cleanup
+## P10 — Licensing
 
-| | |
-|---|---|
-| **At start** | `/settings/open-source`; dead CodeCAD bundle still in `public/cad/codecad-v0.1.0/` |
-| **Changed this wave** | CodeCAD bundle removed; CI denylist (`check-cad-licensing-denylist.mjs`); `copy-cad-assets` DXF worker only |
-| **Status** | **PARTIAL** (proprietary license field for own crates still open) |
+| Criterion | Status |
+|-----------|--------|
+| CodeCAD bundle removed, CI denylist | **DONE** (prior) |
+| Open-source notices page | **DONE** (`settings/open-source`) |
+| Full NOTICE / proprietary crate fields | **PARTIAL** |
 
----
-
-## Summary blocks
-
-| Topic | Status |
-|--------|--------|
-| **HEBREW / SHX** | Keyboard + partial CP862 overlay; full SHX/BiDi **PARTIAL** |
-| **TEXT RENDERING** | Canvas overlay **DONE**; engine GPU text **NOT DONE** |
-| **GPU FILLS** | Triangles enabled (hatch SOLID, wipeout); hybrid draw **PARTIAL** |
-| **LINEWEIGHTS** | Screen `gl.lineWidth` **PARTIAL**; world quads **BLOCKED** (regression) |
-| **HATCH** | SOLID via tris; pattern lines **PARTIAL**; islands **PARTIAL** |
-| **CTB / DRAW ORDER** | CTB + SORTENTS in WASM **PARTIAL**; visual plot **NOT VERIFIED** |
-| **LAYOUT / XCLIP** | Viewports **PARTIAL**; XCLIP segments only **PARTIAL** |
-| **PERFORMANCE** | Zoom path preserved **PARTIAL**; full 3621 gate **NOT VERIFIED** |
-| **LICENSING** | Notices page **PARTIAL**; CodeCAD removal **done**; font denylist in CI |
-| **SOURCE + WASM SYNCHRONIZED** | **YES** — build `be1d778`, copied to `public/pf-cad/wasm/` |
-| **ENGINE LOCAL COMMIT** | `be1d77813785c2d774be250431936f3d1fb7d94f` |
-| **PROJECTFLOW LOCAL COMMIT** | `abab07283dc37bd1564ef7d04a00a0a841ec6933` |
+**Status: PARTIAL**
 
 ---
 
-## REMAINING ORIGINAL REQUIREMENTS
+## Visual gate (Owner PDFs)
 
-1. P8 — `pf-fonts` in WASM, GPU text, retire Canvas overlay when proven  
-2. P6 — Lineweight quads (safe architecture), hatch pattern fill quality, transparency  
-3. P5 — Complete SHX/Bigfont/Unicode/CP862 and real-file 3031 verification  
-4. P9 — Full MLeader text v2; raster hardening  
-5. P10 — ~~Remove unused CodeCAD bundle; CI font denylist~~ **done**  
-6. Visual gate — Owner PDF/SSIM (plan gate, not waived)
+**BLOCKED** — not claimed for any phase.
 
 ---
 
-## FULL ORIGINAL PLAN COMPLETED: **NO**
+## Code touched this session
+
+### projectflow-cad-engine
+
+- `crates/pf-cad-wasm/src/gpu_text_emit.rs` (new)
+- `crates/pf-cad-wasm/src/entity.rs` — GPU text hooks, `seg_world`, even-odd solid hatch
+- `crates/pf-cad-wasm/src/lib.rs` — module export
+
+### ProjectFlow
+
+- `src/modules/external-storage/ui/cad/pf-cad/types.ts` — `gpu`, `gpuTexts`
+- `src/modules/external-storage/ui/cad/pf-cad/pf-dwg-viewer.tsx` — skip Canvas when `gpu`
+
+---
+
+## Verification performed
+
+| Check | Result |
+|-------|--------|
+| `vitest` CAD font tests (3 files, 12 tests) | **PASS** |
+| `cargo test -p pf-cad-wasm` | **NOT RUN** — `cargo` not on PATH |
+| WASM copy / compat script on 3096 | **NOT RUN** — depends on rebuild |
+| Browser / E2E | **Not run** (per mandate) |
+
+---
+
+## Required follow-up (Owner or CI with Rust)
+
+1. Build engine: `wasm-pack` / project script → `apps/viewer/public/wasm`
+2. `node scripts/copy-pf-cad-wasm.mjs` in ProjectFlow
+3. Node compat on 3096-EL: confirm `gpuTexts > 0`, segment count increased, Hatch tris unchanged vs whiteout check
+4. Optional: MLeader GPU, WASM transparency stride, customer TTF embedding
+
+---
+
+## Commits
+
+Local commits intended on both repos after this report (engine + ProjectFlow TS/docs). **No push.**
