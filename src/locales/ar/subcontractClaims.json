@@ -52,10 +52,12 @@
     },
     "draftEditorTitle": "بنود المطالبة (هذه الفترة)",
     "draftEditorHint": "أدخل المبلغ أو نسبة التقدم التراكمية أو الكمية. تظهر المبالغ المعتمدة سابقاً والرصيد المتبقي.",
-    "entryMode": "طريقة الإدخال",
-    "entryMode.amount": "مبلغ ثابت",
-    "entryMode.percent": "نسبة التقدم",
-    "entryMode.quantity": "كمية",
+    "entryMode": {
+      "label": "طريقة الإدخال",
+      "amount": "مبلغ ثابت",
+      "percent": "نسبة التقدم",
+      "quantity": "كمية"
+    },
     "approvedChanges": "تغييرات معتمدة",
     "priorCertified": "معتمد سابقاً",
     "remaining": "الرصيد المتبقي",

@@ -52,10 +52,12 @@
     },
     "draftEditorTitle": "Line items (this claim)",
     "draftEditorHint": "Enter this period by amount, cumulative progress %, or quantity. Prior certified amounts and remaining balance are shown for each line.",
-    "entryMode": "Entry mode",
-    "entryMode.amount": "Fixed amount",
-    "entryMode.percent": "Progress %",
-    "entryMode.quantity": "Quantity",
+    "entryMode": {
+      "label": "Entry mode",
+      "amount": "Fixed amount",
+      "percent": "Progress %",
+      "quantity": "Quantity"
+    },
     "approvedChanges": "Approved changes",
     "priorCertified": "Prior certified",
     "remaining": "Remaining balance",

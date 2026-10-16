@@ -55,10 +55,12 @@
     },
     "draftEditorTitle": "שורות חשבון (תקופה זו)",
     "draftEditorHint": "הזינו סכום לתקופה, אחוז התקדמות מצטבר או כמות. מוצגים סכומים מאושרים קודמים ויתרה.",
-    "entryMode": "אופן הזנה",
-    "entryMode.amount": "סכום קבוע",
-    "entryMode.percent": "אחוז התקדמות",
-    "entryMode.quantity": "כמות",
+    "entryMode": {
+      "label": "אופן הזנה",
+      "amount": "סכום קבוע",
+      "percent": "אחוז התקדמות",
+      "quantity": "כמות"
+    },
     "approvedChanges": "שינויים מאושרים",
     "priorCertified": "מאושר קודם",
     "remaining": "יתרה בחוזה",

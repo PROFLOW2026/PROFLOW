@@ -104,7 +104,7 @@ export function ClaimDraftEditor(props: {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-2 text-sm">
-          <span className="font-medium">{t('detail.entryMode')}:</span>
+          <span className="font-medium">{t('detail.entryMode.label')}:</span>
           {(['amount', 'percent', 'quantity'] as const).map((mode) => (
             <button
               key={mode}
