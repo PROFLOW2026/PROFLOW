@@ -4,18 +4,29 @@ import {
   resolveShxDrawContext,
   type ShxFont,
 } from './cad-shx-registry';
-import { shxGlyphAdvance, type ShxSegment } from './cad-shx-font';
+import { isDrawableShxCharacter, shxGlyphAdvance, type ShxSegment } from './cad-shx-font';
 import { attachmentToAlign, anchorOffset, mirrorScale } from './draw-cad-text';
 import { maybeDecodeHebrewShxText } from './hebrew-shx-decode';
 import {
+  mayMarkTextGpu,
   P8_GPU_TEXT_HANDOFF_ENABLED,
-  P8_MIN_GPU_SEGMENTS_PER_TEXT_RECORD,
-  shxTextRequiresCanvasFallback,
 } from './cad-gpu-text-policy';
 import { SEGMENT_STRIDE } from './renderer/segment-format';
 
 const TEXT_LINE_WEIGHT = 13;
-const MIN_SHX_GPU_SEGS = 1;
+
+function shxGlyphHasRealStroke(font: ShxFont, mappedCode: number): boolean {
+  const glyph = font.glyphs.get(mappedCode);
+  return !!glyph && glyph.length > 0;
+}
+
+/** True when this text record is shaped on the client SHX path (not WASM pf-fonts). */
+export function cadTextStyleUsesClientShx(tx: CadText): boolean {
+  const style = tx.style != null ? String(tx.style).trim() : '';
+  if (!style) return false;
+  if (/\.shx$/i.test(style)) return true;
+  return !!(lookupShxFont(style) || resolveShxDrawContext(style).primary);
+}
 
 type Affine = [number, number, number, number, number, number];
 
@@ -142,33 +153,75 @@ function emitGlyphSegments(
   return count;
 }
 
-/** True when every drawable SHX glyph has stroke geometry (no partial handoff). */
-export function isShxTextRecordGpuComplete(tx: CadText, origin: [number, number]): boolean {
-  if (tx.invisible) return false;
-  const layout = layoutShxText(tx, origin);
-  if (!layout) return false;
-  const { lines, capH, anchorX, spacing, shxCtx, shxPrimary } = layout;
+export type ShxTextRecordCoverage = {
+  /** Non-whitespace glyphs that need stroke geometry for GPU handoff. */
+  expectedGlyphs: number;
+  /** Total SHX stroke segments emitted for this record. */
+  segmentCount: number;
+  /** Every expected glyph has vectors and segment count meets P8 minimum. */
+  gpuComplete: boolean;
+};
+
+function countDrawableGlyphsInLayout(layout: TextLayout): number {
   let drawable = 0;
-  for (let li = 0; li < lines.length; li += 1) {
-    const line = lines[li]!;
+  for (const line of layout.lines) {
     for (const ch of line) {
-      if (ch === ' ' || ch === '\t') continue;
-      if (ch.trim().length === 0) continue;
-      drawable += 1;
+      if (isDrawableShxCharacter(ch)) drawable += 1;
+    }
+  }
+  return drawable;
+}
+
+/** Count drawable (non-whitespace) glyphs in a loaded SHX text layout. */
+export function countExpectedShxDrawableGlyphs(tx: CadText, origin: [number, number]): number {
+  if (tx.invisible) return 0;
+  const layout = layoutShxText(tx, origin);
+  if (!layout) return 0;
+  return countDrawableGlyphsInLayout(layout);
+}
+
+/** Expected glyph count vs emitted segment count for regression / audit tooling. */
+export function shxTextRecordCoverage(
+  tx: CadText,
+  origin: [number, number],
+): ShxTextRecordCoverage | null {
+  if (tx.invisible) return null;
+  const layout = layoutShxText(tx, origin);
+  if (!layout) return null;
+  const { lines, shxCtx, shxPrimary } = layout;
+  let expectedGlyphs = 0;
+  for (const line of lines) {
+    for (const ch of line) {
+      if (!isDrawableShxCharacter(ch)) continue;
+      expectedGlyphs += 1;
       const raw = ch.charCodeAt(0);
       const mapped = shxCtx.mapCode(raw);
       const active = shxCtx.pickFont(raw, mapped) ?? shxPrimary;
-      const glyph = active.glyphs.get(mapped);
-      if (!glyph || glyph.length === 0) return false;
+      if (!shxGlyphHasRealStroke(active, mapped)) {
+        return {
+          expectedGlyphs,
+          segmentCount: countShxTextSegments(tx, origin),
+          gpuComplete: false,
+        };
+      }
     }
   }
-  if (drawable === 0) return false;
-  const segs = countShxTextSegments(tx, origin);
-  return segs >= drawable && segs >= P8_MIN_GPU_SEGMENTS_PER_TEXT_RECORD;
+  if (expectedGlyphs === 0) return null;
+  const segmentCount = countShxTextSegments(tx, origin);
+  return {
+    expectedGlyphs,
+    segmentCount,
+    gpuComplete: mayMarkTextGpu(segmentCount, expectedGlyphs),
+  };
+}
+
+/** True when every drawable SHX glyph has stroke geometry (no partial handoff). */
+export function isShxTextRecordGpuComplete(tx: CadText, origin: [number, number]): boolean {
+  return shxTextRecordCoverage(tx, origin)?.gpuComplete === true;
 }
 
 export function countShxTextSegments(tx: CadText, origin: [number, number]): number {
-  if (tx.invisible || tx.gpu) return 0;
+  if (tx.invisible) return 0;
   const layout = layoutShxText(tx, origin);
   if (!layout) return 0;
   const { lines, capH, anchorX, spacing, shxCtx, shxPrimary } = layout;
@@ -212,7 +265,7 @@ export function appendShxTextSegmentRecords(
       const mapped = shxCtx.mapCode(raw);
       const active = shxCtx.pickFont(raw, mapped) ?? shxPrimary;
       const glyph = active.glyphs.get(mapped);
-      if (glyph) {
+      if (glyph && glyph.length > 0) {
         segCount += emitGlyphSegments(
           floats,
           active,
@@ -249,6 +302,28 @@ export type ShxGpuAppendResult = {
   shxGpuCount: number;
 };
 
+/** Drop `gpu` on client SHX records that are not geometry-complete; recompute `gpuTexts`. */
+export function sanitizeSceneGpuTextFlags<T extends { texts: CadText[]; gpuTexts?: number }>(
+  scene: T,
+  origin: [number, number],
+): T {
+  let gpuTexts = 0;
+  const texts = scene.texts.map((t) => {
+    if (!t.gpu) return t;
+    if (!P8_GPU_TEXT_HANDOFF_ENABLED) {
+      const { gpu: _gpu, ...rest } = t;
+      return rest;
+    }
+    if (cadTextStyleUsesClientShx(t) && !isShxTextRecordGpuComplete(t, origin)) {
+      const { gpu: _gpu, ...rest } = t;
+      return rest;
+    }
+    gpuTexts += 1;
+    return t;
+  });
+  return { ...scene, texts, gpuTexts };
+}
+
 /**
  * Append SHX stroke segments for record-complete texts; marks `gpu:true` for Canvas skip.
  */
@@ -272,12 +347,12 @@ export function appendShxGpuSegments(
 
   for (const tx of texts) {
     if (tx.gpu || tx.invisible) continue;
-    if (shxTextRequiresCanvasFallback(tx)) continue;
     const style = tx.style != null ? String(tx.style) : '';
     if (!resolveShxDrawContext(style).primary && !lookupShxFont(style)) continue;
     if (!isShxTextRecordGpuComplete(tx, origin)) continue;
+    const drawable = countExpectedShxDrawableGlyphs(tx, origin);
     const added = appendShxTextSegmentRecords(floats, tx, origin, baseOrder + 1);
-    if (added < P8_MIN_GPU_SEGMENTS_PER_TEXT_RECORD) continue;
+    if (!mayMarkTextGpu(added, drawable)) continue;
     tx.gpu = true;
     shxGpuCount += 1;
     gpuTexts += 1;

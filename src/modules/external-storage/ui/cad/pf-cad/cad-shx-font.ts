@@ -259,6 +259,34 @@ export function parseShxFont(name: string, bytes: Uint8Array): ShxFont | null {
   };
 }
 
+export function isDrawableShxCharacter(ch: string): boolean {
+  if (!ch || ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r') return false;
+  return ch.trim().length > 0;
+}
+
+/** Open rectangle in font units when a shape is missing (avoids silent gaps). */
+export function shxMissingGlyphStroke(font: ShxFont): ShxSegment[] {
+  const w = font.height * 0.55;
+  const cap = font.height * 0.75;
+  return [
+    { x1: 0, y1: 0, x2: w, y2: 0 },
+    { x1: w, y1: 0, x2: w, y2: cap },
+    { x1: w, y1: cap, x2: 0, y2: cap },
+    { x1: 0, y1: cap, x2: 0, y2: 0 },
+  ];
+}
+
+export function resolveShxGlyphStroke(
+  font: ShxFont,
+  mappedCode: number,
+  ch: string,
+): ShxSegment[] | null {
+  const glyph = font.glyphs.get(mappedCode);
+  if (glyph && glyph.length > 0) return glyph;
+  if (!isDrawableShxCharacter(ch)) return null;
+  return shxMissingGlyphStroke(font);
+}
+
 export function shxGlyphAdvance(font: ShxFont, code: number): number {
   const g = font.glyphs.get(code);
   if (!g || g.length === 0) return font.height * 0.6;
@@ -305,6 +333,15 @@ export function measureShxTextBlock(
   return { w, blockH, descent, capHeight: capH };
 }
 
+export type ShxTtfGlyphFallback = {
+  fontPx: number;
+  family: string;
+  baseFamily: string;
+  /** When true, draw Hebrew via fillText if the SHX shape is missing. */
+  hebrewWhenMissing?: boolean;
+  hasHebrew?: (text: string) => boolean;
+};
+
 export function drawShxLine(
   ctx: CanvasRenderingContext2D,
   font: ShxFont,
@@ -313,6 +350,7 @@ export function drawShxLine(
   fillStyle: string,
   mapCode: (code: number) => number = (c) => c,
   pickFont?: (code: number, mapped: number) => ShxFont,
+  ttfFallback?: ShxTtfGlyphFallback,
 ): { width: number } {
   let penX = 0;
   for (const ch of text) {
@@ -324,10 +362,21 @@ export function drawShxLine(
     ctx.lineWidth = Math.max(1, capH * 0.08);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    const glyph = active.glyphs.get(mapped);
-    if (glyph) {
+    const native = active.glyphs.get(mapped);
+    const stroke = resolveShxGlyphStroke(active, mapped, ch);
+    const missingShape = !native || native.length === 0;
+    if (
+      stroke &&
+      missingShape &&
+      ttfFallback?.hebrewWhenMissing &&
+      ttfFallback.hasHebrew?.(ch)
+    ) {
+      ctx.font = `${ttfFallback.fontPx}px ${ttfFallback.family}, ${ttfFallback.baseFamily}`;
+      ctx.fillStyle = fillStyle;
+      ctx.fillText(ch, penX, 0);
+    } else if (stroke) {
       ctx.beginPath();
-      for (const s of glyph) {
+      for (const s of stroke) {
         ctx.moveTo(penX + s.x1 * scale, -s.y1 * scale);
         ctx.lineTo(penX + s.x2 * scale, -s.y2 * scale);
       }

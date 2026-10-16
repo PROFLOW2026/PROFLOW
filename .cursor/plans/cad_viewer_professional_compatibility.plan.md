@@ -46,10 +46,10 @@ todos:
     status: completed
   - id: p6-display-list-v2
     content: "Phase 6: triangle channel (solid, hatch solid/pattern, wipeout, dim arrows), draw order (SORTENTS), linetypes, lineweights as quads, transparency"
-    status: pending
+    status: completed
   - id: p6-plot-look
     content: "Phase 6: dynamic ACI 7, light background mode, binary CTB reader and plot-style mode"
-    status: pending
+    status: completed
   - id: p7-paperspace
     content: "Phase 7: layout viewports (center/height/twist/clip, per-viewport frozen layers), XCLIP for XREFs"
     status: completed
@@ -61,7 +61,7 @@ todos:
     status: pending
   - id: p10-licensing
     content: "Phase 10: in-app open-source notices page, proprietary license field for own crates, CADCraft NOTICE verbatim, remove dead CodeCAD bundle, CI denylist for proprietary fonts/patterns"
-    status: pending
+    status: completed
   - id: gate-visual
     content: "Gate: Owner supplies original PDF plots for 3096-EL, 3621-EL, 3031-SW; region/SSIM comparison before and after each phase"
     status: pending
@@ -139,11 +139,11 @@ The full list is in section 11 of the audit.
 |------|--------|------|
 | p0-* (חוץ repo) | completed / cancelled | חוזה v2 + golden |
 | p1–p4, p5-* | completed | §11 PDF — לא; gate-visual pending |
-| p6-display-list-v2 | **pending** | SORTENTS/tris/LW — כן; **transparency** — לא; islands even-odd ב-Rust — rebuild WASM |
-| p6-plot-look | **pending** | CTB + plot mode — כן; **ACI 7 דינמי** — `aci_display_rgb` ב-WASM (2026-10-16); visual gate pending |
+| p6-display-list-v2 | **completed** | transparency ב-pack 0xAARRGGBB; alpha ב-WebGL/Canvas; even-odd hatch; SORTENTS — `p6-tri-channel-audit.mjs` |
+| p6-plot-look | **completed** | CTB + plot mode + ACI 7 דינמי; visual gate pending |
 | text regression guards | **completed** | `cad-text-canvas-color`, `cad-gpu-text-policy`, vitest + `p-text-normal-plot.mjs` |
 | p7-paperspace | **completed** | viewports + XCLIP; compat ללא skip viewport |
-| p8-engine-text | **pending** | Rust+TS מחובר; **WASM לא rebuild**; Canvas fallback; אין SDF/MLeader GPU |
-| p9-secondary | **pending** | MLeader/raster חלקי |
-| p10-licensing | **pending** | CodeCAD + denylist + notices — כן; NOTICE מלא / שדות רישוי — לא |
+| p8-engine-text | **pending** | `P8_GPU_TEXT_HANDOFF` פעיל (worker + WASM); 3096: **1756/3266** `gpu:true` מ-pf-fonts (`p8-gpu-stats.mjs`); SHX merge + `sanitizeSceneGpuTextFlags` ב-TS; Canvas לרשומות לא שלמות; חסר אימות עם קבצי SHX מהאחסון |
+| p9-secondary | **pending** | MLeader + raster WebGL + `clip` JSON + viewport raster ב-engine; vitest `cad-raster-clip`; אימות end-to-end עם תמונות מהאחסון — לא ב-fixtures |
+| p10-licensing | **completed** | OPEN_SOURCE_NOTICES + engine LICENSE + denylist CI |
 | gate-visual | **pending** | Owner PDFs |

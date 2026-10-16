@@ -1,7 +1,7 @@
 import type { CadText } from './types';
 import type { CadView } from './renderer';
 import { worldToScreen } from './renderer';
-import { maybeDecodeHebrewShxText } from './hebrew-shx-decode';
+import { hasHebrewBlock, maybeDecodeHebrewShxText } from './hebrew-shx-decode';
 import { drawShxLine, measureShxTextBlock, type ShxFont } from './cad-shx-font';
 import { resolveShxDrawContext } from './cad-shx-registry';
 import { cadTextCanvasPaint } from './cad-text-canvas-color';
@@ -225,6 +225,13 @@ export function drawCadText(
         fillStyle,
         shxCtx.mapCode,
         shxCtx.pickFont,
+        {
+          fontPx,
+          family,
+          baseFamily: draw.fontFamily,
+          hebrewWhenMissing: true,
+          hasHebrew: hasHebrewBlock,
+        },
       );
       draw.ctx.restore();
     }

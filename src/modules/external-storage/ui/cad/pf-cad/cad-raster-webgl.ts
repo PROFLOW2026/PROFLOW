@@ -2,6 +2,7 @@ import type { CadRasterImage } from './types';
 import type { CadView, ViewportSize } from './renderer';
 import { colorBitsToRgba01 } from './renderer/segment-format';
 import { RASTER_FRAG, RASTER_VERT } from './renderer/shaders';
+import { normalizeRasterClip, RASTER_CLIP_MAX_VERTS } from './cad-raster-clip';
 
 export const P9_RASTER_WEBGL_ENABLED = true;
 
@@ -49,7 +50,17 @@ export class CadRasterWebGlPass {
     viewport: WebGLUniformLocation | null;
     color: WebGLUniformLocation | null;
     texture: WebGLUniformLocation | null;
-  } = { pan: null, zoom: null, viewport: null, color: null, texture: null };
+    clipCount: WebGLUniformLocation | null;
+    clip: WebGLUniformLocation | null;
+  } = {
+    pan: null,
+    zoom: null,
+    viewport: null,
+    color: null,
+    texture: null,
+    clipCount: null,
+    clip: null,
+  };
 
   private vbo: WebGLBuffer | null = null;
   private images: CadRasterImage[] = [];
@@ -73,7 +84,20 @@ export class CadRasterWebGlPass {
     this.uniforms.viewport = gl.getUniformLocation(this.program, 'u_viewport');
     this.uniforms.color = gl.getUniformLocation(this.program, 'u_color');
     this.uniforms.texture = gl.getUniformLocation(this.program, 'u_texture');
+    this.uniforms.clipCount = gl.getUniformLocation(this.program, 'u_clipCount');
+    this.uniforms.clip = gl.getUniformLocation(this.program, 'u_clip[0]');
     this.vbo = gl.createBuffer();
+  }
+
+  /** Drop GPU textures from the previous scene (keeps program/buffer). */
+  releaseSceneTextures(gl: WebGL2RenderingContext): void {
+    for (const tex of this.urlToTexture.values()) {
+      gl.deleteTexture(tex);
+    }
+    this.urlToTexture.clear();
+    this.loaded = [];
+    this.loading.clear();
+    this.dirty = true;
   }
 
   setScene(
@@ -167,21 +191,30 @@ export class CadRasterWebGlPass {
       gl.uniform4f(this.uniforms.color, r, g, b, a);
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.uniform1i(this.uniforms.texture, 0);
+
+      const clipRtc = image.clip?.map(([x, y]) => [x - ox, y - oy] as [number, number]);
+      const clipCount = clipRtc?.length
+        ? Math.min(clipRtc.length, RASTER_CLIP_MAX_VERTS)
+        : 0;
+      gl.uniform1i(this.uniforms.clipCount, clipCount);
+      if (clipCount >= 3 && this.uniforms.clip) {
+        gl.uniform2fv(this.uniforms.clip, normalizeRasterClip(clipRtc));
+      }
+
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
   }
 
   dispose(gl: WebGL2RenderingContext | null): void {
     if (gl) {
-      for (const tex of this.urlToTexture.values()) {
-        gl.deleteTexture(tex);
-      }
+      this.releaseSceneTextures(gl);
       if (this.vbo) gl.deleteBuffer(this.vbo);
       if (this.program) gl.deleteProgram(this.program);
+    } else {
+      this.urlToTexture.clear();
+      this.loaded = [];
+      this.loading.clear();
     }
-    this.urlToTexture.clear();
-    this.loaded = [];
-    this.loading.clear();
     this.program = null;
     this.vbo = null;
   }
@@ -223,5 +256,4 @@ export class CadRasterWebGlPass {
       img.src = url;
     });
   }
-
 }

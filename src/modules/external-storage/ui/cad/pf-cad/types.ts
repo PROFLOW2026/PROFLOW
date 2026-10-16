@@ -24,6 +24,8 @@ export type CadRasterImage = {
   layer: number;
   c: number;
   corners: [number, number][];
+  /** World-space clip polygon (XCLIP / viewport); WebGL discards fragments outside. */
+  clip?: [number, number][];
 };
 
 export type CadText = {

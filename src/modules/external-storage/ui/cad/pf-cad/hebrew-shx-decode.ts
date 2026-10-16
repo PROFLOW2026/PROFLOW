@@ -69,7 +69,9 @@ const MIRYL_KEYBOARD_LATIN_TO_HE: Record<string, string> = {
 /** Oron / Foron family: same SI-1452 map; prefer CP862 when bytes are present. */
 const ORON_KEYBOARD_LATIN_TO_HE = HEBREW_KEYBOARD_LATIN_TO_HE;
 
-const HEBREW_STYLE_RE = /heb|hebrew|sivan|oron|david|narkis|miryo|simplex/i;
+/** Latin SHX (simplex, txt, romans) must not trigger keyboard / CP862 decode. */
+const HEBREW_STYLE_RE =
+  /heb|hebrew|hebtxt|dimheb|sivan|oron|foron|david|narkis|miryl|mirym/i;
 
 type HebrewKeyboardProfile = 'standard' | 'miryl' | 'oron';
 
@@ -269,6 +271,18 @@ function countCp862HebrewLetters(text: string): number {
   return n;
 }
 
+/** Skip keyboard remap for obvious English, dimensions, or numeric labels on Hebrew-named styles. */
+export function shouldApplyHebrewKeyboardDecode(text: string, style?: string | number): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) return false;
+  if (!/[a-zA-Z]/.test(trimmed)) return false;
+  const profile = keyboardProfileForStyle(style);
+  if (profile !== 'miryl' && /[A-Z]/.test(trimmed)) return false;
+  if (/^[0-9.\-+×°%\\/\s:,;()[\]]+$/.test(trimmed)) return false;
+  if (/^[0-9A-Z.\-+×°%\\/\s]+$/.test(trimmed)) return false;
+  return true;
+}
+
 export function maybeDecodeHebrewShxText(
   text: string,
   style: string | number | undefined,
@@ -286,5 +300,6 @@ export function maybeDecodeHebrewShxText(
   if (hasHebrewBlock(cp862) && cp862Letters >= Math.max(1, Math.floor(text.length * 0.25))) {
     return cp862;
   }
+  if (!shouldApplyHebrewKeyboardDecode(text, style)) return text;
   return decodeHebrewKeyboardLatin(text, style);
 }

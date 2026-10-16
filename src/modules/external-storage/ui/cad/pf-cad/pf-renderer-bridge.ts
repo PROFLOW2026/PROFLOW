@@ -53,9 +53,11 @@ export function createCadRenderer(options: CreateCadRendererOptions): CadRendere
   let extent: CadExtent | null = null;
   let fullExtent: CadExtent | null = null;
   const visibleLayers = new Set<number>();
+  let hiddenRasterLayers = new Set<number>();
 
   const syncLayerMask = () => {
     renderer.setLayerVisibility(visibleLayers.size > 0 ? visibleLayers : null);
+    renderer.updateRasterHiddenLayers(hiddenRasterLayers);
   };
 
   return {
@@ -80,9 +82,12 @@ export function createCadRenderer(options: CreateCadRendererOptions): CadRendere
       fullExtent = fullExt ?? ext;
       if (layers) {
         visibleLayers.clear();
+        hiddenRasterLayers = new Set<number>();
         for (const layer of layers) {
           if (layer.visible && !layer.frozen) {
             visibleLayers.add(layer.index);
+          } else {
+            hiddenRasterLayers.add(layer.index);
           }
         }
         renderer.prepareLayerVisibility(visibleLayers.size > 0 ? visibleLayers : null);
@@ -94,16 +99,24 @@ export function createCadRenderer(options: CreateCadRendererOptions): CadRendere
     setLayerVisibility: (layerId, visible) => {
       const idx = Number(layerId);
       if (Number.isNaN(idx)) return;
-      if (visible) visibleLayers.add(idx);
-      else visibleLayers.delete(idx);
+      if (visible) {
+        visibleLayers.add(idx);
+        hiddenRasterLayers.delete(idx);
+      } else {
+        visibleLayers.delete(idx);
+        hiddenRasterLayers.add(idx);
+      }
       syncLayerMask();
       renderer.draw();
     },
     applyLayerVisibility: (layers) => {
       visibleLayers.clear();
+      hiddenRasterLayers = new Set<number>();
       for (const layer of layers) {
         if (layer.visible && !layer.frozen) {
           visibleLayers.add(layer.index);
+        } else {
+          hiddenRasterLayers.add(layer.index);
         }
       }
       syncLayerMask();

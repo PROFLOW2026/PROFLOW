@@ -71,6 +71,7 @@ uniform vec2 u_pan;
 uniform float u_zoom;
 uniform vec2 u_viewport;
 out vec2 v_uv;
+out vec2 v_world;
 void main() {
   vec2 clip = vec2(
     (2.0 * (a_pos.x - u_pan.x) * u_zoom) / u_viewport.x,
@@ -78,6 +79,7 @@ void main() {
   );
   gl_Position = vec4(clip, 0.0, 1.0);
   v_uv = a_uv;
+  v_world = a_pos;
 }
 `;
 
@@ -85,9 +87,28 @@ export const RASTER_FRAG = `#version 300 es
 precision highp float;
 uniform sampler2D u_texture;
 uniform vec4 u_color;
+uniform int u_clipCount;
+uniform vec2 u_clip[16];
 in vec2 v_uv;
+in vec2 v_world;
 out vec4 outColor;
+
+bool pointInClip(vec2 p) {
+  if (u_clipCount < 3) return true;
+  bool inside = false;
+  for (int i = 0, j = u_clipCount - 1; i < u_clipCount; j = i++) {
+    vec2 a = u_clip[i];
+    vec2 b = u_clip[j];
+    if ((a.y > p.y) != (b.y > p.y)) {
+      float x = (b.x - a.x) * (p.y - a.y) / (b.y - a.y + 1.0e-15) + a.x;
+      if (p.x < x) inside = !inside;
+    }
+  }
+  return inside;
+}
+
 void main() {
+  if (!pointInClip(v_world)) discard;
   vec4 tex = texture(u_texture, v_uv);
   outColor = vec4(tex.rgb * u_color.rgb, tex.a * u_color.a);
 }

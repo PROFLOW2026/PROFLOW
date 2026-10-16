@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   decodeShapeVectors,
+  isDrawableShxCharacter,
   measureShxTextBlock,
   measureShxTextWidth,
   parseShxBigfontFile,
   parseShxFont,
   parseUnicodeShapesPayload,
+  resolveShxGlyphStroke,
+  shxMissingGlyphStroke,
 } from '@/modules/external-storage/ui/cad/pf-cad/cad-shx-font';
 import {
   clearCadShxFonts,
@@ -13,6 +16,8 @@ import {
   resolveShxDrawContext,
   resolveShxGlyphCode,
 } from '@/modules/external-storage/ui/cad/pf-cad/cad-shx-registry';
+import { isShxTextRecordGpuComplete } from '@/modules/external-storage/ui/cad/pf-cad/shx-text-segments';
+import type { CadText } from '@/modules/external-storage/ui/cad/pf-cad/types';
 
 describe('cad-shx-font', () => {
   it('decodes a minimal shape vector run', () => {
@@ -57,6 +62,19 @@ describe('cad-shx-font', () => {
     clearCadShxFonts();
   });
 
+  it('returns placeholder stroke for missing drawable glyphs', () => {
+    const bytes = new Uint8Array(48);
+    bytes.set(new TextEncoder().encode('AutoCAD-86 shapes 1.0'), 0);
+    bytes.set([0x1a, 0, 65, 3, 1, 16, 14], 24);
+    const font = parseShxFont('test.shx', bytes)!;
+    expect(isDrawableShxCharacter(' ')).toBe(false);
+    expect(isDrawableShxCharacter('?')).toBe(true);
+    expect(resolveShxGlyphStroke(font, 0x9999, '?')?.length).toBe(
+      shxMissingGlyphStroke(font).length,
+    );
+    expect(resolveShxGlyphStroke(font, 65, 'A')?.length).toBeGreaterThan(0);
+  });
+
   it('uses SHX metrics for block measurement', () => {
     const bytes = new Uint8Array(48);
     bytes.set(new TextEncoder().encode('AutoCAD-86 shapes 1.0'), 0);
@@ -90,6 +108,29 @@ describe('cad-shx-registry draw context', () => {
     expect(ctx.primary).toBeDefined();
     expect(ctx.mapCode(code)).toBe(65);
     expect(ctx.pickFont(code, 65)?.glyphs.has(65)).toBe(true);
+    clearCadShxFonts();
+  });
+
+  it('GPU completeness requires real glyphs (no missing-glyph placeholders)', () => {
+    clearCadShxFonts();
+    const primary = new Uint8Array(48);
+    primary.set(new TextEncoder().encode('AutoCAD-86 shapes 1.0'), 0);
+    primary.set([0x1a, 0, 65, 3, 1, 16, 14], 24);
+    registerCadShxFonts([{ name: 'test.shx', bytes: primary }]);
+
+    const base: CadText = {
+      k: 'text',
+      t: 'A',
+      x: 0,
+      y: 0,
+      h: 2,
+      r: 0,
+      c: 0xff000000,
+      layer: 0,
+      style: 'test',
+    };
+    expect(isShxTextRecordGpuComplete(base, [0, 0])).toBe(true);
+    expect(isShxTextRecordGpuComplete({ ...base, t: 'A?' }, [0, 0])).toBe(false);
     clearCadShxFonts();
   });
 });

@@ -5,9 +5,9 @@ import { mirrorScale } from '@/modules/external-storage/ui/cad/pf-cad/draw-cad-t
 import {
   mayMarkTextGpu,
   P8_GPU_TEXT_HANDOFF_ENABLED,
-  shxTextRequiresCanvasFallback,
   shouldDrawTextOnCanvas,
 } from '@/modules/external-storage/ui/cad/pf-cad/cad-gpu-text-policy';
+import { applyCadP8GpuTextHandoff } from '@/modules/external-storage/ui/cad/pf-cad/apply-p8-text-handoff';
 import { appendShxGpuSegments } from '@/modules/external-storage/ui/cad/pf-cad/shx-text-segments';
 import type { CadText } from '@/modules/external-storage/ui/cad/pf-cad/types';
 
@@ -56,10 +56,10 @@ describe('CAD text regression guards', () => {
     ).toBe(false);
   });
 
-  it('Hebrew SHX always uses Canvas even when gpu is set', () => {
-    const tx = {
+  it('Hebrew SHX without complete bigfont keeps Canvas (strips false gpu)', () => {
+    const tx: CadText = {
       k: 'text',
-      t: 'test',
+      t: 'שלום',
       x: 0,
       y: 0,
       h: 2,
@@ -67,16 +67,23 @@ describe('CAD text regression guards', () => {
       c: 0xff000000,
       layer: 0,
       style: 'simplex.shx',
-      gpu: true as const,
+      gpu: true,
     };
-    expect(shxTextRequiresCanvasFallback({ ...tx, t: 'שלום' })).toBe(true);
-    expect(shouldDrawTextOnCanvas({ ...tx, t: 'שלום' })).toBe(true);
+    const out = applyCadP8GpuTextHandoff(new Float32Array(0), {
+      texts: [tx],
+      origin: [0, 0],
+      gpuTexts: 1,
+    } as never);
+    expect(out.scene.texts[0]?.gpu).toBeUndefined();
+    expect(out.scene.gpuTexts).toBe(0);
+    expect(shouldDrawTextOnCanvas(out.scene.texts[0]!)).toBe(true);
   });
 
-  it('P8 GPU handoff requires minimum segments per record', () => {
+  it('P8 GPU handoff requires segments for every expected glyph', () => {
     expect(P8_GPU_TEXT_HANDOFF_ENABLED).toBe(true);
     expect(mayMarkTextGpu(0, 10)).toBe(false);
-    expect(mayMarkTextGpu(5, 10)).toBe(true);
+    expect(mayMarkTextGpu(3, 10)).toBe(false);
+    expect(mayMarkTextGpu(10, 10)).toBe(true);
     const texts: CadText[] = [
       {
         k: 'text',

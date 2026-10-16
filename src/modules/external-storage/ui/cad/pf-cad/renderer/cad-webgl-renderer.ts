@@ -239,6 +239,11 @@ export class CadWebGlRenderer {
     resolveImageUrl: (path: string) => Promise<string | null>,
   ): void {
     if (!P9_RASTER_WEBGL_ENABLED) return;
+    const gl = this.gl;
+    if (gl && !this.contextLost) {
+      this.rasterPass.init(gl);
+      this.rasterPass.releaseSceneTextures(gl);
+    }
     this.rasterPass.setScene(images, origin, hiddenLayers, resolveImageUrl);
     void this.loadRastersAsync();
   }

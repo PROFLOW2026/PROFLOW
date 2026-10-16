@@ -28,6 +28,7 @@ import {
 import { applyCadP8GpuTextHandoff } from './apply-p8-text-handoff';
 import { shouldDrawTextOnCanvas } from './cad-gpu-text-policy';
 import { P9_RASTER_WEBGL_ENABLED } from './cad-raster-webgl';
+import { hiddenRasterLayersFromUi } from './cad-raster-layers';
 import { drawCadText } from './draw-cad-text';
 import { drawCadRaster } from './draw-cad-raster';
 import { findPlotCtbBytes } from './cad-plot-ctb';
@@ -372,6 +373,32 @@ function PfDwgViewerInner({
 
   drawTextsRef.current = drawTexts;
 
+  const syncRasterScene = useCallback(
+    (scene: ScenePayload, layers: readonly UiLayer[]) => {
+      if (!P9_RASTER_WEBGL_ENABLED) return;
+      const glRenderer = rendererRef.current?.getRenderer();
+      if (!glRenderer) return;
+      const hostPath = normalizeCadPath(fileName);
+      glRenderer.setRasterScene(
+        scene.images,
+        scene.origin,
+        hiddenRasterLayersFromUi(layers),
+        async (path) => {
+          const hit = lookupInIndex(fileIndex, hostPath, path);
+          if (!hit) return null;
+          try {
+            const bytes = await hit.getBytes();
+            const blob = new Blob([Uint8Array.from(bytes)], { type: 'image/png' });
+            return URL.createObjectURL(blob);
+          } catch {
+            return null;
+          }
+        },
+      );
+    },
+    [fileIndex, fileName],
+  );
+
   useEffect(() => {
     const styleId = 'pf-cad-noto-hebrew-face';
     if (!document.getElementById(styleId)) {
@@ -527,21 +554,7 @@ function PfDwgViewerInner({
           triangles,
           scene.segmentStride,
         );
-        const glRenderer = rendererRef.current?.getRenderer();
-        if (glRenderer && scene.images?.length) {
-          const hostPath = normalizeCadPath(fileName);
-          glRenderer.setRasterScene(scene.images, scene.origin, new Set(), async (path) => {
-            const hit = lookupInIndex(fileIndex, hostPath, path);
-            if (!hit) return null;
-            try {
-              const bytes = await hit.getBytes();
-              const blob = new Blob([Uint8Array.from(bytes)], { type: 'image/png' });
-              return URL.createObjectURL(blob);
-            } catch {
-              return null;
-            }
-          });
-        }
+        syncRasterScene(scene, uiLayersInitial);
         rendererRef.current?.fit();
         rendererRef.current?.draw();
         const timeToFirstFrameMs = performance.now() - loadStarted;
@@ -585,7 +598,7 @@ function PfDwgViewerInner({
       loadContextRef.current = null;
       cachedDepsRef.current = [];
     };
-  }, [devCadIndexedFiles, drawTexts, fileIndex, fileName, t, url]);
+  }, [devCadIndexedFiles, drawTexts, fileIndex, fileName, syncRasterScene, t, url]);
 
   const handleFitView = useCallback(() => {
     rendererRef.current?.fitFull();
@@ -643,14 +656,16 @@ function PfDwgViewerInner({
           setCompat(reportWithFonts);
           await yieldToMain();
           const fitExtent = scene.contentExtent ?? scene.robustExtent;
+          const uiLayersNext = cadLayersToUi(scene.layers);
           await rendererRef.current?.setDrawingAsync(
             p8.segments,
             fitExtent,
-            cadLayersToUi(scene.layers),
+            uiLayersNext,
             scene.fullExtent,
             triangles,
             scene.segmentStride,
           );
+          syncRasterScene(scene, uiLayersNext);
           rendererRef.current?.fit();
           scheduleIdleDraw(() => drawTexts());
         } finally {
@@ -658,7 +673,7 @@ function PfDwgViewerInner({
         }
       })();
     },
-    [drawTexts, fileName, plotView, t],
+    [drawTexts, fileName, plotView, syncRasterScene, t],
   );
 
   const handlePlotViewChange = useCallback(
@@ -699,14 +714,16 @@ function PfDwgViewerInner({
           setCompat(reportWithFonts);
           await yieldToMain();
           const fitExtent = scene.contentExtent ?? scene.robustExtent;
+          const uiLayersNext = cadLayersToUi(scene.layers);
           await rendererRef.current?.setDrawingAsync(
             p8.segments,
             fitExtent,
-            cadLayersToUi(scene.layers),
+            uiLayersNext,
             scene.fullExtent,
             triangles,
             scene.segmentStride,
           );
+          syncRasterScene(scene, uiLayersNext);
           rendererRef.current?.draw();
           scheduleIdleDraw(() => drawTexts());
         } finally {
@@ -714,7 +731,7 @@ function PfDwgViewerInner({
         }
       })();
     },
-    [activeSpace, drawTexts, fileName, t],
+    [activeSpace, drawTexts, fileName, syncRasterScene, t],
   );
 
   const toggleLayer = useCallback(
