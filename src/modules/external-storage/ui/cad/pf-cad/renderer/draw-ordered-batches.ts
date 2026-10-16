@@ -31,9 +31,20 @@ export type DrawBatch = FillDrawBatch | LineDrawBatch;
 const SEGMENTS_PER_YIELD = 24_000;
 
 type Prim =
-  | { order: number; kind: 'line'; colorBits: number; lw: number; x1: number; y1: number; x2: number; y2: number }
   | {
       order: number;
+      primIndex: number;
+      kind: 'line';
+      colorBits: number;
+      lw: number;
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+    }
+  | {
+      order: number;
+      primIndex: number;
       kind: 'fill';
       colorBits: number;
       x1: number;
@@ -65,7 +76,7 @@ function compareDrawOrder(a: Prim, b: Prim): number {
   if (a.kind !== b.kind) {
     return a.kind === 'fill' ? -1 : 1;
   }
-  return 0;
+  return a.primIndex - b.primIndex;
 }
 
 function collectPrims(
@@ -75,6 +86,7 @@ function collectPrims(
   segStride: number,
 ): Prim[] {
   const prims: Prim[] = [];
+  let primIndex = 0;
   const nSeg = segmentCount(segments, segStride);
   for (let i = 0; i < nSeg; i += 1) {
     const base = i * segStride;
@@ -87,6 +99,7 @@ function collectPrims(
     const order = segStride >= 8 ? segments[base + 7]! : i;
     prims.push({
       order,
+      primIndex: primIndex++,
       kind: 'line',
       colorBits,
       lw,
@@ -107,6 +120,7 @@ function collectPrims(
     const order = triangles[base + 9]!;
     prims.push({
       order,
+      primIndex: primIndex++,
       kind: 'fill',
       colorBits,
       x1: triangles[base]!,
