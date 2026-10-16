@@ -60,9 +60,9 @@ describe('pf-cad wasm static assets', () => {
       path.join(root, 'src/modules/external-storage/ui/cad/pf-dwg-versioned-viewer.tsx'),
       'utf8',
     );
-    expect(versionedViewer).toContain("v1: () => import('./pf-cad/pf-dwg-viewer')");
-    expect(versionedViewer).toContain("v2: () => import('./pf-cad-v1/pf-dwg-viewer')");
-    expect(versionedViewer).toContain("v3: () => import('./pf-cad-v3/pf-dwg-viewer')");
+    expect(versionedViewer).toContain("v1: () => import('./pf-cad-v3/pf-dwg-viewer')");
+    expect(versionedViewer).toContain("v2: () => import('./pf-cad/pf-dwg-viewer')");
+    expect(versionedViewer).toContain("v3: () => import('./pf-cad-v1/pf-dwg-viewer')");
     const v1Wasm = path.join(root, 'public', 'pf-cad', 'v1', 'wasm', 'pf_cad_wasm_bg.wasm');
     expect(fs.existsSync(v1Wasm)).toBe(true);
     expect(fs.statSync(v1Wasm).size).toBeGreaterThan(1_000_000);
