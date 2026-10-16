@@ -221,6 +221,11 @@ function PfDwgViewerInner({
   const [spaces, setSpaces] = useState<string[]>([]);
   const [activeSpace, setActiveSpace] = useState('');
   const [plotView, setPlotView] = useState(false);
+  const plotViewRef = useRef(false);
+  plotViewRef.current = plotView;
+  /** Latest scene apply. A late DWG/XREF result must not paint over the current Plot choice. */
+  const sceneApplyGenRef = useRef(0);
+  const sceneApplyChainRef = useRef(Promise.resolve());
   const loadContextRef = useRef<{
     hostBytes: Uint8Array;
     fileIndex: ReturnType<typeof buildStorageCadFileIndex>;
@@ -394,6 +399,18 @@ function PfDwgViewerInner({
 
   drawTextsRef.current = drawTexts;
 
+  function enqueueSceneApply(applyGen: number, apply: () => Promise<void>): Promise<void> {
+    const run = sceneApplyChainRef.current.then(async () => {
+      if (applyGen !== sceneApplyGenRef.current) return;
+      await apply();
+    });
+    sceneApplyChainRef.current = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
+  }
+
   const syncRasterScene = useCallback(
     (scene: ScenePayload, layers: readonly UiLayer[]) => {
       if (!P9_RASTER_WEBGL_ENABLED) return;
@@ -454,7 +471,7 @@ function PfDwgViewerInner({
       const { width, height } = entry.contentRect;
       const dpr = cadViewportDevicePixelRatio();
       rendererRef.current.resize(width, height, dpr);
-      drawTexts();
+      drawTextsRef.current();
     });
     ro.observe(hostRef.current);
 
@@ -478,6 +495,7 @@ function PfDwgViewerInner({
 
   useEffect(() => {
     let cancelled = false;
+    const applyGen = ++sceneApplyGenRef.current;
     clientRef.current?.dispose();
     clientRef.current = null;
     drawingRef.current = null;
@@ -532,14 +550,19 @@ function PfDwgViewerInner({
         setLoadingProgress(0.04);
         const hostBytes = new Uint8Array(await fetchStoragePreviewBytes(url));
         const downloadHostMs = performance.now() - tHost0;
-        if (cancelled) return;
+        if (cancelled || applyGen !== sceneApplyGenRef.current) return;
         loadContextRef.current = { hostBytes, fileIndex };
+        const plotOn = plotViewRef.current;
+        const plotCtbBytes = plotOn ? await findPlotCtbBytes(fileIndex, fileName) : undefined;
+        if (cancelled || applyGen !== sceneApplyGenRef.current) return;
         const res = await client.parseDwgFromStorage({
           fileName,
           hostBytes,
           fileIndex,
+          plotMode: plotOn,
+          plotCtbBytes,
         });
-        if (cancelled) return;
+        if (cancelled || applyGen !== sceneApplyGenRef.current) return;
         const fontResolve = await resolveCadFontsFromStorage({
           fonts: res.scene.report.fonts,
           textStyleTable: res.scene.textStyleTable,
@@ -564,6 +587,7 @@ function PfDwgViewerInner({
         scene = p8.scene;
         const triangles = res.triangles ?? new Float32Array(0);
         const payload: DrawingPayload = { scene, segments: p8.segments, triangles };
+        if (cancelled || applyGen !== sceneApplyGenRef.current) return;
         drawingRef.current = payload;
         setSpaces(scene.spaces ?? []);
         setActiveSpace(scene.space ?? '');
@@ -571,20 +595,25 @@ function PfDwgViewerInner({
         setCompat(reportWithFonts);
         cachedDepsRef.current = client.lastDeps;
         await yieldToMain();
+        if (cancelled || applyGen !== sceneApplyGenRef.current) return;
         const tGpu0 = performance.now();
         const uiLayersInitial = cadLayersToUi(res.scene.layers);
         const fitExtent = scene.contentExtent ?? scene.robustExtent;
-        await rendererRef.current?.setDrawingAsync(
-          p8.segments,
-          fitExtent,
-          uiLayersInitial,
-          scene.fullExtent,
-          triangles,
-          scene.segmentStride,
-        );
-        syncRasterScene(scene, uiLayersInitial);
-        rendererRef.current?.fit();
-        rendererRef.current?.draw();
+        await enqueueSceneApply(applyGen, async () => {
+          await rendererRef.current?.setDrawingAsync(
+            p8.segments,
+            fitExtent,
+            uiLayersInitial,
+            scene.fullExtent,
+            triangles,
+            scene.segmentStride,
+          );
+          if (applyGen !== sceneApplyGenRef.current) return;
+          syncRasterScene(scene, uiLayersInitial);
+          rendererRef.current?.fit();
+          rendererRef.current?.draw();
+        });
+        if (cancelled || applyGen !== sceneApplyGenRef.current) return;
         const timeToFirstFrameMs = performance.now() - loadStarted;
         const gpuMs = performance.now() - tGpu0;
         if (loadTimingsRef.current) {
@@ -602,7 +631,7 @@ function PfDwgViewerInner({
         }
         setLoadingProgress(1);
         setLoading(false);
-        scheduleIdleDraw(() => drawTexts());
+        scheduleIdleDraw(() => drawTextsRef.current());
       } catch (e) {
         if (cancelled) return;
         const message = e instanceof Error ? e.message : String(e);
@@ -626,7 +655,7 @@ function PfDwgViewerInner({
       loadContextRef.current = null;
       cachedDepsRef.current = [];
     };
-  }, [devCadIndexedFiles, drawTexts, fileIndex, fileName, syncRasterScene, t, url]);
+  }, [devCadIndexedFiles, fileIndex, fileName, syncRasterScene, t, url]);
 
   const handleFitView = useCallback(() => {
     rendererRef.current?.fitFull();
@@ -645,12 +674,14 @@ function PfDwgViewerInner({
       const ctx = loadContextRef.current;
       const client = clientRef.current;
       if (!ctx || !client) return;
+      const applyGen = ++sceneApplyGenRef.current;
+      const plotOn = plotViewRef.current;
       setLoading(true);
       setLoadingLabel(safePreviewLabel(t, 'cadLoadingParse'));
       void (async () => {
         try {
-          const plotCtbBytes =
-            plotView ? await findPlotCtbBytes(ctx.fileIndex, fileName) : undefined;
+          const plotCtbBytes = plotOn ? await findPlotCtbBytes(ctx.fileIndex, fileName) : undefined;
+          if (applyGen !== sceneApplyGenRef.current) return;
           const res = await client.parseDwgFromStorage({
             fileName,
             hostBytes: ctx.hostBytes,
@@ -658,9 +689,10 @@ function PfDwgViewerInner({
             space,
             skipXrefClosure: true,
             cachedDeps: cachedDepsRef.current,
-            plotMode: plotView,
+            plotMode: plotOn,
             plotCtbBytes,
           });
+          if (applyGen !== sceneApplyGenRef.current) return;
           const fontResolve =
             resolvedFontsRef.current ??
             (await resolveCadFontsFromStorage({
@@ -683,46 +715,55 @@ function PfDwgViewerInner({
           scene = p8.scene;
           const triangles = res.triangles ?? new Float32Array(0);
           const payload: DrawingPayload = { scene, segments: p8.segments, triangles };
+          if (applyGen !== sceneApplyGenRef.current) return;
           drawingRef.current = payload;
           setActiveSpace(scene.space ?? space);
           setUiLayers(cadLayersToUi(scene.layers));
           setCompat(reportWithFonts);
           await yieldToMain();
+          if (applyGen !== sceneApplyGenRef.current) return;
           const fitExtent = scene.contentExtent ?? scene.robustExtent;
           const uiLayersNext = cadLayersToUi(scene.layers);
-          await rendererRef.current?.setDrawingAsync(
-            p8.segments,
-            fitExtent,
-            uiLayersNext,
-            scene.fullExtent,
-            triangles,
-            scene.segmentStride,
-          );
-          syncRasterScene(scene, uiLayersNext);
-          rendererRef.current?.fit();
-          scheduleIdleDraw(() => drawTexts());
+          await enqueueSceneApply(applyGen, async () => {
+            await rendererRef.current?.setDrawingAsync(
+              p8.segments,
+              fitExtent,
+              uiLayersNext,
+              scene.fullExtent,
+              triangles,
+              scene.segmentStride,
+            );
+            if (applyGen !== sceneApplyGenRef.current) return;
+            syncRasterScene(scene, uiLayersNext);
+            rendererRef.current?.fit();
+          });
+          if (applyGen !== sceneApplyGenRef.current) return;
+          scheduleIdleDraw(() => drawTextsRef.current());
         } finally {
-          setLoading(false);
+          if (applyGen === sceneApplyGenRef.current) setLoading(false);
         }
       })();
     },
-    [drawTexts, fileName, plotView, syncRasterScene, t],
+    [fileName, syncRasterScene, t],
   );
 
   const handlePlotViewChange = useCallback(
     (on: boolean) => {
       const ctx = loadContextRef.current;
       const client = clientRef.current;
+      plotViewRef.current = on;
       if (!ctx || !client) {
         setPlotView(on);
         return;
       }
+      const applyGen = ++sceneApplyGenRef.current;
       setPlotView(on);
       setLoading(true);
       setLoadingLabel(safePreviewLabel(t, 'cadLoadingParse'));
       void (async () => {
         try {
           const plotCtbBytes = on ? await findPlotCtbBytes(ctx.fileIndex, fileName) : undefined;
+          if (applyGen !== sceneApplyGenRef.current) return;
           const res = await client.parseDwgFromStorage({
             fileName,
             hostBytes: ctx.hostBytes,
@@ -745,29 +786,35 @@ function PfDwgViewerInner({
           const p8 = applyCadP8GpuTextHandoff(res.segments, scene);
           scene = p8.scene;
           const triangles = res.triangles ?? new Float32Array(0);
+          if (applyGen !== sceneApplyGenRef.current) return;
           drawingRef.current = { scene, segments: p8.segments, triangles };
           setUiLayers(cadLayersToUi(scene.layers));
           setCompat(reportWithFonts);
           await yieldToMain();
+          if (applyGen !== sceneApplyGenRef.current) return;
           const fitExtent = scene.contentExtent ?? scene.robustExtent;
           const uiLayersNext = cadLayersToUi(scene.layers);
-          await rendererRef.current?.setDrawingAsync(
-            p8.segments,
-            fitExtent,
-            uiLayersNext,
-            scene.fullExtent,
-            triangles,
-            scene.segmentStride,
-          );
-          syncRasterScene(scene, uiLayersNext);
-          rendererRef.current?.draw();
-          scheduleIdleDraw(() => drawTexts());
+          await enqueueSceneApply(applyGen, async () => {
+            await rendererRef.current?.setDrawingAsync(
+              p8.segments,
+              fitExtent,
+              uiLayersNext,
+              scene.fullExtent,
+              triangles,
+              scene.segmentStride,
+            );
+            if (applyGen !== sceneApplyGenRef.current) return;
+            syncRasterScene(scene, uiLayersNext);
+            rendererRef.current?.draw();
+          });
+          if (applyGen !== sceneApplyGenRef.current) return;
+          scheduleIdleDraw(() => drawTextsRef.current());
         } finally {
-          setLoading(false);
+          if (applyGen === sceneApplyGenRef.current) setLoading(false);
         }
       })();
     },
-    [activeSpace, drawTexts, fileName, syncRasterScene, t],
+    [activeSpace, fileName, syncRasterScene, t],
   );
 
   const toggleLayer = useCallback(
