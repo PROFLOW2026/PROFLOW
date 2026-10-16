@@ -29,7 +29,11 @@ import { drawCadText } from './draw-cad-text';
 import { drawCadRaster } from './draw-cad-raster';
 import { findPlotCtbBytes } from './cad-plot-ctb';
 import { clearCadShxFonts, lookupShxFont, registerCadShxFonts } from './cad-shx-registry';
-import { createCadRenderer, type CadRendererHandle } from './pf-renderer-bridge';
+import {
+  createCadRenderer,
+  type CadRendererHandle,
+  type CadViewChangeKind,
+} from './pf-renderer-bridge';
 import {
   mergeMissingFontsIntoReport,
   resolveCadFontsFromStorage,
@@ -202,6 +206,10 @@ function PfDwgViewerInner({
   const textDrawGenRef = useRef(0);
   const textSliceRafRef = useRef(0);
   const textScheduleRafRef = useRef(0);
+  const pinchGestureRef = useRef(false);
+  const pendingTextAfterPinchRef = useRef(false);
+  const textZoomDebounceRef = useRef(0);
+  const TEXT_ZOOM_DEBOUNCE_MS = 120;
 
   const fileIndex = useMemo(() => {
     if (devCadIndexedFiles && devCadIndexedFiles.length > 0) {
@@ -217,13 +225,59 @@ function PfDwgViewerInner({
   const cancelTextDraw = useCallback(() => {
     cancelAnimationFrame(textSliceRafRef.current);
     cancelAnimationFrame(textScheduleRafRef.current);
+    window.clearTimeout(textZoomDebounceRef.current);
+    textZoomDebounceRef.current = 0;
     textDrawGenRef.current += 1;
   }, []);
 
-  const scheduleTextRedraw = useCallback(() => {
+  const flushTextRedraw = useCallback(() => {
     cancelAnimationFrame(textScheduleRafRef.current);
     textScheduleRafRef.current = requestAnimationFrame(() => drawTextsRef.current());
   }, []);
+
+  const scheduleTextRedraw = useCallback(() => {
+    if (pinchGestureRef.current) {
+      pendingTextAfterPinchRef.current = true;
+      return;
+    }
+    flushTextRedraw();
+  }, [flushTextRedraw]);
+
+  const scheduleTextRedrawAfterZoom = useCallback(() => {
+    if (pinchGestureRef.current) {
+      pendingTextAfterPinchRef.current = true;
+      return;
+    }
+    window.clearTimeout(textZoomDebounceRef.current);
+    textZoomDebounceRef.current = window.setTimeout(() => {
+      textZoomDebounceRef.current = 0;
+      flushTextRedraw();
+    }, TEXT_ZOOM_DEBOUNCE_MS);
+  }, [flushTextRedraw]);
+
+  const handleAfterViewChange = useCallback(
+    (kind: CadViewChangeKind) => {
+      if (kind === 'zoom') scheduleTextRedrawAfterZoom();
+      else scheduleTextRedraw();
+    },
+    [scheduleTextRedraw, scheduleTextRedrawAfterZoom],
+  );
+
+  const handlePinchGesture = useCallback(
+    (active: boolean) => {
+      pinchGestureRef.current = active;
+      if (active) {
+        pendingTextAfterPinchRef.current = true;
+        return;
+      }
+      if (pendingTextAfterPinchRef.current) {
+        pendingTextAfterPinchRef.current = false;
+        cancelAnimationFrame(textScheduleRafRef.current);
+        textScheduleRafRef.current = requestAnimationFrame(() => drawTextsRef.current());
+      }
+    },
+    [],
+  );
 
   const drawTexts = useCallback(() => {
     cancelTextDraw();
@@ -237,9 +291,12 @@ function PfDwgViewerInner({
     if (!ctx) return;
     const w = glCv.width;
     const h = glCv.height;
-    textCv.width = w;
-    textCv.height = h;
-    ctx.clearRect(0, 0, w, h);
+    if (textCv.width !== w || textCv.height !== h) {
+      textCv.width = w;
+      textCv.height = h;
+    } else {
+      ctx.clearRect(0, 0, w, h);
+    }
     const glRenderer = r.getRenderer();
     const view = glRenderer.getView();
     const viewport = { width: w, height: h };
@@ -327,7 +384,7 @@ function PfDwgViewerInner({
       rendererRef.current = createCadRenderer({
         canvas: glCanvasRef.current,
         onContextLost: () => setWebglError(safePreviewLabel(t, 'cadWebglRequired')),
-        onAfterViewChange: scheduleTextRedraw,
+        onAfterViewChange: handleAfterViewChange,
       });
     } catch (e) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- surface WebGL init failure once
@@ -350,7 +407,9 @@ function PfDwgViewerInner({
     const detachNav = attachCadViewportInteraction(glCv, {
       panBy: (dx, dy) => rendererRef.current?.panBy(dx, dy),
       zoomAt: (sx, sy, factor) => rendererRef.current?.zoomAt(sx, sy, factor),
-      onAfterViewChange: scheduleTextRedraw,
+      panAndZoomAt: (dx, dy, sx, sy, factor) =>
+        rendererRef.current?.panAndZoomAt(dx, dy, sx, sy, factor),
+      onPinchGesture: handlePinchGesture,
     });
 
     return () => {
@@ -360,7 +419,7 @@ function PfDwgViewerInner({
       rendererRef.current?.dispose();
       rendererRef.current = null;
     };
-  }, [cancelTextDraw, scheduleTextRedraw, t]);
+  }, [cancelTextDraw, handleAfterViewChange, handlePinchGesture, t]);
 
   useEffect(() => {
     let cancelled = false;

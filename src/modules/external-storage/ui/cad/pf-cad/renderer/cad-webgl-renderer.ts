@@ -1,6 +1,7 @@
 import {
   buildColorLineBatches,
   buildColorLineBatchesAsync,
+  lineWidthPxFromHundredths,
   type ColorLineBatch,
 } from './segment-batch';
 import {
@@ -84,7 +85,6 @@ export class CadWebGlRenderer {
   private cpuExpBatches: DrawBatch[] = [];
   private gpuLineBatches: GpuLineBatch[] = [];
   private gpuExpBatches: GpuExpBatch[] = [];
-  private lastBatchZoom = -1;
 
   private view: CadView = { panX: 0, panY: 0, zoom: 1 };
   private viewport: ViewportSize = { width: 1, height: 1 };
@@ -178,13 +178,6 @@ export class CadWebGlRenderer {
     if (this.contextLost || !this.gl || !this.program) {
       return;
     }
-    if (
-      !PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS &&
-      Math.abs(this.lastBatchZoom - this.view.zoom) > 1e-6
-    ) {
-      this.rebuildCpuBatches(false);
-      this.uploadGpuBatches();
-    }
     const gl = this.gl;
     gl.clearColor(...this.clearColor);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -205,10 +198,11 @@ export class CadWebGlRenderer {
       return;
     }
 
+    const zoom = this.view.zoom;
     for (const batch of this.gpuLineBatches) {
       const [r, g, b] = colorBitsToRgb01(batch.colorBits);
       gl.uniform4f(this.uniforms.color, r, g, b, 1);
-      gl.lineWidth(batch.lineWidthPx);
+      gl.lineWidth(lineWidthPxFromHundredths(batch.lineWeightHundredths, zoom));
       gl.bindBuffer(gl.ARRAY_BUFFER, batch.vbo);
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
       gl.enableVertexAttribArray(0);
@@ -309,17 +303,16 @@ export class CadWebGlRenderer {
       );
       return;
     }
-    if (!force && this.lastBatchZoom === this.view.zoom) {
+    if (!force && this.cpuLineBatches.length > 0) {
       return;
     }
     const { batches } = buildColorLineBatches(
       this.segments,
       this.layerVisibility,
-      this.view.zoom,
+      1,
       this.segmentStride,
     );
     this.cpuLineBatches = batches;
-    this.lastBatchZoom = this.view.zoom;
   }
 
   private async rebuildCpuBatchesAsync(force: boolean): Promise<void> {
@@ -337,17 +330,16 @@ export class CadWebGlRenderer {
       );
       return;
     }
-    if (!force && this.lastBatchZoom === this.view.zoom) {
+    if (!force && this.cpuLineBatches.length > 0) {
       return;
     }
     const { batches } = await buildColorLineBatchesAsync(
       this.segments,
       this.layerVisibility,
-      this.view.zoom,
+      1,
       this.segmentStride,
     );
     this.cpuLineBatches = batches;
-    this.lastBatchZoom = this.view.zoom;
   }
 
   private uploadGpuBatches(): void {

@@ -11,21 +11,22 @@ import { yieldToMain } from '../yield-to-main';
 /** GPU line batch: contiguous vec2 positions for GL.LINES (pairs of endpoints). */
 export type ColorLineBatch = {
   colorBits: number;
-  /** Screen-space line width (CSS px), derived from DWG lineweight. */
-  lineWidthPx: number;
+  /** DWG lineweight in hundredths of mm; screen width is derived at draw time from zoom. */
+  lineWeightHundredths: number;
   /** Pairs of x,y per vertex; length is multiple of 4. */
   positions: Float32Array;
   vertexCount: number;
 };
 
+/** Screen-space line width (CSS px) from DWG lineweight at the current zoom. */
+export function lineWidthPxFromHundredths(hundredths: number, zoom: number): number {
+  const mm = hundredths / 100;
+  return Math.min(8, Math.max(1, mm * zoom * 0.35 + 0.75));
+}
+
 function batchKey(colorBits: number, lwHundredths: number): number {
   const bucket = Math.min(255, Math.max(1, Math.round(lwHundredths / 5)));
   return (colorBits & 0xffffff) | (bucket << 24);
-}
-
-function lineWidthPxFromHundredths(hundredths: number, zoom: number): number {
-  const mm = hundredths / 100;
-  return Math.min(8, Math.max(1, mm * zoom * 0.35 + 0.75));
 }
 
 export type SegmentBatchResult = {
@@ -43,7 +44,7 @@ const SEGMENTS_PER_YIELD = 40_000;
 export function buildColorLineBatches(
   segments: Float32Array,
   visibility: LayerVisibilityState,
-  zoom = 1,
+  _zoom = 1,
   segStride = SEGMENT_STRIDE,
 ): SegmentBatchResult {
   const n = segmentCount(segments, segStride);
@@ -97,12 +98,15 @@ export function buildColorLineBatches(
     const lw = lwByKey.get(key) ?? 25;
     batches.push({
       colorBits,
-      lineWidthPx: lineWidthPxFromHundredths(lw, zoom),
+      lineWeightHundredths: lw,
       positions: w.positions,
       vertexCount,
     });
   }
-  batches.sort((a, b) => a.colorBits - b.colorBits || a.lineWidthPx - b.lineWidthPx);
+  batches.sort(
+    (a, b) =>
+      a.colorBits - b.colorBits || a.lineWeightHundredths - b.lineWeightHundredths,
+  );
   return { batches, drawnSegments, skippedByLayer };
 }
 
@@ -175,11 +179,14 @@ export async function buildColorLineBatchesAsync(
     const lw = lwByKey.get(key) ?? 25;
     batches.push({
       colorBits,
-      lineWidthPx: lineWidthPxFromHundredths(lw, zoom),
+      lineWeightHundredths: lw,
       positions: w.positions,
       vertexCount: w.positions.length / 2,
     });
   }
-  batches.sort((a, b) => a.colorBits - b.colorBits || a.lineWidthPx - b.lineWidthPx);
+  batches.sort(
+    (a, b) =>
+      a.colorBits - b.colorBits || a.lineWeightHundredths - b.lineWeightHundredths,
+  );
   return { batches, drawnSegments, skippedByLayer };
 }

@@ -3,7 +3,9 @@
 export type ViewportNavCallbacks = {
   panBy: (dxPx: number, dyPx: number) => void;
   zoomAt: (sx: number, sy: number, factor: number) => void;
-  onAfterViewChange?: () => void;
+  panAndZoomAt?: (dxPx: number, dyPx: number, sx: number, sy: number, factor: number) => void;
+  /** True while two-finger pinch is active (defer heavy overlay work). */
+  onPinchGesture?: (active: boolean) => void;
 };
 
 function canvasPoint(canvas: HTMLCanvasElement, clientX: number, clientY: number): [number, number] {
@@ -20,7 +22,12 @@ export function attachCadViewportInteraction(
   let pinch: { dist: number; midX: number; midY: number } | null = null;
   const activePointers = new Map<number, { x: number; y: number }>();
 
-  const notify = () => callbacks.onAfterViewChange?.();
+  let pinchGestureActive = false;
+  const setPinchGesture = (active: boolean) => {
+    if (pinchGestureActive === active) return;
+    pinchGestureActive = active;
+    callbacks.onPinchGesture?.(active);
+  };
 
   const onPointerDown = (e: PointerEvent) => {
     if (e.button !== 0 && e.pointerType !== 'touch') return;
@@ -38,6 +45,7 @@ export function attachCadViewportInteraction(
         midX: (a.x + b.x) / 2,
         midY: (a.y + b.y) / 2,
       };
+      setPinchGesture(true);
     }
   };
 
@@ -57,9 +65,14 @@ export function attachCadViewportInteraction(
         const rect = canvas.getBoundingClientRect();
         const dpr = canvas.width / Math.max(rect.width, 1);
         const [sx, sy] = canvasPoint(canvas, midX, midY);
-        callbacks.panBy((midX - pinch.midX) * dpr, (midY - pinch.midY) * dpr);
-        callbacks.zoomAt(sx, sy, factor);
-        notify();
+        const dxPx = (midX - pinch.midX) * dpr;
+        const dyPx = (midY - pinch.midY) * dpr;
+        if (callbacks.panAndZoomAt) {
+          callbacks.panAndZoomAt(dxPx, dyPx, sx, sy, factor);
+        } else {
+          callbacks.panBy(dxPx, dyPx);
+          callbacks.zoomAt(sx, sy, factor);
+        }
       }
       pinch = { dist, midX, midY };
       return;
@@ -73,7 +86,6 @@ export function attachCadViewportInteraction(
         const rect = canvas.getBoundingClientRect();
         const dpr = canvas.width / Math.max(rect.width, 1);
         callbacks.panBy(dx * dpr, dy * dpr);
-        notify();
       }
     }
   };
@@ -81,7 +93,10 @@ export function attachCadViewportInteraction(
   const endPointer = (e: PointerEvent) => {
     activePointers.delete(e.pointerId);
     if (drag?.pointerId === e.pointerId) drag = null;
-    if (activePointers.size < 2) pinch = null;
+    if (activePointers.size < 2) {
+      if (pinch) setPinchGesture(false);
+      pinch = null;
+    }
     try {
       canvas.releasePointerCapture(e.pointerId);
     } catch {
@@ -94,7 +109,6 @@ export function attachCadViewportInteraction(
     const factor = Math.exp(-e.deltaY * 0.0015);
     const [sx, sy] = canvasPoint(canvas, e.clientX, e.clientY);
     callbacks.zoomAt(sx, sy, factor);
-    notify();
   };
 
   canvas.addEventListener('pointerdown', onPointerDown);
