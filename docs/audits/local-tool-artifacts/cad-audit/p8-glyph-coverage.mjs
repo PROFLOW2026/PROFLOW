@@ -297,7 +297,8 @@ if (storageDir && fs.existsSync(storageDir)) {
   });
   registerCadShxFonts(fontResolve.resolved);
   const styleLinked = registerCadShxStyleTable(json.textStyleTable);
-  registerCadShxEntityStyleHeuristics(texts, json.textStyleTable);
+  const entityLinked = registerCadShxEntityStyleHeuristics(texts, json.textStyleTable);
+  registerCadShxTextStyleAliases(texts);
   const shxResolvable = texts.filter((t) => lookupShxFont(t.style)).length;
   storageFonts = {
     storageDir,
@@ -305,6 +306,7 @@ if (storageDir && fs.existsSync(storageDir)) {
     missingFonts: fontResolve.missingFonts.length,
     textStyleTableRows: json.textStyleTable?.length ?? 0,
     styleAliasesLinked: styleLinked,
+    entityHeuristicsLinked: entityLinked,
     shxResolvableTextRecords: shxResolvable,
   };
 }
@@ -316,11 +318,13 @@ let metricsAfterLoad = shxHandoffMetrics(texts, origin);
 
 if (shxNames.length > 0 || storageFonts?.resolvedShx > 0) {
   let styleAliasesLinked = storageFonts?.styleAliasesLinked ?? 0;
-  let entityHeuristicsLinked = 0;
+  let entityHeuristicsLinked = storageFonts?.entityHeuristicsLinked ?? 0;
   let textStyleAliasesLinked = 0;
   if (shxNames.length > 0 && !storageFonts) {
     styleAliasesLinked = registerCadShxStyleTable(json.textStyleTable);
     entityHeuristicsLinked = registerCadShxEntityStyleHeuristics(texts, json.textStyleTable);
+    textStyleAliasesLinked = registerCadShxTextStyleAliases(texts);
+  } else if (storageFonts) {
     textStyleAliasesLinked = registerCadShxTextStyleAliases(texts);
   }
   const styleCounts = new Map();
