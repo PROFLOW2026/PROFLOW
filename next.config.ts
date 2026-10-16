@@ -41,9 +41,16 @@ function nextConfig(phase: string): NextConfig {
     ? {
         experimental: {
           webpackMemoryOptimizations: true,
+          // A custom `webpack` function disables Next's default build worker.
+          // Both independent CAD viewers are compiled here; the worker exits
+          // after each compiler so that RAM is released before the next one.
+          webpackBuildWorker: true,
         },
         webpack: (config) => {
           config.parallelism = 1;
+          if (config.cache && typeof config.cache === 'object') {
+            config.cache.maxMemoryGenerations = 0;
+          }
           return config;
         },
       }
