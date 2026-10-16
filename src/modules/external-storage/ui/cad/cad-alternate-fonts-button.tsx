@@ -30,7 +30,7 @@ export function CadAlternateFontsButton() {
         type="button"
         size="sm"
         variant="secondary"
-        className="h-9 min-h-9 shrink-0 whitespace-normal px-2 py-0 text-[11px] font-medium leading-none"
+        className="h-9 min-h-9 shrink-0 whitespace-normal border-[rgb(64_150_145/0.4)] bg-[rgb(190_235_230/0.82)] px-2 py-0 text-[11px] font-medium leading-none text-[#14524e] hover:bg-[rgb(190_235_230/0.94)]"
         aria-haspopup="dialog"
         aria-expanded={open}
         onPointerDown={(event) => event.stopPropagation()}
@@ -62,31 +62,25 @@ export function CadAlternateFontsButton() {
                 aria-modal="true"
                 aria-labelledby="cad-alternate-fonts-title"
                 dir="rtl"
-                className="relative z-[1] flex max-h-[90dvh] w-full flex-col overflow-hidden bg-[var(--pf-bg-elevated)] text-start shadow-[var(--pf-shadow-lg)] sm:w-full sm:max-w-lg sm:rounded-lg rounded-t-xl"
+                className="relative z-[1] flex w-full max-w-md flex-col overflow-hidden rounded-t-xl bg-[var(--pf-bg-elevated)] text-start shadow-[var(--pf-shadow-lg)] sm:rounded-lg"
               >
-                <div className="flex flex-col gap-1 border-b border-[var(--pf-border-default)] px-5 py-4 pe-12">
+                <div className="border-b border-[var(--pf-border-default)] px-4 py-3 pe-12">
                   <h2 id="cad-alternate-fonts-title" className="text-base font-semibold">
                     גופנים חלופיים
                   </h2>
-                  <p className="text-sm text-[var(--pf-text-secondary)]">
-                    הסבר על תצוגת טקסט בקובץ DWG. הקובץ עצמו לא משתנה.
-                  </p>
                 </div>
                 <button
                   type="button"
-                  className="absolute end-3 top-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-[var(--pf-text-muted)]"
+                  className="absolute end-3 top-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-[var(--pf-text-muted)]"
                   aria-label="סגירה"
                   onClick={() => setOpen(false)}
                 >
                   <X className="size-4" aria-hidden />
                 </button>
-                <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4 text-sm text-[var(--pf-text-primary)]">
-                  <p>גופן חלופי הוא גופן שהמערכת מציגה במקום הגופן המקורי שנשמר בקובץ ה־DWG.</p>
-                  <p>זה קורה כשהגופן המקורי לא נמצא עם השרטוט, או כשהמערכת לא יכולה לקרוא את קובץ הגופן.</p>
-                  <p>במצב כזה התצוגה יכולה להיות שונה מעט מהמקור. המערכת מנסה להציג את המילים והמספרים בצורה הקרובה ביותר.</p>
-                  <p>זהו הסבר בלבד. לחיצה כאן לא משנה את קובץ השרטוט.</p>
-                </div>
-                <div className="flex justify-end border-t border-[var(--pf-border-default)] px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-4">
+                <p className="px-4 py-3 text-sm leading-relaxed text-[var(--pf-text-primary)]">
+                  חלק מהגופנים המקוריים בשרטוט אינם זמינים במערכת, ולכן מוצגים במקומם גופנים חלופיים. כתוצאה מכך, חלק מהכיתובים עשויים להיראות מעט שונים מהמקור.
+                </p>
+                <div className="flex justify-end px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-3">
                   <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
                     סגירה
                   </Button>
