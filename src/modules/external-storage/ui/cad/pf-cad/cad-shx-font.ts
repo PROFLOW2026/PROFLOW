@@ -115,7 +115,10 @@ function emptyTable(): ParsedGlyphTable {
   return { glyphs: new Map(), declaredHeight: 1, incomplete: new Set() };
 }
 
-function resolveShapeBodies(bodies: Map<number, Uint8Array>): {
+function resolveShapeBodies(
+  bodies: Map<number, Uint8Array>,
+  fileKind: SubshapeFileKind = 'shapes',
+): {
   glyphs: Map<number, ShxSegment[]>;
   incomplete: Set<number>;
 } {
@@ -123,7 +126,7 @@ function resolveShapeBodies(bodies: Map<number, Uint8Array>): {
   const incomplete = new Set<number>();
   const lookup = (shapeNumber: number) => bodies.get(shapeNumber);
   for (const [code, body] of bodies) {
-    const decoded = decodeShapeVectorsDetailed(body, lookup, 0, new Set([code]));
+    const decoded = decodeShapeVectorsDetailed(body, lookup, 0, new Set([code]), fileKind);
     if (!decoded.complete) incomplete.add(code);
     if (decoded.segments.length > 0) glyphs.set(code, decoded.segments);
   }
@@ -274,11 +277,14 @@ export function decodeShapeVectors(
   return decodeShapeVectorsDetailed(data, lookup).segments;
 }
 
+export type SubshapeFileKind = 'shapes' | 'bigfont';
+
 export function decodeShapeVectorsDetailed(
   data: Uint8Array,
   lookup?: SubshapeLookup,
   depth = 0,
   chain: ReadonlySet<number> = new Set(),
+  fileKind: SubshapeFileKind = 'shapes',
 ): ShapeDecodeResult {
   const segs: ShxSegment[] = [];
   let x = 0;
@@ -390,6 +396,9 @@ export function decodeShapeVectorsDetailed(
   };
 
   const skipSubshapeRef = (i: number): number => {
+    if (fileKind === 'bigfont' && i + 1 < data.length && data[i + 1] === 0) {
+      return Math.min(data.length, i + 8);
+    }
     const ref = readSubshapeRef(i);
     return ref ? ref.next : data.length;
   };
@@ -501,6 +510,12 @@ export function decodeShapeVectorsDetailed(
         break;
       }
       case 7: {
+        if (fileKind === 'bigfont' && i + 1 < data.length && data[i + 1] === 0) {
+          if (i + 7 >= data.length) return finish(false);
+          i += 8;
+          complete = false;
+          break;
+        }
         const ref = readSubshapeRef(i);
         if (!ref) return finish(false);
         i = ref.next;
@@ -520,7 +535,13 @@ export function decodeShapeVectorsDetailed(
         const nextChain = new Set(chain);
         nextChain.add(ref.shape);
         const savedScale = scale;
-        const nested = decodeShapeVectorsDetailed(raw, lookup, depth + 1, nextChain);
+        const nested = decodeShapeVectorsDetailed(
+          raw,
+          lookup,
+          depth + 1,
+          nextChain,
+          fileKind,
+        );
         scale = savedScale;
         if (!nested.complete) complete = false;
         const ox = x;
@@ -693,7 +714,7 @@ function parseBigfontContent(bytes: Uint8Array): BigfontParsed | null {
     bodies.set(rec.code, stripShapeName(raw));
   }
   if (map.size === 0) return null;
-  const resolved = resolveShapeBodies(bodies);
+  const resolved = resolveShapeBodies(bodies, 'bigfont');
   return {
     map,
     glyphs: resolved.glyphs,

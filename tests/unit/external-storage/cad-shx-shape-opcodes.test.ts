@@ -211,6 +211,19 @@ describe('SHX command 7 subshapes', () => {
     expect(decoded.segments).toHaveLength(0);
   });
 
+  it('marks an extended bigfont subshape incomplete instead of reading its metrics as commands', () => {
+    const decoded = decodeShapeVectorsDetailed(
+      new Uint8Array([7, 0, 2, 0, 1, 2, 3, 4, 1, 8, 4, 0, 0]),
+      () => new Uint8Array([1, 8, 50, 0, 0]),
+      0,
+      new Set(),
+      'bigfont',
+    );
+    expect(decoded.complete).toBe(false);
+    expect(decoded.segments).toHaveLength(1);
+    near(decoded.segments[0]!, 0, 0, 4, 0);
+  });
+
   it('resolves subshapes from the shapes directory and flags the parent when one is missing', () => {
     const font = parseShxFont(
       'sub.shx',
