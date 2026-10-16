@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CadDwgCompactAlerts } from './cad-dwg-compact-alerts';
 import { CadDwgSpaceSelect } from './cad-dwg-space-select';
 import type { CadDwgBanner } from './cad-ui-messages';
+import { CadAlternateFontsButton } from '../cad-alternate-fonts-button';
 import {
   CadViewerVersionSelect,
   type CadViewerVersion,
@@ -45,6 +46,7 @@ export function CadDwgViewerToolbar({
         {viewerVersion && onViewerVersionChange ? (
           <CadViewerVersionSelect value={viewerVersion} onChange={onViewerVersionChange} />
         ) : null}
+        <CadAlternateFontsButton />
         <Button
           type="button"
           size="sm"
