@@ -337,7 +337,7 @@ function PfDwgViewerInner({
       for (; idx < end; idx += 1) {
         const tx = texts[idx]!;
         if (hidden.has(tx.layer) || tx.invisible) continue;
-        if (!shouldDrawTextOnCanvas(tx)) continue;
+        if (!shouldDrawTextOnCanvas(tx, d.scene.origin)) continue;
         drawCadText(drawCtx, tx, view.zoom);
       }
       if (idx < texts.length && gen === textDrawGenRef.current) {

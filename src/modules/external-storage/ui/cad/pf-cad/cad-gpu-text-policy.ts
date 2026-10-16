@@ -1,4 +1,8 @@
 import type { CadText } from './types';
+import {
+  cadTextStyleUsesClientShx,
+  isShxTextRecordGpuComplete,
+} from './shx-text-segments';
 
 /**
  * P8 GPU text handoff policy (regression guard).
@@ -21,8 +25,14 @@ export function mayMarkTextGpu(segmentsAdded: number, glyphsExpected: number): b
  * Canvas overlay when handoff is off or the record is not GPU-complete (`gpu` unset upstream).
  * Never double-draw: `gpu:true` is only set after record-complete geometry is in the segment buffer.
  */
-export function shouldDrawTextOnCanvas(text: CadText): boolean {
+export function shouldDrawTextOnCanvas(
+  text: CadText,
+  origin: [number, number] = [0, 0],
+): boolean {
   if (!P8_GPU_TEXT_HANDOFF_ENABLED) return true;
   if (!text.gpu) return true;
+  if (cadTextStyleUsesClientShx(text) && !isShxTextRecordGpuComplete(text, origin)) {
+    return true;
+  }
   return false;
 }

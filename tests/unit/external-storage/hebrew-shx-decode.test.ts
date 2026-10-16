@@ -51,4 +51,13 @@ describe('hebrew SHX decode', () => {
   it('still decodes 3031-style keyboard latin on sivan_m', () => {
     expect(maybeDecodeHebrewShxText('neuo anur', 'sivan_m')).toBe('מקום שמור');
   });
+
+  /** Keyboard-latin label from 3096-EL WASM audit (style M in DWG; HEBTXT/TRHEBTXT fonts). */
+  it('still decodes 3096-EL audit keyboard-latin sample on HEBTXT', () => {
+    const raw = '1-ha keck thaur vuugsv k,fbui uc';
+    const decoded = maybeDecodeHebrewShxText(raw, 'HEBTXT');
+    expect(decoded).not.toBe(raw);
+    expect(decoded).toMatch(/[\u0590-\u05FF]/);
+    expect(maybeDecodeHebrewShxText(raw, 'TRHEBTXT')).toBe(decoded);
+  });
 });
