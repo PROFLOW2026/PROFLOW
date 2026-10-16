@@ -57,7 +57,8 @@
     "taskTemplates": "Task templates",
     "projectTaskTemplates": "New project task templates",
     "projectTemplates": "Project templates",
-    "modules": "Modules"
+    "modules": "Modules",
+    "openSource": "Open source (CAD)"
   },
   "people": {
     "linkCopied": "Link copied",

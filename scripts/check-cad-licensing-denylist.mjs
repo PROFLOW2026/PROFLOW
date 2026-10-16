@@ -8,6 +8,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DENIED_BASENAME =
   /^(txt|simplex|romans|complex|italic|gdt|monotxt|isocp|isoct)\.shx$|^(arial|times|calibri|tahoma)\.(ttf|otf|woff2?)$/i;
 
+/** Autodesk-shipped hatch pattern tables must not be committed under public/. */
+const DENIED_PATTERN_BASENAME = /^(acad|acadiso|acadpat|default)\.pat$/i;
+
 const scanRoots = [
   path.join(root, 'public', 'pf-cad', 'fonts'),
   path.join(root, 'public', 'cad'),
@@ -36,7 +39,7 @@ if (fs.existsSync(codecadDir)) {
 for (const scanRoot of scanRoots) {
   for (const file of listFiles(scanRoot)) {
     const base = path.basename(file);
-    if (DENIED_BASENAME.test(base)) {
+    if (DENIED_BASENAME.test(base) || DENIED_PATTERN_BASENAME.test(base)) {
       errors.push(`Proprietary CAD asset denied in repo: ${path.relative(root, file)}`);
     }
   }

@@ -42,7 +42,8 @@ export type SettingsSectionKey =
   | 'projectTemplates'
   | 'orgProfile'
   | 'modules'
-  | 'adoption';
+  | 'adoption'
+  | 'openSource';
 
 export type SettingsNavGroup =
   | 'myBusiness'
@@ -130,6 +131,12 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: 'customFields', href: '/settings/custom-fields', permission: PERMISSIONS.CUSTOM_FIELDS_MANAGE, group: 'advanced' },
   { key: 'activity', href: '/settings/activity', permission: PERMISSIONS.AUDIT_READ, group: 'advanced' },
   { key: 'app', href: '/settings/app', permission: null, group: 'advanced' },
+  {
+    key: 'openSource',
+    href: '/settings/open-source',
+    permission: PERMISSIONS.ORG_READ,
+    group: 'connectionsStorage',
+  },
 
   {
     key: 'api',
@@ -241,6 +248,8 @@ export function canManageSection(context: OrgContext, sectionKey: SettingsSectio
       return hasPermission(context, PERMISSIONS.SETTINGS_MANAGE);
     case 'integrations':
       return hasPermission(context, PERMISSIONS.SETTINGS_MANAGE);
+    case 'openSource':
+      return false;
     default:
       return false;
   }

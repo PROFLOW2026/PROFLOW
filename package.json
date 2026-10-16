@@ -10,6 +10,7 @@
     "copy-pdf-worker": "node scripts/copy-pdf-worker.mjs",
     "copy-pf-cad-wasm": "node scripts/copy-pf-cad-wasm.mjs",
     "copy-cad-assets": "node scripts/copy-cad-assets.mjs",
+    "check:cad-licensing": "node scripts/check-cad-licensing-denylist.mjs",
     "predev": "npm run copy-pdf-worker && npm run copy-pf-cad-wasm && npm run copy-cad-assets",
     "dev": "next dev",
     "dev:local": "next dev -p 3100",

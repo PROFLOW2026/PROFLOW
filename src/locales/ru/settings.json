@@ -57,7 +57,8 @@
     "taskTemplates": "Шаблоны задач",
     "projectTaskTemplates": "Шаблон задач для нового проекта",
     "projectTemplates": "Шаблоны проектов",
-    "modules": "Модули"
+    "modules": "Модули",
+    "openSource": "Открытый код (CAD)"
   },
   "people": {
     "linkCopied": "Ссылка скопирована",

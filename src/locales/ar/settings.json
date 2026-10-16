@@ -57,7 +57,8 @@
     "taskTemplates": "قوالب المهام",
     "projectTaskTemplates": "قالب مهام للمشروع الجديد",
     "projectTemplates": "قوالب المشاريع",
-    "modules": "الوحدات"
+    "modules": "الوحدات",
+    "openSource": "مفتوح المصدر (CAD)"
   },
   "people": {
     "linkCopied": "تم نسخ الرابط",
