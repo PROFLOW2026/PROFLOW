@@ -20,54 +20,155 @@ import {
 import { isShxTextRecordGpuComplete } from '@/modules/external-storage/ui/cad/pf-cad/shx-text-segments';
 import type { CadText } from '@/modules/external-storage/ui/cad/pf-cad/types';
 
+/** Horizontal stroke: pen down, code 8 dx=10 dy=0, end. */
+const H_STROKE = [1, 8, 10, 0, 0];
+
+function u16le(v: number): number[] {
+  return [v & 255, (v >> 8) & 255];
+}
+
+function shapesFile(version: '1.0' | '1.1', glyphs: Array<[number, number[]]>): Uint8Array {
+  const header = new TextEncoder().encode(`AutoCAD-86 shapes ${version}\r\n\x1a`);
+  const bodies = glyphs.map(([code, bc]) => ({
+    code,
+    bytes: Uint8Array.from([0, ...(bc.at(-1) === 0 ? bc : [...bc, 0])]),
+  }));
+  const gap = [0x11, 0x22, 0x33, 0x44];
+  const out = new Uint8Array(header.length + gap.length + 2 + bodies.length * 4 + bodies.reduce((n, b) => n + b.bytes.length, 0));
+  out.set(header, 0);
+  let p = header.length;
+  out.set(gap, p);
+  p += gap.length;
+  out.set(u16le(bodies.length), p);
+  p += 2;
+  for (const b of bodies) {
+    out.set(u16le(b.code), p);
+    out.set(u16le(b.bytes.length), p + 2);
+    p += 4;
+  }
+  for (const b of bodies) {
+    out.set(b.bytes, p);
+    p += b.bytes.length;
+  }
+  return out;
+}
+
+function unifontFile(glyphs: Array<[number, number[]]>): Uint8Array {
+  const header = new TextEncoder().encode('AutoCAD-86 unifont 1.0\r\n\x1a');
+  const info = Uint8Array.from([...'uni'].map((c) => c.charCodeAt(0)).concat(0, 8, 2, 0));
+  const bodies = glyphs.map(([code, bc]) => ({
+    code,
+    bytes: Uint8Array.from([0, ...(bc.at(-1) === 0 ? bc : [...bc, 0])]),
+  }));
+  const count = bodies.length + 1;
+  const out = new Uint8Array(header.length + 4 + 2 + info.length + bodies.length * 4 + bodies.reduce((n, b) => n + b.bytes.length, 0));
+  out.set(header, 0);
+  let p = header.length;
+  out[p] = count & 255;
+  out[p + 1] = (count >> 8) & 255;
+  p += 4;
+  out.set(u16le(info.length), p);
+  p += 2;
+  out.set(info, p);
+  p += info.length;
+  for (const b of bodies) {
+    out.set(u16le(b.code), p);
+    out.set(u16le(b.bytes.length), p + 2);
+    p += 4;
+  }
+  for (const b of bodies) {
+    out.set(b.bytes, p);
+    p += b.bytes.length;
+  }
+  return out;
+}
+
+function bigfontFile(glyphs: Array<[number, number[]]>): Uint8Array {
+  const header = new TextEncoder().encode('AutoCAD-86 bigfont 1.0\r\n\x1a');
+  const bodies = glyphs.map(([code, bc]) => ({
+    code,
+    bytes: Uint8Array.from([0, ...(bc.at(-1) === 0 ? bc : [...bc, 0])]),
+  }));
+  const index = 2 + 2 + 2 + 4 + bodies.length * 8;
+  const out = new Uint8Array(header.length + index + bodies.reduce((n, b) => n + b.bytes.length, 0));
+  out.set(header, 0);
+  let p = header.length;
+  const w16 = (v: number) => {
+    out[p] = v & 255;
+    out[p + 1] = (v >> 8) & 255;
+    p += 2;
+  };
+  w16(0);
+  w16(bodies.length);
+  w16(1);
+  w16(Math.min(...bodies.map((b) => b.code)));
+  w16(Math.max(...bodies.map((b) => b.code)));
+  let bodyAt = header.length + index;
+  for (const b of bodies) {
+    w16(b.code);
+    w16(b.bytes.length);
+    out[p] = bodyAt & 255;
+    out[p + 1] = (bodyAt >> 8) & 255;
+    out[p + 2] = (bodyAt >> 16) & 255;
+    out[p + 3] = (bodyAt >> 24) & 255;
+    p += 4;
+    bodyAt += b.bytes.length;
+  }
+  for (const b of bodies) {
+    out.set(b.bytes, p);
+    p += b.bytes.length;
+  }
+  return out;
+}
+
 describe('cad-shx-font', () => {
-  it('decodes a minimal shape vector run', () => {
-    const spec = new Uint8Array([1, 16, 14]);
-    const segs = decodeShapeVectors(spec);
-    expect(segs.length).toBe(1);
-    expect(segs[0]!.x2).toBeGreaterThan(segs[0]!.x1);
+  it('decodes a pen-down code-8 run and ignores bytes after code 0', () => {
+    const segs = decodeShapeVectors(new Uint8Array([1, 8, 10, 0, 0, 8, 50, 50]));
+    expect(segs).toHaveLength(1);
+    expect(segs[0]!.x1).toBeCloseTo(0);
+    expect(segs[0]!.y1).toBeCloseTo(0);
+    expect(segs[0]!.x2).toBeCloseTo(10);
+    expect(segs[0]!.y2).toBeCloseTo(0);
   });
 
-  it('parses shapes 1.0 header and measures width', () => {
-    const bytes = new Uint8Array(48);
-    bytes.set(new TextEncoder().encode('AutoCAD-86 shapes 1.0'), 0);
-    bytes.set([0x1a, 0, 65, 3, 1, 16, 14], 24);
+  it('parses shapes 1.0 directory (4-byte gap, not a packed shape stream)', () => {
+    const bytes = shapesFile('1.0', [[65, H_STROKE]]);
     const font = parseShxFont('test.shx', bytes);
     expect(font).not.toBeNull();
     expect(font!.kind).toBe('1.0');
+    expect(font!.glyphs.get(65)).toHaveLength(1);
     expect(measureShxTextWidth(font!, 'A', 10)).toBeGreaterThan(0);
   });
 
-  it('parses Unicode shapes 1.1 code points', () => {
-    const bytes = new Uint8Array(64);
-    bytes.set(new TextEncoder().encode('AutoCAD-86 shapes 1.1'), 0);
-    bytes.set([0x1a, 0x41, 0x00, 3, 1, 16, 14], 24);
-    const font = parseShxFont('uni.shx', bytes);
+  it('parses shapes 1.1 directory and unifont tables separately', () => {
+    const shapes11 = shapesFile('1.1', [[0x41, H_STROKE]]);
+    const font = parseShxFont('uni.shx', shapes11);
     expect(font?.kind).toBe('1.1');
     expect(font?.glyphs.has(0x41)).toBe(true);
-    const payloadOnly = parseUnicodeShapesPayload(bytes, 25);
+
+    const uni = unifontFile([[0x41, H_STROKE]]);
+    const uniFont = parseShxFont('u.shx', uni);
+    expect(uniFont?.kind).toBe('1.1');
+    expect(uniFont?.glyphs.has(0x41)).toBe(true);
+    const marker = uni.indexOf(0x1a);
+    const payloadOnly = parseUnicodeShapesPayload(uni, marker + 1);
     expect(payloadOnly.has(0x41)).toBe(true);
   });
 
-  it('parses bigfont map and companion glyphs', () => {
-    const bytes = new Uint8Array(80);
-    bytes.set(new TextEncoder().encode('AutoCAD-86 bigfont 1.0'), 0);
+  it('parses bigfont index offsets into glyphs keyed by character code', () => {
     const heYod = 0x05d9;
-    bytes.set([0x1a, heYod & 0xff, (heYod >> 8) & 0xff, 65, 0, 0, 0, 65, 3, 1, 16, 14], 28);
+    const bytes = bigfontFile([[heYod, H_STROKE]]);
     const bundle = parseShxBigfontFile('ext.shx', bytes);
-    expect(bundle?.map.get(heYod)).toBe(65);
-    expect(bundle?.font.glyphs.has(65)).toBe(true);
+    expect(bundle?.map.get(heYod)).toBe(heYod);
+    expect(bundle?.font.glyphs.has(heYod)).toBe(true);
     clearCadShxFonts();
     registerCadShxFonts([{ name: 'ext.shx', bytes }]);
-    expect(resolveShxGlyphCode('ext', heYod)).toBe(65);
+    expect(resolveShxGlyphCode('ext', heYod)).toBe(heYod);
     clearCadShxFonts();
   });
 
   it('resolveShxGlyphStroke never returns placeholder boxes (legacy shxMissingGlyphStroke is unused in draw path)', () => {
-    const bytes = new Uint8Array(48);
-    bytes.set(new TextEncoder().encode('AutoCAD-86 shapes 1.0'), 0);
-    bytes.set([0x1a, 0, 65, 3, 1, 16, 14], 24);
-    const font = parseShxFont('test.shx', bytes)!;
+    const font = parseShxFont('test.shx', shapesFile('1.0', [[65, H_STROKE]]))!;
     expect(isDrawableShxCharacter(' ')).toBe(false);
     expect(isDrawableShxCharacter('?')).toBe(true);
     expect(resolveShxGlyphStroke(font, 0x9999, '?')).toBeNull();
@@ -76,10 +177,7 @@ describe('cad-shx-font', () => {
   });
 
   it('drawShxLine with fillWhenMissing uses TTF fill, not placeholder stroke rectangles', () => {
-    const bytes = new Uint8Array(48);
-    bytes.set(new TextEncoder().encode('AutoCAD-86 shapes 1.0'), 0);
-    bytes.set([0x1a, 0, 65, 3, 1, 16, 14], 24);
-    const font = parseShxFont('test.shx', bytes)!;
+    const font = parseShxFont('test.shx', shapesFile('1.0', [[65, H_STROKE]]))!;
     let strokeCalls = 0;
     let fillTextCalls = 0;
     const ctx = {
@@ -117,10 +215,7 @@ describe('cad-shx-font', () => {
   });
 
   it('uses SHX metrics for block measurement', () => {
-    const bytes = new Uint8Array(48);
-    bytes.set(new TextEncoder().encode('AutoCAD-86 shapes 1.0'), 0);
-    bytes.set([0x1a, 0, 65, 3, 1, 16, 14], 24);
-    const font = parseShxFont('test.shx', bytes)!;
+    const font = parseShxFont('test.shx', shapesFile('1.0', [[65, H_STROKE]]))!;
     const block = measureShxTextBlock(font, ['A'], 10, 1.2);
     expect(block.w).toBeGreaterThan(0);
     expect(block.descent).toBeGreaterThanOrEqual(0);
@@ -131,14 +226,9 @@ describe('cad-shx-font', () => {
 describe('cad-shx-registry draw context', () => {
   it('registers primary and bigfont for glyph pick', () => {
     clearCadShxFonts();
-    const primary = new Uint8Array(48);
-    primary.set(new TextEncoder().encode('AutoCAD-86 shapes 1.0'), 0);
-    primary.set([0x1a, 0, 66, 3, 1, 16, 14], 24);
-
-    const big = new Uint8Array(80);
-    big.set(new TextEncoder().encode('AutoCAD-86 bigfont 1.0'), 0);
+    const primary = shapesFile('1.0', [[66, H_STROKE]]);
     const code = 0x05d0;
-    big.set([0x1a, code & 0xff, (code >> 8) & 0xff, 65, 0, 0, 0, 65, 3, 1, 16, 14], 28);
+    const big = bigfontFile([[code, H_STROKE]]);
 
     registerCadShxFonts([
       { name: 'miryl.shx', bytes: primary },
@@ -147,17 +237,14 @@ describe('cad-shx-registry draw context', () => {
 
     const ctx = resolveShxDrawContext('mirylb');
     expect(ctx.primary).toBeDefined();
-    expect(ctx.mapCode(code)).toBe(65);
-    expect(ctx.pickFont(code, 65)?.glyphs.has(65)).toBe(true);
+    expect(ctx.mapCode(code)).toBe(code);
+    expect(ctx.pickFont(code, code)?.glyphs.has(code)).toBe(true);
     clearCadShxFonts();
   });
 
   it('GPU completeness requires real glyphs (no missing-glyph placeholders)', () => {
     clearCadShxFonts();
-    const primary = new Uint8Array(48);
-    primary.set(new TextEncoder().encode('AutoCAD-86 shapes 1.0'), 0);
-    primary.set([0x1a, 0, 65, 3, 1, 16, 14], 24);
-    registerCadShxFonts([{ name: 'test.shx', bytes: primary }]);
+    registerCadShxFonts([{ name: 'test.shx', bytes: shapesFile('1.0', [[65, H_STROKE]]) }]);
 
     const base: CadText = {
       k: 'text',

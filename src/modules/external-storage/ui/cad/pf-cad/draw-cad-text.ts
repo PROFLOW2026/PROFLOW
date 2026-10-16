@@ -1,10 +1,11 @@
 import type { CadText } from './types';
 import type { CadView } from './renderer';
 import { worldToScreen } from './renderer';
-import { hasHebrewBlock, maybeDecodeHebrewShxText } from './hebrew-shx-decode';
+import { hasHebrewBlock, decodeCadTextLine } from './hebrew-shx-decode';
 import { drawShxLine, measureShxTextBlock, type ShxFont } from './cad-shx-font';
 import { resolveShxDrawContext } from './cad-shx-registry';
 import { cadTextCanvasPaint } from './cad-text-canvas-color';
+import { shouldDrawTextOnCanvas } from './cad-gpu-text-policy';
 
 export const CAP_HEIGHT_RATIO = 0.714;
 export const FONT_SIZE_FACTOR = 1 / CAP_HEIGHT_RATIO;
@@ -140,6 +141,7 @@ export function drawCadText(
   zoom: number,
 ): void {
   if (tx.invisible) return;
+  if (!shouldDrawTextOnCanvas(tx)) return;
 
   const [ox, oy] = draw.origin;
   const [sx, sy] = worldToScreen(tx.x - ox, tx.y - oy, draw.view, draw.viewport);
@@ -150,7 +152,7 @@ export function drawCadText(
     tx.lines && tx.lines.length > 0
       ? tx.lines
       : tx.t.split('\n').filter((line, i, arr) => line.length > 0 || arr.length === 1);
-  const lines = rawLines.map((line) => maybeDecodeHebrewShxText(line, tx.style));
+  const lines = rawLines.map((line) => decodeCadTextLine(line, tx.style));
   if (lines.length === 0 || (lines.length === 1 && !lines[0]?.trim())) return;
 
   const shx = draw.shxFont?.(tx.style);

@@ -28,6 +28,19 @@ export function cadDepsSignature(
   return parts.join('\0');
 }
 
+/**
+ * Lowercase stem tokens of a font file name.
+ * `sivan_m.shx` → `sivan`, `m`. Path and extension are stripped first.
+ * Tokens split on non-alphanumerics so `heb` does not match inside unrelated words.
+ */
+export function cadFontFileStemTokens(fontFile: string): string[] {
+  const trimmed = fontFile.trim();
+  if (!trimmed) return [];
+  const base = trimmed.split(/[/\\]/).pop() ?? trimmed;
+  const stem = base.replace(/\.(shx|ttf|otf|ttc)$/i, '');
+  return stem.toLowerCase().split(/[^a-z0-9]+/).filter((token) => token.length > 0);
+}
+
 function fontLookupPath(fontFile: string): string {
   const trimmed = fontFile.trim();
   if (!trimmed) return trimmed;

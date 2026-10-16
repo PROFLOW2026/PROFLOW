@@ -56,11 +56,15 @@ function reply(msg: WorkerOut): void {
 async function ensureWasm(): Promise<WasmApi> {
   if (wasm) return wasm;
   const t0 = performance.now();
+  const manifest = (await fetch('/pf-cad/wasm/version.json', { cache: 'no-store' }).then((res) =>
+    res.ok ? res.json() : null,
+  )) as { engineCommitSha?: string } | null;
+  const revision = encodeURIComponent(manifest?.engineCommitSha ?? 'dev');
   const mod = (await import(
     /* webpackIgnore: true */
-    PF_CAD_WASM_GLUE_URL
+    `${PF_CAD_WASM_GLUE_URL}?v=${revision}`
   )) as WasmInitModule;
-  wasm = await mod.default({ module_or_path: PF_CAD_WASM_BINARY_URL });
+  wasm = await mod.default({ module_or_path: `${PF_CAD_WASM_BINARY_URL}?v=${revision}` });
   wasmInitMs = performance.now() - t0;
   return wasm;
 }

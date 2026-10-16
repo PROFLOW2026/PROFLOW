@@ -1,3 +1,24 @@
+import { currentTextStyleTable, textStyleFontFiles } from './cad-entity-text-style';
+import { cadFontFileStemTokens } from './font-resolver';
+
+/**
+ * Legacy Hebrew SHX decoding.
+ *
+ * Profile comes from the font file name (and bigfont file name) when the style
+ * table provides one. A style-name substring match is only a fallback when both
+ * file names are empty (`source: "style-name-fallback"`).
+ *
+ * Output is logical Unicode order. Do not reverse here — `bx` / backwards is the
+ * renderer's flag.
+ *
+ * Lead wiring (this module cannot edit those files):
+ * - `draw-cad-text.ts` — `maybeDecodeHebrewShxText(line, tx.style)`
+ * - `cad-gpu-text-policy.ts` — same helper
+ * - `shx-text-segments.ts` — same helper
+ * Replace each with `resolveTextEncoding({ text, styleName, fontFile, bigFontFile }).text`
+ * after `textStyleFontFiles(styleName, textStyleTable)` from `cad-entity-text-style.ts`.
+ */
+
 /** Standard Hebrew (SI-1452) keyboard: Latin key → Hebrew when SHX stored wrong encoding. */
 const HEBREW_KEYBOARD_LATIN_TO_HE: Record<string, string> = {
   q: '/',
@@ -69,17 +90,67 @@ const MIRYL_KEYBOARD_LATIN_TO_HE: Record<string, string> = {
 /** Oron / Foron family: same SI-1452 map; prefer CP862 when bytes are present. */
 const ORON_KEYBOARD_LATIN_TO_HE = HEBREW_KEYBOARD_LATIN_TO_HE;
 
-/** Latin SHX (simplex, txt, romans) must not trigger keyboard / CP862 decode. */
+/**
+ * Style-name fallback only. Font files use stem tokens, not this substring test.
+ * `heb` stays so names such as HEBREW / HEBTXT still match when the file is empty.
+ */
 const HEBREW_STYLE_RE =
   /heb|hebrew|hebtxt|dimheb|sivan|oron|foron|david|narkis|miryl|mirym/i;
 
+/** File-stem tokens (whole token, case-insensitive). `heb` is exact, not a substring. */
+const HEBREW_SHX_FILE_TOKENS = new Set([
+  'hebtxt',
+  'trhebtxt',
+  'dimheb',
+  'sivan',
+  'miryl',
+  'mirym',
+  'oron',
+  'foron',
+  'heb',
+]);
+
 type HebrewKeyboardProfile = 'standard' | 'miryl' | 'oron';
+
+export type HebrewShxEncodingProfile = 'hebrew-shx' | 'latin';
+export type HebrewShxEncodingSource =
+  | 'font-file'
+  | 'style-name-fallback'
+  | 'mojibake-signature'
+  | 'none';
+
+export type TextEncodingResult = {
+  text: string;
+  profile: HebrewShxEncodingProfile;
+  /** `font-file` when a style-table file name decided the profile. */
+  source: HebrewShxEncodingSource;
+  /**
+   * `style-name-fallback` or `font-file` when the string is left unchanged,
+   * otherwise how the characters were recovered (`cp1252-mojibake`, `cp862-bytes`,
+   * `keyboard-layout`, `already-unicode-hebrew`, `not-hebrew-profile`).
+   */
+  reason: string;
+};
+
+export type ResolveTextEncodingInput = {
+  text: string;
+  styleName?: string | number | null;
+  fontFile?: string | null;
+  bigFontFile?: string | null;
+};
 
 function keyboardProfileForStyle(style: string | number | undefined): HebrewKeyboardProfile {
   if (style == null) return 'standard';
   const name = String(style).trim();
   if (/miryl|mirym/i.test(name)) return 'miryl';
   if (/oron|foron/i.test(name)) return 'oron';
+  return 'standard';
+}
+
+function keyboardFromTokens(tokens: readonly string[]): HebrewKeyboardProfile | null {
+  if (!tokens.some((token) => HEBREW_SHX_FILE_TOKENS.has(token))) return null;
+  if (tokens.some((token) => token === 'miryl' || token === 'mirym')) return 'miryl';
+  if (tokens.some((token) => token === 'oron' || token === 'foron')) return 'oron';
   return 'standard';
 }
 
@@ -100,9 +171,42 @@ export function isHebrewShxStyle(style: string | number | undefined): boolean {
   return HEBREW_STYLE_RE.test(name);
 }
 
+/** True when a font / bigfont file stem contains a known Hebrew SHX token. */
+export function isHebrewShxFontFile(fontFile: string | null | undefined): boolean {
+  if (!fontFile?.trim()) return false;
+  return keyboardFromTokens(cadFontFileStemTokens(fontFile)) != null;
+}
+
+function appendPercentCode(text: string, i: number): { chunk: string; next: number } | null {
+  if (text[i] !== '%' || text[i + 1] !== '%') return null;
+  if (text[i + 2] === '%') return { chunk: '%%%', next: i + 3 };
+  const third = text[i + 2];
+  if (third && /[dpcuoDPCUO]/.test(third)) {
+    return { chunk: text.slice(i, i + 3), next: i + 3 };
+  }
+  if (third && third >= '0' && third <= '9') {
+    let j = i + 2;
+    let digits = 0;
+    while (j < text.length && digits < 3 && text[j]! >= '0' && text[j]! <= '9') {
+      digits += 1;
+      j += 1;
+    }
+    return { chunk: text.slice(i, j), next: j };
+  }
+  return null;
+}
+
 function decodeWithKeyboardMap(text: string, map: Record<string, string>): string {
   let out = '';
-  for (const ch of text) {
+  for (let i = 0; i < text.length; ) {
+    const percent = appendPercentCode(text, i);
+    if (percent) {
+      out += percent.chunk;
+      i = percent.next;
+      continue;
+    }
+    const ch = text[i]!;
+    i += 1;
     if (ch <= ' ' || ch > '~') {
       out += ch;
       continue;
@@ -122,8 +226,8 @@ export function decodeHebrewKeyboardLatin(
   return decodeWithKeyboardMap(text, keyboardMapForProfile(profile));
 }
 
-/** CP862 (DOS Hebrew) code page → Unicode for legacy SHX byte strings. */
-const CP862_TO_UNICODE: Record<number, string> = {
+/** CP862 Hebrew letters (0x80–0x9A). Box-drawing bytes are not letters. */
+const CP862_HEBREW_LETTER: Record<number, string> = {
   0x80: 'א',
   0x81: 'ב',
   0x82: 'ג',
@@ -151,6 +255,41 @@ const CP862_TO_UNICODE: Record<number, string> = {
   0x98: 'ר',
   0x99: 'ש',
   0x9a: 'ת',
+};
+
+/**
+ * Windows-1252 decoding of CP862 Hebrew-letter bytes (0x80–0x9A).
+ * Undefined CP1252 bytes (0x81, 0x8D, 0x8F, 0x90) stay as the raw code unit.
+ */
+const CP1252_REVERSE_HEBREW: Record<number, number> = {
+  0x20ac: 0x80,
+  0x201a: 0x82,
+  0x0192: 0x83,
+  0x201e: 0x84,
+  0x2026: 0x85,
+  0x2020: 0x86,
+  0x2021: 0x87,
+  0x02c6: 0x88,
+  0x2030: 0x89,
+  0x0160: 0x8a,
+  0x2039: 0x8b,
+  0x0152: 0x8c,
+  0x017d: 0x8e,
+  0x2018: 0x91,
+  0x2019: 0x92,
+  0x201c: 0x93,
+  0x201d: 0x94,
+  0x2022: 0x95,
+  0x2013: 0x96,
+  0x2014: 0x97,
+  0x02dc: 0x98,
+  0x2122: 0x99,
+  0x0161: 0x9a,
+};
+
+/** Full CP862 page, including symbols, for callers that already hold raw bytes. */
+const CP862_TO_UNICODE: Record<number, string> = {
+  ...CP862_HEBREW_LETTER,
   0x9b: '·',
   0x9c: '£',
   0x9d: '×',
@@ -262,17 +401,45 @@ export function decodeCp862HebrewString(text: string): string {
   return out;
 }
 
-function countCp862HebrewLetters(text: string): number {
-  let n = 0;
-  for (let i = 0; i < text.length; i += 1) {
-    const code = text.charCodeAt(i);
-    if (code >= 0x80 && code <= 0x9a) n += 1;
+/**
+ * CP862 Hebrew letters, either still stored as U+0080–U+009A or as the
+ * Windows-1252 characters those bytes become. ASCII is left unchanged.
+ * Logical order is preserved (no reverse).
+ */
+export function recoverCp862HebrewLetters(text: string): {
+  text: string;
+  rawBytes: number;
+  mojibake: number;
+} {
+  let out = '';
+  let rawBytes = 0;
+  let mojibake = 0;
+  for (let i = 0; i < text.length; ) {
+    const code = text.codePointAt(i)!;
+    const step = code > 0xffff ? 2 : 1;
+    if (code >= 0x80 && code <= 0x9a && CP862_HEBREW_LETTER[code]) {
+      out += CP862_HEBREW_LETTER[code];
+      rawBytes += 1;
+    } else {
+      const byte = CP1252_REVERSE_HEBREW[code];
+      if (byte != null && CP862_HEBREW_LETTER[byte]) {
+        out += CP862_HEBREW_LETTER[byte];
+        mojibake += 1;
+      } else {
+        out += text.slice(i, i + step);
+      }
+    }
+    i += step;
   }
-  return n;
+  return { text: out, rawBytes, mojibake };
 }
 
 /** Skip keyboard remap for obvious English, dimensions, or numeric labels on Hebrew-named styles. */
-export function shouldApplyHebrewKeyboardDecode(text: string, style?: string | number): boolean {
+export function shouldApplyHebrewKeyboardDecode(
+  text: string,
+  style?: string | number,
+  options?: { mapIdentifiers?: boolean },
+): boolean {
   const trimmed = text.trim();
   if (!trimmed) return false;
   if (!/[a-zA-Z]/.test(trimmed)) return false;
@@ -280,26 +447,152 @@ export function shouldApplyHebrewKeyboardDecode(text: string, style?: string | n
   if (profile !== 'miryl' && /[A-Z]/.test(trimmed)) return false;
   if (/^[0-9.\-+×°%\\/\s:,;()[\]]+$/.test(trimmed)) return false;
   if (/^[0-9A-Z.\-+×°%\\/\s]+$/.test(trimmed)) return false;
+  if (!options?.mapIdentifiers && /^[A-Za-z][A-Za-z0-9._-]*$/.test(trimmed)) return false;
   return true;
+}
+
+type ProfileDecision = {
+  profile: HebrewShxEncodingProfile;
+  source: HebrewShxEncodingSource;
+  keyboard: HebrewKeyboardProfile;
+};
+
+function decideEncodingProfile(input: ResolveTextEncodingInput): ProfileDecision {
+  const fontFile = input.fontFile?.trim() ?? '';
+  const bigFontFile = input.bigFontFile?.trim() ?? '';
+  const fontKeyboard = fontFile ? keyboardFromTokens(cadFontFileStemTokens(fontFile)) : null;
+  const bigKeyboard = bigFontFile ? keyboardFromTokens(cadFontFileStemTokens(bigFontFile)) : null;
+
+  if (fontFile || bigFontFile) {
+    const keyboard = fontKeyboard ?? bigKeyboard;
+    if (keyboard) {
+      return { profile: 'hebrew-shx', source: 'font-file', keyboard };
+    }
+    return { profile: 'latin', source: 'font-file', keyboard: 'standard' };
+  }
+
+  if (isHebrewShxStyle(input.styleName ?? undefined)) {
+    return {
+      profile: 'hebrew-shx',
+      source: 'style-name-fallback',
+      keyboard: keyboardProfileForStyle(input.styleName ?? undefined),
+    };
+  }
+  return { profile: 'latin', source: 'none', keyboard: 'standard' };
+}
+
+function unchangedReason(decision: ProfileDecision): string {
+  if (decision.profile === 'latin' && decision.source === 'font-file') return 'not-hebrew-profile';
+  if (decision.source === 'style-name-fallback') return 'style-name-fallback';
+  if (decision.source === 'font-file') return 'font-file';
+  return 'unchanged';
+}
+
+/**
+ * entity text + style name + style table `{ fontFile, bigFontFile }`
+ * → encoding profile → decoded Unicode (logical order).
+ */
+export function resolveTextEncoding(input: ResolveTextEncodingInput): TextEncodingResult {
+  const text = input.text ?? '';
+  const decision = decideEncodingProfile(input);
+  if (!text) {
+    return { text, profile: decision.profile, source: decision.source, reason: unchangedReason(decision) };
+  }
+  if (hasHebrewBlock(text)) {
+    return {
+      text,
+      profile: decision.profile,
+      source: decision.source,
+      reason: 'already-unicode-hebrew',
+    };
+  }
+  if (decision.profile !== 'hebrew-shx') {
+    if (decision.source !== 'font-file') {
+      const recovered = recoverCp862HebrewLetters(text);
+      if (recovered.rawBytes > 0 || recovered.mojibake >= 2) {
+        return {
+          text: recovered.text,
+          profile: 'hebrew-shx',
+          source: 'mojibake-signature',
+          reason: recovered.mojibake > 0 ? 'cp1252-mojibake' : 'cp862-bytes',
+        };
+      }
+    }
+    return {
+      text,
+      profile: decision.profile,
+      source: decision.source,
+      reason: unchangedReason(decision),
+    };
+  }
+
+  const recovered = recoverCp862HebrewLetters(text);
+  if (recovered.mojibake > 0 || recovered.rawBytes > 0) {
+    return {
+      text: recovered.text,
+      profile: decision.profile,
+      source: decision.source,
+      reason: recovered.mojibake > 0 ? 'cp1252-mojibake' : 'cp862-bytes',
+    };
+  }
+
+  const styleForKeyboard =
+    decision.source === 'font-file'
+      ? decision.keyboard === 'miryl'
+        ? 'miryl'
+        : decision.keyboard === 'oron'
+          ? 'oron'
+          : 'hebrew'
+      : input.styleName;
+  if (
+    !shouldApplyHebrewKeyboardDecode(text, styleForKeyboard ?? undefined, {
+      mapIdentifiers: decision.source === 'font-file',
+    })
+  ) {
+    return {
+      text,
+      profile: decision.profile,
+      source: decision.source,
+      reason: unchangedReason(decision),
+    };
+  }
+  const mapped = decodeWithKeyboardMap(text, keyboardMapForProfile(decision.keyboard));
+  if (mapped === text) {
+    return {
+      text,
+      profile: decision.profile,
+      source: decision.source,
+      reason: unchangedReason(decision),
+    };
+  }
+  return {
+    text: mapped,
+    profile: decision.profile,
+    source: decision.source,
+    reason: 'keyboard-layout',
+  };
 }
 
 export function maybeDecodeHebrewShxText(
   text: string,
   style: string | number | undefined,
 ): string {
-  if (!text || hasHebrewBlock(text)) return text;
-  if (!isHebrewShxStyle(style)) return text;
+  return resolveTextEncoding({
+    text,
+    styleName: style,
+    fontFile: '',
+    bigFontFile: '',
+  }).text;
+}
 
-  const cp862 = decodeCp862HebrewString(text);
-  const profile = keyboardProfileForStyle(style);
-  const cp862Letters = countCp862HebrewLetters(text);
-
-  if (profile === 'oron' && cp862Letters > 0 && hasHebrewBlock(cp862)) {
-    return cp862;
-  }
-  if (hasHebrewBlock(cp862) && cp862Letters >= Math.max(1, Math.floor(text.length * 0.25))) {
-    return cp862;
-  }
-  if (!shouldApplyHebrewKeyboardDecode(text, style)) return text;
-  return decodeHebrewKeyboardLatin(text, style);
+/** Decode using the style table registered with the SHX registry. */
+export function decodeCadTextLine(text: string, style: string | number | undefined): string {
+  const styleName = style == null ? '' : String(style);
+  const files = textStyleFontFiles(styleName, currentTextStyleTable());
+  return resolveTextEncoding({
+    text,
+    styleName,
+    fontFile: files.fontFile,
+    bigFontFile: files.bigFontFile,
+  }).text;
 }

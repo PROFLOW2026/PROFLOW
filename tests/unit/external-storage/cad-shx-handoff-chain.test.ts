@@ -8,16 +8,26 @@ import { applyCadP8GpuTextHandoff } from '@/modules/external-storage/ui/cad/pf-c
 import { appendShxGpuSegments } from '@/modules/external-storage/ui/cad/pf-cad/shx-text-segments';
 import type { CadText } from '@/modules/external-storage/ui/cad/pf-cad/types';
 
-function minimalShapesFont(name: string, shapeNum: number, spec: number[]): Uint8Array {
-  const bytes = new Uint8Array(48);
-  bytes.set(new TextEncoder().encode('AutoCAD-86 shapes 1.0'), 0);
-  bytes.set([0x1a, 0, shapeNum, spec.length, ...spec], 24);
-  return bytes;
+/** Shapes 1.0 directory: one glyph, pen-down vector, not the old packed layout. */
+function minimalShapesFont(shapeNum: number, spec: number[]): Uint8Array {
+  const header = new TextEncoder().encode('AutoCAD-86 shapes 1.0\r\n\x1a');
+  const body = Uint8Array.from([0, ...spec, ...(spec.at(-1) === 0 ? [] : [0])]);
+  const out = new Uint8Array(header.length + 4 + 2 + 4 + body.length);
+  out.set(header, 0);
+  let p = header.length + 4;
+  out[p] = 1;
+  p += 2;
+  out[p] = shapeNum & 255;
+  out[p + 1] = (shapeNum >> 8) & 255;
+  out[p + 2] = body.length & 255;
+  out[p + 3] = (body.length >> 8) & 255;
+  out.set(body, p + 4);
+  return out;
 }
 
 function registerSyntheticChainFont(): void {
   registerCadShxFonts([
-    { name: 'MIRYL.SHX', bytes: minimalShapesFont('MIRYL.SHX', 65, [1, 16, 14]) },
+    { name: 'MIRYL.SHX', bytes: minimalShapesFont(65, [1, 0x14, 0]) },
   ]);
 }
 

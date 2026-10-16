@@ -6,7 +6,7 @@ import {
 } from './cad-shx-registry';
 import { isDrawableShxCharacter, shxGlyphAdvance, type ShxSegment } from './cad-shx-font';
 import { attachmentToAlign, anchorOffset, mirrorScale } from './draw-cad-text';
-import { maybeDecodeHebrewShxText } from './hebrew-shx-decode';
+import { decodeCadTextLine } from './hebrew-shx-decode';
 import {
   mayMarkTextGpu,
   P8_GPU_TEXT_HANDOFF_ENABLED,
@@ -67,7 +67,7 @@ function textLines(tx: CadText): string[] {
     tx.lines && tx.lines.length > 0
       ? tx.lines
       : tx.t.split('\n').filter((line, i, arr) => line.length > 0 || arr.length === 1);
-  return raw.map((line) => maybeDecodeHebrewShxText(line, tx.style));
+  return raw.map((line) => decodeCadTextLine(line, tx.style));
 }
 
 type TextLayout = {
@@ -198,7 +198,7 @@ export function shxTextRecordCoverage(
       const raw = ch.charCodeAt(0);
       const mapped = shxCtx.mapCode(raw);
       const active = shxCtx.pickFont(raw, mapped) ?? shxPrimary;
-      if (!shxGlyphHasRealStroke(active, mapped)) {
+      if (!shxGlyphHasRealStroke(active, mapped) || active.incompleteGlyphs?.has(mapped)) {
         return {
           expectedGlyphs,
           segmentCount: countShxTextSegments(tx, origin),

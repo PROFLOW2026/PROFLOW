@@ -1,5 +1,18 @@
 import type { CadTextStyleTableEntry } from './types';
 
+let cachedTextStyleTable: readonly CadTextStyleTableEntry[] | undefined;
+
+/** Scene style table captured when the SHX registry is loaded. */
+export function setCachedTextStyleTable(
+  table: readonly CadTextStyleTableEntry[] | undefined,
+): void {
+  cachedTextStyleTable = table?.length ? table : undefined;
+}
+
+export function currentTextStyleTable(): readonly CadTextStyleTableEntry[] | undefined {
+  return cachedTextStyleTable;
+}
+
 /** Prefixes seen on entity `style` strings that are not DWG table row names (XREF/blocks/Revit). */
 const ENTITY_STYLE_PREFIX_STRIPS: ReadonlyArray<(s: string) => string | null> = [
   (s) => (/^TR(?=[A-Z_])/i.test(s) ? s.replace(/^TR/i, '') : null),
@@ -28,6 +41,24 @@ export function entityStyleFontNameCandidates(style: string): string[] {
     if (alt) push(alt);
   }
   return out;
+}
+
+/**
+ * Exact text-style table lookup (case-insensitive).
+ * Style `S` matches only a row named `S`, then returns that row's font file names.
+ */
+export function textStyleFontFiles(
+  styleName: string,
+  table: readonly CadTextStyleTableEntry[] | undefined,
+): { fontFile: string; bigFontFile: string } {
+  const name = styleName.trim().toLowerCase();
+  if (!name || !table?.length) return { fontFile: '', bigFontFile: '' };
+  const row = table.find((entry) => entry.name.trim().toLowerCase() === name);
+  if (!row) return { fontFile: '', bigFontFile: '' };
+  return {
+    fontFile: row.font?.trim() ?? '',
+    bigFontFile: row.big?.trim() ?? '',
+  };
 }
 
 /** Table rows whose name appears inside an entity style (e.g. TRHEBTXT ⊃ HEBTXT). */

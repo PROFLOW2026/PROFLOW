@@ -1,5 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { cadTextCanvasPaint } from '@/modules/external-storage/ui/cad/pf-cad/cad-text-canvas-color';
 import { drawShxLine } from '@/modules/external-storage/ui/cad/pf-cad/cad-shx-font';
@@ -23,10 +21,19 @@ import {
 } from '@/modules/external-storage/ui/cad/pf-cad/shx-text-segments';
 import type { CadText } from '@/modules/external-storage/ui/cad/pf-cad/types';
 
-const syntheticShxDir = path.join(process.cwd(), 'tests/fixtures/cad/synthetic-shx');
-
-function readSyntheticShx(name: string): Uint8Array {
-  return new Uint8Array(fs.readFileSync(path.join(syntheticShxDir, name)));
+/** Shapes 1.0 with glyph A only, so Hebrew code points stay missing. */
+function latinOnlyShapesFont(): Uint8Array {
+  const header = new TextEncoder().encode('AutoCAD-86 shapes 1.0\r\n\x1a');
+  const body = Uint8Array.from([0, 1, 0x14, 0]);
+  const out = new Uint8Array(header.length + 4 + 2 + 4 + body.length);
+  out.set(header, 0);
+  let p = header.length + 4;
+  out[p] = 1;
+  p += 2;
+  out[p] = 65;
+  out[p + 2] = body.length & 255;
+  out.set(body, p + 4);
+  return out;
 }
 
 afterEach(() => {
@@ -126,8 +133,8 @@ describe('CAD text regression guards', () => {
 
   it('HEBTXT decoded Hebrew uses canvas TTF fill when SHX/bigfont lack glyphs', () => {
     registerCadShxFonts([
-      { name: 'HEBTXT.SHX', bytes: readSyntheticShx('HEBTXT.SHX') },
-      { name: 'MIRYLB.SHX', bytes: readSyntheticShx('MIRYLB.SHX') },
+      { name: 'HEBTXT.SHX', bytes: latinOnlyShapesFont() },
+      { name: 'MIRYLB.SHX', bytes: latinOnlyShapesFont() },
     ]);
     registerCadShxStyleTable([{ name: 'HEBTXT', font: 'HEBTXT.SHX', big: 'MIRYLB.SHX' }]);
 
@@ -181,8 +188,8 @@ describe('CAD text regression guards', () => {
 
   it('shouldDrawTextOnCanvas stays true when gpu leaks on incomplete Hebrew client SHX', () => {
     registerCadShxFonts([
-      { name: 'MIRYL.SHX', bytes: readSyntheticShx('MIRYL.SHX') },
-      { name: 'MIRYLB.SHX', bytes: readSyntheticShx('MIRYLB.SHX') },
+      { name: 'MIRYL.SHX', bytes: latinOnlyShapesFont() },
+      { name: 'MIRYLB.SHX', bytes: latinOnlyShapesFont() },
     ]);
     registerCadShxStyleTable([
       { name: 'TRHEBTXT', font: 'MIRYL.SHX', big: 'MIRYLB.SHX' },

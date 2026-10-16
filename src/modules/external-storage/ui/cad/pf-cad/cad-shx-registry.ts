@@ -1,4 +1,7 @@
-import { entityStyleFontNameCandidates } from './cad-entity-text-style';
+import {
+  entityStyleFontNameCandidates,
+  setCachedTextStyleTable,
+} from './cad-entity-text-style';
 import type { ResolvedCadFont } from './font-resolver';
 import type { CadTextStyleTableEntry } from './types';
 import {
@@ -85,6 +88,7 @@ function loadedShxKeyForFontFile(fontFile: string): string | undefined {
 
 /** Map DWG style names (e.g. TRHEBTXT) to registered SHX font keys (e.g. miryl.shx). */
 export function registerCadShxStyleTable(entries: CadTextStyleTableEntry[] | undefined): number {
+  setCachedTextStyleTable(entries);
   if (!entries?.length) return 0;
   let linked = 0;
   for (const entry of entries) {
@@ -185,6 +189,7 @@ export function clearCadShxFonts(): void {
   shxByStyleKey.clear();
   bigfontByStyleKey.clear();
   primaryForBigfont.clear();
+  setCachedTextStyleTable(undefined);
 }
 
 function styleLookupKeys(style: string): string[] {

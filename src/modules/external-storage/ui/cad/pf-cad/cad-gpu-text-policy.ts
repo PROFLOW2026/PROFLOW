@@ -1,6 +1,6 @@
 import {
+  decodeCadTextLine,
   hasHebrewBlock,
-  maybeDecodeHebrewShxText,
 } from './hebrew-shx-decode';
 import type { CadText } from './types';
 
@@ -26,16 +26,33 @@ export function shxTextRequiresCanvasFallback(tx: CadText): boolean {
   if (tx.invisible) return false;
   const raw = tx.lines?.length ? tx.lines.join('\n') : tx.t;
   if (hasHebrewBlock(raw)) return true;
-  const decoded = maybeDecodeHebrewShxText(raw, tx.style);
+  const decoded = decodeCadTextLine(raw, tx.style);
   return hasHebrewBlock(decoded);
 }
 
+/** Per-record glyph status emitted by WASM as `glyphStatus` when `gpu` is set. */
+export type CadGlyphStatus = 'RESOLVED' | 'SUBSTITUTED' | 'MISSING';
+
+export type GpuHandoffText = CadText & {
+  glyphStatus?: CadGlyphStatus;
+};
+
 /**
- * Canvas overlay when handoff is off or the record is not GPU-complete (`gpu` unset upstream).
- * Never double-draw: `gpu:true` is only set after record-complete geometry is in the segment buffer.
+ * Canvas overlay when handoff is off, the record is not GPU-complete (`gpu` unset),
+ * or any character is MISSING. `SUBSTITUTED` may stay on GPU only when wasm set `gpu`
+ * and the text is not a Hebrew SHX label. Never double-draw a RESOLVED gpu record.
  */
-export function shouldDrawTextOnCanvas(text: CadText): boolean {
+export function shouldDrawTextOnCanvas(text: GpuHandoffText): boolean {
+  if (text.glyphStatus === 'MISSING') return true;
+  if (
+    text.glyphStatus === 'RESOLVED' &&
+    text.gpu === true &&
+    P8_GPU_TEXT_HANDOFF_ENABLED
+  ) {
+    return false;
+  }
   if (shxTextRequiresCanvasFallback(text)) return true;
+  if (text.glyphStatus === 'SUBSTITUTED' && shxTextRequiresCanvasFallback(text)) return true;
   if (!text.gpu) return true;
   if (!P8_GPU_TEXT_HANDOFF_ENABLED) return true;
   return false;
