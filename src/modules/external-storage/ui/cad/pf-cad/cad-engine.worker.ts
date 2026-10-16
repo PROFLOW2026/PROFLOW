@@ -1,5 +1,9 @@
 import { P8_GPU_TEXT_HANDOFF_ENABLED } from './cad-gpu-text-policy';
-import { PF_CAD_WASM_BINARY_URL, PF_CAD_WASM_GLUE_URL } from './pf-cad-config';
+import {
+  PF_CAD_WASM_BINARY_URL,
+  PF_CAD_WASM_GLUE_URL,
+  PF_CAD_WASM_VERSION_URL,
+} from './pf-cad-config';
 import type { ScenePayload } from './types';
 import type { WorkerIn, WorkerOut } from './types';
 
@@ -56,7 +60,7 @@ function reply(msg: WorkerOut): void {
 async function ensureWasm(): Promise<WasmApi> {
   if (wasm) return wasm;
   const t0 = performance.now();
-  const manifest = (await fetch('/pf-cad/wasm/version.json', { cache: 'no-store' }).then((res) =>
+  const manifest = (await fetch(PF_CAD_WASM_VERSION_URL, { cache: 'no-store' }).then((res) =>
     res.ok ? res.json() : null,
   )) as { engineCommitSha?: string } | null;
   const revision = encodeURIComponent(manifest?.engineCommitSha ?? 'dev');

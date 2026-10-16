@@ -4,6 +4,10 @@ import { Button } from '@/components/ui/button';
 import { CadDwgCompactAlerts } from './cad-dwg-compact-alerts';
 import { CadDwgSpaceSelect } from './cad-dwg-space-select';
 import type { CadDwgBanner } from './cad-ui-messages';
+import {
+  CadViewerVersionSelect,
+  type CadViewerVersion,
+} from '../cad-viewer-version-select';
 
 /** Model/Layout selector (right) + compact warnings (left) on one row. */
 export function CadDwgViewerToolbar({
@@ -14,6 +18,8 @@ export function CadDwgViewerToolbar({
   locale,
   plotView,
   onPlotViewChange,
+  viewerVersion,
+  onViewerVersionChange,
 }: {
   spaces: readonly string[];
   activeSpace: string;
@@ -22,6 +28,8 @@ export function CadDwgViewerToolbar({
   locale: string;
   plotView: boolean;
   onPlotViewChange: (on: boolean) => void;
+  viewerVersion?: CadViewerVersion;
+  onViewerVersionChange?: (version: CadViewerVersion) => void;
 }) {
   const showSpace = spaces.length > 1;
 
@@ -33,7 +41,10 @@ export function CadDwgViewerToolbar({
       <div className="pointer-events-auto min-w-0 justify-self-start pt-0.5">
         <CadDwgCompactAlerts banners={banners} locale={locale} />
       </div>
-      <div className="pointer-events-auto flex items-center justify-end gap-2">
+      <div className="pointer-events-auto flex max-w-full flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+        {viewerVersion && onViewerVersionChange ? (
+          <CadViewerVersionSelect value={viewerVersion} onChange={onViewerVersionChange} />
+        ) : null}
         <Button
           type="button"
           size="sm"

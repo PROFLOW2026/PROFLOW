@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import type { CadIndexedFile } from './xref-resolver';
-import { PfDwgViewer } from './pf-dwg-viewer';
+import { PfDwgVersionedViewer } from '../pf-dwg-versioned-viewer';
 
 const SAMPLES = [
   { id: '3031-SW', fileName: '3031-SW.dwg', xrefBundle: null as string | null },
@@ -98,7 +98,7 @@ export function PfCadLocalDevPage({ locale }: { locale: string }) {
         ))}
       </div>
       <div className="relative min-h-0 flex-1">
-        <PfDwgViewer
+        <PfDwgVersionedViewer
           url={url}
           fileName={sample.fileName}
           reloadKey={sampleId === '3031-SW' ? 1 : 2}

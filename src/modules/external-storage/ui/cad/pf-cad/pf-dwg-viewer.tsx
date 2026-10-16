@@ -60,6 +60,7 @@ import {
 import type { ScenePayload } from './types';
 import type { XrefDepBytes } from './xref-resolver';
 import { yieldToMain } from './yield-to-main';
+import type { CadViewerVersion } from '../cad-viewer-version-select';
 
 type DrawingPayload = {
   scene: ScenePayload;
@@ -136,6 +137,8 @@ export function PfDwgViewer({
   scope,
   projectId,
   devCadIndexedFiles,
+  viewerVersion,
+  onViewerVersionChange,
 }: {
   url: string;
   fileName: string;
@@ -147,6 +150,8 @@ export function PfDwgViewer({
   projectId?: string;
   /** Dev-only: satisfy XREF/fonts without storage OAuth. */
   devCadIndexedFiles?: readonly CadIndexedFile[];
+  viewerVersion?: CadViewerVersion;
+  onViewerVersionChange?: (version: CadViewerVersion) => void;
 }) {
   return (
     <PfDwgViewerInner
@@ -159,6 +164,8 @@ export function PfDwgViewer({
       scope={scope}
       projectId={projectId}
       devCadIndexedFiles={devCadIndexedFiles}
+      viewerVersion={viewerVersion}
+      onViewerVersionChange={onViewerVersionChange}
     />
   );
 }
@@ -172,6 +179,8 @@ function PfDwgViewerInner({
   scope,
   projectId,
   devCadIndexedFiles,
+  viewerVersion,
+  onViewerVersionChange,
 }: {
   url: string;
   fileName: string;
@@ -181,6 +190,8 @@ function PfDwgViewerInner({
   scope: StorageBrowserScope;
   projectId?: string;
   devCadIndexedFiles?: readonly CadIndexedFile[];
+  viewerVersion?: CadViewerVersion;
+  onViewerVersionChange?: (version: CadViewerVersion) => void;
 }) {
   const locale = useLocale();
   const t = useTranslations('externalStorage.preview');
@@ -850,6 +861,8 @@ function PfDwgViewerInner({
             locale={locale}
             plotView={plotView}
             onPlotViewChange={handlePlotViewChange}
+            viewerVersion={viewerVersion}
+            onViewerVersionChange={onViewerVersionChange}
           />
           <canvas
             ref={glCanvasRef}

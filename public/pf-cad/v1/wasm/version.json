@@ -1,0 +1,6 @@
+{
+  "engine": "projectflow-cad-engine",
+  "engineVersion": "unknown",
+  "wasm": "pf_cad_wasm_bg.wasm",
+  "glue": "pf_cad_wasm.js"
+}

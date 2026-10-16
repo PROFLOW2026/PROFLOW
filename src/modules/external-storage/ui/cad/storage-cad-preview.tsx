@@ -5,7 +5,7 @@ import type { StorageBrowserScope } from '@/modules/external-storage/client/stor
 import type { CadPreviewKind } from '@/modules/documents/domain/cad-file-rules';
 import { AutodeskDwfViewer } from './autodesk-dwf-viewer';
 import { MlightcadDxfViewer } from './mlightcad-dxf-viewer';
-import { PfDwgViewer } from './pf-cad/pf-dwg-viewer';
+import { PfDwgVersionedViewer } from './pf-dwg-versioned-viewer';
 
 export function StorageCadPreview({
   kind,
@@ -30,7 +30,7 @@ export function StorageCadPreview({
 }) {
   if (kind === 'dwg') {
     return (
-      <PfDwgViewer
+      <PfDwgVersionedViewer
         url={url}
         fileName={fileName}
         reloadKey={reloadKey}
