@@ -44,6 +44,30 @@ type Prim =
       y3: number;
     };
 
+/** Opaque draws before transparent at the same SORTENTS order. */
+function alphaBucket(colorBits: number): number {
+  const aByte = (colorBits >>> 24) & 0xff;
+  if (aByte === 0 || aByte === 255) {
+    return 0;
+  }
+  return 1;
+}
+
+function compareDrawOrder(a: Prim, b: Prim): number {
+  if (a.order !== b.order) {
+    return a.order - b.order;
+  }
+  const aa = alphaBucket(a.colorBits);
+  const ab = alphaBucket(b.colorBits);
+  if (aa !== ab) {
+    return aa - ab;
+  }
+  if (a.kind !== b.kind) {
+    return a.kind === 'fill' ? -1 : 1;
+  }
+  return 0;
+}
+
 function collectPrims(
   segments: Float32Array,
   triangles: Float32Array,
@@ -93,7 +117,7 @@ function collectPrims(
       y3: triangles[base + 5]!,
     });
   }
-  prims.sort((a, b) => a.order - b.order || (a.kind === 'fill' ? -1 : 1));
+  prims.sort(compareDrawOrder);
   return prims;
 }
 
