@@ -7,7 +7,7 @@ import {
 
 describe('hebrew SHX decode', () => {
   it('maps keyboard-latin placeholder to Hebrew for Hebrew SHX styles', () => {
-    const decoded = maybeDecodeHebrewShxText('neuo anur', 'HEBTXT');
+    const decoded = maybeDecodeHebrewShxText('neuo anur', 'HEBREW');
     expect(decoded).toBe('מקום שמור');
   });
 

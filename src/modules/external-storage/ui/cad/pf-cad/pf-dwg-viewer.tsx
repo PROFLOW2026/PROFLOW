@@ -29,7 +29,6 @@ import { drawCadText } from './draw-cad-text';
 import { drawCadRaster } from './draw-cad-raster';
 import { findPlotCtbBytes } from './cad-plot-ctb';
 import { clearCadShxFonts, lookupShxFont, registerCadShxFonts } from './cad-shx-registry';
-import { appendShxGpuSegments } from './shx-text-segments';
 import {
   createCadRenderer,
   type CadRendererHandle,
@@ -102,14 +101,6 @@ function downloadLoadingLabel(t: PreviewTranslator): string {
     }
   }
   return CAD_PREVIEW_LABELS.cadLoadingDownload;
-}
-
-function withShxGpuSegments(
-  segments: Float32Array,
-  scene: ScenePayload,
-): { segments: Float32Array; scene: ScenePayload } {
-  const appended = appendShxGpuSegments(segments, scene, scene.origin);
-  return { segments: appended.segments, scene: { ...scene, ...appended.scene } };
 }
 
 function scheduleIdleDraw(fn: () => void): void {
@@ -323,6 +314,7 @@ function PfDwgViewerInner({
       viewport,
       origin: d.scene.origin,
       fontFamily: PF_CAD_TEXT_FONT,
+      plotView,
       styleFontFamily: (style: string | number | undefined) =>
         resolveCadTextFontFamily(style, styleMap, PF_CAD_TEXT_FONT),
       shxFont: (style: string | number | undefined) => lookupShxFont(style),
@@ -333,7 +325,7 @@ function PfDwgViewerInner({
       const end = Math.min(texts.length, idx + TEXTS_PER_SLICE);
       for (; idx < end; idx += 1) {
         const tx = texts[idx]!;
-        if (hidden.has(tx.layer) || tx.invisible || tx.gpu) continue;
+        if (hidden.has(tx.layer) || tx.invisible) continue;
         drawCadText(drawCtx, tx, view.zoom);
       }
       if (idx < texts.length && gen === textDrawGenRef.current) {
@@ -372,7 +364,7 @@ function PfDwgViewerInner({
       })();
     };
     drawSlice();
-  }, [cancelTextDraw, fileIndex, fileName]);
+  }, [cancelTextDraw, fileIndex, fileName, plotView]);
 
   drawTextsRef.current = drawTexts;
 
@@ -510,9 +502,7 @@ function PfDwgViewerInner({
         );
         let scene: ScenePayload = { ...res.scene, report: reportWithFonts };
         const triangles = res.triangles ?? new Float32Array(0);
-        const shxGpu = withShxGpuSegments(res.segments, scene);
-        scene = shxGpu.scene;
-        const payload: DrawingPayload = { scene, segments: shxGpu.segments, triangles };
+        const payload: DrawingPayload = { scene, segments: res.segments, triangles };
         drawingRef.current = payload;
         setSpaces(scene.spaces ?? []);
         setActiveSpace(scene.space ?? '');
@@ -524,7 +514,7 @@ function PfDwgViewerInner({
         const uiLayersInitial = cadLayersToUi(res.scene.layers);
         const fitExtent = scene.contentExtent ?? scene.robustExtent;
         await rendererRef.current?.setDrawingAsync(
-          shxGpu.segments,
+          res.segments,
           fitExtent,
           uiLayersInitial,
           scene.fullExtent,
@@ -621,11 +611,9 @@ function PfDwgViewerInner({
             res.scene.report,
             fontResolve.missingFonts,
           );
-          let scene: ScenePayload = { ...res.scene, report: reportWithFonts };
+          const scene: ScenePayload = { ...res.scene, report: reportWithFonts };
           const triangles = res.triangles ?? new Float32Array(0);
-          const shxGpu = withShxGpuSegments(res.segments, scene);
-          scene = shxGpu.scene;
-          const payload: DrawingPayload = { scene, segments: shxGpu.segments, triangles };
+          const payload: DrawingPayload = { scene, segments: res.segments, triangles };
           drawingRef.current = payload;
           setActiveSpace(scene.space ?? space);
           setUiLayers(cadLayersToUi(scene.layers));
@@ -633,7 +621,7 @@ function PfDwgViewerInner({
           await yieldToMain();
           const fitExtent = scene.contentExtent ?? scene.robustExtent;
           await rendererRef.current?.setDrawingAsync(
-            shxGpu.segments,
+            res.segments,
             fitExtent,
             cadLayersToUi(scene.layers),
             scene.fullExtent,
@@ -679,17 +667,15 @@ function PfDwgViewerInner({
             res.scene.report,
             fontResolve?.missingFonts ?? [],
           );
-          let scene: ScenePayload = { ...res.scene, report: reportWithFonts };
+          const scene: ScenePayload = { ...res.scene, report: reportWithFonts };
           const triangles = res.triangles ?? new Float32Array(0);
-          const shxGpu = withShxGpuSegments(res.segments, scene);
-          scene = shxGpu.scene;
-          drawingRef.current = { scene, segments: shxGpu.segments, triangles };
+          drawingRef.current = { scene, segments: res.segments, triangles };
           setUiLayers(cadLayersToUi(scene.layers));
           setCompat(reportWithFonts);
           await yieldToMain();
           const fitExtent = scene.contentExtent ?? scene.robustExtent;
           await rendererRef.current?.setDrawingAsync(
-            shxGpu.segments,
+            res.segments,
             fitExtent,
             cadLayersToUi(scene.layers),
             scene.fullExtent,

@@ -218,45 +218,14 @@ export type ShxGpuAppendResult = {
   shxGpuCount: number;
 };
 
-/** Append SHX stroke geometry for texts that have loaded SHX fonts; mark gpu when seg count sufficient. */
+/**
+ * SHX → WebGL handoff disabled until a text record is proven complete on GPU.
+ * Partial stroke geometry + Canvas skip caused full text loss regressions.
+ */
 export function appendShxGpuSegments(
   wasmSegments: Float32Array,
   scene: { texts: CadText[]; gpuTexts?: number; segmentStride?: number },
-  origin: [number, number],
+  _origin: [number, number],
 ): ShxGpuAppendResult {
-  const stride = scene.segmentStride ?? SEGMENT_STRIDE;
-  if (stride !== SEGMENT_STRIDE) {
-    return { segments: wasmSegments, scene, shxGpuCount: 0 };
-  }
-  let baseOrder = maxSegmentDrawOrder(wasmSegments, stride);
-  const extra: number[] = [];
-  const texts = scene.texts.map((tx) => ({ ...tx }));
-  let shxGpuCount = 0;
-  for (let ti = 0; ti < texts.length; ti += 1) {
-    const tx = texts[ti]!;
-    if (tx.invisible || tx.gpu) continue;
-    const style = tx.style != null ? String(tx.style) : undefined;
-    if (!lookupShxFont(style)) continue;
-    baseOrder += 1;
-    const n = appendShxTextSegmentRecords(extra, tx, origin, baseOrder);
-    if (n >= MIN_SHX_GPU_SEGS) {
-      texts[ti] = { ...tx, gpu: true };
-      shxGpuCount += 1;
-    } else if (n > 0) {
-      extra.splice(extra.length - n * stride, n * stride);
-      baseOrder -= 1;
-    }
-  }
-  if (extra.length === 0) {
-    return { segments: wasmSegments, scene: { ...scene, texts }, shxGpuCount };
-  }
-  const merged = new Float32Array(wasmSegments.length + extra.length);
-  merged.set(wasmSegments, 0);
-  merged.set(extra, wasmSegments.length);
-  const gpuTexts = (scene.gpuTexts ?? 0) + shxGpuCount;
-  return {
-    segments: merged,
-    scene: { ...scene, texts, gpuTexts },
-    shxGpuCount,
-  };
+  return { segments: wasmSegments, scene, shxGpuCount: 0 };
 }

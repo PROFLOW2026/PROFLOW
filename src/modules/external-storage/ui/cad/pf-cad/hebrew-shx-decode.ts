@@ -69,8 +69,7 @@ const MIRYL_KEYBOARD_LATIN_TO_HE: Record<string, string> = {
 /** Oron / Foron family: same SI-1452 map; prefer CP862 when bytes are present. */
 const ORON_KEYBOARD_LATIN_TO_HE = HEBREW_KEYBOARD_LATIN_TO_HE;
 
-const HEBREW_STYLE_RE =
-  /heb|hebrew|sivan|oron|foron|david|narkis|miryo|miryl|mirym|hebtxt|htxt|dimheb|techno|simplex_he/i;
+const HEBREW_STYLE_RE = /heb|hebrew|sivan|oron|david|narkis|miryo|simplex/i;
 
 type HebrewKeyboardProfile = 'standard' | 'miryl' | 'oron';
 

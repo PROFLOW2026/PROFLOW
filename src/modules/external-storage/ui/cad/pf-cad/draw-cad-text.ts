@@ -4,6 +4,7 @@ import { worldToScreen } from './renderer';
 import { maybeDecodeHebrewShxText } from './hebrew-shx-decode';
 import { drawShxLine, measureShxTextBlock, type ShxFont } from './cad-shx-font';
 import { resolveShxDrawContext } from './cad-shx-registry';
+import { cadTextCanvasPaint } from './cad-text-canvas-color';
 
 export const CAP_HEIGHT_RATIO = 0.714;
 export const FONT_SIZE_FACTOR = 1 / CAP_HEIGHT_RATIO;
@@ -21,6 +22,8 @@ export type TextDrawContext = {
   styleFontFamily?: (style: string | number | undefined) => string;
   /** Optional SHX stroke fonts keyed by style name. */
   shxFont?: (style: string | number | undefined) => ShxFont | undefined;
+  /** When true, skip Normal-mode contrast lift (Plot uses white background + CTB colors). */
+  plotView?: boolean;
 };
 
 /** Map MTEXT attachment point 1–9 (numpad) to horizontal / vertical alignment indices. */
@@ -156,10 +159,12 @@ export function drawCadText(
       ? resolveShxDrawContext(tx.style != null ? String(tx.style) : undefined)
       : null;
   const shxPrimary = shxCtx?.primary ?? shx;
-  const fillStyle = `#${(tx.c >>> 0).toString(16).padStart(6, '0')}`;
+  const { fillStyle, globalAlpha } = cadTextCanvasPaint(tx.c, { plotView: draw.plotView });
+  if (globalAlpha <= 0) return;
   const fontPx = capH * FONT_SIZE_FACTOR;
   const family = draw.styleFontFamily?.(tx.style) ?? draw.fontFamily;
   draw.ctx.save();
+  draw.ctx.globalAlpha = globalAlpha;
   draw.ctx.direction = 'ltr';
 
   let w: number;
