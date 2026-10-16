@@ -723,6 +723,7 @@ function PfDwgViewerInner({
             fontResolve?.missingFonts ?? [],
           );
           registerCadShxStyleTable(res.scene.textStyleTable);
+          registerCadShxTextStyleAliases(res.scene.texts);
           let scene: ScenePayload = { ...res.scene, report: reportWithFonts };
           const p8 = applyCadP8GpuTextHandoff(res.segments, scene);
           scene = p8.scene;

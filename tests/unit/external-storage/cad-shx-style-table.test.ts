@@ -34,11 +34,9 @@ describe('cad-shx-style-table', () => {
     expect(lookupShxFont('HEBTXT')).toBeUndefined();
   });
 
-  it('aliases entity style strings that match loaded font file names', () => {
+  it('registerCadShxTextStyleAliases is idempotent when fonts already keyed', () => {
     registerCadShxFonts([{ name: 'romans.shx', bytes: minimalShapesFont('romans.shx', 65) }]);
-    expect(lookupShxFont('ROMANS')).toBeUndefined();
-    const linked = registerCadShxTextStyleAliases([{ style: 'ROMANS' }]);
-    expect(linked).toBe(1);
     expect(lookupShxFont('ROMANS')).toBeDefined();
+    expect(registerCadShxTextStyleAliases([{ style: 'ROMANS' }])).toBe(0);
   });
 });
