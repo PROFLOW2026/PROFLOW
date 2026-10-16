@@ -22,6 +22,7 @@ describe('cad text canvas handoff regression', () => {
         x: 0,
         y: 0,
         h: 2.5,
+        r: 0,
         layer: 0,
         c: 0xff000000,
         style: 'simplex.shx',

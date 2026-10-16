@@ -33,8 +33,6 @@ function mockGl() {
     getUniformLocation: vi.fn(() => null),
     createBuffer: vi.fn(() => ({})),
     deleteBuffer: vi.fn(),
-    deleteProgram: vi.fn(),
-    deleteBuffer: vi.fn(),
     bindBuffer: vi.fn(),
     bufferData: vi.fn(),
     enable: vi.fn(),

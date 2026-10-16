@@ -85,7 +85,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'not_found' }, { status: 404 });
     }
     const bytes = await readFile(filePath);
-    return new NextResponse(bytes, {
+    return new NextResponse(new Uint8Array(bytes), {
       headers: {
         'Content-Type': contentTypeForName(name),
         'Cache-Control': 'no-store',
@@ -133,8 +133,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'invalid_name' }, { status: 400 });
   }
 
-  let filePath = path.join(dir, name);
-  let resolved = path.resolve(filePath);
+  const filePath = path.join(dir, name);
+  const resolved = path.resolve(filePath);
   if (!resolved.startsWith(path.resolve(dir))) {
     return NextResponse.json({ error: 'invalid_path' }, { status: 400 });
   }
@@ -150,7 +150,7 @@ export async function GET(request: Request) {
     bytes = await readFile(alt);
   }
 
-  return new NextResponse(bytes, {
+  return new NextResponse(new Uint8Array(bytes), {
     headers: {
       'Content-Type': contentTypeForName(name),
       'Cache-Control': 'no-store',

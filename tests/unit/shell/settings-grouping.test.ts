@@ -61,6 +61,7 @@ describe('settings section grouping', () => {
       'customFields',
       'activity',
       'app',
+      'openSource',
     ]);
 
     expect(listed.find((s) => s.key === 'business')?.group).toBe('myBusiness');
@@ -75,6 +76,8 @@ describe('settings section grouping', () => {
     expect(listed.find((s) => s.key === 'modules')?.group).toBe('advanced');
     expect(listed.find((s) => s.key === 'customFields')?.group).toBe('advanced');
     expect(listed.find((s) => s.key === 'app')?.group).toBe('advanced');
+    expect(listed.find((s) => s.key === 'openSource')?.group).toBe('connectionsStorage');
+    expect(listed.find((s) => s.key === 'openSource')?.href).toBe('/settings/open-source');
     expect(listed.find((s) => s.key === 'offlineDrafts')?.group).toBe('connectionsStorage');
     expect(SETTINGS_SECTIONS.find((s) => s.key === 'api')?.group).toBe('developers');
     expect(SETTINGS_SECTIONS.find((s) => s.key === 'api')?.hideFromNav).toBe(true);

@@ -104,7 +104,17 @@ describe('cad P9 integration (synthetic-p9 fixture)', () => {
     expect(isCadSupportSiblingFileName('p9-raster-tile.png')).toBe(true);
     const bytes = readP9RasterBytes();
     const index = buildStorageCadFileIndex({
-      siblingFiles: [{ id: 'file-p9-png', name: 'p9-raster-tile.png' }],
+      siblingFiles: [
+        {
+          id: 'file-p9-png',
+          name: 'p9-raster-tile.png',
+          parentId: null,
+          mimeType: 'image/png',
+          sizeBytes: bytes.byteLength,
+          modifiedAt: null,
+          etag: null,
+        },
+      ],
       scope: 'project',
       projectId: 'proj-p9',
     });

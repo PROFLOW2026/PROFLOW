@@ -12,7 +12,7 @@ export function applyCadP8GpuTextHandoff(
   scene: ScenePayload,
 ): { segments: Float32Array; scene: ScenePayload } {
   const origin = scene.origin ?? [0, 0];
-  let nextScene = stripUpstreamClientShxGpuFlags(scene);
+  const nextScene = stripUpstreamClientShxGpuFlags(scene);
   if (!P8_GPU_TEXT_HANDOFF_ENABLED) {
     return { segments, scene: nextScene };
   }

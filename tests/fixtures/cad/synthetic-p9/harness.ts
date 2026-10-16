@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { hiddenRasterLayersFromUi } from '@/modules/external-storage/ui/cad/pf-cad/cad-raster-layers';
 import { cadRasterMimeFromPath } from '@/modules/external-storage/ui/cad/pf-cad/cad-raster-mime';
 import {
-  CadRasterWebGlPass,
+  type CadRasterWebGlPass,
   P9_RASTER_WEBGL_ENABLED,
 } from '@/modules/external-storage/ui/cad/pf-cad/cad-raster-webgl';
 import { cadLayersToUi, type UiLayer } from '@/modules/external-storage/ui/cad/pf-cad/cad-layers';

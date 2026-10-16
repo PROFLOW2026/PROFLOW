@@ -41,7 +41,7 @@ const json = JSON.parse(
 );
 const triLen = w.tris_len();
 const segStride = json.segmentStride ?? 8;
-const triStride = json.triangleStride ?? 10;
+const _triStride = json.triangleStride ?? 10;
 const texts = json.texts ?? [];
 const gpuMarked = texts.filter((t) => t.gpu === true).length;
 const out = {

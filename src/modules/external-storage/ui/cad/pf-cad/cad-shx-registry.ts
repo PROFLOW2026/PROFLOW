@@ -11,6 +11,8 @@ import {
   type ShxFont,
 } from './cad-shx-font';
 
+export type { ShxFont } from './cad-shx-font';
+
 const shxByStyleKey = new Map<string, ShxFont>();
 const bigfontByStyleKey = new Map<string, ShxBigfontBundle>();
 /** Primary SHX keyed for a text style when bigfont companion was registered. */

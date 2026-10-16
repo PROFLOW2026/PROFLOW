@@ -6,7 +6,30 @@ import {
 } from '@/modules/external-storage/ui/cad/pf-cad/cad-shx-registry';
 import { applyCadP8GpuTextHandoff } from '@/modules/external-storage/ui/cad/pf-cad/apply-p8-text-handoff';
 import { appendShxGpuSegments } from '@/modules/external-storage/ui/cad/pf-cad/shx-text-segments';
-import type { CadText } from '@/modules/external-storage/ui/cad/pf-cad/types';
+import type { CadText, ScenePayload } from '@/modules/external-storage/ui/cad/pf-cad/types';
+
+function handoffScene(texts: CadText[], gpuTexts: number): ScenePayload {
+  return {
+    space: '*Model_Space',
+    origin: [0, 0],
+    robustExtent: [0, 0, 0, 0],
+    fullExtent: [0, 0, 0, 0],
+    segmentCount: 0,
+    segmentStride: 8,
+    gpuTexts,
+    texts,
+    layers: [],
+    spaces: ['*Model_Space'],
+    report: {
+      rendered: {},
+      skipped: {},
+      missingBlocks: {},
+      xrefs: {},
+      depthCut: 0,
+      parserErrors: 0,
+    },
+  };
+}
 
 /** Shapes 1.0 directory: one glyph, pen-down vector, not the old packed layout. */
 function minimalShapesFont(shapeNum: number, spec: number[]): Uint8Array {
@@ -105,12 +128,7 @@ describe('cad-shx-handoff-chain', () => {
     const wasmSegments = new Float32Array(8);
     wasmSegments.set([0, 0, 1, 1, 0, 0, 0, 1]);
 
-    const handoff = applyCadP8GpuTextHandoff(wasmSegments, {
-      texts,
-      origin: [0, 0],
-      gpuTexts: 0,
-      segmentStride: 8,
-    });
+    const handoff = applyCadP8GpuTextHandoff(wasmSegments, handoffScene(texts, 0));
 
     expect(handoff.segments.length).toBeGreaterThan(wasmSegments.length);
     expect(handoff.scene.texts[0]?.gpu).toBe(true);
@@ -135,12 +153,7 @@ describe('cad-shx-handoff-chain', () => {
         gpu: true,
       },
     ];
-    const handoff = applyCadP8GpuTextHandoff(new Float32Array(0), {
-      texts,
-      origin: [0, 0],
-      gpuTexts: 1,
-      segmentStride: 8,
-    });
+    const handoff = applyCadP8GpuTextHandoff(new Float32Array(0), handoffScene(texts, 1));
     expect(handoff.scene.texts[0]?.gpu).toBeUndefined();
   });
 });

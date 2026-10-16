@@ -225,18 +225,18 @@ export function countShxTextSegments(tx: CadText, origin: [number, number]): num
   if (tx.invisible) return 0;
   const layout = layoutShxText(tx, origin);
   if (!layout) return 0;
-  const { lines, capH, anchorX, spacing, shxCtx, shxPrimary } = layout;
+  const { lines, capH, anchorX, shxCtx, shxPrimary } = layout;
   let total = 0;
   for (let li = 0; li < lines.length; li += 1) {
     const line = lines[li]!;
-    let penX = -anchorX;
+    let _penX = -anchorX;
     for (const ch of line) {
       const raw = ch.charCodeAt(0);
       const mapped = shxCtx.mapCode(raw);
       const active = shxCtx.pickFont(raw, mapped) ?? shxPrimary;
       const glyph = active.glyphs.get(mapped);
       if (glyph) total += glyph.length;
-      penX += shxGlyphAdvance(active, mapped) * (capH / active.height);
+      _penX += shxGlyphAdvance(active, mapped) * (capH / active.height);
     }
   }
   return total;
@@ -297,9 +297,9 @@ export function maxSegmentDrawOrder(segments: Float32Array, stride = SEGMENT_STR
   return max;
 }
 
-export type ShxGpuAppendResult = {
+export type ShxGpuAppendResult<T extends { texts: CadText[]; gpuTexts?: number }> = {
   segments: Float32Array;
-  scene: { texts: CadText[]; gpuTexts?: number };
+  scene: T;
   shxGpuCount: number;
 };
 
@@ -354,11 +354,13 @@ export function sanitizeSceneGpuTextFlags<T extends { texts: CadText[]; gpuTexts
 /**
  * Append SHX stroke segments for record-complete texts; marks `gpu:true` for Canvas skip.
  */
-export function appendShxGpuSegments(
+export function appendShxGpuSegments<
+  T extends { texts: CadText[]; gpuTexts?: number; segmentStride?: number },
+>(
   wasmSegments: Float32Array,
-  scene: { texts: CadText[]; gpuTexts?: number; segmentStride?: number },
+  scene: T,
   origin: [number, number],
-): ShxGpuAppendResult {
+): ShxGpuAppendResult<T> {
   if (!P8_GPU_TEXT_HANDOFF_ENABLED) {
     return { segments: wasmSegments, scene, shxGpuCount: 0 };
   }

@@ -352,7 +352,7 @@ export function decodeShapeVectorsDetailed(
     const clockwise = bulge < 0;
     const cx = clockwise ? mx - px * dist : mx + px * dist;
     const cy = clockwise ? my - py * dist : my + py * dist;
-    let a0 = Math.atan2(y - cy, x - cx);
+    const a0 = Math.atan2(y - cy, x - cx);
     let a1 = Math.atan2(ey - cy, ex - cx);
     if (clockwise) {
       if (a1 >= a0) a1 -= Math.PI * 2;
@@ -808,9 +808,8 @@ export function measureShxTextWidth(
   text: string,
   capH: number,
   mapCode: (code: number) => number = (c) => c,
-  pickFont?: (code: number, mapped: number) => ShxFont,
+  pickFont?: (code: number, mapped: number) => ShxFont | undefined,
 ): number {
-  const scale = capH / font.height;
   let penX = 0;
   for (const ch of text) {
     const raw = ch.charCodeAt(0);
@@ -827,7 +826,7 @@ export function measureShxTextBlock(
   capH: number,
   lineSpacingFactor: number | undefined,
   mapCode: (code: number) => number = (c) => c,
-  pickFont?: (code: number, mapped: number) => ShxFont,
+  pickFont?: (code: number, mapped: number) => ShxFont | undefined,
 ): { w: number; blockH: number; descent: number; capHeight: number } {
   let w = 0;
   for (const line of lines) {
@@ -859,7 +858,7 @@ export function drawShxLine(
   capH: number,
   fillStyle: string,
   mapCode: (code: number) => number = (c) => c,
-  pickFont?: (code: number, mapped: number) => ShxFont,
+  pickFont?: (code: number, mapped: number) => ShxFont | undefined,
   ttfFallback?: ShxTtfGlyphFallback,
 ): { width: number } {
   let penX = 0;
