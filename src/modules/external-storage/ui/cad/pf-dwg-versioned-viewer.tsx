@@ -23,8 +23,8 @@ type ViewerProps = {
 };
 
 const LOADERS: Record<CadViewerVersion, () => Promise<{ PfDwgViewer: ComponentType<ViewerProps> }>> = {
-  v1: () => import('./pf-cad-v1/pf-dwg-viewer'),
-  v2: () => import('./pf-cad/pf-dwg-viewer'),
+  v1: () => import('./pf-cad/pf-dwg-viewer'),
+  v2: () => import('./pf-cad-v1/pf-dwg-viewer'),
 };
 
 export function PfDwgVersionedViewer(props: Omit<ViewerProps, 'viewerVersion' | 'onViewerVersionChange'>) {
