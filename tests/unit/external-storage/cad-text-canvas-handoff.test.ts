@@ -1,9 +1,17 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { shouldDrawTextOnCanvas } from '@/modules/external-storage/ui/cad/pf-cad/cad-gpu-text-policy';
 import { applyCadP8GpuTextHandoff } from '@/modules/external-storage/ui/cad/pf-cad/apply-p8-text-handoff';
 import { appendShxGpuSegments } from '@/modules/external-storage/ui/cad/pf-cad/shx-text-segments';
 import { clearCadShxFonts, registerCadShxFonts } from '@/modules/external-storage/ui/cad/pf-cad/cad-shx-registry';
 import type { CadText } from '@/modules/external-storage/ui/cad/pf-cad/types';
+
+beforeEach(() => {
+  clearCadShxFonts();
+});
+
+afterEach(() => {
+  clearCadShxFonts();
+});
 
 describe('cad text canvas handoff regression', () => {
   it('does not mark SHX texts gpu without a loaded SHX font (Canvas fallback)', () => {

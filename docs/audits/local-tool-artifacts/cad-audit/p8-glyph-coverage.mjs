@@ -23,13 +23,19 @@ const fx = 'C:/Users/ERAN YOSEF/Desktop/final projects/cad-xref-test-fixtures';
 const host = `${fx}/3096-EL/3096-EL.dwg`;
 const depsDir = `${fx}/3096-EL`;
 
-const { appendShxGpuSegments } = await import(
+const { appendShxGpuSegments, stripUpstreamClientShxGpuFlags } = await import(
   pathToFileURL(path.join(root, 'src/modules/external-storage/ui/cad/pf-cad/shx-text-segments.ts')).href
 );
 const { applyCadP8GpuTextHandoff } = await import(
   pathToFileURL(path.join(root, 'src/modules/external-storage/ui/cad/pf-cad/apply-p8-text-handoff.ts')).href
 );
-const { registerCadShxFonts, registerCadShxStyleTable, clearCadShxFonts, lookupShxFont } =
+const {
+  registerCadShxFonts,
+  registerCadShxStyleTable,
+  registerCadShxTextStyleAliases,
+  clearCadShxFonts,
+  lookupShxFont,
+} =
   await import(
     pathToFileURL(path.join(root, 'src/modules/external-storage/ui/cad/pf-cad/cad-shx-registry.ts')).href
   );
@@ -258,7 +264,8 @@ function runSyntheticProof(origin, latinFrom3096) {
     });
   }
 
-  const direct = appendShxGpuSegments(new Float32Array(0), { texts: [{ ...inlineRecord, gpu: true }] }, origin);
+  const directScene = stripUpstreamClientShxGpuFlags({ texts: [{ ...inlineRecord, gpu: true }] });
+  const direct = appendShxGpuSegments(new Float32Array(0), directScene, origin);
   return {
     ok: results.some((r) => r.shxSegmentsAdded > 0 && r.shxGpuCount >= 1),
     synthFonts: ['MIRYL.SHX (minimal inline)'],
@@ -297,12 +304,35 @@ if (storageDir && fs.existsSync(storageDir)) {
 
 let merge = null;
 let coverageStats = null;
+let styleBinding = null;
 let metricsAfterLoad = shxHandoffMetrics(texts, origin);
 
 if (shxNames.length > 0 || storageFonts?.resolvedShx > 0) {
+  let styleAliasesLinked = storageFonts?.styleAliasesLinked ?? 0;
+  let textStyleAliasesLinked = 0;
   if (shxNames.length > 0 && !storageFonts) {
-    registerCadShxStyleTable(json.textStyleTable);
+    styleAliasesLinked = registerCadShxStyleTable(json.textStyleTable);
+    textStyleAliasesLinked = registerCadShxTextStyleAliases(texts);
   }
+  const styleCounts = new Map();
+  for (const t of texts) {
+    const key = t.style != null ? String(t.style) : '';
+    styleCounts.set(key, (styleCounts.get(key) ?? 0) + 1);
+  }
+  styleBinding = {
+    styleAliasesLinked,
+    textStyleAliasesLinked,
+    textStyleTableSample: (json.textStyleTable ?? []).slice(0, 8),
+    reportFontKeysSample: Object.keys(json.report?.fonts ?? {}).slice(0, 12),
+    topTextStyles: [...styleCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 12)
+      .map(([style, count]) => ({
+        style,
+        count,
+        lookupShxFont: !!lookupShxFont(style),
+      })),
+  };
   metricsAfterLoad = shxHandoffMetrics(texts, origin);
   const handoff = applyCadP8GpuTextHandoff(wasmSegments, {
     ...json,
@@ -382,6 +412,7 @@ console.log(
       canvasFallbackRecords: canvasFallback,
       textStyleTableRows: json.textStyleTable?.length ?? 0,
       storageFonts,
+      styleBinding,
       shxHandoff: {
         ...metricsAfterLoad,
         shxSegmentsAdded: merge?.shxSegmentsAdded ?? 0,

@@ -4,6 +4,7 @@ import {
   lookupShxFont,
   registerCadShxFonts,
   registerCadShxStyleTable,
+  registerCadShxTextStyleAliases,
 } from '@/modules/external-storage/ui/cad/pf-cad/cad-shx-registry';
 
 function minimalShapesFont(name: string, shapeNum: number): Uint8Array {
@@ -31,5 +32,13 @@ describe('cad-shx-style-table', () => {
     expect(lookupShxFont('TRHEBTXT')).toBeDefined();
     expect(lookupShxFont('trhebtxt')).toBeDefined();
     expect(lookupShxFont('HEBTXT')).toBeUndefined();
+  });
+
+  it('aliases entity style strings that match loaded font file names', () => {
+    registerCadShxFonts([{ name: 'romans.shx', bytes: minimalShapesFont('romans.shx', 65) }]);
+    expect(lookupShxFont('ROMANS')).toBeUndefined();
+    const linked = registerCadShxTextStyleAliases([{ style: 'ROMANS' }]);
+    expect(linked).toBe(1);
+    expect(lookupShxFont('ROMANS')).toBeDefined();
   });
 });

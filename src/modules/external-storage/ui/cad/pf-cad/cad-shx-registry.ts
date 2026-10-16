@@ -124,6 +124,30 @@ export function registerCadShxStyleTable(entries: CadTextStyleTableEntry[] | und
   return linked;
 }
 
+/** Bind entity `style` strings to loaded SHX when they name a font file (not only table rows). */
+export function registerCadShxTextStyleAliases(
+  texts: ReadonlyArray<{ style?: string | number }> | undefined,
+): number {
+  if (!texts?.length) return 0;
+  let linked = 0;
+  const seen = new Set<string>();
+  for (const tx of texts) {
+    const name = tx.style != null ? String(tx.style).trim() : '';
+    if (!name || seen.has(name.toLowerCase())) continue;
+    seen.add(name.toLowerCase());
+    if (lookupShxFont(name)) continue;
+    const primaryKey = loadedShxKeyForFontFile(name);
+    if (!primaryKey) continue;
+    const font = shxByStyleKey.get(primaryKey);
+    if (!font) continue;
+    for (const sk of styleKeysForFontName(name)) {
+      shxByStyleKey.set(sk.toLowerCase(), font);
+    }
+    linked += 1;
+  }
+  return linked;
+}
+
 export function clearCadShxFonts(): void {
   shxByStyleKey.clear();
   bigfontByStyleKey.clear();

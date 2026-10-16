@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   clearCadShxFonts,
   registerCadShxFonts,
@@ -20,6 +20,10 @@ function registerSyntheticChainFont(): void {
     { name: 'MIRYL.SHX', bytes: minimalShapesFont('MIRYL.SHX', 65, [1, 16, 14]) },
   ]);
 }
+
+beforeEach(() => {
+  clearCadShxFonts();
+});
 
 afterEach(() => {
   clearCadShxFonts();

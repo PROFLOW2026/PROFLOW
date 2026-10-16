@@ -38,6 +38,7 @@ import {
   lookupShxFont,
   registerCadShxFonts,
   registerCadShxStyleTable,
+  registerCadShxTextStyleAliases,
 } from './cad-shx-registry';
 import {
   createCadRenderer,
@@ -539,6 +540,7 @@ function PfDwgViewerInner({
         clearCadShxFonts();
         registerCadShxFonts(fontResolve.resolved);
         registerCadShxStyleTable(res.scene.textStyleTable);
+        registerCadShxTextStyleAliases(res.scene.texts);
         const reportWithFonts = mergeMissingFontsIntoReport(
           res.scene.report,
           fontResolve.missingFonts,
@@ -659,6 +661,7 @@ function PfDwgViewerInner({
             fontResolve.missingFonts,
           );
           registerCadShxStyleTable(res.scene.textStyleTable);
+          registerCadShxTextStyleAliases(res.scene.texts);
           let scene: ScenePayload = { ...res.scene, report: reportWithFonts };
           const p8 = applyCadP8GpuTextHandoff(res.segments, scene);
           scene = p8.scene;
