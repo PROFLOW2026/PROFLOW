@@ -83,6 +83,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: CAD licensing denylist
+        run: node scripts/check-cad-licensing-denylist.mjs
+
       - name: Unit tests
         run: npm run test:unit
 

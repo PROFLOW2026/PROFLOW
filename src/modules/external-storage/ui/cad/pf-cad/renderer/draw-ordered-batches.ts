@@ -21,6 +21,7 @@ export type LineDrawBatch = {
   kind: 'line';
   colorBits: number;
   lineWeightHundredths: number;
+  /** Endpoint pairs (x1,y1,x2,y2) for wide-line mesh expansion at upload. */
   positions: Float32Array;
   vertexCount: number;
 };
@@ -28,37 +29,6 @@ export type LineDrawBatch = {
 export type DrawBatch = FillDrawBatch | LineDrawBatch;
 
 const SEGMENTS_PER_YIELD = 24_000;
-
-function halfWidthWorld(hundredths: number): number {
-  return Math.max(0.015, hundredths / 400);
-}
-
-function pushLineQuad(
-  out: number[],
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number,
-  hw: number,
-): void {
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const len = Math.hypot(dx, dy);
-  if (len < 1e-9) {
-    return;
-  }
-  const nx = (-dy / len) * hw;
-  const ny = (dx / len) * hw;
-  const ax = x1 + nx;
-  const ay = y1 + ny;
-  const bx = x1 - nx;
-  const by = y1 - ny;
-  const cx = x2 + nx;
-  const cy = y2 + ny;
-  const dx2 = x2 - nx;
-  const dy2 = y2 - ny;
-  out.push(ax, ay, bx, by, cx, cy, bx, by, cx, cy, dx2, dy2);
-}
 
 type Prim =
   | { order: number; kind: 'line'; colorBits: number; lw: number; x1: number; y1: number; x2: number; y2: number }
@@ -162,7 +132,6 @@ export function buildOrderedDrawBatches(
   triangles: Float32Array,
   visibility: LayerVisibilityState,
   segStride = SEGMENT_STRIDE,
-  lineAsQuads = false,
 ): DrawBatch[] {
   const prims = collectPrims(segments, triangles, visibility, segStride);
   const batches: DrawBatch[] = [];
@@ -204,11 +173,7 @@ export function buildOrderedDrawBatches(
       lineColor = p.colorBits;
       lineLw = p.lw;
       lineOrder = p.order;
-      if (lineAsQuads) {
-        pushLineQuad(lineFloats, p.x1, p.y1, p.x2, p.y2, halfWidthWorld(p.lw));
-      } else {
-        lineFloats.push(p.x1, p.y1, p.x2, p.y2);
-      }
+      lineFloats.push(p.x1, p.y1, p.x2, p.y2);
     }
   }
   flushFillBatch(batches, fillColor, fillFloats);
@@ -245,11 +210,10 @@ export async function buildOrderedDrawBatchesAsync(
   triangles: Float32Array,
   visibility: LayerVisibilityState,
   segStride = SEGMENT_STRIDE,
-  lineAsQuads = false,
 ): Promise<DrawBatch[]> {
   if (segmentCount(segments, segStride) + triangleCount(triangles) <= SEGMENTS_PER_YIELD) {
-    return buildOrderedDrawBatches(segments, triangles, visibility, segStride, lineAsQuads);
+    return buildOrderedDrawBatches(segments, triangles, visibility, segStride);
   }
   await yieldToMain();
-  return buildOrderedDrawBatches(segments, triangles, visibility, segStride, lineAsQuads);
+  return buildOrderedDrawBatches(segments, triangles, visibility, segStride);
 }

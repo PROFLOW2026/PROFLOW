@@ -124,8 +124,8 @@
 | | |
 |---|---|
 | **At start** | `/settings/open-source`; dead CodeCAD bundle still in `public/cad/codecad-v0.1.0/` |
-| **Changed this wave** | None |
-| **Status** | **PARTIAL** |
+| **Changed this wave** | CodeCAD bundle removed; CI denylist (`check-cad-licensing-denylist.mjs`); `copy-cad-assets` DXF worker only |
+| **Status** | **PARTIAL** (proprietary license field for own crates still open) |
 
 ---
 
@@ -141,10 +141,10 @@
 | **CTB / DRAW ORDER** | CTB + SORTENTS in WASM **PARTIAL**; visual plot **NOT VERIFIED** |
 | **LAYOUT / XCLIP** | Viewports **PARTIAL**; XCLIP segments only **PARTIAL** |
 | **PERFORMANCE** | Zoom path preserved **PARTIAL**; full 3621 gate **NOT VERIFIED** |
-| **LICENSING** | Notices page **PARTIAL**; CodeCAD removal **pending** |
+| **LICENSING** | Notices page **PARTIAL**; CodeCAD removal **done**; font denylist in CI |
 | **SOURCE + WASM SYNCHRONIZED** | **YES** — build `be1d778`, copied to `public/pf-cad/wasm/` |
 | **ENGINE LOCAL COMMIT** | `be1d77813785c2d774be250431936f3d1fb7d94f` |
-| **PROJECTFLOW LOCAL COMMIT** | Pending (CAD-only commit after this report) |
+| **PROJECTFLOW LOCAL COMMIT** | `abab07283dc37bd1564ef7d04a00a0a841ec6933` |
 
 ---
 
@@ -154,7 +154,7 @@
 2. P6 — Lineweight quads (safe architecture), hatch pattern fill quality, transparency  
 3. P5 — Complete SHX/Bigfont/Unicode/CP862 and real-file 3031 verification  
 4. P9 — Full MLeader text v2; raster hardening  
-5. P10 — Remove unused CodeCAD bundle; CI font denylist  
+5. P10 — ~~Remove unused CodeCAD bundle; CI font denylist~~ **done**  
 6. Visual gate — Owner PDF/SSIM (plan gate, not waived)
 
 ---

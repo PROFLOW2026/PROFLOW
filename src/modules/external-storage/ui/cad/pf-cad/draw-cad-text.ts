@@ -2,8 +2,8 @@ import type { CadText } from './types';
 import type { CadView } from './renderer';
 import { worldToScreen } from './renderer';
 import { maybeDecodeHebrewShxText } from './hebrew-shx-decode';
-import { drawShxLine, measureShxTextWidth, type ShxFont } from './cad-shx-font';
-import { resolveShxGlyphCode } from './cad-shx-registry';
+import { drawShxLine, measureShxTextBlock, type ShxFont } from './cad-shx-font';
+import { resolveShxDrawContext } from './cad-shx-registry';
 
 export const CAP_HEIGHT_RATIO = 0.714;
 export const FONT_SIZE_FACTOR = 1 / CAP_HEIGHT_RATIO;
@@ -151,6 +151,11 @@ export function drawCadText(
   if (lines.length === 0 || (lines.length === 1 && !lines[0]?.trim())) return;
 
   const shx = draw.shxFont?.(tx.style);
+  const shxCtx =
+    shx != null
+      ? resolveShxDrawContext(tx.style != null ? String(tx.style) : undefined)
+      : null;
+  const shxPrimary = shxCtx?.primary ?? shx;
   const fillStyle = `#${(tx.c >>> 0).toString(16).padStart(6, '0')}`;
   const fontPx = capH * FONT_SIZE_FACTOR;
   const family = draw.styleFontFamily?.(tx.style) ?? draw.fontFamily;
@@ -160,15 +165,18 @@ export function drawCadText(
   let w: number;
   let blockH: number;
   let descent: number;
-  if (shx) {
-    const styleKey = tx.style != null ? String(tx.style) : undefined;
-    const mapCode = (code: number) => resolveShxGlyphCode(styleKey, code);
-    w = 0;
-    for (const line of lines) {
-      w = Math.max(w, measureShxTextWidth(shx, line, capH, mapCode));
-    }
-    blockH = lines.length <= 1 ? capH : capH + (lines.length - 1) * lineSpacingPx(capH, tx.lsf);
-    descent = capH * 0.22;
+  if (shxPrimary && shxCtx) {
+    const measured = measureShxTextBlock(
+      shxPrimary,
+      lines,
+      capH,
+      tx.lsf,
+      shxCtx.mapCode,
+      shxCtx.pickFont,
+    );
+    w = measured.w;
+    blockH = measured.blockH;
+    descent = measured.descent;
   } else {
     draw.ctx.font = `${fontPx}px ${family}, ${draw.fontFamily}`;
     ({ w, blockH, descent } = measureBlock(draw.ctx, lines, capH, tx.lsf));
@@ -199,14 +207,20 @@ export function drawCadText(
   draw.ctx.textBaseline = 'alphabetic';
 
   const anchorX = ha === 1 ? w / 2 : ha === 2 ? w : 0;
-  if (shx) {
+  if (shxPrimary && shxCtx) {
     for (let i = 0; i < lines.length; i += 1) {
       const y = i * spacing;
       draw.ctx.save();
       draw.ctx.translate(anchorX, y);
-      const styleKey = tx.style != null ? String(tx.style) : undefined;
-      const mapCode = (code: number) => resolveShxGlyphCode(styleKey, code);
-      drawShxLine(draw.ctx, shx, lines[i]!, capH, fillStyle, mapCode);
+      drawShxLine(
+        draw.ctx,
+        shxPrimary,
+        lines[i]!,
+        capH,
+        fillStyle,
+        shxCtx.mapCode,
+        shxCtx.pickFont,
+      );
       draw.ctx.restore();
     }
   } else {

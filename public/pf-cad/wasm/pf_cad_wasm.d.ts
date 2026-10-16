@@ -16,6 +16,9 @@ export interface InitOutput {
     readonly set_plot_ctb: (a: number, b: number) => number;
     readonly set_plot_mode: (a: number) => void;
     readonly set_space: (a: number, b: number) => void;
+    readonly text_gpu_json_len: () => number;
+    readonly text_gpu_json_ptr: () => number;
+    readonly text_gpu_probe_refresh: () => number;
     readonly tris_len: () => number;
     readonly tris_ptr: () => number;
     readonly __externref_table_alloc: () => number;

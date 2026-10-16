@@ -489,6 +489,7 @@ function PfDwgViewerInner({
           fonts: res.scene.report.fonts,
           hostPath: normalizeCadPath(fileName),
           fileIndex,
+          xrefPaths: Object.values(res.scene.report.xrefs ?? {}),
         });
         resolvedFontsRef.current = fontResolve;
         overlayFontMapRef.current = registerCadOverlayFonts(fontResolve.resolved);
@@ -603,6 +604,7 @@ function PfDwgViewerInner({
               fonts: res.scene.report.fonts,
               hostPath: normalizeCadPath(fileName),
               fileIndex: ctx.fileIndex,
+              xrefPaths: Object.values(res.scene.report.xrefs ?? {}),
             }));
           const reportWithFonts = mergeMissingFontsIntoReport(
             res.scene.report,

@@ -1,8 +1,15 @@
 import type { ResolvedCadFont } from './font-resolver';
-import { parseShxBigfontMap, parseShxFont, type ShxFont } from './cad-shx-font';
+import {
+  parseShxBigfontFile,
+  parseShxFont,
+  type ShxBigfontBundle,
+  type ShxFont,
+} from './cad-shx-font';
 
 const shxByStyleKey = new Map<string, ShxFont>();
-const bigfontMaps = new Map<string, Map<number, number>>();
+const bigfontByStyleKey = new Map<string, ShxBigfontBundle>();
+/** Primary SHX keyed for a text style when bigfont companion was registered. */
+const primaryForBigfont = new Map<string, string>();
 
 function styleKeysForFontName(name: string): string[] {
   const base = name.trim();
@@ -15,14 +22,36 @@ function styleKeysForFontName(name: string): string[] {
   return keys;
 }
 
+function linkBigfontCompanion(bigfontName: string): void {
+  const stem = bigfontName.replace(/\.shx$/i, '');
+  const candidates = [
+    stem.replace(/big$/i, ''),
+    stem.replace(/_big$/i, ''),
+    stem.replace(/b$/i, ''),
+    stem.replace(/bigfont$/i, ''),
+  ].filter((c) => c.length > 0 && c.toLowerCase() !== stem.toLowerCase());
+  for (const primary of candidates) {
+    for (const pk of styleKeysForFontName(primary)) {
+      const font = shxByStyleKey.get(pk.toLowerCase());
+      if (font) {
+        for (const bk of styleKeysForFontName(bigfontName)) {
+          primaryForBigfont.set(bk.toLowerCase(), pk.toLowerCase());
+        }
+        return;
+      }
+    }
+  }
+}
+
 export function registerCadShxFonts(resolved: ResolvedCadFont[]): string[] {
   const loaded: string[] = [];
   for (const font of resolved) {
     if (!/\.shx$/i.test(font.name)) continue;
-    const big = parseShxBigfontMap(font.bytes);
-    if (big) {
+    const bigBundle = parseShxBigfontFile(font.name, font.bytes);
+    if (bigBundle) {
       for (const key of styleKeysForFontName(font.name)) {
-        bigfontMaps.set(key.toLowerCase(), big);
+        bigfontByStyleKey.set(key.toLowerCase(), bigBundle);
+        shxByStyleKey.set(key.toLowerCase(), bigBundle.font);
       }
       loaded.push(font.name);
       continue;
@@ -34,29 +63,97 @@ export function registerCadShxFonts(resolved: ResolvedCadFont[]): string[] {
     }
     loaded.push(font.name);
   }
+  for (const name of loaded) {
+    if (/big/i.test(name)) {
+      linkBigfontCompanion(name);
+    }
+  }
   return loaded;
 }
 
 export function clearCadShxFonts(): void {
   shxByStyleKey.clear();
-  bigfontMaps.clear();
+  bigfontByStyleKey.clear();
+  primaryForBigfont.clear();
+}
+
+function styleLookupKeys(style: string): string[] {
+  const raw = style.trim();
+  const keys = [raw.toLowerCase(), `${raw}.shx`.toLowerCase(), raw.replace(/\.shx$/i, '').toLowerCase()];
+  return keys;
+}
+
+export function lookupBigfontBundle(style: string | undefined): ShxBigfontBundle | undefined {
+  if (!style) return undefined;
+  for (const key of styleLookupKeys(style)) {
+    const hit = bigfontByStyleKey.get(key);
+    if (hit) return hit;
+  }
+  return undefined;
 }
 
 export function resolveShxGlyphCode(style: string | undefined, charCode: number): number {
+  const bundle = lookupBigfontBundle(style);
+  if (bundle?.map.has(charCode)) {
+    return bundle.map.get(charCode)!;
+  }
   if (!style) return charCode;
-  const map =
-    bigfontMaps.get(style.toLowerCase()) ??
-    bigfontMaps.get(`${style}.shx`.toLowerCase());
-  return map?.get(charCode) ?? charCode;
+  for (const key of styleLookupKeys(style)) {
+    const map = bigfontByStyleKey.get(key)?.map;
+    if (map?.has(charCode)) return map.get(charCode)!;
+  }
+  return charCode;
+}
+
+/** Pick primary vs bigfont glyph container for a mapped code. */
+export function pickShxFontForGlyph(
+  style: string | undefined,
+  charCode: number,
+  mappedCode: number,
+): ShxFont | undefined {
+  const bundle = lookupBigfontBundle(style);
+  if (bundle?.map.has(charCode) && bundle.font.glyphs.has(mappedCode)) {
+    return bundle.font;
+  }
+  if (!style) return undefined;
+  for (const key of styleLookupKeys(style)) {
+    const linkedPrimary = primaryForBigfont.get(key);
+    if (linkedPrimary) {
+      const primary = shxByStyleKey.get(linkedPrimary);
+      if (primary?.glyphs.has(mappedCode)) return primary;
+    }
+    const primary = shxByStyleKey.get(key);
+    if (primary?.glyphs.has(mappedCode)) return primary;
+    const big = bigfontByStyleKey.get(key);
+    if (big?.font.glyphs.has(mappedCode)) return big.font;
+  }
+  return lookupShxFont(style);
 }
 
 export function lookupShxFont(style: string | number | undefined): ShxFont | undefined {
   if (style == null) return undefined;
   const raw = String(style).trim();
   if (!raw) return undefined;
-  return (
-    shxByStyleKey.get(raw.toLowerCase()) ??
-    shxByStyleKey.get(`${raw}.shx`.toLowerCase()) ??
-    shxByStyleKey.get(raw.replace(/\.shx$/i, '').toLowerCase())
-  );
+  for (const key of styleLookupKeys(raw)) {
+    const linked = primaryForBigfont.get(key);
+    if (linked) {
+      const primary = shxByStyleKey.get(linked);
+      if (primary) return primary;
+    }
+    const hit = shxByStyleKey.get(key);
+    if (hit) return hit;
+  }
+  return undefined;
+}
+
+export function resolveShxDrawContext(style: string | undefined): {
+  primary: ShxFont | undefined;
+  mapCode: (code: number) => number;
+  pickFont: (code: number, mapped: number) => ShxFont | undefined;
+} {
+  const primary = lookupShxFont(style);
+  const mapCode = (code: number) => resolveShxGlyphCode(style, code);
+  const pickFont = (code: number, mapped: number) =>
+    pickShxFontForGlyph(style, code, mapped) ?? primary;
+  return { primary, mapCode, pickFont };
 }

@@ -21,6 +21,6 @@
 - Draw order, XCLIP on XREF, twist/non-rect viewport clip
 - MLeader, raster images, CTB plot look
 - WebGL text (replace Canvas2D overlay)
-- Remove dead CodeCAD bundle / CI denylist hardening
+- ~~Remove dead CodeCAD bundle / CI denylist hardening~~ **Done (P10):** bundle removed; `scripts/check-cad-licensing-denylist.mjs` in CI
 
 Engine source for viewport change: `projectflow-cad-engine/crates/pf-cad-wasm/src/entity.rs` (rebuild via `scripts/build-wasm.ps1` + `copy-pf-cad-wasm.mjs`).

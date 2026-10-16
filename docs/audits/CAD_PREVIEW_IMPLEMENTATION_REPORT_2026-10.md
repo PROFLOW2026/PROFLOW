@@ -1,6 +1,7 @@
 # ProjectFlow — דוח מימוש תצוגת CAD (2026-10-15)
 
-**סטטוס:** מימוש מקומי. **לא** בוצעו commit, push, deploy או SQL.  
+**סטטוס:** מימוש מקומי (היסטורי). **לא** בוצעו commit, push, deploy או SQL.  
+**עדכון P10 (2026-10):** תצוגת **DWG** עברה ל־`pf-cad` (`public/pf-cad/wasm/`). חבילת CodeCAD ב־`public/cad/codecad-v0.1.0/` **הוסרה**; `copy-cad-assets` מעתיק רק את worker של mlightcad ל־DXF.  
 **בסיס:** דוחות `CAD_DWG_DWF_PREVIEW_FEASIBILITY_2026-10`, `CAD_FREE_OPTIONS_CODECAD_APS_DWF_2026-10`, `CAD_CADCRAFT_DWG_EVALUATION_2026-10`.
 
 ---
@@ -12,8 +13,8 @@
 - **DWF / DWFX:** Autodesk Viewer SDK v7.130.0, `env: 'Local'`, קובץ נטען מ-bytes מ-ProjectFlow; טלמטריה מושבתת (`disableForPage`, `useADP: false`); כלי Sheets/מדידה/מסך מלא של ה-Viewer.
 - **DXF:** `@mlightcad/cad-simple-viewer` + UI מצומצם (זום + פאנל שכבות), מצב `AcEdOpenMode.Read`, ללא המרה.
 - **העלאה:** `normalizeUploadMime` / `file-rules` מאפשרים `.dwg`, `.dxf`, `.dwf`, `.dwfx` (זיהוי לפי סיומת כש-MIME גנéricי).
-- **Build:** `npm run copy-cad-assets` — מוריד CodeCAD embed מ-GitHub Pages ומעתיק worker של mlightcad ל-`public/cad-workers/`.
-- **רישוי:** `public/cad/codecad-v0.1.0/NOTICE` (MIT + הפניה ל-MPL/acadrust).
+- **Build (היסטורי):** `copy-cad-assets` הוריד CodeCAD; **מצב נוכחי (P10):** רק worker של mlightcad ל-`public/cad-workers/` (DXF).
+- **רישוי (היסטורי):** NOTICE של CodeCAD — החבילה הוסרה; DWG על `pf-cad`.
 
 ---
 
@@ -72,9 +73,9 @@
 - `package.json`, `vercel.json`
 - `tests/unit/documents/cad-file-rules.test.ts`, `file-rules.test.ts`
 
-**נכסים סטטיים** (נוצרים ב-`copy-cad-assets`)
-- `public/cad/codecad-v0.1.0/` (JS + WASM + NOTICE + version.json)
-- `public/cad-workers/mtext-renderer-worker.js`
+**נכסים סטטיים**
+- `public/pf-cad/wasm/` — DWG (מקור: `copy-pf-cad-wasm`)
+- `public/cad-workers/mtext-renderer-worker.js` — DXF (מקור: `copy-cad-assets`)
 
 ---
 

@@ -1,19 +1,9 @@
-import {
-  buildColorLineBatches,
-  buildColorLineBatchesAsync,
-  lineWidthPxFromHundredths,
-  type ColorLineBatch,
-} from './segment-batch';
+import { lineWidthPxFromHundredths } from './segment-batch';
 import {
   buildOrderedDrawBatches,
   buildOrderedDrawBatchesAsync,
   type DrawBatch,
 } from './draw-ordered-batches';
-import {
-  PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS,
-  PF_CAD_GPU_LINE_QUADS,
-  PF_CAD_GPU_TRIANGLE_FILLS,
-} from '../pf-cad-config';
 import { yieldToMain } from '../yield-to-main';
 import { colorBitsToRgb01, SEGMENT_STRIDE } from './segment-format';
 import type { CadExtent } from './segment-format';
@@ -22,7 +12,8 @@ import {
   type LayerVisibilityInput,
   type LayerVisibilityState,
 } from './layer-visibility';
-import { LINE_FRAG, LINE_VERT } from './shaders';
+import { FILL_VERT, LINE_FRAG, WIDE_LINE_VERT } from './shaders';
+import { wideLineMeshFromPairs } from './wide-line-batch';
 import { computeFitView, type CadView, type ViewportSize } from './view-math';
 
 export type CadWebGlRendererOptions = {
@@ -34,8 +25,7 @@ export type CadWebGlRendererOptions = {
 export const GL_RESOURCES_LOST_MESSAGE =
   'WebGL context lost — recreate GPU resources after contextrestored';
 
-type GpuLineBatch = ColorLineBatch & { vbo: WebGLBuffer };
-type GpuExpBatch = DrawBatch & { vbo: WebGLBuffer };
+type GpuDrawBatch = DrawBatch & { vbo: WebGLBuffer; drawVertexCount: number };
 
 function compileShader(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
   const shader = gl.createShader(type);
@@ -68,13 +58,23 @@ function linkProgram(gl: WebGL2RenderingContext, vs: WebGLShader, fs: WebGLShade
   return program;
 }
 
-/** WebGL2 batched line renderer for pf-cad-wasm segment buffers (RTC coords). */
+/** WebGL2 renderer: SORTENTS-ordered wide lines + triangle fills (RTC coords). */
 export class CadWebGlRenderer {
   private readonly canvas: HTMLCanvasElement;
   private gl: WebGL2RenderingContext | null = null;
-  private program: WebGLProgram | null = null;
+  private wideLineProgram: WebGLProgram | null = null;
+  private fillProgram: WebGLProgram | null = null;
   private vao: WebGLVertexArrayObject | null = null;
-  private readonly uniforms: {
+
+  private readonly wideUniforms: {
+    pan: WebGLUniformLocation | null;
+    zoom: WebGLUniformLocation | null;
+    viewport: WebGLUniformLocation | null;
+    color: WebGLUniformLocation | null;
+    lineWidthPx: WebGLUniformLocation | null;
+  } = { pan: null, zoom: null, viewport: null, color: null, lineWidthPx: null };
+
+  private readonly fillUniforms: {
     pan: WebGLUniformLocation | null;
     zoom: WebGLUniformLocation | null;
     viewport: WebGLUniformLocation | null;
@@ -85,10 +85,8 @@ export class CadWebGlRenderer {
   private triangles: Float32Array = new Float32Array(0);
   private segmentStride = SEGMENT_STRIDE;
   private layerVisibility: LayerVisibilityState = { mode: 'all' };
-  private cpuLineBatches: ColorLineBatch[] = [];
-  private cpuExpBatches: DrawBatch[] = [];
-  private gpuLineBatches: GpuLineBatch[] = [];
-  private gpuExpBatches: GpuExpBatch[] = [];
+  private cpuBatches: DrawBatch[] = [];
+  private gpuBatches: GpuDrawBatch[] = [];
 
   private view: CadView = { panX: 0, panY: 0, zoom: 1 };
   private viewport: ViewportSize = { width: 1, height: 1 };
@@ -179,51 +177,47 @@ export class CadWebGlRenderer {
   }
 
   draw(): void {
-    if (this.contextLost || !this.gl || !this.program) {
+    if (this.contextLost || !this.gl || !this.wideLineProgram || !this.fillProgram) {
       return;
     }
     const gl = this.gl;
     gl.clearColor(...this.clearColor);
     gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.useProgram(this.program);
-    gl.uniform2f(this.uniforms.pan, this.view.panX, this.view.panY);
-    gl.uniform1f(this.uniforms.zoom, this.view.zoom);
-    gl.uniform2f(this.uniforms.viewport, this.viewport.width, this.viewport.height);
-
-    const useOrdered =
-      PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS ||
-      PF_CAD_GPU_LINE_QUADS ||
-      (PF_CAD_GPU_TRIANGLE_FILLS && this.triangles.length > 0);
-
-    if (useOrdered && this.gpuExpBatches.length > 0) {
-      const zoom = this.view.zoom;
-      const allQuads =
-        PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS || PF_CAD_GPU_LINE_QUADS;
-      for (const batch of this.gpuExpBatches) {
-        const [r, g, b] = colorBitsToRgb01(batch.colorBits);
-        gl.uniform4f(this.uniforms.color, r, g, b, 1);
-        gl.bindBuffer(gl.ARRAY_BUFFER, batch.vbo);
-        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(0);
-        if (batch.kind === 'fill' || allQuads) {
-          gl.drawArrays(gl.TRIANGLES, 0, batch.vertexCount);
-        } else {
-          gl.lineWidth(lineWidthPxFromHundredths(batch.lineWeightHundredths, zoom));
-          gl.drawArrays(gl.LINES, 0, batch.vertexCount);
-        }
-      }
-      return;
-    }
 
     const zoom = this.view.zoom;
-    for (const batch of this.gpuLineBatches) {
+    for (const batch of this.gpuBatches) {
       const [r, g, b] = colorBitsToRgb01(batch.colorBits);
-      gl.uniform4f(this.uniforms.color, r, g, b, 1);
-      gl.lineWidth(lineWidthPxFromHundredths(batch.lineWeightHundredths, zoom));
       gl.bindBuffer(gl.ARRAY_BUFFER, batch.vbo);
-      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-      gl.enableVertexAttribArray(0);
-      gl.drawArrays(gl.LINES, 0, batch.vertexCount);
+      if (batch.kind === 'fill') {
+        gl.useProgram(this.fillProgram);
+        gl.uniform2f(this.fillUniforms.pan, this.view.panX, this.view.panY);
+        gl.uniform1f(this.fillUniforms.zoom, zoom);
+        gl.uniform2f(this.fillUniforms.viewport, this.viewport.width, this.viewport.height);
+        gl.uniform4f(this.fillUniforms.color, r, g, b, 1);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLES, 0, batch.drawVertexCount);
+      } else {
+        gl.useProgram(this.wideLineProgram);
+        gl.uniform2f(this.wideUniforms.pan, this.view.panX, this.view.panY);
+        gl.uniform1f(this.wideUniforms.zoom, zoom);
+        gl.uniform2f(this.wideUniforms.viewport, this.viewport.width, this.viewport.height);
+        gl.uniform4f(this.wideUniforms.color, r, g, b, 1);
+        gl.uniform1f(
+          this.wideUniforms.lineWidthPx,
+          lineWidthPxFromHundredths(batch.lineWeightHundredths, zoom),
+        );
+        const stride = 6 * 4;
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, stride, 0);
+        gl.enableVertexAttribArray(1);
+        gl.vertexAttribPointer(1, 2, gl.FLOAT, false, stride, 8);
+        gl.enableVertexAttribArray(2);
+        gl.vertexAttribPointer(2, 1, gl.FLOAT, false, stride, 16);
+        gl.enableVertexAttribArray(3);
+        gl.vertexAttribPointer(3, 1, gl.FLOAT, false, stride, 20);
+        gl.drawArrays(gl.TRIANGLES, 0, batch.drawVertexCount);
+      }
     }
   }
 
@@ -231,14 +225,15 @@ export class CadWebGlRenderer {
     this.unbindContextEvents();
     this.segments = new Float32Array(0);
     this.triangles = new Float32Array(0);
-    this.cpuLineBatches = [];
-    this.cpuExpBatches = [];
+    this.cpuBatches = [];
     this.disposeGpu();
     const gl = this.gl;
-    if (gl && this.program) {
-      gl.deleteProgram(this.program);
+    if (gl) {
+      if (this.wideLineProgram) gl.deleteProgram(this.wideLineProgram);
+      if (this.fillProgram) gl.deleteProgram(this.fillProgram);
     }
-    this.program = null;
+    this.wideLineProgram = null;
+    this.fillProgram = null;
     this.gl = null;
   }
 
@@ -289,16 +284,26 @@ export class CadWebGlRenderer {
       throw new Error('WebGL2 not available');
     }
     this.gl = gl;
-    const vs = compileShader(gl, gl.VERTEX_SHADER, LINE_VERT);
+
+    const wideVs = compileShader(gl, gl.VERTEX_SHADER, WIDE_LINE_VERT);
+    const fillVs = compileShader(gl, gl.VERTEX_SHADER, FILL_VERT);
     const fs = compileShader(gl, gl.FRAGMENT_SHADER, LINE_FRAG);
-    this.program = linkProgram(gl, vs, fs);
-    gl.deleteShader(vs);
+    this.wideLineProgram = linkProgram(gl, wideVs, fs);
+    this.fillProgram = linkProgram(gl, fillVs, fs);
+    gl.deleteShader(wideVs);
+    gl.deleteShader(fillVs);
     gl.deleteShader(fs);
 
-    this.uniforms.pan = gl.getUniformLocation(this.program, 'u_pan');
-    this.uniforms.zoom = gl.getUniformLocation(this.program, 'u_zoom');
-    this.uniforms.viewport = gl.getUniformLocation(this.program, 'u_viewport');
-    this.uniforms.color = gl.getUniformLocation(this.program, 'u_color');
+    this.wideUniforms.pan = gl.getUniformLocation(this.wideLineProgram, 'u_pan');
+    this.wideUniforms.zoom = gl.getUniformLocation(this.wideLineProgram, 'u_zoom');
+    this.wideUniforms.viewport = gl.getUniformLocation(this.wideLineProgram, 'u_viewport');
+    this.wideUniforms.color = gl.getUniformLocation(this.wideLineProgram, 'u_color');
+    this.wideUniforms.lineWidthPx = gl.getUniformLocation(this.wideLineProgram, 'u_lineWidthPx');
+
+    this.fillUniforms.pan = gl.getUniformLocation(this.fillProgram, 'u_pan');
+    this.fillUniforms.zoom = gl.getUniformLocation(this.fillProgram, 'u_zoom');
+    this.fillUniforms.viewport = gl.getUniformLocation(this.fillProgram, 'u_viewport');
+    this.fillUniforms.color = gl.getUniformLocation(this.fillProgram, 'u_color');
 
     this.vao = gl.createVertexArray();
     gl.bindVertexArray(this.vao);
@@ -307,72 +312,34 @@ export class CadWebGlRenderer {
 
   private rebuildCpuBatches(force: boolean): void {
     if (this.segments.length === 0 && this.triangles.length === 0) {
-      this.cpuLineBatches = [];
-      this.cpuExpBatches = [];
+      this.cpuBatches = [];
       return;
     }
-    const useOrdered =
-      PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS ||
-      PF_CAD_GPU_LINE_QUADS ||
-      (PF_CAD_GPU_TRIANGLE_FILLS && this.triangles.length > 0);
-    if (useOrdered) {
-      const lineAsQuads =
-        PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS || PF_CAD_GPU_LINE_QUADS;
-      this.cpuExpBatches = buildOrderedDrawBatches(
-        this.segments,
-        this.triangles,
-        this.layerVisibility,
-        this.segmentStride,
-        lineAsQuads,
-      );
-      this.cpuLineBatches = [];
+    if (!force && this.cpuBatches.length > 0) {
       return;
     }
-    if (!force && this.cpuLineBatches.length > 0) {
-      return;
-    }
-    const { batches } = buildColorLineBatches(
+    this.cpuBatches = buildOrderedDrawBatches(
       this.segments,
+      this.triangles,
       this.layerVisibility,
-      1,
       this.segmentStride,
     );
-    this.cpuLineBatches = batches;
   }
 
   private async rebuildCpuBatchesAsync(force: boolean): Promise<void> {
     if (this.segments.length === 0 && this.triangles.length === 0) {
-      this.cpuLineBatches = [];
-      this.cpuExpBatches = [];
+      this.cpuBatches = [];
       return;
     }
-    const useOrdered =
-      PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS ||
-      PF_CAD_GPU_LINE_QUADS ||
-      (PF_CAD_GPU_TRIANGLE_FILLS && this.triangles.length > 0);
-    if (useOrdered) {
-      const lineAsQuads =
-        PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS || PF_CAD_GPU_LINE_QUADS;
-      this.cpuExpBatches = await buildOrderedDrawBatchesAsync(
-        this.segments,
-        this.triangles,
-        this.layerVisibility,
-        this.segmentStride,
-        lineAsQuads,
-      );
-      this.cpuLineBatches = [];
+    if (!force && this.cpuBatches.length > 0) {
       return;
     }
-    if (!force && this.cpuLineBatches.length > 0) {
-      return;
-    }
-    const { batches } = await buildColorLineBatchesAsync(
+    this.cpuBatches = await buildOrderedDrawBatchesAsync(
       this.segments,
+      this.triangles,
       this.layerVisibility,
-      1,
       this.segmentStride,
     );
-    this.cpuLineBatches = batches;
   }
 
   private uploadGpuBatches(): void {
@@ -381,46 +348,39 @@ export class CadWebGlRenderer {
     if (!gl || this.contextLost) {
       return;
     }
-    const useOrdered =
-      PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS ||
-      PF_CAD_GPU_LINE_QUADS ||
-      (PF_CAD_GPU_TRIANGLE_FILLS && this.triangles.length > 0);
-    if (useOrdered) {
-      this.gpuExpBatches = this.cpuExpBatches.map((batch) => {
-        const vbo = gl.createBuffer();
-        if (!vbo) {
-          throw new Error('createBuffer failed');
-        }
-        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-        gl.bufferData(gl.ARRAY_BUFFER, batch.positions, gl.STATIC_DRAW);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        return { ...batch, vbo };
-      });
-      return;
-    }
-    this.gpuLineBatches = this.cpuLineBatches.map((batch) => {
+    this.gpuBatches = this.cpuBatches.map((batch) => {
       const vbo = gl.createBuffer();
       if (!vbo) {
         throw new Error('createBuffer failed');
       }
       gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-      gl.bufferData(gl.ARRAY_BUFFER, batch.positions, gl.STATIC_DRAW);
+      if (batch.kind === 'fill') {
+        gl.bufferData(gl.ARRAY_BUFFER, batch.positions, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        return {
+          ...batch,
+          vbo,
+          drawVertexCount: batch.vertexCount,
+        };
+      }
+      const mesh = wideLineMeshFromPairs(batch.positions);
+      gl.bufferData(gl.ARRAY_BUFFER, mesh, gl.STATIC_DRAW);
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
-      return { ...batch, vbo };
+      return {
+        ...batch,
+        vbo,
+        drawVertexCount: mesh.length / 6,
+      };
     });
   }
 
   private disposeGpu(): void {
     const gl = this.gl;
     if (gl) {
-      for (const batch of this.gpuLineBatches) {
-        gl.deleteBuffer(batch.vbo);
-      }
-      for (const batch of this.gpuExpBatches) {
+      for (const batch of this.gpuBatches) {
         gl.deleteBuffer(batch.vbo);
       }
     }
-    this.gpuLineBatches = [];
-    this.gpuExpBatches = [];
+    this.gpuBatches = [];
   }
 }
