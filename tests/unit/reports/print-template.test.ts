@@ -101,7 +101,7 @@ describe('quote print template', () => {
       expect(shortDoc?.overflow).toBe(false);
       expect(longDoc?.overflow).toBe(false);
       expect(shortDoc?.fontSize).toBe('16px');
-      expect(shortDoc && shortDoc.sheetWidth).toBeLessThanOrEqual((shortDoc.client ?? 0) + 1);
+      expect(shortDoc?.sheetWidth ?? 0).toBeLessThanOrEqual((shortDoc?.client ?? 0) + 1);
     } finally {
       await browser.close();
     }

@@ -92,7 +92,9 @@ function labelBodyRows(children: React.ReactNode, labels: readonly string[]): Re
       const span = Math.max(1, Number(cellProps.colSpan ?? 1) || 1);
       const dataLabel = labelForSpan(labels, column, span);
       column += span;
-      return React.cloneElement(cell, { 'data-label': dataLabel });
+      return React.cloneElement(cell as React.ReactElement<{ 'data-label'?: string }>, {
+        'data-label': dataLabel,
+      });
     });
     return React.cloneElement(child, undefined, cells);
   });
