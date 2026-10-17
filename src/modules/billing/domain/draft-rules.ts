@@ -32,6 +32,26 @@ export function assertFinalizeDueDateOrder(
 }
 
 /**
+ * Keep a finalize validation issue on its field key.
+ * Callers translate `billing.*` / `errors.*`. Do not collapse this to `errors.validationFailed`.
+ */
+export function billingValidationFormState(error: ValidationError): {
+  error: string;
+  fieldErrors?: Record<string, string>;
+} {
+  const fieldErrors: Record<string, string> = {};
+  for (const issue of error.issues) {
+    if (!issue.path || !issue.messageKey) continue;
+    fieldErrors[issue.path] = issue.messageKey;
+  }
+  const dueDate = fieldErrors.dueDate;
+  return {
+    error: dueDate ?? error.messageKey,
+    fieldErrors: Object.keys(fieldErrors).length > 0 ? fieldErrors : undefined,
+  };
+}
+
+/**
  * Warning only. Does not cap the draft and does not block save or finalize.
  * Returns false when either amount is missing or not a finite decimal.
  */

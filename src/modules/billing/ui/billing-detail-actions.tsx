@@ -48,7 +48,7 @@ function isolate(value: string): string {
   return `\u2066${value}\u2069`;
 }
 
-function resolveBillingError(
+export function resolveBillingError(
   key: string,
   tBilling: ReturnType<typeof useTranslations<'billing'>>,
   tErrors: ReturnType<typeof useTranslations<'errors'>>,
@@ -89,7 +89,7 @@ export function BillingDetailActions({
   ) {
     const result = await action();
     const dueDateError = result.fieldErrors?.dueDate;
-    if (dueDateError) return { error: dueDateError };
+    if (dueDateError) return { error: resolveBillingError(dueDateError, t, tErrors) };
     if (result.error) {
       return { error: resolveBillingError(result.error, t, tErrors) };
     }

@@ -19,6 +19,7 @@ import { formatMoney } from '@/shared/money/format';
 import { money } from '@/shared/money/money';
 import { cn } from '@/shared/ui/cn';
 import { createBillingRecordAction, type BillingFormState } from './actions';
+import { resolveBillingError } from './billing-detail-actions';
 
 interface BillingRecordFormProps {
   projects: readonly ProjectOption[];
@@ -43,6 +44,7 @@ export function BillingRecordForm({
   taxRatePercent = null,
 }: BillingRecordFormProps) {
   const t = useTranslations('billing');
+  const tErrors = useTranslations('errors');
   const tCommon = useTranslations('common');
   const locale = useLocale();
   const currency = defaultCurrency ?? 'ILS';
@@ -99,7 +101,9 @@ export function BillingRecordForm({
   return (
     <form action={formAction} className="mx-auto flex w-full max-w-xl flex-col gap-5">
       {state.error ? (
-        <p className="text-sm text-[var(--pf-status-danger-fg)]">{tCommon('actions.retry')}</p>
+        <p className="text-sm text-[var(--pf-status-danger-fg)]">
+          {resolveBillingError(state.error, t, tErrors)}
+        </p>
       ) : null}
 
       <Field label={t('form.project')} required>
@@ -226,7 +230,15 @@ export function BillingRecordForm({
         )}
       </Field>
 
-      <Field label={t('form.dueDate')} optionalLabel={tCommon('labels.optional')}>
+      <Field
+        label={t('form.dueDate')}
+        optionalLabel={tCommon('labels.optional')}
+        error={
+          state.fieldErrors?.dueDate
+            ? resolveBillingError(state.fieldErrors.dueDate, t, tErrors)
+            : undefined
+        }
+      >
         {(controlProps) => <Input {...controlProps} name="dueDate" type="date" dir="ltr" />}
       </Field>
 

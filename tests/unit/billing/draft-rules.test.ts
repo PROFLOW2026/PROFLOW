@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ValidationError } from '@/shared/errors';
 import {
   assertFinalizeDueDateOrder,
+  billingValidationFormState,
   draftAmountExceedsContractCurrent,
   statutoryStatusBlocksDraftEdit,
 } from '@/modules/billing/domain/draft-rules';
@@ -16,6 +17,17 @@ describe('draft billing rules', () => {
       const issue = (error as ValidationError).issues[0];
       expect(issue?.path).toBe('dueDate');
       expect(issue?.messageKey).toBe('billing.errors.dueBeforeIssue');
+    }
+  });
+
+  it('keeps the due-date message key on the field instead of the generic validation key', () => {
+    try {
+      assertFinalizeDueDateOrder('2026-04-10', '2026-04-01');
+    } catch (error) {
+      const state = billingValidationFormState(error as ValidationError);
+      expect(state.fieldErrors?.dueDate).toBe('billing.errors.dueBeforeIssue');
+      expect(state.error).toBe('billing.errors.dueBeforeIssue');
+      expect(state.error).not.toBe('errors.validationFailed');
     }
   });
 

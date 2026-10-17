@@ -5,7 +5,8 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from '@/shared/i18n/navigation';
 import type { OrgContext } from '@/shared/auth/context';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, DomainRuleError } from '@/shared/errors';
+import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
+import { billingValidationFormState } from '@/modules/billing/domain/draft-rules';
 import {
   createBillingAdjustment,
   createBillingRecord,
@@ -133,6 +134,7 @@ export async function employeeFinalizeBillingRecordAction(
     });
     revalidateEmployeeBillingRecord(billingRecordId);
   } catch (error) {
+    if (error instanceof ValidationError) return billingValidationFormState(error);
     return mapBillingError(error, tErrors('unexpected'));
   }
   return {};
