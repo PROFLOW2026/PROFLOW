@@ -36,7 +36,7 @@ export function ReportDownloadButtons({
           asChild
           variant={compact ? 'ghost' : 'secondary'}
           size="sm"
-          className={compact ? 'h-auto min-h-11 max-w-full whitespace-normal text-start' : undefined}
+          className="h-auto min-h-11 max-w-full whitespace-normal text-start"
         >
           <Link href={previewHref}>{previewText}</Link>
         </Button>

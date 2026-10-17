@@ -15,11 +15,9 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
-import { QuoteDetailActions, QuotePrintButton } from './quote-detail-actions';
+import { QuoteDetailActions } from './quote-detail-actions';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
-import { reportPreviewPath } from '@/modules/reports/domain/paths';
 import { ReportDownloadButtons } from '@/modules/reports/ui';
-import { Button } from '@/components/ui/button';
 import { QuoteEditorForm } from '@/modules/quotes/ui/quote-editor-form';
 import { QuoteLinkedTasksSection } from '@/modules/quotes/ui/quote-linked-tasks-section';
 import { listClientsForOrg } from '@/modules/clients';
@@ -97,7 +95,6 @@ export default async function QuoteDetailPage({
     ? workEntityHref(convertedWorkKind, quote.convertedProjectId)
     : null;
 
-  const quoteActionButtonClass = 'w-full min-w-0 max-w-full sm:w-auto';
   const quoteActionSlotClass =
     'flex w-full min-w-0 max-w-full sm:w-auto [&_a]:w-full [&_a]:min-w-0 [&_a]:max-w-full [&_a]:justify-center sm:[&_a]:w-auto [&_button]:w-full [&_button]:min-w-0 [&_button]:max-w-full sm:[&_button]:w-auto';
 
@@ -117,10 +114,9 @@ export default async function QuoteDetailPage({
               <StatusBadge shape={quoteShape(quote.status)} label={tStatus(quote.status)} />
             </div>
             <div className="flex w-full min-w-0 max-w-full flex-wrap items-stretch gap-2">
-              <Button asChild variant="secondary" size="sm" className={quoteActionButtonClass}>
-                <Link href={reportPreviewPath('quote_estimate', quoteId)}>{t('detail.preview')}</Link>
-              </Button>
-              <QuotePrintButton label={t('detail.print')} />
+              <div className={quoteActionSlotClass}>
+                <ReportDownloadButtons kind="quote_estimate" id={quoteId} />
+              </div>
               <div className={quoteActionSlotClass}>
                 <PrepareMessageLink
                   entityType="quote"
@@ -128,9 +124,6 @@ export default async function QuoteDetailPage({
                   clientId={quote.clientId}
                   subject={quote.title}
                 />
-              </div>
-              <div className={quoteActionSlotClass}>
-                <ReportDownloadButtons kind="quote_estimate" id={quoteId} hidePreview />
               </div>
             </div>
           </div>

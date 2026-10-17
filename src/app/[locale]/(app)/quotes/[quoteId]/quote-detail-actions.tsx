@@ -156,16 +156,3 @@ export function QuoteDetailActions({
   );
 }
 
-export function QuotePrintButton({ label }: { label: string }) {
-  return (
-    <Button
-      type="button"
-      variant="secondary"
-      size="sm"
-      className="w-full min-w-0 max-w-full print:hidden sm:w-auto"
-      onClick={() => window.print()}
-    >
-      {label}
-    </Button>
-  );
-}

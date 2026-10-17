@@ -361,21 +361,25 @@ export function buildBrandedDocumentStyles(brand: DocumentBrandContext | null | 
       ${vars}
     }
     * { box-sizing: border-box; }
+    html, body { height: auto; overflow: visible; }
     body {
       font-family: ${fontFamily};
       margin: 0;
       color: #111;
       background: #fff;
+      font-size: 12pt;
+      line-height: 1.45;
     }
     .doc-sheet {
+      width: 100%;
       max-width: 210mm;
       margin: 0 auto;
-      padding: 16mm 14mm 18mm;
+      padding: 12mm 14mm 16mm;
     }
     .brand-accent-bar {
       height: 6px;
       background: var(--brand-primary);
-      margin: -16mm -14mm 12px;
+      margin: -12mm -14mm 12px;
     }
     .brand-header {
       display: flex;
@@ -467,7 +471,7 @@ export function buildBrandedDocumentStyles(brand: DocumentBrandContext | null | 
       max-width: 220px;
       margin: 0.35rem 0 0;
     }
-    h1 { font-size: 1.45rem; margin: 0 0 0.5rem; page-break-after: avoid; }
+    h1 { font-size: 16pt; margin: 0 0 0.5rem; page-break-after: avoid; break-after: avoid; }
     h2 {
       font-size: 1.05rem;
       margin-top: 1.25rem;
@@ -476,21 +480,31 @@ export function buildBrandedDocumentStyles(brand: DocumentBrandContext | null | 
       page-break-after: avoid;
       break-after: avoid;
     }
-    section { page-break-inside: avoid; break-inside: avoid; }
-    table { width: 100%; border-collapse: collapse; margin: 0.5rem 0 1rem; }
-    th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: start; vertical-align: top; }
+    section { break-inside: auto; page-break-inside: auto; }
+    table { width: 100%; border-collapse: collapse; margin: 0.5rem 0 1rem; table-layout: fixed; }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px 8px;
+      text-align: start;
+      vertical-align: top;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
     table.kv th { width: 34%; background: #f6f6f6; font-weight: 600; }
     .nature { display: inline-block; margin-inline-start: 0.4rem; font-size: 0.75rem; color: #444; }
     .meta, .note { color: #333; font-size: 0.9rem; }
+    @page { size: A4; margin: 12mm; }
     @media print {
-      @page { size: A4; margin: 12mm; }
-      body { margin: 0; background: #fff; }
-      .doc-sheet { max-width: none; padding: 0; }
+      html, body { height: auto; overflow: visible; background: #fff; }
+      body { margin: 0; font-size: 12pt; }
+      .doc-sheet { max-width: none; width: auto; padding: 0; }
       .brand-accent-bar { margin: 0 0 10px; }
       .toolbar { display: none !important; }
-      h2, section { page-break-inside: avoid; }
+      h1, h2 { break-after: avoid; page-break-after: avoid; }
       thead { display: table-header-group; }
-      tr { page-break-inside: avoid; }
+      tfoot { display: table-footer-group; }
+      tr, .brand-header, .brand-footer, .brand-signature-row { break-inside: avoid; page-break-inside: avoid; }
+      table, section { break-inside: auto; page-break-inside: auto; }
     }
   `;
 }
