@@ -211,25 +211,25 @@ export function DateRangeSelector({
 
       {/* Date inputs */}
       <div className="mt-2 flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex min-w-0 w-full flex-col gap-1 text-sm sm:w-auto sm:min-w-[10rem]">
           <span className="text-[var(--pf-text-secondary)]">{labels.from}</span>
           <input
             type="date"
             name={fromName}
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="h-9 min-w-[10rem] rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--pf-focus-ring)]"
+            className="h-9 w-full min-w-0 max-w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--pf-focus-ring)] sm:min-w-[10rem]"
             dir="ltr"
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex min-w-0 w-full flex-col gap-1 text-sm sm:w-auto sm:min-w-[10rem]">
           <span className="text-[var(--pf-text-secondary)]">{labels.to}</span>
           <input
             type="date"
             name={toName}
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="h-9 min-w-[10rem] rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--pf-focus-ring)]"
+            className="h-9 w-full min-w-0 max-w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--pf-focus-ring)] sm:min-w-[10rem]"
             dir="ltr"
           />
         </label>

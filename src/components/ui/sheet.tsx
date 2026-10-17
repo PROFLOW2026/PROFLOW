@@ -52,7 +52,7 @@ const SIDE_CLASSES: Record<SheetSide, string> = {
     SIDE_MOTION,
   ),
   bottom: cn(
-    'inset-x-0 bottom-0 mt-24 max-h-[90dvh] rounded-t-xl border-t border-[var(--pf-border-default)]',
+    'inset-x-0 bottom-0 mt-24 max-h-[90dvh] w-full max-w-full rounded-t-xl border-t border-[var(--pf-border-default)]',
     SIDE_MOTION,
     'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
   ),
@@ -80,7 +80,7 @@ export const SheetContent = React.forwardRef<
         ref={ref}
         dir={dir ?? localeDir}
         className={cn(
-          'fixed z-60 flex flex-col overflow-hidden bg-[var(--pf-bg-elevated)] shadow-[var(--pf-shadow-lg)] text-start',
+          'fixed z-60 flex min-w-0 max-w-full flex-col overflow-hidden bg-[var(--pf-bg-elevated)] shadow-[var(--pf-shadow-lg)] text-start break-words',
           SIDE_CLASSES[side],
           className,
         )}
@@ -113,7 +113,7 @@ export function SheetHeader({ className, ...props }: React.HTMLAttributes<HTMLDi
 }
 
 export function SheetBody({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex-1 overflow-y-auto px-5 py-4', className)} {...props} />;
+  return <div className={cn('min-w-0 flex-1 overflow-y-auto break-words px-5 py-4', className)} {...props} />;
 }
 
 export function SheetFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {

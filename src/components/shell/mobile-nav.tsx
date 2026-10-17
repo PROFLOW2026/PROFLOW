@@ -74,7 +74,7 @@ export function MobileNav({
       aria-label={tCommon('a11y.mainNavigation')}
       data-pf-mobile-nav=""
       className={cn(
-        'fixed inset-x-0 bottom-0 z-40 box-border flex min-w-0 flex-col border-t border-[var(--pf-border-default)]',
+        'fixed inset-x-0 bottom-0 z-40 box-border flex w-full min-w-0 max-w-full flex-col border-t border-[var(--pf-border-default)]',
         'bg-[var(--pf-bg-surface)] pb-[env(safe-area-inset-bottom,0px)] print:hidden lg:hidden',
       )}
     >

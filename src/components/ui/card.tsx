@@ -5,7 +5,7 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   return (
     <div
       className={cn(
-        'rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]',
+        'min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]',
         className,
       )}
       {...props}
@@ -38,7 +38,7 @@ export function CardFooter({ className, ...props }: React.HTMLAttributes<HTMLDiv
   return (
     <div
       className={cn(
-        'flex items-center gap-2 border-t border-[var(--pf-border-default)] px-4 py-3 sm:px-5',
+        'flex min-w-0 max-w-full flex-wrap items-center gap-2 border-t border-[var(--pf-border-default)] px-4 py-3 sm:px-5',
         className,
       )}
       {...props}

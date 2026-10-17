@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { bidiIsolate } from '@/shared/money';
 import type { InternalClaimDetail } from '@/modules/subcontract-claims';
 import { AssessmentHistory } from './assessment-history';
@@ -55,32 +56,32 @@ export function ClaimDetailPanel({
         <CardHeader>
           <CardTitle>{t('detail.lines')}</CardTitle>
         </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <table className="w-full min-w-[520px] text-sm">
-            <thead>
-              <tr className="text-start text-[var(--pf-text-muted)]">
-                <th className="pb-2 font-medium">{t('detail.line')}</th>
-                <th className="pb-2 font-medium text-end">{t('detail.revised')}</th>
-                <th className="pb-2 font-medium text-end">{t('list.submitted')}</th>
-                <th className="pb-2 font-medium text-end">{t('list.certified')}</th>
-              </tr>
-            </thead>
-            <tbody>
+        <CardContent className="min-w-0 max-w-full">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('detail.line')}</TableHead>
+                <TableHead numeric>{t('detail.revised')}</TableHead>
+                <TableHead numeric>{t('list.submitted')}</TableHead>
+                <TableHead numeric>{t('list.certified')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {detail.lines.map((line) => (
-                <tr key={line.claimLineId} className="border-t border-[var(--pf-border-subtle)]">
-                  <td className="py-2 pe-2">
+                <TableRow key={line.claimLineId}>
+                  <TableCell>
                     <span className="font-medium">{line.code ?? line.description}</span>
                     {line.code ? <span className="block text-xs text-[var(--pf-text-muted)]">{line.description}</span> : null}
-                  </td>
-                  <td className="py-2 text-end tabular-nums">{bidiIsolate(line.figures.revisedValue)}</td>
-                  <td className="py-2 text-end tabular-nums">{bidiIsolate(line.figures.currentSubmitted)}</td>
-                  <td className="py-2 text-end tabular-nums">
+                  </TableCell>
+                  <TableCell numeric>{bidiIsolate(line.figures.revisedValue)}</TableCell>
+                  <TableCell numeric>{bidiIsolate(line.figures.currentSubmitted)}</TableCell>
+                  <TableCell numeric>
                     {line.figures.currentCertified ? bidiIsolate(line.figures.currentCertified) : '—'}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
           <p className="mt-3 text-sm font-medium tabular-nums">
             {t('detail.totalsSubmitted')}: {bidiIsolate(detail.totals.currentSubmitted)}
             {detail.totals.currentCertified ? ` · ${t('detail.totalsCertified')}: ${bidiIsolate(detail.totals.currentCertified)}` : null}

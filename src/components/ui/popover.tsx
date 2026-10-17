@@ -23,7 +23,7 @@ export const PopoverContent = React.forwardRef<
         collisionPadding={12}
         dir={dir ?? localeDir}
         className={cn(
-          'z-40 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-elevated)] p-4 text-start',
+          'z-40 w-[min(20rem,calc(100vw-1.5rem))] max-w-[calc(100vw-1.5rem)] break-words rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-elevated)] p-4 text-start',
           'shadow-[var(--pf-shadow-md)] outline-none',
           className,
         )}

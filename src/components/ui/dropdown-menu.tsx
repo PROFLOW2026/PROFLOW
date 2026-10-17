@@ -33,10 +33,11 @@ export const DropdownMenuContent = React.forwardRef<
       <DropdownMenuPrimitive.Content
         ref={ref}
         sideOffset={sideOffset}
+        collisionPadding={8}
         // Radix omits `dir` from the content props type; the DOM attribute is still valid.
         {...{ dir: dir ?? localeDir }}
         className={cn(
-          'z-40 min-w-48 overflow-hidden rounded-md border border-[var(--pf-border-default)] text-start',
+          'z-40 max-h-[min(24rem,calc(100dvh-1.5rem))] min-w-0 w-[min(20rem,calc(100vw-1.5rem))] max-w-[calc(100vw-1.5rem)] overflow-y-auto break-words rounded-md border border-[var(--pf-border-default)] text-start',
           'bg-[var(--pf-bg-elevated)] p-1 shadow-[var(--pf-shadow-md)]',
           className,
         )}
@@ -54,7 +55,7 @@ export const DropdownMenuItem = React.forwardRef<
     <DropdownMenuPrimitive.Item
       ref={ref}
       className={cn(
-        'flex min-h-11 cursor-default select-none items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none',
+        'flex min-h-11 min-w-0 max-w-full cursor-default select-none flex-wrap items-center gap-2 break-words rounded-sm px-2 py-2 text-sm outline-none',
         pressableClassName,
         'data-[highlighted]:bg-[var(--pf-action-subtle-hover)]',
         'active:bg-[var(--pf-action-subtle-active)]',

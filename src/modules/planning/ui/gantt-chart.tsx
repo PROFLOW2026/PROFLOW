@@ -30,7 +30,26 @@ export function GanttChart({
   const focusPreds = new Set(focusedPredecessorIds);
 
   return (
-    <div className="w-full overflow-x-auto rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]">
+    <div className="min-w-0 max-w-full">
+      <ul className="flex min-w-0 max-w-full flex-col gap-2 md:hidden">
+        {model.bars.map((bar) => (
+          <li
+            key={bar.workItemId}
+            className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 py-2"
+          >
+            <p className="break-words text-sm font-medium">{bar.name}</p>
+            <p className="mt-1 break-words text-xs text-[var(--pf-text-secondary)]">
+              {messages.progress}: {Math.round(bar.progressPercent)}%
+              {bar.isMilestone ? ` · ${messages.milestone}` : null}
+              {bar.overdue ? ` · ${messages.overdue}` : null}
+              {bar.predecessorIds.length > 0
+                ? ` · ${messages.predecessors}: ${bar.predecessorIds.length}`
+                : null}
+            </p>
+          </li>
+        ))}
+      </ul>
+      <div className="hidden w-full min-w-0 max-w-full overflow-x-auto rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] md:block">
       <div className="flex min-w-0" dir={dir}>
         <ul
           className="shrink-0 border-[var(--pf-border-default)] text-start text-sm"
@@ -207,6 +226,7 @@ export function GanttChart({
             );
           })}
         </svg>
+      </div>
       </div>
     </div>
   );

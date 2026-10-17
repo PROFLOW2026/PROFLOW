@@ -2,7 +2,11 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
-import type { MonthlyAttendanceGrid, MonthlyCellKind } from '../application/attendance-owner-views';
+import type {
+  MonthlyAttendanceCell,
+  MonthlyAttendanceGrid,
+  MonthlyCellKind,
+} from '../application/attendance-owner-views';
 import { AttendanceMonthlyGridFilter } from './attendance-monthly-grid-filter';
 import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 
@@ -96,7 +100,7 @@ export async function AttendanceMonthlyGrid({
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Link
             href={monthlyHref({ yearMonth: prevMonth, employeeId: selectedEmployeeId, missingOnly })}
             className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--pf-border-default)]"
@@ -105,7 +109,7 @@ export async function AttendanceMonthlyGrid({
           >
             <ChevronRight className="h-4 w-4" />
           </Link>
-          <span className="min-w-[10rem] text-center text-sm font-medium">{formatMonthTitle(grid.yearMonth, locale)}</span>
+          <span className="min-w-0 text-center text-sm font-medium sm:min-w-[10rem]">{formatMonthTitle(grid.yearMonth, locale)}</span>
           <Link
             href={monthlyHref({ yearMonth: nextMonth, employeeId: selectedEmployeeId, missingOnly })}
             className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--pf-border-default)]"
@@ -126,7 +130,35 @@ export async function AttendanceMonthlyGrid({
       {grid.rows.length === 0 ? (
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('empty')}</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-[var(--pf-border-default)]">
+        <>
+        <div className="flex min-w-0 max-w-full flex-col gap-3 md:hidden">
+          {grid.rows.map((row) => (
+            <article
+              key={row.employeeId}
+              className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3"
+            >
+              <p className="break-words font-medium">{row.employeeName}</p>
+              {row.missingCount > 0 ? (
+                <p className="text-xs text-red-600 dark:text-red-400">
+                  {t('missingCount', { count: row.missingCount })}
+                </p>
+              ) : null}
+              <div className="mt-2 flex min-w-0 max-w-full flex-wrap gap-1">
+                {row.cells.map((cell) => (
+                  <MonthDayLink
+                    key={cell.workDate}
+                    cell={cell}
+                    employeeId={row.employeeId}
+                    yearMonth={grid.yearMonth}
+                    selectedDay={selectedDay}
+                    label={t(`legend.${cell.kind}`)}
+                  />
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+        <div className="hidden min-w-0 max-w-full overflow-x-auto rounded-xl border border-[var(--pf-border-default)] md:block">
           <table className="min-w-max border-collapse text-xs">
             <thead>
               <tr className="bg-[var(--pf-bg-subtle)]">
@@ -185,8 +217,49 @@ export async function AttendanceMonthlyGrid({
             </tbody>
           </table>
         </div>
+        </>
       )}
     </section>
+  );
+}
+
+function MonthDayLink({
+  cell,
+  employeeId,
+  yearMonth,
+  selectedDay,
+  label,
+}: {
+  cell: MonthlyAttendanceCell;
+  employeeId: string;
+  yearMonth: string;
+  selectedDay?: string;
+  label: string;
+}) {
+  const href = cell.dayId
+    ? `/workforce/attendance?dayId=${cell.dayId}&employeeId=${employeeId}&month=${yearMonth}`
+    : `/workforce/attendance?employeeId=${employeeId}&workDate=${cell.workDate}&update=1&month=${yearMonth}`;
+  const title = [
+    cell.workDate,
+    label,
+    cell.projectNames.length > 0 ? cell.projectNames.join(', ') : null,
+    cell.hours != null ? `${cell.hours}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+  return (
+    <Link
+      href={href}
+      title={title}
+      className={cn(
+        'flex min-h-11 min-w-11 flex-col items-center justify-center rounded border px-1 text-[10px] leading-tight',
+        CELL_STYLES[cell.kind],
+        selectedDay === cell.workDate && 'ring-2 ring-[var(--pf-action-primary)]',
+      )}
+    >
+      <span dir="ltr">{Number(cell.workDate.slice(8, 10))}</span>
+      <span>{cell.kind === 'missing' ? '!' : cell.hours != null ? Math.round(cell.hours) : '·'}</span>
+    </Link>
   );
 }
 
