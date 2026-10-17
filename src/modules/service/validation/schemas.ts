@@ -22,12 +22,38 @@ const optionalBoolean = z.preprocess((value) => {
   return value;
 }, z.boolean().optional());
 
+function rejectNegativeMoney(
+  amount: string | null | undefined,
+  ctx: z.RefinementCtx,
+  path: string,
+) {
+  const trimmed = amount?.trim();
+  if (!trimmed) return;
+  const numeric = Number(trimmed.replace(/,/g, ''));
+  if (trimmed.startsWith('-') || (Number.isFinite(numeric) && numeric < 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: [path],
+      message: 'validation.nonNegativeDecimalRequired',
+    });
+  }
+}
+
 export const createWorkOrderSchema = z
   .object({
-    name: z.string().trim().min(1, 'Work order name is required').max(200),
+    name: z.string().trim().min(1, 'validation.nameRequired').max(200, 'validation.nameTooLong'),
     description: optionalText,
     clientId: optionalUuid,
-    clientName: z.preprocess(emptyToNull, z.string().trim().min(1).max(200).nullable().optional()),
+    clientName: z.preprocess(
+      emptyToNull,
+      z
+        .string()
+        .trim()
+        .min(1, 'validation.clientNameRequired')
+        .max(200, 'validation.clientNameTooLong')
+        .nullable()
+        .optional(),
+    ),
     primaryContactId: optionalUuid,
     siteAddress: z.preprocess(emptyToNull, z.string().trim().max(500).nullable().optional()),
     contactName: z.preprocess(emptyToNull, z.string().trim().max(200).nullable().optional()),
@@ -58,21 +84,22 @@ export const createWorkOrderSchema = z
     if (!value.clientId && !value.clientName) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Customer is required',
+        message: 'validation.clientNameOrClientIdRequired',
         path: ['clientId'],
       });
     }
+    rejectNegativeMoney(value.priceAmount, ctx, 'priceAmount');
     if (value.pricingMode === 'fixed' && !value.priceAmount?.trim()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Price is required for fixed pricing',
+        message: 'validation.amountRequired',
         path: ['priceAmount'],
       });
     }
     if (value.pricingMode === 'open' && value.priceAmount?.trim()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Open pricing cannot set a contract amount at create',
+        message: 'validation.openPricingNoAmount',
         path: ['priceAmount'],
       });
     }
@@ -82,7 +109,7 @@ export const createWorkOrderSchema = z
       if (Number.isFinite(start) && Number.isFinite(end) && end < start) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Schedule end must be after start',
+          message: 'validation.endBeforeStart',
           path: ['scheduledEndAt'],
         });
       }
@@ -118,7 +145,7 @@ export const updateWorkOrderSchema = z
       if (Number.isFinite(start) && Number.isFinite(end) && end < start) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Schedule end must be after start',
+          message: 'validation.endBeforeStart',
           path: ['scheduledEndAt'],
         });
       }

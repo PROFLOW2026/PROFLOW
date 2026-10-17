@@ -75,8 +75,25 @@ function refineDateOrder<
 export const projectNameSchema = z
   .string()
   .trim()
-  .min(1, 'Project name is required')
-  .max(200, 'Project name must be at most 200 characters');
+  .min(1, 'validation.projectNameRequired')
+  .max(200, 'validation.nameTooLong');
+
+function rejectNegativeMoney(
+  amount: string | null | undefined,
+  ctx: z.RefinementCtx,
+  path: string,
+) {
+  const trimmed = amount?.trim();
+  if (!trimmed) return;
+  const numeric = Number(trimmed.replace(/,/g, ''));
+  if (trimmed.startsWith('-') || (Number.isFinite(numeric) && numeric < 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: [path],
+      message: 'validation.nonNegativeDecimalRequired',
+    });
+  }
+}
 
 const amountIncludesTaxSchema = z.preprocess((value) => {
   if (value === '' || value === null || value === undefined) return false;
@@ -101,7 +118,16 @@ export const createProjectSchema = z
     name: projectNameSchema,
     clientId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
     primaryContactId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
-    clientName: z.preprocess(emptyToNull, z.string().trim().min(1).max(200).nullable().optional()),
+    clientName: z.preprocess(
+      emptyToNull,
+      z
+        .string()
+        .trim()
+        .min(1, 'validation.clientNameRequired')
+        .max(200, 'validation.clientNameTooLong')
+        .nullable()
+        .optional(),
+    ),
     workKind: z.enum(WORK_KINDS).optional(),
     pricingMode: z.preprocess(emptyToNull, z.enum(PRICING_MODES).nullable().optional()),
     contractValueAmount: z.preprocess(emptyToNull, z.string().trim().nullable().optional()),
@@ -122,17 +148,18 @@ export const createProjectSchema = z
   })
   .superRefine((value, ctx) => {
     refineDateOrder(value, ctx, 'startDate', 'targetEndDate');
+    rejectNegativeMoney(value.contractValueAmount, ctx, 'contractValueAmount');
     if (value.openingReductionAmount && !value.contractValueAmount) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Opening reduction requires an original contract amount',
+        message: 'validation.openingReductionRequiresAmount',
         path: ['openingReductionAmount'],
       });
     }
     if (value.primaryContactId && !value.clientId) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Project contact requires a client',
+        message: 'validation.projectContactRequiresClient',
         path: ['primaryContactId'],
       });
     }
@@ -144,8 +171,8 @@ export type CreateProjectValues = z.output<typeof createProjectSchema>;
 const jobNameSchema = z
   .string()
   .trim()
-  .min(1, 'Job name is required')
-  .max(200, 'Job name must be at most 200 characters');
+  .min(1, 'validation.nameRequired')
+  .max(200, 'validation.nameTooLong');
 
 /**
  * Quick job creation - client + name + pricing mode + start date required.
@@ -156,12 +183,21 @@ export const createJobSchema = z
     name: jobNameSchema,
     description: optionalText,
     clientId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
-    clientName: z.preprocess(emptyToNull, z.string().trim().min(1).max(200).nullable().optional()),
+    clientName: z.preprocess(
+      emptyToNull,
+      z
+        .string()
+        .trim()
+        .min(1, 'validation.clientNameRequired')
+        .max(200, 'validation.clientNameTooLong')
+        .nullable()
+        .optional(),
+    ),
     pricingMode: z.enum(PRICING_MODES),
     priceAmount: z.preprocess(emptyToNull, z.string().trim().nullable().optional()),
     priceCurrency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
     amountIncludesTax: amountIncludesTaxSchema.optional(),
-    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Start date is required'),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'validation.invalidDate'),
     targetEndDate: optionalDate,
     notes: optionalText,
     /**
@@ -184,15 +220,16 @@ export const createJobSchema = z
     if (!value.clientId && !value.clientName) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Client is required',
+        message: 'validation.clientNameOrClientIdRequired',
         path: ['clientId'],
       });
     }
+    rejectNegativeMoney(value.priceAmount, ctx, 'priceAmount');
     if (value.pricingMode === 'fixed') {
       if (!value.priceAmount?.trim()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Price is required for fixed pricing',
+          message: 'validation.amountRequired',
           path: ['priceAmount'],
         });
       }
@@ -200,7 +237,7 @@ export const createJobSchema = z
     if (value.pricingMode === 'open' && value.priceAmount?.trim()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Open pricing cannot set a contract amount at create',
+        message: 'validation.openPricingNoAmount',
         path: ['priceAmount'],
       });
     }
@@ -266,14 +303,14 @@ export const updateProjectSchema = z
     if (value.openingReductionAmount && !value.contractValueAmount) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Opening reduction requires an original contract amount',
+        message: 'validation.openingReductionRequiresAmount',
         path: ['openingReductionAmount'],
       });
     }
     if (value.primaryContactId && value.clientId === null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Project contact requires a client',
+        message: 'validation.projectContactRequiresClient',
         path: ['primaryContactId'],
       });
     }
@@ -452,7 +489,7 @@ export const createAdditionalContractSchema = z
     if (value.openingReductionAmount && !value.enteredAmount) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Opening reduction requires an original contract amount',
+        message: 'validation.openingReductionRequiresAmount',
         path: ['openingReductionAmount'],
       });
     }

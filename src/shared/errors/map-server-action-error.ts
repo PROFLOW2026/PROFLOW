@@ -196,3 +196,17 @@ export function mapServerActionErrorMessage(
 export function isMappableServerActionError(error: unknown): error is AppError {
   return isAppError(error);
 }
+
+/**
+ * Next.js `redirect()` throws an error whose digest starts with NEXT_REDIRECT.
+ * Create actions must rethrow it. Any other error after a committed insert is not a redirect.
+ */
+export function isNextRedirectError(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'digest' in error &&
+    typeof (error as { digest?: unknown }).digest === 'string' &&
+    (error as { digest: string }).digest.startsWith('NEXT_REDIRECT')
+  );
+}

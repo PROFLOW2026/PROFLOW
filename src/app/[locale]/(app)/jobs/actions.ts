@@ -15,7 +15,9 @@ import {
   ValidationError,
   mapServerActionError,
 } from '@/shared/errors';
+import { isNextRedirectError } from '@/shared/errors/map-server-action-error';
 import { redirect } from '@/shared/i18n/navigation';
+import { logger } from '@/shared/observability';
 
 export interface JobFormState {
   error?: string;
@@ -38,6 +40,7 @@ async function mapValidationError(error: ValidationError): Promise<JobFormState>
   const tValidation = await getTranslations('validation');
   return mapServerActionError(error, {
     tErrors: (key) => tErrors(key as 'validationFailed'),
+    tValidation: (key) => tValidation(key as 'invalidDate'),
     fieldMessageOverrides: {
       [DATE_ORDER_MESSAGE]: tValidation('endBeforeStart'),
     },
@@ -78,6 +81,8 @@ export async function createJobAction(
     .getAll('employeeIds')
     .flatMap((value) => (typeof value === 'string' && value.trim() ? [value.trim()] : []));
 
+  let createdJobId: string | undefined;
+
   try {
     const result = await withOrgContext((context) =>
       createJob(context, {
@@ -96,6 +101,7 @@ export async function createJobAction(
       }),
     );
 
+    createdJobId = result.projectId;
     revalidatePath('/jobs');
     revalidatePath('/projects');
     revalidatePath(`/jobs/${result.projectId}`);
@@ -106,6 +112,13 @@ export async function createJobAction(
       employeeIds.length > 0 ? `/jobs/${result.projectId}?tab=team` : `/jobs/${result.projectId}`;
     redirect({ href, locale });
   } catch (error) {
+    if (isNextRedirectError(error)) throw error;
+    if (createdJobId) {
+      logger.error('createJobAction.post_save', {
+        errorName: error instanceof Error ? error.name : 'UnknownError',
+      });
+      redirect({ href: `/jobs/${createdJobId}`, locale });
+    }
     if (error instanceof ValidationError) return await mapValidationError(error);
     if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
     if (error instanceof AppError) return { error: tErrors('unexpected') };

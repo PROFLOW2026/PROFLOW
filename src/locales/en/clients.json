@@ -22,7 +22,7 @@
     "description": "Save the company (or household) name, and optionally the person to call - company phone is separate from the contact person.",
     "walkInHint": "For a walk-in client - save the company name now. Add a contact person if you already have a name and phone.",
     "companySection": "Company",
-    "companySectionHint": "The customer company or household - not a person.",
+    "companySectionHint": "The customer can be a company, a household, or a private person.",
     "nameLabel": "Company name",
     "namePlaceholder": "Company or household name",
     "contactSection": "Contact person",

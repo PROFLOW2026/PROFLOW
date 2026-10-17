@@ -64,5 +64,10 @@
   "taxVatNotImported": "שדות מס/מע״מ אינם מיובאים (מע״מ אינו רווח); הזינו מס בטופס ההוצאה במידת הצורך.",
   "noProjectOverheadWarning": "אין פרויקט. ההוצאה תיווצר כהוצאה כללית (טיוטה).",
   "orgUuidRequired": "חייב להיות UUID תקין בארגון זה.",
-  "financialAmountsNotOnProjects": "סכומים כספיים אינם מיובאים עם פרויקטים; השתמשו בייבוא opening_values."
+  "financialAmountsNotOnProjects": "סכומים כספיים אינם מיובאים עם פרויקטים; השתמשו בייבוא opening_values.",
+  "projectNameRequired": "שם הפרויקט הוא שדה חובה.",
+  "nameTooLong": "השם יכול להכיל עד 200 תווים.",
+  "openPricingNoAmount": "בתמחור פתוח אי אפשר לקבוע סכום ביצירה.",
+  "openingReductionRequiresAmount": "הפחתת פתיחה דורשת סכום חוזה מקורי.",
+  "projectContactRequiresClient": "איש קשר לפרויקט דורש לקוח."
 }

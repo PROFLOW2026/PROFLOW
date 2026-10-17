@@ -140,6 +140,24 @@ describe('job pricing - Scenario D (open then set price)', () => {
     });
     expect(openWithPrice.success).toBe(false);
 
+    const negative = createJobSchema.safeParse({
+      name: 'AC fix',
+      clientName: 'Walk-in Dana',
+      pricingMode: 'fixed',
+      priceAmount: '-10',
+      startDate: '2026-08-10',
+    });
+    expect(negative.success).toBe(false);
+    if (!negative.success) {
+      expect(
+        negative.error.issues.some(
+          (issue) =>
+            issue.path.join('.') === 'priceAmount' &&
+            issue.message === 'validation.nonNegativeDecimalRequired',
+        ),
+      ).toBe(true);
+    }
+
     const setPrice = setJobFixedPriceSchema.safeParse({
       jobId: '11111111-1111-4111-8111-111111111111',
       priceAmount: '4500',

@@ -64,5 +64,10 @@
   "taxVatNotImported": "Tax/VAT fields are not imported (VAT is not profit); enter tax on the expense form if needed.",
   "noProjectOverheadWarning": "No project — expense will be created as business overhead (draft).",
   "orgUuidRequired": "Must be a valid UUID in this organization.",
-  "financialAmountsNotOnProjects": "Financial amounts are not imported with projects; use the opening_values import kind."
+  "financialAmountsNotOnProjects": "Financial amounts are not imported with projects; use the opening_values import kind.",
+  "projectNameRequired": "Project name is required.",
+  "nameTooLong": "Name must be at most 200 characters.",
+  "openPricingNoAmount": "Open pricing cannot include an amount when creating.",
+  "openingReductionRequiresAmount": "Opening reduction requires an original contract amount.",
+  "projectContactRequiresClient": "A project contact requires a client."
 }

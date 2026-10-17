@@ -6,6 +6,7 @@ import {
   mapServerActionError,
   translateMessageKey,
 } from '@/shared/errors';
+import { isNextRedirectError } from '@/shared/errors/map-server-action-error';
 import {
   applySignedQuantityChange,
   assertCanReserve,
@@ -112,6 +113,12 @@ describe('mapServerActionError', () => {
     expect(inferMessageKey('validation.invalidDate')).toBe('validation.invalidDate');
     expect(inferMessageKey('assets.errors.foo')).toBe('assets.errors.foo');
     expect(inferMessageKey('Invalid date')).toBeNull();
+  });
+
+  it('recognizes Next redirect errors and ignores ordinary failures', () => {
+    expect(isNextRedirectError({ digest: 'NEXT_REDIRECT;replace;/jobs/1;307;' })).toBe(true);
+    expect(isNextRedirectError(new Error('NEXT_REDIRECT'))).toBe(false);
+    expect(isNextRedirectError({ digest: 'NEXT_HTTP_ERROR_FALLBACK;404' })).toBe(false);
   });
 
   it('translateMessageKey resolves namespace keys without leaking message', () => {
