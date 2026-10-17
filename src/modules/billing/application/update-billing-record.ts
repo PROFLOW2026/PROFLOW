@@ -1,5 +1,5 @@
 import { recordAuditEvent } from '@/shared/audit';
-import { NotFoundError, ValidationError } from '@/shared/errors';
+import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -11,6 +11,7 @@ import {
   taxAmountForStorage,
   type BillingVatMode,
 } from '../domain/tax';
+import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { money, toNumericString } from '@/shared/money';
 import { assertRetentionFitsTotal, resolveRetentionCapture } from '@/modules/retention';
 import { businessDate } from '@/shared/dates';
@@ -20,6 +21,7 @@ import {
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
 import {
+  billingRecordHasIssuedStatutoryDocument,
   findBillingRecordById,
   findChangeOrdersWithNetInProject,
   findProjectInOrganization,
@@ -51,6 +53,19 @@ export async function updateBillingRecord(context: OrgContext, rawInput: UpdateB
   );
   if (!existing) throw new NotFoundError('Billing record');
   assertEditable(existing.status);
+  if (
+    await billingRecordHasIssuedStatutoryDocument(
+      context.db,
+      context.organizationId,
+      input.billingRecordId,
+    )
+  ) {
+    throw new DomainRuleError(
+      'Issued statutory documents cannot be edited through the draft path',
+      'billing.errors.notEditable',
+      { billingRecordId: input.billingRecordId },
+    );
+  }
 
   const nextIssueDate = input.issueDate ? businessDate(input.issueDate) : existing.issueDate;
 
@@ -69,12 +84,18 @@ export async function updateBillingRecord(context: OrgContext, rawInput: UpdateB
   }
 
   const amount = input.amount ?? existing.totalAmount.amount;
+  const vatModeForAmounts = input.vatMode ?? (existing.vatMode as BillingVatMode | null);
+  const taxResolution =
+    vatModeForAmounts != null
+      ? await resolveApplicableDefaultTax(context, nextIssueDate)
+      : null;
   const amounts = resolveTaxAmounts({
     amount,
     netAmount: input.netAmount,
     taxAmount: input.taxAmount,
     currency,
-    vatMode: input.vatMode ?? (existing.vatMode as typeof input.vatMode),
+    vatMode: vatModeForAmounts,
+    resolved: taxResolution?.resolved ?? null,
   });
   const vatModeStored: BillingVatMode | null =
     inferBillingVatModeForCapture({

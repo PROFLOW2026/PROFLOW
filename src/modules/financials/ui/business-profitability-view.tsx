@@ -12,12 +12,14 @@ async function KpiCard({
   kpi,
   unavailable,
   unavailableLabel,
+  links = [],
 }: {
   title: string;
   hint: string;
   kpi: BusinessProfitabilityKpi;
   unavailable?: boolean;
   unavailableLabel: string;
+  links?: readonly { href: string; label: string }[];
 }) {
   return (
     <Card className="min-w-0">
@@ -33,10 +35,19 @@ async function KpiCard({
         ) : (
           <span className="text-sm text-[var(--pf-text-muted)]">—</span>
         )}
-        {kpi.href && !unavailable ? (
+        {kpi.href && !unavailable && links.length === 0 ? (
           <Link href={kpi.href} className={textNavLinkClassName}>
             →
           </Link>
+        ) : null}
+        {links.length > 0 && !unavailable ? (
+          <p className="flex flex-wrap gap-3 text-xs">
+            {links.map((link) => (
+              <Link key={link.href} href={link.href} className={textNavLinkClassName}>
+                {link.label}
+              </Link>
+            ))}
+          </p>
         ) : null}
       </CardContent>
     </Card>
@@ -170,6 +181,10 @@ export async function BusinessProfitabilityView({
             kpi={data.openCommitments}
             unavailable={!data.canReadProjectFinancials}
             unavailableLabel={t('unavailable')}
+            links={[
+              { href: '/procurement', label: tFinancial('drillLinks.viewPurchaseOrders') },
+              { href: '/subcontracts', label: tFinancial('drillLinks.viewSubcontractAgreements') },
+            ]}
           />
           <KpiCard
             title={t('kpis.expectedRemainingCost')}

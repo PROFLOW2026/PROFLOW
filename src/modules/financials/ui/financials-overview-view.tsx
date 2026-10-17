@@ -46,6 +46,7 @@ export async function FinancialsOverviewView({ data }: { readonly data: Financia
           <OverviewKpiCard
             title={t('recognizedActual')}
             hint={t('recognizedActualHint')}
+            basis={t('recognizedActualBasis')}
             kpi={data.costs.recognizedActual}
             drillLabel={t('drilldown')}
             unavailable={!data.canReadCosts}
@@ -70,6 +71,7 @@ export async function FinancialsOverviewView({ data }: { readonly data: Financia
           <OverviewKpiCard
             title={t('commitments')}
             hint={t('commitmentsHint')}
+            basis={t('commitmentsBasis')}
             kpi={data.costs.commitments}
             drillLabel={t('drilldown')}
             unavailable={!data.canReadCosts}
@@ -92,6 +94,7 @@ export async function FinancialsOverviewView({ data }: { readonly data: Financia
           <OverviewKpiCard
             title={t('billed')}
             hint={t('billedHint')}
+            basis={t('billedBasis')}
             kpi={data.revenue.billed}
             drillLabel={t('drilldown')}
             unavailable={!data.canReadBilling}
@@ -100,6 +103,7 @@ export async function FinancialsOverviewView({ data }: { readonly data: Financia
           <OverviewKpiCard
             title={t('collected')}
             hint={t('collectedHint')}
+            basis={t('collectedBasis')}
             kpi={data.revenue.collected}
             drillLabel={t('drilldown')}
             unavailable={!data.canReadBilling}
@@ -146,6 +150,7 @@ export async function FinancialsOverviewView({ data }: { readonly data: Financia
 function OverviewKpiCard({
   title,
   hint,
+  basis,
   kpi,
   drillLabel,
   unavailable,
@@ -153,6 +158,7 @@ function OverviewKpiCard({
 }: {
   title: string;
   hint: string;
+  basis?: string;
   kpi: FinancialsOverviewKpi;
   drillLabel: string;
   unavailable: boolean;
@@ -176,6 +182,7 @@ function OverviewKpiCard({
           </div>
         )}
         <p className="text-xs text-[var(--pf-text-muted)]">{hint}</p>
+        {basis ? <p className="text-xs text-[var(--pf-text-muted)]">{basis}</p> : null}
         <Link href={kpi.href} className={cn(textNavLinkClassName, 'text-xs')}>
           {drillLabel}
         </Link>

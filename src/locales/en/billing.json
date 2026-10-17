@@ -206,6 +206,13 @@
     "notes": "Notes",
     "submit": "Save payment"
   },
+  "draft": {
+    "title": "Edit draft",
+    "notTaxInvoice": "A draft is not a tax invoice. It stays out of receivables and profit.",
+    "save": "Save draft",
+    "overContract": "This draft amount is higher than the current contract value. You can still save and finalize.",
+    "void": "Void draft"
+  },
   "detail": {
     "title": "Billing record",
     "amountBreakdownTitle": "Amount breakdown",
@@ -235,6 +242,10 @@
     "voidRecordQuestion": "Void billing record {reference}?",
     "voidRecordConsequence": "It will be removed from Invoiced totals and cannot be restored.",
     "voidRecordSuccess": "Billing record voided.",
+    "voidDraftTitle": "Void draft",
+    "voidDraftQuestion": "Void draft {reference}?",
+    "voidDraftConsequence": "The draft is marked void and kept in history. It is not deleted.",
+    "voidDraftSuccess": "Draft voided.",
     "voidPaymentTitle": "Void payment",
     "voidPaymentQuestion": "Void the payment of <amount></amount> from <date></date>?",
     "voidPaymentConsequence": "This creates a reversal entry and cannot be undone.",
@@ -275,7 +286,8 @@
   "errors": {
     "notEditable": "Only draft billing records can be edited.",
     "notFinalizable": "Only draft billing records can be finalized.",
-    "notVoidable": "Only finalized billing records can be voided.",
+    "notVoidable": "Only a draft or a finalized billing record can be voided.",
+    "dueBeforeIssue": "The due date cannot be before the issue date.",
     "correctionNotVoidable": "Correcting entries cannot be voided again.",
     "paymentTargetNotFinalized": "Payments can only be recorded against finalized billing records.",
     "paymentNotVoidable": "Only recorded payments can be voided.",

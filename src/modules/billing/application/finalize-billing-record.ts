@@ -14,6 +14,7 @@ import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { money } from '@/shared/money';
 import { findBillingRecordById, updateBillingRecordRow } from '../data/billing.repository';
 import { captureCustomerSnapshot } from '../domain/customer-snapshot';
+import { assertFinalizeDueDateOrder } from '../domain/draft-rules';
 import { assertFinalizable } from '../domain/lifecycle';
 import { assertBillingVatExplicitForFinalize, captureTaxSnapshot } from '../domain/tax';
 import type { BillingVatMode } from '../domain/tax';
@@ -42,6 +43,7 @@ export async function finalizeBillingRecordCore(
   );
   if (!existing) throw new NotFoundError('Billing record');
   assertFinalizable(existing.status);
+  assertFinalizeDueDateOrder(existing.issueDate, existing.dueDate);
   assertBillingVatExplicitForFinalize({
     vatMode: existing.vatMode as BillingVatMode | null | undefined,
     subtotalAmount: existing.subtotalAmount,

@@ -59,7 +59,7 @@
     "currentProfitFormula": "Total contracts\n− recognized cost\n= current profit",
     "forecastCostWhat": "Expected final cost forecast for scoped projects.",
     "forecastCostFormula": "Recognized cost + commitments + expected remaining cost.",
-    "commitmentsWhat": "Open purchase-order commitments not yet expensed.",
+    "commitmentsWhat": "Open commitments (purchase orders and subcontracts) not yet recognized as cost.",
     "commitmentsFormula": "Sum of open commitments on scoped projects.",
     "labelOriginal": "Original contracts",
     "labelApproved": "Approved additions",
@@ -507,7 +507,7 @@
       "paid": "Paid cash",
       "outstanding": "Outstanding including VAT",
       "actualCost": "Direct recognized cost net",
-      "committed": "Committed (PO)",
+      "committed": "Open commitments (purchase orders and subcontracts)",
       "apPayable": "Vendor bills payable (Forecast)",
       "profit": "Estimated profit net"
     },

@@ -206,6 +206,13 @@
     "notes": "הערות",
     "submit": "שמירת תשלום"
   },
+  "draft": {
+    "title": "עריכת טיוטה",
+    "notTaxInvoice": "טיוטה אינה חשבונית מס. היא לא נכנסת לחייבים ולא לרווח.",
+    "save": "שמירת טיוטה",
+    "overContract": "סכום הטיוטה גבוה משווי החוזה הנוכחי. אפשר לשמור ולהפיק בכל זאת.",
+    "void": "ביטול טיוטה"
+  },
   "detail": {
     "title": "חיוב",
     "amountBreakdownTitle": "פירוט סכום",
@@ -235,6 +242,10 @@
     "voidRecordQuestion": "לבטל את החיוב {reference}?",
     "voidRecordConsequence": "החיוב יוסר מסך החיובים ולא ניתן לשחזר אותו.",
     "voidRecordSuccess": "החיוב בוטל.",
+    "voidDraftTitle": "ביטול טיוטה",
+    "voidDraftQuestion": "לבטל את הטיוטה {reference}?",
+    "voidDraftConsequence": "הטיוטה תסומן כמבוטלת ותישאר בהיסטוריה. היא לא תימחק.",
+    "voidDraftSuccess": "הטיוטה בוטלה.",
     "voidPaymentTitle": "ביטול תשלום",
     "voidPaymentQuestion": "לבטל את התשלום על סך <amount></amount> מתאריך <date></date>?",
     "voidPaymentConsequence": "הפעולה תיצור רישום היפוך ולא ניתן לבטל אותה.",
@@ -275,7 +286,8 @@
   "errors": {
     "notEditable": "ניתן לערוך רק חיובים בטיוטה.",
     "notFinalizable": "ניתן להפיק רק חיובים בטיוטה.",
-    "notVoidable": "ניתן לבטל רק חיובים סופיים.",
+    "notVoidable": "ניתן לבטל רק טיוטה או חיוב שהופק.",
+    "dueBeforeIssue": "תאריך הפירעון לא יכול להיות לפני תאריך ההפקה.",
     "correctionNotVoidable": "לא ניתן לבטל שוב רשומת תיקון.",
     "paymentTargetNotFinalized": "ניתן לרשום תשלום רק על חיוב סופי.",
     "paymentNotVoidable": "ניתן לבטל רק תשלום שרשום.",

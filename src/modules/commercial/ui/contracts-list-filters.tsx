@@ -15,8 +15,24 @@ interface ContractsListFiltersProps {
   initialType: string;
   initialClientId: string;
   initialProjectId: string;
+  selectedClientName?: string | null;
+  selectedProjectName?: string | null;
   clients: readonly Option[];
   projects: readonly Option[];
+}
+
+/** Keep a selected id that is missing from the option list from rendering as a raw uuid. */
+export function resolveNamedFilterValue(
+  selectedId: string,
+  options: readonly Option[],
+  loadedName: string | null | undefined,
+): { value: string; extra: Option | null } {
+  const id = selectedId.trim();
+  if (!id || id === 'all') return { value: 'all', extra: null };
+  if (options.some((option) => option.id === id)) return { value: id, extra: null };
+  const name = loadedName?.trim();
+  if (name && name !== id) return { value: id, extra: { id, name } };
+  return { value: 'all', extra: null };
 }
 
 export function ContractsListFilters({
@@ -24,11 +40,17 @@ export function ContractsListFilters({
   initialType,
   initialClientId,
   initialProjectId,
+  selectedClientName = null,
+  selectedProjectName = null,
   clients,
   projects,
 }: ContractsListFiltersProps) {
   const t = useTranslations('contracts');
   const tCommon = useTranslations('common');
+  const clientSelection = resolveNamedFilterValue(initialClientId, clients, selectedClientName);
+  const projectSelection = resolveNamedFilterValue(initialProjectId, projects, selectedProjectName);
+  const clientOptions = clientSelection.extra ? [...clients, clientSelection.extra] : clients;
+  const projectOptions = projectSelection.extra ? [...projects, projectSelection.extra] : projects;
 
   return (
     <form method="get" className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
@@ -65,13 +87,13 @@ export function ContractsListFilters({
       </Field>
       <Field label={t('list.columns.client')} className="min-w-0 sm:w-44">
         {(control) => (
-          <Select name="clientId" defaultValue={initialClientId || 'all'}>
+          <Select name="clientId" defaultValue={clientSelection.value}>
             <SelectTrigger id={control.id}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t('filters.all')}</SelectItem>
-              {clients.map((client) => (
+              {clientOptions.map((client) => (
                 <SelectItem key={client.id} value={client.id}>
                   {client.name}
                 </SelectItem>
@@ -82,13 +104,13 @@ export function ContractsListFilters({
       </Field>
       <Field label={t('list.columns.project')} className="min-w-0 sm:w-44">
         {(control) => (
-          <Select name="projectId" defaultValue={initialProjectId || 'all'}>
+          <Select name="projectId" defaultValue={projectSelection.value}>
             <SelectTrigger id={control.id}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t('filters.all')}</SelectItem>
-              {projects.map((project) => (
+              {projectOptions.map((project) => (
                 <SelectItem key={project.id} value={project.id}>
                   {project.name}
                 </SelectItem>

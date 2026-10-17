@@ -169,6 +169,16 @@ export async function HomeDashboardRestoredSections({
                 : undefined
             }
             detailCopy={triggerCopy}
+            footer={
+              <p className="flex flex-wrap gap-3 text-xs">
+                <Link href="/procurement" className={textNavLinkClassName}>
+                  {tFinancial('drillLinks.viewPurchaseOrders')}
+                </Link>
+                <Link href="/subcontracts" className={textNavLinkClassName}>
+                  {tFinancial('drillLinks.viewSubcontractAgreements')}
+                </Link>
+              </p>
+            }
           />
         </div>
       ) : null}

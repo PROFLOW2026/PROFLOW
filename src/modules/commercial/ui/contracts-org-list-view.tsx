@@ -48,9 +48,10 @@ function statusShape(status: string): StatusShape {
 }
 
 function projectContractsHref(surface: OrgListSurface, projectId: string): string {
-  const base =
-    surface === 'employee' ? `/employee/projects/${projectId}` : `/projects/${projectId}`;
-  return `${base}?tab=contracts`;
+  if (surface === 'employee') {
+    return `/employee/contracts?projectId=${encodeURIComponent(projectId)}`;
+  }
+  return `/projects/${projectId}?tab=contracts`;
 }
 
 export async function ContractsOrgListView({
@@ -120,6 +121,13 @@ export async function ContractsOrgListView({
           initialType={params.type ?? 'all'}
           initialClientId={params.clientId ?? ''}
           initialProjectId={params.projectId ?? ''}
+          selectedClientName={
+            items.find((item) => item.clientId && item.clientId === params.clientId)?.clientName ??
+            null
+          }
+          selectedProjectName={
+            items.find((item) => item.projectId === params.projectId)?.projectName ?? null
+          }
           clients={clients.map((client) => ({ id: client.id, name: client.name }))}
           projects={projects.map((project) => ({ id: project.id, name: project.name }))}
         />
@@ -146,48 +154,66 @@ export async function ContractsOrgListView({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {items.map((item) => (
+                    {items.map((item) => {
+                      const href = projectContractsHref(surface, item.projectId);
+                      return (
                       <TableRow key={item.id}>
-                        <TableCell>{item.clientName ?? '—'}</TableCell>
                         <TableCell>
-                          <Link
-                            href={projectContractsHref(surface, item.projectId)}
-                            className={cn(textNavLinkClassName, 'font-medium')}
-                          >
+                          <Link href={href} className="block text-inherit">
+                            {item.clientName ?? '—'}
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <Link href={href} className={cn(textNavLinkClassName, 'block font-medium')}>
                             {item.projectName}
                           </Link>
                         </TableCell>
-                        <TableCell>{t(`types.${item.contractType}`)}</TableCell>
                         <TableCell>
-                          <StatusBadge
-                            shape={statusShape(item.status)}
-                            label={t(`statuses.${item.status}`)}
-                          />
+                          <Link href={href} className="block text-inherit">
+                            {t(`types.${item.contractType}`)}
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <Link href={href} className="block">
+                            <StatusBadge
+                              shape={statusShape(item.status)}
+                              label={t(`statuses.${item.status}`)}
+                            />
+                          </Link>
                         </TableCell>
                         <TableCell dir="ltr">
-                          {item.contractNumber || item.name || '—'}
+                          <Link href={href} className="block text-inherit">
+                            {item.contractNumber || item.name || '—'}
+                          </Link>
                         </TableCell>
                         <TableCell>
-                          {item.originalAmount ? (
-                            <MoneyText value={money(item.originalAmount, item.currency)} />
-                          ) : (
-                            '—'
-                          )}
+                          <Link href={href} className="block text-inherit">
+                            {item.originalAmount ? (
+                              <MoneyText value={money(item.originalAmount, item.currency)} />
+                            ) : (
+                              '—'
+                            )}
+                          </Link>
                         </TableCell>
                         <TableCell>
-                          {item.currentAmount ? (
-                            <MoneyText value={money(item.currentAmount, item.currency)} />
-                          ) : (
-                            '—'
-                          )}
+                          <Link href={href} className="block text-inherit">
+                            {item.currentAmount ? (
+                              <MoneyText value={money(item.currentAmount, item.currency)} />
+                            ) : (
+                              '—'
+                            )}
+                          </Link>
                         </TableCell>
                         <TableCell>
-                          <span className="pf-ltr-island" dir="ltr">
-                            {[item.startDate, item.endDate].filter(Boolean).join(' → ') || '—'}
-                          </span>
+                          <Link href={href} className="block text-inherit">
+                            <span className="pf-ltr-island" dir="ltr">
+                              {[item.startDate, item.endDate].filter(Boolean).join(' → ') || '—'}
+                            </span>
+                          </Link>
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
