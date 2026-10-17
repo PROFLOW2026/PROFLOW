@@ -8,7 +8,7 @@
     "moduleLink": "Show Service in navigation (Settings)"
   },
   "list": {
-    "searchPlaceholder": "Search work orders…",
+    "searchPlaceholder": "Search service calls…",
     "filterStatus": "Status",
     "allStatuses": "All statuses",
     "unassigned": "Unassigned",
@@ -94,8 +94,8 @@
     "notes": "Notes"
   },
   "workspace": {
-    "fallbackTitle": "Work order",
-    "backToList": "All work orders",
+    "fallbackTitle": "Service call",
+    "backToList": "All service calls",
     "openDispatch": "Daily dispatch",
     "openField": "Field",
     "openExpenses": "Record expense",
@@ -124,10 +124,10 @@
   },
   "billing": {
     "title": "Bill this work",
-    "hint": "Creates a draft invoice with the existing billing engine. VAT is applied there. Billing is on this work order as a project; a primary contract is attached when one exists. You cannot bill the same work order twice while a live invoice exists.",
+    "hint": "Creates a draft invoice with the existing billing engine. VAT is applied there. Billing is on this service call as a project; a primary contract is attached when one exists. You cannot bill the same service call twice while a live invoice exists.",
     "submit": "Create billing",
     "created": "Draft billing created",
-    "alreadyBilled": "This work order already has a {status} invoice.",
+    "alreadyBilled": "This service call already has a {status} invoice.",
     "openBilling": "Open billing record",
     "laborHours": "Labor hours",
     "laborRate": "Labor rate",
@@ -140,12 +140,12 @@
     "negativeAmount": "Amounts must be zero or more",
     "discountExceeds": "Discount cannot exceed charges",
     "zeroAmount": "Enter an amount greater than zero",
-    "notWorkOrder": "Only work orders can be billed here",
-    "alreadyBilledError": "This work order already has a live billing record"
+    "notWorkOrder": "Only service calls can be billed here",
+    "alreadyBilledError": "This service call already has a live billing record"
   },
   "dispatch": {
     "title": "Dispatch",
-    "description": "Assign and reschedule today’s work orders. This is the daily board - not the resource calendar and not project Gantt planning.",
+    "description": "Assign and reschedule today’s service calls. This is the daily board - not the resource calendar and not project Gantt planning.",
     "overlapWarning": "This assignee already has an overlapping booking. Confirm to keep both, or pick a different time.",
     "confirmOverlap": "Assign anyway - times overlap",
     "windowLabel": "Window",
@@ -163,18 +163,18 @@
     "warningOverlappingBooking": "Saved. This assignee already has another booking in this time window.",
     "empty": {
       "title": "Nothing scheduled in this window",
-      "body": "Schedule a work order with a start time to see it here.",
-      "action": "Browse work orders"
+      "body": "Schedule a service call with a start time to see it here.",
+      "action": "Browse service calls"
     }
   },
   "recurring": {
     "title": "Recurring work",
-    "description": "Service contracts and scheduled templates. Generated work orders stay draft until work is done - never silent revenue.",
+    "description": "Service contracts and scheduled templates. Generated service calls stay draft until work is done - never silent revenue.",
     "draftsLink": "For recurring expense, vendor-bill, or billing drafts, see Recurring drafts under Money.",
     "new": "New recurring template",
     "empty": {
       "title": "No recurring templates yet",
-      "body": "Create a customer/site schedule. ProjectFlow will open draft work orders on each occurrence - you confirm work before money moves.",
+      "body": "Create a customer/site schedule. ProjectFlow will open draft service calls on each occurrence - you confirm work before money moves.",
       "action": "New recurring template"
     },
     "list": {
@@ -201,7 +201,7 @@
     },
     "occurrenceStatus": {
       "planned": "Planned",
-      "generated": "Work order opened",
+      "generated": "Service call opened",
       "skipped": "Skipped",
       "cancelled": "Cancelled"
     },
@@ -220,11 +220,11 @@
     "detail": {
       "title": "Recurring template",
       "history": "Occurrence history",
-      "generatedCount": "{count} work orders opened",
-      "noHistory": "No occurrences yet. Generate upcoming dates to open draft work orders.",
-      "openWorkOrder": "Open work order",
+      "generatedCount": "{count} service calls opened",
+      "noHistory": "No occurrences yet. Generate upcoming dates to open draft service calls.",
+      "openWorkOrder": "Open service call",
       "templatePriceHint": "Template price (not revenue)",
-      "financialNote": "Generated work orders are draft/scheduled only. Actual cost and revenue still require normal work completion and billing."
+      "financialNote": "Generated service calls are draft/scheduled only. Actual cost and revenue still require normal work completion and billing."
     },
     "fields": {
       "title": "Title",
@@ -251,8 +251,8 @@
       }
     },
     "actions": {
-      "generate": "Generate upcoming work orders",
-      "generateHint": "Opens draft/scheduled work orders through the next 30 days. Does not create Actual or invoices.",
+      "generate": "Generate upcoming service calls",
+      "generateHint": "Opens draft/scheduled service calls through the next 30 days. Does not create Actual or invoices.",
       "pause": "Pause",
       "resume": "Resume",
       "end": "End recurrence",
@@ -262,13 +262,13 @@
       "backToList": "All recurring templates"
     },
     "errors": {
-      "recurrenceNotActive": "Only active templates can generate work orders.",
+      "recurrenceNotActive": "Only active templates can generate service calls.",
       "recurrenceEnded": "This recurrence has ended.",
-      "occurrenceAlreadyGenerated": "This occurrence already opened a work order."
+      "occurrenceAlreadyGenerated": "This occurrence already opened a service call."
     },
     "success": {
       "created": "Recurring template created.",
-      "generated": "Opened {count} draft work orders.",
+      "generated": "Opened {count} draft service calls.",
       "paused": "Recurrence paused.",
       "resumed": "Recurrence resumed.",
       "ended": "Recurrence ended.",
@@ -277,7 +277,7 @@
   },
   "linkedTasks": {
     "title": "Linked tasks",
-    "empty": "No tasks linked to this work order yet.",
+    "empty": "No tasks linked to this service call yet.",
     "taskPickerLabel": "Task",
     "taskPickerPlaceholder": "Select a task…",
     "noTasksAvailable": "No linkable tasks",

@@ -6,6 +6,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { canTransitionServiceStatus } from '@/modules/service/domain/service-status';
 import { SERVICE_STATUSES, type ServiceStatus } from '@/modules/service/domain/types';
 import { updateServiceStatusAction, type WorkOrderFormState } from '../actions';
 
@@ -23,6 +24,9 @@ export function WorkOrderStatusForm({
     updateServiceStatusAction,
     {},
   );
+  const statusOptions = SERVICE_STATUSES.filter((status) =>
+    canTransitionServiceStatus(currentStatus, status),
+  );
 
   return (
     <form
@@ -32,12 +36,12 @@ export function WorkOrderStatusForm({
       <input type="hidden" name="workOrderId" value={workOrderId} />
       <Field label={t('create.quickStatusLabel')} className="min-w-0 flex-1">
         {(control) => (
-          <Select name="serviceStatus" defaultValue={currentStatus}>
+          <Select key={currentStatus} name="serviceStatus" defaultValue={currentStatus}>
             <SelectTrigger id={control.id}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {SERVICE_STATUSES.map((status) => (
+              {statusOptions.map((status) => (
                 <SelectItem key={status} value={status}>
                   {t(`status.${status}`)}
                 </SelectItem>

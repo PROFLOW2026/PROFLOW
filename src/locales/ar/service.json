@@ -277,7 +277,7 @@
   },
   "linkedTasks": {
     "title": "مهام مرتبطة",
-    "empty": "لا مهام مرتبطة بطلب العمل هذا بعد.",
+    "empty": "لا مهام مرتبطة بطلب الخدمة هذا بعد.",
     "taskPickerLabel": "مهمة",
     "taskPickerPlaceholder": "اختر مهمة…",
     "noTasksAvailable": "لا مهام متاحة للربط",

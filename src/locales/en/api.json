@@ -4,7 +4,7 @@
   "versionNote": "These keys are for developers connecting an external system. Signing in to the app does not replace a key.",
   "moreInfo": "More information",
   "versionNoteDetails": "Send the API key in the Authorization header. Browser sign-in does not apply to these keys.",
-  "addClient": "Create client",
+  "addClient": "Create API client",
   "clientSaved": "API client created.",
   "addKey": "Generate key",
   "keysTitle": "API keys",

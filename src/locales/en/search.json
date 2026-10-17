@@ -29,7 +29,7 @@
     "project": "Project",
     "task": "Task",
     "job": "Job",
-    "work_order": "Work order",
+    "work_order": "Service call",
     "client": "Client",
     "contact": "Contact",
     "employee": "Employee",

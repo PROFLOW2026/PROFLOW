@@ -94,7 +94,13 @@ export function ClientDetailView({
   const [clientTypeId, setClientTypeId] = useState(client.clientTypeId ?? '');
   const [paymentTermId, setPaymentTermId] = useState(client.defaultPaymentTermId ?? '');
   const [state, formAction, pending] = useActionState<ClientFormState, FormData>(
-    updateClientAction,
+    async (previous, formData) => {
+      const result = await updateClientAction(previous, formData);
+      if (result.error || (result.fieldErrors && Object.keys(result.fieldErrors).length > 0)) {
+        return result;
+      }
+      return result.ok ? result : { ...result, ok: true };
+    },
     {},
   );
   const [lifecyclePending, startLifecycle] = useTransition();
@@ -111,6 +117,7 @@ export function ClientDetailView({
         <form action={formAction} className="mx-auto flex w-full max-w-xl flex-col gap-4">
           <input type="hidden" name="clientId" value={client.id} />
           {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+          {state.ok && !state.error ? <Alert tone="success">{t('saved')}</Alert> : null}
 
           <Field label={tCommon('labels.name')} required>
             {(control) => <Input {...control} name="name" defaultValue={client.name} required />}
