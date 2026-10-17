@@ -7,6 +7,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { employeeUsernameFromAuthEmail } from '@/modules/employee-app/domain/username';
 import { PROJECT_ACCESS_MODES, type ProjectAccessMode } from '@/modules/projects/domain/project-access';
 import type { SettingsActionState } from '../actions';
 import {
@@ -44,7 +45,8 @@ export function ProjectAccessPanel({
 
   const memberName = (userId: string) => {
     const member = members.find((item) => item.userId === userId);
-    return member?.displayName || member?.email || userId;
+    if (!member) return userId;
+    return member.displayName || employeeUsernameFromAuthEmail(member.email) || member.email;
   };
   const projectName = (projectId: string) =>
     projects.find((item) => item.id === projectId)?.name ?? projectId;
@@ -61,7 +63,7 @@ export function ProjectAccessPanel({
         <Alert tone="warning">
           {t('accessAllBypassWarning', {
             names: accessAllMembers
-              .map((member) => member.displayName || member.email)
+              .map((member) => member.displayName || employeeUsernameFromAuthEmail(member.email) || member.email)
               .join(', '),
           })}
         </Alert>
@@ -110,7 +112,7 @@ export function ProjectAccessPanel({
                 <SelectContent>
                   {members.map((member) => (
                     <SelectItem key={member.userId} value={member.userId}>
-                      {member.displayName || member.email}
+                      {member.displayName || employeeUsernameFromAuthEmail(member.email) || member.email}
                     </SelectItem>
                   ))}
                 </SelectContent>

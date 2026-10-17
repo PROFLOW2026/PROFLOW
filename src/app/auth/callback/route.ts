@@ -9,6 +9,7 @@ import {
   resolveAuthLocale,
   safeAppPath,
 } from '@/shared/i18n/auth-locale';
+import { localeCookieSecure } from '@/shared/proxy/locale-cookie';
 import type { Locale } from '@/shared/i18n/config';
 
 /**
@@ -31,6 +32,7 @@ export async function GET(request: NextRequest) {
       path: '/',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 365,
+      secure: localeCookieSecure(request.nextUrl.protocol),
     });
     return response;
   };

@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import * as React from 'react';
-import { LOCALE_COOKIE_NAME } from '@/shared/i18n/auth-locale';
+import { writeClientLocaleCookie } from '@/shared/i18n/auth-locale';
 import { LOCALES, LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
 import { usePathname, useRouter } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
@@ -44,7 +44,7 @@ export function LocaleSwitcherInline({ className }: LocaleSwitcherInlineProps) {
             onClick={() => {
               if (active) return;
               startTransition(() => {
-                document.cookie = `${LOCALE_COOKIE_NAME}=${option}; path=/; max-age=31536000; samesite=lax`;
+                writeClientLocaleCookie(option);
                 router.replace(pathname, { locale: option });
               });
             }}

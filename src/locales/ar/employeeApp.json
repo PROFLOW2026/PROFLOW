@@ -11,7 +11,8 @@
     "accountBlocked": "الحساب محظور أو موقوف",
     "accountLocked": "محاولات كثيرة. حاول لاحقاً",
     "tempPinExpired": "انتهت صلاحية PIN المؤقت. تواصل مع المدير",
-    "backToCustomerLogin": "العودة لتسجيل دخول العميل"
+    "pinFormat": "يجب أن يتكوّن PIN من 6 أرقام بالضبط",
+    "backToCustomerLogin": "العودة لتسجيل دخول الأعمال"
   },
   "setPin": {
     "title": "تعيين PIN جديد",
@@ -550,6 +551,7 @@
     "invalidCredentials": "بيانات دخول غير صحيحة",
     "accountBlocked": "الحساب غير نشط",
     "accountLocked": "الحساب مقفل مؤقتاً",
+    "rateLimited": "محاولات كثيرة. حاول لاحقاً",
     "accessNotStarted": "لم يبدأ الوصول بعد",
     "accessExpired": "انتهى الوصول",
     "tempPinExpired": "انتهت صلاحية PIN المؤقت",

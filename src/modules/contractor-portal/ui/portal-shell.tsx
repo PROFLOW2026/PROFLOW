@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { pressableChromeClassName, pressableClassName } from '@/components/ui/pressable';
-import { LOCALE_COOKIE_NAME } from '@/shared/i18n/auth-locale';
+import { writeClientLocaleCookie } from '@/shared/i18n/auth-locale';
 import { LOCALES, LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
 import { Link, usePathname, useRouter } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
@@ -228,7 +228,7 @@ function UserMenu({
             onSelect={() => {
               if (option === locale) return;
               startTransition(async () => {
-                document.cookie = `${LOCALE_COOKIE_NAME}=${option}; path=/; max-age=31536000; samesite=lax`;
+                writeClientLocaleCookie(option);
                 await persistExternalPrincipalLocaleAction(option);
                 router.replace(pathname, { locale: option });
               });

@@ -20,5 +20,7 @@ describe('proxy locale cookie', () => {
     const response = NextResponse.next();
     persistLocaleCookieIfNeeded(request, response, 'en');
     expect(response.cookies.get(LOCALE_COOKIE_NAME)?.value).toBe('en');
+    const setCookie = response.headers.getSetCookie().join(';').toLowerCase();
+    expect(setCookie).toContain('secure');
   });
 });

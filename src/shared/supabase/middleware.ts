@@ -19,6 +19,9 @@ export async function refreshSupabaseSession(
   if (!url || !anonKey) return response;
 
   const supabase = createServerClient(url, anonKey, {
+    cookieOptions: {
+      secure: process.env.NODE_ENV === 'production' || request.nextUrl.protocol === 'https:',
+    },
     cookies: {
       getAll() {
         return request.cookies.getAll();

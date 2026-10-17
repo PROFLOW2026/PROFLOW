@@ -12,13 +12,14 @@ import { routing } from '@/shared/i18n/routing';
 import { persistLocaleCookieIfNeeded } from '@/shared/proxy/locale-cookie';
 import { shouldSkipProxySessionRefresh } from '@/shared/proxy/public-session-fast-path';
 import { refreshSupabaseSession } from '@/shared/supabase/middleware';
-import { REQUEST_PATHNAME_HEADER } from '@/shared/http/request-pathname';
+import { forwardRequestPathname, REQUEST_PATHNAME_HEADER } from '@/shared/http/request-pathname';
 import { decideContractorSurface } from '@/modules/contractor-access/domain/surface';
 import { logUsageRequestDiag } from '@/shared/observability/runtime-usage-diag';
 
-function withRequestPathname(response: NextResponse, pathname: string): NextResponse {
-  response.headers.set(REQUEST_PATHNAME_HEADER, pathname);
-  return response;
+function requestHeadersWithPathname(request: NextRequest, pathname: string): Headers {
+  const headers = new Headers(request.headers);
+  headers.set(REQUEST_PATHNAME_HEADER, pathname);
+  return headers;
 }
 
 const handleIntl = createIntlMiddleware(routing);
@@ -47,7 +48,11 @@ function localizeBarePath(request: NextRequest): NextResponse | null {
   url.pathname = prefixedPathname(pathname, locale);
 
   const response =
-    kind === 'rewrite-root' ? NextResponse.rewrite(url) : NextResponse.redirect(url);
+    kind === 'rewrite-root'
+      ? NextResponse.rewrite(url, {
+          request: { headers: requestHeadersWithPathname(request, pathname) },
+        })
+      : NextResponse.redirect(url);
   persistLocaleCookieIfNeeded(request, response, locale);
   return response;
 }
@@ -61,10 +66,10 @@ export default async function proxy(request: NextRequest) {
   if (bare) {
     const kind = barePathLocalization(pathname);
     if (!shouldRefreshSessionOnBarePath(kind)) {
-      return withRequestPathname(bare, pathname);
+      return forwardRequestPathname(bare, pathname);
     }
     const refreshed = await refreshSupabaseSession(request, bare);
-    return withRequestPathname(refreshed, pathname);
+    return forwardRequestPathname(refreshed, pathname);
   }
 
   const response = handleIntl(request);
@@ -74,13 +79,13 @@ export default async function proxy(request: NextRequest) {
   }
 
   if (shouldSkipProxySessionRefresh(request, pathname)) {
-    return withRequestPathname(response, pathname);
+    return forwardRequestPathname(response, pathname);
   }
 
   const refreshed = await refreshSupabaseSession(request, response, (user) =>
     contractorSurfaceRedirect(request, user),
   );
-  return withRequestPathname(refreshed, pathname);
+  return forwardRequestPathname(refreshed, pathname);
 }
 
 /** Contractor accounts never reach the org app; protected contractor pages need a session. */

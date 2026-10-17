@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   generateTemporaryPin,
   isValidPin,
+  LOGIN_LOCK_MS,
   MAX_LOGIN_ATTEMPTS,
   TEMP_PIN_TTL_MS,
   pinExpiryFromNow,
@@ -27,6 +28,7 @@ describe('employee app PIN', () => {
   });
 
   it('defines practical login lock thresholds', () => {
-    expect(MAX_LOGIN_ATTEMPTS).toBeGreaterThanOrEqual(3);
+    expect(MAX_LOGIN_ATTEMPTS).toBe(5);
+    expect(LOGIN_LOCK_MS).toBe(15 * 60 * 1000);
   });
 });
