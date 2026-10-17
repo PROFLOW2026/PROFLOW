@@ -9,6 +9,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { DomainRuleError, isAppError } from '@/shared/errors';
+import { postgresSqlState } from '@/shared/db/postgres-sql-state';
 import { logger } from '@/shared/observability';
 import { addMoney, fromNumericString, roundMoney, toNumericString, zeroMoney } from '@/shared/money';
 import { isMonthClosed, yearMonthFromBusinessDate } from '@/modules/month-close';
@@ -45,9 +46,13 @@ function observeGeneralCostRecomputeFailure(
   error: unknown,
   scope: Record<string, unknown>,
 ): never {
+  const sqlState = postgresSqlState(error);
+  const cause = error instanceof Error && error.cause instanceof Error ? error.cause.message : undefined;
   logger.error('financials.general_cost_recompute_failed', {
     ...scope,
     message: error instanceof Error ? error.message : String(error),
+    cause,
+    sqlState: sqlState && /^[0-9A-Z]{5}$/.test(sqlState) ? sqlState : null,
     messageKey: isAppError(error) ? error.messageKey : undefined,
   });
   if (isAppError(error)) throw error;

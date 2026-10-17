@@ -111,6 +111,10 @@ export async function attendanceOutcomeAction(
         }
       }
     }
+    if (error instanceof AppError && error.messageKey === 'financial.errors.generalCostRecomputeFailed') {
+      const tFinancial = await getTranslations('financial');
+      return { error: tFinancial('errors.generalCostRecomputeFailed') };
+    }
     if (error instanceof AppError) return { error: tErrors('validationFailed') };
     console.error('[attendance outcome action]', error);
     return { error: tErrors('unexpected') };

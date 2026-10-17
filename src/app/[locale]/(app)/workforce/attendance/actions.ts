@@ -92,6 +92,10 @@ async function mapAttendanceError(error: unknown): Promise<string> {
   }
 
   if (error instanceof ValidationError) return tErrors('validationFailed');
+  if (error instanceof AppError && error.messageKey === 'financial.errors.generalCostRecomputeFailed') {
+    const tFinancial = await getTranslations('financial');
+    return tFinancial('errors.generalCostRecomputeFailed');
+  }
   if (error instanceof AppError) return tErrors('unexpected');
   console.error('[attendance action]', error);
   return tErrors('unexpected');

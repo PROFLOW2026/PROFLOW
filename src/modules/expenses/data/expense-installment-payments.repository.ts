@@ -14,6 +14,7 @@ import {
 import { AUDIT_ACTIONS, type AuditAction } from '@/shared/audit/actions';
 import { redactSnapshot } from '@/shared/audit';
 import { isPostgresPermissionDenied, postgresSqlState } from '@/shared/db/postgres-sql-state';
+import { logger } from '@/shared/observability';
 import type { DbExecutor } from '@/shared/db/types';
 import type { ExpensePaymentAuditRow } from '../domain/expense-installment-payment-evidence';
 import {
@@ -28,6 +29,55 @@ const PAYMENT_ACTIONS = [
   AUDIT_ACTIONS.EXPENSE_PAYMENT_CONFIRMATION_VOIDED,
 ] as const;
 
+function readSqlRows<T>(result: unknown): T[] {
+  if (Array.isArray(result)) return result as T[];
+  if (result && typeof result === 'object' && Array.isArray((result as { rows?: unknown }).rows)) {
+    return (result as { rows: T[] }).rows;
+  }
+  return [];
+}
+
+function postgresCauseMessage(error: unknown): string | undefined {
+  let current: unknown = error;
+  for (let depth = 0; depth < 8 && current && typeof current === 'object'; depth += 1) {
+    const record = current as { message?: unknown; cause?: unknown };
+    if (depth > 0 && typeof record.message === 'string' && record.message.length > 0) {
+      return record.message;
+    }
+    current = record.cause;
+  }
+  return undefined;
+}
+
+/** Keep only the payment fields recognition reads, and coerce index text to a number. */
+export function normalizePaymentAuditAfter(value: unknown): unknown {
+  const parsed = typeof value === 'string'
+    ? (() => {
+        try {
+          return JSON.parse(value) as unknown;
+        } catch {
+          return null;
+        }
+      })()
+    : value;
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return parsed ?? null;
+  const record = { ...(parsed as Record<string, unknown>) };
+  const rawIndex = record.installmentIndex ?? record.installment_index;
+  if (typeof rawIndex === 'string' && /^-?\d+$/.test(rawIndex)) {
+    record.installmentIndex = Number(rawIndex);
+  }
+  return record;
+}
+
+/**
+ * Payment-confirmation audits for installment recognition.
+ *
+ * The previous Drizzle `IN` list mixed uuid and text parameters. On the
+ * production pooler (`prepare: false`) that statement failed inside the
+ * attendance transaction and rolled the whole retroactive save back.
+ * Cast both arrays explicitly, and if the read still fails, roll back only
+ * this statement so the ledger read and the attendance write can continue.
+ */
 export async function loadExpensePaymentAuditsByExpenseIds(
   db: DbExecutor,
   organizationId: string,
@@ -36,35 +86,63 @@ export async function loadExpensePaymentAuditsByExpenseIds(
   const map = new Map<string, ExpensePaymentAuditRow[]>();
   if (expenseIds.length === 0) return map;
 
-  const rows = await db
-    .select({
-      entityId: auditEvents.entityId,
-      action: auditEvents.action,
-      createdAt: auditEvents.createdAt,
-      after: auditEvents.after,
-    })
-    .from(auditEvents)
-    .where(
-      and(
-        eq(auditEvents.organizationId, organizationId),
-        eq(auditEvents.entityType, 'expense'),
-        inArray(auditEvents.entityId, [...expenseIds]),
-        inArray(auditEvents.action, [...PAYMENT_ACTIONS]),
-      ),
-    )
-    .orderBy(auditEvents.createdAt);
+  const readSavepoint = `expense_payment_audit_read_${++ledgerSavepointSeq}`;
+  await db.execute(sql.raw(`SAVEPOINT "${readSavepoint}"`));
+  try {
+    const rows = readSqlRows<{
+      entity_id: string | null;
+      action: string;
+      created_at: Date | string;
+      after: unknown;
+    }>(
+      await db.execute(sql`
+        select
+          entity_id,
+          action,
+          created_at,
+          case
+            when after is null then null
+            else jsonb_build_object(
+              'paidAt', after->>'paidAt',
+              'paid_at', after->>'paid_at',
+              'paidGrossAmount', coalesce(after->>'paidGrossAmount', after->>'paid_gross_amount'),
+              'installmentIndex', coalesce(after->>'installmentIndex', after->>'installment_index'),
+              'source', after->>'source'
+            )
+          end as after
+        from audit_events
+        where organization_id = ${organizationId}::uuid
+          and entity_type = 'expense'
+          and entity_id = any(${[...expenseIds]}::uuid[])
+          and action = any(${[...PAYMENT_ACTIONS]}::text[])
+        order by created_at
+      `),
+    );
+    await db.execute(sql.raw(`RELEASE SAVEPOINT "${readSavepoint}"`));
 
-  for (const row of rows) {
-    if (!row.entityId) continue;
-    const list = map.get(row.entityId) ?? [];
-    list.push({
-      action: row.action,
-      createdAt: row.createdAt.toISOString(),
-      after: row.after,
+    for (const row of rows) {
+      if (!row.entity_id) continue;
+      const createdAt = row.created_at instanceof Date
+        ? row.created_at.toISOString()
+        : new Date(row.created_at).toISOString();
+      const list = map.get(row.entity_id) ?? [];
+      list.push({
+        action: row.action,
+        createdAt,
+        after: normalizePaymentAuditAfter(row.after),
+      });
+      map.set(row.entity_id, list);
+    }
+    return map;
+  } catch (error) {
+    await db.execute(sql.raw(`ROLLBACK TO SAVEPOINT "${readSavepoint}"`));
+    logger.error('expenses.payment_audit_read_failed', {
+      sqlState: postgresSqlState(error) ?? null,
+      message: error instanceof Error ? error.message : String(error),
+      cause: postgresCauseMessage(error) ?? null,
     });
-    map.set(row.entityId, list);
+    return map;
   }
-  return map;
 }
 
 export type ExpenseInstallmentPaymentFields = {
