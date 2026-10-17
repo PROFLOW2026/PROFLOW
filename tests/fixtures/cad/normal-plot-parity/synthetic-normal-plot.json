@@ -1,0 +1,22 @@
+{
+  "normal": {
+    "texts": [
+      { "x": 0, "y": 0, "layer": "0", "t": "TITLE-A", "c": 4278190080 },
+      { "x": 12.5, "y": 4.25, "layer": "TEXT", "t": "NOTE-B", "c": 4278190080 },
+      { "x": -3.1, "y": 8, "layer": "ANNOT", "t": "LABEL-C", "c": 4278190335 }
+    ]
+  },
+  "plot": {
+    "texts": [
+      { "x": 0, "y": 0, "layer": "0", "t": "TITLE-A", "c": 4278190080 },
+      { "x": 12.5, "y": 4.25, "layer": "TEXT", "t": "NOTE-B", "c": 4278255615 },
+      { "x": -3.1, "y": 8, "layer": "ANNOT", "t": "LABEL-C", "c": 4278190335 }
+    ]
+  },
+  "plotMissingOne": {
+    "texts": [
+      { "x": 0, "y": 0, "layer": "0", "t": "TITLE-A", "c": 4278190080 },
+      { "x": 12.5, "y": 4.25, "layer": "TEXT", "t": "NOTE-B", "c": 4278190080 }
+    ]
+  }
+}
