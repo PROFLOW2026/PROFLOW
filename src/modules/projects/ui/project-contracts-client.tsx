@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -231,7 +232,7 @@ export function ProjectContractsClient({
                         ? `${contract.startDate ?? '-'} → ${contract.endDate ?? '-'}`
                         : null}
                       {contract.retentionPercent
-                        ? ` · ${t('retention')}: ${contract.retentionPercent}%`
+                        ? ` · ${t('retention')}: ${formatPercentDisplay(contract.retentionPercent)}`
                         : null}
                     </div>
                   ) : null}

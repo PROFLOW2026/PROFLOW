@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -198,7 +199,7 @@ function TaxRulesTable({
                     <TableCell>
                       {rule.ratePercent ? (
                         <span dir="ltr" className="pf-numeric">
-                          {rule.ratePercent}%
+                          {formatPercentDisplay(rule.ratePercent)}
                         </span>
                       ) : (
                         '-'
@@ -233,7 +234,7 @@ function TaxRulesTable({
           <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
             <p className="text-sm font-medium">{rule.name}</p>
             <p className="mt-1 text-sm" dir="ltr">
-              {rule.ratePercent ? `${rule.ratePercent}%` : '-'}
+              {rule.ratePercent ? formatPercentDisplay(rule.ratePercent) : '-'}
             </p>
             <p className="mt-1 text-xs text-[var(--pf-text-secondary)]" dir="ltr">
               {formatBusinessDate(rule.validFrom, locale)}

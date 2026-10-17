@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import type { GanttModel } from '../domain/types';
+import { formatPercentDisplay } from '@/shared/number/display';
 import type { PlanningMessages } from './messages';
 
 const ROW_H = 36;
@@ -202,7 +203,7 @@ export function GanttChart({
                   y={y + 14}
                   fontSize={11}
                   fill="var(--pf-text-primary)"
-                >{`${Math.round(bar.progressPercent)}%`}</text>
+                >{formatPercentDisplay(bar.progressPercent)}</text>
               </g>
             );
           })}

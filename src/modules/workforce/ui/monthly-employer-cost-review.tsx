@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import {
   applyMonthlyEmployerCostAllocationAction as ownerApplyMonthlyEmployerCostAllocationAction,
   correctMonthlyEmployerCostActualAction as ownerCorrectMonthlyEmployerCostActualAction,
@@ -364,7 +365,7 @@ export function MonthlyEmployerCostReview({
       {Number(pendingSubmittedHours) > 0 ? (
         <Alert tone="warning">
           {t('monthReview.pendingSubmittedHoursBanner', {
-            hours: Number(pendingSubmittedHours).toFixed(2).replace(/\.?0+$/, ''),
+            hours: formatDecimalDisplay(pendingSubmittedHours),
           })}
         </Alert>
       ) : null}

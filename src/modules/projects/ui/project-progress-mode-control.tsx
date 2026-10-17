@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { useRouter } from '@/shared/i18n/navigation';
 import {
   loadProjectProgressViewAction,
@@ -87,7 +88,7 @@ export function ProjectProgressModeControl({
             <>
               <p className="mt-1 font-medium text-[var(--pf-text-primary)]">
                 {shown.displayedPercent != null
-                  ? `${t('progressDerived')}: ${shown.displayedPercent}%`
+                  ? `${t('progressDerived')}: ${formatPercentDisplay(shown.displayedPercent)}`
                   : t('progressDerivedEmpty')}
               </p>
               {shown.contributingCount > 0 ? (

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
@@ -9,6 +9,7 @@ import { getQuoteById, isQuoteEditable, type QuoteStatus } from '@/modules/quote
 import { findProjectById } from '@/modules/projects';
 import { workEntityHref } from '@/modules/search/domain/hrefs';
 import { money } from '@/shared/money';
+import { formatDecimalDisplay, formatPercentDisplay } from '@/shared/number/display';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -59,6 +60,7 @@ export default async function QuoteDetailPage({
   params: Promise<{ quoteId: string }>;
 }) {
   const { quoteId } = await params;
+  const locale = await getLocale();
   const t = await getTranslations('quotes');
   const tStatus = await getTranslations('status.estimateQuote');
   const tTax = await getTranslations('quotes.taxModes');
@@ -151,7 +153,7 @@ export default async function QuoteDetailPage({
                 <TableCell>{line.description}</TableCell>
                 <TableCell>
                   <span className="pf-ltr-island" dir="ltr">
-                    {line.quantity}
+                    {formatDecimalDisplay(line.quantity, locale)}
                   </span>
                 </TableCell>
                 <TableCell>{line.unit ?? '-'}</TableCell>
@@ -219,7 +221,9 @@ export default async function QuoteDetailPage({
               <dt className="text-[var(--pf-text-secondary)]">{t('detail.estimatedMargin')}</dt>
               <dd>
                 <span className="pf-ltr-island" dir="ltr">
-                  {quote.estimatedMarginPercent ?? '-'}%
+                  {quote.estimatedMarginPercent != null
+                    ? formatPercentDisplay(quote.estimatedMarginPercent, locale)
+                    : '-%'}
                 </span>
                 <span className="ms-2 text-xs text-[var(--pf-text-secondary)]">
                   ({t('detail.notRevenue')})
@@ -251,7 +255,7 @@ export default async function QuoteDetailPage({
                 <dt className="text-[var(--pf-text-secondary)]">{t('create.discountPercentLabel')}</dt>
                 <dd>
                   <span className="pf-ltr-island" dir="ltr">
-                    {quote.discountPercent}%
+                    {formatPercentDisplay(quote.discountPercent, locale)}
                   </span>
                 </dd>
               </div>

@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js';
 import { ClipboardList } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import {
   computeNetApprovedChanges,
@@ -17,6 +17,7 @@ import {
 import { listImportableKinds } from '@/modules/imports';
 import { ImportWizardLazy } from '@/modules/imports/ui/import-wizard-lazy';
 import { fromNumericString, zeroMoney } from '@/shared/money';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -42,6 +43,7 @@ export interface ProjectBoqPanelProps {
 }
 
 export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanelProps) {
+  const locale = await getLocale();
   const t = await getTranslations('boq');
   const tExpenses = await getTranslations('expenses');
 
@@ -294,19 +296,19 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
           <div className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{t('kpis.performed')}</p>
             <p className="text-lg font-semibold" dir="ltr">
-              {performedQty.toFixed()}
+              {formatDecimalDisplay(performedQty.toString(), locale)}
             </p>
           </div>
           <div className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{t('kpis.billed')}</p>
             <p className="text-lg font-semibold" dir="ltr">
-              {billedQty.toFixed()}
+              {formatDecimalDisplay(billedQty.toString(), locale)}
             </p>
           </div>
           <div className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{t('kpis.remaining')}</p>
             <p className="text-lg font-semibold" dir="ltr">
-              {remainingQty.toFixed()}
+              {formatDecimalDisplay(remainingQty.toString(), locale)}
             </p>
           </div>
         </section>

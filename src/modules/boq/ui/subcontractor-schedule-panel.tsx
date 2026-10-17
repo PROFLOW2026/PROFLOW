@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { localizeCode } from '@/shared/i18n/code-display';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -271,7 +272,7 @@ export function SubcontractorSchedulePanel({
                 {agreementsForVendor.map((agreement) => (
                   <option key={agreement.id} value={agreement.id}>
                     {agreement.title}
-                    {agreement.retentionPercent ? ` · ${agreement.retentionPercent}%` : ''}
+                    {agreement.retentionPercent ? ` · ${formatPercentDisplay(agreement.retentionPercent, locale)}` : ''}
                   </option>
                 ))}
               </select>

@@ -3,6 +3,7 @@
 import { useLocale } from 'next-intl';
 import { useState } from 'react';
 import { MoneyText } from '@/components/patterns/money-text';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { Link } from '@/shared/i18n/navigation';
 import {
@@ -113,12 +114,12 @@ export function AllocatedGeneralDetailPanel({
                 </p>
                 {showPoolWeight ? (
                   <p>
-                    {copy.poolWeightPercent}: {row.poolWeightPercent}%
+                    {copy.poolWeightPercent}: {formatPercentDisplay(row.poolWeightPercent, locale)}
                   </p>
                 ) : null}
                 {row.informationalPercent ? (
                   <p className="text-[var(--pf-text-muted)]">
-                    {copy.informationalPercent}: {row.informationalPercent}%
+                    {copy.informationalPercent}: {formatPercentDisplay(row.informationalPercent, locale)}
                   </p>
                 ) : null}
                 {methodLabel ? (
@@ -139,7 +140,7 @@ export function AllocatedGeneralDetailPanel({
                           </p>
                           {slice.poolWeightPercent ? (
                             <p>
-                              {copy.poolWeightPercent}: {slice.poolWeightPercent}%
+                              {copy.poolWeightPercent}: {formatPercentDisplay(slice.poolWeightPercent, locale)}
                             </p>
                           ) : null}
                           <p className="flex justify-between gap-2">

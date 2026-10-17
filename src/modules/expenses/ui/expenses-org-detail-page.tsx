@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { MoneyText } from '@/components/patterns/money-text';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { ContextualBackLink } from '@/components/ui/contextual-back-link';
@@ -452,7 +453,7 @@ export async function ExpensesOrgDetailPage({
                         line.projectId}
                     </p>
                     {line.method === 'manual_percent' && line.percent ? (
-                      <p className="text-xs text-[var(--pf-text-muted)]">{line.percent}%</p>
+                      <p className="text-xs text-[var(--pf-text-muted)]">{formatPercentDisplay(line.percent, locale)}</p>
                     ) : null}
                     <MoneyText value={line.amount} className="text-sm font-medium" />
                   </div>

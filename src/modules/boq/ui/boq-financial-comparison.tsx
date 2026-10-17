@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import type { BoqFinancialComparison } from '../application/compare-boq-financials';
+import { formatPercentDisplay } from '@/shared/number/display';
 
 export interface BoqFinancialComparisonStripProps {
   readonly comparison: BoqFinancialComparison;
@@ -29,7 +30,7 @@ export async function BoqFinancialComparisonStrip({
           <dt className="text-xs text-[var(--pf-text-muted)]">{t('comparison.physicalProgress')}</dt>
           <dd>
             {comparison.physicalProgressPercent != null
-              ? `${comparison.physicalProgressPercent}%`
+              ? formatPercentDisplay(comparison.physicalProgressPercent)
               : '-'}
           </dd>
         </div>

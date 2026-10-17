@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { withOrgContext } from '@/shared/auth/session';
 import {
   findEmployeePmTaskOpenApprovalRequest,
@@ -212,7 +213,7 @@ export default async function EmployeePmTaskDetailPage({ params, searchParams }:
         <h2 className={employeeSectionTitleClass}>{t('reportedTimeLabel')}</h2>
         <p className="text-sm text-[var(--pf-text-primary)]">
           {t('reportedTimeHours', {
-            hours: Number(reportedHours).toLocaleString(locale, { maximumFractionDigits: 2 }),
+            hours: formatDecimalDisplay(reportedHours, locale),
           })}
         </p>
         {canLogTime && task.projectId ? (

@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo, useState, useActionState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -30,6 +31,7 @@ export function PurchaseOrderReceiveForm({
   defaultReceivedOn: string;
   lines: readonly ReceiveFormLine[];
 }) {
+  const locale = useLocale();
   const t = useTranslations('procurement.receive');
   const tCommon = useTranslations('common');
   const receivableLines = useMemo(() => lines.filter((line) => hasRemaining(line.remainingQuantity)), [lines]);
@@ -101,19 +103,19 @@ export function PurchaseOrderReceiveForm({
             <div className="flex items-baseline justify-between gap-2">
               <span className="text-[var(--pf-text-muted)]">{t('ordered')}</span>
               <span className="pf-numeric pf-ltr-island" dir="ltr">
-                {line.quantity}
+                {formatDecimalDisplay(line.quantity, locale)}
               </span>
             </div>
             <div className="flex items-baseline justify-between gap-2">
               <span className="text-[var(--pf-text-muted)]">{t('received')}</span>
               <span className="pf-numeric pf-ltr-island" dir="ltr">
-                {line.receivedQuantity}
+                {formatDecimalDisplay(line.receivedQuantity, locale)}
               </span>
             </div>
             <div className="flex items-baseline justify-between gap-2">
               <span className="text-[var(--pf-text-muted)]">{t('remaining')}</span>
               <span className="pf-numeric pf-ltr-island" dir="ltr">
-                {line.remainingQuantity}
+                {formatDecimalDisplay(line.remainingQuantity, locale)}
               </span>
             </div>
           </div>

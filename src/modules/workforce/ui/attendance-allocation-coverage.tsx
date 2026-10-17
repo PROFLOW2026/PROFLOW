@@ -12,7 +12,8 @@
  *   project allocation. These are candidates for follow-up or overhead coding.
  */
 
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { withOrgContext } from '@/shared/auth/session';
 import { getAttendanceAllocationCoverage } from '../application/attendance-owner-views';
 
@@ -20,13 +21,10 @@ interface Props {
   readonly yearMonth: string;
 }
 
-function formatHours(h: number): string {
-  if (h % 1 === 0) return String(h);
-  return h.toFixed(1);
-}
-
 export async function AttendanceAllocationCoveragePanel({ yearMonth }: Props) {
+  const locale = await getLocale();
   const t = await getTranslations('workforce.allocationCoverage');
+  const formatHours = (h: number) => formatDecimalDisplay(h, locale);
 
   const coverage = await withOrgContext(async (context) => {
     return getAttendanceAllocationCoverage(context, yearMonth).catch(() => null);

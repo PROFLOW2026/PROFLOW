@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,6 +13,7 @@ import { listEmployeesForOrg } from '@/modules/workforce';
 import { peekOpsExpenseLinksForRecords } from '@/modules/ops-finance';
 import { CreateLinkedExpenseForm } from '@/modules/ops-finance/ui/create-linked-expense-form';
 import { withOrgContext } from '@/shared/auth/session';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { todayInTimeZone } from '@/shared/dates';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
@@ -33,6 +34,7 @@ export interface ProjectUsagePanelProps {
  * Material + equipment attribution only - never Actual cost.
  */
 export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
+  const locale = await getLocale();
   const t = await getTranslations('assets.usage');
 
   const data = await withOrgContext(async (context) => {
@@ -185,7 +187,7 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
                           {row.description}
                         </TableCell>
                         <TableCell numeric>
-                          <span dir="ltr">{row.quantity}</span>
+                          <span dir="ltr">{formatDecimalDisplay(row.quantity, locale)}</span>
                         </TableCell>
                         <TableCell>{row.unit ?? '-'}</TableCell>
                         <TableCell className="max-w-[12rem] truncate text-[var(--pf-text-secondary)]">

@@ -7,6 +7,7 @@ import { getPurchaseOrderById, type PurchaseOrderStatus } from '@/modules/procur
 import { withOrgContext } from '@/shared/auth/session';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { money } from '@/shared/money/money';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -88,11 +89,11 @@ export default async function EmployeePurchaseOrderDetailPage({
             >
               <p className="font-medium">{line.description}</p>
               <p className="text-[var(--pf-text-secondary)]" dir="ltr">
-                {tProcurement('receive.ordered')}: {line.quantity}
+                {tProcurement('receive.ordered')}: {formatDecimalDisplay(line.quantity, locale)}
                 {' · '}
-                {tProcurement('receive.received')}: {line.receivedQuantity}
+                {tProcurement('receive.received')}: {formatDecimalDisplay(line.receivedQuantity, locale)}
                 {' · '}
-                {tProcurement('receive.remaining')}: {line.remainingQuantity}
+                {tProcurement('receive.remaining')}: {formatDecimalDisplay(line.remainingQuantity, locale)}
               </p>
             </li>
           ))}

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import { PageHeader } from '@/components/ui/page-header';
 import { Alert } from '@/components/ui/alert';
@@ -17,6 +17,7 @@ import {
 } from '@/modules/procurement';
 import { todayInTimeZone } from '@/shared/dates';
 import { money } from '@/shared/money/money';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -103,6 +104,7 @@ export default async function PurchaseOrderDetailPage({
   params: Promise<{ purchaseOrderId: string }>;
 }) {
   const { purchaseOrderId } = await params;
+  const locale = await getLocale();
   const t = await getTranslations('procurement');
 
   const data = await withOrgContext(async (context) => {
@@ -207,25 +209,25 @@ export default async function PurchaseOrderDetailPage({
             <div className="flex items-baseline justify-between gap-2">
               <span className="text-[var(--pf-text-muted)]">{t('receive.ordered')}</span>
               <span className="pf-numeric pf-ltr-island" dir="ltr">
-                {line.quantity}
+                {formatDecimalDisplay(line.quantity, locale)}
               </span>
             </div>
             <div className="flex items-baseline justify-between gap-2">
               <span className="text-[var(--pf-text-muted)]">{t('receive.received')}</span>
               <span className="pf-numeric pf-ltr-island" dir="ltr">
-                {line.receivedQuantity}
+                {formatDecimalDisplay(line.receivedQuantity, locale)}
               </span>
             </div>
             <div className="flex items-baseline justify-between gap-2">
               <span className="text-[var(--pf-text-muted)]">{t('detail.quantities.invoiced')}</span>
               <span className="pf-numeric pf-ltr-island" dir="ltr">
-                {line.invoicedQuantity}
+                {formatDecimalDisplay(line.invoicedQuantity, locale)}
               </span>
             </div>
             <div className="flex items-baseline justify-between gap-2">
               <span className="text-[var(--pf-text-muted)]">{t('receive.remaining')}</span>
               <span className="pf-numeric pf-ltr-island" dir="ltr">
-                {line.remainingQuantity}
+                {formatDecimalDisplay(line.remainingQuantity, locale)}
               </span>
             </div>
             {quantityFlagRows(line.quantityFlags, t).map((flag) => (
@@ -285,7 +287,7 @@ export default async function PurchaseOrderDetailPage({
                 <div key={line.id} className="flex items-baseline justify-between gap-2">
                   <span className="text-[var(--pf-text-muted)]">{t('receive.quantity')}</span>
                   <span className="pf-numeric pf-ltr-island" dir="ltr">
-                    {line.quantity}
+                    {formatDecimalDisplay(line.quantity, locale)}
                   </span>
                 </div>
               ))}

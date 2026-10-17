@@ -1,5 +1,6 @@
 import { MetricDrilldown } from './metric-drilldown';
 import { MoneyText } from '@/components/patterns/money-text';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { AllocatedGeneralOfWhichNote } from './project-actual-breakdown-view';
 import { DataConfidenceBadge } from './data-confidence-badge';
 import { resolveExplanationSourceHref } from './explainability-links';
@@ -650,7 +651,7 @@ export function ProjectFinancialsKpiPanel({
                 ? [
                     {
                       label: t('margin'),
-                      hint: `${kpis.actualMarginPercent}%`,
+                      hint: formatPercentDisplay(kpis.actualMarginPercent),
                       muted: true as const,
                     },
                   ]
@@ -679,7 +680,7 @@ export function ProjectFinancialsKpiPanel({
               ? [
                   {
                     label: t('margin'),
-                    hint: `${kpis.afterGeneralProfitPercent}%`,
+                    hint: formatPercentDisplay(kpis.afterGeneralProfitPercent),
                     muted: true as const,
                   },
                 ]
@@ -710,7 +711,7 @@ export function ProjectFinancialsKpiPanel({
                 ? [
                     {
                       label: t('margin'),
-                      hint: `${kpis.forecastMarginPercent}%`,
+                      hint: formatPercentDisplay(kpis.forecastMarginPercent),
                       muted: true as const,
                     },
                   ]

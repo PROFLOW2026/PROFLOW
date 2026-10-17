@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { localizeCode } from '@/shared/i18n/code-display';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { Alert } from '@/components/ui/alert';
@@ -281,7 +282,7 @@ function LaborDefaultsForm({
                     ? t('componentPercent')
                     : t('componentFixedAmount')}
                   {component.basis === 'percent' && component.percent
-                    ? ` ${component.percent}%`
+                    ? ` ${formatPercentDisplay(component.percent)}`
                     : component.amount
                       ? ` ${component.amount}`
                       : ''}

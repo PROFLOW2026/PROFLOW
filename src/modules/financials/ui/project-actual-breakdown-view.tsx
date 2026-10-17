@@ -11,6 +11,7 @@ import { textNavLinkClassName } from '@/components/ui/pressable';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { addMoney, isZeroMoney, type MoneyValue } from '@/shared/money';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import type {
   ProjectActualBreakdown,
   ProjectActualBreakdownCategoryKey,
@@ -379,6 +380,7 @@ function EmployeeDrill({
   copy: OwnerStoryCopy;
   laborTotal: MoneyValue;
 }) {
+  const locale = useLocale();
   if (!labor || labor.employees.length === 0) {
     return <p className="text-xs text-[var(--pf-text-muted)]">{copy.unavailable}</p>;
   }
@@ -388,14 +390,17 @@ function EmployeeDrill({
       {labor.employees.map((row) => {
         const pct =
           row.laborCost && Number(laborTotal.amount) > 0
-            ? ((Number(row.laborCost.amount) / Number(laborTotal.amount)) * 100).toFixed(1)
+            ? formatDecimalDisplay(
+                (Number(row.laborCost.amount) / Number(laborTotal.amount)) * 100,
+                locale,
+              )
             : null;
         return (
           <li key={row.employeeId} className="rounded-md bg-[var(--pf-bg-muted)] p-2 text-sm">
             <div className="font-medium">{row.employeeName}</div>
             <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[var(--pf-text-secondary)]">
               <span>
-                {copy.hours}: {row.hours}
+                {copy.hours}: {formatDecimalDisplay(row.hours, locale)}
               </span>
               <span>
                 {copy.workDays}: {row.workDays}
@@ -688,11 +693,17 @@ function BreakdownCategoryCard({
   onToggle: () => void;
   percentDenominator: MoneyValue;
 }) {
+  const locale = useLocale();
   const label = copy.categories[category.key];
   const percentOfActual =
     !isZeroMoney(percentDenominator) && !isZeroMoney(category.amount)
-      ? ((Number(category.amount.amount) / Number(percentDenominator.amount)) * 100).toFixed(1)
-      : category.percentOfActual;
+      ? formatDecimalDisplay(
+          (Number(category.amount.amount) / Number(percentDenominator.amount)) * 100,
+          locale,
+        )
+      : category.percentOfActual
+        ? formatDecimalDisplay(category.percentOfActual, locale)
+        : null;
 
   return (
     <li
@@ -765,12 +776,13 @@ function AllocatedGeneralBreakdownCard({
   onToggle: () => void;
   percentDenominator: MoneyValue;
 }) {
+  const locale = useLocale();
   const allocatedGeneralPercent =
     !isZeroMoney(percentDenominator) && !isZeroMoney(allocatedGeneral.amount)
-      ? (
-          (Number(allocatedGeneral.amount.amount) / Number(percentDenominator.amount)) *
-          100
-        ).toFixed(1)
+      ? formatDecimalDisplay(
+          (Number(allocatedGeneral.amount.amount) / Number(percentDenominator.amount)) * 100,
+          locale,
+        )
       : null;
 
   return (

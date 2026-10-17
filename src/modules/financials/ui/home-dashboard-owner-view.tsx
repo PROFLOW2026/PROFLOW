@@ -3,6 +3,7 @@ import { Plus, Receipt } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
 import { MoneyText } from '@/components/patterns/money-text';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -86,7 +87,7 @@ function KpiTile({
           <p className="text-sm text-[var(--pf-text-secondary)]">{unavailableLabel}</p>
         ) : percent != null ? (
           <p className="text-lg font-semibold tabular-nums" dir="ltr">
-            {percent}%
+            {formatPercentDisplay(percent)}
           </p>
         ) : money ? (
           <p className="min-w-0 max-w-full overflow-x-auto text-lg font-semibold">
@@ -410,7 +411,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
                         </TableCell>
                         <TableCell numeric>
                           {row.marginPercent ? (
-                            <span dir="ltr">{row.marginPercent}%</span>
+                            <span dir="ltr">{formatPercentDisplay(row.marginPercent, locale)}</span>
                           ) : (
                             '—'
                           )}
@@ -459,7 +460,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
                     {t('ownerHeadline.colProfitability')}
                   </dt>
                   <dd className="text-end" dir="ltr">
-                    {row.marginPercent ? `${row.marginPercent}%` : '—'}
+                    {row.marginPercent ? formatPercentDisplay(row.marginPercent, locale) : '—'}
                   </dd>
                 </dl>
               </Link>

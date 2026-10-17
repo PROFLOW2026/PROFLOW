@@ -12,6 +12,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { type BusinessDate } from '@/shared/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { isZeroMoney } from '@/shared/money';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { getLaborCostDefaultsForApply } from '@/modules/tenancy';
 import { resolveOrgWorkWeekdays } from '@/modules/tenancy/domain/labor-cost-defaults';
 import { getEmployeePeriodSummary } from '../application/employee-period-summary';
@@ -46,10 +47,7 @@ export async function EmployeePeriodSummaryPanel({
   const fromFormatted = formatBusinessDate(fromDate, locale, 'medium');
   const toFormatted = formatBusinessDate(toDate, locale, 'medium');
 
-  const totalHoursFormatted =
-    summary.totalHours % 1 === 0
-      ? String(summary.totalHours)
-      : summary.totalHours.toFixed(2).replace(/\.?0+$/, '');
+  const totalHoursFormatted = formatDecimalDisplay(summary.totalHours, locale);
 
   return (
     <Card className="flex flex-col gap-4 p-4 sm:p-6">
@@ -115,10 +113,7 @@ export async function EmployeePeriodSummaryPanel({
                   <p className="text-xs text-[var(--pf-text-muted)]">
                     {t('employees.periodSummary.projectMeta', {
                       days: row.days,
-                      hours:
-                        row.hours % 1 === 0
-                          ? String(row.hours)
-                          : row.hours.toFixed(2).replace(/\.?0+$/, ''),
+                      hours: formatDecimalDisplay(row.hours, locale),
                     })}
                   </p>
                 </div>
@@ -143,10 +138,7 @@ export async function EmployeePeriodSummaryPanel({
             <p className="text-xs text-[var(--pf-text-muted)]">
               {t('employees.periodSummary.unallocatedMeta', {
                 days: summary.unallocatedDays,
-                hours:
-                  summary.unallocatedHours % 1 === 0
-                    ? String(summary.unallocatedHours)
-                    : summary.unallocatedHours.toFixed(2).replace(/\.?0+$/, ''),
+                hours: formatDecimalDisplay(summary.unallocatedHours, locale),
               })}
             </p>
           </div>

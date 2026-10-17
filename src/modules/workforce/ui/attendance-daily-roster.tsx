@@ -1,5 +1,6 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { AlertCircle, CheckCircle2, Clock, UserPlus } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Link } from '@/shared/i18n/navigation';
@@ -18,9 +19,9 @@ function formatStartTime(value: Date | null, locale: string): string {
   }).format(date);
 }
 
-function formatHours(hours: number | null): string {
+function formatHours(hours: number | null, locale?: string): string {
   if (hours == null) return '—';
-  return hours % 1 === 0 ? String(hours) : hours.toFixed(2).replace(/\.?0+$/, '');
+  return formatDecimalDisplay(hours, locale);
 }
 
 export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterProps) {
@@ -109,7 +110,7 @@ export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterP
                   {formatStartTime(row.startTime, locale)}
                 </td>
                 <td className="py-2 pe-3" dir="ltr">
-                  {formatHours(row.hours)}
+                  {formatHours(row.hours, locale)}
                 </td>
                 <td className="py-2 pe-3">
                   <StatusBadge

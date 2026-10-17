@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,6 +11,7 @@ import { listProjectsForOrg } from '@/modules/projects';
 import { peekOpsExpenseLinksForRecords } from '@/modules/ops-finance';
 import { CreateLinkedExpenseForm } from '@/modules/ops-finance/ui/create-linked-expense-form';
 import { withOrgContext } from '@/shared/auth/session';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { todayInTimeZone } from '@/shared/dates';
 import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -172,6 +173,7 @@ export async function InventoryMaterialUsagePanel({
 }: {
   readonly inventoryItemId: string;
 }) {
+  const locale = await getLocale();
   const t = await getTranslations('assets.usage');
 
   const data = await withOrgContext(async (context) => {
@@ -282,7 +284,7 @@ export async function InventoryMaterialUsagePanel({
                   <TableCell className="max-w-[12rem] truncate">{row.description}</TableCell>
                   <TableCell numeric>
                     <span dir="ltr">
-                      {row.quantity}
+                      {formatDecimalDisplay(row.quantity, locale)}
                       {row.unit ? ` ${row.unit}` : ''}
                     </span>
                   </TableCell>

@@ -6,6 +6,7 @@ import { SkeletonText } from '@/components/ui/skeleton';
 import { getProjectEarlyWarnings } from '@/modules/forecast';
 import type { EarlyWarning, EarlyWarningClass, EarlyWarningDriver } from '@/modules/forecast';
 import { withOrgContext } from '@/shared/auth/session';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { Link } from '@/shared/i18n/navigation';
 import { pressableCardLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
@@ -58,7 +59,7 @@ function DriverValue({ driver }: { readonly driver: EarlyWarningDriver }) {
     if (driver.labelKey === 'drivers.confidence') {
       return <span>{driver.percent}</span>;
     }
-    return <span className="tabular-nums" dir="ltr">{driver.percent}%</span>;
+    return <span className="tabular-nums" dir="ltr">{formatPercentDisplay(driver.percent)}</span>;
   }
   return <span>—</span>;
 }
