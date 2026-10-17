@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
 import {
   applyManualAttendanceWorkdayRange,
+  recomputeCostsAfterAttendanceSave,
   clockAttendance,
   manualAttendanceEventSchema,
   manualAttendanceWorkdayRangeSchema,
@@ -250,6 +251,7 @@ async function manualAttendanceRangeAction(
       return { error: tErrors('validationFailed') };
     }
 
+    // Attendance facts commit when this withOrgContext transaction ends.
     const outcome = await withOrgContext((context) =>
       applyManualAttendanceWorkdayRange(context, parsed.data),
     );
@@ -261,7 +263,19 @@ async function manualAttendanceRangeAction(
       };
     }
 
-    const result = outcome.result;
+    let result = outcome.result;
+
+    // Fresh RLS transaction — never reuse the attendance save connection.
+    if (result.deferredCostWorkDates && result.deferredCostWorkDates.length > 0) {
+      const costRecomputeStatus = await withOrgContext((context) =>
+        recomputeCostsAfterAttendanceSave(context, {
+          employeeId: parsed.data.employeeId,
+          workDates: result.deferredCostWorkDates!,
+        }),
+      );
+      result = { ...result, costRecomputeStatus };
+    }
+
     revalidatePath('/workforce/attendance');
     revalidatePath('/workforce/time');
     revalidatePath('/workforce/time/approvals');

@@ -17,6 +17,7 @@ import {
   applyManualAttendanceWorkdayRange,
   createEmployee,
   getProjectLaborCost,
+  recomputeCostsAfterAttendanceSave,
 } from '@/modules/workforce';
 import { listTimeEntries } from '@/modules/workforce/data/time-entries.repository';
 import type { OrgContext } from '@/shared/auth/context';
@@ -238,7 +239,8 @@ describe('attendance ↔ project atomicity', () => {
   });
 
   it('D. costing injected failure keeps attendance committed', async () => {
-    await database.asUser(owner.id, async (tx) => {
+    // TX1: attendance facts commit; cost is deferred (mirrors production withOrgContext split).
+    const deferred = await database.asUser(owner.id, async (tx) => {
       const context = await resolveOrgContext(tx, {
         userId: owner.id,
         organizationId: orgId,
@@ -246,26 +248,56 @@ describe('attendance ↔ project atomicity', () => {
       });
       const beforeAtt = await countActiveAttendanceEvents(context, employeeId, workDate);
 
-      const outcome = await applyManualAttendanceWorkdayRange(
-        context,
-        {
-          employeeId,
-          fromDate: workDate,
-          toDate: workDate,
-          weekdays: [2],
-          clockInTime: '09:00',
-          clockOutTime: '17:00',
-          workScope: 'project',
-          projectId: projectAId,
-        },
-        { rollbackProbe: 'after_costing' },
-      );
+      const outcome = await applyManualAttendanceWorkdayRange(context, {
+        employeeId,
+        fromDate: workDate,
+        toDate: workDate,
+        weekdays: [2],
+        clockInTime: '09:00',
+        clockOutTime: '17:00',
+        workScope: 'project',
+        projectId: projectAId,
+      });
 
       expect(outcome.status).toBe('applied');
-      if (outcome.status !== 'applied') return;
-      expect(outcome.result.costRecomputeStatus).toBe('pending');
+      if (outcome.status !== 'applied') {
+        return { beforeAtt, workDates: [] as string[] };
+      }
+      expect(outcome.result.costRecomputeStatus).toBe('skipped');
+      expect(outcome.result.deferredCostWorkDates?.length).toBeGreaterThan(0);
       expect(await countActiveAttendanceEvents(context, employeeId, workDate)).toBeGreaterThan(
         beforeAtt,
+      );
+      expect(await countRecordedTime(context, employeeId, workDate, projectAId)).toBe(1);
+      return {
+        beforeAtt,
+        workDates: [...(outcome.result.deferredCostWorkDates ?? [])],
+      };
+    });
+
+    // TX2: fresh RLS transaction — injected cost failure must not unwind TX1.
+    const costStatus = await database.asUser(owner.id, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId: owner.id,
+        organizationId: orgId,
+        locale: 'he-IL',
+      });
+      return recomputeCostsAfterAttendanceSave(
+        context,
+        { employeeId, workDates: deferred.workDates },
+        { rollbackProbe: 'after_costing' },
+      );
+    });
+    expect(costStatus).toBe('pending');
+
+    await database.asUser(owner.id, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId: owner.id,
+        organizationId: orgId,
+        locale: 'he-IL',
+      });
+      expect(await countActiveAttendanceEvents(context, employeeId, workDate)).toBeGreaterThan(
+        deferred.beforeAtt,
       );
       expect(await countRecordedTime(context, employeeId, workDate, projectAId)).toBe(1);
     });

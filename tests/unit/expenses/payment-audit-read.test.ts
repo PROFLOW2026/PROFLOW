@@ -9,10 +9,6 @@ import { businessDate } from '@/shared/dates';
 import { money } from '@/shared/money';
 import type { DbExecutor } from '@/shared/db/types';
 
-function queryText(query: unknown): string {
-  return JSON.stringify(query);
-}
-
 describe('normalizePaymentAuditAfter', () => {
   it('coerces a textual installment index into a number', () => {
     expect(
@@ -30,44 +26,44 @@ describe('normalizePaymentAuditAfter', () => {
   });
 });
 
+function mockDbWithTransaction(inner: DbExecutor): DbExecutor {
+  return {
+    transaction: async <T>(fn: (tx: DbExecutor) => Promise<T>) => fn(inner),
+  } as unknown as DbExecutor;
+}
+
 describe('loadExpensePaymentAuditsByExpenseIds', () => {
   it('does not query when there are no expenses', async () => {
-    const execute = vi.fn();
+    const select = vi.fn();
     const result = await loadExpensePaymentAuditsByExpenseIds(
-      { execute } as unknown as DbExecutor,
+      mockDbWithTransaction({ select } as unknown as DbExecutor),
       '8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec',
       [],
     );
     expect(result.size).toBe(0);
-    expect(execute).not.toHaveBeenCalled();
+    expect(select).not.toHaveBeenCalled();
   });
 
-  it('keeps the transaction usable when the audit statement fails', async () => {
-    const seen: string[] = [];
-    const execute = vi.fn(async (query: unknown) => {
-      const text = queryText(query);
-      seen.push(text);
-      if (text.includes('SAVEPOINT') || text.includes('ROLLBACK') || text.includes('RELEASE')) {
-        return undefined;
-      }
-      const error = new Error('Failed query: select from audit_events');
-      error.cause = Object.assign(new Error('operator does not exist: uuid = text'), {
-        code: '42883',
-      });
-      throw error;
-    });
+  it('keeps callers usable when the audit statement fails (nested TX / SAVEPOINT)', async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockRejectedValue(
+        Object.assign(new Error('Failed query: select from audit_events'), {
+          cause: Object.assign(new Error('cannot cast type text[] to uuid[]'), { code: '42846' }),
+        }),
+      ),
+    };
+    const select = vi.fn().mockReturnValue(chain);
 
     const result = await loadExpensePaymentAuditsByExpenseIds(
-      { execute } as unknown as DbExecutor,
+      mockDbWithTransaction({ select } as unknown as DbExecutor),
       '8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec',
       ['bbd3cdce-22e5-477f-bae1-1161e87cacb6'],
     );
 
     expect(result.size).toBe(0);
-    expect(seen.some((text) => text.includes('ROLLBACK TO SAVEPOINT'))).toBe(true);
-    expect(seen.some((text) => text.includes('::uuid'))).toBe(true);
-    expect(seen.some((text) => text.includes('::text[]'))).toBe(true);
-    expect(seen.some((text) => /ARRAY\[/.test(text))).toBe(true);
+    expect(select).toHaveBeenCalled();
   });
 
   it('does not invent verified month recognition when audits are empty and only paidGross exists', () => {
@@ -160,14 +156,14 @@ describe('loadExpensePaymentAuditsByExpenseIds', () => {
   });
 
   it('maps a successful read onto the employee expense', async () => {
-    const execute = vi.fn(async (query: unknown) => {
-      const text = queryText(query);
-      if (!text.includes('audit_events')) return undefined;
-      return [
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([
         {
-          entity_id: 'bbd3cdce-22e5-477f-bae1-1161e87cacb6',
+          entityId: 'bbd3cdce-22e5-477f-bae1-1161e87cacb6',
           action: 'expense.payment_confirmed',
-          created_at: '2026-03-01T00:00:00.000Z',
+          createdAt: '2026-03-01T00:00:00.000Z',
           after: {
             paidAt: '2026-03-01',
             paidGrossAmount: '724.08',
@@ -175,11 +171,12 @@ describe('loadExpensePaymentAuditsByExpenseIds', () => {
             source: 'ledger',
           },
         },
-      ];
-    });
+      ]),
+    };
+    const select = vi.fn().mockReturnValue(chain);
 
     const result = await loadExpensePaymentAuditsByExpenseIds(
-      { execute } as unknown as DbExecutor,
+      mockDbWithTransaction({ select } as unknown as DbExecutor),
       '8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec',
       ['bbd3cdce-22e5-477f-bae1-1161e87cacb6'],
     );

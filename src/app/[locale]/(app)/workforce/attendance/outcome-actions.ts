@@ -44,7 +44,7 @@ export async function attendanceOutcomeAction(
   if (!employeeId) return { error: tErrors('validationFailed') };
 
   try {
-    const { savedCount, costPending } = await withOrgContext(async (context) => {
+    const saved = await withOrgContext(async (context) => {
       if (entryMode === 'range') {
         const fromDate = payload.fromDate ?? '';
         const toDate = payload.toDate ?? '';
@@ -62,18 +62,7 @@ export async function attendanceOutcomeAction(
           absenceCompensation: outcome === 'not_worked' ? absenceCompensation : null,
           notes,
         });
-        let pending = false;
-        try {
-          await recomputeDerivedLaborAfterAttendanceOutcomeChange(context, {
-            employeeId,
-            fromDate: from,
-            toDate: to,
-          });
-        } catch (recomputeError) {
-          console.error('[attendance outcome cost recompute pending]', recomputeError);
-          pending = true;
-        }
-        return { savedCount: count, costPending: pending };
+        return { savedCount: count, fromDate: from, toDate: to };
       }
 
       const workDate = payload.workDate ?? '';
@@ -89,19 +78,22 @@ export async function attendanceOutcomeAction(
         absenceCompensation: outcome === 'not_worked' ? absenceCompensation : null,
         notes,
       });
-      let pending = false;
-      try {
+      return { savedCount: 1, fromDate: date, toDate: date };
+    });
+
+    let costPending = false;
+    try {
+      await withOrgContext(async (context) => {
         await recomputeDerivedLaborAfterAttendanceOutcomeChange(context, {
           employeeId,
-          fromDate: date,
-          toDate: date,
+          fromDate: saved.fromDate,
+          toDate: saved.toDate,
         });
-      } catch (recomputeError) {
-        console.error('[attendance outcome cost recompute pending]', recomputeError);
-        pending = true;
-      }
-      return { savedCount: 1, costPending: pending };
-    });
+      });
+    } catch (recomputeError) {
+      console.error('[attendance outcome cost recompute pending]', recomputeError);
+      costPending = true;
+    }
 
     revalidatePath('/workforce/attendance');
     revalidatePath('/workforce/attendance/monthly');
@@ -109,7 +101,7 @@ export async function attendanceOutcomeAction(
     revalidatePath('/notifications');
     return {
       ok: true,
-      savedCount,
+      savedCount: saved.savedCount,
       warning: costPending ? tWorkforce('attendance.manual.costRecomputePending') : undefined,
     };
   } catch (error) {

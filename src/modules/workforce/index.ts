@@ -140,6 +140,7 @@ export {
   listEmployeesWithoutAttendanceToday,
   previewManualAttendanceWorkdayRange,
   recordManualAttendanceEvent,
+  recomputeCostsAfterAttendanceSave,
   replaceAttendanceEvent,
   requiresAttendanceOverwriteApproval,
   setAttendanceDayOvertime,

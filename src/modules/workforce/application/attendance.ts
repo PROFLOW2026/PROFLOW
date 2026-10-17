@@ -749,10 +749,15 @@ export interface AttendanceWorkdayRangeResult {
   readonly projectTimeVoidedPriorWorkCount: number;
   readonly projectTimeWarningKey?: string | null;
   /**
-   * Derived cost refresh runs after attendance commits.
+   * Derived cost refresh is deferred to a separate RLS transaction by the caller.
    * `pending` means attendance is saved; cost refresh needs a later retry.
    */
   readonly costRecomputeStatus: AttendanceCostRecomputeStatus;
+  /**
+   * Work dates that still need derived cost refresh after the save TX commits.
+   * Null when no time-fact mutation required a refresh.
+   */
+  readonly deferredCostWorkDates: readonly string[] | null;
 }
 
 export interface AttendanceOverwriteSummary {
@@ -993,9 +998,10 @@ function fireRollbackProbe(
  * - Any existing attendance → require overwriteConfirmed (double UI approval); then
  *   overwrite attendance and reconcile project work atomically for the whole range.
  *
- * Attendance + project-time facts commit in ONE transaction. Derived cost refresh
- * runs after that commit so general-cost / labor recompute failures cannot undo
- * attendance that already saved.
+ * Attendance + project-time facts commit in the caller's RLS transaction.
+ * Derived cost refresh is NEVER run here — callers must invoke
+ * `recomputeCostsAfterAttendanceSave` in a fresh `withOrgContext` after this
+ * function returns so a poisoned cost TX cannot abort attendance COMMIT.
  */
 export async function applyManualAttendanceWorkdayRange(
   context: OrgContext,
@@ -1045,7 +1051,7 @@ export async function applyManualAttendanceWorkdayRange(
   const { hoursBetweenClockTimes } = await import('../validation/schemas');
   const hours = hoursBetweenClockTimes(input.clockInTime, input.clockOutTime);
 
-  const applied = await withTransaction(context.db, async (tx) => {
+  return withTransaction(context.db, async (tx) => {
     const txCtx = withExecutor(context, tx);
 
     const createdDates: string[] = [];
@@ -1198,8 +1204,11 @@ export async function applyManualAttendanceWorkdayRange(
       });
     }
 
+    const deferredCostWorkDates =
+      mutatesTimeFacts && syncDates.length > 0 ? syncDates : null;
+
     return {
-      syncDates,
+      status: 'applied' as const,
       result: {
         dates,
         createdCount: createdDates.length,
@@ -1218,40 +1227,45 @@ export async function applyManualAttendanceWorkdayRange(
         projectTimeVoidedPriorWorkCount,
         projectTimeWarningKey,
         costRecomputeStatus: 'skipped' as const,
+        deferredCostWorkDates,
       },
     };
   });
+}
 
-  let costRecomputeStatus: AttendanceCostRecomputeStatus = 'skipped';
-  if (mutatesTimeFacts && applied.syncDates.length > 0) {
-    try {
-      fireRollbackProbe(options, 'after_costing');
-      const { recomputeEmployeeCostsAfterTimeChange } = await import('./daily-cost-recompute');
-      await recomputeEmployeeCostsAfterTimeChange(context, {
-        employeeId: input.employeeId,
-        workDates: applied.syncDates,
-      });
-      costRecomputeStatus = 'ok';
-    } catch (error) {
-      const { logger } = await import('@/shared/observability');
-      const { isAppError } = await import('@/shared/errors');
-      logger.error('workforce.attendance_cost_recompute_pending', {
-        employeeId: input.employeeId,
-        workDates: applied.syncDates,
-        message: error instanceof Error ? error.message : String(error),
-        messageKey: isAppError(error) ? error.messageKey : undefined,
-      });
-      costRecomputeStatus = 'pending';
-    }
+/**
+ * Derived labor / general-cost refresh after attendance facts are already committed.
+ * Must run in a fresh RLS transaction (new `withOrgContext`), never inside the
+ * attendance save transaction. Failures return `pending` and never invent amounts.
+ */
+export async function recomputeCostsAfterAttendanceSave(
+  context: OrgContext,
+  input: {
+    readonly employeeId: string;
+    readonly workDates: readonly string[];
+  },
+  options?: AttendanceApplyOptions,
+): Promise<AttendanceCostRecomputeStatus> {
+  if (input.workDates.length === 0) return 'skipped';
+  try {
+    fireRollbackProbe(options, 'after_costing');
+    const { recomputeEmployeeCostsAfterTimeChange } = await import('./daily-cost-recompute');
+    await recomputeEmployeeCostsAfterTimeChange(context, {
+      employeeId: input.employeeId,
+      workDates: input.workDates,
+    });
+    return 'ok';
+  } catch (error) {
+    const { logger } = await import('@/shared/observability');
+    const { isAppError } = await import('@/shared/errors');
+    logger.error('workforce.attendance_cost_recompute_pending', {
+      employeeId: input.employeeId,
+      workDates: input.workDates,
+      message: error instanceof Error ? error.message : String(error),
+      messageKey: isAppError(error) ? error.messageKey : undefined,
+    });
+    return 'pending';
   }
-
-  return {
-    status: 'applied',
-    result: {
-      ...applied.result,
-      costRecomputeStatus,
-    },
-  };
 }
 
 export function canViewAttendance(context: OrgContext): boolean {

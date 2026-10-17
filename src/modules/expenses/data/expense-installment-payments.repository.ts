@@ -1,4 +1,4 @@
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { auditEvents, expenseInstallmentPayments } from '@drizzle/schema';
 import { businessDate, type BusinessDate } from '@/shared/dates';
 import {
@@ -29,12 +29,13 @@ const PAYMENT_ACTIONS = [
   AUDIT_ACTIONS.EXPENSE_PAYMENT_CONFIRMATION_VOIDED,
 ] as const;
 
-function readSqlRows<T>(result: unknown): T[] {
-  if (Array.isArray(result)) return result as T[];
-  if (result && typeof result === 'object' && Array.isArray((result as { rows?: unknown }).rows)) {
-    return (result as { rows: T[] }).rows;
-  }
-  return [];
+type TransactionCapableDb = DbExecutor & {
+  transaction: <T>(fn: (tx: DbExecutor) => Promise<T>) => Promise<T>;
+};
+
+/** Nested Drizzle transaction → SAVEPOINT when already inside an outer RLS TX. */
+function asTransactionCapable(db: DbExecutor): TransactionCapableDb {
+  return db as TransactionCapableDb;
 }
 
 function postgresCauseMessage(error: unknown): string | undefined {
@@ -72,11 +73,13 @@ export function normalizePaymentAuditAfter(value: unknown): unknown {
 /**
  * Payment-confirmation audits for installment recognition.
  *
- * The previous Drizzle `IN` list mixed uuid and text parameters. On the
- * production pooler (`prepare: false`) that statement failed inside the
- * attendance transaction and rolled the whole retroactive save back.
- * Cast both arrays explicitly, and if the read still fails, roll back only
- * this statement so the ledger read and the attendance write can continue.
+ * Uses Drizzle `inArray` (scalar binds) — never JS-array `::uuid[]` / `::text[]`
+ * casts, which fail on the production pooler (`prepare: false`, SQLSTATE 42846).
+ *
+ * Soft-fail runs inside a nested Drizzle transaction (SAVEPOINT). Catching a
+ * failed statement without a savepoint would leave the outer RLS TX aborted
+ * (25P02) and previously poisoned attendance saves via broken manual SAVEPOINTs
+ * (3B001). Callers must not invent verified payments from this miss.
  */
 export async function loadExpensePaymentAuditsByExpenseIds(
   db: DbExecutor,
@@ -86,74 +89,43 @@ export async function loadExpensePaymentAuditsByExpenseIds(
   const map = new Map<string, ExpensePaymentAuditRow[]>();
   if (expenseIds.length === 0) return map;
 
-  const readSavepoint = `expense_payment_audit_read_${++ledgerSavepointSeq}`;
-  await db.execute(sql.raw(`SAVEPOINT "${readSavepoint}"`));
   try {
-    // Build typed ARRAY[...] literals — casting a bound JS array as ::uuid[]/::text[]
-    // fails on the production pooler (SQLSTATE 42846) and poisons nested savepoints.
-    const expenseIdArray = sql`ARRAY[${sql.join(
-      expenseIds.map((id) => sql`${id}::uuid`),
-      sql`, `,
-    )}]`;
-    const actionArray = sql`ARRAY[${sql.join(
-      PAYMENT_ACTIONS.map((action) => sql`${action}`),
-      sql`, `,
-    )}]::text[]`;
-    const rows = readSqlRows<{
-      entity_id: string | null;
-      action: string;
-      created_at: Date | string;
-      after: unknown;
-    }>(
-      await db.execute(sql`
-        select
-          entity_id,
-          action,
-          created_at,
-          case
-            when after is null then null
-            else jsonb_build_object(
-              'paidAt', after->>'paidAt',
-              'paid_at', after->>'paid_at',
-              'paidGrossAmount', coalesce(after->>'paidGrossAmount', after->>'paid_gross_amount'),
-              'installmentIndex', coalesce(after->>'installmentIndex', after->>'installment_index'),
-              'source', after->>'source'
-            )
-          end as after
-        from audit_events
-        where organization_id = ${organizationId}::uuid
-          and entity_type = 'expense'
-          and entity_id = any(${expenseIdArray})
-          and action = any(${actionArray})
-        order by created_at
-      `),
+    const rows = await asTransactionCapable(db).transaction(async (tx) =>
+      tx
+        .select({
+          entityId: auditEvents.entityId,
+          action: auditEvents.action,
+          createdAt: auditEvents.createdAt,
+          after: auditEvents.after,
+        })
+        .from(auditEvents)
+        .where(
+          and(
+            eq(auditEvents.organizationId, organizationId),
+            eq(auditEvents.entityType, 'expense'),
+            inArray(auditEvents.entityId, [...expenseIds]),
+            inArray(auditEvents.action, [...PAYMENT_ACTIONS]),
+          ),
+        )
+        .orderBy(auditEvents.createdAt),
     );
-    await db.execute(sql.raw(`RELEASE SAVEPOINT "${readSavepoint}"`));
 
     for (const row of rows) {
-      if (!row.entity_id) continue;
-      const createdAt = row.created_at instanceof Date
-        ? row.created_at.toISOString()
-        : new Date(row.created_at).toISOString();
-      const list = map.get(row.entity_id) ?? [];
+      if (!row.entityId) continue;
+      const createdAt =
+        row.createdAt instanceof Date
+          ? row.createdAt.toISOString()
+          : new Date(row.createdAt).toISOString();
+      const list = map.get(row.entityId) ?? [];
       list.push({
         action: row.action,
         createdAt,
         after: normalizePaymentAuditAfter(row.after),
       });
-      map.set(row.entity_id, list);
+      map.set(row.entityId, list);
     }
     return map;
   } catch (error) {
-    try {
-      await db.execute(sql.raw(`ROLLBACK TO SAVEPOINT "${readSavepoint}"`));
-    } catch (rollbackError) {
-      logger.error('expenses.payment_audit_read_savepoint_rollback_failed', {
-        sqlState: postgresSqlState(rollbackError) ?? null,
-        message: rollbackError instanceof Error ? rollbackError.message : String(rollbackError),
-        cause: postgresCauseMessage(rollbackError) ?? null,
-      });
-    }
     logger.error('expenses.payment_audit_read_failed', {
       sqlState: postgresSqlState(error) ?? null,
       message: error instanceof Error ? error.message : String(error),
@@ -185,34 +157,32 @@ async function loadLedgerSlicesByExpenseIds(
   const byIndexByExpense = new Map<string, Map<number, InstallmentPaymentSlice>>();
   if (expenseIds.length === 0) return new Map();
 
-  const readSavepoint = `expense_installment_ledger_read_${++ledgerSavepointSeq}`;
-  await db.execute(sql.raw(`SAVEPOINT "${readSavepoint}"`));
   let rows;
   try {
-    rows = await db
-      .select({
-        id: expenseInstallmentPayments.id,
-        expenseId: expenseInstallmentPayments.expenseId,
-        installmentIndex: expenseInstallmentPayments.installmentIndex,
-        dueDate: expenseInstallmentPayments.dueDate,
-        actualPaidAt: expenseInstallmentPayments.actualPaidAt,
-        grossPaid: expenseInstallmentPayments.grossPaid,
-        status: expenseInstallmentPayments.status,
-        paymentReference: expenseInstallmentPayments.paymentReference,
-        reversesPaymentId: expenseInstallmentPayments.reversesPaymentId,
-      })
-      .from(expenseInstallmentPayments)
-      .where(
-        and(
-          eq(expenseInstallmentPayments.organizationId, organizationId),
-          inArray(expenseInstallmentPayments.expenseId, [...expenseIds]),
-          inArray(expenseInstallmentPayments.status, ['paid', 'voided', 'credited']),
-        ),
-      )
-      .orderBy(expenseInstallmentPayments.installmentIndex, expenseInstallmentPayments.createdAt);
-    await db.execute(sql.raw(`RELEASE SAVEPOINT "${readSavepoint}"`));
+    rows = await asTransactionCapable(db).transaction(async (tx) =>
+      tx
+        .select({
+          id: expenseInstallmentPayments.id,
+          expenseId: expenseInstallmentPayments.expenseId,
+          installmentIndex: expenseInstallmentPayments.installmentIndex,
+          dueDate: expenseInstallmentPayments.dueDate,
+          actualPaidAt: expenseInstallmentPayments.actualPaidAt,
+          grossPaid: expenseInstallmentPayments.grossPaid,
+          status: expenseInstallmentPayments.status,
+          paymentReference: expenseInstallmentPayments.paymentReference,
+          reversesPaymentId: expenseInstallmentPayments.reversesPaymentId,
+        })
+        .from(expenseInstallmentPayments)
+        .where(
+          and(
+            eq(expenseInstallmentPayments.organizationId, organizationId),
+            inArray(expenseInstallmentPayments.expenseId, [...expenseIds]),
+            inArray(expenseInstallmentPayments.status, ['paid', 'voided', 'credited']),
+          ),
+        )
+        .orderBy(expenseInstallmentPayments.installmentIndex, expenseInstallmentPayments.createdAt),
+    );
   } catch (error) {
-    await db.execute(sql.raw(`ROLLBACK TO SAVEPOINT "${readSavepoint}"`));
     if (isPostgresPermissionDenied(error)) {
       return new Map();
     }
@@ -259,28 +229,6 @@ async function loadLedgerSlicesByExpenseIds(
     );
   }
   return slicesByExpense;
-}
-
-function isUniqueViolation(error: unknown): boolean {
-  return postgresSqlState(error) === '23505';
-}
-
-let ledgerSavepointSeq = 0;
-
-async function runLedgerInsertOrIgnoreUnique(
-  db: DbExecutor,
-  insert: () => Promise<void>,
-): Promise<void> {
-  const savepoint = `expense_installment_ledger_${++ledgerSavepointSeq}`;
-  await db.execute(sql.raw(`SAVEPOINT "${savepoint}"`));
-  try {
-    await insert();
-    await db.execute(sql.raw(`RELEASE SAVEPOINT "${savepoint}"`));
-  } catch (error) {
-    await db.execute(sql.raw(`ROLLBACK TO SAVEPOINT "${savepoint}"`));
-    if (isUniqueViolation(error)) return;
-    throw error;
-  }
 }
 
 function netAndVatFromPaymentGross(
@@ -352,8 +300,10 @@ export async function recordInstallmentPaymentPaidLedgerRow(
   const indexKey = input.installmentIndex == null ? 'lump' : String(input.installmentIndex);
   const idempotencyKey = `expense:${input.expenseId}:inst:${indexKey}:${input.auditEventId}`;
 
-  await runLedgerInsertOrIgnoreUnique(db, async () => {
-    await db.insert(expenseInstallmentPayments).values({
+  // ON CONFLICT DO NOTHING — never abort the outer RLS TX on duplicate keys.
+  await db
+    .insert(expenseInstallmentPayments)
+    .values({
       organizationId: input.organizationId,
       expenseId: input.expenseId,
       installmentIndex: input.installmentIndex,
@@ -366,8 +316,8 @@ export async function recordInstallmentPaymentPaidLedgerRow(
       paymentReference: input.paymentReference,
       auditEventId: input.auditEventId,
       idempotencyKey,
-    });
-  });
+    })
+    .onConflictDoNothing();
 }
 
 /** Void every effective paid ledger row for an expense (full payment confirmation void). */
@@ -379,37 +329,36 @@ export async function voidInstallmentPaymentLedgerForExpense(
     readonly auditEventId: string;
   },
 ): Promise<void> {
-  const readSavepoint = `expense_installment_ledger_void_read_${++ledgerSavepointSeq}`;
-  await db.execute(sql.raw(`SAVEPOINT "${readSavepoint}"`));
   let paidRows;
   try {
-    paidRows = await db
-      .select({
-        id: expenseInstallmentPayments.id,
-        installmentIndex: expenseInstallmentPayments.installmentIndex,
-        grossPaid: expenseInstallmentPayments.grossPaid,
-        netPaid: expenseInstallmentPayments.netPaid,
-        vatPaid: expenseInstallmentPayments.vatPaid,
-      })
-      .from(expenseInstallmentPayments)
-      .where(
-        and(
-          eq(expenseInstallmentPayments.organizationId, input.organizationId),
-          eq(expenseInstallmentPayments.expenseId, input.expenseId),
-          eq(expenseInstallmentPayments.status, 'paid'),
+    paidRows = await asTransactionCapable(db).transaction(async (tx) =>
+      tx
+        .select({
+          id: expenseInstallmentPayments.id,
+          installmentIndex: expenseInstallmentPayments.installmentIndex,
+          grossPaid: expenseInstallmentPayments.grossPaid,
+          netPaid: expenseInstallmentPayments.netPaid,
+          vatPaid: expenseInstallmentPayments.vatPaid,
+        })
+        .from(expenseInstallmentPayments)
+        .where(
+          and(
+            eq(expenseInstallmentPayments.organizationId, input.organizationId),
+            eq(expenseInstallmentPayments.expenseId, input.expenseId),
+            eq(expenseInstallmentPayments.status, 'paid'),
+          ),
         ),
-      );
-    await db.execute(sql.raw(`RELEASE SAVEPOINT "${readSavepoint}"`));
+    );
   } catch (error) {
-    await db.execute(sql.raw(`ROLLBACK TO SAVEPOINT "${readSavepoint}"`));
     if (isPostgresPermissionDenied(error)) return;
     throw error;
   }
 
   for (const paid of paidRows) {
     const idempotencyKey = `void:${paid.id}:${input.auditEventId}`;
-    await runLedgerInsertOrIgnoreUnique(db, async () => {
-      await db.insert(expenseInstallmentPayments).values({
+    await db
+      .insert(expenseInstallmentPayments)
+      .values({
         organizationId: input.organizationId,
         expenseId: input.expenseId,
         installmentIndex: paid.installmentIndex,
@@ -420,8 +369,8 @@ export async function voidInstallmentPaymentLedgerForExpense(
         reversesPaymentId: paid.id,
         auditEventId: input.auditEventId,
         idempotencyKey,
-      });
-    });
+      })
+      .onConflictDoNothing();
   }
 }
 
