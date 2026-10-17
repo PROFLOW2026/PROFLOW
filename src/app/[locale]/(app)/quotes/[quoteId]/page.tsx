@@ -19,6 +19,7 @@ import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-
 import { reportPreviewPath } from '@/modules/reports/domain/paths';
 import { ReportDownloadButtons } from '@/modules/reports/ui';
 import { Button } from '@/components/ui/button';
+import { formatQuoteDisplayDecimal, formatQuoteDisplayPercent } from '@/modules/quotes/ui/format-quote-decimal';
 import { QuoteEditorForm } from '@/modules/quotes/ui/quote-editor-form';
 import { QuoteLinkedTasksSection } from '@/modules/quotes/ui/quote-linked-tasks-section';
 import { listClientsForOrg } from '@/modules/clients';
@@ -95,8 +96,12 @@ export default async function QuoteDetailPage({
     ? workEntityHref(convertedWorkKind, quote.convertedProjectId)
     : null;
 
+  const quoteActionButtonClass = 'w-full min-w-0 max-w-full sm:w-auto';
+  const quoteActionSlotClass =
+    'flex w-full min-w-0 max-w-full sm:w-auto [&_a]:w-full [&_a]:min-w-0 [&_a]:max-w-full [&_a]:justify-center sm:[&_a]:w-auto [&_button]:w-full [&_button]:min-w-0 [&_button]:max-w-full sm:[&_button]:w-auto';
+
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+    <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-4">
       <PageHeader
         title={quote.title}
         description={quote.clientName ?? t('detail.title')}
@@ -106,19 +111,27 @@ export default async function QuoteDetailPage({
           </Link>
         }
         actions={
-          <div className="flex items-center gap-2">
-            <StatusBadge shape={quoteShape(quote.status)} label={tStatus(quote.status)} />
-            <Button asChild variant="secondary" size="sm">
-              <Link href={reportPreviewPath('quote_estimate', quoteId)}>{t('detail.preview')}</Link>
-            </Button>
-            <QuotePrintButton label={t('detail.print')} />
-            <PrepareMessageLink
-              entityType="quote"
-              entityId={quote.id}
-              clientId={quote.clientId}
-              subject={quote.title}
-            />
-            <ReportDownloadButtons kind="quote_estimate" id={quoteId} compact />
+          <div className="flex w-full min-w-0 max-w-full flex-col gap-2">
+            <div className="min-w-0">
+              <StatusBadge shape={quoteShape(quote.status)} label={tStatus(quote.status)} />
+            </div>
+            <div className="flex w-full min-w-0 max-w-full flex-wrap items-stretch gap-2">
+              <Button asChild variant="secondary" size="sm" className={quoteActionButtonClass}>
+                <Link href={reportPreviewPath('quote_estimate', quoteId)}>{t('detail.preview')}</Link>
+              </Button>
+              <QuotePrintButton label={t('detail.print')} />
+              <div className={quoteActionSlotClass}>
+                <PrepareMessageLink
+                  entityType="quote"
+                  entityId={quote.id}
+                  clientId={quote.clientId}
+                  subject={quote.title}
+                />
+              </div>
+              <div className={quoteActionSlotClass}>
+                <ReportDownloadButtons kind="quote_estimate" id={quoteId} hidePreview />
+              </div>
+            </div>
           </div>
         }
       />
@@ -130,55 +143,105 @@ export default async function QuoteDetailPage({
       ) : null}
 
       {quote.description ? (
-        <p className="whitespace-pre-wrap text-sm">{quote.description}</p>
+        <p className="min-w-0 break-words whitespace-pre-wrap text-sm">{quote.description}</p>
       ) : null}
 
-      <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('create.lineDescription')}</TableHead>
-              <TableHead>{t('create.quantity')}</TableHead>
-              <TableHead>{t('create.unit')}</TableHead>
-              <TableHead>{t('create.unitPrice')}</TableHead>
-              <TableHead>{t('create.unitCost')}</TableHead>
-              <TableHead>{t('create.lineTotal')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {quote.lines.map((line) => (
-              <TableRow key={line.id}>
-                <TableCell>{line.description}</TableCell>
-                <TableCell>
-                  <span className="pf-ltr-island" dir="ltr">
-                    {line.quantity}
-                  </span>
-                </TableCell>
-                <TableCell>{line.unit ?? '-'}</TableCell>
-                <TableCell>
-                  <MoneyText value={money(line.unitPriceAmount, quote.currency)} />
-                </TableCell>
-                <TableCell>
-                  {line.estimatedUnitCostAmount ? (
-                    <MoneyText value={money(line.estimatedUnitCostAmount, quote.currency)} />
-                  ) : (
-                    '-'
-                  )}
-                </TableCell>
-                <TableCell>
-                  {line.lineTotalAmount ? (
-                    <MoneyText value={money(line.lineTotalAmount, quote.currency)} />
-                  ) : (
-                    '-'
-                  )}
-                </TableCell>
+      <section className="flex w-full min-w-0 flex-col gap-2">
+        <ul className="flex w-full min-w-0 flex-col gap-2 md:hidden">
+          {quote.lines.map((line) => (
+            <li
+              key={line.id}
+              className="w-full min-w-0 rounded-lg border border-[var(--pf-border-default)] p-3"
+            >
+              <p className="break-words text-sm font-medium">{line.description}</p>
+              <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+                <div className="min-w-0">
+                  <dt className="text-xs text-[var(--pf-text-secondary)]">{t('create.quantity')}</dt>
+                  <dd className="pf-ltr-island break-words" dir="ltr">
+                    {formatQuoteDisplayDecimal(line.quantity) || '-'}
+                  </dd>
+                </div>
+                <div className="min-w-0">
+                  <dt className="text-xs text-[var(--pf-text-secondary)]">{t('create.unit')}</dt>
+                  <dd className="break-words">{line.unit ?? '-'}</dd>
+                </div>
+                <div className="min-w-0">
+                  <dt className="text-xs text-[var(--pf-text-secondary)]">{t('create.unitPrice')}</dt>
+                  <dd className="break-words">
+                    <MoneyText value={money(line.unitPriceAmount, quote.currency)} />
+                  </dd>
+                </div>
+                <div className="min-w-0">
+                  <dt className="text-xs text-[var(--pf-text-secondary)]">{t('create.unitCost')}</dt>
+                  <dd className="break-words">
+                    {line.estimatedUnitCostAmount ? (
+                      <MoneyText value={money(line.estimatedUnitCostAmount, quote.currency)} />
+                    ) : (
+                      '-'
+                    )}
+                  </dd>
+                </div>
+                <div className="col-span-2 min-w-0">
+                  <dt className="text-xs text-[var(--pf-text-secondary)]">{t('create.lineTotal')}</dt>
+                  <dd className="break-words font-medium">
+                    {line.lineTotalAmount ? (
+                      <MoneyText value={money(line.lineTotalAmount, quote.currency)} />
+                    ) : (
+                      '-'
+                    )}
+                  </dd>
+                </div>
+              </dl>
+            </li>
+          ))}
+        </ul>
+        <div className="hidden w-full min-w-0 rounded-lg border border-[var(--pf-border-default)] md:block">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="whitespace-normal">{t('create.lineDescription')}</TableHead>
+                <TableHead className="whitespace-normal">{t('create.quantity')}</TableHead>
+                <TableHead className="whitespace-normal">{t('create.unit')}</TableHead>
+                <TableHead className="whitespace-normal">{t('create.unitPrice')}</TableHead>
+                <TableHead className="whitespace-normal">{t('create.unitCost')}</TableHead>
+                <TableHead className="whitespace-normal">{t('create.lineTotal')}</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {quote.lines.map((line) => (
+                <TableRow key={line.id}>
+                  <TableCell className="min-w-0 break-words whitespace-normal">{line.description}</TableCell>
+                  <TableCell>
+                    <span className="pf-ltr-island" dir="ltr">
+                      {formatQuoteDisplayDecimal(line.quantity) || '-'}
+                    </span>
+                  </TableCell>
+                  <TableCell className="break-words">{line.unit ?? '-'}</TableCell>
+                  <TableCell>
+                    <MoneyText value={money(line.unitPriceAmount, quote.currency)} />
+                  </TableCell>
+                  <TableCell>
+                    {line.estimatedUnitCostAmount ? (
+                      <MoneyText value={money(line.estimatedUnitCostAmount, quote.currency)} />
+                    ) : (
+                      '-'
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {line.lineTotalAmount ? (
+                      <MoneyText value={money(line.lineTotalAmount, quote.currency)} />
+                    ) : (
+                      '-'
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </section>
 
-      <dl className="grid gap-2 text-sm sm:grid-cols-2">
+      <dl className="grid min-w-0 gap-2 text-sm sm:grid-cols-2">
         <div className="flex justify-between gap-2 sm:block">
           <dt className="text-[var(--pf-text-secondary)]">{t('detail.subtotal')}</dt>
           <dd>
@@ -219,7 +282,7 @@ export default async function QuoteDetailPage({
               <dt className="text-[var(--pf-text-secondary)]">{t('detail.estimatedMargin')}</dt>
               <dd>
                 <span className="pf-ltr-island" dir="ltr">
-                  {quote.estimatedMarginPercent ?? '-'}%
+                  {formatQuoteDisplayPercent(quote.estimatedMarginPercent)}
                 </span>
                 <span className="ms-2 text-xs text-[var(--pf-text-secondary)]">
                   ({t('detail.notRevenue')})
@@ -251,7 +314,7 @@ export default async function QuoteDetailPage({
                 <dt className="text-[var(--pf-text-secondary)]">{t('create.discountPercentLabel')}</dt>
                 <dd>
                   <span className="pf-ltr-island" dir="ltr">
-                    {quote.discountPercent}%
+                    {formatQuoteDisplayPercent(quote.discountPercent)}
                   </span>
                 </dd>
               </div>
@@ -271,7 +334,9 @@ export default async function QuoteDetailPage({
       </dl>
 
       {quote.notes ? (
-        <p className="whitespace-pre-wrap text-sm text-[var(--pf-text-secondary)]">{quote.notes}</p>
+        <p className="min-w-0 break-words whitespace-pre-wrap text-sm text-[var(--pf-text-secondary)]">
+          {quote.notes}
+        </p>
       ) : null}
 
       {workHref ? (

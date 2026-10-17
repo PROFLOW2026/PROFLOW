@@ -65,21 +65,27 @@ export function QuoteDetailActions({
   }
 
   return (
-    <div className="flex flex-col gap-4 print:hidden">
+    <div className="flex w-full min-w-0 flex-col gap-4 print:hidden">
       {transitionState.error ? <Alert tone="danger">{transitionState.error}</Alert> : null}
       {convertState.error ? <Alert tone="danger">{convertState.error}</Alert> : null}
 
       {transitions.length > 0 ? (
-        <div className="flex flex-col gap-2">
+        <div className="flex w-full min-w-0 flex-col gap-2">
           {status === 'draft' || status === 'ready' ? (
             <p className="text-xs text-[var(--pf-text-muted)]">{t('markSentHint')}</p>
           ) : null}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap">
             {transitions.map((item) => (
-              <form key={item.to} action={transitionAction}>
+              <form key={item.to} action={transitionAction} className="w-full min-w-0 sm:w-auto">
                 <input type="hidden" name="quoteId" value={quoteId} />
                 <input type="hidden" name="toStatus" value={item.to} />
-                <Button type="submit" variant="secondary" size="sm" disabled={transitionPending}>
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  size="sm"
+                  className="w-full min-w-0 sm:w-auto"
+                  disabled={transitionPending}
+                >
                   {item.label}
                 </Button>
               </form>
@@ -89,12 +95,12 @@ export function QuoteDetailActions({
       ) : null}
 
       {status === 'accepted' ? (
-        <section className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
-          <div>
+        <section className="flex w-full min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
+          <div className="min-w-0">
             <h2 className="font-semibold">{t('convert')}</h2>
-            <p className="text-sm text-[var(--pf-text-secondary)]">{t('convertHint')}</p>
+            <p className="break-words text-sm text-[var(--pf-text-secondary)]">{t('convertHint')}</p>
           </div>
-          <form action={convertAction} className="flex max-w-md flex-col gap-3">
+          <form action={convertAction} className="flex w-full min-w-0 max-w-md flex-col gap-3">
             <input type="hidden" name="quoteId" value={quoteId} />
             <Field label={t('projectName')}>
               {(control) => <Input {...control} name="projectName" defaultValue={title} />}
@@ -140,7 +146,7 @@ export function QuoteDetailActions({
                 )}
               </Field>
             ) : null}
-            <Button type="submit" disabled={convertPending}>
+            <Button type="submit" className="w-full min-w-0 sm:w-auto" disabled={convertPending}>
               {t('convertSubmit')}
             </Button>
           </form>
@@ -152,7 +158,13 @@ export function QuoteDetailActions({
 
 export function QuotePrintButton({ label }: { label: string }) {
   return (
-    <Button type="button" variant="ghost" size="sm" className="print:hidden" onClick={() => window.print()}>
+    <Button
+      type="button"
+      variant="secondary"
+      size="sm"
+      className="w-full min-w-0 max-w-full print:hidden sm:w-auto"
+      onClick={() => window.print()}
+    >
       {label}
     </Button>
   );

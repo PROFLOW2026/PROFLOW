@@ -41,7 +41,7 @@ export function QuoteTextBlocksEditor({
   }
 
   return (
-    <section className="flex flex-col gap-3">
+    <section className="flex min-w-0 flex-col gap-3">
       <input type="hidden" name="textBlockCount" value={blocks.length} />
       <h2 className="text-base font-semibold">{tDetail('textBlocksTitle')}</h2>
       {blocks.map((block, index) => (
@@ -76,7 +76,7 @@ export function QuoteTextBlocksEditor({
               />
             )}
           </Field>
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex min-w-0 items-center gap-2 break-words text-sm">
             <input
               type="checkbox"
               checked={block.enabled}
@@ -84,12 +84,18 @@ export function QuoteTextBlocksEditor({
             />
             {tDetail('textBlocksTitle')}
           </label>
-          <Button type="button" variant="ghost" size="sm" onClick={() => removeBlock(index)}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="w-full min-w-0 sm:w-auto"
+            onClick={() => removeBlock(index)}
+          >
             {t('removeLine')}
           </Button>
         </div>
       ))}
-      <Button type="button" variant="secondary" size="sm" onClick={addBlock}>
+      <Button type="button" variant="secondary" size="sm" className="w-full min-w-0 sm:w-auto" onClick={addBlock}>
         {t('addLine')}
       </Button>
     </section>
