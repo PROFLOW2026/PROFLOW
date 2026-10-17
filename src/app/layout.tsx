@@ -1,18 +1,21 @@
 import { cookies } from 'next/headers';
 import type { ReactNode } from 'react';
+import { getRequestPathname } from '@/shared/http/request-pathname';
 import { LOCALE_COOKIE_NAME } from '@/shared/i18n/auth-locale';
-import { localeFromCookieValue } from '@/shared/i18n/bare-path';
+import { documentLocale } from '@/shared/i18n/bare-path';
 import { LOCALE_METADATA } from '@/shared/i18n/config';
 import './globals.css';
 
 /**
- * Next.js requires `<html>` and `<body>` here. Locale-specific `lang`/`dir`
- * are seeded from the locale cookie and kept in sync client-side via
- * `LocaleDocumentAttributes` inside `[locale]/layout.tsx`.
+ * Next.js requires `<html>` and `<body>` here. `lang`/`dir` follow the URL
+ * locale when the path includes one (`/en` stays LTR even if the cookie is
+ * Hebrew). The locale cookie is the fallback for bare paths. Client navigation
+ * stays in sync via `LocaleDocumentAttributes` inside `[locale]/layout.tsx`.
  */
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
-  const locale = localeFromCookieValue(cookieStore.get(LOCALE_COOKIE_NAME)?.value);
+  const pathname = await getRequestPathname();
+  const locale = documentLocale(pathname, cookieStore.get(LOCALE_COOKIE_NAME)?.value);
   const metadata = LOCALE_METADATA[locale];
 
   return (

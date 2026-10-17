@@ -38,6 +38,20 @@ export function localeFromCookieValue(value: string | undefined): Locale {
   return isLocale(value) ? value : DEFAULT_LOCALE;
 }
 
+/** First path segment when it is a supported locale (`/en/...`). */
+export function localeFromPathname(pathname: string): Locale | null {
+  const segment = pathname.split('?')[0]?.split('#')[0]?.split('/').filter(Boolean)[0];
+  return isLocale(segment) ? segment : null;
+}
+
+/**
+ * Document `lang`/`dir` follow the URL locale when the path has one.
+ * The cookie is only the fallback for bare paths such as `/`.
+ */
+export function documentLocale(pathname: string, cookieValue: string | undefined): Locale {
+  return localeFromPathname(pathname) ?? localeFromCookieValue(cookieValue);
+}
+
 export function prefixedPathname(pathname: string, locale: Locale): string {
   if (pathname === '/' || pathname === '') return `/${locale}`;
   return `/${locale}${pathname}`;

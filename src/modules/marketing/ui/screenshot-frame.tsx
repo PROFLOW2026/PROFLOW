@@ -1,5 +1,12 @@
 import { cn } from '@/shared/ui/cn';
 
+/** Intrinsic sizes of the shipped marketing PNGs (desktop 1440×900, hero phone 390×844, employee phone 390×900). */
+function screenshotDimensions(src: string, mobile: boolean): { width: number; height: number } {
+  if (src.includes('employee-app-mobile')) return { width: 390, height: 900 };
+  if (mobile || src.includes('-mobile')) return { width: 390, height: 844 };
+  return { width: 1440, height: 900 };
+}
+
 export function ScreenshotFrame({
   src,
   alt,
@@ -7,6 +14,8 @@ export function ScreenshotFrame({
   className,
   priority = false,
   mobile = false,
+  width,
+  height,
 }: {
   src: string;
   alt: string;
@@ -14,7 +23,13 @@ export function ScreenshotFrame({
   className?: string;
   priority?: boolean;
   mobile?: boolean;
+  width?: number;
+  height?: number;
 }) {
+  const dimensions = screenshotDimensions(src, mobile);
+  const frameWidth = width ?? dimensions.width;
+  const frameHeight = height ?? dimensions.height;
+
   return (
     <figure className={cn('min-w-0 max-w-full', className)} data-pf-screenshot-frame={mobile ? 'mobile' : 'desktop'}>
       <div
@@ -27,6 +42,8 @@ export function ScreenshotFrame({
         <img
           src={src}
           alt={alt}
+          width={frameWidth}
+          height={frameHeight}
           className="block h-auto w-full max-w-full"
           decoding="async"
           loading={priority ? 'eager' : 'lazy'}
