@@ -34,7 +34,7 @@
       "How much has the project already cost?",
       "How much have I already committed to pay?",
       "How much was billed and how much was received?",
-      "What is the expected profit?"
+      "What is the expected contract balance after recognized costs?"
     ]
   },
   "problem": {

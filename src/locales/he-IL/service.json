@@ -277,7 +277,7 @@
   },
   "linkedTasks": {
     "title": "משימות מקושרות",
-    "empty": "אין משימות מקושרות להזמנת עבודה זו.",
+    "empty": "אין משימות מקושרות לקריאת שירות זו.",
     "taskPickerLabel": "משימה",
     "taskPickerPlaceholder": "בחר משימה…",
     "noTasksAvailable": "אין משימות לקישור",

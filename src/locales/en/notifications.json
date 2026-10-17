@@ -25,7 +25,7 @@
     "document_expiring": "Document expiring",
     "task_overdue": "Overdue task",
     "boq_awaiting_approval": "BOQ awaiting approval",
-    "work_order_assigned": "Work order assignment",
+    "work_order_assigned": "Service call assignment",
     "punch_assigned": "Punch item assigned",
     "low_stock": "Low stock",
     "safety_action_due": "Safety action due",
@@ -106,9 +106,9 @@
       "bodyDefault": "A progress measurement batch is waiting for approval."
     },
     "work_order_assigned": {
-      "titleWithReference": "Work order assigned - {reference}",
-      "titleDefault": "Work order assigned",
-      "body": "A work order was assigned to you."
+      "titleWithReference": "Service call assigned - {reference}",
+      "titleDefault": "Service call assigned",
+      "body": "A service call was assigned to you."
     },
     "punch_assigned": {
       "titleWithReference": "Punch item assigned - {reference}",

@@ -25,7 +25,7 @@
     "document_expiring": "Истекает документ",
     "task_overdue": "Просроченная задача",
     "boq_awaiting_approval": "BOQ ожидает согласования",
-    "work_order_assigned": "Назначен наряд",
+    "work_order_assigned": "Назначен сервисный вызов",
     "punch_assigned": "Назначен пункт punch",
     "low_stock": "Низкий запас",
     "safety_action_due": "Срок корректирующего действия по безопасности",
@@ -106,9 +106,9 @@
       "bodyDefault": "Пакет замеров прогресса ожидает согласования."
     },
     "work_order_assigned": {
-      "titleWithReference": "Назначен наряд — {reference}",
-      "titleDefault": "Назначен наряд",
-      "body": "Вам назначен наряд."
+      "titleWithReference": "Назначен сервисный вызов — {reference}",
+      "titleDefault": "Назначен сервисный вызов",
+      "body": "Вам назначен сервисный вызов."
     },
     "punch_assigned": {
       "titleWithReference": "Назначен пункт punch — {reference}",
