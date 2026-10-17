@@ -32,16 +32,19 @@ export async function QuoteLinkedTasksSection({
   if (tasks.length === 0 && !canManage) return null;
 
   return (
-    <Card>
+    <Card className="w-full min-w-0">
       <CardHeader>
-        <CardTitle>{t('linkedTasks.title')}</CardTitle>
+        <CardTitle className="break-words">{t('linkedTasks.title')}</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">
+      <CardContent className="flex min-w-0 flex-col gap-3 [&_button]:w-full [&_button]:min-w-0 sm:[&_button]:w-auto">
         {tasks.length > 0 ? (
-          <ul className="flex flex-col gap-2 text-sm">
+          <ul className="flex min-w-0 flex-col gap-2 text-sm">
             {tasks.map((task) => (
-              <li key={task.id}>
-                <Link href={`/tasks/${task.id}`} className="font-medium text-[var(--pf-status-info-fg)] underline">
+              <li key={task.id} className="min-w-0">
+                <Link
+                  href={`/tasks/${task.id}`}
+                  className="break-words font-medium text-[var(--pf-status-info-fg)] underline"
+                >
                   {task.title}
                 </Link>
               </li>

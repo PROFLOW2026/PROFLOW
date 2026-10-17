@@ -91,7 +91,7 @@ export function QuoteEditorForm({
     <form
       action={formAction}
       data-testid={mode === 'edit' ? 'quote-edit-form' : 'quote-create-form'}
-      className="mx-auto flex w-full max-w-lg flex-col gap-4"
+      className="mx-auto flex w-full min-w-0 max-w-lg flex-col gap-4"
     >
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success && mode === 'edit' ? (
@@ -146,7 +146,7 @@ export function QuoteEditorForm({
         )}
       </Field>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
         <Field label={t('currencyLabel')}>
           {(control) => (
             <Input {...control} name="currency" defaultValue={defaultCurrency} dir="ltr" maxLength={3} />
@@ -185,7 +185,7 @@ export function QuoteEditorForm({
         )}
       </Field>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
         <Field label={t('discountAmountLabel')} optionalLabel={tCommon('labels.optional')}>
           {(control) => (
             <Input
@@ -222,7 +222,7 @@ export function QuoteEditorForm({
       </div>
       <p className="text-xs text-[var(--pf-text-muted)]">{t('discountHint')}</p>
 
-      <section className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3">
+      <section className="flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold">{t('linesTitle')}</h2>
           <Button
@@ -254,7 +254,7 @@ export function QuoteEditorForm({
                 />
               )}
             </Field>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
               <Field label={t('quantity')}>
                 {(control) => (
                   <Input
@@ -355,8 +355,8 @@ export function QuoteEditorForm({
         )}
       </Field>
 
-      <div className="flex gap-2">
-        <Button type="submit" disabled={pending}>
+      <div className="flex w-full min-w-0 gap-2">
+        <Button type="submit" className="w-full min-w-0 sm:w-auto" disabled={pending}>
           {pending ? tCommon('actions.saving') : mode === 'edit' ? t('saveDraft') : t('submit')}
         </Button>
       </div>

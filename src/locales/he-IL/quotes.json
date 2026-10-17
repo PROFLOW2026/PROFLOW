@@ -85,7 +85,7 @@
     "quantity": "כמות",
     "unit": "יחידה",
     "unitPrice": "מחיר יחידה",
-    "unitCost": "עלות יחידה משוערת",
+    "unitCost": "עלות ליחידה",
     "lineTotal": "סה״כ שורה",
     "markup": "תוספת",
     "margin": "שיעור יתרת החוזה",
@@ -115,7 +115,7 @@
     "notRevenue": "לא הכנסה",
     "convertedTo": "הומר לעבודה",
     "openWork": "פתיחת פרויקט / עבודה",
-    "print": "הדפסה / שיתוף",
+    "print": "הדפסה/שיתוף",
     "preview": "תצוגה מקדימה",
     "textBlocksTitle": "קטעי טקסט בהצעה",
     "editDraft": "עריכה",
@@ -138,7 +138,7 @@
     "pricingMode": "תמחור עבודה",
     "pricingFixed": "מחיר קבוע",
     "pricingOpen": "מחיר פתוח",
-    "convertSubmit": "המרה לפרויקט / עבודה"
+    "convertSubmit": "המרה לעבודה"
   },
   "warnings": {
     "quoteArtifactRelocateSkipped": "העבודה נוצרה, אך {count, plural, one {קובץ PDF # מההצעה} other {# קבצי PDF מההצעה}} לא הועברו לתיקיית הפרויקט ({reasons})."
