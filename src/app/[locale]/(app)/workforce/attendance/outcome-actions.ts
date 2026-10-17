@@ -18,6 +18,7 @@ import {
 export interface AttendanceOutcomeActionState {
   ok?: boolean;
   error?: string;
+  warning?: string;
   savedCount?: number;
 }
 
@@ -43,7 +44,7 @@ export async function attendanceOutcomeAction(
   if (!employeeId) return { error: tErrors('validationFailed') };
 
   try {
-    const savedCount = await withOrgContext(async (context) => {
+    const { savedCount, costPending } = await withOrgContext(async (context) => {
       if (entryMode === 'range') {
         const fromDate = payload.fromDate ?? '';
         const toDate = payload.toDate ?? '';
@@ -61,12 +62,18 @@ export async function attendanceOutcomeAction(
           absenceCompensation: outcome === 'not_worked' ? absenceCompensation : null,
           notes,
         });
-        await recomputeDerivedLaborAfterAttendanceOutcomeChange(context, {
-          employeeId,
-          fromDate: from,
-          toDate: to,
-        });
-        return count;
+        let pending = false;
+        try {
+          await recomputeDerivedLaborAfterAttendanceOutcomeChange(context, {
+            employeeId,
+            fromDate: from,
+            toDate: to,
+          });
+        } catch (recomputeError) {
+          console.error('[attendance outcome cost recompute pending]', recomputeError);
+          pending = true;
+        }
+        return { savedCount: count, costPending: pending };
       }
 
       const workDate = payload.workDate ?? '';
@@ -82,25 +89,33 @@ export async function attendanceOutcomeAction(
         absenceCompensation: outcome === 'not_worked' ? absenceCompensation : null,
         notes,
       });
-      await recomputeDerivedLaborAfterAttendanceOutcomeChange(context, {
-        employeeId,
-        fromDate: date,
-        toDate: date,
-      });
-      return 1;
+      let pending = false;
+      try {
+        await recomputeDerivedLaborAfterAttendanceOutcomeChange(context, {
+          employeeId,
+          fromDate: date,
+          toDate: date,
+        });
+      } catch (recomputeError) {
+        console.error('[attendance outcome cost recompute pending]', recomputeError);
+        pending = true;
+      }
+      return { savedCount: 1, costPending: pending };
     });
 
     revalidatePath('/workforce/attendance');
     revalidatePath('/workforce/attendance/monthly');
     revalidatePath('/today');
     revalidatePath('/notifications');
-    return { ok: true, savedCount };
+    return {
+      ok: true,
+      savedCount,
+      warning: costPending ? tWorkforce('attendance.manual.costRecomputePending') : undefined,
+    };
   } catch (error) {
     if (error instanceof DomainRuleError) {
       const t = await getTranslations('workforce');
       const key = error.messageKey;
-      if (key === 'workforce.errors.attendanceClosedPeriod') return { error: t('errors.attendanceClosedPeriod') };
-      if (key === 'workforce.errors.monthCostClosed') return { error: t('errors.monthCostClosed') };
       if (key === 'workforce.errors.invalidBulkRange') return { error: t('errors.invalidBulkRange') };
       if (key.startsWith('workforce.errors.')) {
         const short = key.slice('workforce.errors.'.length);
@@ -110,10 +125,6 @@ export async function attendanceOutcomeAction(
           /* fall through */
         }
       }
-    }
-    if (error instanceof AppError && error.messageKey === 'financial.errors.generalCostRecomputeFailed') {
-      const tFinancial = await getTranslations('financial');
-      return { error: tFinancial('errors.generalCostRecomputeFailed') };
     }
     if (error instanceof AppError) return { error: tErrors('validationFailed') };
     console.error('[attendance outcome action]', error);

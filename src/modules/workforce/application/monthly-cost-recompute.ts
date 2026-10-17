@@ -410,6 +410,7 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
   const accrualNotes = `Auto monthly accrual (full month expected ${fullExpectedStr}; ${workingDaysPerMonth} work days/mo; recognized ${recognizedWorkDayCount} day(s))`;
 
   let preservedKnownAmount: string | null = null;
+  let skippedClosedEmployeeMonth = false;
 
   await withTransaction(context.db, async (tx) => {
     let month = await findEmployeeMonthCostByEmployeeMonth(
@@ -425,10 +426,9 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     }
 
     if (month?.status === 'closed') {
-      throw new DomainRuleError(
-        'Closed month costs cannot be recomputed',
-        'workforce.errors.monthCostClosed',
-      );
+      // Do not throw — attendance / time callers must keep their saved facts.
+      skippedClosedEmployeeMonth = true;
+      return;
     }
 
     // Reopen applied months for rewrite. Superseding an applied run demotes the
@@ -566,6 +566,10 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     const applied = await applyLaborAllocationRun(tx, context.organizationId, run.id);
     if (!applied) throw new NotFoundError('Labor allocation run');
   });
+
+  if (skippedClosedEmployeeMonth) {
+    return { ...base, reason: 'month_closed' };
+  }
 
   if (preservedKnownAmount != null) {
     return {

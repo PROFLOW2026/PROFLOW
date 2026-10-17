@@ -163,6 +163,7 @@ export type {
   AttendanceApplyOptions,
   AttendanceApplyRollbackProbe,
   AttendanceClockSurface,
+  AttendanceCostRecomputeStatus,
   AttendanceOverwriteSummary,
   AttendanceWorkdayRangePreview,
   AttendanceWorkdayRangeResult,

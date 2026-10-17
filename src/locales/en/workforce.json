@@ -856,6 +856,7 @@
       "saved": "Attendance saved.",
       "rangeSaved": "Created {created} · updated {updated} · skipped {skippedExisting} existing · {skippedVoid} void.",
       "rangeSavedSimple": "Saved {saved} days{skippedExisting, plural, =0 {} other { · skipped {skippedExisting} days that already had attendance}}.",
+      "costRecomputePending": "Attendance was saved. Related cost recalculation is pending and will complete on a later refresh.",
       "projectTimeSaved": "Created project time for {count} days.",
       "projectTimeApproved": "Approved {count} project work days (Actual cost).",
       "projectTimePending": "{count} work days are pending approval — not yet counted in project Actual.",

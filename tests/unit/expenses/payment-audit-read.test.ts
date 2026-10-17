@@ -65,8 +65,9 @@ describe('loadExpensePaymentAuditsByExpenseIds', () => {
 
     expect(result.size).toBe(0);
     expect(seen.some((text) => text.includes('ROLLBACK TO SAVEPOINT'))).toBe(true);
-    expect(seen.some((text) => text.includes('::uuid[]'))).toBe(true);
+    expect(seen.some((text) => text.includes('::uuid'))).toBe(true);
     expect(seen.some((text) => text.includes('::text[]'))).toBe(true);
+    expect(seen.some((text) => /ARRAY\[/.test(text))).toBe(true);
   });
 
   it('does not invent verified month recognition when audits are empty and only paidGross exists', () => {

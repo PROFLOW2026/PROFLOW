@@ -856,6 +856,7 @@
       "saved": "تم حفظ الحضور.",
       "rangeSaved": "أُنشئ {created} · حُدّث {updated} · تُخطّى {skippedExisting} موجود · {skippedVoid} ملغى.",
       "rangeSavedSimple": "حُفظ {saved} أيام{skippedExisting, plural, =0 {} other { · تُخطّى {skippedExisting} أيام لها حضور}}.",
+      "costRecomputePending": "تم حفظ الحضور. إعادة حساب التكاليف المرتبطة معلّقة وستكتمل لاحقاً.",
       "projectTimeSaved": "أُنشئ وقت مشروع لـ {count} أيام.",
       "projectTimeApproved": "اعتُمد {count} أيام عمل مشروع (تكلفة فعلية).",
       "projectTimePending": "{count} أيام عمل بانتظار الاعتماد — ليس بعد في فعلي المشروع.",

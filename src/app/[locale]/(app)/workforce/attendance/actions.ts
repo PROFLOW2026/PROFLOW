@@ -92,10 +92,6 @@ async function mapAttendanceError(error: unknown): Promise<string> {
   }
 
   if (error instanceof ValidationError) return tErrors('validationFailed');
-  if (error instanceof AppError && error.messageKey === 'financial.errors.generalCostRecomputeFailed') {
-    const tFinancial = await getTranslations('financial');
-    return tFinancial('errors.generalCostRecomputeFailed');
-  }
   if (error instanceof AppError) return tErrors('unexpected');
   console.error('[attendance action]', error);
   return tErrors('unexpected');
@@ -318,10 +314,17 @@ async function manualAttendanceRangeAction(
       );
     }
 
+    const costPendingWarning =
+      result.costRecomputeStatus === 'pending'
+        ? t('attendance.manual.costRecomputePending')
+        : undefined;
+    const projectWarning = await mapWarningKey(result.projectTimeWarningKey);
+    const warning = [costPendingWarning, projectWarning].filter(Boolean).join(' ') || undefined;
+
     return {
       ok: true,
       message: parts.join(' '),
-      warning: await mapWarningKey(result.projectTimeWarningKey),
+      warning,
       createdCount: result.createdCount,
       updatedCount: result.updatedCount,
       skippedExistingCount: result.skippedExistingCount,

@@ -828,6 +828,7 @@
       "saved": "הנוכחות נשמרה.",
       "rangeSaved": "נשמרו {created} ימים חדשים · עודכנו {updated} · דולגו {skippedExisting} קיימים · {skippedVoid} מבוטלים.",
       "rangeSavedSimple": "נשמרו {saved} ימים{skippedExisting, plural, =0 {} other { · {skippedExisting} ימים עם נוכחות קיימת דולגו}}.",
+      "costRecomputePending": "הנוכחות נשמרה. חישוב העלויות הנלווה ממתין להשלמה. הנתונים הכספיים יתעדכנו בחישוב חוזר.",
       "projectTimeSaved": "נוצר דיווח שעות לפרויקט ל־{count} ימים.",
       "projectTimeApproved": "אושרו {count} ימי עבודה לפרויקט (עלות עבודה מוכרת).",
       "projectTimePending": "{count} ימי עבודה ממתינים לאישור - עדיין לא נספרים בעלות הפרויקט.",

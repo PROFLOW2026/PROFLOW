@@ -89,6 +89,16 @@ export async function loadExpensePaymentAuditsByExpenseIds(
   const readSavepoint = `expense_payment_audit_read_${++ledgerSavepointSeq}`;
   await db.execute(sql.raw(`SAVEPOINT "${readSavepoint}"`));
   try {
+    // Build typed ARRAY[...] literals — casting a bound JS array as ::uuid[]/::text[]
+    // fails on the production pooler (SQLSTATE 42846) and poisons nested savepoints.
+    const expenseIdArray = sql`ARRAY[${sql.join(
+      expenseIds.map((id) => sql`${id}::uuid`),
+      sql`, `,
+    )}]`;
+    const actionArray = sql`ARRAY[${sql.join(
+      PAYMENT_ACTIONS.map((action) => sql`${action}`),
+      sql`, `,
+    )}]::text[]`;
     const rows = readSqlRows<{
       entity_id: string | null;
       action: string;
@@ -113,8 +123,8 @@ export async function loadExpensePaymentAuditsByExpenseIds(
         from audit_events
         where organization_id = ${organizationId}::uuid
           and entity_type = 'expense'
-          and entity_id = any(${[...expenseIds]}::uuid[])
-          and action = any(${[...PAYMENT_ACTIONS]}::text[])
+          and entity_id = any(${expenseIdArray})
+          and action = any(${actionArray})
         order by created_at
       `),
     );
@@ -135,7 +145,15 @@ export async function loadExpensePaymentAuditsByExpenseIds(
     }
     return map;
   } catch (error) {
-    await db.execute(sql.raw(`ROLLBACK TO SAVEPOINT "${readSavepoint}"`));
+    try {
+      await db.execute(sql.raw(`ROLLBACK TO SAVEPOINT "${readSavepoint}"`));
+    } catch (rollbackError) {
+      logger.error('expenses.payment_audit_read_savepoint_rollback_failed', {
+        sqlState: postgresSqlState(rollbackError) ?? null,
+        message: rollbackError instanceof Error ? rollbackError.message : String(rollbackError),
+        cause: postgresCauseMessage(rollbackError) ?? null,
+      });
+    }
     logger.error('expenses.payment_audit_read_failed', {
       sqlState: postgresSqlState(error) ?? null,
       message: error instanceof Error ? error.message : String(error),

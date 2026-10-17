@@ -856,6 +856,7 @@
       "saved": "Посещаемость сохранена.",
       "rangeSaved": "Создано {created} · обновлено {updated} · пропущено {skippedExisting} существующих · {skippedVoid} аннулированных.",
       "rangeSavedSimple": "Сохранено {saved} дн.{skippedExisting, plural, =0 {} other { · пропущено {skippedExisting} дн. с уже существующей посещаемостью}}.",
+      "costRecomputePending": "Посещаемость сохранена. Связанный пересчёт затрат ожидает завершения и обновится позже.",
       "projectTimeSaved": "Создано проектное время для {count} дн.",
       "projectTimeApproved": "Утверждено {count} рабочих дней на проекте (фактическая стоимость).",
       "projectTimePending": "{count} рабочих дней ожидают утверждения — ещё не в фактической проекта.",

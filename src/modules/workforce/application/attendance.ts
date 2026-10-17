@@ -728,6 +728,8 @@ export interface AttendanceWorkdayRangePreview {
   readonly kindsByDate: Readonly<Record<string, AttendanceRangeDayKind>>;
 }
 
+export type AttendanceCostRecomputeStatus = 'ok' | 'pending' | 'skipped';
+
 export interface AttendanceWorkdayRangeResult {
   readonly dates: readonly string[];
   readonly createdCount: number;
@@ -746,6 +748,11 @@ export interface AttendanceWorkdayRangeResult {
   readonly projectTimeVoidedDuplicateCount: number;
   readonly projectTimeVoidedPriorWorkCount: number;
   readonly projectTimeWarningKey?: string | null;
+  /**
+   * Derived cost refresh runs after attendance commits.
+   * `pending` means attendance is saved; cost refresh needs a later retry.
+   */
+  readonly costRecomputeStatus: AttendanceCostRecomputeStatus;
 }
 
 export interface AttendanceOverwriteSummary {
@@ -981,13 +988,14 @@ function fireRollbackProbe(
 /**
  * Apply a normal workday (clock_in + clock_out) across selected weekdays in a date range.
  *
- * Owner write rule:
+ * Write rule (ATTENDANCE_MANAGE):
  * - No existing attendance on any selected date → save immediately (+ project sync).
  * - Any existing attendance → require overwriteConfirmed (double UI approval); then
  *   overwrite attendance and reconcile project work atomically for the whole range.
  *
- * When project work is included (or overwrite clears prior time), the full mutation
- * runs in ONE database transaction. Failure → zero committed business change.
+ * Attendance + project-time facts commit in ONE transaction. Derived cost refresh
+ * runs after that commit so general-cost / labor recompute failures cannot undo
+ * attendance that already saved.
  */
 export async function applyManualAttendanceWorkdayRange(
   context: OrgContext,
@@ -1031,34 +1039,13 @@ export async function applyManualAttendanceWorkdayRange(
   }
 
   const forceOverwrite = preview.existingCount > 0 && input.overwriteConfirmed;
-  const syncCandidateDates = dates.filter((workDate) => preview.kindsByDate[workDate] !== 'void');
   const includesProjectWork = input.workScope === 'project' && Boolean(input.projectId);
   const mutatesTimeFacts = forceOverwrite || includesProjectWork;
-
-  // Reject closed months BEFORE any write begins.
-  if (mutatesTimeFacts) {
-    const { isMonthClosed, yearMonthFromBusinessDate } = await import('@/modules/month-close');
-    const closedMonths = new Set<string>();
-    for (const workDate of syncCandidateDates) {
-      const yearMonth = yearMonthFromBusinessDate(workDate);
-      if (closedMonths.has(yearMonth)) continue;
-      if (await isMonthClosed(context, yearMonth)) {
-        closedMonths.add(yearMonth);
-      }
-    }
-    if (closedMonths.size > 0) {
-      throw new DomainRuleError(
-        'Attendance write intersects a closed financial period',
-        'workforce.errors.attendanceClosedPeriod',
-        { closedMonths: [...closedMonths].sort() },
-      );
-    }
-  }
 
   const { hoursBetweenClockTimes } = await import('../validation/schemas');
   const hours = hoursBetweenClockTimes(input.clockInTime, input.clockOutTime);
 
-  return withTransaction(context.db, async (tx) => {
+  const applied = await withTransaction(context.db, async (tx) => {
     const txCtx = withExecutor(context, tx);
 
     const createdDates: string[] = [];
@@ -1190,16 +1177,6 @@ export async function applyManualAttendanceWorkdayRange(
 
     fireRollbackProbe(options, 'after_project_work');
 
-    if (mutatesTimeFacts && syncDates.length > 0) {
-      const { recomputeEmployeeCostsAfterTimeChange } = await import('./daily-cost-recompute');
-      await recomputeEmployeeCostsAfterTimeChange(txCtx, {
-        employeeId: input.employeeId,
-        workDates: syncDates,
-      });
-    }
-
-    fireRollbackProbe(options, 'after_costing');
-
     if (forceOverwrite) {
       fireRollbackProbe(options, 'during_audit');
       await recordAuditEvent(txCtx, {
@@ -1222,7 +1199,7 @@ export async function applyManualAttendanceWorkdayRange(
     }
 
     return {
-      status: 'applied' as const,
+      syncDates,
       result: {
         dates,
         createdCount: createdDates.length,
@@ -1240,9 +1217,41 @@ export async function applyManualAttendanceWorkdayRange(
         projectTimeVoidedDuplicateCount,
         projectTimeVoidedPriorWorkCount,
         projectTimeWarningKey,
+        costRecomputeStatus: 'skipped' as const,
       },
     };
   });
+
+  let costRecomputeStatus: AttendanceCostRecomputeStatus = 'skipped';
+  if (mutatesTimeFacts && applied.syncDates.length > 0) {
+    try {
+      fireRollbackProbe(options, 'after_costing');
+      const { recomputeEmployeeCostsAfterTimeChange } = await import('./daily-cost-recompute');
+      await recomputeEmployeeCostsAfterTimeChange(context, {
+        employeeId: input.employeeId,
+        workDates: applied.syncDates,
+      });
+      costRecomputeStatus = 'ok';
+    } catch (error) {
+      const { logger } = await import('@/shared/observability');
+      const { isAppError } = await import('@/shared/errors');
+      logger.error('workforce.attendance_cost_recompute_pending', {
+        employeeId: input.employeeId,
+        workDates: applied.syncDates,
+        message: error instanceof Error ? error.message : String(error),
+        messageKey: isAppError(error) ? error.messageKey : undefined,
+      });
+      costRecomputeStatus = 'pending';
+    }
+  }
+
+  return {
+    status: 'applied',
+    result: {
+      ...applied.result,
+      costRecomputeStatus,
+    },
+  };
 }
 
 export function canViewAttendance(context: OrgContext): boolean {

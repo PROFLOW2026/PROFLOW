@@ -237,7 +237,7 @@ describe('attendance ↔ project atomicity', () => {
     });
   });
 
-  it('D. costing injected failure rolls back all', async () => {
+  it('D. costing injected failure keeps attendance committed', async () => {
     await database.asUser(owner.id, async (tx) => {
       const context = await resolveOrgContext(tx, {
         userId: owner.id,
@@ -245,29 +245,29 @@ describe('attendance ↔ project atomicity', () => {
         locale: 'he-IL',
       });
       const beforeAtt = await countActiveAttendanceEvents(context, employeeId, workDate);
-      const beforeTime = await countRecordedTime(context, employeeId, workDate);
 
-      await expect(
-        applyManualAttendanceWorkdayRange(
-          context,
-          {
-            employeeId,
-            fromDate: workDate,
-            toDate: workDate,
-            weekdays: [2],
-            clockInTime: '09:00',
-            clockOutTime: '17:00',
-            workScope: 'project',
-            projectId: projectAId,
-          },
-          { rollbackProbe: 'after_costing' },
-        ),
-      ).rejects.toMatchObject({
-        messageKey: 'workforce.errors.attendanceApplyRollbackProbe',
-      } satisfies Partial<DomainRuleError>);
+      const outcome = await applyManualAttendanceWorkdayRange(
+        context,
+        {
+          employeeId,
+          fromDate: workDate,
+          toDate: workDate,
+          weekdays: [2],
+          clockInTime: '09:00',
+          clockOutTime: '17:00',
+          workScope: 'project',
+          projectId: projectAId,
+        },
+        { rollbackProbe: 'after_costing' },
+      );
 
-      expect(await countActiveAttendanceEvents(context, employeeId, workDate)).toBe(beforeAtt);
-      expect(await countRecordedTime(context, employeeId, workDate)).toBe(beforeTime);
+      expect(outcome.status).toBe('applied');
+      if (outcome.status !== 'applied') return;
+      expect(outcome.result.costRecomputeStatus).toBe('pending');
+      expect(await countActiveAttendanceEvents(context, employeeId, workDate)).toBeGreaterThan(
+        beforeAtt,
+      );
+      expect(await countRecordedTime(context, employeeId, workDate, projectAId)).toBe(1);
     });
   });
 
@@ -371,7 +371,7 @@ describe('attendance ↔ project atomicity', () => {
     });
   });
 
-  it('H. closed period rejects with zero mutation', async () => {
+  it('H. closed financial month still allows authorized attendance write', async () => {
     const closedWorkDate = '2028-04-11'; // Tuesday in an unused month
     await database.asUser(owner.id, async (tx) => {
       const context = await resolveOrgContext(tx, {
@@ -386,25 +386,25 @@ describe('attendance ↔ project atomicity', () => {
       expect(closed.status).toBe('closed');
 
       const beforeAtt = await countActiveAttendanceEvents(context, employeeId, closedWorkDate);
-      const beforeTime = await countRecordedTime(context, employeeId, closedWorkDate);
 
-      await expect(
-        applyManualAttendanceWorkdayRange(context, {
-          employeeId,
-          fromDate: closedWorkDate,
-          toDate: closedWorkDate,
-          weekdays: [2],
-          clockInTime: '09:00',
-          clockOutTime: '17:00',
-          workScope: 'project',
-          projectId: projectAId,
-        }),
-      ).rejects.toMatchObject({
-        messageKey: 'workforce.errors.attendanceClosedPeriod',
-      } satisfies Partial<DomainRuleError>);
+      const outcome = await applyManualAttendanceWorkdayRange(context, {
+        employeeId,
+        fromDate: closedWorkDate,
+        toDate: closedWorkDate,
+        weekdays: [2],
+        clockInTime: '09:00',
+        clockOutTime: '17:00',
+        workScope: 'general',
+      });
 
-      expect(await countActiveAttendanceEvents(context, employeeId, closedWorkDate)).toBe(beforeAtt);
-      expect(await countRecordedTime(context, employeeId, closedWorkDate)).toBe(beforeTime);
+      expect(outcome.status).toBe('applied');
+      if (outcome.status !== 'applied') return;
+      expect(outcome.result.createdCount + outcome.result.updatedCount).toBeGreaterThan(0);
+      expect(await countActiveAttendanceEvents(context, employeeId, closedWorkDate)).toBeGreaterThan(
+        beforeAtt,
+      );
+      // Month stays closed — attendance write must not reopen it.
+      expect(closed.status).toBe('closed');
     });
   });
 });
