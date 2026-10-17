@@ -36,7 +36,7 @@ export function LocaleSwitcherInline({ className }: LocaleSwitcherInlineProps) {
             disabled={pending}
             aria-pressed={active}
             className={cn(
-              'rounded-md px-2.5 py-1 text-sm transition-colors',
+              'inline-flex min-h-11 items-center justify-center rounded-md px-2.5 text-sm transition-colors',
               active
                 ? 'bg-[var(--pf-action-primary)] font-medium text-[var(--pf-action-primary-fg)]'
                 : 'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)]',

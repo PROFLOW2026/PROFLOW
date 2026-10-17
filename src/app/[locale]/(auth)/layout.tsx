@@ -17,23 +17,25 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
   return (
     <WithClientMessages namespaces={[...AUTH_CLIENT_MESSAGE_NAMESPACES]}>
       <div className="flex min-h-dvh min-w-0 max-w-full flex-col items-center justify-center bg-[var(--pf-bg-page)] px-4 py-8 pb-[max(2.5rem,env(safe-area-inset-bottom))] sm:py-10">
-        <div className="mb-6 flex min-w-0 max-w-full items-center gap-2">
+        <header className="order-1 mb-6 flex min-w-0 max-w-full items-center gap-2">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--pf-action-primary)] text-sm font-bold text-[var(--pf-action-primary-fg)]">
             PF
           </span>
           <span className="min-w-0 truncate text-lg font-semibold">{t('appName')}</span>
-        </div>
+        </header>
 
-        <LocaleSwitcherInline className="mb-4" />
-
-        <div className="w-full min-w-0 max-w-sm rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 shadow-[var(--pf-shadow-sm)] sm:p-6">
+        {/* DOM order puts the form before the switcher so the first tab stop is a field. Visual order stays brand, language, form. */}
+        <main className="order-3 w-full min-w-0 max-w-sm rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 shadow-[var(--pf-shadow-sm)] sm:p-6">
           {children}
-        </div>
+        </main>
 
-        {/* Pre-login install - no account required (LEO-style discoverability). */}
-        <PwaInstallCta variant="auth" />
+        <LocaleSwitcherInline className="order-2 mb-4" />
 
-        <LegalFooterLinks className="mt-6 text-center text-xs text-[var(--pf-text-muted)] [&_a]:text-[var(--pf-text-muted)] [&_a:hover]:text-[var(--pf-text-brand)]" />
+        <footer className="order-4 flex w-full max-w-sm flex-col items-center">
+          {/* Pre-login install - no account required (LEO-style discoverability). */}
+          <PwaInstallCta variant="auth" />
+          <LegalFooterLinks className="mt-6 text-center text-xs text-[var(--pf-text-muted)] [&_a]:text-[var(--pf-text-muted)] [&_a:hover]:text-[var(--pf-text-brand)]" />
+        </footer>
       </div>
     </WithClientMessages>
   );

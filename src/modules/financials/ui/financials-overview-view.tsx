@@ -33,7 +33,7 @@ export async function FinancialsOverviewView({ data }: { readonly data: Financia
         <div className="mt-3">
           <button
             type="submit"
-            className="h-9 rounded-md border border-[var(--pf-border-strong)] px-4 text-sm font-medium"
+            className="min-h-11 rounded-md border border-[var(--pf-border-strong)] px-4 text-sm font-medium"
           >
             {tRange('apply')}
           </button>
