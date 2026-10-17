@@ -969,3 +969,25 @@ export async function getMismatchBillingRecordIds(
 
   return new Set(rows.map((row) => row.billingRecordId));
 }
+
+const ISSUED_STATUTORY_DOCUMENT_STATUSES = ['issued', 'allocated', 'credited'] as const;
+
+/** Local statutory rows only. Does not call the provider. */
+export async function billingRecordHasIssuedStatutoryDocument(
+  db: DbExecutor,
+  organizationId: string,
+  billingRecordId: string,
+): Promise<boolean> {
+  const rows = await db
+    .select({ id: externalStatutoryDocuments.id })
+    .from(externalStatutoryDocuments)
+    .where(
+      and(
+        eq(externalStatutoryDocuments.organizationId, organizationId),
+        eq(externalStatutoryDocuments.billingRecordId, billingRecordId),
+        inArray(externalStatutoryDocuments.status, [...ISSUED_STATUTORY_DOCUMENT_STATUSES]),
+      ),
+    )
+    .limit(1);
+  return rows.length > 0;
+}

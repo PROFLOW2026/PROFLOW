@@ -84,8 +84,12 @@ export function BillingDetailActions({
 
   const referenceLabel = recordReference ?? t('detail.title');
 
-  async function runBillingAction(action: () => Promise<{ error?: string }>) {
+  async function runBillingAction(
+    action: () => Promise<{ error?: string; fieldErrors?: Record<string, string> }>,
+  ) {
     const result = await action();
+    const dueDateError = result.fieldErrors?.dueDate;
+    if (dueDateError) return { error: dueDateError };
     if (result.error) {
       return { error: resolveBillingError(result.error, t, tErrors) };
     }
@@ -114,21 +118,31 @@ export function BillingDetailActions({
         />
       ) : null}
 
-      {status === 'finalized' ? (
+      {status === 'draft' || status === 'finalized' ? (
         <ConfirmAction
-          title={t('confirm.voidRecordTitle')}
+          title={status === 'draft' ? t('confirm.voidDraftTitle') : t('confirm.voidRecordTitle')}
           description={
             <>
-              <p>{t('confirm.voidRecordQuestion', { reference: referenceLabel })}</p>
-              <p>{t('confirm.voidRecordConsequence')}</p>
+              <p>
+                {status === 'draft'
+                  ? t('confirm.voidDraftQuestion', { reference: referenceLabel })
+                  : t('confirm.voidRecordQuestion', { reference: referenceLabel })}
+              </p>
+              <p>
+                {status === 'draft'
+                  ? t('confirm.voidDraftConsequence')
+                  : t('confirm.voidRecordConsequence')}
+              </p>
             </>
           }
-          confirmLabel={t('detail.void')}
-          successMessage={t('confirm.voidRecordSuccess')}
+          confirmLabel={status === 'draft' ? t('draft.void') : t('detail.void')}
+          successMessage={
+            status === 'draft' ? t('confirm.voidDraftSuccess') : t('confirm.voidRecordSuccess')
+          }
           onConfirm={() => runBillingAction(() => voidRecordAction(billingRecordId))}
           trigger={
             <Button type="button" variant="secondary">
-              {t('detail.void')}
+              {status === 'draft' ? t('draft.void') : t('detail.void')}
             </Button>
           }
         />

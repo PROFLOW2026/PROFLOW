@@ -15,6 +15,7 @@ import {
 import { releaseBillingRecordRetention } from '@/modules/retention';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, ValidationError, serializeError } from '@/shared/errors';
+import { mapServerActionError } from '@/shared/errors/map-server-action-error';
 import { redirect } from '@/shared/i18n/navigation';
 import type { CreateBillingRecordInput, CreatePaymentInput } from '@/modules/billing';
 import { revalidatePath } from 'next/cache';
@@ -123,12 +124,23 @@ export async function updateBillingRecordAction(
 
 export async function finalizeBillingRecordAction(billingRecordId: string): Promise<BillingFormState> {
   const tErrors = await getTranslations('errors');
+  const tBilling = await getTranslations('billing');
 
   try {
     await withOrgContext((context) => finalizeBillingRecord(context, billingRecordId));
     revalidatePath(`/billing/${billingRecordId}`);
     revalidatePath('/billing');
   } catch (error) {
+    if (error instanceof ValidationError) {
+      const mapped = mapServerActionError(error, {
+        tErrors,
+        namespaces: { billing: (key) => tBilling(key) },
+      });
+      return {
+        error: mapped.fieldErrors?.dueDate ?? mapped.error,
+        fieldErrors: mapped.fieldErrors,
+      };
+    }
     if (error instanceof AppError) return mapError(error, tErrors('unexpected'));
     throw error;
   }

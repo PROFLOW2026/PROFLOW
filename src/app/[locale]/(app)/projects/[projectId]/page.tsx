@@ -103,10 +103,11 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
 export default async function ProjectPage({ params, searchParams }: ProjectPageProps) {
   const [{ locale, projectId }, search] = await Promise.all([params, searchParams]);
   const tabParam = tabFromSearchParams(search.tab);
+  const resolvedTab = resolveHubFromTabParam(tabParam);
 
-  if (MODULE_PANEL_TABS.has(tabParam as ProjectTabKey)) {
+  if (MODULE_PANEL_TABS.has(resolvedTab.section)) {
     return renderModuleTab({
-      activeTab: tabParam as ProjectTabKey,
+      activeTab: resolvedTab.section,
       projectId,
       boqContractId:
         typeof search.contractId === 'string' ? search.contractId : search.contractId?.[0],
@@ -115,7 +116,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
     });
   }
 
-  const activeTab = (tabParam as ProjectTabKey) || 'overview';
+  const activeTab = resolvedTab.section;
 
   return (
     <Suspense fallback={<TabPanelSkeleton />}>

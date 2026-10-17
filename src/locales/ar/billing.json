@@ -194,6 +194,13 @@
     "recordPaymentTitle": "تسجيل دفعة",
     "recordPaymentDescription": "أدخل المبلغ المستلم من العميل."
   },
+  "draft": {
+    "title": "تعديل المسودة",
+    "notTaxInvoice": "المسودة ليست فاتورة ضريبية. تبقى خارج الذمم المدينة والربح.",
+    "save": "حفظ المسودة",
+    "overContract": "مبلغ المسودة أعلى من قيمة العقد الحالية. يمكن الحفظ والإنهاء رغم ذلك.",
+    "void": "إلغاء المسودة"
+  },
   "detail": {
     "title": "سجل الفوترة",
     "amountBreakdownTitle": "تفصيل المبلغ",
@@ -223,6 +230,10 @@
     "voidRecordQuestion": "إلغاء سجل الفوترة {reference}؟",
     "voidRecordConsequence": "سيُزال من إجماليات الفواتير ولا يمكن استعادته.",
     "voidRecordSuccess": "تم إلغاء سجل الفوترة.",
+    "voidDraftTitle": "إلغاء المسودة",
+    "voidDraftQuestion": "إلغاء المسودة {reference}؟",
+    "voidDraftConsequence": "تُعلَّم المسودة كملغاة وتبقى في السجل. لا تُحذف.",
+    "voidDraftSuccess": "أُلغيت المسودة.",
     "voidPaymentTitle": "إلغاء الدفعة",
     "voidPaymentQuestion": "إلغاء الدفعة بمبلغ <amount></amount> من <date></date>؟",
     "voidPaymentConsequence": "ينشئ قيد عكس ولا يمكن التراجع.",
@@ -263,7 +274,8 @@
   "errors": {
     "notEditable": "فقط مسودات سجلات الفوترة يمكن تعديلها.",
     "notFinalizable": "فقط مسودات سجلات الفوترة يمكن إنهاؤها.",
-    "notVoidable": "فقط سجلات الفوترة المُنهية يمكن إلغاؤها.",
+    "notVoidable": "يمكن إلغاء مسودة أو سجل فوترة مُنهى فقط.",
+    "dueBeforeIssue": "لا يمكن أن يكون تاريخ الاستحقاق قبل تاريخ الإصدار.",
     "correctionNotVoidable": "قيود التصحيح لا يمكن إلغاؤها مرة أخرى.",
     "paymentTargetNotFinalized": "المدفوعات تُسجَّل فقط ضد سجلات فوترة مُنهية.",
     "paymentNotVoidable": "فقط المدفوعات المُسجَّلة يمكن إلغاؤها.",

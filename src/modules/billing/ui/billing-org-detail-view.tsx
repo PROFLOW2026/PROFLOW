@@ -7,7 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getBillingRecord } from '@/modules/billing';
+import { loadLinkedContractCurrentAmount } from '@/modules/billing/application/load-linked-contract-current';
+import { statutoryStatusBlocksDraftEdit } from '@/modules/billing/domain/draft-rules';
 import { BillingDetailActions } from '@/modules/billing/ui/billing-detail-actions';
+import { DraftBillingEditForm } from '@/modules/billing/ui/draft-billing-edit-form';
 import { BillingStatusBadge } from '@/modules/billing/ui/billing-status-badge';
 import { BillingVatBreakdown } from '@/modules/billing/ui/billing-vat-breakdown';
 import {
@@ -100,6 +103,7 @@ export async function BillingOrgDetailView({
   let primaryStorageProvider: StorageProviderKey | null = null;
   let showExternalStatutory = false;
   let invoicingSettings: Awaited<ReturnType<typeof getOrgInvoicingSettings>> | null = null;
+  let contractCurrentAmount: string | null = null;
 
   try {
     const result = await withOrgContext(async (context) => {
@@ -111,8 +115,18 @@ export async function BillingOrgDetailView({
       }
       const provider = await resolveStatutoryProviderForOrg(context);
       const settings = await getOrgInvoicingSettings(context);
+      const record = await getBillingRecord(context, billingRecordId);
+      const contractCurrentAmount =
+        record.status === 'draft'
+          ? await loadLinkedContractCurrentAmount(
+              context,
+              record.contractId,
+              record.totalAmount.currency,
+            )
+          : null;
       return {
-        record: await getBillingRecord(context, billingRecordId),
+        record,
+        contractCurrentAmount,
         canManage: orgListHasPermission(context, PERMISSIONS.BILLING_MANAGE, surface),
         canCommunicate: orgListHasPermission(context, PERMISSIONS.COMMUNICATIONS_MANAGE, surface),
         documentsPanel: await getEntityDocumentPanelData(context, 'billing_record', billingRecordId),
@@ -140,6 +154,7 @@ export async function BillingOrgDetailView({
     primaryStorageProvider = result.primaryStorage?.provider ?? null;
     showExternalStatutory = result.showExternalStatutory;
     invoicingSettings = result.invoicingSettings;
+    contractCurrentAmount = result.contractCurrentAmount;
   } catch {
     notFound();
   }
@@ -149,6 +164,12 @@ export async function BillingOrgDetailView({
     ? resolveAccountingProviderDisplayName(statutoryProviderStatus.providerId)
     : null;
   const fullyPaid = isZeroMoney(record.outstandingAmount);
+  const issuedStatutory = externalDocuments.some((document) =>
+    statutoryStatusBlocksDraftEdit(document.status),
+  );
+  const canEditDraft = canManage && record.status === 'draft' && !issuedStatutory && Boolean(record.projectId);
+  const draftEntryAmount =
+    record.vatMode === 'inclusive' ? record.totalAmount.amount : record.subtotalAmount.amount;
   const captureRetentionAction =
     surface === 'employee' ? employeeUpdateBillingRetentionAction : updateBillingRetentionAction;
   const releaseRetentionAction =
@@ -334,6 +355,20 @@ export async function BillingOrgDetailView({
           </CardContent>
         </Card>
       </div>
+
+      {canEditDraft && record.projectId ? (
+        <DraftBillingEditForm
+          billingRecordId={record.id}
+          projectId={record.projectId}
+          currency={record.totalAmount.currency}
+          initialAmount={draftEntryAmount}
+          issueDate={record.issueDate}
+          dueDate={record.dueDate}
+          reference={record.reference}
+          notes={record.notes}
+          contractCurrentAmount={contractCurrentAmount}
+        />
+      ) : null}
 
       {showsCollectionFollowUp(record) ? (
         <CollectionFollowUpCard

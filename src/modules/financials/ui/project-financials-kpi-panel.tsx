@@ -216,6 +216,7 @@ export function ProjectFinancialsKpiPanel({
   const projectExpensesTab = `/projects/${projectId}?tab=expenses`;
   const projectBillingTab = `/projects/${projectId}?tab=billing`;
   const procurementHref = '/procurement';
+  const subcontractAgreementsHref = `/projects/${projectId}/contractors`;
   const apHref = '/procurement/ap';
   const billingOutstandingHref = '/billing?filter=outstanding';
   const billingPaidHref = '/billing?filter=paid';
@@ -482,6 +483,10 @@ export function ProjectFinancialsKpiPanel({
         ]}
         links={[
           { href: procurementHref, label: t('drillLinks.viewPurchaseOrders') },
+          {
+            href: subcontractAgreementsHref,
+            label: t('drillLinks.viewSubcontractAgreements'),
+          },
           ...(canReadAp
             ? [{ href: apHref, label: t('drillLinks.viewVendorBills') }]
             : []),
