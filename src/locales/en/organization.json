@@ -63,7 +63,11 @@
       "name": "Finance",
       "description": "Billing, payments, expenses and tax. Vendor bill posting uses ap.manage — grant it on a role under Settings → Roles when a user must post or void AP."
     },
-    "worker": { "name": "Worker", "description": "Records expenses and hours. No financial totals." }
+    "worker": { "name": "Worker", "description": "Records expenses and hours. No financial totals." },
+    "employee": {
+      "name": "Employee",
+      "description": "Employee App access. Attendance by default; the owner can extend permissions."
+    }
   },
   "permissions": {
     "org": {

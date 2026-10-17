@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatInstant } from '@/shared/dates/format';
+import { employeeUsernameFromAuthEmail } from '@/modules/employee-app/domain/username';
 import { ROLE_TEMPLATE_KEYS, type RoleTemplateKey } from '@/shared/permissions/role-templates';
 import {
   inviteMemberAction,
@@ -20,6 +21,12 @@ import {
   type SettingsActionState,
 } from '../actions';
 import type { OrganizationMember } from '@/modules/tenancy/application/members';
+
+const BLANK_ROLE_LABEL = '\u2014';
+
+function memberContactLabel(email: string): string {
+  return employeeUsernameFromAuthEmail(email) ?? email;
+}
 
 interface PendingInvitation {
   id: string;
@@ -58,9 +65,12 @@ export function PeopleSettingsPanel({
   );
   const [copied, setCopied] = useState(false);
 
-  const inviteRoleOptions = ROLE_TEMPLATE_KEYS.filter(
-    (key) => key !== 'owner' || canInviteOwner,
-  );
+  const inviteRoleOptions = ROLE_TEMPLATE_KEYS.filter((key) => {
+    if (key === 'owner' && !canInviteOwner) return false;
+    const label = t(`roles.${key}.name`).trim();
+    if (!label || label === BLANK_ROLE_LABEL || label.startsWith('[missing:')) return false;
+    return true;
+  });
 
   async function handleRemove(membershipId: string) {
     const result = await removeMemberAction(membershipId);
@@ -108,7 +118,7 @@ export function PeopleSettingsPanel({
                       {members.map((member) => (
                         <TableRow key={member.membershipId}>
                           <TableCell>
-                            {member.displayName ?? member.email}
+                            {member.displayName ?? memberContactLabel(member.email)}
                             {member.userId === currentUserId ? (
                               <span className="ms-2 text-xs text-[var(--pf-text-muted)]">
                                 ({t('members.you')})
@@ -116,7 +126,7 @@ export function PeopleSettingsPanel({
                             ) : null}
                           </TableCell>
                           <TableCell>
-                            <span dir="ltr">{member.email}</span>
+                            <span dir="ltr">{memberContactLabel(member.email)}</span>
                           </TableCell>
                           <TableCell>
                             {member.roleKeys
@@ -129,7 +139,7 @@ export function PeopleSettingsPanel({
                                 <ConfirmAction
                                   title={t('members.remove')}
                                   description={t('members.removeConfirm', {
-                                    name: member.displayName ?? member.email,
+                                    name: member.displayName ?? memberContactLabel(member.email),
                                   })}
                                   confirmLabel={t('members.remove')}
                                   successMessage={t('members.removeSuccess')}
@@ -152,7 +162,7 @@ export function PeopleSettingsPanel({
               renderMobileCard={(member) => (
                 <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
                   <p className="text-sm font-medium">
-                    {member.displayName ?? member.email}
+                    {member.displayName ?? memberContactLabel(member.email)}
                     {member.userId === currentUserId ? (
                       <span className="ms-2 text-xs text-[var(--pf-text-muted)]">
                         ({t('members.you')})
@@ -160,7 +170,7 @@ export function PeopleSettingsPanel({
                     ) : null}
                   </p>
                   <p className="mt-1 text-xs text-[var(--pf-text-secondary)]" dir="ltr">
-                    {member.email}
+                    {memberContactLabel(member.email)}
                   </p>
                   <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">
                     {member.roleKeys
@@ -172,7 +182,7 @@ export function PeopleSettingsPanel({
                       <ConfirmAction
                         title={t('members.remove')}
                         description={t('members.removeConfirm', {
-                          name: member.displayName ?? member.email,
+                          name: member.displayName ?? memberContactLabel(member.email),
                         })}
                         confirmLabel={t('members.remove')}
                         successMessage={t('members.removeSuccess')}

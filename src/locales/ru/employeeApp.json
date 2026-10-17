@@ -11,7 +11,8 @@
     "accountBlocked": "Учётная запись заблокирована или приостановлена",
     "accountLocked": "Слишком много попыток. Попробуйте позже",
     "tempPinExpired": "Временный PIN истёк. Обратитесь к руководителю",
-    "backToCustomerLogin": "Назад ко входу для заказчика"
+    "pinFormat": "PIN должен состоять ровно из 6 цифр",
+    "backToCustomerLogin": "Назад ко входу для бизнеса"
   },
   "setPin": {
     "title": "Задать новый PIN",
@@ -550,6 +551,7 @@
     "invalidCredentials": "Неверные учётные данные",
     "accountBlocked": "Учётная запись неактивна",
     "accountLocked": "Учётная запись временно заблокирована",
+    "rateLimited": "Слишком много попыток. Попробуйте позже",
     "accessNotStarted": "Доступ ещё не начался",
     "accessExpired": "Срок доступа истёк",
     "tempPinExpired": "Временный PIN истёк",

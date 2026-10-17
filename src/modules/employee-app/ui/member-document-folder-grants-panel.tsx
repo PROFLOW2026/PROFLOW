@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Field } from '@/components/ui/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DOCUMENT_CATEGORIES, type DocumentCategory } from '@/modules/documents/domain/categories';
+import { employeeUsernameFromAuthEmail } from '@/modules/employee-app/domain/username';
 import { saveMemberDocumentFolderGrantsAction } from '@/app/[locale]/(app)/settings/people/member-folder-grants-actions';
 import type { SettingsActionState } from '@/app/[locale]/(app)/settings/actions';
 
@@ -41,7 +42,8 @@ export function MemberDocumentFolderGrantsPanel({
     return new Set(configured);
   }, [grantsByMembershipId, selectedMembershipId]);
 
-  const memberLabel = (member: MemberRow) => member.displayName || member.email;
+  const memberLabel = (member: MemberRow) =>
+    member.displayName || employeeUsernameFromAuthEmail(member.email) || member.email;
 
   if (members.length === 0) return null;
 

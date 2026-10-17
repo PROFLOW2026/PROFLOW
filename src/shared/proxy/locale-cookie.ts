@@ -4,11 +4,22 @@ import type { Locale } from '@/shared/i18n/config';
 
 export const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
-export function persistLocaleCookie(response: NextResponse, locale: Locale): void {
+/** Locale preference is not an auth secret. Secure only on HTTPS / production. */
+export function localeCookieSecure(protocol?: string | null): boolean {
+  if (process.env.NODE_ENV === 'production') return true;
+  return protocol === 'https:';
+}
+
+export function persistLocaleCookie(
+  response: NextResponse,
+  locale: Locale,
+  protocol?: string | null,
+): void {
   response.cookies.set(LOCALE_COOKIE_NAME, locale, {
     path: '/',
     sameSite: 'lax',
     maxAge: LOCALE_COOKIE_MAX_AGE,
+    secure: localeCookieSecure(protocol),
   });
 }
 
@@ -20,5 +31,5 @@ export function persistLocaleCookieIfNeeded(
 ): void {
   const existing = request.cookies.get(LOCALE_COOKIE_NAME)?.value;
   if (existing === locale) return;
-  persistLocaleCookie(response, locale);
+  persistLocaleCookie(response, locale, request.nextUrl.protocol);
 }

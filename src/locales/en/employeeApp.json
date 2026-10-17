@@ -11,7 +11,8 @@
     "accountBlocked": "Account is blocked or suspended",
     "accountLocked": "Too many attempts. Try again later",
     "tempPinExpired": "Temporary PIN expired. Contact your manager",
-    "backToCustomerLogin": "Back to customer sign in"
+    "pinFormat": "PIN must be exactly 6 digits",
+    "backToCustomerLogin": "Back to business sign-in"
   },
   "setPin": {
     "title": "Set new PIN",
@@ -759,6 +760,7 @@
     "invalidCredentials": "Invalid credentials",
     "accountBlocked": "Account is not active",
     "accountLocked": "Account is temporarily locked",
+    "rateLimited": "Too many attempts. Try again later",
     "accessNotStarted": "Access has not started yet",
     "accessExpired": "Access has expired",
     "tempPinExpired": "Temporary PIN has expired",

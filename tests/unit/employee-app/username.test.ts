@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildEmployeeAuthEmail,
   buildUsernameCandidates,
+  employeeUsernameFromAuthEmail,
   generateDefaultUsername,
   normalizeUsername,
   validateUsername,
@@ -22,6 +23,14 @@ describe('employee app username', () => {
     expect(buildEmployeeAuthEmail(orgId, 'eran123')).toBe(
       `${orgId}.eran123@employees.pf.internal`,
     );
+  });
+
+  it('shows the employee username instead of the synthetic auth email', () => {
+    const orgId = '8ef96b2a-1111-4111-8111-111111111111';
+    const email = buildEmployeeAuthEmail(orgId, 'pm1');
+    expect(employeeUsernameFromAuthEmail(email)).toBe('pm1');
+    expect(employeeUsernameFromAuthEmail(`${orgId}.user.name@employees.pf.internal`)).toBe('user.name');
+    expect(employeeUsernameFromAuthEmail('owner@company.com')).toBeNull();
   });
 
   it('generates owner-visible username from employee', () => {

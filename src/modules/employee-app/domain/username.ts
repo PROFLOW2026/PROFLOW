@@ -11,9 +11,27 @@ export function validateUsername(raw: string): { valid: true; normalized: string
   return { valid: true, normalized };
 }
 
+const EMPLOYEE_AUTH_EMAIL_SUFFIX = '@employees.pf.internal';
+
 /** Synthetic Supabase email — globally unique, never shown to employees. */
 export function buildEmployeeAuthEmail(organizationId: string, usernameNormalized: string): string {
-  return `${organizationId}.${usernameNormalized}@employees.pf.internal`;
+  return `${organizationId}.${usernameNormalized}${EMPLOYEE_AUTH_EMAIL_SUFFIX}`;
+}
+
+/**
+ * Owner-facing username parsed from the synthetic auth email.
+ * Does not change how the address is stored. Organization ids have no dots,
+ * so the username is everything after the first dot in the local part.
+ */
+export function employeeUsernameFromAuthEmail(email: string | null | undefined): string | null {
+  if (!email) return null;
+  const at = email.lastIndexOf('@');
+  if (at <= 0) return null;
+  if (email.slice(at).toLowerCase() !== EMPLOYEE_AUTH_EMAIL_SUFFIX) return null;
+  const local = email.slice(0, at);
+  const dot = local.indexOf('.');
+  if (dot <= 0 || dot >= local.length - 1) return null;
+  return local.slice(dot + 1);
 }
 
 export function generateDefaultUsername(employeeName: string, employeeNumber: string | null): string {

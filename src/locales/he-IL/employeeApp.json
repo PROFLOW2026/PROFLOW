@@ -11,7 +11,8 @@
     "accountBlocked": "החשבון חסום או מושהה",
     "accountLocked": "יותר מדי ניסיונות. נסה שוב מאוחר יותר",
     "tempPinExpired": "PIN זמני פג תוקף. פנה למנהל",
-    "backToCustomerLogin": "חזרה לכניסת לקוחות"
+    "pinFormat": "הקוד חייב להיות 6 ספרות",
+    "backToCustomerLogin": "חזרה לכניסת העסק"
   },
   "setPin": {
     "title": "הגדרת PIN חדש",
@@ -759,6 +760,7 @@
     "invalidCredentials": "פרטי כניסה שגויים",
     "accountBlocked": "החשבון אינו פעיל",
     "accountLocked": "החשבון ננעל זמנית",
+    "rateLimited": "יותר מדי ניסיונות. נסו שוב מאוחר יותר",
     "accessNotStarted": "הגישה עדיין לא החלה",
     "accessExpired": "תוקף הגישה פג",
     "tempPinExpired": "PIN זמני פג תוקף",

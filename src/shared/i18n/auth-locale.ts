@@ -3,6 +3,13 @@ import { DEFAULT_LOCALE, isLocale, LOCALES, type Locale } from './config';
 /** Matches next-intl's default locale cookie name. */
 export const LOCALE_COOKIE_NAME = 'NEXT_LOCALE';
 
+/** Browser locale cookie. Secure on HTTPS only so local http dev still works. */
+export function writeClientLocaleCookie(locale: string): void {
+  const secure =
+    typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; secure' : '';
+  document.cookie = `${LOCALE_COOKIE_NAME}=${locale}; path=/; max-age=31536000; samesite=lax${secure}`;
+}
+
 /**
  * Resolve the UI locale for auth callbacks and email return URLs.
  * Prefer an explicit query/cookie/metadata value; never invent `en` from

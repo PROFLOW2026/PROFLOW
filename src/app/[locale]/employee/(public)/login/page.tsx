@@ -25,9 +25,16 @@ export default async function EmployeeLoginPage({
       : typeof raw.username === 'string'
         ? raw.username
         : '';
+  const tCommon = await getTranslations('common');
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-8">
+      <div className="mb-6 flex min-w-0 items-center justify-center gap-2">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--pf-action-primary)] text-sm font-bold text-[var(--pf-action-primary-fg)]">
+          PF
+        </span>
+        <span className="min-w-0 truncate text-lg font-semibold">{tCommon('appName')}</span>
+      </div>
       <LocaleSwitcherInline className="mb-6" />
       <EmployeeLoginForm defaultUsername={defaultUsername} />
     </div>

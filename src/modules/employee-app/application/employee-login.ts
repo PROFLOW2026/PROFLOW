@@ -1,10 +1,15 @@
 import 'server-only';
 
 import { createClient } from '@supabase/supabase-js';
+import { headers } from 'next/headers';
 import { getAdminDb } from '@/shared/db/client';
 import { createSupabaseServerClient, isSupabaseConfigured } from '@/shared/supabase/server';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
 import { employeeSupabaseAuthPassword } from '../domain/auth-password';
+import {
+  employeeLoginIsThrottled,
+  recordEmployeeLoginFailure,
+} from '../domain/login-throttle';
 import { isValidPin, LOGIN_LOCK_MS, MAX_LOGIN_ATTEMPTS } from '../domain/pin';
 import { normalizeUsername } from '../domain/username';
 import {
@@ -90,39 +95,63 @@ export async function signInWithEmployeeCredentials(authEmail: string, pin: stri
   }
 }
 
+async function requestClientIp(): Promise<string | null> {
+  try {
+    const list = await headers();
+    const forwarded = list.get('x-forwarded-for')?.split(',')[0]?.trim();
+    const ip = forwarded || list.get('x-real-ip')?.trim() || '';
+    return ip.length > 0 ? ip : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function employeeLogin(input: EmployeeLoginInput): Promise<EmployeeLoginResult> {
   if (!isSupabaseConfigured()) {
     throw new DomainRuleError('Auth is not configured', 'employeeApp.errors.notConfigured');
   }
 
   const usernameNormalized = normalizeUsername(input.username);
+  const ip = await requestClientIp();
+  const throttleKey = { username: usernameNormalized || input.username, ip };
+  if (employeeLoginIsThrottled(throttleKey)) {
+    throw new DomainRuleError('Too many attempts', 'employeeApp.errors.rateLimited');
+  }
+  const noteThrottleFailure = () => recordEmployeeLoginFailure(throttleKey);
+
   const db = getAdminDb();
 
   if (!isValidPin(input.pin)) {
+    noteThrottleFailure();
     throw new DomainRuleError('Invalid credentials', 'employeeApp.errors.invalidCredentials');
   }
 
   const account = await findEmployeeAppAccountByUsernameGlobal(db, usernameNormalized);
   if (!account) {
+    noteThrottleFailure();
     throw new DomainRuleError('Invalid credentials', 'employeeApp.errors.invalidCredentials');
   }
 
   if (account.status === 'blocked' || account.status === 'suspended' || account.status === 'inactive') {
     await recordLoginFailure(db, account, 'account_blocked', { status: account.status });
+    noteThrottleFailure();
     throw new DomainRuleError('Account is not active', 'employeeApp.errors.accountBlocked');
   }
 
   const now = new Date();
   if (account.lockedUntil && account.lockedUntil > now) {
+    noteThrottleFailure();
     throw new DomainRuleError('Account is temporarily locked', 'employeeApp.errors.accountLocked');
   }
 
   if (account.accessStartsAt && account.accessStartsAt > now) {
     await recordLoginFailure(db, account, 'access_not_started');
+    noteThrottleFailure();
     throw new DomainRuleError('Access not yet available', 'employeeApp.errors.accessNotStarted');
   }
   if (account.accessEndsAt && account.accessEndsAt < now) {
     await recordLoginFailure(db, account, 'access_expired');
+    noteThrottleFailure();
     throw new DomainRuleError('Access has expired', 'employeeApp.errors.accessExpired');
   }
 
@@ -132,6 +161,7 @@ export async function employeeLogin(input: EmployeeLoginInput): Promise<Employee
     account.temporaryPinExpiresAt < now
   ) {
     await recordLoginFailure(db, account, 'temp_pin_expired');
+    noteThrottleFailure();
     throw new DomainRuleError('Temporary PIN has expired', 'employeeApp.errors.tempPinExpired');
   }
 
@@ -143,6 +173,7 @@ export async function employeeLogin(input: EmployeeLoginInput): Promise<Employee
       phase: 'sign_in',
       message: error instanceof Error ? error.message : String(error),
     });
+    noteThrottleFailure();
     throw new DomainRuleError('Auth is not configured', 'employeeApp.errors.notConfigured');
   }
 
@@ -156,6 +187,7 @@ export async function employeeLogin(input: EmployeeLoginInput): Promise<Employee
       supabaseCode: error.code ?? null,
       supabaseMessage: error.message,
     });
+    noteThrottleFailure();
     throw new DomainRuleError('Invalid credentials', 'employeeApp.errors.invalidCredentials');
   }
 
