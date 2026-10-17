@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { pressableClassName } from '@/components/ui/pressable';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/shared/ui/cn';
 import type {
@@ -286,35 +287,24 @@ export function BankingReconciliationPanel({
             {t('transactions.empty')}
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[40rem] text-start text-sm">
-              <thead>
-                <tr className="border-b border-[var(--pf-border-default)] text-[var(--pf-text-secondary)]">
-                  <th className="px-2 py-2 font-medium">
-                    {t('transactions.columns.date')}
-                  </th>
-                  <th className="px-2 py-2 font-medium">
-                    {t('transactions.columns.description')}
-                  </th>
-                  <th className="px-2 py-2 font-medium">
-                    {t('transactions.columns.amount')}
-                  </th>
-                  <th className="px-2 py-2 font-medium">
-                    {t('transactions.columns.direction')}
-                  </th>
-                  <th className="px-2 py-2 font-medium">
-                    {t('transactions.columns.status')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+          <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('transactions.columns.date')}</TableHead>
+                  <TableHead>{t('transactions.columns.description')}</TableHead>
+                  <TableHead numeric>{t('transactions.columns.amount')}</TableHead>
+                  <TableHead>{t('transactions.columns.direction')}</TableHead>
+                  <TableHead>{t('transactions.columns.status')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {visibleTxns.map((txn) => (
-                  <tr
+                  <TableRow
                     key={txn.id}
                     role="button"
                     tabIndex={0}
                     className={cn(
-                      'cursor-pointer border-b border-[var(--pf-border-default)]',
+                      'cursor-pointer',
                       pressableClassName,
                       'active:bg-[var(--pf-action-subtle-active)]',
                       selectedTxnId === txn.id
@@ -329,25 +319,22 @@ export function BankingReconciliationPanel({
                       }
                     }}
                   >
-                    <td className="px-2 py-2 whitespace-nowrap">{txn.date}</td>
-                    <td className="px-2 py-2">{txn.description}</td>
-                    <td className="px-2 py-2 whitespace-nowrap">
+                    <TableCell>{txn.date}</TableCell>
+                    <TableCell>{txn.description}</TableCell>
+                    <TableCell numeric>
                       {txn.amount} {txn.currency}
-                    </td>
-                    <td className="px-2 py-2 whitespace-nowrap">
-                      {t(`transactions.directions.${txn.direction}`)}
-                    </td>
-                    <td className="px-2 py-2">
+                    </TableCell>
+                    <TableCell>{t(`transactions.directions.${txn.direction}`)}</TableCell>
+                    <TableCell>
                       <StatusBadge
                         shape={statusShape(txn.matchStatus)}
                         label={t(`statuses.${txn.matchStatus}`)}
                       />
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
         )}
       </section>
 

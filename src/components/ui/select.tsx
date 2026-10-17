@@ -59,7 +59,7 @@ export const SelectContent = React.forwardRef<
         sideOffset={4}
         dir={dir ?? localeDir}
         className={cn(
-          'relative z-70 max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-md',
+          'relative z-70 max-h-72 w-[min(var(--radix-select-trigger-width),calc(100vw-1rem))] min-w-[min(var(--radix-select-trigger-width),calc(100vw-1rem))] max-w-[calc(100vw-1rem)] overflow-hidden rounded-md',
           'border border-[var(--pf-border-default)] bg-[var(--pf-bg-elevated)] shadow-[var(--pf-shadow-md)] text-start',
           className,
         )}

@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Inbox } from 'lucide-react';
 import type { ReceivedExpenseImportRow } from '@/modules/expense-ingestion/application/list-received-imports';
@@ -31,20 +32,20 @@ export function ReceivedExpensesList({ rows }: { rows: readonly ReceivedExpenseI
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
-      <table className="min-w-full text-sm">
-        <thead className="bg-[var(--pf-bg-subtle)] text-start text-[var(--pf-text-secondary)]">
-          <tr>
-            <th className="px-3 py-2 font-medium">{t('columns.source')}</th>
-            <th className="px-3 py-2 font-medium">{t('columns.received')}</th>
-            <th className="px-3 py-2 font-medium">{t('columns.status')}</th>
-            <th className="px-3 py-2 font-medium">{t('columns.supplier')}</th>
-            <th className="px-3 py-2 font-medium">{t('columns.reference')}</th>
-            <th className="px-3 py-2 font-medium">{t('columns.gross')}</th>
-            <th className="px-3 py-2 font-medium">{t('columns.actions')}</th>
-          </tr>
-        </thead>
-        <tbody>
+    <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)]">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t('columns.source')}</TableHead>
+            <TableHead>{t('columns.received')}</TableHead>
+            <TableHead>{t('columns.status')}</TableHead>
+            <TableHead>{t('columns.supplier')}</TableHead>
+            <TableHead>{t('columns.reference')}</TableHead>
+            <TableHead>{t('columns.gross')}</TableHead>
+            <TableHead>{t('columns.actions')}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {rows.map((row) => {
             const imp = row.import;
             const reviewHref = imp.ocrJobId
@@ -52,17 +53,12 @@ export function ReceivedExpensesList({ rows }: { rows: readonly ReceivedExpenseI
               : null;
             const previewHref = `/api/expense-ingestion/imports/${imp.id}/pdf`;
             return (
-              <tr
-                key={imp.id}
-                className="border-t border-[var(--pf-border-default)] align-top"
-              >
-                <td className="px-3 py-3">
+              <TableRow key={imp.id}>
+                <TableCell>
                   <StatusBadge shape="pending" label={t(`source.${row.sourceLabel}`)} />
-                </td>
-                <td className="px-3 py-3 whitespace-nowrap">
-                  {new Date(imp.detectedAt).toLocaleDateString()}
-                </td>
-                <td className="px-3 py-3">
+                </TableCell>
+                <TableCell>{new Date(imp.detectedAt).toLocaleDateString()}</TableCell>
+                <TableCell>
                   <StatusBadge
                     shape={statusShape(imp.status)}
                     label={t(`status.${imp.status}`)}
@@ -74,11 +70,11 @@ export function ReceivedExpensesList({ rows }: { rows: readonly ReceivedExpenseI
                       })}
                     </p>
                   ) : null}
-                </td>
-                <td className="px-3 py-3">{row.supplier ?? '—'}</td>
-                <td className="px-3 py-3">{row.reference ?? '—'}</td>
-                <td className="px-3 py-3">{row.gross ?? row.net ?? '—'}</td>
-                <td className="px-3 py-3">
+                </TableCell>
+                <TableCell>{row.supplier ?? '—'}</TableCell>
+                <TableCell>{row.reference ?? '—'}</TableCell>
+                <TableCell>{row.gross ?? row.net ?? '—'}</TableCell>
+                <TableCell>
                   <div className="flex flex-col gap-1">
                     <a
                       href={previewHref}
@@ -99,12 +95,12 @@ export function ReceivedExpensesList({ rows }: { rows: readonly ReceivedExpenseI
                       </span>
                     ) : null}
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             );
           })}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

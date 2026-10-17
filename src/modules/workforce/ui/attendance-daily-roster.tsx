@@ -2,6 +2,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { AlertCircle, CheckCircle2, Clock, UserPlus } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Link } from '@/shared/i18n/navigation';
 import type { TodayAttendanceOverview } from '../application/attendance-owner-views';
 
@@ -75,43 +76,39 @@ export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterP
         </div>
       </div>
 
-      <div className="mt-4 overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="border-b border-[var(--pf-border-default)] text-start text-[var(--pf-text-muted)]">
-              <th className="py-2 pe-3 font-medium">{t('todayView.columns.employee')}</th>
-              <th className="py-2 pe-3 font-medium">{t('todayView.columns.project')}</th>
-              <th className="py-2 pe-3 font-medium">{t('todayView.columns.start')}</th>
-              <th className="py-2 pe-3 font-medium">{t('todayView.columns.hours')}</th>
-              <th className="py-2 pe-3 font-medium">{t('todayView.columns.approval')}</th>
-              <th className="py-2 font-medium">{t('todayView.columns.action')}</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="mt-4 min-w-0 max-w-full">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('todayView.columns.employee')}</TableHead>
+              <TableHead>{t('todayView.columns.project')}</TableHead>
+              <TableHead>{t('todayView.columns.start')}</TableHead>
+              <TableHead>{t('todayView.columns.hours')}</TableHead>
+              <TableHead>{t('todayView.columns.approval')}</TableHead>
+              <TableHead>{t('todayView.columns.action')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {overview.rows.map((row) => (
-              <tr
+              <TableRow
                 key={row.employeeId}
                 className={
                   row.reported
-                    ? 'border-b border-[var(--pf-border-default)]'
-                    : 'border-b border-[var(--pf-border-default)] bg-red-50/70 dark:bg-red-950/20'
+                    ? undefined
+                    : 'bg-red-50/70 dark:bg-red-950/20'
                 }
               >
-                <td className="py-2 pe-3 font-medium">{row.employeeName}</td>
-                <td className="py-2 pe-3 text-[var(--pf-text-secondary)]">
+                <TableCell className="font-medium">{row.employeeName}</TableCell>
+                <TableCell className="text-[var(--pf-text-secondary)]">
                   {row.projectNames.length > 0
                     ? row.projectNames.join(', ')
                     : row.reported
                       ? t('todayView.noProject')
                       : '—'}
-                </td>
-                <td className="py-2 pe-3" dir="ltr">
-                  {formatStartTime(row.startTime, locale)}
-                </td>
-                <td className="py-2 pe-3" dir="ltr">
-                  {formatHours(row.hours)}
-                </td>
-                <td className="py-2 pe-3">
+                </TableCell>
+                <TableCell dir="ltr">{formatStartTime(row.startTime, locale)}</TableCell>
+                <TableCell dir="ltr">{formatHours(row.hours)}</TableCell>
+                <TableCell>
                   <StatusBadge
                     shape={
                       row.approvalStatus === 'approved'
@@ -126,8 +123,8 @@ export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterP
                     }
                     label={t(`todayView.approval.${row.approvalStatus}`)}
                   />
-                </td>
-                <td className="py-2">
+                </TableCell>
+                <TableCell>
                   {row.dayId ? (
                     <Link
                       href={`/workforce/attendance?dayId=${row.dayId}&employeeId=${row.employeeId}`}
@@ -144,11 +141,11 @@ export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterP
                       {t('dailyRoster.addAttendance')}
                     </Link>
                   )}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </section>
   );

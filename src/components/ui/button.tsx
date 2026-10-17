@@ -7,7 +7,7 @@ import { cn } from '@/shared/ui/cn';
 
 const buttonVariants = cva(
   [
-    'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md',
+    'inline-flex max-w-full min-w-0 items-center justify-center gap-2 whitespace-normal break-words rounded-md md:whitespace-nowrap',
     'font-medium',
     pressableClassName,
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',

@@ -31,7 +31,10 @@ export function PageHeader({
           {meta ? <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">{meta}</div> : null}
         </div>
         {actions ? (
-          <div className="flex min-w-0 w-full max-w-full flex-wrap items-center gap-2 sm:w-auto sm:max-w-[min(100%,28rem)] sm:justify-end lg:max-w-none">
+          <div
+            data-pf-page-actions=""
+            className="flex min-w-0 w-full max-w-full flex-wrap items-center gap-2 sm:w-auto sm:max-w-[min(100%,28rem)] sm:justify-end lg:max-w-none"
+          >
             {actions}
           </div>
         ) : null}

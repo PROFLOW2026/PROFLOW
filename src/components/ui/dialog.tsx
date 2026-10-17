@@ -58,11 +58,11 @@ export const DialogContent = React.forwardRef<
         ref={ref}
         dir={dir ?? localeDir}
         className={cn(
-          'fixed z-60 flex max-h-[90dvh] flex-col overflow-hidden bg-[var(--pf-bg-elevated)] shadow-[var(--pf-shadow-lg)] text-start',
+          'fixed z-60 flex max-h-[90dvh] min-w-0 max-w-full flex-col overflow-hidden bg-[var(--pf-bg-elevated)] shadow-[var(--pf-shadow-lg)] text-start break-words',
           // Horizontal centre uses physical left/-translate-x (symmetric in RTL).
           // Close control and header padding use logical end (end-3 / pe-12).
           mobileSheet
-            ? 'inset-x-0 bottom-0 rounded-t-xl sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg'
+            ? 'inset-x-0 bottom-0 w-full rounded-t-xl sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg'
             : 'left-1/2 top-1/2 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg',
           className,
         )}
@@ -95,7 +95,7 @@ export function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLD
 }
 
 export function DialogBody({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex-1 overflow-y-auto px-5 py-4', className)} {...props} />;
+  return <div className={cn('min-w-0 flex-1 overflow-y-auto break-words px-5 py-4', className)} {...props} />;
 }
 
 export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {

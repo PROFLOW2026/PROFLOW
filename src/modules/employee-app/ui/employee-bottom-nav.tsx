@@ -44,7 +44,7 @@ export function EmployeeBottomNav({ items }: { items: readonly EmployeeNavItem[]
   return (
     <>
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 box-border min-w-0 border-t border-[var(--pf-border)] bg-[var(--pf-surface)] pb-[env(safe-area-inset-bottom,0px)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 box-border w-full min-w-0 max-w-full border-t border-[var(--pf-border)] bg-[var(--pf-surface)] pb-[env(safe-area-inset-bottom,0px)] lg:hidden"
         aria-label={t('employeeApp.title')}
         data-pf-employee-mobile-nav=""
       >
