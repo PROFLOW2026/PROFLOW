@@ -310,7 +310,7 @@ export const updateProjectSchema = z
     if (value.primaryContactId && value.clientId === null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Project contact requires a client',
+        message: 'validation.projectContactRequiresClient',
         path: ['primaryContactId'],
       });
     }
