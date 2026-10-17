@@ -67,6 +67,7 @@ export async function ExpensesOrgDetailPage({
   const rawReturnTo =
     typeof rawSearchParams.returnTo === 'string' ? rawSearchParams.returnTo : undefined;
   const quickCaptureApproved = rawSearchParams.quickCaptureApproved === '1';
+  const expenseEditSaved = rawSearchParams.saved === '1';
   const backNavigation = resolveExpenseBackNavigation(rawReturnTo, routeBase);
   const vendorsRouteBase = routeBase.startsWith('/employee') ? '/employee/vendors' : '/vendors';
   const t = await getTranslations('expenses');
@@ -233,6 +234,12 @@ export async function ExpensesOrgDetailPage({
         </Alert>
       ) : null}
 
+      {readOnly && expenseEditSaved ? (
+        <Alert tone="success" role="status">
+          {t('detail.editSaved')}
+        </Alert>
+      ) : null}
+
       {detailAttention ? <ExpenseDetailAttentionPanel attention={detailAttention} /> : null}
 
       {expense.status === 'finalized' && !expense.projectId ? (
@@ -358,6 +365,7 @@ export async function ExpensesOrgDetailPage({
           supplierBillReferences={supplierBillReferences}
           defaultToday={defaultPaymentDate}
           taxRatePercent={taxRatePercent}
+          savedConfirmation={expenseEditSaved}
         />
       )}
 

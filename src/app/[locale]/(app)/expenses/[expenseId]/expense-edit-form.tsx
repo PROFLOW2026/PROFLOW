@@ -35,6 +35,7 @@ export interface ExpenseEditFormProps {
   readonly supplierBillReferences?: readonly SupplierBillReferenceRow[];
   readonly defaultToday?: string;
   readonly taxRatePercent?: string | null;
+  readonly savedConfirmation?: boolean;
 }
 
 function toServerUpdatedAt(value: Date | string): string {
@@ -52,6 +53,7 @@ export function ExpenseEditForm({
   supplierBillReferences = [],
   defaultToday = '',
   taxRatePercent = null,
+  savedConfirmation = false,
 }: ExpenseEditFormProps) {
   const t = useTranslations('expenses');
   const tCommon = useTranslations('common');
@@ -167,6 +169,12 @@ export function ExpenseEditForm({
   return (
     <form action={formAction} className="flex flex-col gap-6">
       <input type="hidden" name="expenseId" value={expense.id} />
+
+      {savedConfirmation ? (
+        <Alert tone="success" role="status">
+          {t('detail.editSaved')}
+        </Alert>
+      ) : null}
 
       {state.offlineQueued ? (
         <Alert tone="info" role="status">

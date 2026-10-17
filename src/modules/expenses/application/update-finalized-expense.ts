@@ -13,6 +13,7 @@ import {
 } from '@/modules/month-close';
 import { resolveExpenseClassificationStatus } from '@/modules/financials/domain/economic-classification';
 import { findExpenseById, findCostCategoryById, updateExpenseRow } from '../data/expenses.repository';
+import { expenseAllowsFinalizeWithoutCategory } from '../domain/targeting';
 import { captureTaxSnapshot } from '../domain/tax';
 import type { ExpenseVatMode } from '../domain/vat-mode';
 import type { UpdateExpenseInput } from '../validation/schemas';
@@ -68,13 +69,29 @@ export async function updateFinalizedExpense(context: OrgContext, input: UpdateE
     const category = payload.row.costCategoryId
       ? await findCostCategoryById(context.db, context.organizationId, payload.row.costCategoryId)
       : null;
-    const classificationStatus = resolveExpenseClassificationStatus({
-      costCategoryId: payload.row.costCategoryId,
-      categoryKey: category?.key ?? null,
-      inventoryStockPurchase: payload.row.inventoryStockPurchase,
-      costFamily: payload.row.costFamily,
+    const allowsMissingCategory = expenseAllowsFinalizeWithoutCategory({
+      projectId: payload.targeting.projectId,
+      allocations: input.allocations,
     });
-    if (classificationStatus !== 'classified' || !payload.row.costCategoryId) {
+    const classificationStatus = allowsMissingCategory
+      ? payload.row.costCategoryId
+        ? resolveExpenseClassificationStatus({
+            costCategoryId: payload.row.costCategoryId,
+            categoryKey: category?.key ?? null,
+            inventoryStockPurchase: payload.row.inventoryStockPurchase,
+            costFamily: payload.row.costFamily,
+          })
+        : 'needs_classification'
+      : resolveExpenseClassificationStatus({
+          costCategoryId: payload.row.costCategoryId,
+          categoryKey: category?.key ?? null,
+          inventoryStockPurchase: payload.row.inventoryStockPurchase,
+          costFamily: payload.row.costFamily,
+        });
+    if (
+      !allowsMissingCategory &&
+      (classificationStatus !== 'classified' || !payload.row.costCategoryId)
+    ) {
       throw new DomainRuleError(
         'Choose an expense type before saving',
         'expenses.errors.classificationRequired',

@@ -181,7 +181,8 @@
         "current": "Текущая",
         "billed": "Выставлено AP",
         "paid": "Оплачено AP",
-        "outstanding": "Задолженность",
+        "outstanding": "Остаток счетов поставщика",
+        "remainingCommitment": "Остаток обязательства",
         "retention": "Удержание",
         "dates": "Даты"
       }

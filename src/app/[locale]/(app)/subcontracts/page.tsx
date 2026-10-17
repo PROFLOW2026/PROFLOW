@@ -15,6 +15,7 @@ import {
   listVendorsForOrg,
   type SubcontractListRow,
 } from '@/modules/vendors';
+import { formatRetentionPercent } from '@/modules/vendors/domain/retention-percent-display';
 import { money } from '@/shared/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -48,7 +49,7 @@ function statusShape(status: string): StatusShape {
   }
 }
 
-const MONEY_COLUMN_COUNT = 6;
+const MONEY_COLUMN_COUNT = 7;
 
 function SubcontractMoneyCells({ item }: { item: SubcontractListRow }) {
   if (!isFinancialSubcontractRow(item)) {
@@ -77,7 +78,10 @@ function SubcontractMoneyCells({ item }: { item: SubcontractListRow }) {
       <TableCell>
         <MoneyText value={money(item.outstandingAmount, item.currency)} />
       </TableCell>
-      <TableCell dir="ltr">{item.retentionPercent ? `${item.retentionPercent}%` : '—'}</TableCell>
+      <TableCell>
+        <MoneyText value={money(item.remainingCommitmentAmount, item.currency)} />
+      </TableCell>
+      <TableCell dir="ltr">{formatRetentionPercent(item.retentionPercent)}</TableCell>
     </>
   );
 }
@@ -151,6 +155,7 @@ export default async function SubcontractsPage({
                           <TableHead>{t('list.columns.billed')}</TableHead>
                           <TableHead>{t('list.columns.paid')}</TableHead>
                           <TableHead>{t('list.columns.outstanding')}</TableHead>
+                          <TableHead>{t('list.columns.remainingCommitment')}</TableHead>
                           <TableHead>{t('list.columns.retention')}</TableHead>
                         </>
                       ) : null}

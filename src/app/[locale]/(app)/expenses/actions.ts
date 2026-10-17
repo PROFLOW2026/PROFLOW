@@ -332,7 +332,7 @@ export async function updateExpenseAction(
     });
     revalidatePath('/expenses');
     revalidatePath(`/expenses/${expense.id}`);
-    redirect({ href: `/expenses/${expense.id}`, locale });
+    redirect({ href: `/expenses/${expense.id}?saved=1`, locale });
   } catch (error) {
     if (error instanceof ValidationError) {
       const taxIssue = error.issues.find(

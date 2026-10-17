@@ -324,6 +324,7 @@ async function fetchExpenseHits(
     status: hit.status,
     date: hit.expenseDate,
     amount: hit.netAmount,
+    grossAmount: hit.grossAmount,
     currency: hit.currency,
   }));
 }

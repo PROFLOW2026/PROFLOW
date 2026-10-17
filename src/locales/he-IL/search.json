@@ -7,6 +7,8 @@
   "empty": "אין תוצאות באזורים שמותר לכם לראות.",
   "error": "לא ניתן להריץ חיפוש. נסו שוב.",
   "results": "תוצאות",
+  "amountNet": "נטו",
+  "amountGross": "ברוטו",
   "commands": {
     "title": "פקודות",
     "createExpense": "יצירת הוצאה",
