@@ -614,6 +614,7 @@ export interface ExpenseSearchHit {
   readonly status: string;
   readonly expenseDate: string;
   readonly netAmount: string;
+  readonly grossAmount: string;
   readonly currency: string;
   readonly supplierName: string | null;
 }
@@ -636,6 +637,7 @@ export async function searchExpenses(
       status: expenses.status,
       expenseDate: expenses.expenseDate,
       netAmount: expenses.netAmount,
+      grossAmount: expenses.grossAmount,
       currency: expenses.currency,
       supplierName: expenses.supplierName,
     })
@@ -660,6 +662,7 @@ export async function searchExpenses(
     status: row.status,
     expenseDate: row.expenseDate,
     netAmount: row.netAmount,
+    grossAmount: row.grossAmount,
     currency: row.currency,
     supplierName: row.supplierName,
   }));

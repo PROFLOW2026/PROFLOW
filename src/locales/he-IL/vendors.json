@@ -389,7 +389,8 @@
         "current": "נוכחי",
         "billed": "חויב בחשבוניות ספק",
         "paid": "שולם בחשבוניות ספק",
-        "outstanding": "יתרה",
+        "outstanding": "יתרת חשבוניות ספק",
+        "remainingCommitment": "התחייבות שנותרה",
         "retention": "עיכבון",
         "dates": "תאריכים"
       }

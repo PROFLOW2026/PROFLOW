@@ -31,6 +31,7 @@
     "title": "Expense",
     "summary": "Summary",
     "draftBanner": "This expense was saved as a draft and is not included in project costs yet.",
+    "editSaved": "Changes saved.",
     "finalizedBanner": "The expense was recorded in the project costs.",
     "finalizedEditableBanner": "You can edit and save changes while this month is open.",
     "reversalOf": "Reversal of expense {id}",

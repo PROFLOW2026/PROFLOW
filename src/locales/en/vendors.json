@@ -181,7 +181,8 @@
         "current": "Current",
         "billed": "AP billed",
         "paid": "AP paid",
-        "outstanding": "Outstanding",
+        "outstanding": "Vendor bill balance",
+        "remainingCommitment": "Remaining commitment",
         "retention": "Retention",
         "dates": "Dates"
       }

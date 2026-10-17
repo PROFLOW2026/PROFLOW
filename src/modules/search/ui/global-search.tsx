@@ -15,14 +15,17 @@ import { Input } from '@/components/ui/input';
 import { pressableChromeClassName } from '@/components/ui/pressable';
 import { globalSearchAction } from '@/modules/search/application/search-actions';
 import type { GlobalSearchGroup, GlobalSearchHit, SearchCommandHit } from '@/modules/search/domain/types';
+import { formatSearchHitAmount, showGlobalSearchEmpty } from '@/modules/search/domain/hit-amount-label';
 import { localizeCode } from '@/shared/i18n/code-display';
-import { formatMoneyString } from '@/shared/money/format';
 import { cn } from '@/shared/ui/cn';
 
-function formatHitMeta(hit: GlobalSearchHit, locale: string): string | null {
+function formatHitMeta(
+  hit: GlobalSearchHit,
+  locale: string,
+  labels: { readonly net: string; readonly gross: string },
+): string | null {
   const status = hit.status ? localizeCode(locale, hit.status) : null;
-  const amountLabel =
-    hit.amount && hit.currency ? formatMoneyString(hit.amount, hit.currency, locale) : hit.amount;
+  const amountLabel = formatSearchHitAmount(hit, locale, labels);
   const parts = [hit.contextLabel, status, hit.date, amountLabel]
     .filter(Boolean);
   if (parts.length === 0) return hit.subtitle;
@@ -75,6 +78,7 @@ export function GlobalSearchDialog({
   React.useEffect(() => {
     if (!canSearch) return;
 
+    setPending(true);
     let cancelled = false;
     const handle = window.setTimeout(() => {
       void (async () => {
@@ -152,7 +156,21 @@ export function GlobalSearchDialog({
             ref={inputRef}
             type="search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              const next = event.target.value;
+              setQuery(next);
+              if (next.trim().length >= 2) {
+                setPending(true);
+                setError(null);
+                setGroups([]);
+                setCommands([]);
+              } else {
+                setPending(false);
+                setError(null);
+                setGroups([]);
+                setCommands([]);
+              }
+            }}
             onKeyDown={onKeyDown}
             placeholder={t('placeholder')}
             aria-label={t('title')}
@@ -163,7 +181,12 @@ export function GlobalSearchDialog({
           ) : null}
           {pending ? <p className="text-sm text-[var(--pf-text-muted)]">{t('searching')}</p> : null}
           {error ? <p className="text-sm text-[var(--pf-status-danger-fg)]">{error}</p> : null}
-          {!pending && !error && trimmed.length >= 2 && rows.length === 0 ? (
+          {showGlobalSearchEmpty({
+            pending,
+            hasError: Boolean(error),
+            trimmedLength: trimmed.length,
+            rowCount: rows.length,
+          }) ? (
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('empty')}</p>
           ) : null}
 
@@ -204,7 +227,10 @@ export function GlobalSearchDialog({
               <ul className="flex flex-col gap-1" role="listbox" aria-label={t(`kinds.${group.kind}`)}>
                 {group.hits.map((hit, hitIndex) => {
                   const index = (groupHitOffsets[groupIndex] ?? displayCommands.length) + hitIndex;
-                  const meta = formatHitMeta(hit, locale);
+                  const meta = formatHitMeta(hit, locale, {
+                    net: t('amountNet'),
+                    gross: t('amountGross'),
+                  });
                   return (
                     <li key={`${hit.kind}:${hit.id}`}>
                       <button

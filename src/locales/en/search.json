@@ -7,6 +7,8 @@
   "empty": "No matches in areas you can access.",
   "error": "Search could not run. Try again.",
   "results": "Results",
+  "amountNet": "Net",
+  "amountGross": "Gross",
   "commands": {
     "title": "Commands",
     "createExpense": "Create expense",

@@ -181,7 +181,8 @@
         "current": "حالي",
         "billed": "مُفوتر AP",
         "paid": "مدفوع AP",
-        "outstanding": "متبقٍ",
+        "outstanding": "رصيد فواتير المورد",
+        "remainingCommitment": "التزام متبقٍ",
         "retention": "حجز",
         "dates": "التواريخ"
       }

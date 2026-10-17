@@ -67,6 +67,8 @@ export interface GlobalSearchHit {
   readonly contextLabel?: string | null;
   readonly date?: string | null;
   readonly amount?: string | null;
+  /** Gross amount when the hit already has it (expense search). Net stays in `amount`. */
+  readonly grossAmount?: string | null;
   readonly currency?: string | null;
 }
 
