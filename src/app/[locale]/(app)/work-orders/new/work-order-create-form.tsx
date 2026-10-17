@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useActionState, useState } from 'react';
+import { startTransition, useActionState, useState, type FormEvent } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -14,6 +14,15 @@ import { createWorkOrderAction, type WorkOrderFormState } from '../actions';
 
 type ClientMode = 'new' | 'existing';
 type PricingMode = 'fixed' | 'open';
+
+const NAME_MAX = 200;
+
+function showValidationBanner(state: WorkOrderFormState): boolean {
+  if (!state.error) return false;
+  const messages = Object.values(state.fieldErrors ?? {});
+  if (messages.length > 0 && messages.every((message) => message === state.error)) return false;
+  return true;
+}
 
 interface WorkOrderCreateFormProps {
   baseCurrency: string;
@@ -43,9 +52,17 @@ export function WorkOrderCreateForm({
   const [clientMode, setClientMode] = useState<ClientMode>('new');
   const [pricingMode, setPricingMode] = useState<PricingMode>('fixed');
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    startTransition(() => {
+      formAction(formData);
+    });
+  }
+
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
-      {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+    <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-lg flex-col gap-4">
+      {showValidationBanner(state) ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <Field
         label={t('create.customerLabel')}
@@ -73,7 +90,14 @@ export function WorkOrderCreateForm({
       {clientMode === 'new' ? (
         <Field label={t('create.customerNew')} required error={state.fieldErrors?.clientName}>
           {(control) => (
-            <Input {...control} name="clientName" required autoFocus placeholder={t('create.customerExample')} />
+            <Input
+              {...control}
+              name="clientName"
+              required
+              maxLength={NAME_MAX}
+              autoFocus
+              placeholder={t('create.customerExample')}
+            />
           )}
         </Field>
       ) : (
@@ -101,6 +125,7 @@ export function WorkOrderCreateForm({
             {...control}
             name="name"
             required
+            maxLength={NAME_MAX}
             placeholder={t('create.namePlaceholder')}
             autoFocus={clientMode !== 'new'}
           />

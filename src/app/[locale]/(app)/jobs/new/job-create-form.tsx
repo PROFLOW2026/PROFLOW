@@ -2,7 +2,7 @@
 
 import { ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useActionState, useState } from 'react';
+import { startTransition, useActionState, useState, type FormEvent } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -19,6 +19,15 @@ import {
 
 type ClientMode = 'new' | 'existing';
 type PricingMode = 'fixed' | 'open';
+
+const NAME_MAX = 200;
+
+function showValidationBanner(state: JobFormState): boolean {
+  if (!state.error) return false;
+  const messages = Object.values(state.fieldErrors ?? {});
+  if (messages.length > 0 && messages.every((message) => message === state.error)) return false;
+  return true;
+}
 
 interface JobCreateFormProps {
   baseCurrency: string;
@@ -47,9 +56,17 @@ export function JobCreateForm({
   const [pricingMode, setPricingMode] = useState<PricingMode>('fixed');
   const [showMore, setShowMore] = useState(false);
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    startTransition(() => {
+      formAction(formData);
+    });
+  }
+
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
-      {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+    <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-lg flex-col gap-4">
+      {showValidationBanner(state) ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <Field label={t('create.clientLabel')} required error={state.fieldErrors?.clientId ?? state.fieldErrors?.clientName}>
         {(control) => (
@@ -78,6 +95,7 @@ export function JobCreateForm({
               name="clientName"
               placeholder={t('create.clientNameExample')}
               required
+              maxLength={NAME_MAX}
               autoFocus
             />
           )}
@@ -108,6 +126,7 @@ export function JobCreateForm({
             name="name"
             placeholder={t('create.namePlaceholder')}
             required
+            maxLength={NAME_MAX}
             autoFocus={clientMode !== 'new'}
           />
         )}

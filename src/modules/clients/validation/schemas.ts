@@ -33,7 +33,13 @@ export const createClientSchema = z
     /** Primary contact person created in the same flow (optional group). */
     primaryContactName: z.preprocess(
       emptyToNull,
-      z.string().trim().min(1).max(120).nullable().optional(),
+      z
+        .string()
+        .trim()
+        .min(1, 'validation.contactPersonNameRequired')
+        .max(120)
+        .nullable()
+        .optional(),
     ),
     primaryContactPhone: optionalText,
     primaryContactEmail: z.preprocess(

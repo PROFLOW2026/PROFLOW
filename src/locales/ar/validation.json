@@ -64,5 +64,10 @@
   "taxVatNotImported": "حقول الضريبة/ض.ق.م غير مستوردة (ض.ق.م ليست ربحاً)؛ أدخل الضريبة في نموذج المصروف إذا لزم.",
   "noProjectOverheadWarning": "لا يوجد مشروع — سيُنشأ المصروف كمصاريف عامة للعمل (مسودة).",
   "orgUuidRequired": "يجب أن يكون UUID صالحاً في هذه المنظمة.",
-  "financialAmountsNotOnProjects": "المبالغ المالية غير مستوردة مع المشاريع؛ استخدم نوع استيراد opening_values."
+  "financialAmountsNotOnProjects": "المبالغ المالية غير مستوردة مع المشاريع؛ استخدم نوع استيراد opening_values.",
+  "projectNameRequired": "اسم المشروع مطلوب.",
+  "nameTooLong": "يجب ألا يتجاوز الاسم 200 حرف.",
+  "openPricingNoAmount": "لا يمكن للتسعير المفتوح تضمين مبلغ عند الإنشاء.",
+  "openingReductionRequiresAmount": "تخفيض الافتتاح يتطلب مبلغ العقد الأصلي.",
+  "projectContactRequiresClient": "جهة اتصال المشروع تتطلب عميلاً."
 }

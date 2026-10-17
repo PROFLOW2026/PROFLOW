@@ -14,7 +14,9 @@ import {
   ConflictError,
   mapServerActionError,
 } from '@/shared/errors';
+import { isNextRedirectError } from '@/shared/errors/map-server-action-error';
 import { redirect } from '@/shared/i18n/navigation';
+import { logger } from '@/shared/observability';
 
 export interface WorkOrderFormState {
   error?: string;
@@ -37,6 +39,7 @@ function requiredFormValue(formData: FormData, key: string): string {
 
 async function mapWorkOrderError(error: unknown): Promise<WorkOrderFormState> {
   const tErrors = await getTranslations('errors');
+  const tValidation = await getTranslations('validation');
   const t = await getTranslations('service');
   const tScheduling = await getTranslations('scheduling');
 
@@ -56,6 +59,7 @@ async function mapWorkOrderError(error: unknown): Promise<WorkOrderFormState> {
 
   return mapServerActionError(error, {
     tErrors: (key) => tErrors(key as 'unexpected'),
+    tValidation: (key) => tValidation(key as 'invalidDate'),
     namespaces: {
       scheduling: (key) => tScheduling(key as 'errors.unavailableOverlap'),
       service: (key) => t(key as 'errors.checklistRequired'),
@@ -79,6 +83,8 @@ export async function createWorkOrderAction(
   } else {
     clientName = String(formData.get('clientName') ?? '').trim() || null;
   }
+
+  let createdWorkOrderId: string | undefined;
 
   try {
     const result = await withOrgContext((context) =>
@@ -112,11 +118,19 @@ export async function createWorkOrderAction(
       }),
     );
 
+    createdWorkOrderId = result.projectId;
     revalidatePath('/work-orders');
     revalidatePath('/dispatch');
     revalidatePath('/projects');
     redirect({ href: `/work-orders/${result.projectId}`, locale });
   } catch (error) {
+    if (isNextRedirectError(error)) throw error;
+    if (createdWorkOrderId) {
+      logger.error('createWorkOrderAction.post_save', {
+        errorName: error instanceof Error ? error.name : 'UnknownError',
+      });
+      redirect({ href: `/work-orders/${createdWorkOrderId}`, locale });
+    }
     return await mapWorkOrderError(error);
   }
 

@@ -16,7 +16,9 @@ import {
 } from '@/modules/clients';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, ValidationError, mapServerActionError } from '@/shared/errors';
+import { isNextRedirectError } from '@/shared/errors/map-server-action-error';
 import { redirect } from '@/shared/i18n/navigation';
+import { logger } from '@/shared/observability';
 
 export interface ClientFormState {
   error?: string;
@@ -53,6 +55,8 @@ export async function createClientAction(
   const tErrors = await getTranslations('errors');
   const locale = await getLocale();
 
+  let createdClientId: string | undefined;
+
   try {
     const primaryContactRoleRaw = formValue(formData, 'primaryContactRole');
     const primaryContactRole =
@@ -84,9 +88,17 @@ export async function createClientAction(
       }),
     );
 
+    createdClientId = client.id;
     revalidatePath('/clients');
     redirect({ href: `/clients/${client.id}`, locale });
   } catch (error) {
+    if (isNextRedirectError(error)) throw error;
+    if (createdClientId) {
+      logger.error('createClientAction.post_save', {
+        errorName: error instanceof Error ? error.name : 'UnknownError',
+      });
+      redirect({ href: `/clients/${createdClientId}`, locale });
+    }
     if (error instanceof ValidationError) return mapValidationError(error, tErrors);
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
@@ -123,7 +135,7 @@ export async function updateClientAction(
     });
 
     revalidatePath(`/clients/${String(formData.get('clientId'))}`);
-    return {};
+    return { ok: true };
   } catch (error) {
     if (error instanceof ValidationError) return mapValidationError(error, tErrors);
     if (error instanceof AppError) return { error: tErrors('unexpected') };

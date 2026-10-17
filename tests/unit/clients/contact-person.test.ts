@@ -41,6 +41,16 @@ describe('createClientSchema primary contact', () => {
       primaryContactPhone: '050-1111111',
     });
     expect(missingName.success).toBe(false);
+
+    const emailOnly = createClientSchema.safeParse({
+      name: 'Cohen Ltd',
+      primaryContactEmail: 'dana@example.com',
+    });
+    expect(emailOnly.success).toBe(false);
+    if (!emailOnly.success) {
+      const nameIssue = emailOnly.error.issues.find((issue) => issue.path.join('.') === 'primaryContactName');
+      expect(nameIssue?.message).toBe('validation.contactPersonNameRequired');
+    }
   });
 
   it('accepts company plus primary contact person fields', () => {
@@ -151,6 +161,27 @@ describe('createProjectSchema primaryContactId', () => {
       primaryContactId: '33333333-3333-4333-8333-333333333361',
     });
     expect(parsed.success).toBe(false);
+  });
+
+  it('rejects a negative contract amount and an empty project name', () => {
+    const negative = createProjectSchema.safeParse({
+      name: 'Tower',
+      contractValueAmount: '-50',
+    });
+    expect(negative.success).toBe(false);
+    if (!negative.success) {
+      expect(negative.error.issues.some((issue) => issue.path.join('.') === 'contractValueAmount')).toBe(
+        true,
+      );
+    }
+
+    const emptyName = createProjectSchema.safeParse({ name: '   ' });
+    expect(emptyName.success).toBe(false);
+    if (!emptyName.success) {
+      expect(emptyName.error.issues.some((issue) => issue.message === 'validation.projectNameRequired')).toBe(
+        true,
+      );
+    }
   });
 
   it('accepts primaryContactId with matching clientId shape', () => {

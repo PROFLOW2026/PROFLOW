@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useActionState, useState } from 'react';
+import { startTransition, useActionState, useState, type FormEvent } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -11,6 +11,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { CONTACT_ROLES } from '@/modules/clients/domain/types';
 import { createClientAction, type ClientFormState } from '../actions';
 
+const CLIENT_NAME_MAX = 200;
+const CONTACT_NAME_MAX = 120;
+
+function showValidationBanner(state: ClientFormState): boolean {
+  if (!state.error) return false;
+  const messages = Object.values(state.fieldErrors ?? {});
+  if (messages.length > 0 && messages.every((message) => message === state.error)) return false;
+  return true;
+}
+
 export function ClientCreateForm() {
   const t = useTranslations('clients');
   const tCommon = useTranslations('common');
@@ -19,10 +29,23 @@ export function ClientCreateForm() {
     {},
   );
   const [showMore, setShowMore] = useState(false);
+  const [contactName, setContactName] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const contactNameRequired = contactPhone.trim() !== '' || contactEmail.trim() !== '';
+  const contactPhoneRequired = contactName.trim() !== '' || contactEmail.trim() !== '';
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    startTransition(() => {
+      formAction(formData);
+    });
+  }
 
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
-      {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+    <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-lg flex-col gap-4">
+      {showValidationBanner(state) ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('create.walkInHint')}</p>
 
@@ -40,6 +63,7 @@ export function ClientCreateForm() {
               placeholder={t('create.namePlaceholder')}
               autoFocus
               required
+              maxLength={CLIENT_NAME_MAX}
               autoComplete="organization"
             />
           )}
@@ -54,7 +78,8 @@ export function ClientCreateForm() {
 
         <Field
           label={t('create.contactNameLabel')}
-          optionalLabel={tCommon('labels.optional')}
+          required={contactNameRequired}
+          optionalLabel={contactNameRequired ? undefined : tCommon('labels.optional')}
           error={state.fieldErrors?.primaryContactName}
         >
           {(control) => (
@@ -63,13 +88,17 @@ export function ClientCreateForm() {
               name="primaryContactName"
               placeholder={t('create.contactNamePlaceholder')}
               autoComplete="name"
+              maxLength={CONTACT_NAME_MAX}
+              value={contactName}
+              onChange={(event) => setContactName(event.target.value)}
             />
           )}
         </Field>
 
         <Field
           label={t('create.contactPhoneLabel')}
-          optionalLabel={tCommon('labels.optional')}
+          required={contactPhoneRequired}
+          optionalLabel={contactPhoneRequired ? undefined : tCommon('labels.optional')}
           error={state.fieldErrors?.primaryContactPhone}
         >
           {(control) => (
@@ -80,6 +109,8 @@ export function ClientCreateForm() {
               dir="ltr"
               autoComplete="tel"
               placeholder={t('create.contactPhonePlaceholder')}
+              value={contactPhone}
+              onChange={(event) => setContactPhone(event.target.value)}
             />
           )}
         </Field>
@@ -90,7 +121,15 @@ export function ClientCreateForm() {
           error={state.fieldErrors?.primaryContactEmail}
         >
           {(control) => (
-            <Input {...control} name="primaryContactEmail" type="email" dir="ltr" autoComplete="email" />
+            <Input
+              {...control}
+              name="primaryContactEmail"
+              type="email"
+              dir="ltr"
+              autoComplete="email"
+              value={contactEmail}
+              onChange={(event) => setContactEmail(event.target.value)}
+            />
           )}
         </Field>
 

@@ -2,7 +2,7 @@
 
 import { ChevronRight } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import { useActionState, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useActionState, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import {
   previewCloneStructureAction,
   previewUwmProjectTemplateAction,
@@ -35,6 +35,15 @@ type ClientMode = 'none' | 'new' | 'existing';
 type ContactMode = 'none' | 'existing' | 'new';
 type BillingPlanCreateMode = 'none' | 'simple' | 'template';
 type LaunchMode = 'none' | 'structure' | 'uwm' | 'clone';
+
+const NAME_MAX = 200;
+
+function showValidationBanner(state: ProjectFormState): boolean {
+  if (!state.error) return false;
+  const messages = Object.values(state.fieldErrors ?? {});
+  if (messages.length > 0 && messages.every((message) => message === state.error)) return false;
+  return true;
+}
 
 export interface ProjectCreateUwmTemplateOption {
   id: string;
@@ -152,6 +161,7 @@ export function ProjectCreateForm({
 }: ProjectCreateFormProps) {
   const capabilities = { ...DEFAULT_CAPABILITIES, ...capabilitiesInput };
   const t = useTranslations('projects');
+  const tValidation = useTranslations('validation');
   const tBillingPlan = useTranslations('billingPlan');
   const tCommon = useTranslations('common');
   const locale = useLocale() === 'he-IL' ? 'he-IL' : 'en';
@@ -164,6 +174,7 @@ export function ProjectCreateForm({
   const [contactMode, setContactMode] = useState<ContactMode>('none');
   const [selectedContactId, setSelectedContactId] = useState<string>('');
   const [projectName, setProjectName] = useState('');
+  const [nameError, setNameError] = useState<string | null>(null);
   const [managementMode, setManagementMode] = useState(initialManagementMode);
   const [newClientName, setNewClientName] = useState('');
   const [showMore, setShowMore] = useState(false);
@@ -274,12 +285,26 @@ export function ProjectCreateForm({
     return options;
   }, [capabilities.canCreateClient, capabilities.canSelectClient, clients.length, t]);
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    if (projectName.trim()) return;
+    event.preventDefault();
+    setNameError(tValidation('projectNameRequired'));
+  }
+
   return (
-    <form action={boundAction} className="mx-auto flex w-full min-w-0 max-w-lg flex-col gap-4">
-      {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+    <form
+      action={boundAction}
+      onSubmit={handleSubmit}
+      className="mx-auto flex w-full min-w-0 max-w-lg flex-col gap-4"
+    >
+      {showValidationBanner(state) ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <FormSection title={t('create.sections.details')}>
-        <Field label={t('create.nameLabel')} required error={state.fieldErrors?.name}>
+        <Field
+          label={t('create.nameLabel')}
+          required
+          error={state.fieldErrors?.name ?? nameError}
+        >
           {(control) => (
             <Input
               {...control}
@@ -287,8 +312,16 @@ export function ProjectCreateForm({
               placeholder={t('create.namePlaceholder')}
               autoFocus
               required
+              maxLength={NAME_MAX}
               value={projectName}
-              onChange={(event) => setProjectName(event.target.value)}
+              onChange={(event) => {
+                setProjectName(event.target.value);
+                if (event.target.value.trim()) setNameError(null);
+              }}
+              onInvalid={(event) => {
+                event.preventDefault();
+                setNameError(tValidation('projectNameRequired'));
+              }}
             />
           )}
         </Field>
@@ -358,6 +391,7 @@ export function ProjectCreateForm({
                   {...control}
                   name="clientName"
                   placeholder={t('create.clientNameExample')}
+                  maxLength={NAME_MAX}
                   value={newClientName}
                   onChange={(event) => setNewClientName(event.target.value)}
                 />
