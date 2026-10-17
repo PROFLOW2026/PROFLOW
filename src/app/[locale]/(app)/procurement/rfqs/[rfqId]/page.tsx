@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import {
   getQuoteComparisonForRfq,
   getRfqDetail,
@@ -153,7 +154,7 @@ export default async function RfqDetailPage({
                         {line.description}
                       </TableCell>
                       <TableCell numeric>
-                        <span dir="ltr">{line.quantity}</span>
+                        <span dir="ltr">{formatDecimalDisplay(line.quantity, locale)}</span>
                       </TableCell>
                       <TableCell>{line.unit ?? '-'}</TableCell>
                     </TableRow>
@@ -166,7 +167,7 @@ export default async function RfqDetailPage({
             <div className="flex min-w-0 flex-col gap-1 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
               <p className="break-words font-medium">{line.description}</p>
               <p className="text-sm text-[var(--pf-text-secondary)]">
-                <span dir="ltr">{line.quantity}</span>
+                <span dir="ltr">{formatDecimalDisplay(line.quantity, locale)}</span>
                 {line.unit ? ` ${line.unit}` : ''}
               </p>
             </div>

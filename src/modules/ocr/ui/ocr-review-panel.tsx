@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -1029,7 +1030,7 @@ export function OcrReviewPanel({
               {selected.rawMetadata?.vatRates && selected.rawMetadata.vatRates.length > 1 ? (
                 <Alert tone="info">
                   {t('multiVatRates', {
-                    rates: selected.rawMetadata.vatRates.map((rate) => `${rate}%`).join(', '),
+                    rates: selected.rawMetadata.vatRates.map((rate) => formatPercentDisplay(rate)).join(', '),
                   })}
                 </Alert>
               ) : null}

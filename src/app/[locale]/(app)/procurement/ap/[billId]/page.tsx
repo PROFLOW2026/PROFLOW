@@ -9,6 +9,7 @@ import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getCatalogEntryById, localizePaymentTermName } from '@/modules/business-catalog';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import {
   getApBillDetail,
   getBillPayablePosition,
@@ -399,7 +400,7 @@ export default async function ApBillDetailPage({
                           : '-'}
                       </TableCell>
                       <TableCell numeric>
-                        <span dir="ltr">{line.quantity}</span>
+                        <span dir="ltr">{formatDecimalDisplay(line.quantity, locale)}</span>
                       </TableCell>
                       <TableCell numeric>
                         <MoneyText value={money(line.unitAmount, line.currency)} />
@@ -417,7 +418,7 @@ export default async function ApBillDetailPage({
             <div className="flex min-w-0 flex-col gap-1 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
               <p className="break-words font-medium">{line.description}</p>
               <p className="text-sm text-[var(--pf-text-secondary)]">
-                <span dir="ltr">{line.quantity}</span>
+                <span dir="ltr">{formatDecimalDisplay(line.quantity, locale)}</span>
                 {' · '}
                 <MoneyText value={money(line.unitAmount, line.currency)} />
               </p>

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { pressableClassName } from '@/components/ui/pressable';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { DEFAULT_LOCALE, localeDirection } from '@/shared/i18n/config';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { cn } from '@/shared/ui/cn';
 import { collectPredecessorChain } from '../domain/dependencies';
 import type {
@@ -158,7 +159,7 @@ export function ProjectPlanningPanel({
                     <div>
                       <dt className="inline">{t.progress}: </dt>
                       <dd className="inline tabular-nums text-[var(--pf-text-primary)]">
-                        {`${Math.round(item.progressPercent)}%`}
+                        {formatPercentDisplay(item.progressPercent)}
                       </dd>
                     </div>
                     {preds.length > 0 ? (
@@ -228,7 +229,7 @@ export function ProjectPlanningPanel({
                       <td className="px-3 py-2 tabular-nums">{item.startDate ?? '-'}</td>
                       <td className="px-3 py-2 tabular-nums">{item.targetEndDate ?? '-'}</td>
                       <td className="px-3 py-2 tabular-nums">{item.actualEndDate ?? '-'}</td>
-                      <td className="px-3 py-2 tabular-nums">{`${Math.round(item.progressPercent)}%`}</td>
+                      <td className="px-3 py-2 tabular-nums">{formatPercentDisplay(item.progressPercent)}</td>
                       <td className="px-3 py-2">
                         {item.workPackageId
                           ? (workPackageNames[item.workPackageId] ?? item.workPackageId.slice(0, 8))

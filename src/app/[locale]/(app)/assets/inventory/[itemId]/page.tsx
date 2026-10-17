@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -18,6 +18,7 @@ import {
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { listProjectsForOrg } from '@/modules/projects';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates/dates';
 import { Link } from '@/shared/i18n/navigation';
@@ -80,6 +81,7 @@ export default async function InventoryItemDetailPage({
   params: Promise<{ itemId: string }>;
 }) {
   const { itemId } = await params;
+  const locale = await getLocale();
   const t = await getTranslations('assets');
 
   const loaded = await withOrgContext(async (context) => {
@@ -263,7 +265,7 @@ export default async function InventoryItemDetailPage({
                       ) : null}
                     </TableCell>
                     <TableCell numeric>
-                      <span dir="ltr">{balance.quantity}</span>
+                      <span dir="ltr">{formatDecimalDisplay(balance.quantity, locale)}</span>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -337,7 +339,7 @@ export default async function InventoryItemDetailPage({
                         </TableCell>
                         <TableCell>{t(`inventory.movementTypes.${movement.movementType}`)}</TableCell>
                         <TableCell numeric>
-                          <span dir="ltr">{movement.quantity}</span>
+                          <span dir="ltr">{formatDecimalDisplay(movement.quantity, locale)}</span>
                         </TableCell>
                         <TableCell className="max-w-[14rem] truncate">
                           {movementLocationLabel(movement)}
@@ -363,7 +365,7 @@ export default async function InventoryItemDetailPage({
                     {t(`inventory.movementTypes.${movement.movementType}`)}
                   </span>
                   <span className="tabular-nums" dir="ltr">
-                    {movement.quantity}
+                    {formatDecimalDisplay(movement.quantity, locale)}
                   </span>
                 </div>
                 <p className="text-xs text-[var(--pf-text-secondary)]" dir="ltr">

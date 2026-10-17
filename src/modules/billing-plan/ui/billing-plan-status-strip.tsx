@@ -51,9 +51,7 @@ export async function BillingPlanStatusStrip({ projectId }: BillingPlanStatusStr
   const planned = fromNumericString(reconciliation.plannedTotal, currency) ?? zeroMoney(currency);
   const unbilled =
     fromNumericString(reconciliation.remainingPlanned, currency) ?? zeroMoney(currency);
-  const billedPct = formatPercent(derivePercentFromAmount(planned, billed), locale, {
-    maximumFractionDigits: 0,
-  });
+  const billedPct = formatPercent(derivePercentFromAmount(planned, billed), locale);
 
   const nextLine =
     lines.find((line) => {

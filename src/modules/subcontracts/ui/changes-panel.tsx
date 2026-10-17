@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { bidiIsolate, formatMoneyString } from '@/shared/money';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import type { ChangeView, WorkLineOperationalView } from '../domain/types';
 import { ChangeStatusBadge } from './status';
 
@@ -74,7 +75,9 @@ export async function ChangesPanel({
                           <li key={line.id} className="flex flex-wrap justify-between gap-2">
                             <span className="min-w-0 break-words">
                               {line.workLineId ? (lineLabel.get(line.workLineId) ?? '—') : `${t('versions.newLine')}: ${line.newLineDescription}`}
-                              {Number(line.quantityDelta) !== 0 ? ` · ${bidiIsolate(`${Number(line.quantityDelta) > 0 ? '+' : ''}${Number(line.quantityDelta)}`)}` : ''}
+                              {Number(line.quantityDelta) !== 0
+                                ? ` · ${bidiIsolate(`${Number(line.quantityDelta) > 0 ? '+' : ''}${formatDecimalDisplay(line.quantityDelta, locale)}`)}`
+                                : ''}
                             </span>
                             <span>{bidiIsolate(formatMoneyString(line.amountDelta, version.currency, locale))}</span>
                           </li>

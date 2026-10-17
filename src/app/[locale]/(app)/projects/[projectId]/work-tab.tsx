@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { useActionState, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -111,7 +112,7 @@ export function WorkTab({
                 <p className="text-sm text-[var(--pf-text-secondary)]">
                   {[pkg.startDate, pkg.endDate].filter(Boolean).join(' → ') || null}
                   {pkg.progressPercent
-                    ? `${pkg.startDate || pkg.endDate ? ' · ' : ''}${t('progressPercent')}: ${pkg.progressPercent}%`
+                    ? `${pkg.startDate || pkg.endDate ? ' · ' : ''}${t('progressPercent')}: ${formatPercentDisplay(pkg.progressPercent)}`
                     : null}
                 </p>
               ) : null}

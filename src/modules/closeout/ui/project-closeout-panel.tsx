@@ -6,6 +6,7 @@ import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { withOrgContext } from '@/shared/auth/session';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { fromNumericString } from '@/shared/money';
 import { getCloseoutWorkspace } from '../application/get-closeout';
 import { hasHardBlockers } from '../domain/readiness';
@@ -135,7 +136,7 @@ function SnapshotGrid({
           />
           <div className="min-w-0">
             <p className="text-xs text-[var(--pf-text-muted)]">{t('snapshot.margin')}</p>
-            <p className="text-sm">{snapshot.marginPercent ? `${snapshot.marginPercent}%` : '—'}</p>
+            <p className="text-sm">{snapshot.marginPercent ? formatPercentDisplay(snapshot.marginPercent) : '—'}</p>
           </div>
         </>
       )}

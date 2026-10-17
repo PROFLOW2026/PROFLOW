@@ -4,6 +4,7 @@ import { Info } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from '@/shared/i18n/navigation';
 import { MoneyText } from '@/components/patterns/money-text';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
 import { isZeroMoney } from '@/shared/money';
 import { Button } from '@/components/ui/button';
@@ -68,7 +69,7 @@ export function DashboardKpiDetailTrigger({
             </p>
           ) : detail.valuePercent ? (
             <p className="text-lg font-semibold tabular-nums" dir="ltr">
-              {detail.valuePercent}%
+              {formatPercentDisplay(detail.valuePercent)}
             </p>
           ) : null}
           <section>

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { bidiIsolate, formatMoneyString } from '@/shared/money';
+import { formatDecimalDisplay, formatPercentDisplay } from '@/shared/number/display';
 import type { AgreementFinancialView, AgreementOperationalView, WorkLineView } from '../domain/types';
 
 interface Option {
@@ -32,7 +33,7 @@ export async function WorkLinesPanel({
   const packageName = new Map(workPackages.map((pkg) => [pkg.id, pkg.name]));
   const money = (amount: string | undefined, currency: string | undefined) =>
     amount && currency ? bidiIsolate(formatMoneyString(amount, currency, locale)) : '';
-  const qty = (value: string) => bidiIsolate(String(Number(value)));
+  const qty = (value: string) => bidiIsolate(formatDecimalDisplay(value, locale));
 
   if (lines.length === 0) {
     return <EmptyState size="sm" title={t('lines.emptyTitle')} description={t('lines.emptyDescription')} />;
@@ -78,7 +79,7 @@ export async function WorkLinesPanel({
                 </TableCell>
                 <TableCell>
                   {t(`lineTypes.${line.lineType}`)}
-                  {line.weightPercent ? ` · ${bidiIsolate(`${Number(line.weightPercent)}%`)}` : ''}
+                  {line.weightPercent ? ` · ${bidiIsolate(formatPercentDisplay(line.weightPercent, locale))}` : ''}
                 </TableCell>
                 <TableCell>
                   {qty(line.financial?.revisedQuantity ?? line.quantity)} {line.unit}
@@ -149,7 +150,8 @@ export async function AgreementValueCard({
   const locale = await getLocale();
   const money = (amount: string | null | undefined) =>
     amount ? bidiIsolate(formatMoneyString(amount, financial.currency, locale)) : '—';
-  const percent = (value: string | null | undefined) => (value ? bidiIsolate(`${Number(value)}%`) : '—');
+  const percent = (value: string | null | undefined) =>
+    value ? bidiIsolate(formatPercentDisplay(value, locale)) : '—';
   return (
     <Card>
       <CardHeader>

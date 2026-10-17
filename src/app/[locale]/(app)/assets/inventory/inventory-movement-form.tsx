@@ -1,7 +1,8 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -39,6 +40,7 @@ export function InventoryMovementForm({
   defaultLocationId?: string;
   compact?: boolean;
 }) {
+  const locale = useLocale();
   const t = useTranslations('assets.inventory');
   const tCommon = useTranslations('common');
   const [state, formAction, pending] = useActionState<AssetsFormState, FormData>(
@@ -192,7 +194,7 @@ export function InventoryMovementForm({
                 <SelectItem value={NONE}>{t('reservationNone')}</SelectItem>
                 {reservations.map((reservation) => (
                   <SelectItem key={reservation.id} value={reservation.id}>
-                    {reservation.quantity}
+                    {formatDecimalDisplay(reservation.quantity, locale)}
                   </SelectItem>
                 ))}
               </SelectContent>

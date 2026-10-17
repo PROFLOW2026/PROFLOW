@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useState, useTransition } from 'react';
 import { useRouter, Link } from '@/shared/i18n/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { formatDecimalDisplay, formatPercentDisplay } from '@/shared/number/display';
 import { formatMoneyAmountForInput, MoneyInput } from '@/components/patterns/money-input';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
@@ -89,6 +90,7 @@ function BillingCycleWorkspaceInner({
   activeTotals,
   retentionAccumulated,
 }: BillingCycleWorkspaceProps) {
+  const locale = useLocale();
   const t = useTranslations('billingPlan');
   const router = useRouter();
   const [lines, setLines] = useState<CycleLineDraft[]>(() => [...initialLines]);
@@ -284,11 +286,11 @@ function BillingCycleWorkspaceInner({
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <p className="text-xs text-[var(--pf-text-muted)]">{t('lines.base')}</p>
-                    <p dir="ltr">{formatMoneyAmountForInput(line.baseAmount, currency)}</p>
+                    <p dir="ltr"><MoneyText value={money(line.baseAmount || '0', currency)} /></p>
                   </div>
                   <div>
                     <p className="text-xs text-[var(--pf-text-muted)]">{t('lines.priorPercent')}</p>
-                    <p dir="ltr">{displayPercent(line.priorPercent)}</p>
+                    <p dir="ltr">{formatDecimalDisplay(line.priorPercent, locale)}</p>
                   </div>
                 </div>
                 <Field label={t('lines.currentPercent')}>
@@ -322,11 +324,11 @@ function BillingCycleWorkspaceInner({
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <p className="text-xs text-[var(--pf-text-muted)]">{t('lines.cumPercent')}</p>
-                    <p dir="ltr">{displayPercent(line.cumulativePercent)}</p>
+                    <p dir="ltr">{formatDecimalDisplay(line.cumulativePercent, locale)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-[var(--pf-text-muted)]">{t('lines.remaining')}</p>
-                    <p dir="ltr">{formatMoneyAmountForInput(line.remainingAmount, currency)}</p>
+                    <p dir="ltr"><MoneyText value={money(line.remainingAmount || '0', currency)} /></p>
                   </div>
                 </div>
               </article>
@@ -351,9 +353,9 @@ function BillingCycleWorkspaceInner({
                 {lines.map((line) => (
                   <TableRow key={line.planLineId}>
                     <TableCell>{line.label}</TableCell>
-                    <TableCell dir="ltr">{formatMoneyAmountForInput(line.baseAmount, currency)}</TableCell>
-                    <TableCell dir="ltr">{displayPercent(line.priorPercent)}</TableCell>
-                    <TableCell dir="ltr">{formatMoneyAmountForInput(line.priorAmount, currency)}</TableCell>
+                    <TableCell dir="ltr"><MoneyText value={money(line.baseAmount || '0', currency)} /></TableCell>
+                    <TableCell dir="ltr">{formatDecimalDisplay(line.priorPercent, locale)}</TableCell>
+                    <TableCell dir="ltr"><MoneyText value={money(line.priorAmount || '0', currency)} /></TableCell>
                     <TableCell className="min-w-[5rem]">
                       <Input
                         inputMode="decimal"
@@ -376,9 +378,9 @@ function BillingCycleWorkspaceInner({
                         }
                       />
                     </TableCell>
-                    <TableCell dir="ltr">{displayPercent(line.cumulativePercent)}</TableCell>
-                    <TableCell dir="ltr">{formatMoneyAmountForInput(line.cumulativeAmount, currency)}</TableCell>
-                    <TableCell dir="ltr">{formatMoneyAmountForInput(line.remainingAmount, currency)}</TableCell>
+                    <TableCell dir="ltr">{formatDecimalDisplay(line.cumulativePercent, locale)}</TableCell>
+                    <TableCell dir="ltr"><MoneyText value={money(line.cumulativeAmount || '0', currency)} /></TableCell>
+                    <TableCell dir="ltr"><MoneyText value={money(line.remainingAmount || '0', currency)} /></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -398,7 +400,7 @@ function BillingCycleWorkspaceInner({
               <div>
                 <p className="text-xs text-[var(--pf-text-muted)]">{t('cycles.accountRetentionPct')}</p>
                 <p className="font-semibold" dir="ltr">
-                  {displayPercent(defaultRetentionPercent)}%
+                  {formatPercentDisplay(defaultRetentionPercent, locale)}
                 </p>
               </div>
             ) : null}
@@ -432,7 +434,7 @@ function BillingCycleWorkspaceInner({
             </span>
             {defaultRetentionPercent ? (
               <span className="text-[var(--pf-text-muted)]">
-                {t('retention.globalLabel')}: {displayPercent(defaultRetentionPercent)} ·{' '}
+                {t('retention.globalLabel')}: {formatDecimalDisplay(defaultRetentionPercent, locale)} ·{' '}
                 {t('cycles.totalsRetention')}:{' '}
                 <MoneyText value={money(totals.retentionAmount || '0', currency)} />
               </span>

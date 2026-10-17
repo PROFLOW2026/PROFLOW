@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { useActionState, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -225,7 +226,7 @@ export function EmployeeProjectsPanel({
                   {project.entryCount > 0 ? (
                     <p className="text-xs text-[var(--pf-text-secondary)]">
                       {t('employees.projects.hoursSummary', {
-                        hours: Number(project.totalHours).toFixed(2),
+                        hours: formatDecimalDisplay(project.totalHours),
                         count: project.entryCount,
                       })}
                     </p>

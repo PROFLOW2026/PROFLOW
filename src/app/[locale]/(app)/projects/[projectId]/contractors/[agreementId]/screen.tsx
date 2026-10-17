@@ -20,6 +20,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { Link } from '@/shared/i18n/navigation';
 import { bidiIsolate, formatMoneyString } from '@/shared/money';
+import { formatDecimalDisplay } from '@/shared/number/display';
 
 export async function Contractor360Screen({
   surfaceRoot,
@@ -107,7 +108,7 @@ export async function Contractor360Screen({
                 <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
                   {tSub(`lineTypes.${line.lineType}`)}
                   {' · '}
-                  {tSub('lines.fields.quantity')}: {bidiIsolate(String(Number(line.quantity)))} {line.unit}
+                  {tSub('lines.fields.quantity')}: {bidiIsolate(formatDecimalDisplay(line.quantity, locale))} {line.unit}
                 </p>
                 {line.financial ? (
                   <p className="mt-1 text-sm tabular-nums">

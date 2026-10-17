@@ -51,9 +51,7 @@ function formatEmployeeHoursLabel(
   raw: string,
   t: Awaited<ReturnType<typeof getTranslations<'employeeApp'>>>,
 ): string {
-  const formatted = formatWorkHoursValue(raw);
-  const numeric = Number(formatted);
-  return t('attendance.hoursShort', { hours: Number.isFinite(numeric) ? numeric : 0 });
+  return t('attendance.hoursShort', { hours: formatWorkHoursValue(raw) });
 }
 
 function formatRecentTimeEntryContext(

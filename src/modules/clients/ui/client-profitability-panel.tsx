@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Link } from '@/shared/i18n/navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import type { MoneyValue } from '@/shared/money';
+import { formatPercentDisplay } from '@/shared/number/display';
 import type { ClientProfitabilitySnapshot } from '../domain/client-profitability';
 
 function MoneyOrDash({
@@ -85,7 +86,7 @@ export async function ClientProfitabilityPanel({
                 </Metric>
                 <Metric label={t('margin')} hint={t('marginHint')}>
                   {snapshot.marginPercent ? (
-                    <span dir="ltr">{snapshot.marginPercent}%</span>
+                    <span dir="ltr">{formatPercentDisplay(snapshot.marginPercent)}</span>
                   ) : (
                     <span className="text-[var(--pf-text-muted)]">{unavailable}</span>
                   )}
@@ -137,7 +138,7 @@ export async function ClientProfitabilityPanel({
                               )}
                             </span>
                             <span className="text-xs text-[var(--pf-text-secondary)]" dir="ltr">
-                              {project.marginPercent ? `${project.marginPercent}%` : unavailable}
+                              {project.marginPercent ? formatPercentDisplay(project.marginPercent) : unavailable}
                             </span>
                           </>
                         )}

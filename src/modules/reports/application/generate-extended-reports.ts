@@ -99,6 +99,7 @@ import { NotFoundError } from "@/shared/errors";
 import { addMoney, isPositiveMoney, money, zeroMoney } from "@/shared/money";
 
 import { formatMoney } from "@/shared/money/format";
+import { formatDecimalDisplay, formatPercentDisplay } from "@/shared/number/display";
 import { localizeClientTypeName } from "@/modules/business-catalog/domain/client-type-labels";
 
 import { hasPermission } from "@/shared/permissions/assert";
@@ -888,7 +889,9 @@ async function buildLaborUtilization(
   const totalHours = projectHours + nonProjectHours;
 
   const utilizationPct =
-    totalHours > 0 ? ((projectHours / totalHours) * 100).toFixed(1) : "0.0";
+    totalHours > 0
+      ? formatPercentDisplay((projectHours / totalHours) * 100, ctx.locale)
+      : formatPercentDisplay(0, ctx.locale);
 
   const hoursByProject = new Map<string, number>();
 
@@ -915,11 +918,11 @@ async function buildLaborUtilization(
       heading: ctx.copy.sections.utilizationHours,
 
       rows: [
-        { label: ctx.copy.fields.projectHours, value: projectHours.toFixed(2) },
+        { label: ctx.copy.fields.projectHours, value: formatDecimalDisplay(projectHours, ctx.locale) },
 
-        { label: ctx.copy.fields.nonProjectHours, value: nonProjectHours.toFixed(2) },
+        { label: ctx.copy.fields.nonProjectHours, value: formatDecimalDisplay(nonProjectHours, ctx.locale) },
 
-        { label: ctx.copy.fields.projectShare, value: `${utilizationPct}%` },
+        { label: ctx.copy.fields.projectShare, value: utilizationPct },
 
         { label: ctx.copy.fields.timesheetPeriods, value: String(sheets.length) },
 
@@ -937,7 +940,7 @@ async function buildLaborUtilization(
       rows: topProjects.map(([projectId, hours]) => ({
         label: projectId.slice(0, 8),
 
-        value: hours.toFixed(2),
+        value: formatDecimalDisplay(hours, ctx.locale),
 
         href: `/projects/${projectId}`,
       })),
@@ -1223,7 +1226,7 @@ async function buildInventoryMovement(
   const moveRows: ReportRow[] = movements.map((move) => ({
     label: `${move.itemName ?? move.itemSku ?? move.inventoryItemId.slice(0, 8)} · ${move.movementType}`,
 
-    value: `${move.quantity} · ${move.occurredOn}`,
+    value: `${formatDecimalDisplay(move.quantity, ctx.locale)} · ${move.occurredOn}`,
 
     href: `/assets/inventory/${move.inventoryItemId}`,
   }));
@@ -1260,7 +1263,7 @@ async function buildInventoryMovement(
         rows: items.slice(0, 20).map((item) => ({
           label: item.name ?? item.sku ?? item.id.slice(0, 8),
 
-          value: item.quantityOnHand,
+          value: formatDecimalDisplay(item.quantityOnHand, ctx.locale),
 
           href: `/assets/inventory/${item.id}`,
         })),

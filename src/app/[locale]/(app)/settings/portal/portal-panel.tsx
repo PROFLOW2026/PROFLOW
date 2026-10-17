@@ -3,6 +3,7 @@
 import { useActionState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatMoneyString } from '@/shared/money/format';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -304,7 +305,7 @@ function CustomerSafePreview({
             <dd>
               {summary.progressPercent != null ? (
                 <span dir="ltr" className="pf-numeric">
-                  {summary.progressPercent}%
+                  {formatPercentDisplay(summary.progressPercent)}
                 </span>
               ) : (
                 '-'

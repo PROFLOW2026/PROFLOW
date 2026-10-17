@@ -4,6 +4,7 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { withOrgContext } from '@/shared/auth/session';
 import { businessDate, formatBusinessDate, isBusinessDate } from '@/shared/dates';
 import type { MoneyValue } from '@/shared/money';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { NotFoundError } from '@/shared/errors';
 import { MarginTrendList } from '@/modules/budgets/ui/margin-trend-list';
 import {
@@ -92,7 +93,7 @@ export async function Project360Summary({ projectId }: { projectId: string }) {
           <MoneyMetric label={t('forecastProfit')} value={money.profit.forecastProfit} colorizeNegative />
           <TextMetric
             label={t('margin')}
-            value={money.profit.marginPercent != null ? `${money.profit.marginPercent}%` : t('unavailable')}
+            value={money.profit.marginPercent != null ? formatPercentDisplay(money.profit.marginPercent, locale) : t('unavailable')}
           />
         </Group>
       ) : money?.priceNotSet ? (
@@ -123,7 +124,7 @@ export async function Project360Summary({ projectId }: { projectId: string }) {
       <Group title={t('work')}>
         <TextMetric
           label={t('progress')}
-          value={work.progressPercent != null ? `${work.progressPercent}%` : t('unavailable')}
+          value={work.progressPercent != null ? formatPercentDisplay(work.progressPercent, locale) : t('unavailable')}
         />
         {work.overdueTaskCount != null ? (
           <TextMetric label={t('overdueTasks')} value={String(work.overdueTaskCount)} />

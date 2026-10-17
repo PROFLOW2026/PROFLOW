@@ -3,6 +3,7 @@ import type { ScheduleSummary } from '@/modules/projects';
 import { Link } from '@/shared/i18n/navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
+import { formatPercentDisplay } from '@/shared/number/display';
 
 interface ScheduleSummaryPanelProps {
   summary: ScheduleSummary;
@@ -59,7 +60,7 @@ export async function ScheduleSummaryPanel({ summary, projectId }: ScheduleSumma
             {tDetails('progressPercent')}
           </dt>
           <dd className="mt-1 text-sm tabular-nums">
-            {summary.progressPercent != null ? `${summary.progressPercent}%` : '-'}
+            {summary.progressPercent != null ? formatPercentDisplay(summary.progressPercent) : '-'}
             {summary.progressStatus
               ? ` · ${tDetails(`progressStatuses.${summary.progressStatus}`)}`
               : null}

@@ -35,6 +35,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { nowUtc } from '@/shared/dates';
 import { NotFoundError, ValidationError } from '@/shared/errors';
 import { formatMoney, formatPercent } from '@/shared/money/format';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { fromNumericString, money } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -469,9 +470,9 @@ async function buildBoqProgress(
             return [
               item.itemCode ?? '',
               item.description,
-              `${item.currentQuantity}${item.unit ? ` ${item.unit}` : ''}`,
-              item.performedQuantity,
-              item.remainingQuantity,
+              `${formatDecimalDisplay(item.currentQuantity, ctx.locale)}${item.unit ? ` ${item.unit}` : ''}`,
+              formatDecimalDisplay(item.performedQuantity, ctx.locale),
+              formatDecimalDisplay(item.remainingQuantity, ctx.locale),
               formatPercent(pct, ctx.locale),
             ];
           }),
@@ -623,7 +624,7 @@ async function buildQuote(
     const total = fromNumericString(line.lineTotalAmount, currency);
     return [
       line.description,
-      line.quantity,
+      formatDecimalDisplay(line.quantity, ctx.locale),
       line.unit ?? '',
       unitPrice ? formatMoney(unitPrice, ctx.locale) : line.unitPriceAmount,
       total ? formatMoney(total, ctx.locale) : (line.lineTotalAmount ?? ''),

@@ -8,6 +8,7 @@ import { getTimesheetDetail } from '@/modules/workforce';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
 import { formatMoney } from '@/shared/money/format';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { money } from '@/shared/money';
 import {
   getReportsCopy,
@@ -57,7 +58,7 @@ export async function buildPurchaseOrderReport(
   const currency = po.currency;
   const lineRows = detail.lines.map((line) => [
     line.description,
-    line.quantity,
+    formatDecimalDisplay(line.quantity, ctx.locale),
     formatMoney(money(line.unitAmount, currency), ctx.locale),
     formatMoney(money(line.lineTotal, currency), ctx.locale),
   ]);
@@ -122,7 +123,7 @@ export async function buildProcurementRfqReport(
   const { rfq, lines } = detail;
   const lineRows = lines.map((line) => [
     line.description,
-    line.quantity,
+    formatDecimalDisplay(line.quantity, ctx.locale),
     line.unit ?? '',
   ]);
 

@@ -11,6 +11,7 @@ import {
 import type { OrgContext } from '@/shared/auth/context';
 import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { formatMoney } from '@/shared/money/format';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { reportDirection, reportTitle, resolveReportLocale } from '../domain/copy';
@@ -99,27 +100,27 @@ export async function buildMonthlyWorkforceReport(
       ? [
           {
             label: wr.regularHours,
-            value: (summary.approvedRegularHours ?? 0).toFixed(2),
+            value: formatDecimalDisplay(summary.approvedRegularHours ?? 0, ctx.locale),
           },
           {
             label: wr.overtimeHours,
-            value: (summary.approvedOvertimeHours ?? 0).toFixed(2),
+            value: formatDecimalDisplay(summary.approvedOvertimeHours ?? 0, ctx.locale),
           },
           {
             label: wr.totalApprovedHours,
-            value: summary.approvedTotalHours.toFixed(2),
+            value: formatDecimalDisplay(summary.approvedTotalHours, ctx.locale),
           },
         ]
       : [
           {
             label: wr.totalApprovedHours,
-            value: summary.approvedTotalHours.toFixed(2),
+            value: formatDecimalDisplay(summary.approvedTotalHours, ctx.locale),
           },
         ];
     const allocationRows = summary.projectBreakdown.map((project) => [
       project.projectName,
       String(project.days),
-      project.hours.toFixed(2),
+      formatDecimalDisplay(project.hours, ctx.locale),
       includeCost && project.allocatedCost
         ? formatMoney(project.allocatedCost, ctx.locale)
         : '—',
@@ -152,7 +153,7 @@ export async function buildMonthlyWorkforceReport(
         },
         {
           label: wr.nonProjectHours,
-          value: summary.unallocatedHours.toFixed(2),
+          value: formatDecimalDisplay(summary.unallocatedHours, ctx.locale),
         },
         ...(includeCost && summary.unallocatedCost
           ? [

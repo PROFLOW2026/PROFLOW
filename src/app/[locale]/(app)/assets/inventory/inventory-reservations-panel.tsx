@@ -1,7 +1,8 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -155,6 +156,7 @@ function ReservationRow({
   reservation: InventoryReservationRecord & { itemName?: string };
   canManage: boolean;
 }) {
+  const locale = useLocale();
   const t = useTranslations('assets.inventory');
   const [state, formAction, pending] = useActionState<AssetsFormState, FormData>(
     releaseInventoryReservationAction,
@@ -166,7 +168,7 @@ function ReservationRow({
       <div className="min-w-0">
         <p className="font-medium">{reservation.itemName ?? reservation.inventoryItemId}</p>
         <p className="text-sm text-[var(--pf-text-secondary)]">
-          <span dir="ltr">{reservation.quantity}</span>
+          <span dir="ltr">{formatDecimalDisplay(reservation.quantity, locale)}</span>
           {' · '}
           {t(`reservationStatus.${reservation.status}`)}
         </p>

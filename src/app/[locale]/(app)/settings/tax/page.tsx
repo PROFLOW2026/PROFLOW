@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { listTaxRules, resolveTaxForDate } from '@/modules/tax';
 import { todayInTimeZone } from '@/shared/dates';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { withOrgContext } from '@/shared/auth/session';
 import { canAccessSection, canManageSection, SETTINGS_SECTIONS } from '../_lib/access';
 import { SettingsNotAllowed } from '../settings-not-allowed';
@@ -26,7 +27,7 @@ export default async function TaxSettingsPage() {
     ]);
 
     const currentRateLabel = resolution.resolved?.ratePercent
-      ? `${resolution.resolved.ratePercent}%`
+      ? formatPercentDisplay(resolution.resolved.ratePercent)
       : null;
 
     return {

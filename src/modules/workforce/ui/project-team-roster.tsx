@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { useActionState, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -239,7 +240,7 @@ export function ProjectTeamRoster({
                   {member.entryCount > 0 ? (
                     <p className="text-xs text-[var(--pf-text-secondary)]">
                       {t('projectPanel.memberHours', {
-                        hours: Number(member.totalHours).toFixed(2),
+                        hours: formatDecimalDisplay(member.totalHours),
                         count: member.entryCount,
                       })}
                     </p>

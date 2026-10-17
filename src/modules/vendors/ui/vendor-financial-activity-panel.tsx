@@ -5,6 +5,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { money } from '@/shared/money';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { Link } from '@/shared/i18n/navigation';
 import type { VendorFinancialActivity } from '../application/get-vendor-financial-activity';
 
@@ -177,7 +178,7 @@ function ProjectSummary({
               className="flex flex-col gap-0.5 rounded-md border border-[var(--pf-border-default)] px-2 py-1.5"
             >
               <span className="font-medium text-[var(--pf-text-primary)]">{line.projectName}</span>
-              {line.percent ? <span dir="ltr">{line.percent}%</span> : null}
+              {line.percent ? <span dir="ltr">{formatPercentDisplay(line.percent)}</span> : null}
               <MoneyText value={money(line.netAmount, row.currency)} />
             </li>
           ))}

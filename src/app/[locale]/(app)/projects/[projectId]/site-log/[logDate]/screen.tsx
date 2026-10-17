@@ -1,4 +1,5 @@
 import { getFormatter, getTranslations } from 'next-intl/server';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -165,8 +166,8 @@ export async function SiteLogDayScreen({ surfaceRoot, params }: {
                         <p className="text-xs text-[var(--pf-text-secondary)]">
                           {[
                             entry.headcount !== null ? t('siteLog.entries.headcountValue', { count: entry.headcount }) : null,
-                            entry.hours !== null ? t('siteLog.entries.hoursValue', { hours: Number(entry.hours) }) : null,
-                            entry.quantity !== null ? `${Number(entry.quantity)} ${entry.unit ?? ''}`.trim() : null,
+                            entry.hours !== null ? t('siteLog.entries.hoursValue', { hours: formatDecimalDisplay(entry.hours) }) : null,
+                            entry.quantity !== null ? `${formatDecimalDisplay(entry.quantity)} ${entry.unit ?? ''}`.trim() : null,
                             entry.locationId
                               ? day.locations.find((location) => location.id === entry.locationId)?.name ?? null
                               : null,

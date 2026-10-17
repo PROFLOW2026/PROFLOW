@@ -1,5 +1,6 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { AlertCircle, CheckCircle2, Clock, UserPlus } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -19,9 +20,9 @@ function formatStartTime(value: Date | null, locale: string): string {
   }).format(date);
 }
 
-function formatHours(hours: number | null): string {
+function formatHours(hours: number | null, locale?: string): string {
   if (hours == null) return '—';
-  return hours % 1 === 0 ? String(hours) : hours.toFixed(2).replace(/\.?0+$/, '');
+  return formatDecimalDisplay(hours, locale);
 }
 
 export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterProps) {
@@ -107,7 +108,7 @@ export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterP
                       : '—'}
                 </TableCell>
                 <TableCell dir="ltr">{formatStartTime(row.startTime, locale)}</TableCell>
-                <TableCell dir="ltr">{formatHours(row.hours)}</TableCell>
+                <TableCell dir="ltr">{formatHours(row.hours, locale)}</TableCell>
                 <TableCell>
                   <StatusBadge
                     shape={

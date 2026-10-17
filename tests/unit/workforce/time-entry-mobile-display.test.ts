@@ -5,15 +5,15 @@ import { buildTimeEntryDailySummaryFromTotals } from '@/modules/workforce/applic
 import type { TimeEntryListItem } from '@/modules/workforce/domain/types';
 
 describe('formatWorkHoursValue', () => {
-  it('strips six-decimal DB precision', () => {
-    expect(formatWorkHoursValue('8.000000')).toBe('8');
-    expect(formatWorkHoursValue('7.500000')).toBe('7.5');
+  it('shows six-decimal DB hours with two fraction digits', () => {
+    expect(formatWorkHoursValue('8.000000')).toBe('8.00');
+    expect(formatWorkHoursValue('7.500000')).toBe('7.50');
     expect(formatWorkHoursValue('2.250000')).toBe('2.25');
   });
 
   it('handles edge values', () => {
-    expect(formatWorkHoursValue('0')).toBe('0');
-    expect(formatWorkHoursValue(null)).toBe('0');
+    expect(formatWorkHoursValue('0')).toBe('0.00');
+    expect(formatWorkHoursValue(null)).toBe('0.00');
     expect(formatWorkHoursValue('10.333333')).toBe('10.33');
   });
 });

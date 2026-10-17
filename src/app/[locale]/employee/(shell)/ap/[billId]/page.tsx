@@ -8,6 +8,7 @@ import { getVendorById } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { money } from '@/shared/money/money';
+import { formatDecimalDisplay } from '@/shared/number/display';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -118,7 +119,7 @@ export default async function EmployeeApBillDetailPage({
             >
               <p className="font-medium">{line.description}</p>
               <p className="text-[var(--pf-text-secondary)]" dir="ltr">
-                {line.quantity} · <MoneyText value={money(line.lineTotal, line.currency)} />
+                {formatDecimalDisplay(line.quantity, locale)} · <MoneyText value={money(line.lineTotal, line.currency)} />
               </p>
             </li>
           ))}

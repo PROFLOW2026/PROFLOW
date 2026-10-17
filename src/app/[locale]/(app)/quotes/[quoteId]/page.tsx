@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
@@ -9,6 +9,7 @@ import { getQuoteById, isQuoteEditable, type QuoteStatus } from '@/modules/quote
 import { findProjectById } from '@/modules/projects';
 import { workEntityHref } from '@/modules/search/domain/hrefs';
 import { money } from '@/shared/money';
+import { formatDecimalDisplay, formatPercentDisplay } from '@/shared/number/display';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -19,7 +20,6 @@ import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-
 import { reportPreviewPath } from '@/modules/reports/domain/paths';
 import { ReportDownloadButtons } from '@/modules/reports/ui';
 import { Button } from '@/components/ui/button';
-import { formatQuoteDisplayDecimal, formatQuoteDisplayPercent } from '@/modules/quotes/ui/format-quote-decimal';
 import { QuoteEditorForm } from '@/modules/quotes/ui/quote-editor-form';
 import { QuoteLinkedTasksSection } from '@/modules/quotes/ui/quote-linked-tasks-section';
 import { listClientsForOrg } from '@/modules/clients';
@@ -60,6 +60,7 @@ export default async function QuoteDetailPage({
   params: Promise<{ quoteId: string }>;
 }) {
   const { quoteId } = await params;
+  const locale = await getLocale();
   const t = await getTranslations('quotes');
   const tStatus = await getTranslations('status.estimateQuote');
   const tTax = await getTranslations('quotes.taxModes');
@@ -158,7 +159,7 @@ export default async function QuoteDetailPage({
                 <div className="min-w-0">
                   <dt className="text-xs text-[var(--pf-text-secondary)]">{t('create.quantity')}</dt>
                   <dd className="pf-ltr-island break-words" dir="ltr">
-                    {formatQuoteDisplayDecimal(line.quantity) || '-'}
+                    {formatDecimalDisplay(line.quantity, locale) || '-'}
                   </dd>
                 </div>
                 <div className="min-w-0">
@@ -213,7 +214,7 @@ export default async function QuoteDetailPage({
                   <TableCell className="min-w-0 break-words whitespace-normal">{line.description}</TableCell>
                   <TableCell>
                     <span className="pf-ltr-island" dir="ltr">
-                      {formatQuoteDisplayDecimal(line.quantity) || '-'}
+                      {formatDecimalDisplay(line.quantity, locale) || '-'}
                     </span>
                   </TableCell>
                   <TableCell className="break-words">{line.unit ?? '-'}</TableCell>
@@ -282,7 +283,9 @@ export default async function QuoteDetailPage({
               <dt className="text-[var(--pf-text-secondary)]">{t('detail.estimatedMargin')}</dt>
               <dd>
                 <span className="pf-ltr-island" dir="ltr">
-                  {formatQuoteDisplayPercent(quote.estimatedMarginPercent)}
+                  {quote.estimatedMarginPercent != null
+                    ? formatPercentDisplay(quote.estimatedMarginPercent, locale)
+                    : '-'}
                 </span>
                 <span className="ms-2 text-xs text-[var(--pf-text-secondary)]">
                   ({t('detail.notRevenue')})
@@ -314,7 +317,7 @@ export default async function QuoteDetailPage({
                 <dt className="text-[var(--pf-text-secondary)]">{t('create.discountPercentLabel')}</dt>
                 <dd>
                   <span className="pf-ltr-island" dir="ltr">
-                    {formatQuoteDisplayPercent(quote.discountPercent)}
+                    {formatPercentDisplay(quote.discountPercent, locale)}
                   </span>
                 </dd>
               </div>

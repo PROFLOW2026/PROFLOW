@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ReceivablesAgingPanel } from '@/modules/billing/ui/receivables-aging-panel';
 import { Link } from '@/shared/i18n/navigation';
 import type { OrganizationReportsAnalytics } from '../application/get-organization-reports-analytics';
+import { formatPercentDisplay } from '@/shared/number/display';
 import type { ReportsSection } from '../domain/reports-section';
 import type { CountReportMetric, MoneyReportMetric, ReportMetricKind } from '../domain/report-metric';
 import type { DataConfidenceLevel, DataConfidenceReason } from '../domain/data-confidence';
@@ -445,7 +446,7 @@ export async function ReportsAnalyticsView({
                 {t('operations.avgProgress')}
               </p>
               <p className="mt-1 text-base font-semibold pf-numeric" dir="ltr">
-                {analytics.operations.progressAveragePercent}%
+                {formatPercentDisplay(analytics.operations.progressAveragePercent)}
               </p>
             </div>
           ) : null}
@@ -628,7 +629,7 @@ export async function ReportsAnalyticsView({
                         )}
                       </TableCell>
                     ) : null}
-                    <TableCell>{row.progressPercent ? `${row.progressPercent}%` : '-'}</TableCell>
+                    <TableCell>{row.progressPercent ? formatPercentDisplay(row.progressPercent) : '-'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -642,7 +643,7 @@ export async function ReportsAnalyticsView({
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0 flex-1 break-words font-semibold">{row.name}</span>
                 <span className="shrink-0 text-sm text-[var(--pf-text-secondary)]">
-                  {row.progressPercent ? `${row.progressPercent}%` : '-'}
+                  {row.progressPercent ? formatPercentDisplay(row.progressPercent) : '-'}
                 </span>
               </div>
               <dl className="mt-3 grid min-w-0 grid-cols-1 gap-2 text-sm sm:grid-cols-2">

@@ -115,11 +115,11 @@ export default async function TimesheetDetailPage({
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-md bg-[var(--pf-bg-muted)] p-3">
             <p className="text-xs text-[var(--pf-text-secondary)]">{t('timesheets.totals.project')}</p>
-            <p className="font-semibold">{totals.projectHours.toFixed(2)}</p>
+            <p className="font-semibold">{formatWorkHoursValue(totals.projectHours)}</p>
           </div>
           <div className="rounded-md bg-[var(--pf-bg-muted)] p-3">
             <p className="text-xs text-[var(--pf-text-secondary)]">{t('timesheets.totals.nonProject')}</p>
-            <p className="font-semibold">{totals.nonProjectHours.toFixed(2)}</p>
+            <p className="font-semibold">{formatWorkHoursValue(totals.nonProjectHours)}</p>
           </div>
           <div className="rounded-md bg-[var(--pf-bg-muted)] p-3">
             <p className="text-xs text-[var(--pf-text-secondary)]">{t('timesheets.totals.missingDays')}</p>
