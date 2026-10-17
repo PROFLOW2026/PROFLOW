@@ -35,7 +35,7 @@ describe('financial basis labels distinguish invoice cash from net profit', () =
     expect(outstandingCash).toMatch(/יתרה לגבייה כולל מע״מ|עדיין חייב/);
     expect(profit).toMatch(/יתרת חוזה/);
     expect(actualMargin).toMatch(/יתרת חוזה/);
-    expect(actualMarginHint).toMatch(/יתרת החוזה|עלויות מוכרות/);
+    expect(actualMarginHint).toMatch(/עלות מוכרת|אינו חלק מהיתרה/);
     expect(actualCost).toMatch(/עלות/);
     expect(outstanding).toMatch(/יתרה לגבייה כולל מע״מ/);
     expect(billingCash).not.toBe(profitNet);
@@ -79,8 +79,8 @@ describe('financial basis labels distinguish invoice cash from net profit', () =
     expect(paidHint.toLowerCase()).toMatch(/cash actually received|received from clients/);
     expect(billingCash.toLowerCase()).not.toMatch(/including vat|not revenue for profit/);
     expect(profit.toLowerCase()).toMatch(/profit/);
-    expect(actualMargin.toLowerCase()).toMatch(/profit/);
-    expect(actualMarginHint.toLowerCase()).toMatch(/estimated profit|data entered/);
+    expect(actualMargin.toLowerCase()).toMatch(/remainder|recognized cost/);
+    expect(actualMarginHint.toLowerCase()).toMatch(/recognized cost|not part of this remainder/);
     expect(actualCost.toLowerCase()).toMatch(/cost/);
     expect(outstanding.toLowerCase()).toMatch(/outstanding including vat/);
     expect(financial.get('basis.billingNet')?.toLowerCase()).toMatch(/before vat|project revenue/);

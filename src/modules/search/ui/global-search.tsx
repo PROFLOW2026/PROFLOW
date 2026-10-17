@@ -78,7 +78,6 @@ export function GlobalSearchDialog({
   React.useEffect(() => {
     if (!canSearch) return;
 
-    setPending(true);
     let cancelled = false;
     const handle = window.setTimeout(() => {
       void (async () => {

@@ -16,7 +16,6 @@ import { releaseBillingRecordRetention } from '@/modules/retention';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, ValidationError, serializeError } from '@/shared/errors';
 import { billingValidationFormState } from '@/modules/billing/domain/draft-rules';
-import { mapServerActionError } from '@/shared/errors/map-server-action-error';
 import { redirect } from '@/shared/i18n/navigation';
 import type { CreateBillingRecordInput, CreatePaymentInput } from '@/modules/billing';
 import { revalidatePath } from 'next/cache';
