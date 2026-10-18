@@ -8,23 +8,24 @@ import { LOCALE_METADATA } from '@/shared/i18n/config';
 import { cn } from '@/shared/ui/cn';
 import './globals.css';
 
+/* Body 400 + heading 600 only — fewer next/font files at build on the 8 GB builder. */
 const notoSans = Noto_Sans({
   subsets: ['latin', 'cyrillic'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '600'],
   display: 'swap',
   variable: '--font-noto-sans',
 });
 
 const notoHebrew = Noto_Sans_Hebrew({
   subsets: ['hebrew'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '600'],
   display: 'swap',
   variable: '--font-noto-hebrew',
 });
 
 const notoArabic = Noto_Sans_Arabic({
   subsets: ['arabic'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '600'],
   display: 'swap',
   variable: '--font-noto-arabic',
 });
