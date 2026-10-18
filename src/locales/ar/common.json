@@ -124,6 +124,7 @@
     "sortAscending": "ترتيب تصاعدي",
     "sortDescending": "ترتيب تنازلي",
     "navigating": "جاري التنقل",
-    "languageSwitcher": "اللغة"
+    "languageSwitcher": "اللغة",
+    "scrollToTop": "الانتقال إلى أعلى الصفحة"
   }
 }

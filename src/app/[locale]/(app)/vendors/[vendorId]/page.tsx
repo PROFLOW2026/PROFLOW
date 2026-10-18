@@ -29,23 +29,40 @@ import {
 } from '@/modules/vendors';
 import { getVendorFinancialActivity } from '@/modules/vendors/application/get-vendor-financial-activity';
 import { getVendorPerformance } from '@/modules/vendors/application/get-vendor-performance';
+import { listVendorContractorAccessPanels } from '@/modules/contractor-access';
 import {
   Vendor360Shell,
   VendorEngagementsPanel,
+  VendorPortalAccessPanel,
   VendorSubcontractsPanel,
   VendorPerformancePanel,
 } from '@/modules/vendors/ui';
 import { VendorFinancialActivityPanel } from '@/modules/vendors/ui/vendor-financial-activity-panel';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { IdentityAvatar } from '@/modules/identity-images';
 import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
+import {
+  contractorPrincipalCommandAction,
+  grantContractorAccessAction,
+  inviteContractorAction,
+  revokeContractorGrantAction,
+  updateContractorGrantAction,
+  updateContractorPrincipalProfileAction,
+} from '../../projects/[projectId]/contractor-access/actions';
 import { VendorContactForm } from './vendor-contact-form';
 import { VendorEditForm } from './vendor-edit-form';
 import { VendorIdentifiersPanel } from './vendor-identifiers-panel';
 import { RelatedCommunicationsPanel } from '@/modules/communications/ui/related-panel';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
+import {
+  VendorLogoPanel,
+  getVendorLogoAvailability,
+  getVendorLogoPreviewUrl,
+} from '@/modules/identity-images';
 
 export async function generateMetadata({
   params,
@@ -95,6 +112,10 @@ export default async function VendorDetailPage({
   let paymentTerms: Awaited<ReturnType<typeof listBusinessCatalog>> = [];
   let categories: Awaited<ReturnType<typeof listBusinessCatalog>> = [];
   let specialties: Awaited<ReturnType<typeof listBusinessCatalog>> = [];
+  let logoAvailability = { schemaReady: false, storageConfigured: false };
+  let logoPreviewUrl: string | null = null;
+  let portalPanels: Awaited<ReturnType<typeof listVendorContractorAccessPanels>> = [];
+  let organizationName = '';
 
   try {
     const result = await withOrgContext(async (context) => {
@@ -151,6 +172,24 @@ export default async function VendorDetailPage({
               ? await getVendorFinancialActivity(context, vendorId).catch(() => null)
               : null,
           ];
+      const [logoAvail, logoPreview] = await Promise.all([
+        getVendorLogoAvailability(context),
+        getVendorLogoPreviewUrl(context, vendorId),
+      ]);
+
+      const projectIdsForPortal = [
+        ...new Set([
+          ...detail.engagements.map((row) => row.projectId),
+          ...history.map((row) => row.projectId),
+          ...agreements.map((row) => row.projectId),
+        ]),
+      ];
+      const portalAccessPanels = await listVendorContractorAccessPanels(
+        context,
+        vendorId,
+        projectIdsForPortal,
+      ).catch(() => []);
+
       return {
         vendor: detail,
         documentsPanel: panel,
@@ -177,6 +216,10 @@ export default async function VendorDetailPage({
         paymentTerms: paymentTermRows,
         categories: categoryRows,
         specialties: specialtyRows,
+        logoAvailability: logoAvail,
+        logoPreviewUrl: logoPreview,
+        portalPanels: portalAccessPanels,
+        organizationName: context.organization.name,
       };
     });
     vendor = result.vendor;
@@ -201,6 +244,10 @@ export default async function VendorDetailPage({
     paymentTerms = result.paymentTerms;
     categories = result.categories;
     specialties = result.specialties;
+    logoAvailability = result.logoAvailability;
+    logoPreviewUrl = result.logoPreviewUrl;
+    portalPanels = result.portalPanels;
+    organizationName = result.organizationName;
   } catch {
     notFound();
   }
@@ -236,9 +283,15 @@ export default async function VendorDetailPage({
   ];
 
   return (
+    <WithAppClientMessages extra={['contractorAccess']}>
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={vendor.name}
+        title={
+          <span className="flex min-w-0 items-center gap-3">
+            <IdentityAvatar previewUrl={logoPreviewUrl} displayName={vendor.name} size="lg" />
+            <span className="min-w-0 truncate">{vendor.name}</span>
+          </span>
+        }
         description={t('detail.profileHint')}
         meta={
           <>
@@ -258,20 +311,31 @@ export default async function VendorDetailPage({
         breadcrumb={
           <ContextualBackLink href="/vendors">{t('backToList')}</ContextualBackLink>
         }
-      />
-
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.statusLifecycleHint')}</p>
-
-      <PrepareMessageLink
-        entityType="vendor"
-        vendorId={vendor.id}
-        recipientEmail={vendor.email}
-        subject={vendor.name}
+        actions={
+          <PrepareMessageLink
+            entityType="vendor"
+            vendorId={vendor.id}
+            recipientEmail={vendor.email}
+            subject={vendor.name}
+          />
+        }
       />
 
       <Vendor360Shell
         details={
           <>
+            <Card>
+              <CardContent className="pt-6">
+                <VendorLogoPanel
+                  vendorId={vendor.id}
+                  vendorName={vendor.name}
+                  previewUrl={logoPreviewUrl}
+                  canEdit={canManage}
+                  schemaReady={logoAvailability.schemaReady}
+                  storageConfigured={logoAvailability.storageConfigured}
+                />
+              </CardContent>
+            </Card>
             {canManage ? (
               <VendorEditForm
                 vendor={vendor}
@@ -365,50 +429,21 @@ export default async function VendorDetailPage({
                 {canManage ? <VendorContactForm vendorId={vendor.id} /> : null}
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">{t('detail.categoriesSection')}</CardTitle>
-                <CardDescription>{t('detail.categoriesHint')}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-3 text-sm">
-                <div>
-                  <p className="font-medium">{t('catalog.categoriesLabel')}</p>
-                  {categoryLinks.length === 0 ? (
-                    <p className="text-[var(--pf-text-secondary)]">{t('detail.categoriesEmpty')}</p>
-                  ) : (
-                    <ul className="mt-1 list-inside list-disc">
-                      {categoryLinks.map((link) => (
-                        <li key={link.id}>
-                          {vendorCategoryNameById.get(link.catalogEntryId) ?? localizeCode(locale, link.entryName)}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                <div>
-                  <p className="font-medium">{t('catalog.specialtiesLabel')}</p>
-                  {specialtyLinks.length === 0 ? (
-                    <p className="text-[var(--pf-text-secondary)]">{t('detail.specialtiesEmpty')}</p>
-                  ) : (
-                    <ul className="mt-1 list-inside list-disc">
-                      {specialtyLinks.map((link) => (
-                        <li key={link.id}>{specialtyNameById.get(link.catalogEntryId) ?? localizeCode(locale, link.entryName)}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                {canManage ? (
-                  <p className="text-xs text-[var(--pf-text-secondary)]">{t('detail.categoriesEditHint')}</p>
-                ) : null}
-              </CardContent>
-            </Card>
-            <EntityCustomFieldsPanel
-              entityId={vendor.id}
-              fields={customFields}
-              revalidatePath={`/vendors/${vendor.id}`}
-              saveAction={upsertEntityFieldValueAction}
-            />
           </>
+        }
+        portal={
+          <VendorPortalAccessPanel
+            panels={portalPanels}
+            organizationName={organizationName}
+            actions={{
+              invite: inviteContractorAction,
+              grant: grantContractorAccessAction,
+              update: updateContractorGrantAction,
+              revoke: revokeContractorGrantAction,
+              principalCommand: contractorPrincipalCommandAction,
+              updatePrincipal: updateContractorPrincipalProfileAction,
+            }}
+          />
         }
         projects={
           <VendorEngagementsPanel
@@ -473,11 +508,59 @@ export default async function VendorDetailPage({
         }
         detailsAdvanced={
           <>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{t('detail.categoriesSection')}</CardTitle>
+                <CardDescription>{t('detail.categoriesHint')}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3 text-sm">
+                <div>
+                  <p className="font-medium">{t('catalog.categoriesLabel')}</p>
+                  {categoryLinks.length === 0 ? (
+                    <p className="text-[var(--pf-text-secondary)]">{t('detail.categoriesEmpty')}</p>
+                  ) : (
+                    <ul className="mt-1 list-inside list-disc">
+                      {categoryLinks.map((link) => (
+                        <li key={link.id}>
+                          {vendorCategoryNameById.get(link.catalogEntryId) ??
+                            localizeCode(locale, link.entryName)}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium">{t('catalog.specialtiesLabel')}</p>
+                  {specialtyLinks.length === 0 ? (
+                    <p className="text-[var(--pf-text-secondary)]">{t('detail.specialtiesEmpty')}</p>
+                  ) : (
+                    <ul className="mt-1 list-inside list-disc">
+                      {specialtyLinks.map((link) => (
+                        <li key={link.id}>
+                          {specialtyNameById.get(link.catalogEntryId) ??
+                            localizeCode(locale, link.entryName)}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                {canManage ? (
+                  <p className="text-xs text-[var(--pf-text-secondary)]">{t('detail.categoriesEditHint')}</p>
+                ) : null}
+              </CardContent>
+            </Card>
+            <EntityCustomFieldsPanel
+              entityId={vendor.id}
+              fields={customFields}
+              revalidatePath={`/vendors/${vendor.id}`}
+              saveAction={upsertEntityFieldValueAction}
+            />
             <VendorPerformancePanel performance={performance} />
             <RelatedCommunicationsPanel vendorId={vendor.id} />
           </>
         }
       />
     </div>
+    </WithAppClientMessages>
   );
 }

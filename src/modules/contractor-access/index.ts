@@ -51,6 +51,8 @@ export {
 } from './application/auth-port';
 export {
   getContractorAccessOverview,
+  filterContractorAccessOverviewForVendor,
+  listVendorContractorAccessPanels,
   listProjectContractorGrantsForProject,
   grantContractorAccess,
   inviteContractor,
@@ -70,6 +72,7 @@ export {
   type InviteContractorInput,
   type InviteContractorResult,
   type UpdateHomeContractorPrincipalInput,
+  type VendorContractorAccessPanel,
 } from './application/manage-contractor-access';
 export {
   ContractorPasswordPolicyError,

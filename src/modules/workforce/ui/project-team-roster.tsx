@@ -15,6 +15,7 @@ import { textNavLinkClassName } from '@/components/ui/pressable';
 import { Badge } from '@/components/ui/badge';
 import { isProjectManagerRole, PROJECT_MANAGER_ROLE_VALUE } from '@/modules/projects/domain/project-participants';
 import type { ProjectTeamMemberSummary } from '@/modules/workforce';
+import { IdentityAvatar } from '@/modules/identity-images';
 import {
   addProjectTeamMemberAction,
   cancelProjectTeamAssignmentAction,
@@ -215,7 +216,13 @@ export function ProjectTeamRoster({
           {team.map((member) => (
             <li key={member.membershipId} className="flex flex-col gap-3 px-3 py-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="min-w-0 text-start">
+                <div className="flex min-w-0 items-start gap-2.5 text-start">
+                  <IdentityAvatar
+                    previewUrl={member.avatarUrl}
+                    displayName={member.employeeName}
+                    size="sm"
+                  />
+                  <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <Link
                       href={`/workforce/employees/${member.employeeId}`}
@@ -247,6 +254,7 @@ export function ProjectTeamRoster({
                   ) : (
                     <p className="text-xs text-[var(--pf-text-muted)]">{t('projectPanel.noHoursYet')}</p>
                   )}
+                  </div>
                 </div>
                 {canManage ? (
                   <div className="flex flex-wrap gap-1">

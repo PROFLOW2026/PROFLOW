@@ -8,6 +8,7 @@ import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MoneyText } from '@/components/patterns/money-text';
 import type { EmployeeListItem } from '@/modules/workforce';
+import { IdentityAvatar } from '@/modules/identity-images';
 import { fromNumericString } from '@/shared/money';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { getLocale } from 'next-intl/server';
@@ -18,8 +19,12 @@ import { canReadWorkforceCost } from '@/modules/workforce/application/workforce-
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 
+export type EmployeeListItemWithAvatar = EmployeeListItem & {
+  readonly avatarUrl?: string | null;
+};
+
 interface EmployeesTableProps {
-  readonly employees: readonly EmployeeListItem[];
+  readonly employees: readonly EmployeeListItemWithAvatar[];
   readonly canManage: boolean;
   readonly showCosts?: boolean;
 }
@@ -72,15 +77,24 @@ export async function EmployeesTable({
               {employees.map((employee) => (
                 <TableRow key={employee.id}>
                   <TableCell>
-                    <Link
-                      href={`/workforce/employees/${employee.id}`}
-                      className={cn(textNavLinkClassName, 'rounded-sm font-medium')}
-                    >
-                      {employee.name}
-                    </Link>
-                    {employee.jobTitle ? (
-                      <p className="text-xs text-[var(--pf-text-muted)]">{employee.jobTitle}</p>
-                    ) : null}
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <IdentityAvatar
+                        previewUrl={employee.avatarUrl}
+                        displayName={employee.name}
+                        size="sm"
+                      />
+                      <div className="min-w-0">
+                        <Link
+                          href={`/workforce/employees/${employee.id}`}
+                          className={cn(textNavLinkClassName, 'rounded-sm font-medium')}
+                        >
+                          {employee.name}
+                        </Link>
+                        {employee.jobTitle ? (
+                          <p className="text-xs text-[var(--pf-text-muted)]">{employee.jobTitle}</p>
+                        ) : null}
+                      </div>
+                    </div>
                   </TableCell>
                   <TableCell>
                     {employee.hireDate ? (
@@ -151,7 +165,13 @@ export async function EmployeesTable({
           className={cn(pressableCardLinkClassName, 'hover:bg-[var(--pf-bg-subtle)]')}
         >
           <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 flex-1 text-start">
+            <div className="flex min-w-0 flex-1 items-start gap-2.5 text-start">
+              <IdentityAvatar
+                previewUrl={employee.avatarUrl}
+                displayName={employee.name}
+                size="sm"
+              />
+              <div className="min-w-0">
               <p className="truncate font-medium">{employee.name}</p>
               {employee.jobTitle ? (
                 <p className="truncate text-xs text-[var(--pf-text-muted)]">{employee.jobTitle}</p>
@@ -161,6 +181,7 @@ export async function EmployeesTable({
                   {formatBusinessDate(employee.hireDate as never, locale, 'medium')}
                 </p>
               ) : null}
+              </div>
             </div>
             <StatusBadge
               className="shrink-0"

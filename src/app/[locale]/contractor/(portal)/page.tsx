@@ -42,13 +42,15 @@ export default async function ContractorPortalDashboardPage() {
   return (
     <div className={portalPageStackClass}>
       <header className={portalHeroClass}>
-        <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.06em] text-[var(--pf-teal-800)]">
-          {t('nav.today')}
-        </p>
-        <h1 className={portalPageTitleClass}>
-          {context.displayName ? t('dashboard.greeting', { name: context.displayName }) : t('nav.today')}
-        </h1>
-        <p className={portalPageSubtitleClass}>{t('dashboard.subtitle')}</p>
+        <div className="relative max-w-2xl">
+          <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.06em] text-[var(--pf-teal-800)]">
+            {t('nav.today')}
+          </p>
+          <h1 className={portalPageTitleClass}>
+            {context.displayName ? t('dashboard.greeting', { name: context.displayName }) : t('nav.today')}
+          </h1>
+          <p className={portalPageSubtitleClass}>{t('dashboard.subtitle')}</p>
+        </div>
       </header>
 
       {projects.length === 0 ? (

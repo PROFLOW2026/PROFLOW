@@ -4,11 +4,19 @@ import { useTranslations } from 'next-intl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ReactNode } from 'react';
 
-export type Vendor360Tab = 'details' | 'projects' | 'invoices' | 'agreements' | 'documents';
+export type Vendor360Tab =
+  | 'details'
+  | 'portal'
+  | 'projects'
+  | 'invoices'
+  | 'agreements'
+  | 'documents';
 
 interface Vendor360ShellProps {
   defaultTab?: Vendor360Tab;
   details: ReactNode;
+  /** Portal users, passwords, and grant management (reuses contractor-access). */
+  portal?: ReactNode;
   projects: ReactNode;
   invoices: ReactNode;
   agreements: ReactNode;
@@ -37,6 +45,7 @@ function AdvancedSections({ children }: { children: ReactNode }) {
 export function Vendor360Shell({
   defaultTab = 'details',
   details,
+  portal,
   projects,
   invoices,
   agreements,
@@ -56,9 +65,12 @@ export function Vendor360Shell({
         </>
       ),
     },
+    ...(portal
+      ? [{ id: 'portal' as const, label: t('portal'), content: portal }]
+      : []),
     { id: 'projects', label: t('projects'), content: projects },
-    { id: 'invoices', label: t('invoices'), content: invoices },
     { id: 'agreements', label: t('agreements'), content: agreements },
+    { id: 'invoices', label: t('invoices'), content: invoices },
     { id: 'documents', label: t('documents'), content: documents },
   ];
 

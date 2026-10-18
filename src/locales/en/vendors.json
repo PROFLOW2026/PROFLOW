@@ -155,11 +155,19 @@
       "advancedSection": "More information",
       "performance": "Performance",
       "compliance": "Compliance",
-      "activity": "Activity"
+      "activity": "Activity",
+      "portal": "Portal access"
     },
     "editSection": "Edit vendor",
     "typeClearHint": "Type is a clear label (supplier, subcontractor, both, or other) - change it anytime without affecting expenses or bills.",
-    "save": "Save changes"
+    "save": "Save changes",
+    "portalAccess": {
+      "intro": "Manage contractor portal users and permissions for this company. The dedicated project page remains available.",
+      "empty": "No portal-access project is available for this contractor yet.",
+      "emptyHint": "Link the contractor to a project (Team / Contractors), then open Portal users from that project — or return here after access is granted.",
+      "openFullPage": "Full page",
+      "accountsCount": "{count} portal users"
+    }
   },
   "subcontractsWorkspace": {
     "title": "Subcontracts",
@@ -395,5 +403,17 @@
       "warrantyQuality": "Warranty quality: {score} ({count} coverages)",
       "complianceValidity": "Compliance validity: {score} ({count} artifacts)"
     }
+  },
+  "logo": {
+    "label": "Company logo",
+    "hint": "Shown wherever this vendor/contractor company appears.",
+    "upload": "Upload logo",
+    "replace": "Replace logo",
+    "remove": "Remove logo",
+    "invalidType": "Use PNG, JPEG, or WebP.",
+    "tooLarge": "Image must be 5 MB or smaller.",
+    "uploadFailed": "Could not save the logo.",
+    "schemaPending": "Logo upload will be available after the database update is applied.",
+    "storageNotConfigured": "File storage is not configured."
   }
 }

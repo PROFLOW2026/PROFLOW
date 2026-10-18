@@ -48,7 +48,9 @@ export function hasEmployeeManagementNav(context: OrgContext): boolean {
 }
 
 export interface EmployeeShellData {
+  readonly employeeId: string | null;
   readonly employeeName: string;
+  readonly avatarUrl: string | null;
   readonly organizationName: string;
   readonly linked: boolean;
   readonly nav: readonly EmployeeNavItem[];
@@ -210,7 +212,9 @@ export function buildEmployeeNavItems(context: OrgContext): EmployeeNavItem[] {
 export async function getEmployeeShellData(context: OrgContext): Promise<EmployeeShellData> {
   if (!isEmployeeAppUser(context)) {
     return {
+      employeeId: null,
       employeeName: '',
+      avatarUrl: null,
       organizationName: '',
       linked: false,
       nav: [],
@@ -242,8 +246,16 @@ export async function getEmployeeShellData(context: OrgContext): Promise<Employe
     clock = await getAttendanceClockSurface(context);
   }
 
+  let avatarUrl: string | null = null;
+  if (employee) {
+    const { getEmployeeAvatarPreviewUrl } = await import('@/modules/identity-images');
+    avatarUrl = await getEmployeeAvatarPreviewUrl(context, employee.id);
+  }
+
   return {
+    employeeId: employee?.id ?? null,
     employeeName: employee?.name ?? '',
+    avatarUrl,
     organizationName: context.organization.name,
     linked: Boolean(employee),
     nav,

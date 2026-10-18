@@ -47,6 +47,13 @@ export const contractorPrincipals = pgTable('external_principals', {
   sessionsRevokedAt: ts('sessions_revoked_at'),
   disabledAt: ts('disabled_at'),
   disabledByUserId: uuid('disabled_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
+  /** Personal avatar object key (0193) — distinct from vendor company logo. */
+  avatarImageKey: text('avatar_image_key'),
+  avatarImageContentType: text('avatar_image_content_type'),
+  avatarImageUpdatedAt: ts('avatar_image_updated_at'),
+  avatarImageUpdatedByUserId: uuid('avatar_image_updated_by_user_id').references(() => profiles.id, {
+    onDelete: 'set null',
+  }),
   ...timestamps(),
 });
 

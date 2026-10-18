@@ -55,6 +55,11 @@ import { upsertEntityFieldValueAction } from '../../../settings/custom-fields/ac
 import { getEmployeeAppAdminView } from '@/modules/employee-app';
 import { resolveEmployeeAppPublicOrigin } from '@/modules/employee-app/domain/app-origin';
 import { EmployeeAppAccessPanel } from '@/modules/employee-app/ui/employee-app-access-panel';
+import {
+  EmployeeAvatarPanel,
+  getEmployeeAvatarAvailability,
+  getEmployeeAvatarPreviewUrl,
+} from '@/modules/identity-images';
 
 export async function generateMetadata({
   params,
@@ -180,6 +185,12 @@ export default async function EmployeeDetailPage({
         : null;
 
       const switchableEmployees = await listEmployeesForOrg(context).catch(() => []);
+      const canEditAvatar =
+        allowManage || Boolean(employee.userId && employee.userId === context.userId);
+      const [avatarAvailability, avatarPreviewUrl] = await Promise.all([
+        getEmployeeAvatarAvailability(context),
+        getEmployeeAvatarPreviewUrl(context, employeeId),
+      ]);
 
       return {
         employee,
@@ -218,6 +229,9 @@ export default async function EmployeeDetailPage({
           id: row.id,
           name: row.name,
         })),
+        canEditAvatar,
+        avatarAvailability,
+        avatarPreviewUrl,
       };
     } catch {
       return null;
@@ -263,6 +277,9 @@ export default async function EmployeeDetailPage({
     actorPermissions,
     organizationName,
     switchableEmployees,
+    canEditAvatar,
+    avatarAvailability,
+    avatarPreviewUrl,
   } = data;
 
   const appOrigin = resolveEmployeeAppPublicOrigin();
@@ -331,6 +348,17 @@ export default async function EmployeeDetailPage({
           </div>
         }
       />
+
+      <Card className="p-4 sm:p-5">
+        <EmployeeAvatarPanel
+          employeeId={employee.id}
+          employeeName={employee.name}
+          previewUrl={avatarPreviewUrl}
+          canEdit={canEditAvatar}
+          schemaReady={avatarAvailability.schemaReady}
+          storageConfigured={avatarAvailability.storageConfigured}
+        />
+      </Card>
 
       {allowManage ? (
         <EmployeeAppAccessPanel

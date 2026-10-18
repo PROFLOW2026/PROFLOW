@@ -22,6 +22,7 @@ export interface EmployeeUserMenuProps {
   readonly employeeName: string;
   readonly email: string;
   readonly organizationName: string;
+  readonly avatarUrl?: string | null;
 }
 
 /** Employee App user menu — mirrors Owner UserMenu chrome without Owner-only actions. */
@@ -29,6 +30,7 @@ export function EmployeeUserMenu({
   employeeName,
   email,
   organizationName,
+  avatarUrl = null,
 }: EmployeeUserMenuProps) {
   const t = useTranslations('employeeApp');
   const tCommon = useTranslations('common');
@@ -51,8 +53,13 @@ export function EmployeeUserMenu({
           'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
         )}
       >
-        <span className="flex size-8 items-center justify-center rounded-full bg-[var(--pf-teal-100)] text-sm font-semibold text-[var(--pf-teal-800)]">
-          {initials}
+        <span className="flex size-8 items-center justify-center overflow-hidden rounded-full bg-[var(--pf-teal-100)] text-sm font-semibold text-[var(--pf-teal-800)]">
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- short-lived signed storage URL
+            <img src={avatarUrl} alt="" className="size-full object-cover" />
+          ) : (
+            initials
+          )}
         </span>
       </DropdownMenuTrigger>
 

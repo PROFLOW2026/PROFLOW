@@ -110,6 +110,18 @@
       "confirmation": "Repeat new password",
       "submit": "Change password",
       "changed": "Password changed. Other devices were signed out."
+    },
+    "avatar": {
+      "label": "Profile photo",
+      "hint": "Your personal photo — not the company logo.",
+      "upload": "Upload photo",
+      "replace": "Replace photo",
+      "remove": "Remove photo",
+      "invalidType": "Use PNG, JPEG, or WebP.",
+      "tooLarge": "Image must be 5 MB or smaller.",
+      "uploadFailed": "Could not save the photo.",
+      "schemaPending": "Photo upload will be available after the database update is applied.",
+      "storageNotConfigured": "File storage is not configured."
     }
   },
   "manage": {

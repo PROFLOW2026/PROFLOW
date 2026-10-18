@@ -5,12 +5,14 @@ export interface EmployeeTopBarProps {
   readonly employeeName: string;
   readonly email: string;
   readonly organizationName: string;
+  readonly avatarUrl?: string | null;
 }
 
 export function EmployeeTopBar({
   employeeName,
   email,
   organizationName,
+  avatarUrl = null,
 }: EmployeeTopBarProps) {
   return (
     <header className="sticky top-0 z-40 flex h-[var(--pf-topbar-height)] w-full shrink-0 items-center gap-2 border-b border-[var(--pf-border-default)] bg-[color-mix(in_srgb,var(--pf-bg-surface)_92%,transparent)] px-4 backdrop-blur-md print:hidden sm:gap-3 supports-[backdrop-filter]:bg-[color-mix(in_srgb,var(--pf-bg-surface)_84%,transparent)]">
@@ -27,6 +29,7 @@ export function EmployeeTopBar({
         employeeName={employeeName}
         email={email}
         organizationName={organizationName}
+        avatarUrl={avatarUrl}
       />
     </header>
   );

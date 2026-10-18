@@ -59,7 +59,7 @@ export function EmployeeEmployeeSwitcher({
         <span className="min-w-0 break-words text-xl font-semibold sm:text-2xl">{currentName}</span>
         <ChevronDown className="size-5 shrink-0 text-[var(--pf-text-secondary)]" aria-hidden />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="max-h-[min(24rem,70vh)] max-w-[min(100vw-2rem,20rem)] overflow-y-auto">
+      <DropdownMenuContent align="start" className="max-w-[min(100vw-2rem,20rem)]">
         {employees.map((employee) => (
           <DropdownMenuItem
             key={employee.id}

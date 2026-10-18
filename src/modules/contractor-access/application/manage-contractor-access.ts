@@ -235,6 +235,70 @@ export async function listProjectContractorGrantsForProject(
   return listProjectContractorGrants(context.db, context.organizationId, projectId);
 }
 
+/** Narrow a project overview to one vendor — reuses the same manager UI without a second engine. */
+export function filterContractorAccessOverviewForVendor(
+  overview: ContractorAccessOverview,
+  vendorId: string,
+): ContractorAccessOverview {
+  const accounts = overview.accounts
+    .map((account) => ({
+      ...account,
+      grants: account.grants.filter((grant) => grant.vendorId === vendorId),
+    }))
+    .filter((account) => account.grants.length > 0);
+
+  return {
+    ...overview,
+    vendors: overview.vendors.filter((vendor) => vendor.id === vendorId),
+    agreements: overview.agreements.filter((agreement) => agreement.vendorId === vendorId),
+    accounts,
+    existingPrincipals: overview.existingPrincipals.filter((row) => row.vendorId === vendorId),
+  };
+}
+
+export interface VendorContractorAccessPanel {
+  readonly projectId: string;
+  readonly projectName: string;
+  readonly overview: ContractorAccessOverview;
+}
+
+/**
+ * Portal-access surfaces for a vendor card: one panel per project the viewer can manage,
+ * filtered to that vendor. Full project page remains the canonical deep-link.
+ */
+export async function listVendorContractorAccessPanels(
+  context: OrgContext,
+  vendorId: string,
+  projectIds: readonly string[],
+): Promise<readonly VendorContractorAccessPanel[]> {
+  const unique = [...new Set(projectIds.filter(Boolean))];
+  if (unique.length === 0) return [];
+
+  const panels: VendorContractorAccessPanel[] = [];
+  for (const projectId of unique) {
+    const authority = await loadContractorAccessAuthority(context, projectId);
+    if (!authority.canView) continue;
+
+    const [project] = await context.db
+      .select({ id: projects.id, name: projects.name })
+      .from(projects)
+      .where(and(eq(projects.id, projectId), eq(projects.organizationId, context.organizationId)))
+      .limit(1);
+    if (!project) continue;
+
+    const overview = filterContractorAccessOverviewForVendor(
+      await getContractorAccessOverview(context, projectId),
+      vendorId,
+    );
+    panels.push({
+      projectId,
+      projectName: project.name,
+      overview,
+    });
+  }
+  return panels;
+}
+
 export async function getContractorAccessOverview(
   context: OrgContext,
   projectId: string,

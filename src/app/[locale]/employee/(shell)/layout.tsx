@@ -9,6 +9,7 @@ import { getEmployeeShellData } from '@/modules/employee-app/application/get-emp
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { getSessionState, withOrgContext } from '@/shared/auth/session';
 import { redirect } from '@/shared/i18n/navigation';
+import { ScrollToTop } from '@/components/ui/scroll-to-top';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 /**
@@ -50,6 +51,7 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
             employeeName={shell.employeeName}
             email={session.user.email}
             organizationName={shell.organizationName}
+            avatarUrl={shell.avatarUrl}
           />
           <main
             id="main"
@@ -58,6 +60,7 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
             <EmployeeShellHeader />
             {children}
           </main>
+          <ScrollToTop />
           <EmployeeBottomNav items={shell.nav} />
         </div>
         <EmployeeQuickCreate actions={quickCreateActions} />

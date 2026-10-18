@@ -13,6 +13,7 @@ import { QuickCreateDeferred } from './quick-create-deferred';
 import { Sidebar } from './sidebar';
 import { TopBar } from './top-bar';
 import { UserMenu } from './user-menu';
+import { ScrollToTop } from '@/components/ui/scroll-to-top';
 import { HiddenCapabilityNotice } from './hidden-capability-notice';
 
 /**
@@ -97,6 +98,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
               <Suspense fallback={null}>{children}</Suspense>
             </div>
           </main>
+          <ScrollToTop />
         </div>
 
         <MobileNav items={items} moreFooter={experiencePreviewSwitcher} />

@@ -172,21 +172,34 @@ export function ProjectContractorsRoster({
               key={engagement.id}
               className="flex flex-wrap items-start justify-between gap-3 rounded-md border border-[var(--pf-border-default)] p-3"
             >
-              <div className="min-w-0 flex-1 text-start">
-                <Link
-                  href={`/vendors/${engagement.vendorId}`}
-                  className={cn(textNavLinkClassName, 'font-medium')}
+              <div className="flex min-w-0 flex-1 items-start gap-2.5 text-start">
+                <span
+                  className="inline-flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--pf-teal-100)] text-xs font-semibold text-[var(--pf-teal-800)] ring-1 ring-[var(--pf-teal-200)]"
+                  aria-hidden
                 >
-                  {engagement.vendorName}
-                </Link>
-                <p className="text-sm text-[var(--pf-text-secondary)]" dir="ltr">
-                  {formatSpan(
-                    engagement.startDate,
-                    engagement.endDate,
-                    t('projectPanel.ongoing'),
+                  {engagement.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- short-lived signed storage URL
+                    <img src={engagement.logoUrl} alt="" className="size-full object-cover" />
+                  ) : (
+                    engagement.vendorName.trim().charAt(0).toUpperCase() || '?'
                   )}
-                  {engagement.role ? ` · ${engagement.role}` : ''}
-                </p>
+                </span>
+                <div className="min-w-0">
+                  <Link
+                    href={`/vendors/${engagement.vendorId}`}
+                    className={cn(textNavLinkClassName, 'font-medium')}
+                  >
+                    {engagement.vendorName}
+                  </Link>
+                  <p className="text-sm text-[var(--pf-text-secondary)]" dir="ltr">
+                    {formatSpan(
+                      engagement.startDate,
+                      engagement.endDate,
+                      t('projectPanel.ongoing'),
+                    )}
+                    {engagement.role ? ` · ${engagement.role}` : ''}
+                  </p>
+                </div>
               </div>
               {canManage ? (
                 <div className="flex shrink-0 flex-wrap gap-2">

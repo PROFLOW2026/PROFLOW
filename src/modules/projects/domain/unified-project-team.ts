@@ -24,6 +24,8 @@ export interface UnifiedProjectTeamMember {
   readonly tags: readonly ProjectTeamSourceTag[];
   readonly employeeId: string | null;
   readonly userId: string | null;
+  /** Signed URL for employee avatar when available (display-only). */
+  readonly avatarUrl?: string | null;
 }
 
 export interface UnifiedProjectTeamSources {

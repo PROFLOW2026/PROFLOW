@@ -1,1343 +1,1350 @@
 {
-    "version":  "7",
-    "dialect":  "postgresql",
-    "entries":  [
-                    {
-                        "idx":  0,
-                        "version":  "7",
-                        "when":  1786231665535,
-                        "tag":  "0000_foundation",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  1,
-                        "version":  "7",
-                        "when":  1786231704546,
-                        "tag":  "0001_rls_security",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  2,
-                        "version":  "7",
-                        "when":  1786231946765,
-                        "tag":  "0002_tax_rule_uniqueness",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  3,
-                        "version":  "7",
-                        "when":  1786232400000,
-                        "tag":  "0004_billing_commercial_integrity",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  4,
-                        "version":  "7",
-                        "when":  1786232460000,
-                        "tag":  "0005_workforce_rate_integrity",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  5,
-                        "version":  "7",
-                        "when":  1786232520000,
-                        "tag":  "0006_rls_hardening",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  6,
-                        "version":  "7",
-                        "when":  1786232600000,
-                        "tag":  "0007_contract_amount_tax",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  7,
-                        "version":  "7",
-                        "when":  1786232700000,
-                        "tag":  "0008_light_scheduling",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  8,
-                        "version":  "7",
-                        "when":  1786232800000,
-                        "tag":  "0009_wave2_foundations",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  9,
-                        "version":  "7",
-                        "when":  1786232900000,
-                        "tag":  "0010_procurement_foundations",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  10,
-                        "version":  "7",
-                        "when":  1786233000000,
-                        "tag":  "0011_field_ops_assets",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  11,
-                        "version":  "7",
-                        "when":  1786233100000,
-                        "tag":  "0012_ap_vendor_portal",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  12,
-                        "version":  "7",
-                        "when":  1786233200000,
-                        "tag":  "0013_document_owner_types",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  13,
-                        "version":  "7",
-                        "when":  1786233250000,
-                        "tag":  "0014_allocation_engine",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  14,
-                        "version":  "7",
-                        "when":  1786233300000,
-                        "tag":  "0015_project_expected_remaining_cost",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  15,
-                        "version":  "7",
-                        "when":  1786233400000,
-                        "tag":  "0016_category_allocation_policy",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  16,
-                        "version":  "7",
-                        "when":  1786233500000,
-                        "tag":  "0017_periodic_allocation",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  17,
-                        "version":  "7",
-                        "when":  1786233600000,
-                        "tag":  "0018_allocation_run_integrity",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  18,
-                        "version":  "7",
-                        "when":  1786233700000,
-                        "tag":  "0019_project_job_modes_and_entry_baseline",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  19,
-                        "version":  "7",
-                        "when":  1786233800000,
-                        "tag":  "0020_overnight_foundations",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  20,
-                        "version":  "7",
-                        "when":  1786368000000,
-                        "tag":  "0021_workforce_contacts_and_allocations",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  21,
-                        "version":  "7",
-                        "when":  1786400000000,
-                        "tag":  "0022_master_completion_foundations",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  22,
-                        "version":  "7",
-                        "when":  1786401000000,
-                        "tag":  "0023_attendance_rls_and_role_backfill",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  23,
-                        "version":  "7",
-                        "when":  1786500000000,
-                        "tag":  "0024_next_gen_permissions_modules_work_entity",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  24,
-                        "version":  "7",
-                        "when":  1786500100000,
-                        "tag":  "0025_quotes_estimates",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  25,
-                        "version":  "7",
-                        "when":  1786500200000,
-                        "tag":  "0026_service_dispatch_recurrence",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  26,
-                        "version":  "7",
-                        "when":  1786500300000,
-                        "tag":  "0027_approvals_month_close_budgets",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  27,
-                        "version":  "7",
-                        "when":  1786500400000,
-                        "tag":  "0028_forms_usage_command_recurring",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  28,
-                        "version":  "7",
-                        "when":  1786500500000,
-                        "tag":  "0029_next_gen_integration_hardening",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  29,
-                        "version":  "7",
-                        "when":  1786501200000,
-                        "tag":  "0030_gap_closure_corrections_retention_recurring",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  30,
-                        "version":  "7",
-                        "when":  1786502000000,
-                        "tag":  "0031_ocr_vendor_credit_target",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  31,
-                        "version":  "7",
-                        "when":  1786503000000,
-                        "tag":  "0032_boq_progress_billing",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  32,
-                        "version":  "7",
-                        "when":  1786503100000,
-                        "tag":  "0033_boq_rls_hardening",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  33,
-                        "version":  "7",
-                        "when":  1786503200000,
-                        "tag":  "0034_boq_lifecycle_hardening",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  34,
-                        "version":  "7",
-                        "when":  1786503300000,
-                        "tag":  "0035_boq_integrity_closure",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  35,
-                        "version":  "7",
-                        "when":  1786503400000,
-                        "tag":  "0036_ap_vat_net_tax_gross",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  36,
-                        "version":  "7",
-                        "when":  1786503500000,
-                        "tag":  "0037_month_close_db_freeze",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  37,
-                        "version":  "7",
-                        "when":  1786503600000,
-                        "tag":  "0038_change_order_commercial_reversal",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  38,
-                        "version":  "7",
-                        "when":  1786503700000,
-                        "tag":  "0039_ar_split_payment_applications",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  39,
-                        "version":  "7",
-                        "when":  1786503800000,
-                        "tag":  "0040_po_receiving",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  40,
-                        "version":  "7",
-                        "when":  1786503900000,
-                        "tag":  "0041_document_storage_cleanup",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  41,
-                        "version":  "7",
-                        "when":  1786504000000,
-                        "tag":  "0042_boq_raw_money_revoke",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  42,
-                        "version":  "7",
-                        "when":  1786504100000,
-                        "tag":  "0043_product_columns_numbering_crm_quotes",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  43,
-                        "version":  "7",
-                        "when":  1786504200000,
-                        "tag":  "0044_inventory_locations_qty",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  44,
-                        "version":  "7",
-                        "when":  1786504300000,
-                        "tag":  "0045_boq_reverse_allocation_changes_approve",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  45,
-                        "version":  "7",
-                        "when":  1786560000000,
-                        "tag":  "0046_multi_contract_projects",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  46,
-                        "version":  "7",
-                        "when":  1786560100000,
-                        "tag":  "0047_notifications_and_timesheets",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  47,
-                        "version":  "7",
-                        "when":  1786560200000,
-                        "tag":  "0048_document_versioning",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  48,
-                        "version":  "7",
-                        "when":  1786560300000,
-                        "tag":  "0049_wave2_workflows",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  49,
-                        "version":  "7",
-                        "when":  1786560400000,
-                        "tag":  "0050_wave3_operations",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  50,
-                        "version":  "7",
-                        "when":  1786560500000,
-                        "tag":  "0051_review_integrity_closure",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  51,
-                        "version":  "7",
-                        "when":  1786560600000,
-                        "tag":  "0052_product_completion",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  52,
-                        "version":  "7",
-                        "when":  1786560700000,
-                        "tag":  "0053_estimates_opportunity",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  53,
-                        "version":  "7",
-                        "when":  1786560800000,
-                        "tag":  "0054_product_experience",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  54,
-                        "version":  "7",
-                        "when":  1786560900000,
-                        "tag":  "0055_next_gen_permissions",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  55,
-                        "version":  "7",
-                        "when":  1786561000000,
-                        "tag":  "0056_closeout_warranty",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  56,
-                        "version":  "7",
-                        "when":  1786561100000,
-                        "tag":  "0057_communications_calendar",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  57,
-                        "version":  "7",
-                        "when":  1786561200000,
-                        "tag":  "0058_automations_integrations_assistant",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  58,
-                        "version":  "7",
-                        "when":  1786561300000,
-                        "tag":  "0059_dynamic_experience",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  59,
-                        "version":  "7",
-                        "when":  1786561400000,
-                        "tag":  "0060_business_catalog_refinement",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  60,
-                        "version":  "7",
-                        "when":  1786561500000,
-                        "tag":  "0061_ops_expense_usage_kinds",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  61,
-                        "version":  "7",
-                        "when":  1786561600000,
-                        "tag":  "0062_organization_branding",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  62,
-                        "version":  "7",
-                        "when":  1786561700000,
-                        "tag":  "0063_branding_billing_freeze_permission",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  63,
-                        "version":  "7",
-                        "when":  1787334000000,
-                        "tag":  "0064_payment_terms_eom_90_120",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  64,
-                        "version":  "7",
-                        "when":  1787334100000,
-                        "tag":  "0065_project_billing_plans",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  65,
-                        "version":  "7",
-                        "when":  1787335000000,
-                        "tag":  "0066_workforce_time_integrity",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  66,
-                        "version":  "7",
-                        "when":  1787420000000,
-                        "tag":  "0067_time_entry_cost_snapshot_fill",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  67,
-                        "version":  "7",
-                        "when":  1787500000000,
-                        "tag":  "0068_rate_versions_working_days_per_month",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  68,
-                        "version":  "7",
-                        "when":  1787580000000,
-                        "tag":  "0069_true_cost_profitability",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  69,
-                        "version":  "7",
-                        "when":  1787660000000,
-                        "tag":  "0070_financial_classification_architecture",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  70,
-                        "version":  "7",
-                        "when":  1787740000000,
-                        "tag":  "0071_internal_financial_editability",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  71,
-                        "version":  "7",
-                        "when":  1787820000000,
-                        "tag":  "0072_recurring_auto_finalize_run_guard",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  72,
-                        "version":  "7",
-                        "when":  1787900000000,
-                        "tag":  "0073_financial_rls_permission_gates",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  73,
-                        "version":  "7",
-                        "when":  1787910000000,
-                        "tag":  "0074_cost_code_attribution",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  74,
-                        "version":  "7",
-                        "when":  1787980000000,
-                        "tag":  "0075_org_work_week_config",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  75,
-                        "version":  "7",
-                        "when":  1788060000000,
-                        "tag":  "0076_subcontract_advances",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  76,
-                        "version":  "7",
-                        "when":  1788150000000,
-                        "tag":  "0077_billing_records_rls_boq_finalize",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  77,
-                        "version":  "7",
-                        "when":  1788240000000,
-                        "tag":  "0078_owner_business_decisions",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  78,
-                        "version":  "7",
-                        "when":  1788330000000,
-                        "tag":  "0079_vendor_payment_terms_recurring",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  79,
-                        "version":  "7",
-                        "when":  1788420000000,
-                        "tag":  "0080_recurring_template_payment_occurrences",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  80,
-                        "version":  "7",
-                        "when":  1788500000000,
-                        "tag":  "0081_payment_instruments",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  81,
-                        "version":  "7",
-                        "when":  1788586400000,
-                        "tag":  "0082_billing_vat_repair_and_invariant",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  82,
-                        "version":  "7",
-                        "when":  1788672800000,
-                        "tag":  "0083_payment_amount_basis",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  83,
-                        "version":  "7",
-                        "when":  1788759200000,
-                        "tag":  "0084_allocation_intent_company_only",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  84,
-                        "version":  "7",
-                        "when":  1788845600000,
-                        "tag":  "0085_labor_allocation_company_only_conservation",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  85,
-                        "version":  "7",
-                        "when":  1788932000000,
-                        "tag":  "0086_attendance_overtime_flag",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  86,
-                        "version":  "7",
-                        "when":  1789018400000,
-                        "tag":  "0087_external_organization_storage",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  87,
-                        "version":  "7",
-                        "when":  1789104800000,
-                        "tag":  "0088_employee_app_foundations",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  88,
-                        "version":  "7",
-                        "when":  1789191200000,
-                        "tag":  "0089_employee_app_table_grants",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  89,
-                        "version":  "7",
-                        "when":  1789277600000,
-                        "tag":  "0090_employee_app_global_username",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  90,
-                        "version":  "7",
-                        "when":  1789364000000,
-                        "tag":  "0091_employee_app_temp_pin_sealed",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  91,
-                        "version":  "7",
-                        "when":  1789450400000,
-                        "tag":  "0092_payroll_obligation_source",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  92,
-                        "version":  "7",
-                        "when":  1789536800000,
-                        "tag":  "0093_invoicing_sumit_hardening",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  93,
-                        "version":  "7",
-                        "when":  1789623200000,
-                        "tag":  "0094_statutory_receipt_payment_link",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  94,
-                        "version":  "7",
-                        "when":  1789709600000,
-                        "tag":  "0095_external_expense_imports",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  95,
-                        "version":  "7",
-                        "when":  1789710000000,
-                        "tag":  "0096_uwm_org_profile",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  96,
-                        "version":  "7",
-                        "when":  1789710060000,
-                        "tag":  "0097_uwm_workspaces",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  97,
-                        "version":  "7",
-                        "when":  1789710120000,
-                        "tag":  "0098_uwm_stages",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  98,
-                        "version":  "7",
-                        "when":  1789710180000,
-                        "tag":  "0099_uwm_boards",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  99,
-                        "version":  "7",
-                        "when":  1789710240000,
-                        "tag":  "0100_uwm_tasks_core",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  100,
-                        "version":  "7",
-                        "when":  1789710300000,
-                        "tag":  "0101_uwm_tasks_relations",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  101,
-                        "version":  "7",
-                        "when":  1789710360000,
-                        "tag":  "0102_uwm_comments_activity",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  102,
-                        "version":  "7",
-                        "when":  1789710420000,
-                        "tag":  "0103_uwm_recurrence",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  103,
-                        "version":  "7",
-                        "when":  1789710480000,
-                        "tag":  "0104_uwm_labels",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  104,
-                        "version":  "7",
-                        "when":  1789710540000,
-                        "tag":  "0105_uwm_templates",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  105,
-                        "version":  "7",
-                        "when":  1789710600000,
-                        "tag":  "0106_uwm_meetings",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  106,
-                        "version":  "7",
-                        "when":  1789710660000,
-                        "tag":  "0107_uwm_enum_extensions",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  107,
-                        "version":  "7",
-                        "when":  1789710720000,
-                        "tag":  "0108_uwm_automation_extensions",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  108,
-                        "version":  "7",
-                        "when":  1789710780000,
-                        "tag":  "0109_uwm_permissions",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  109,
-                        "version":  "7",
-                        "when":  1789710840000,
-                        "tag":  "0110_uwm_planning_task_link",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  110,
-                        "version":  "7",
-                        "when":  1789710900000,
-                        "tag":  "0111_uwm_project_closeout",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  111,
-                        "version":  "7",
-                        "when":  1789710960000,
-                        "tag":  "0112_uwm_approval_task_entity",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  112,
-                        "version":  "7",
-                        "when":  1789711020000,
-                        "tag":  "0113_uwm_owner_admin_permissions_and_module",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  113,
-                        "version":  "7",
-                        "when":  1789711080000,
-                        "tag":  "0114_uwm_table_grants",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  114,
-                        "version":  "7",
-                        "when":  1789711140000,
-                        "tag":  "0115_uwm_task_activity_extensions",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  115,
-                        "version":  "7",
-                        "when":  1789711200000,
-                        "tag":  "0116_task_reminders",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  116,
-                        "version":  "7",
-                        "when":  1789711260000,
-                        "tag":  "0117_task_document_attachments",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  117,
-                        "version":  "7",
-                        "when":  1789711320000,
-                        "tag":  "0118_task_document_owner_access_correction",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  118,
-                        "version":  "7",
-                        "when":  1789711380000,
-                        "tag":  "0119_meetings_read_org_scope",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  119,
-                        "version":  "7",
-                        "when":  1789711440000,
-                        "tag":  "0120_storage_documents_read_rls_and_member_folder_grants",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  120,
-                        "version":  "7",
-                        "when":  1789711500000,
-                        "tag":  "0121_employee_storage_permission_rls_correction",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  121,
-                        "version":  "7",
-                        "when":  1789711560000,
-                        "tag":  "0122_employee_document_number_permission",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  122,
-                        "version":  "7",
-                        "when":  1789711620000,
-                        "tag":  "0123_projects_root_semantic",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  123,
-                        "version":  "7",
-                        "when":  1789711680000,
-                        "tag":  "0124_employee_operational_rls_alignment",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  124,
-                        "version":  "7",
-                        "when":  1789711740000,
-                        "tag":  "0125_ap_bill_inventory_layers_and_net_90_120",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  125,
-                        "version":  "7",
-                        "when":  1789711800000,
-                        "tag":  "0126_ap_bill_line_inventory_layers",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  126,
-                        "version":  "7",
-                        "when":  1789711860000,
-                        "tag":  "0127_ap_bill_line_inventory_provenance",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  127,
-                        "version":  "7",
-                        "when":  1789711920000,
-                        "tag":  "0128_project_context_null_safe",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  128,
-                        "version":  "7",
-                        "when":  1789711980000,
-                        "tag":  "0129_expense_cash_installment_schedule",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  129,
-                        "version":  "7",
-                        "when":  1789712040000,
-                        "tag":  "0130_core_completion_foundations",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  130,
-                        "version":  "7",
-                        "when":  1789712100000,
-                        "tag":  "0131_quick_capture_inbox",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  131,
-                        "version":  "7",
-                        "when":  1789712160000,
-                        "tag":  "0132_material_market_monitor",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  132,
-                        "breakpoints":  true,
-                        "when":  1789712220000,
-                        "version":  "7",
-                        "tag":  "0134_sumit_pdf_archival"
-                    },
-                    {
-                        "idx":  133,
-                        "breakpoints":  true,
-                        "when":  1789712280000,
-                        "version":  "7",
-                        "tag":  "0135_crm_quote_conversion"
-                    },
-                    {
-                        "idx":  134,
-                        "breakpoints":  true,
-                        "when":  1789712340000,
-                        "version":  "7",
-                        "tag":  "0136_change_order_billing_handoff"
-                    },
-                    {
-                        "idx":  135,
-                        "breakpoints":  true,
-                        "when":  1789712400000,
-                        "version":  "7",
-                        "tag":  "0137_attendance_correction_requests"
-                    },
-                    {
-                        "idx":  136,
-                        "breakpoints":  true,
-                        "when":  1789712460000,
-                        "version":  "7",
-                        "tag":  "0138_material_market_supplier_signal"
-                    },
-                    {
-                        "idx":  137,
-                        "breakpoints":  true,
-                        "when":  1789712520000,
-                        "version":  "7",
-                        "tag":  "0139_closeout_warranty_orm_and_boq_reconciliation"
-                    },
-                    {
-                        "idx":  138,
-                        "breakpoints":  true,
-                        "when":  1789712580000,
-                        "version":  "7",
-                        "tag":  "0140_tasks_forms_search_enums"
-                    },
-                    {
-                        "idx":  139,
-                        "breakpoints":  true,
-                        "when":  1789712640000,
-                        "version":  "7",
-                        "tag":  "0141_expenses_fx_budget_closeout"
-                    },
-                    {
-                        "idx":  140,
-                        "breakpoints":  true,
-                        "when":  1789712700000,
-                        "version":  "7",
-                        "tag":  "0142_api_v1_index_cleanup"
-                    },
-                    {
-                        "idx":  141,
-                        "breakpoints":  true,
-                        "when":  1789712760000,
-                        "version":  "7",
-                        "tag":  "0143_enable_closed_month_trigger"
-                    },
-                    {
-                        "idx":  142,
-                        "breakpoints":  true,
-                        "when":  1789712820000,
-                        "version":  "7",
-                        "tag":  "0144_material_items_trade_backfill"
-                    },
-                    {
-                        "idx":  143,
-                        "version":  "7",
-                        "when":  1789712880000,
-                        "tag":  "0145_change_request_billing_condition",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  144,
-                        "version":  "7",
-                        "when":  1789712940000,
-                        "tag":  "0146_material_classification_correction",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  145,
-                        "version":  "7",
-                        "when":  1789713000000,
-                        "tag":  "0147_material_vendor_prices_unique",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  146,
-                        "version":  "7",
-                        "when":  1789713060000,
-                        "tag":  "0148_quick_capture_table_grants",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  147,
-                        "version":  "7",
-                        "when":  1789713120000,
-                        "tag":  "0149_org_project_task_templates",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  148,
-                        "version":  "7",
-                        "when":  1789713180000,
-                        "tag":  "0150_org_project_task_template_assignees",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  149,
-                        "version":  "7",
-                        "when":  1789713240000,
-                        "tag":  "0151_expense_project_finalize_without_category",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  150,
-                        "version":  "7",
-                        "when":  1789713300000,
-                        "tag":  "0152_quotes_root_and_text_blocks",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  151,
-                        "version":  "7",
-                        "when":  1789713360000,
-                        "tag":  "0153_quote_text_blocks_rls",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  152,
-                        "version":  "7",
-                        "when":  1789713420000,
-                        "tag":  "0154_project_team_capabilities",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  153,
-                        "version":  "7",
-                        "when":  1789713480000,
-                        "tag":  "0155_dg_foundation",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  154,
-                        "version":  "7",
-                        "when":  1789713540000,
-                        "tag":  "0156_dg_external_identity",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  155,
-                        "version":  "7",
-                        "when":  1789713600000,
-                        "tag":  "0157_dg_project_profile",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  156,
-                        "version":  "7",
-                        "when":  1789713660000,
-                        "tag":  "0158_dg_subcontract_core",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  157,
-                        "version":  "7",
-                        "when":  1789713720000,
-                        "tag":  "0159_dg_claims",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  158,
-                        "version":  "7",
-                        "when":  1789713780000,
-                        "tag":  "0160_dg_collaboration_tasks",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  159,
-                        "version":  "7",
-                        "when":  1789713840000,
-                        "tag":  "0161_dg_coordination_events",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  160,
-                        "version":  "7",
-                        "when":  1789713900000,
-                        "tag":  "0162_dg_documents_plans",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  161,
-                        "version":  "7",
-                        "when":  1789713960000,
-                        "tag":  "0163_dg_rfi_submittals",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  162,
-                        "version":  "7",
-                        "when":  1789714020000,
-                        "tag":  "0164_dg_inspections_defects",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  163,
-                        "version":  "7",
-                        "when":  1789714080000,
-                        "tag":  "0165_dg_daily_log_meetings_instructions",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  164,
-                        "version":  "7",
-                        "when":  1789714140000,
-                        "tag":  "0166_dg_compliance_safety_materials",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  165,
-                        "version":  "7",
-                        "when":  1789714200000,
-                        "tag":  "0167_dg_procurement_closeout",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  166,
-                        "version":  "7",
-                        "when":  1789714260000,
-                        "tag":  "0168_dg_financial_projection_rls",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  167,
-                        "version":  "7",
-                        "when":  1789714320000,
-                        "tag":  "0169_dg_notifications_command_center",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  168,
-                        "version":  "7",
-                        "when":  1789714380000,
-                        "tag":  "0170_dg_surfaces_cost_control",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  169,
-                        "version":  "7",
-                        "when":  1789714440000,
-                        "tag":  "0171_retention_release_service_grant",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  170,
-                        "version":  "7",
-                        "when":  1789714500000,
-                        "tag":  "0172_notification_attention_badge_snapshot",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  171,
-                        "version":  "7",
-                        "when":  1789714560000,
-                        "tag":  "0173_force_rls_five_tables",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  172,
-                        "version":  "7",
-                        "when":  1789714620000,
-                        "tag":  "0174_audit_events_contracts_select_rls",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  173,
-                        "version":  "7",
-                        "when":  1789714680000,
-                        "tag":  "0175_attendance_correction_requests_service_policy",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  174,
-                        "version":  "7",
-                        "when":  1789714740000,
-                        "tag":  "0176_project_access_mode_default_selected",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  175,
-                        "version":  "7",
-                        "when":  1789714800000,
-                        "tag":  "0177_tasks_uwm_scale_indexes",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  176,
-                        "version":  "7",
-                        "when":  1789714860000,
-                        "tag":  "0178_contractor_username_org_update",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  177,
-                        "version":  "7",
-                        "when":  1789714920000,
-                        "tag":  "0179_connected_projects",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  178,
-                        "version":  "7",
-                        "when":  1789714980000,
-                        "tag":  "0180_expense_installment_payments",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  179,
-                        "version":  "7",
-                        "when":  1789715040000,
-                        "tag":  "0181_owner_bms_installment_payment_backfill",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  180,
-                        "version":  "7",
-                        "when":  1789715100000,
-                        "tag":  "0182_expense_installment_payments_grants",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  181,
-                        "version":  "7",
-                        "when":  1789715160000,
-                        "tag":  "0183_expense_installment_payments_rls_permissions",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  182,
-                        "version":  "7",
-                        "when":  1789715220000,
-                        "tag":  "0184_crm_permission_rls",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  183,
-                        "version":  "7",
-                        "when":  1789715280000,
-                        "tag":  "0185_rls_0009_0011_sibling_tables",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  184,
-                        "version":  "7",
-                        "when":  1789715340000,
-                        "tag":  "0186_contract_value_events_rls_and_0174_grants",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  185,
-                        "version":  "7",
-                        "when":  1789715400000,
-                        "tag":  "0187_statutory_document_share_links",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  186,
-                        "version":  "7",
-                        "when":  1789715460000,
-                        "tag":  "0188_task_collaboration",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  187,
-                        "version":  "7",
-                        "when":  1789715520000,
-                        "tag":  "0189_expenses_closed_period_guard_payment_columns",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  188,
-                        "version":  "7",
-                        "when":  1789715580000,
-                        "tag":  "0190_connected_contract_value_projections",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  189,
-                        "version":  "7",
-                        "when":  1789715640000,
-                        "tag":  "0191_project_cover_image",
-                        "breakpoints":  true
-                    },
-                    {
-                        "idx":  190,
-                        "version":  "7",
-                        "when":  1789715700000,
-                        "tag":  "0192_inventory_rls",
-                        "breakpoints":  true
-                    }
-                ]
+    "version": "7",
+    "dialect": "postgresql",
+    "entries": [
+        {
+            "idx": 0,
+            "version": "7",
+            "when": 1786231665535,
+            "tag": "0000_foundation",
+            "breakpoints": true
+        },
+        {
+            "idx": 1,
+            "version": "7",
+            "when": 1786231704546,
+            "tag": "0001_rls_security",
+            "breakpoints": true
+        },
+        {
+            "idx": 2,
+            "version": "7",
+            "when": 1786231946765,
+            "tag": "0002_tax_rule_uniqueness",
+            "breakpoints": true
+        },
+        {
+            "idx": 3,
+            "version": "7",
+            "when": 1786232400000,
+            "tag": "0004_billing_commercial_integrity",
+            "breakpoints": true
+        },
+        {
+            "idx": 4,
+            "version": "7",
+            "when": 1786232460000,
+            "tag": "0005_workforce_rate_integrity",
+            "breakpoints": true
+        },
+        {
+            "idx": 5,
+            "version": "7",
+            "when": 1786232520000,
+            "tag": "0006_rls_hardening",
+            "breakpoints": true
+        },
+        {
+            "idx": 6,
+            "version": "7",
+            "when": 1786232600000,
+            "tag": "0007_contract_amount_tax",
+            "breakpoints": true
+        },
+        {
+            "idx": 7,
+            "version": "7",
+            "when": 1786232700000,
+            "tag": "0008_light_scheduling",
+            "breakpoints": true
+        },
+        {
+            "idx": 8,
+            "version": "7",
+            "when": 1786232800000,
+            "tag": "0009_wave2_foundations",
+            "breakpoints": true
+        },
+        {
+            "idx": 9,
+            "version": "7",
+            "when": 1786232900000,
+            "tag": "0010_procurement_foundations",
+            "breakpoints": true
+        },
+        {
+            "idx": 10,
+            "version": "7",
+            "when": 1786233000000,
+            "tag": "0011_field_ops_assets",
+            "breakpoints": true
+        },
+        {
+            "idx": 11,
+            "version": "7",
+            "when": 1786233100000,
+            "tag": "0012_ap_vendor_portal",
+            "breakpoints": true
+        },
+        {
+            "idx": 12,
+            "version": "7",
+            "when": 1786233200000,
+            "tag": "0013_document_owner_types",
+            "breakpoints": true
+        },
+        {
+            "idx": 13,
+            "version": "7",
+            "when": 1786233250000,
+            "tag": "0014_allocation_engine",
+            "breakpoints": true
+        },
+        {
+            "idx": 14,
+            "version": "7",
+            "when": 1786233300000,
+            "tag": "0015_project_expected_remaining_cost",
+            "breakpoints": true
+        },
+        {
+            "idx": 15,
+            "version": "7",
+            "when": 1786233400000,
+            "tag": "0016_category_allocation_policy",
+            "breakpoints": true
+        },
+        {
+            "idx": 16,
+            "version": "7",
+            "when": 1786233500000,
+            "tag": "0017_periodic_allocation",
+            "breakpoints": true
+        },
+        {
+            "idx": 17,
+            "version": "7",
+            "when": 1786233600000,
+            "tag": "0018_allocation_run_integrity",
+            "breakpoints": true
+        },
+        {
+            "idx": 18,
+            "version": "7",
+            "when": 1786233700000,
+            "tag": "0019_project_job_modes_and_entry_baseline",
+            "breakpoints": true
+        },
+        {
+            "idx": 19,
+            "version": "7",
+            "when": 1786233800000,
+            "tag": "0020_overnight_foundations",
+            "breakpoints": true
+        },
+        {
+            "idx": 20,
+            "version": "7",
+            "when": 1786368000000,
+            "tag": "0021_workforce_contacts_and_allocations",
+            "breakpoints": true
+        },
+        {
+            "idx": 21,
+            "version": "7",
+            "when": 1786400000000,
+            "tag": "0022_master_completion_foundations",
+            "breakpoints": true
+        },
+        {
+            "idx": 22,
+            "version": "7",
+            "when": 1786401000000,
+            "tag": "0023_attendance_rls_and_role_backfill",
+            "breakpoints": true
+        },
+        {
+            "idx": 23,
+            "version": "7",
+            "when": 1786500000000,
+            "tag": "0024_next_gen_permissions_modules_work_entity",
+            "breakpoints": true
+        },
+        {
+            "idx": 24,
+            "version": "7",
+            "when": 1786500100000,
+            "tag": "0025_quotes_estimates",
+            "breakpoints": true
+        },
+        {
+            "idx": 25,
+            "version": "7",
+            "when": 1786500200000,
+            "tag": "0026_service_dispatch_recurrence",
+            "breakpoints": true
+        },
+        {
+            "idx": 26,
+            "version": "7",
+            "when": 1786500300000,
+            "tag": "0027_approvals_month_close_budgets",
+            "breakpoints": true
+        },
+        {
+            "idx": 27,
+            "version": "7",
+            "when": 1786500400000,
+            "tag": "0028_forms_usage_command_recurring",
+            "breakpoints": true
+        },
+        {
+            "idx": 28,
+            "version": "7",
+            "when": 1786500500000,
+            "tag": "0029_next_gen_integration_hardening",
+            "breakpoints": true
+        },
+        {
+            "idx": 29,
+            "version": "7",
+            "when": 1786501200000,
+            "tag": "0030_gap_closure_corrections_retention_recurring",
+            "breakpoints": true
+        },
+        {
+            "idx": 30,
+            "version": "7",
+            "when": 1786502000000,
+            "tag": "0031_ocr_vendor_credit_target",
+            "breakpoints": true
+        },
+        {
+            "idx": 31,
+            "version": "7",
+            "when": 1786503000000,
+            "tag": "0032_boq_progress_billing",
+            "breakpoints": true
+        },
+        {
+            "idx": 32,
+            "version": "7",
+            "when": 1786503100000,
+            "tag": "0033_boq_rls_hardening",
+            "breakpoints": true
+        },
+        {
+            "idx": 33,
+            "version": "7",
+            "when": 1786503200000,
+            "tag": "0034_boq_lifecycle_hardening",
+            "breakpoints": true
+        },
+        {
+            "idx": 34,
+            "version": "7",
+            "when": 1786503300000,
+            "tag": "0035_boq_integrity_closure",
+            "breakpoints": true
+        },
+        {
+            "idx": 35,
+            "version": "7",
+            "when": 1786503400000,
+            "tag": "0036_ap_vat_net_tax_gross",
+            "breakpoints": true
+        },
+        {
+            "idx": 36,
+            "version": "7",
+            "when": 1786503500000,
+            "tag": "0037_month_close_db_freeze",
+            "breakpoints": true
+        },
+        {
+            "idx": 37,
+            "version": "7",
+            "when": 1786503600000,
+            "tag": "0038_change_order_commercial_reversal",
+            "breakpoints": true
+        },
+        {
+            "idx": 38,
+            "version": "7",
+            "when": 1786503700000,
+            "tag": "0039_ar_split_payment_applications",
+            "breakpoints": true
+        },
+        {
+            "idx": 39,
+            "version": "7",
+            "when": 1786503800000,
+            "tag": "0040_po_receiving",
+            "breakpoints": true
+        },
+        {
+            "idx": 40,
+            "version": "7",
+            "when": 1786503900000,
+            "tag": "0041_document_storage_cleanup",
+            "breakpoints": true
+        },
+        {
+            "idx": 41,
+            "version": "7",
+            "when": 1786504000000,
+            "tag": "0042_boq_raw_money_revoke",
+            "breakpoints": true
+        },
+        {
+            "idx": 42,
+            "version": "7",
+            "when": 1786504100000,
+            "tag": "0043_product_columns_numbering_crm_quotes",
+            "breakpoints": true
+        },
+        {
+            "idx": 43,
+            "version": "7",
+            "when": 1786504200000,
+            "tag": "0044_inventory_locations_qty",
+            "breakpoints": true
+        },
+        {
+            "idx": 44,
+            "version": "7",
+            "when": 1786504300000,
+            "tag": "0045_boq_reverse_allocation_changes_approve",
+            "breakpoints": true
+        },
+        {
+            "idx": 45,
+            "version": "7",
+            "when": 1786560000000,
+            "tag": "0046_multi_contract_projects",
+            "breakpoints": true
+        },
+        {
+            "idx": 46,
+            "version": "7",
+            "when": 1786560100000,
+            "tag": "0047_notifications_and_timesheets",
+            "breakpoints": true
+        },
+        {
+            "idx": 47,
+            "version": "7",
+            "when": 1786560200000,
+            "tag": "0048_document_versioning",
+            "breakpoints": true
+        },
+        {
+            "idx": 48,
+            "version": "7",
+            "when": 1786560300000,
+            "tag": "0049_wave2_workflows",
+            "breakpoints": true
+        },
+        {
+            "idx": 49,
+            "version": "7",
+            "when": 1786560400000,
+            "tag": "0050_wave3_operations",
+            "breakpoints": true
+        },
+        {
+            "idx": 50,
+            "version": "7",
+            "when": 1786560500000,
+            "tag": "0051_review_integrity_closure",
+            "breakpoints": true
+        },
+        {
+            "idx": 51,
+            "version": "7",
+            "when": 1786560600000,
+            "tag": "0052_product_completion",
+            "breakpoints": true
+        },
+        {
+            "idx": 52,
+            "version": "7",
+            "when": 1786560700000,
+            "tag": "0053_estimates_opportunity",
+            "breakpoints": true
+        },
+        {
+            "idx": 53,
+            "version": "7",
+            "when": 1786560800000,
+            "tag": "0054_product_experience",
+            "breakpoints": true
+        },
+        {
+            "idx": 54,
+            "version": "7",
+            "when": 1786560900000,
+            "tag": "0055_next_gen_permissions",
+            "breakpoints": true
+        },
+        {
+            "idx": 55,
+            "version": "7",
+            "when": 1786561000000,
+            "tag": "0056_closeout_warranty",
+            "breakpoints": true
+        },
+        {
+            "idx": 56,
+            "version": "7",
+            "when": 1786561100000,
+            "tag": "0057_communications_calendar",
+            "breakpoints": true
+        },
+        {
+            "idx": 57,
+            "version": "7",
+            "when": 1786561200000,
+            "tag": "0058_automations_integrations_assistant",
+            "breakpoints": true
+        },
+        {
+            "idx": 58,
+            "version": "7",
+            "when": 1786561300000,
+            "tag": "0059_dynamic_experience",
+            "breakpoints": true
+        },
+        {
+            "idx": 59,
+            "version": "7",
+            "when": 1786561400000,
+            "tag": "0060_business_catalog_refinement",
+            "breakpoints": true
+        },
+        {
+            "idx": 60,
+            "version": "7",
+            "when": 1786561500000,
+            "tag": "0061_ops_expense_usage_kinds",
+            "breakpoints": true
+        },
+        {
+            "idx": 61,
+            "version": "7",
+            "when": 1786561600000,
+            "tag": "0062_organization_branding",
+            "breakpoints": true
+        },
+        {
+            "idx": 62,
+            "version": "7",
+            "when": 1786561700000,
+            "tag": "0063_branding_billing_freeze_permission",
+            "breakpoints": true
+        },
+        {
+            "idx": 63,
+            "version": "7",
+            "when": 1787334000000,
+            "tag": "0064_payment_terms_eom_90_120",
+            "breakpoints": true
+        },
+        {
+            "idx": 64,
+            "version": "7",
+            "when": 1787334100000,
+            "tag": "0065_project_billing_plans",
+            "breakpoints": true
+        },
+        {
+            "idx": 65,
+            "version": "7",
+            "when": 1787335000000,
+            "tag": "0066_workforce_time_integrity",
+            "breakpoints": true
+        },
+        {
+            "idx": 66,
+            "version": "7",
+            "when": 1787420000000,
+            "tag": "0067_time_entry_cost_snapshot_fill",
+            "breakpoints": true
+        },
+        {
+            "idx": 67,
+            "version": "7",
+            "when": 1787500000000,
+            "tag": "0068_rate_versions_working_days_per_month",
+            "breakpoints": true
+        },
+        {
+            "idx": 68,
+            "version": "7",
+            "when": 1787580000000,
+            "tag": "0069_true_cost_profitability",
+            "breakpoints": true
+        },
+        {
+            "idx": 69,
+            "version": "7",
+            "when": 1787660000000,
+            "tag": "0070_financial_classification_architecture",
+            "breakpoints": true
+        },
+        {
+            "idx": 70,
+            "version": "7",
+            "when": 1787740000000,
+            "tag": "0071_internal_financial_editability",
+            "breakpoints": true
+        },
+        {
+            "idx": 71,
+            "version": "7",
+            "when": 1787820000000,
+            "tag": "0072_recurring_auto_finalize_run_guard",
+            "breakpoints": true
+        },
+        {
+            "idx": 72,
+            "version": "7",
+            "when": 1787900000000,
+            "tag": "0073_financial_rls_permission_gates",
+            "breakpoints": true
+        },
+        {
+            "idx": 73,
+            "version": "7",
+            "when": 1787910000000,
+            "tag": "0074_cost_code_attribution",
+            "breakpoints": true
+        },
+        {
+            "idx": 74,
+            "version": "7",
+            "when": 1787980000000,
+            "tag": "0075_org_work_week_config",
+            "breakpoints": true
+        },
+        {
+            "idx": 75,
+            "version": "7",
+            "when": 1788060000000,
+            "tag": "0076_subcontract_advances",
+            "breakpoints": true
+        },
+        {
+            "idx": 76,
+            "version": "7",
+            "when": 1788150000000,
+            "tag": "0077_billing_records_rls_boq_finalize",
+            "breakpoints": true
+        },
+        {
+            "idx": 77,
+            "version": "7",
+            "when": 1788240000000,
+            "tag": "0078_owner_business_decisions",
+            "breakpoints": true
+        },
+        {
+            "idx": 78,
+            "version": "7",
+            "when": 1788330000000,
+            "tag": "0079_vendor_payment_terms_recurring",
+            "breakpoints": true
+        },
+        {
+            "idx": 79,
+            "version": "7",
+            "when": 1788420000000,
+            "tag": "0080_recurring_template_payment_occurrences",
+            "breakpoints": true
+        },
+        {
+            "idx": 80,
+            "version": "7",
+            "when": 1788500000000,
+            "tag": "0081_payment_instruments",
+            "breakpoints": true
+        },
+        {
+            "idx": 81,
+            "version": "7",
+            "when": 1788586400000,
+            "tag": "0082_billing_vat_repair_and_invariant",
+            "breakpoints": true
+        },
+        {
+            "idx": 82,
+            "version": "7",
+            "when": 1788672800000,
+            "tag": "0083_payment_amount_basis",
+            "breakpoints": true
+        },
+        {
+            "idx": 83,
+            "version": "7",
+            "when": 1788759200000,
+            "tag": "0084_allocation_intent_company_only",
+            "breakpoints": true
+        },
+        {
+            "idx": 84,
+            "version": "7",
+            "when": 1788845600000,
+            "tag": "0085_labor_allocation_company_only_conservation",
+            "breakpoints": true
+        },
+        {
+            "idx": 85,
+            "version": "7",
+            "when": 1788932000000,
+            "tag": "0086_attendance_overtime_flag",
+            "breakpoints": true
+        },
+        {
+            "idx": 86,
+            "version": "7",
+            "when": 1789018400000,
+            "tag": "0087_external_organization_storage",
+            "breakpoints": true
+        },
+        {
+            "idx": 87,
+            "version": "7",
+            "when": 1789104800000,
+            "tag": "0088_employee_app_foundations",
+            "breakpoints": true
+        },
+        {
+            "idx": 88,
+            "version": "7",
+            "when": 1789191200000,
+            "tag": "0089_employee_app_table_grants",
+            "breakpoints": true
+        },
+        {
+            "idx": 89,
+            "version": "7",
+            "when": 1789277600000,
+            "tag": "0090_employee_app_global_username",
+            "breakpoints": true
+        },
+        {
+            "idx": 90,
+            "version": "7",
+            "when": 1789364000000,
+            "tag": "0091_employee_app_temp_pin_sealed",
+            "breakpoints": true
+        },
+        {
+            "idx": 91,
+            "version": "7",
+            "when": 1789450400000,
+            "tag": "0092_payroll_obligation_source",
+            "breakpoints": true
+        },
+        {
+            "idx": 92,
+            "version": "7",
+            "when": 1789536800000,
+            "tag": "0093_invoicing_sumit_hardening",
+            "breakpoints": true
+        },
+        {
+            "idx": 93,
+            "version": "7",
+            "when": 1789623200000,
+            "tag": "0094_statutory_receipt_payment_link",
+            "breakpoints": true
+        },
+        {
+            "idx": 94,
+            "version": "7",
+            "when": 1789709600000,
+            "tag": "0095_external_expense_imports",
+            "breakpoints": true
+        },
+        {
+            "idx": 95,
+            "version": "7",
+            "when": 1789710000000,
+            "tag": "0096_uwm_org_profile",
+            "breakpoints": true
+        },
+        {
+            "idx": 96,
+            "version": "7",
+            "when": 1789710060000,
+            "tag": "0097_uwm_workspaces",
+            "breakpoints": true
+        },
+        {
+            "idx": 97,
+            "version": "7",
+            "when": 1789710120000,
+            "tag": "0098_uwm_stages",
+            "breakpoints": true
+        },
+        {
+            "idx": 98,
+            "version": "7",
+            "when": 1789710180000,
+            "tag": "0099_uwm_boards",
+            "breakpoints": true
+        },
+        {
+            "idx": 99,
+            "version": "7",
+            "when": 1789710240000,
+            "tag": "0100_uwm_tasks_core",
+            "breakpoints": true
+        },
+        {
+            "idx": 100,
+            "version": "7",
+            "when": 1789710300000,
+            "tag": "0101_uwm_tasks_relations",
+            "breakpoints": true
+        },
+        {
+            "idx": 101,
+            "version": "7",
+            "when": 1789710360000,
+            "tag": "0102_uwm_comments_activity",
+            "breakpoints": true
+        },
+        {
+            "idx": 102,
+            "version": "7",
+            "when": 1789710420000,
+            "tag": "0103_uwm_recurrence",
+            "breakpoints": true
+        },
+        {
+            "idx": 103,
+            "version": "7",
+            "when": 1789710480000,
+            "tag": "0104_uwm_labels",
+            "breakpoints": true
+        },
+        {
+            "idx": 104,
+            "version": "7",
+            "when": 1789710540000,
+            "tag": "0105_uwm_templates",
+            "breakpoints": true
+        },
+        {
+            "idx": 105,
+            "version": "7",
+            "when": 1789710600000,
+            "tag": "0106_uwm_meetings",
+            "breakpoints": true
+        },
+        {
+            "idx": 106,
+            "version": "7",
+            "when": 1789710660000,
+            "tag": "0107_uwm_enum_extensions",
+            "breakpoints": true
+        },
+        {
+            "idx": 107,
+            "version": "7",
+            "when": 1789710720000,
+            "tag": "0108_uwm_automation_extensions",
+            "breakpoints": true
+        },
+        {
+            "idx": 108,
+            "version": "7",
+            "when": 1789710780000,
+            "tag": "0109_uwm_permissions",
+            "breakpoints": true
+        },
+        {
+            "idx": 109,
+            "version": "7",
+            "when": 1789710840000,
+            "tag": "0110_uwm_planning_task_link",
+            "breakpoints": true
+        },
+        {
+            "idx": 110,
+            "version": "7",
+            "when": 1789710900000,
+            "tag": "0111_uwm_project_closeout",
+            "breakpoints": true
+        },
+        {
+            "idx": 111,
+            "version": "7",
+            "when": 1789710960000,
+            "tag": "0112_uwm_approval_task_entity",
+            "breakpoints": true
+        },
+        {
+            "idx": 112,
+            "version": "7",
+            "when": 1789711020000,
+            "tag": "0113_uwm_owner_admin_permissions_and_module",
+            "breakpoints": true
+        },
+        {
+            "idx": 113,
+            "version": "7",
+            "when": 1789711080000,
+            "tag": "0114_uwm_table_grants",
+            "breakpoints": true
+        },
+        {
+            "idx": 114,
+            "version": "7",
+            "when": 1789711140000,
+            "tag": "0115_uwm_task_activity_extensions",
+            "breakpoints": true
+        },
+        {
+            "idx": 115,
+            "version": "7",
+            "when": 1789711200000,
+            "tag": "0116_task_reminders",
+            "breakpoints": true
+        },
+        {
+            "idx": 116,
+            "version": "7",
+            "when": 1789711260000,
+            "tag": "0117_task_document_attachments",
+            "breakpoints": true
+        },
+        {
+            "idx": 117,
+            "version": "7",
+            "when": 1789711320000,
+            "tag": "0118_task_document_owner_access_correction",
+            "breakpoints": true
+        },
+        {
+            "idx": 118,
+            "version": "7",
+            "when": 1789711380000,
+            "tag": "0119_meetings_read_org_scope",
+            "breakpoints": true
+        },
+        {
+            "idx": 119,
+            "version": "7",
+            "when": 1789711440000,
+            "tag": "0120_storage_documents_read_rls_and_member_folder_grants",
+            "breakpoints": true
+        },
+        {
+            "idx": 120,
+            "version": "7",
+            "when": 1789711500000,
+            "tag": "0121_employee_storage_permission_rls_correction",
+            "breakpoints": true
+        },
+        {
+            "idx": 121,
+            "version": "7",
+            "when": 1789711560000,
+            "tag": "0122_employee_document_number_permission",
+            "breakpoints": true
+        },
+        {
+            "idx": 122,
+            "version": "7",
+            "when": 1789711620000,
+            "tag": "0123_projects_root_semantic",
+            "breakpoints": true
+        },
+        {
+            "idx": 123,
+            "version": "7",
+            "when": 1789711680000,
+            "tag": "0124_employee_operational_rls_alignment",
+            "breakpoints": true
+        },
+        {
+            "idx": 124,
+            "version": "7",
+            "when": 1789711740000,
+            "tag": "0125_ap_bill_inventory_layers_and_net_90_120",
+            "breakpoints": true
+        },
+        {
+            "idx": 125,
+            "version": "7",
+            "when": 1789711800000,
+            "tag": "0126_ap_bill_line_inventory_layers",
+            "breakpoints": true
+        },
+        {
+            "idx": 126,
+            "version": "7",
+            "when": 1789711860000,
+            "tag": "0127_ap_bill_line_inventory_provenance",
+            "breakpoints": true
+        },
+        {
+            "idx": 127,
+            "version": "7",
+            "when": 1789711920000,
+            "tag": "0128_project_context_null_safe",
+            "breakpoints": true
+        },
+        {
+            "idx": 128,
+            "version": "7",
+            "when": 1789711980000,
+            "tag": "0129_expense_cash_installment_schedule",
+            "breakpoints": true
+        },
+        {
+            "idx": 129,
+            "version": "7",
+            "when": 1789712040000,
+            "tag": "0130_core_completion_foundations",
+            "breakpoints": true
+        },
+        {
+            "idx": 130,
+            "version": "7",
+            "when": 1789712100000,
+            "tag": "0131_quick_capture_inbox",
+            "breakpoints": true
+        },
+        {
+            "idx": 131,
+            "version": "7",
+            "when": 1789712160000,
+            "tag": "0132_material_market_monitor",
+            "breakpoints": true
+        },
+        {
+            "idx": 132,
+            "breakpoints": true,
+            "when": 1789712220000,
+            "version": "7",
+            "tag": "0134_sumit_pdf_archival"
+        },
+        {
+            "idx": 133,
+            "breakpoints": true,
+            "when": 1789712280000,
+            "version": "7",
+            "tag": "0135_crm_quote_conversion"
+        },
+        {
+            "idx": 134,
+            "breakpoints": true,
+            "when": 1789712340000,
+            "version": "7",
+            "tag": "0136_change_order_billing_handoff"
+        },
+        {
+            "idx": 135,
+            "breakpoints": true,
+            "when": 1789712400000,
+            "version": "7",
+            "tag": "0137_attendance_correction_requests"
+        },
+        {
+            "idx": 136,
+            "breakpoints": true,
+            "when": 1789712460000,
+            "version": "7",
+            "tag": "0138_material_market_supplier_signal"
+        },
+        {
+            "idx": 137,
+            "breakpoints": true,
+            "when": 1789712520000,
+            "version": "7",
+            "tag": "0139_closeout_warranty_orm_and_boq_reconciliation"
+        },
+        {
+            "idx": 138,
+            "breakpoints": true,
+            "when": 1789712580000,
+            "version": "7",
+            "tag": "0140_tasks_forms_search_enums"
+        },
+        {
+            "idx": 139,
+            "breakpoints": true,
+            "when": 1789712640000,
+            "version": "7",
+            "tag": "0141_expenses_fx_budget_closeout"
+        },
+        {
+            "idx": 140,
+            "breakpoints": true,
+            "when": 1789712700000,
+            "version": "7",
+            "tag": "0142_api_v1_index_cleanup"
+        },
+        {
+            "idx": 141,
+            "breakpoints": true,
+            "when": 1789712760000,
+            "version": "7",
+            "tag": "0143_enable_closed_month_trigger"
+        },
+        {
+            "idx": 142,
+            "breakpoints": true,
+            "when": 1789712820000,
+            "version": "7",
+            "tag": "0144_material_items_trade_backfill"
+        },
+        {
+            "idx": 143,
+            "version": "7",
+            "when": 1789712880000,
+            "tag": "0145_change_request_billing_condition",
+            "breakpoints": true
+        },
+        {
+            "idx": 144,
+            "version": "7",
+            "when": 1789712940000,
+            "tag": "0146_material_classification_correction",
+            "breakpoints": true
+        },
+        {
+            "idx": 145,
+            "version": "7",
+            "when": 1789713000000,
+            "tag": "0147_material_vendor_prices_unique",
+            "breakpoints": true
+        },
+        {
+            "idx": 146,
+            "version": "7",
+            "when": 1789713060000,
+            "tag": "0148_quick_capture_table_grants",
+            "breakpoints": true
+        },
+        {
+            "idx": 147,
+            "version": "7",
+            "when": 1789713120000,
+            "tag": "0149_org_project_task_templates",
+            "breakpoints": true
+        },
+        {
+            "idx": 148,
+            "version": "7",
+            "when": 1789713180000,
+            "tag": "0150_org_project_task_template_assignees",
+            "breakpoints": true
+        },
+        {
+            "idx": 149,
+            "version": "7",
+            "when": 1789713240000,
+            "tag": "0151_expense_project_finalize_without_category",
+            "breakpoints": true
+        },
+        {
+            "idx": 150,
+            "version": "7",
+            "when": 1789713300000,
+            "tag": "0152_quotes_root_and_text_blocks",
+            "breakpoints": true
+        },
+        {
+            "idx": 151,
+            "version": "7",
+            "when": 1789713360000,
+            "tag": "0153_quote_text_blocks_rls",
+            "breakpoints": true
+        },
+        {
+            "idx": 152,
+            "version": "7",
+            "when": 1789713420000,
+            "tag": "0154_project_team_capabilities",
+            "breakpoints": true
+        },
+        {
+            "idx": 153,
+            "version": "7",
+            "when": 1789713480000,
+            "tag": "0155_dg_foundation",
+            "breakpoints": true
+        },
+        {
+            "idx": 154,
+            "version": "7",
+            "when": 1789713540000,
+            "tag": "0156_dg_external_identity",
+            "breakpoints": true
+        },
+        {
+            "idx": 155,
+            "version": "7",
+            "when": 1789713600000,
+            "tag": "0157_dg_project_profile",
+            "breakpoints": true
+        },
+        {
+            "idx": 156,
+            "version": "7",
+            "when": 1789713660000,
+            "tag": "0158_dg_subcontract_core",
+            "breakpoints": true
+        },
+        {
+            "idx": 157,
+            "version": "7",
+            "when": 1789713720000,
+            "tag": "0159_dg_claims",
+            "breakpoints": true
+        },
+        {
+            "idx": 158,
+            "version": "7",
+            "when": 1789713780000,
+            "tag": "0160_dg_collaboration_tasks",
+            "breakpoints": true
+        },
+        {
+            "idx": 159,
+            "version": "7",
+            "when": 1789713840000,
+            "tag": "0161_dg_coordination_events",
+            "breakpoints": true
+        },
+        {
+            "idx": 160,
+            "version": "7",
+            "when": 1789713900000,
+            "tag": "0162_dg_documents_plans",
+            "breakpoints": true
+        },
+        {
+            "idx": 161,
+            "version": "7",
+            "when": 1789713960000,
+            "tag": "0163_dg_rfi_submittals",
+            "breakpoints": true
+        },
+        {
+            "idx": 162,
+            "version": "7",
+            "when": 1789714020000,
+            "tag": "0164_dg_inspections_defects",
+            "breakpoints": true
+        },
+        {
+            "idx": 163,
+            "version": "7",
+            "when": 1789714080000,
+            "tag": "0165_dg_daily_log_meetings_instructions",
+            "breakpoints": true
+        },
+        {
+            "idx": 164,
+            "version": "7",
+            "when": 1789714140000,
+            "tag": "0166_dg_compliance_safety_materials",
+            "breakpoints": true
+        },
+        {
+            "idx": 165,
+            "version": "7",
+            "when": 1789714200000,
+            "tag": "0167_dg_procurement_closeout",
+            "breakpoints": true
+        },
+        {
+            "idx": 166,
+            "version": "7",
+            "when": 1789714260000,
+            "tag": "0168_dg_financial_projection_rls",
+            "breakpoints": true
+        },
+        {
+            "idx": 167,
+            "version": "7",
+            "when": 1789714320000,
+            "tag": "0169_dg_notifications_command_center",
+            "breakpoints": true
+        },
+        {
+            "idx": 168,
+            "version": "7",
+            "when": 1789714380000,
+            "tag": "0170_dg_surfaces_cost_control",
+            "breakpoints": true
+        },
+        {
+            "idx": 169,
+            "version": "7",
+            "when": 1789714440000,
+            "tag": "0171_retention_release_service_grant",
+            "breakpoints": true
+        },
+        {
+            "idx": 170,
+            "version": "7",
+            "when": 1789714500000,
+            "tag": "0172_notification_attention_badge_snapshot",
+            "breakpoints": true
+        },
+        {
+            "idx": 171,
+            "version": "7",
+            "when": 1789714560000,
+            "tag": "0173_force_rls_five_tables",
+            "breakpoints": true
+        },
+        {
+            "idx": 172,
+            "version": "7",
+            "when": 1789714620000,
+            "tag": "0174_audit_events_contracts_select_rls",
+            "breakpoints": true
+        },
+        {
+            "idx": 173,
+            "version": "7",
+            "when": 1789714680000,
+            "tag": "0175_attendance_correction_requests_service_policy",
+            "breakpoints": true
+        },
+        {
+            "idx": 174,
+            "version": "7",
+            "when": 1789714740000,
+            "tag": "0176_project_access_mode_default_selected",
+            "breakpoints": true
+        },
+        {
+            "idx": 175,
+            "version": "7",
+            "when": 1789714800000,
+            "tag": "0177_tasks_uwm_scale_indexes",
+            "breakpoints": true
+        },
+        {
+            "idx": 176,
+            "version": "7",
+            "when": 1789714860000,
+            "tag": "0178_contractor_username_org_update",
+            "breakpoints": true
+        },
+        {
+            "idx": 177,
+            "version": "7",
+            "when": 1789714920000,
+            "tag": "0179_connected_projects",
+            "breakpoints": true
+        },
+        {
+            "idx": 178,
+            "version": "7",
+            "when": 1789714980000,
+            "tag": "0180_expense_installment_payments",
+            "breakpoints": true
+        },
+        {
+            "idx": 179,
+            "version": "7",
+            "when": 1789715040000,
+            "tag": "0181_owner_bms_installment_payment_backfill",
+            "breakpoints": true
+        },
+        {
+            "idx": 180,
+            "version": "7",
+            "when": 1789715100000,
+            "tag": "0182_expense_installment_payments_grants",
+            "breakpoints": true
+        },
+        {
+            "idx": 181,
+            "version": "7",
+            "when": 1789715160000,
+            "tag": "0183_expense_installment_payments_rls_permissions",
+            "breakpoints": true
+        },
+        {
+            "idx": 182,
+            "version": "7",
+            "when": 1789715220000,
+            "tag": "0184_crm_permission_rls",
+            "breakpoints": true
+        },
+        {
+            "idx": 183,
+            "version": "7",
+            "when": 1789715280000,
+            "tag": "0185_rls_0009_0011_sibling_tables",
+            "breakpoints": true
+        },
+        {
+            "idx": 184,
+            "version": "7",
+            "when": 1789715340000,
+            "tag": "0186_contract_value_events_rls_and_0174_grants",
+            "breakpoints": true
+        },
+        {
+            "idx": 185,
+            "version": "7",
+            "when": 1789715400000,
+            "tag": "0187_statutory_document_share_links",
+            "breakpoints": true
+        },
+        {
+            "idx": 186,
+            "version": "7",
+            "when": 1789715460000,
+            "tag": "0188_task_collaboration",
+            "breakpoints": true
+        },
+        {
+            "idx": 187,
+            "version": "7",
+            "when": 1789715520000,
+            "tag": "0189_expenses_closed_period_guard_payment_columns",
+            "breakpoints": true
+        },
+        {
+            "idx": 188,
+            "version": "7",
+            "when": 1789715580000,
+            "tag": "0190_connected_contract_value_projections",
+            "breakpoints": true
+        },
+        {
+            "idx": 189,
+            "version": "7",
+            "when": 1789715640000,
+            "tag": "0191_project_cover_image",
+            "breakpoints": true
+        },
+        {
+            "idx": 190,
+            "version": "7",
+            "when": 1789715700000,
+            "tag": "0192_inventory_rls",
+            "breakpoints": true
+        },
+        {
+            "idx": 191,
+            "version": "7",
+            "when": 1789715760000,
+            "tag": "0193_identity_profile_images",
+            "breakpoints": true
+        }
+    ]
 }

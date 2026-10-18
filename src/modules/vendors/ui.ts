@@ -13,3 +13,4 @@ export { VendorPerformancePanel } from './ui/vendor-performance-panel';
 export { ProjectSubcontractsRoster } from './ui/project-subcontracts-roster';
 export { VendorCatalogMultiSelect } from './ui/vendor-catalog-multi-select';
 export { Vendor360Shell } from './ui/vendor-360-shell';
+export { VendorPortalAccessPanel } from './ui/vendor-portal-access-panel';

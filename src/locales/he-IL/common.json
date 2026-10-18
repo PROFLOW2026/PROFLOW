@@ -124,6 +124,7 @@
     "sortAscending": "מיון עולה",
     "sortDescending": "מיון יורד",
     "navigating": "מעבר לדף",
-    "languageSwitcher": "שפה"
+    "languageSwitcher": "שפה",
+    "scrollToTop": "גלילה לראש העמוד"
   }
 }

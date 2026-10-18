@@ -58,6 +58,7 @@ export interface PortalShellProject {
 
 export interface PortalShellData {
   readonly principalName: string | null;
+  readonly avatarUrl: string | null;
   readonly primaryNav: readonly PortalNavItem[];
   readonly projects: readonly PortalShellProject[];
   /** null when no external notification source is registered. */
@@ -74,8 +75,17 @@ export async function loadPortalShellData(session: PortalSession): Promise<Porta
     }
   }
 
+  let avatarUrl: string | null = null;
+  try {
+    const { getContractorAvatarPreviewUrl } = await import('@/modules/identity-images');
+    avatarUrl = await getContractorAvatarPreviewUrl(session.context);
+  } catch {
+    avatarUrl = null;
+  }
+
   return {
     principalName: session.context.displayName,
+    avatarUrl,
     primaryNav: buildPortalPrimaryNav(),
     projects: session.projects.map((project) => ({
       projectId: project.projectId,

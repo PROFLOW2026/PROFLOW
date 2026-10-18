@@ -14,6 +14,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { mapVendorLogoKeys, resolveIdentityImageUrls } from '@/modules/identity-images';
 import { ProjectContractorsRoster } from './project-contractors-roster';
 import { ProjectSubcontractsRoster } from './project-subcontracts-roster';
 
@@ -56,9 +57,24 @@ export async function ProjectContractorsPanel({ projectId }: ProjectContractorsP
       ),
     );
 
+    const logoVendorIds = [
+      ...new Set([
+        ...engagements.map((row) => row.vendorId),
+        ...history.map((row) => row.vendorId),
+      ]),
+    ];
+    const logoKeys = await mapVendorLogoKeys(context.db, context.organizationId, logoVendorIds);
+    const logoUrls = await resolveIdentityImageUrls(logoKeys);
+
     return {
-      engagements,
-      history,
+      engagements: engagements.map((row) => ({
+        ...row,
+        logoUrl: logoUrls.get(row.vendorId) ?? null,
+      })),
+      history: history.map((row) => ({
+        ...row,
+        logoUrl: logoUrls.get(row.vendorId) ?? null,
+      })),
       candidateVendors: vendors.map((vendor) => ({
         id: vendor.id,
         name: vendor.name,

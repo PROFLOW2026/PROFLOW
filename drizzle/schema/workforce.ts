@@ -63,6 +63,11 @@ export const employees = pgTable(
     standardHoursPerDay: numeric('standard_hours_per_day', { precision: 8, scale: 4 }),
     hireDate: date('hire_date', { mode: 'string' }),
     endDate: date('end_date', { mode: 'string' }),
+    /** Personal avatar object key (0193). Bytes live in storage — never in the DB. */
+    avatarImageKey: text('avatar_image_key'),
+    avatarImageContentType: text('avatar_image_content_type'),
+    avatarImageUpdatedAt: timestamp('avatar_image_updated_at', { withTimezone: true, mode: 'date' }),
+    avatarImageUpdatedByUserId: uuid('avatar_image_updated_by_user_id'),
     /** Workforce costing class — not login role (0084). */
     compensationClass: text('compensation_class').notNull().default('standard'),
     /** Default routing for monthly employer cost when not manually split. */

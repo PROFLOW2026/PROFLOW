@@ -32,6 +32,10 @@ import {
   employeeStatCardAccentClass,
   employeeStatCardClass,
 } from '@/modules/employee-app/ui/employee-surface-styles';
+import {
+  EmployeeAvatarPanel,
+  getEmployeeAvatarAvailability,
+} from '@/modules/identity-images';
 import { cn } from '@/shared/ui/cn';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 
@@ -59,7 +63,7 @@ function badgeClassForKind(kind: HomeTaskKind): string {
 export default async function EmployeeHomePage() {
   const t = await getTranslations('employeeApp');
   const locale = await getLocale();
-  const { data, taskSummary, priorityTasks } = await withOrgContext(async (context) => {
+  const { data, taskSummary, priorityTasks, avatarAvailability } = await withOrgContext(async (context) => {
     const shell = await getEmployeeShellData(context);
     const hasTasks = employeeHasPermission(context, PERMISSIONS.TASKS_READ);
 
@@ -125,10 +129,15 @@ export default async function EmployeeHomePage() {
         .slice(0, 8);
     }
 
+    const avatarAvailability = shell.employeeId
+      ? await getEmployeeAvatarAvailability(context)
+      : { schemaReady: false, storageConfigured: false };
+
     return {
       data: shell,
       taskSummary: summary,
       priorityTasks: tasks,
+      avatarAvailability,
     };
   });
 
@@ -140,23 +149,38 @@ export default async function EmployeeHomePage() {
 
   return (
     <div className={employeePageStackClass}>
-      <header className="relative overflow-hidden rounded-2xl border border-[var(--pf-teal-200)] bg-[linear-gradient(135deg,var(--pf-teal-50)_0%,var(--pf-bg-surface)_55%,var(--pf-bg-page)_100%)] px-5 py-6 shadow-[var(--pf-shadow-sm)] md:px-6 md:py-7">
+      <header className="relative w-full overflow-hidden rounded-2xl border border-[var(--pf-teal-200)] bg-[linear-gradient(135deg,var(--pf-teal-50)_0%,color-mix(in_srgb,var(--pf-teal-50)_78%,var(--pf-bg-surface))_55%,color-mix(in_srgb,var(--pf-teal-100)_55%,var(--pf-bg-surface))_100%)] px-5 py-6 shadow-[var(--pf-shadow-sm)] md:px-6 md:py-7">
         <div
-          className="pointer-events-none absolute inset-y-0 end-0 w-1/3 opacity-40"
+          className="pointer-events-none absolute inset-0 opacity-50"
           style={{
             background:
-              'radial-gradient(circle at 80% 20%, var(--pf-teal-200), transparent 60%)',
+              'radial-gradient(ellipse 70% 80% at 100% 0%, var(--pf-teal-200), transparent 65%)',
           }}
           aria-hidden
         />
-        <p className="relative text-xs font-semibold uppercase tracking-[0.08em] text-[var(--pf-accent)]">
-          {t('title')}
-        </p>
-        <h1 className={cn(employeePageTitleClass, 'relative mt-1')}>
-          {t('greeting', { name: data.employeeName || t('home.anonymousName') })}
-        </h1>
-        <p className={cn(employeePageSubtitleClass, 'relative')}>{t('home.workSummary.subtitle')}</p>
+        <div className="relative max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--pf-accent)]">
+            {t('title')}
+          </p>
+          <h1 className={cn(employeePageTitleClass, 'mt-1')}>
+            {t('greeting', { name: data.employeeName || t('home.anonymousName') })}
+          </h1>
+          <p className={employeePageSubtitleClass}>{t('home.workSummary.subtitle')}</p>
+        </div>
       </header>
+
+      {data.employeeId ? (
+        <section className={employeePanelClass}>
+          <EmployeeAvatarPanel
+            employeeId={data.employeeId}
+            employeeName={data.employeeName || t('home.anonymousName')}
+            previewUrl={data.avatarUrl}
+            canEdit
+            schemaReady={avatarAvailability.schemaReady}
+            storageConfigured={avatarAvailability.storageConfigured}
+          />
+        </section>
+      ) : null}
 
       {taskSummary ? (
         <section className="space-y-4">

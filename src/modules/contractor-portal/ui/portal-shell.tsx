@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { pressableChromeClassName, pressableClassName } from '@/components/ui/pressable';
+import { ScrollToTop } from '@/components/ui/scroll-to-top';
 import { writeClientLocaleCookie } from '@/shared/i18n/auth-locale';
 import { LOCALES, LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
 import { Link, usePathname, useRouter } from '@/shared/i18n/navigation';
@@ -132,7 +133,7 @@ function ProjectSwitcher({
         </span>
         <ChevronsUpDown className="size-4 shrink-0 text-[var(--pf-text-muted)]" aria-hidden />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="max-h-[70dvh] min-w-64 overflow-y-auto">
+      <DropdownMenuContent align="start" className="min-w-64">
         {[...groups.values()].map((group, index) => (
           <React.Fragment key={group[0]!.organizationId}>
             {index > 0 ? <DropdownMenuSeparator /> : null}
@@ -184,11 +185,13 @@ function NotificationBellLink({ href, unread }: { href: string; unread: number |
 
 function UserMenu({
   principalName,
+  avatarUrl,
   vendor,
   organization,
   accountHref,
 }: {
   principalName: string | null;
+  avatarUrl: string | null;
   vendor: string | null;
   organization: string | null;
   accountHref: string | null;
@@ -211,8 +214,13 @@ function UserMenu({
           'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
         )}
       >
-        <span className="flex size-8 items-center justify-center rounded-full bg-[var(--pf-teal-100)] text-sm font-semibold text-[var(--pf-teal-800)] ring-1 ring-[var(--pf-teal-200)]">
-          {displayName.charAt(0).toUpperCase()}
+        <span className="flex size-8 items-center justify-center overflow-hidden rounded-full bg-[var(--pf-teal-100)] text-sm font-semibold text-[var(--pf-teal-800)] ring-1 ring-[var(--pf-teal-200)]">
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- short-lived signed storage URL
+            <img src={avatarUrl} alt="" className="size-full object-cover" />
+          ) : (
+            displayName.charAt(0).toUpperCase()
+          )}
         </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-60">
@@ -461,6 +469,7 @@ export function ContractorPortalShell({ shell, children }: { shell: PortalShellD
           {notificationsHref ? <NotificationBellLink href={notificationsHref} unread={shell.unreadNotifications} /> : null}
           <UserMenu
             principalName={shell.principalName}
+            avatarUrl={shell.avatarUrl}
             vendor={company.vendor}
             organization={company.organization}
             accountHref={accountHref}
@@ -469,6 +478,7 @@ export function ContractorPortalShell({ shell, children }: { shell: PortalShellD
         <main id="main" className={planViewer ? portalShellMainPlanViewerClass : portalShellMainClass}>
           {children}
         </main>
+        <ScrollToTop />
         <ContractorBottomNav items={mobileNav} />
       </div>
     </div>

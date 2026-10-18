@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Link } from '@/shared/i18n/navigation';
+import { IdentityAvatar } from '@/modules/identity-images';
 import type { UnifiedProjectTeamMember } from '@/modules/projects/domain/unified-project-team';
 import type { ProjectTeamSourceTag } from '@/modules/projects/domain/unified-project-team';
 
@@ -45,8 +46,13 @@ export async function ProjectUnifiedTeamSummary({
               key={member.key}
               className="flex flex-wrap items-center justify-between gap-2 text-sm"
             >
-              <span className="min-w-0 font-medium text-[var(--pf-text-primary)]">
-                {member.displayName}
+              <span className="flex min-w-0 items-center gap-2 font-medium text-[var(--pf-text-primary)]">
+                <IdentityAvatar
+                  previewUrl={member.avatarUrl}
+                  displayName={member.displayName}
+                  size="sm"
+                />
+                <span className="min-w-0 truncate">{member.displayName}</span>
               </span>
               <span className="flex flex-wrap gap-1">
                 {member.tags.map((tag) => (

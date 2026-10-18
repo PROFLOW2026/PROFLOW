@@ -5,6 +5,7 @@ import type { DbExecutor } from '@/shared/db/types';
 export interface TaskAssigneeDisplayRow {
   readonly taskId: string;
   readonly id: string;
+  readonly kind: 'employee' | 'member' | 'unknown';
   readonly displayName: string | null;
   readonly avatarUrl: string | null;
 }
@@ -52,6 +53,7 @@ export async function queryTaskAssigneeDisplayRows(
       return {
         taskId: row.taskId,
         id: row.employeeId,
+        kind: 'employee' as const,
         displayName: row.employeeName ?? null,
         avatarUrl: null,
       };
@@ -61,6 +63,7 @@ export async function queryTaskAssigneeDisplayRows(
       return {
         taskId: row.taskId,
         id: row.orgMemberId,
+        kind: 'member' as const,
         displayName: row.memberDisplayName ?? row.memberEmail ?? null,
         avatarUrl: null,
       };
@@ -69,6 +72,7 @@ export async function queryTaskAssigneeDisplayRows(
     return {
       taskId: row.taskId,
       id: row.taskId,
+      kind: 'unknown' as const,
       displayName: null,
       avatarUrl: null,
     };

@@ -35,7 +35,7 @@ export const portalPanelElevatedClass =
   'rounded-2xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 shadow-[var(--pf-shadow-md)] md:p-5';
 
 export const portalHeroClass =
-  'relative overflow-hidden rounded-2xl border border-[var(--pf-teal-200)] bg-[linear-gradient(135deg,var(--pf-teal-50)_0%,var(--pf-bg-surface)_55%,var(--pf-bg-muted)_100%)] p-5 shadow-[var(--pf-shadow-sm)] md:p-6';
+  'relative w-full overflow-hidden rounded-2xl border border-[var(--pf-teal-200)] bg-[linear-gradient(135deg,var(--pf-teal-50)_0%,color-mix(in_srgb,var(--pf-teal-50)_78%,var(--pf-bg-surface))_55%,color-mix(in_srgb,var(--pf-teal-100)_55%,var(--pf-bg-surface))_100%)] p-5 shadow-[var(--pf-shadow-sm)] md:p-6';
 
 export const portalListPanelClass =
   'overflow-hidden rounded-2xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] shadow-[var(--pf-shadow-sm)] divide-y divide-[var(--pf-border-default)]';

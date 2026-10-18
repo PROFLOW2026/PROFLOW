@@ -131,6 +131,8 @@ export interface VendorEngagementSummary extends VendorEngagementRecord {
 export interface ProjectVendorEngagementSummary extends VendorEngagementRecord {
   readonly vendorName: string;
   readonly vendorType: VendorType;
+  /** Signed company logo URL when resolved for display. */
+  readonly logoUrl?: string | null;
 }
 
 export interface VendorDetail extends VendorRecord {

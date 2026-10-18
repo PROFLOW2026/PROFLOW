@@ -124,6 +124,7 @@
     "sortAscending": "Sort ascending",
     "sortDescending": "Sort descending",
     "navigating": "Navigating",
-    "languageSwitcher": "Language"
+    "languageSwitcher": "Language",
+    "scrollToTop": "Scroll to top"
   }
 }

@@ -70,7 +70,22 @@ export async function loadUnifiedProjectTeam(
   projectId: string,
 ): Promise<readonly UnifiedProjectTeamMember[]> {
   const sources = await loadUnifiedProjectTeamSources(context, projectId);
-  return mergeProjectTeamSources(sources);
+  const members = mergeProjectTeamSources(sources);
+  const employeeIds = members
+    .map((member) => member.employeeId)
+    .filter((id): id is string => Boolean(id));
+  if (employeeIds.length === 0) return members;
+
+  const { mapEmployeeAvatarKeys, resolveIdentityImageUrls } = await import(
+    '@/modules/identity-images'
+  );
+  const keys = await mapEmployeeAvatarKeys(context.db, context.organizationId, employeeIds);
+  const urls = await resolveIdentityImageUrls(keys);
+  return members.map((member) =>
+    member.employeeId
+      ? { ...member, avatarUrl: urls.get(member.employeeId) ?? null }
+      : member,
+  );
 }
 
 export { unifiedTeamHasMembers } from '../domain/unified-project-team';

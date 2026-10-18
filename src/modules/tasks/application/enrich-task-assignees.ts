@@ -1,5 +1,9 @@
 import 'server-only';
 
+import {
+  mapEmployeeAvatarKeys,
+  resolveIdentityImageUrls,
+} from '@/modules/identity-images';
 import type { DbExecutor } from '@/shared/db/types';
 import type { TaskAssigneeDisplay } from '../ui/task-api';
 import { queryTaskAssigneeDisplayRows } from '../data/task-assignee-display.repository';
@@ -15,6 +19,10 @@ export async function loadTaskAssigneeDisplayMap(
   if (uniqueIds.length === 0) return new Map();
 
   const rows = await queryTaskAssigneeDisplayRows(db, organizationId, uniqueIds);
+  const employeeIds = [...new Set(rows.filter((row) => row.kind === 'employee').map((row) => row.id))];
+  const keyByEmployee = await mapEmployeeAvatarKeys(db, organizationId, employeeIds);
+  const urlByEmployee = await resolveIdentityImageUrls(keyByEmployee);
+
   const map = new Map<string, TaskAssigneeDisplay[]>();
 
   for (const row of rows) {
@@ -22,7 +30,8 @@ export async function loadTaskAssigneeDisplayMap(
     current.push({
       id: row.id,
       displayName: row.displayName,
-      avatarUrl: row.avatarUrl,
+      avatarUrl:
+        row.kind === 'employee' ? (urlByEmployee.get(row.id) ?? row.avatarUrl) : row.avatarUrl,
     });
     map.set(row.taskId, current);
   }

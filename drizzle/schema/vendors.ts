@@ -1,5 +1,16 @@
 import { relations, sql } from 'drizzle-orm';
-import { type AnyPgColumn, check, date, index, integer, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import {
+  type AnyPgColumn,
+  check,
+  date,
+  index,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { archivedAt, primaryId, timestamps } from './_shared';
 import { contactRoleEnum, vendorStatusEnum, vendorTypeEnum } from './enums';
 import { projects } from './projects';
@@ -38,6 +49,11 @@ export const vendors = pgTable(
     paymentConfirmationOverride: text('payment_confirmation_override').notNull().default('org_default'),
     /** Day-of-month (1–28) for recurring automatic vendor payments. */
     recurringPaymentDay: integer('recurring_payment_day'),
+    /** Company logo object key (0193) — distinct from contractor principal avatar. */
+    logoImageKey: text('logo_image_key'),
+    logoImageContentType: text('logo_image_content_type'),
+    logoImageUpdatedAt: timestamp('logo_image_updated_at', { withTimezone: true, mode: 'date' }),
+    logoImageUpdatedByUserId: uuid('logo_image_updated_by_user_id'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },

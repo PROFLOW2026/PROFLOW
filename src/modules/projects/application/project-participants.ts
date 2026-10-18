@@ -308,7 +308,22 @@ export async function listProjectParticipantAssigneeOptions(
     projectId,
     context.organization.timezone,
   );
-  return participants.map(participantToAssigneeOption);
+  const options = participants.map(participantToAssigneeOption);
+  const employeeIds = options
+    .map((option) => option.employeeId)
+    .filter((id): id is string => Boolean(id));
+  if (employeeIds.length === 0) return options;
+
+  const { mapEmployeeAvatarKeys, resolveIdentityImageUrls } = await import(
+    '@/modules/identity-images'
+  );
+  const keys = await mapEmployeeAvatarKeys(context.db, context.organizationId, employeeIds);
+  const urls = await resolveIdentityImageUrls(keys);
+  return options.map((option) =>
+    option.employeeId
+      ? { ...option, avatarUrl: urls.get(option.employeeId) ?? null }
+      : option,
+  );
 }
 
 export async function isActorProjectParticipant(

@@ -7,6 +7,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { countVendorsForOrg, listVendorsForOrg } from '@/modules/vendors';
+import { IdentityAvatar, mapVendorLogoKeys, resolveIdentityImageUrls } from '@/modules/identity-images';
 import { QueryPagination } from '@/components/ui/query-pagination';
 import {
   ORG_LIST_PAGE_SIZE,
@@ -69,7 +70,7 @@ export async function VendorsOrgListView({
       const allowed = orgListHasPermission(context, PERMISSIONS.VENDORS_READ, surface);
       if (!allowed) {
         return {
-          vendors: [] as Awaited<ReturnType<typeof listVendorsForOrg>>,
+          vendors: [] as Array<Awaited<ReturnType<typeof listVendorsForOrg>>[number] & { logoUrl: string | null }>,
           canManage: false,
           canRead: false,
           categories: [] as { id: string; name: string }[],
@@ -82,12 +83,22 @@ export async function VendorsOrgListView({
       const categoryRows = await listBusinessCatalog(context, 'vendor_category').catch(() => []);
       const total = await countVendorsForOrg(context, listFilters);
       const page = resolveOrgListPage(total, requestedPage);
+      const vendorRows = await listVendorsForOrg(context, {
+        ...listFilters,
+        limit: ORG_LIST_PAGE_SIZE,
+        offset: orgListOffset(page),
+      });
+      const logoKeys = await mapVendorLogoKeys(
+        context.db,
+        context.organizationId,
+        vendorRows.map((row) => row.id),
+      );
+      const logoUrls = await resolveIdentityImageUrls(logoKeys);
       return {
-        vendors: await listVendorsForOrg(context, {
-          ...listFilters,
-          limit: ORG_LIST_PAGE_SIZE,
-          offset: orgListOffset(page),
-        }),
+        vendors: vendorRows.map((row) => ({
+          ...row,
+          logoUrl: logoUrls.get(row.id) ?? null,
+        })),
         canManage: orgListHasPermission(context, PERMISSIONS.VENDORS_MANAGE, surface),
         canRead: true,
         categories: localizeVendorCategoryOptions(
@@ -213,12 +224,19 @@ export async function VendorsOrgListView({
                   {vendors.map((vendor) => (
                     <TableRow key={vendor.id}>
                       <TableCell>
-                        <Link
-                          href={`${routeBase}/${vendor.id}`}
-                          className={cn(textNavLinkClassName, 'font-medium')}
-                        >
-                          {vendor.name}
-                        </Link>
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <IdentityAvatar
+                            previewUrl={vendor.logoUrl}
+                            displayName={vendor.name}
+                            size="sm"
+                          />
+                          <Link
+                            href={`${routeBase}/${vendor.id}`}
+                            className={cn(textNavLinkClassName, 'font-medium')}
+                          >
+                            {vendor.name}
+                          </Link>
+                        </div>
                       </TableCell>
                       <TableCell>{t(`types.${vendor.type}`)}</TableCell>
                       <TableCell>
@@ -242,8 +260,13 @@ export async function VendorsOrgListView({
           renderMobileCard={(vendor) => (
             <Link href={`${routeBase}/${vendor.id}`} className={pressableCardLinkClassName}>
               <div className="flex items-start justify-between gap-2">
-                <span className="min-w-0 flex-1 truncate text-start font-semibold">
-                  {vendor.name}
+                <span className="flex min-w-0 flex-1 items-center gap-2.5 text-start font-semibold">
+                  <IdentityAvatar
+                    previewUrl={vendor.logoUrl}
+                    displayName={vendor.name}
+                    size="sm"
+                  />
+                  <span className="min-w-0 truncate">{vendor.name}</span>
                 </span>
                 <StatusBadge
                   className="shrink-0"

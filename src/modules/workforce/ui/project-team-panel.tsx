@@ -20,6 +20,7 @@ import { todayInTimeZone } from '@/shared/dates';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { mapEmployeeAvatarKeys, resolveIdentityImageUrls } from '@/modules/identity-images';
 import { canManageWorkforce } from './employees-table';
 import { ProjectLaborActualSummary } from './project-labor-actual-summary';
 import { ProjectTeamRoster } from './project-team-roster';
@@ -61,12 +62,27 @@ export async function ProjectTeamPanel({ projectId }: ProjectTeamPanelProps) {
         : Promise.resolve([]),
     ]);
 
+    const teamIds = [
+      ...new Set([
+        ...team.map((member) => member.employeeId),
+        ...history.map((member) => member.employeeId),
+      ]),
+    ];
+    const avatarKeys = await mapEmployeeAvatarKeys(context.db, context.organizationId, teamIds);
+    const avatarUrls = await resolveIdentityImageUrls(avatarKeys);
+
     return {
       unifiedTeam,
       canWorkforceRead,
       canProjectsRead,
-      team,
-      history,
+      team: team.map((member) => ({
+        ...member,
+        avatarUrl: avatarUrls.get(member.employeeId) ?? null,
+      })),
+      history: history.map((member) => ({
+        ...member,
+        avatarUrl: avatarUrls.get(member.employeeId) ?? null,
+      })),
       candidateEmployees: employees.map((employee) => ({
         id: employee.id,
         name: employee.name,

@@ -228,6 +228,8 @@ export interface ProjectTeamMemberSummary {
   readonly status: EmployeeProjectAssignmentStatus;
   readonly totalHours: string;
   readonly entryCount: number;
+  /** Signed avatar URL when resolved for display. */
+  readonly avatarUrl?: string | null;
 }
 
 /**

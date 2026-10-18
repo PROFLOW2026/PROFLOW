@@ -8,6 +8,7 @@ import {
   canManageWorkforce,
   canViewWorkforceCosts,
 } from '@/modules/workforce/ui/employees-table';
+import { mapEmployeeAvatarKeys, resolveIdentityImageUrls } from '@/modules/identity-images';
 import { OrgWorkFrameworkForm } from '@/modules/workforce/ui/org-work-framework-form';
 import { EmployerCostOverview } from '@/modules/workforce/ui/employer-cost-overview';
 import { getEmployerCostOverview } from '@/modules/workforce/application/get-employer-cost-overview';
@@ -44,9 +45,18 @@ export default async function EmployeesPage() {
             )
           : null;
         const rows = await listEmployeesForOrg(context);
+        const avatarKeys = await mapEmployeeAvatarKeys(
+          context.db,
+          context.organizationId,
+          rows.map((row) => row.id),
+        );
+        const avatarUrls = await resolveIdentityImageUrls(avatarKeys);
         const showCosts = canViewWorkforceCosts(context);
         return {
-          employees: rows,
+          employees: rows.map((row) => ({
+            ...row,
+            avatarUrl: avatarUrls.get(row.id) ?? null,
+          })),
           canManage: canManageWorkforce(context),
           showCosts,
           laborDefaults,

@@ -249,6 +249,18 @@
       "showHistory": "Show history",
       "hideHistory": "Hide history",
       "historyTitle": "History"
+    },
+    "avatar": {
+      "label": "Profile photo",
+      "hint": "Shown on tasks, team lists, and collaboration views.",
+      "upload": "Upload photo",
+      "replace": "Replace photo",
+      "remove": "Remove photo",
+      "invalidType": "Use PNG, JPEG, or WebP.",
+      "tooLarge": "Image must be 5 MB or smaller.",
+      "uploadFailed": "Could not save the photo.",
+      "schemaPending": "Photo upload will be available after the database update is applied.",
+      "storageNotConfigured": "File storage is not configured."
     }
   },
   "time": {

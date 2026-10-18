@@ -3,6 +3,11 @@ import { getFormatter, getTranslations } from 'next-intl/server';
 import { getContractorAccount, listExternalDirectory, requireExternalContext } from '@/modules/contractor-access';
 import { ContractorPasswordForm, ContractorProfileForm } from '@/modules/contractor-access/ui/contractor-account-forms';
 import {
+  ContractorAvatarPanel,
+  getContractorAvatarAvailability,
+  getContractorAvatarPreviewUrl,
+} from '@/modules/identity-images';
+import {
   portalPageHeaderClass,
   portalPageStackClass,
   portalPageSubtitleClass,
@@ -21,11 +26,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function ContractorAccountPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const context = await requireExternalContext();
-  const [account, directory, t, format] = await Promise.all([
+  const [account, directory, t, format, avatarAvailability, avatarPreviewUrl] = await Promise.all([
     getContractorAccount(context),
     listExternalDirectory(context),
     getTranslations('contractorAccess'),
     getFormatter(),
+    getContractorAvatarAvailability(context),
+    getContractorAvatarPreviewUrl(context),
   ]);
 
   return (
@@ -35,6 +42,15 @@ export default async function ContractorAccountPage({ params }: { params: Promis
           <h1 className={portalPageTitleClass}>{t('account.title')}</h1>
           <p className={portalPageSubtitleClass}>{t('account.subtitle')}</p>
         </header>
+
+        <section className={portalPanelClass}>
+          <ContractorAvatarPanel
+            displayName={account.displayName ?? account.username}
+            previewUrl={avatarPreviewUrl}
+            schemaReady={avatarAvailability.schemaReady}
+            storageConfigured={avatarAvailability.storageConfigured}
+          />
+        </section>
 
         <section className={portalPanelClass}>
           <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">

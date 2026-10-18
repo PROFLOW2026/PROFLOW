@@ -37,7 +37,9 @@ export const DropdownMenuContent = React.forwardRef<
         // Radix omits `dir` from the content props type; the DOM attribute is still valid.
         {...{ dir: dir ?? localeDir }}
         className={cn(
-          'z-40 max-h-[min(24rem,calc(100dvh-1.5rem))] min-w-0 w-[min(20rem,calc(100vw-1.5rem))] max-w-[calc(100vw-1.5rem)] overflow-y-auto break-words rounded-md border border-[var(--pf-border-default)] text-start',
+          // Height follows content; scroll only when content exceeds available viewport
+          // (incl. safe-area). No arbitrary 24rem cap that forces inner scrollbars.
+          'z-40 max-h-[min(100dvh-1.5rem,100svh-1.5rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] min-w-0 w-[min(20rem,calc(100vw-1.5rem))] max-w-[calc(100vw-1.5rem)] overflow-y-auto overflow-x-hidden break-words rounded-md border border-[var(--pf-border-default)] text-start',
           'bg-[var(--pf-bg-elevated)] p-1 shadow-[var(--pf-shadow-md)]',
           className,
         )}
