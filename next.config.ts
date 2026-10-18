@@ -41,13 +41,13 @@ function nextConfig(phase: string): NextConfig {
     ? {
         // Next 16.3 defaults raise post-webpack peak RAM on 8 GB builders.
         productionBrowserSourceMaps: false,
+        enablePrerenderSourceMaps: false,
         experimental: {
           webpackMemoryOptimizations: true,
           // Avoid parent+worker both growing toward NODE_OPTIONS on 8 GB builders.
           // Peak CAD compile cost is also cut by production-only single DWG engine
           // in pf-dwg-versioned-viewer.tsx.
           webpackBuildWorker: false,
-          enablePrerenderSourceMaps: false,
           staticGenerationMaxConcurrency: 2,
         },
         webpack: (config) => {

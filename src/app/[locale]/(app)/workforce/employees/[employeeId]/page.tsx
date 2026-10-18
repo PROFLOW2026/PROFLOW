@@ -55,11 +55,8 @@ import { upsertEntityFieldValueAction } from '../../../settings/custom-fields/ac
 import { getEmployeeAppAdminView } from '@/modules/employee-app';
 import { resolveEmployeeAppPublicOrigin } from '@/modules/employee-app/domain/app-origin';
 import { EmployeeAppAccessPanel } from '@/modules/employee-app/ui/employee-app-access-panel';
-import {
-  EmployeeAvatarPanel,
-  getEmployeeAvatarAvailability,
-  getEmployeeAvatarPreviewUrl,
-} from '@/modules/identity-images';
+import { getEmployeeAvatarAvailability, getEmployeeAvatarPreviewUrl } from '@/modules/identity-images';
+import { EmployeeAvatarPanel } from '@/modules/identity-images/client';
 
 export async function generateMetadata({
   params,

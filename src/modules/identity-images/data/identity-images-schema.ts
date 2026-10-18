@@ -3,6 +3,8 @@
  * Production may lag Owner SQL apply; feature UI gates on readiness.
  */
 
+import 'server-only';
+
 import { sql } from 'drizzle-orm';
 import type { DbExecutor } from '@/shared/db/types';
 import { sqlFirstRow } from '@/modules/financials';

@@ -2,11 +2,8 @@ import type { Metadata } from 'next';
 import { getFormatter, getTranslations } from 'next-intl/server';
 import { getContractorAccount, listExternalDirectory, requireExternalContext } from '@/modules/contractor-access';
 import { ContractorPasswordForm, ContractorProfileForm } from '@/modules/contractor-access/ui/contractor-account-forms';
-import {
-  ContractorAvatarPanel,
-  getContractorAvatarAvailability,
-  getContractorAvatarPreviewUrl,
-} from '@/modules/identity-images';
+import { getContractorAvatarAvailability, getContractorAvatarPreviewUrl } from '@/modules/identity-images';
+import { ContractorAvatarPanel } from '@/modules/identity-images/client';
 import {
   portalPageHeaderClass,
   portalPageStackClass,

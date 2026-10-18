@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Link } from '@/shared/i18n/navigation';
-import { IdentityAvatar } from '@/modules/identity-images';
+import { IdentityAvatar } from '@/modules/identity-images/client';
 import type { UnifiedProjectTeamMember } from '@/modules/projects/domain/unified-project-team';
 import type { ProjectTeamSourceTag } from '@/modules/projects/domain/unified-project-team';
 

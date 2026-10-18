@@ -23,8 +23,4 @@ export {
 } from './application/vendor-logo';
 export { resolveIdentityImageUrl, resolveIdentityImageUrls } from './application/resolve-identity-image-urls';
 export { isIdentityImagesSchemaReady } from './data/identity-images-schema';
-export { IdentityImageControl, type IdentityImageCopy } from './ui/identity-image-control';
-export { IdentityAvatar } from './ui/identity-avatar';
-export { EmployeeAvatarPanel } from './ui/employee-avatar-panel';
-export { ContractorAvatarPanel } from './ui/contractor-avatar-panel';
-export { VendorLogoPanel } from './ui/vendor-logo-panel';
+// UI lives in `./client` — do not re-export here (pulls server modules into client graphs).

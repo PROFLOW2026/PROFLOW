@@ -15,7 +15,7 @@ import { textNavLinkClassName } from '@/components/ui/pressable';
 import { Badge } from '@/components/ui/badge';
 import { isProjectManagerRole, PROJECT_MANAGER_ROLE_VALUE } from '@/modules/projects/domain/project-participants';
 import type { ProjectTeamMemberSummary } from '@/modules/workforce';
-import { IdentityAvatar } from '@/modules/identity-images';
+import { IdentityAvatar } from '@/modules/identity-images/client';
 import {
   addProjectTeamMemberAction,
   cancelProjectTeamAssignmentAction,

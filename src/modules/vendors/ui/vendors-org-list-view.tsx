@@ -7,7 +7,8 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { countVendorsForOrg, listVendorsForOrg } from '@/modules/vendors';
-import { IdentityAvatar, mapVendorLogoKeys, resolveIdentityImageUrls } from '@/modules/identity-images';
+import { mapVendorLogoKeys, resolveIdentityImageUrls } from '@/modules/identity-images';
+import { IdentityAvatar } from '@/modules/identity-images/client';
 import { QueryPagination } from '@/components/ui/query-pagination';
 import {
   ORG_LIST_PAGE_SIZE,

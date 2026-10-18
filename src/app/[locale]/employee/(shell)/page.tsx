@@ -32,10 +32,8 @@ import {
   employeeStatCardAccentClass,
   employeeStatCardClass,
 } from '@/modules/employee-app/ui/employee-surface-styles';
-import {
-  EmployeeAvatarPanel,
-  getEmployeeAvatarAvailability,
-} from '@/modules/identity-images';
+import { getEmployeeAvatarAvailability } from '@/modules/identity-images';
+import { EmployeeAvatarPanel } from '@/modules/identity-images/client';
 import { cn } from '@/shared/ui/cn';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 

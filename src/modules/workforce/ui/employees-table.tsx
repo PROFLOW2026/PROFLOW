@@ -8,7 +8,7 @@ import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MoneyText } from '@/components/patterns/money-text';
 import type { EmployeeListItem } from '@/modules/workforce';
-import { IdentityAvatar } from '@/modules/identity-images';
+import { IdentityAvatar } from '@/modules/identity-images/client';
 import { fromNumericString } from '@/shared/money';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { getLocale } from 'next-intl/server';

@@ -43,7 +43,7 @@ import { todayInTimeZone } from '@/shared/dates';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { IdentityAvatar } from '@/modules/identity-images';
+import { IdentityAvatar } from '@/modules/identity-images/client';
 import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
 import {
   contractorPrincipalCommandAction,
@@ -58,11 +58,8 @@ import { VendorEditForm } from './vendor-edit-form';
 import { VendorIdentifiersPanel } from './vendor-identifiers-panel';
 import { RelatedCommunicationsPanel } from '@/modules/communications/ui/related-panel';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
-import {
-  VendorLogoPanel,
-  getVendorLogoAvailability,
-  getVendorLogoPreviewUrl,
-} from '@/modules/identity-images';
+import { getVendorLogoAvailability, getVendorLogoPreviewUrl } from '@/modules/identity-images';
+import { VendorLogoPanel } from '@/modules/identity-images/client';
 
 export async function generateMetadata({
   params,
