@@ -15,6 +15,7 @@ const config = [
       'test-results/**',
       'drizzle/migrations/**',
       '.tmp/**',
+      '.worktrees/**',
       'next-env.d.ts',
       'public/pdf.worker.min.mjs',
       // Vendor / generated CAD runtime assets (not maintained source; served as static files)

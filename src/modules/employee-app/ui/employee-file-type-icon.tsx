@@ -1,3 +1,4 @@
+import { createElement } from 'react';
 import {
   File,
   FileArchive,
@@ -54,10 +55,9 @@ export function EmployeeFileTypeIcon({
   readonly filename: string;
   readonly className?: string;
 }) {
-  const Icon = resolveFileIcon(mimeType, filename);
   return (
     <span className={cn(employeeIconTileMutedClass, className)} aria-hidden>
-      <Icon className="size-4" />
+      {createElement(resolveFileIcon(mimeType, filename), { className: 'size-4' })}
     </span>
   );
 }

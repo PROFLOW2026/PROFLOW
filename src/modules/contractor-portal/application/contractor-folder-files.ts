@@ -1,23 +1,21 @@
 import 'server-only';
 
 import { z } from 'zod';
-import {
-  organizationHasActiveStorage,
-  resolveValidAccessToken,
-} from '@/modules/external-storage/application/connection-service';
-import { ensureUsablePrimaryStorageConnection } from '@/modules/external-storage/application/reconcile-primary-storage';
-import {
-  findStorageFileByDocumentId,
-  findStorageFileByExternalId,
-} from '@/modules/external-storage/data/files.repository';
-import { listFolderMappingsForProject } from '@/modules/external-storage/data/folder-mappings.repository';
-import { runCommittedStorageWrite } from '@/modules/external-storage/data/storage-admin-write';
-import type { SemanticFolderType } from '@/modules/external-storage/domain/types';
-import { getStorageProviderAdapter } from '@/modules/external-storage/providers/registry';
 import { findDocumentById } from '@/modules/documents';
 import type { OpenedFile } from '@/modules/evidence';
 import { projectFileDeps } from '@/modules/evidence/server';
-import { parseByteRangeHeader } from '@/modules/external-storage/server/byte-range';
+import {
+  ensureUsablePrimaryStorageConnection,
+  findStorageFileByDocumentId,
+  findStorageFileByExternalId,
+  getStorageProviderAdapter,
+  listFolderMappingsForProject,
+  organizationHasActiveStorage,
+  parseByteRangeHeader,
+  resolveValidAccessToken,
+  runCommittedStorageWrite,
+  type SemanticFolderType,
+} from '@/modules/external-storage/server';
 import { requireExternalProjectCapability } from '@/modules/project-plans/application/shared';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import { NotFoundError, ServiceUnavailableError } from '@/shared/errors';

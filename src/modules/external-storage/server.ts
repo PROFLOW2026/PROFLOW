@@ -109,8 +109,12 @@ export {
   ensureProjectFolderTree,
 } from './application/folder-provisioning';
 export { listConfiguredStorageProviders, isStorageProviderConfigured } from './providers/registry';
-export { findFolderMapping } from './data/folder-mappings.repository';
-export { findStorageFileByDocumentId, insertStorageFile } from './data/files.repository';
+export { findFolderMapping, listFolderMappingsForProject } from './data/folder-mappings.repository';
+export {
+  findStorageFileByDocumentId,
+  findStorageFileByExternalId,
+  insertStorageFile,
+} from './data/files.repository';
 export { findStorageConnectionById } from './data/connections.repository';
 export {
   assertProjectProviderFileAccess,
@@ -120,3 +124,7 @@ export {
 } from './application/link-provider-file-to-document';
 export type { EnsureDocumentForProviderFileInput } from './application/link-provider-file-to-document';
 export { runCommittedStorageWrite } from './data/storage-admin-write';
+export { ensureUsablePrimaryStorageConnection } from './application/reconcile-primary-storage';
+export { resolveValidAccessToken } from './application/connection-service';
+export { getStorageProviderAdapter } from './providers/registry';
+export { parseByteRangeHeader } from './server/byte-range';

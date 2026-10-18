@@ -74,14 +74,20 @@ export function ScrollToTop() {
   }, [pathname]);
 
   useEffect(() => {
-    evaluateVisibility();
+    // Defer first paint evaluation so setState is not synchronous inside the effect body.
+    const frame = window.requestAnimationFrame(evaluateVisibility);
     window.addEventListener('scroll', evaluateVisibility, { passive: true });
-    return () => window.removeEventListener('scroll', evaluateVisibility);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', evaluateVisibility);
+    };
   }, [evaluateVisibility]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    const observer = new MutationObserver(() => evaluateVisibility());
+    const observer = new MutationObserver(() => {
+      window.requestAnimationFrame(evaluateVisibility);
+    });
     observer.observe(document.documentElement, {
       childList: true,
       subtree: true,

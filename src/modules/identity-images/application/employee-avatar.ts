@@ -5,7 +5,6 @@ import { employees } from '@drizzle/schema';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import {
-  DomainRuleError,
   NotFoundError,
   ServiceUnavailableError,
   ValidationError,

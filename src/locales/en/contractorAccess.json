@@ -113,7 +113,7 @@
     },
     "avatar": {
       "label": "Profile photo",
-      "hint": "Your personal photo — not the company logo.",
+      "hint": "Your personal photo - not the company logo.",
       "upload": "Upload photo",
       "replace": "Replace photo",
       "remove": "Remove photo",

@@ -26,19 +26,21 @@ export default async function ContractorDrawingPage({
   if (planGrants.length === 0) notFound();
 
   const organizationIds = [...new Set(planGrants.map((g) => g.organizationId))];
-  let detail = null;
+  let detail: Awaited<ReturnType<typeof getContractorDrawing>> | null = null;
+  let resolvedOrganizationId: string | null = null;
   for (const organizationId of organizationIds) {
     try {
       const candidate = await getContractorDrawing(context, { organizationId, drawingId });
       if (candidate.drawing.projectId === projectId) {
         detail = candidate;
+        resolvedOrganizationId = organizationId;
         break;
       }
     } catch {
       // Try the next org grant that covers this project.
     }
   }
-  if (!detail) notFound();
+  if (!detail || !resolvedOrganizationId) notFound();
 
   const t = await getTranslations('projectPlans.portal.drawing');
 
@@ -48,7 +50,11 @@ export default async function ContractorDrawingPage({
         {t('back')}
       </Link>
       <WithPortalClientMessages extra={['projectPlans']}>
-        <PortalDrawingDetail organizationId={grant.organizationId} projectId={projectId} detail={detail} />
+        <PortalDrawingDetail
+          organizationId={resolvedOrganizationId}
+          projectId={projectId}
+          detail={detail}
+        />
       </WithPortalClientMessages>
     </div>
   );
