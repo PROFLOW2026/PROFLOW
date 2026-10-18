@@ -7,6 +7,11 @@
     "emptyDescription": "Добавьте первый чертёж, чтобы начать реестр проекта",
     "currentRev": "Ред. {label}",
     "drafts": "{count, plural, one {# черновик} few {# черновика} many {# черновиков} other {# черновика}}",
+    "visibility": {
+      "internal": "Только внутри",
+      "all_contractors": "Видно подрядчикам",
+      "distribution": "Список рассылки"
+    },
     "discipline": {
       "architecture": "Архитектура",
       "structure": "Конструкции",
@@ -28,6 +33,13 @@
     "number": "Номер чертежа",
     "titleField": "Название",
     "disciplineLabel": "Раздел",
+    "visibilityLabel": "Видимость для подрядчиков",
+    "saveVisibility": "Сохранить видимость",
+    "visibility": {
+      "internal": "Только внутри",
+      "all_contractors": "Все подрядчики с доступом к чертежам",
+      "distribution": "Только список рассылки"
+    },
     "submit": "Создать",
     "discipline": {
       "architecture": "Архитектура",
@@ -47,6 +59,7 @@
   },
   "detail": {
     "back": "Назад к реестру",
+    "visibilityTitle": "Видимость для подрядчиков",
     "revisions": "Редакции",
     "distribution": "Рассылка подрядчикам",
     "distributionEmpty": "Чертёж ещё не разослан подрядчикам.",

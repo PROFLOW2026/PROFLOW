@@ -7,6 +7,11 @@
     "emptyDescription": "أضيفوا المخطط الأول لبدء سجل المشروع",
     "currentRev": "مراجعة {label}",
     "drafts": "{count, plural, one {# مسودة} other {# مسودات}}",
+    "visibility": {
+      "internal": "داخلي فقط",
+      "all_contractors": "ظاهر للمقاولين",
+      "distribution": "قائمة التوزيع"
+    },
     "discipline": {
       "architecture": "عمارة",
       "structure": "إنشائي",
@@ -28,6 +33,13 @@
     "number": "رقم المخطط",
     "titleField": "العنوان",
     "disciplineLabel": "التخصص",
+    "visibilityLabel": "ظهور للمقاولين",
+    "saveVisibility": "حفظ الظهور",
+    "visibility": {
+      "internal": "داخلي فقط",
+      "all_contractors": "كل المقاولين بصلاحية المخططات",
+      "distribution": "قائمة التوزيع فقط"
+    },
     "submit": "إنشاء",
     "discipline": {
       "architecture": "عمارة",
@@ -47,6 +59,7 @@
   },
   "detail": {
     "back": "العودة إلى السجل",
+    "visibilityTitle": "ظهور للمقاولين",
     "revisions": "المراجعات",
     "distribution": "توزيع على المقاولين",
     "distributionEmpty": "لم تُوزَّع هذه المخططات على المقاولين بعد.",

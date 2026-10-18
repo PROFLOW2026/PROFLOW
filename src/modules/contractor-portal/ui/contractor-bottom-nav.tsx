@@ -1,8 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Link, usePathname } from '@/shared/i18n/navigation';
-import { pressableChromeClassName } from '@/components/ui/pressable';
+import { usePathname } from '@/shared/i18n/navigation';
+import { PendingChromeLink } from '@/components/ui/pending-chrome-link';
 import { cn } from '@/shared/ui/cn';
 import { activeContractorMobileTab, contractorMobileTabIconKey } from '../domain/mobile-tabs';
 import type { PortalNavItem } from '../domain/nav';
@@ -25,16 +25,16 @@ export function ContractorBottomNav({ items }: { items: readonly PortalNavItem[]
           const iconKey = contractorMobileTabIconKey(item.key as Parameters<typeof contractorMobileTabIconKey>[0]);
           return (
             <li key={item.key} className="min-w-0 flex-1">
-              <Link
+              <PendingChromeLink
                 href={item.href}
-                aria-current={active ? 'page' : undefined}
+                active={active}
                 className={cn(
-                  pressableChromeClassName,
                   'relative flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[0.6875rem] font-medium',
                   active
                     ? 'text-[var(--pf-accent)]'
                     : 'text-[var(--pf-text-secondary)] active:bg-[var(--pf-action-subtle-active)]',
                 )}
+                icon={<PortalNavIcon navKey={iconKey} className="size-5" />}
               >
                 {active ? (
                   <span
@@ -42,9 +42,8 @@ export function ContractorBottomNav({ items }: { items: readonly PortalNavItem[]
                     aria-hidden
                   />
                 ) : null}
-                <PortalNavIcon navKey={iconKey} className="size-5" />
                 <span className="max-w-full truncate">{t(item.labelKey)}</span>
-              </Link>
+              </PendingChromeLink>
             </li>
           );
         })}

@@ -7,6 +7,11 @@
     "emptyDescription": "הוסיפו שרטוט ראשון לרישום התוכניות של הפרויקט",
     "currentRev": "מהדורה {label}",
     "drafts": "{count, plural, one {# טיוטה} other {# טיוטות}}",
+    "visibility": {
+      "internal": "פנימי בלבד",
+      "all_contractors": "גלוי לקבלנים",
+      "distribution": "רשימת הפצה"
+    },
     "discipline": {
       "architecture": "אדריכלות",
       "structure": "קונструקציה",
@@ -28,6 +33,13 @@
     "number": "מספר שרטוט",
     "titleField": "כותרת",
     "disciplineLabel": "תחום",
+    "visibilityLabel": "נראות לקבלנים",
+    "saveVisibility": "שמירת נראות",
+    "visibility": {
+      "internal": "פנימי בלבד",
+      "all_contractors": "כל הקבלנים עם הרשאת תוכניות",
+      "distribution": "רשימת הפצה בלבד"
+    },
     "submit": "יצירה",
     "discipline": {
       "architecture": "אדריכלות",
@@ -47,6 +59,7 @@
   },
   "detail": {
     "back": "חזרה לרישום",
+    "visibilityTitle": "נראות לקבלנים",
     "revisions": "מהדורות",
     "distribution": "הפצה לקבלנים",
     "distributionEmpty": "התוכנית עדיין לא הופצה לקבלנים.",

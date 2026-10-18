@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/shared/i18n/navigation';
 import { useState, useTransition } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -136,13 +137,15 @@ export function EmployeePostponeMenu({ taskId, dueDate, today, compact }: Employ
               />
             </label>
             <div className="mt-2 flex gap-2">
-              <button
+              <Button
                 type="submit"
-                disabled={pending || !customDate.trim()}
-                className="rounded-md border border-[var(--pf-border-default)] px-3 py-1.5 text-sm font-medium"
+                size="sm"
+                variant="secondary"
+                loading={pending}
+                disabled={!customDate.trim()}
               >
                 {t('confirm')}
-              </button>
+              </Button>
               <button
                 type="button"
                 className="rounded-md border border-[var(--pf-border-default)] px-3 py-1.5 text-sm font-medium"
@@ -234,9 +237,11 @@ export function EmployeePostponeMenu({ taskId, dueDate, today, compact }: Employ
           </label>
 
           <div className="flex flex-wrap gap-2">
-            <button
+            <Button
               type="button"
-              disabled={pending || !canConfirm}
+              variant="secondary"
+              loading={pending}
+              disabled={!canConfirm}
               className={cn(employeeSecondaryButtonClass, 'min-h-9')}
               onClick={() => {
                 if (!selectedOption) return;
@@ -247,7 +252,7 @@ export function EmployeePostponeMenu({ taskId, dueDate, today, compact }: Employ
               }}
             >
               {t('confirm')}
-            </button>
+            </Button>
             <button
               type="button"
               disabled={pending}

@@ -226,7 +226,8 @@
     "capabilityGroups": {
       "operational": "تشغيلي",
       "financial": "مالي",
-      "procurement": "المناقصات"
+      "procurement": "المناقصات",
+      "folders": "مجلدات المشروع"
     },
     "capabilities": {
       "ext_project_view": "عرض المشروع",
@@ -255,7 +256,14 @@
       "ext_payment_view": "عرض الدفعات",
       "ext_compliance_submit": "تقديم مستندات الامتثال",
       "ext_handover_submit": "تقديم مستندات التسليم",
-      "ext_bid_submit": "تقديم العروض"
+      "ext_bid_submit": "تقديم العروض",
+      "ext_folder_quotes": "مجلد: عروض الأسعار",
+      "ext_folder_contracts": "مجلد: العقود",
+      "ext_folder_billing": "مجلد: الفوترة",
+      "ext_folder_vendor_invoices": "مجلد: فواتير الموردين",
+      "ext_folder_photos": "مجلد: الصور",
+      "ext_folder_documents": "مجلد: المستندات",
+      "ext_folder_general_files": "مجلد: ملفات عامة"
     },
     "list": {
       "title": "مستخدمو المقاولين الذين لديهم وصول إلى المشروع",

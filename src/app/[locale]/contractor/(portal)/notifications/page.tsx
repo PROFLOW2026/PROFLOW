@@ -11,6 +11,8 @@ import { loadPortalSession } from '@/modules/contractor-portal/application/load-
 import { PORTAL_NOTIFICATION_SOURCE } from '@/modules/contractor-portal/application/registry';
 import type { PortalNotificationPage } from '@/modules/contractor-portal/domain/notifications';
 import { isLivePortalHref } from '@/modules/contractor-portal/domain/routes';
+import { SubmitButton } from '@/components/ui/submit-button';
+import { PortalPendingSubmitButton } from '@/modules/contractor-portal/ui/portal-pending-submit-button';
 import {
   portalLinkQuietClass,
   portalListPanelClass,
@@ -19,7 +21,6 @@ import {
   portalPageStackClass,
   portalPageSubtitleClass,
   portalPageTitleClass,
-  portalSecondaryButtonClass,
 } from '@/modules/contractor-portal/ui/portal-surface';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
@@ -69,9 +70,7 @@ export default async function ContractorPortalNotificationsPage({ searchParams }
         </div>
         {page.unreadCount > 0 ? (
           <form action={markAllPortalNotificationsReadAction}>
-            <button type="submit" className={portalSecondaryButtonClass}>
-              {t('notifications.markAllRead')}
-            </button>
+            <PortalPendingSubmitButton>{t('notifications.markAllRead')}</PortalPendingSubmitButton>
           </form>
         ) : null}
       </header>
@@ -108,10 +107,13 @@ export default async function ContractorPortalNotificationsPage({ searchParams }
                   </Link>
                 ) : unread ? (
                   <form action={markPortalNotificationReadAction.bind(null, item.id)}>
-                    <button type="submit" className={cn(portalListRowLinkClass, 'w-full text-start')}>
+                    <SubmitButton
+                      variant="ghost"
+                      className={cn(portalListRowLinkClass, 'h-auto w-full justify-start text-start font-normal')}
+                    >
                       {body}
                       <span className="sr-only">{t('notifications.markRead')}</span>
-                    </button>
+                    </SubmitButton>
                   </form>
                 ) : (
                   <div className="px-4 py-3.5">{body}</div>

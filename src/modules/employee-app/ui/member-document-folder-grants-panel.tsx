@@ -94,7 +94,7 @@ export function MemberDocumentFolderGrantsPanel({
             ))}
           </div>
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('emptyMeansAll')}</p>
-          <Button type="submit" disabled={savePending}>
+          <Button type="submit" loading={savePending}>
             {t('save')}
           </Button>
         </form>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Button } from '@/components/ui/button';
+import { SubmitButton } from '@/components/ui/submit-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { bidiIsolate } from '@/shared/money';
 import type { ContractorClaimDetail } from '@/modules/subcontract-claims';
@@ -92,9 +92,9 @@ export function PortalClaimDetail({
           <input type="hidden" name="organizationId" value={organizationId} />
           <input type="hidden" name="projectId" value={projectId} />
           <input type="hidden" name="claimId" value={header.id} />
-          <Button type="submit" variant="primary" className="w-full min-h-11">
+          <SubmitButton variant="primary" className="w-full min-h-11">
             {t('portal.submit')}
-          </Button>
+          </SubmitButton>
         </form>
       ) : null}
 
@@ -103,9 +103,9 @@ export function PortalClaimDetail({
           <input type="hidden" name="organizationId" value={organizationId} />
           <input type="hidden" name="projectId" value={projectId} />
           <input type="hidden" name="claimId" value={header.id} />
-          <Button type="submit" variant="primary" className="w-full min-h-11">
+          <SubmitButton variant="primary" className="w-full min-h-11">
             {t('portal.startCorrection')}
-          </Button>
+          </SubmitButton>
         </form>
       ) : null}
 
@@ -114,9 +114,9 @@ export function PortalClaimDetail({
           <input type="hidden" name="organizationId" value={organizationId} />
           <input type="hidden" name="projectId" value={projectId} />
           <input type="hidden" name="claimId" value={header.id} />
-          <Button type="submit" variant="secondary" className="w-full min-h-11">
+          <SubmitButton variant="secondary" className="w-full min-h-11">
             {t('portal.cancel')}
-          </Button>
+          </SubmitButton>
         </form>
       ) : null}
     </div>

@@ -22,11 +22,21 @@ type ViewerProps = {
   onViewerVersionChange: (version: CadViewerVersion) => void;
 };
 
-const LOADERS: Record<CadViewerVersion, () => Promise<{ PfDwgViewer: ComponentType<ViewerProps> }>> = {
-  v1: () => import('./pf-cad-v3/pf-dwg-viewer'),
-  v2: () => import('./pf-cad/pf-dwg-viewer'),
-  v3: () => import('./pf-cad-v1/pf-dwg-viewer'),
-};
+/** Production builds only pull the default engine so webpack does not compile all three CAD trees. */
+const productionDefaultLoader = () => import('./pf-cad-v3/pf-dwg-viewer');
+
+const LOADERS: Record<CadViewerVersion, () => Promise<{ PfDwgViewer: ComponentType<ViewerProps> }>> =
+  process.env.NODE_ENV === 'production'
+    ? {
+        v1: productionDefaultLoader,
+        v2: productionDefaultLoader,
+        v3: productionDefaultLoader,
+      }
+    : {
+        v1: () => import('./pf-cad-v3/pf-dwg-viewer'),
+        v2: () => import('./pf-cad/pf-dwg-viewer'),
+        v3: () => import('./pf-cad-v1/pf-dwg-viewer'),
+      };
 
 export function PfDwgVersionedViewer(props: Omit<ViewerProps, 'viewerVersion' | 'onViewerVersionChange'>) {
   const [requested, setRequested] = useState<CadViewerVersion>(DEFAULT_CAD_VIEWER_VERSION);

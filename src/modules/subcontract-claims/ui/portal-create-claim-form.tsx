@@ -51,7 +51,7 @@ export function PortalCreateClaimForm(props: {
             <Label htmlFor="title">{t('detail.claimTitle')}</Label>
             <Input id="title" name="title" maxLength={200} />
           </div>
-          <Button type="submit" variant="primary" disabled={pending}>
+          <Button type="submit" variant="primary" loading={pending}>
             {t('portal.createDraft')}
           </Button>
           {state?.error ? <p className="text-sm text-[var(--pf-danger-fg)]">{state.error}</p> : null}

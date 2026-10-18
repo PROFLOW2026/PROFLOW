@@ -187,7 +187,14 @@ export function IdentityImageControl({
         {error ? <Alert tone="danger">{error}</Alert> : null}
         {canEdit ? (
           <div className="flex flex-wrap gap-2">
-            <Button type="button" size="sm" variant="secondary" disabled={uploadDisabled || pendingUpload} onClick={onPick}>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              loading={pendingUpload}
+              disabled={uploadDisabled}
+              onClick={onPick}
+            >
               {shownUrl ? copy.replace : copy.upload}
             </Button>
             {shownUrl ? (
@@ -195,7 +202,8 @@ export function IdentityImageControl({
                 type="button"
                 size="sm"
                 variant="ghost"
-                disabled={uploadDisabled || removePending}
+                loading={removePending}
+                disabled={uploadDisabled}
                 onClick={onRemove}
               >
                 {copy.remove}

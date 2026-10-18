@@ -64,7 +64,28 @@ export const PORTAL_ROUTES = [
   { key: 'project.event', track: 'H', scope: 'project', path: 'projects/[projectId]/events/[eventId]', pageFile: '(portal)/projects/[projectId]/events/[eventId]/page.tsx', capability: CAP.SCHEDULE_VIEW, placement: 'detail', labelKey: 'nav.schedule', implemented: true },
 
   // Track IJ - documents / plans
-  { key: 'project.documents', track: 'IJ', scope: 'project', path: 'projects/[projectId]/documents', pageFile: '(portal)/projects/[projectId]/documents/page.tsx', capability: CAP.DOCUMENT_VIEW, placement: 'project', labelKey: 'nav.documents', implemented: true },
+  {
+    key: 'project.documents',
+    track: 'IJ',
+    scope: 'project',
+    path: 'projects/[projectId]/documents',
+    pageFile: '(portal)/projects/[projectId]/documents/page.tsx',
+    capability: {
+      anyOf: [
+        CAP.DOCUMENT_VIEW,
+        CAP.FOLDER_QUOTES,
+        CAP.FOLDER_CONTRACTS,
+        CAP.FOLDER_BILLING,
+        CAP.FOLDER_VENDOR_INVOICES,
+        CAP.FOLDER_PHOTOS,
+        CAP.FOLDER_DOCUMENTS,
+        CAP.FOLDER_GENERAL_FILES,
+      ],
+    },
+    placement: 'project',
+    labelKey: 'nav.documents',
+    implemented: true,
+  },
   { key: 'project.plans', track: 'IJ', scope: 'project', path: 'projects/[projectId]/plans', pageFile: '(portal)/projects/[projectId]/plans/page.tsx', capability: CAP.PLAN_VIEW, placement: 'project', labelKey: 'nav.plans', implemented: true },
   { key: 'project.plan', track: 'IJ', scope: 'project', path: 'projects/[projectId]/plans/[drawingId]', pageFile: '(portal)/projects/[projectId]/plans/[drawingId]/page.tsx', capability: CAP.PLAN_VIEW, placement: 'detail', labelKey: 'nav.plans', implemented: true },
 

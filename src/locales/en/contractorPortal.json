@@ -221,5 +221,19 @@
       "warning": "Attention",
       "urgent": "Urgent"
     }
+  },
+  "folderFiles": {
+    "emptyTitle": "This folder is empty",
+    "folderLabel": "Folder: {name}",
+    "subfolder": "Folder",
+    "plansSection": "Project plans folder",
+    "registerSection": "Drawing register",
+    "quotesSection": "Quotes folder",
+    "contractsSection": "Contracts folder",
+    "billingSection": "Billing folder",
+    "vendorInvoicesSection": "Vendor invoices folder",
+    "photosSection": "Photos folder",
+    "documentsSection": "Documents folder",
+    "generalFilesSection": "General files folder"
   }
 }

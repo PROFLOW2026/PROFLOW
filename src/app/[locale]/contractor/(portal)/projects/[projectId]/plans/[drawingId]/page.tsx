@@ -18,18 +18,27 @@ export default async function ContractorDrawingPage({
 }) {
   const { projectId, drawingId } = await params;
   const context = await requireExternalContext();
-  const grant = context.grants.find(
-    (g) => g.capabilities.has(EXTERNAL_CAPABILITIES.PLAN_VIEW) && (g.projectId === projectId || g.projectId === null),
+  const planGrants = context.grants.filter(
+    (g) =>
+      g.capabilities.has(EXTERNAL_CAPABILITIES.PLAN_VIEW) &&
+      (g.projectId === projectId || g.projectId === null),
   );
-  if (!grant) notFound();
+  if (planGrants.length === 0) notFound();
 
-  let detail;
-  try {
-    detail = await getContractorDrawing(context, { organizationId: grant.organizationId, drawingId });
-  } catch {
-    notFound();
+  const organizationIds = [...new Set(planGrants.map((g) => g.organizationId))];
+  let detail = null;
+  for (const organizationId of organizationIds) {
+    try {
+      const candidate = await getContractorDrawing(context, { organizationId, drawingId });
+      if (candidate.drawing.projectId === projectId) {
+        detail = candidate;
+        break;
+      }
+    } catch {
+      // Try the next org grant that covers this project.
+    }
   }
-  if (detail.drawing.projectId !== projectId) notFound();
+  if (!detail) notFound();
 
   const t = await getTranslations('projectPlans.portal.drawing');
 

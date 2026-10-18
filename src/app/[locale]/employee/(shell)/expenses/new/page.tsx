@@ -8,6 +8,7 @@ import { assertEmployeeAppContext } from '@/modules/employee-app/application/ses
 import { employeeHasPermission, employeePermissionScope } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { todayInTimeZone } from '@/shared/dates';
+import { SubmitButton } from '@/components/ui/submit-button';
 import { employeeCreateExpenseAction } from '../actions';
 import { notFound } from 'next/navigation';
 
@@ -122,12 +123,9 @@ export default async function EmployeeCreateExpensePage() {
           />
         </div>
 
-        <button
-          type="submit"
-          className="min-h-[48px] w-full rounded-xl bg-[var(--pf-primary)] px-4 py-3 text-sm font-medium text-white"
-        >
+        <SubmitButton block size="lg">
           {t('submit')}
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );

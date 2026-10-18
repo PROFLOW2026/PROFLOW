@@ -226,7 +226,8 @@
     "capabilityGroups": {
       "operational": "Operational",
       "financial": "Financial",
-      "procurement": "Tenders"
+      "procurement": "Tenders",
+      "folders": "Project folders"
     },
     "capabilities": {
       "ext_project_view": "View project",
@@ -235,9 +236,9 @@
       "ext_task_work": "Work on assigned tasks",
       "ext_task_report": "Report task progress",
       "ext_thread_post": "Post in discussions",
-      "ext_document_view": "View shared documents",
+      "ext_document_view": "View shared documents (not project folders)",
       "ext_document_upload": "Upload documents",
-      "ext_plan_view": "View plans",
+      "ext_plan_view": "Folder: Plans (and drawing register)",
       "ext_plan_acknowledge": "Acknowledge plan revisions",
       "ext_rfi_view": "View RFIs",
       "ext_rfi_raise": "Raise RFIs",
@@ -255,7 +256,14 @@
       "ext_payment_view": "View payments",
       "ext_compliance_submit": "Submit compliance documents",
       "ext_handover_submit": "Submit handover documents",
-      "ext_bid_submit": "Submit bids"
+      "ext_bid_submit": "Submit bids",
+      "ext_folder_quotes": "Folder: Quotes",
+      "ext_folder_contracts": "Folder: Contracts",
+      "ext_folder_billing": "Folder: Billing",
+      "ext_folder_vendor_invoices": "Folder: Vendor invoices",
+      "ext_folder_photos": "Folder: Photos",
+      "ext_folder_documents": "Folder: Documents",
+      "ext_folder_general_files": "Folder: General files"
     },
     "list": {
       "title": "Contractor users with access to this project",

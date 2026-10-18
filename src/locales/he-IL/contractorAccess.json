@@ -226,7 +226,8 @@
     "capabilityGroups": {
       "operational": "תפעולי",
       "financial": "כספי",
-      "procurement": "מכרזים"
+      "procurement": "מכרזים",
+      "folders": "תיקיות פרויקט"
     },
     "capabilities": {
       "ext_project_view": "צפייה בפרויקט",
@@ -235,9 +236,9 @@
       "ext_task_work": "עבודה על משימות שהוקצו",
       "ext_task_report": "דיווח התקדמות משימות",
       "ext_thread_post": "כתיבה בדיונים",
-      "ext_document_view": "צפייה במסמכים משותפים",
+      "ext_document_view": "מסמכים משותפים (לא תיקיות פרויקט)",
       "ext_document_upload": "העלאת מסמכים",
-      "ext_plan_view": "צפייה בתוכניות",
+      "ext_plan_view": "תיקייה: תוכניות (ופנקס שרטוטים)",
       "ext_plan_acknowledge": "אישור קבלת מהדורות תוכניות",
       "ext_rfi_view": "צפייה בבקשות הבהרה",
       "ext_rfi_raise": "פתיחת בקשות הבהרה",
@@ -255,7 +256,14 @@
       "ext_payment_view": "צפייה בתשלומים",
       "ext_compliance_submit": "הגשת מסמכי עמידה בדרישות",
       "ext_handover_submit": "הגשת מסמכי מסירה",
-      "ext_bid_submit": "הגשת הצעות במכרז"
+      "ext_bid_submit": "הגשת הצעות במכרז",
+      "ext_folder_quotes": "תיקייה: הצעות מחיר",
+      "ext_folder_contracts": "תיקייה: חוזים",
+      "ext_folder_billing": "תיקייה: חשבונות חיוב",
+      "ext_folder_vendor_invoices": "תיקייה: חשבוניות ספקים",
+      "ext_folder_photos": "תיקייה: תמונות",
+      "ext_folder_documents": "תיקייה: מסמכים",
+      "ext_folder_general_files": "תיקייה: קבצים כלליים"
     },
     "list": {
       "title": "משתמשי קבלנים עם גישה לפרויקט",

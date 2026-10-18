@@ -7,7 +7,9 @@ import {
   ALL_EXTERNAL_CAPABILITIES,
   EXTERNAL_CAPABILITIES,
   EXTERNAL_GRANT_TEMPLATES,
+  FOLDER_EXTERNAL_CAPABILITIES,
   FINANCIAL_EXTERNAL_CAPABILITIES,
+  isFolderExternalCapability,
   type ExternalCapability,
 } from '@/shared/external';
 import { cn } from '@/shared/ui/cn';
@@ -19,11 +21,20 @@ export function capabilityLabelKey(capability: string): string {
 }
 
 const FINANCIAL = new Set<string>(FINANCIAL_EXTERNAL_CAPABILITIES);
-const GROUPS: ReadonlyArray<{ key: 'operational' | 'financial' | 'procurement'; items: readonly ExternalCapability[] }> = [
+const GROUPS: ReadonlyArray<{
+  key: 'operational' | 'folders' | 'financial' | 'procurement';
+  items: readonly ExternalCapability[];
+}> = [
   {
     key: 'operational',
-    items: ALL_EXTERNAL_CAPABILITIES.filter((c) => !FINANCIAL.has(c) && c !== EXTERNAL_CAPABILITIES.BID_SUBMIT),
+    items: ALL_EXTERNAL_CAPABILITIES.filter(
+      (c) =>
+        !FINANCIAL.has(c) &&
+        c !== EXTERNAL_CAPABILITIES.BID_SUBMIT &&
+        !isFolderExternalCapability(c),
+    ),
   },
+  { key: 'folders', items: FOLDER_EXTERNAL_CAPABILITIES },
   { key: 'financial', items: FINANCIAL_EXTERNAL_CAPABILITIES },
   { key: 'procurement', items: [EXTERNAL_CAPABILITIES.BID_SUBMIT] },
 ];

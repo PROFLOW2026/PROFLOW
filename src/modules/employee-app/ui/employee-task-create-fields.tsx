@@ -6,10 +6,8 @@ import {
   TaskAssigneePicker,
   type TaskAssigneePickerOption,
 } from '@/modules/tasks/ui/task-assignee-picker';
-import {
-  employeeFilterInputClass,
-  employeePrimaryButtonClass,
-} from '@/modules/employee-app/ui/employee-surface-styles';
+import { SubmitButton } from '@/components/ui/submit-button';
+import { employeeFilterInputClass } from '@/modules/employee-app/ui/employee-surface-styles';
 import { cn } from '@/shared/ui/cn';
 
 interface ProjectOption {
@@ -151,9 +149,9 @@ export function EmployeeTaskCreateFields({
         </div>
       ) : null}
 
-      <button type="submit" className={cn(employeePrimaryButtonClass, 'w-full')}>
+      <SubmitButton block size="lg">
         {t('submit')}
-      </button>
+      </SubmitButton>
     </form>
   );
 }

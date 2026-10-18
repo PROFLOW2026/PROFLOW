@@ -8,7 +8,7 @@ import type { FormFieldDefinition } from '@/modules/forms/domain/types';
 import { listEmployeeFormOwnerProjects } from '@/modules/employee-app/application/employee-operational';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
-import { employeePrimaryButtonClass } from '@/modules/employee-app/ui/employee-surface-styles';
+import { SubmitButton } from '@/components/ui/submit-button';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { employeeSubmitFormAction } from '../actions';
 
@@ -219,9 +219,9 @@ export default async function EmployeeFormSubmitPage({
               </div>
             </>
           ) : null}
-          <button type="submit" className={employeePrimaryButtonClass}>
+          <SubmitButton block size="lg">
             {t('submit')}
-          </button>
+          </SubmitButton>
         </form>
       )}
     </div>

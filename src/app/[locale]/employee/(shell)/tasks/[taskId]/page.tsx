@@ -44,6 +44,7 @@ import {
 import { TaskActivity } from '@/modules/tasks/ui/task-activity';
 import { getEmployeeTaskDocumentPanelData } from '@/modules/employee-app/application/employee-task-documents';
 import { EmployeeTaskDocumentAttachments } from '@/modules/employee-app/ui/employee-task-document-attachments';
+import { SubmitButton } from '@/components/ui/submit-button';
 import { cn } from '@/shared/ui/cn';
 import { EmployeeTaskActionErrorBanner } from '@/modules/employee-app/ui/employee-task-action-error-banner';
 
@@ -233,9 +234,9 @@ export default async function EmployeePmTaskDetailPage({ params, searchParams }:
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('approvalPending')}</p>
           ) : canUpdate ? (
             <form action={submitTaskApprovalForEmployee.bind(null, taskId)}>
-              <button type="submit" className={employeePrimaryButtonClass}>
+              <SubmitButton className={employeePrimaryButtonClass}>
                 {t('submitForApproval')}
-              </button>
+              </SubmitButton>
             </form>
           ) : (
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('approvalRequiredHint')}</p>
@@ -261,9 +262,9 @@ export default async function EmployeePmTaskDetailPage({ params, searchParams }:
                 </option>
               ))}
             </select>
-            <button type="submit" className={employeePrimaryButtonClass}>
+            <SubmitButton className={employeePrimaryButtonClass}>
               {t('assignSubmit')}
-            </button>
+            </SubmitButton>
           </form>
         </section>
       ) : canAssign ? (
@@ -297,22 +298,21 @@ export default async function EmployeePmTaskDetailPage({ params, searchParams }:
                   className="w-full rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] px-3 py-2 text-sm"
                 />
                 <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="submit"
+                  <SubmitButton
                     name="decision"
                     value="approved"
-                    className="min-h-[44px] rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white"
+                    className="min-h-[44px] rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-600/90"
                   >
                     {t('approveAction')}
-                  </button>
-                  <button
-                    type="submit"
+                  </SubmitButton>
+                  <SubmitButton
                     name="decision"
                     value="rejected"
-                    className="min-h-[44px] rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+                    variant="secondary"
+                    className="min-h-[44px] rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
                   >
                     {t('rejectAction')}
-                  </button>
+                  </SubmitButton>
                 </div>
               </form>
             </div>
@@ -331,18 +331,19 @@ export default async function EmployeePmTaskDetailPage({ params, searchParams }:
               const updateWithStatus = updateEmployeeTaskStatus.bind(null, taskId, status);
               return (
                 <form key={status} action={updateWithStatus}>
-                  <button
-                    type="submit"
+                  <SubmitButton
                     disabled={isActive}
+                    variant="ghost"
+                    size="sm"
                     className={cn(
-                      'rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors',
+                      'h-auto rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors',
                       isActive
-                        ? 'cursor-default border-[var(--pf-action-primary)] bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)]'
+                        ? 'cursor-default border-[var(--pf-action-primary)] bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)] hover:bg-[var(--pf-action-primary)]'
                         : 'border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] text-[var(--pf-text-primary)] hover:bg-[var(--pf-bg-subtle)]',
                     )}
                   >
                     {t(`status.${status}`, { defaultValue: status })}
-                  </button>
+                  </SubmitButton>
                 </form>
               );
             })}
@@ -374,15 +375,15 @@ export default async function EmployeePmTaskDetailPage({ params, searchParams }:
               return (
                 <li key={item.id} className="min-h-[52px]">
                   <form action={toggleAction}>
-                    <button
-                      type="submit"
-                      className="flex w-full items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--pf-surface-2)] active:bg-[var(--pf-surface-3)]"
+                    <SubmitButton
+                      variant="ghost"
+                      className="flex h-auto w-full items-center justify-start gap-3 rounded-none px-4 py-3 text-start font-normal transition-colors hover:bg-[var(--pf-surface-2)] active:bg-[var(--pf-surface-3)]"
                     >
                       <ChecklistMark done={item.isDone} />
                       <span className={cn('flex-1 text-sm', item.isDone && 'line-through text-[var(--pf-text-muted)]')}>
                         {item.title}
                       </span>
-                    </button>
+                    </SubmitButton>
                   </form>
                 </li>
               );

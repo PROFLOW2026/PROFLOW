@@ -4,8 +4,8 @@ import dynamic from 'next/dynamic';
 import { MoreHorizontal } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { Link } from '@/shared/i18n/navigation';
 import { usePathname } from '@/shared/i18n/navigation';
+import { PendingChromeLink } from '@/components/ui/pending-chrome-link';
 import { pressableChromeClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import type { EmployeeNavItem } from '@/modules/employee-app/application/get-employee-shell';
@@ -58,16 +58,16 @@ export function EmployeeBottomNav({ items }: { items: readonly EmployeeNavItem[]
             const iconKey = employeeMobileNavIconKey(item);
             return (
               <li key={item.href} className="min-w-0 flex-1">
-                <Link
+                <PendingChromeLink
                   href={item.href}
-                  aria-current={active ? 'page' : undefined}
+                  active={active}
                   className={cn(
-                    pressableChromeClassName,
                     'relative flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[0.6875rem] font-medium',
                     active
                       ? 'text-[var(--pf-accent)]'
                       : 'text-[var(--pf-text-secondary)] active:bg-[var(--pf-action-subtle-active)]',
                   )}
+                  icon={iconKey ? <EmployeeNavIcon iconKey={iconKey} className="size-5" /> : undefined}
                 >
                   {active ? (
                     <span
@@ -75,9 +75,8 @@ export function EmployeeBottomNav({ items }: { items: readonly EmployeeNavItem[]
                       aria-hidden
                     />
                   ) : null}
-                  {iconKey ? <EmployeeNavIcon iconKey={iconKey} className="size-5" /> : null}
                   <span className="max-w-full truncate">{t(employeeMobileNavLabelKey(item))}</span>
-                </Link>
+                </PendingChromeLink>
               </li>
             );
           })}

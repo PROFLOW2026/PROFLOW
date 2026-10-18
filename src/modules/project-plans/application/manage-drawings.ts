@@ -52,6 +52,8 @@ const createSchema = z.object({
   title,
   discipline: z.enum(DRAWING_DISCIPLINES),
   locationId: uuid.nullish(),
+  // Visibility controls distribution / acknowledgement flows. Portal folder listing for
+  // contractors is gated by ext.plan.view (folder capability), not this default alone.
   contractorVisibility: z.enum(DRAWING_CONTRACTOR_VISIBILITIES).default('internal'),
 });
 

@@ -9,6 +9,7 @@ import { employeeHasPermission } from '@/modules/employee-app/application/load-e
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { todayInTimeZone } from '@/shared/dates';
 import { formatMoneyDisplay } from '@/shared/money';
+import { SubmitButton } from '@/components/ui/submit-button';
 import { employeeRecordPaymentAction } from '../../actions';
 
 export default async function EmployeeRecordPaymentPage() {
@@ -140,12 +141,9 @@ export default async function EmployeeRecordPaymentPage() {
           />
         </div>
 
-        <button
-          type="submit"
-          className="min-h-[48px] w-full rounded-xl bg-[var(--pf-primary)] px-4 py-3 text-sm font-medium text-white"
-        >
+        <SubmitButton block size="lg">
           {t('submit')}
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );

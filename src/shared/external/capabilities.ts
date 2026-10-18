@@ -21,11 +21,20 @@ export const EXTERNAL_CAPABILITIES = {
   TASK_REPORT: 'ext.task.report',
   // collaboration
   THREAD_POST: 'ext.thread.post',
-  // documents + plans
+  // documents + plans (shared register / shares — not a multi-folder key)
   DOCUMENT_VIEW: 'ext.document.view',
   DOCUMENT_UPLOAD: 'ext.document.upload',
   PLAN_VIEW: 'ext.plan.view',
   PLAN_ACKNOWLEDGE: 'ext.plan.acknowledge',
+  // Per project semantic folder (1:1). Stored in existing scopes jsonb — no schema change.
+  // Not included in operational templates; managers grant each folder explicitly (custom).
+  FOLDER_QUOTES: 'ext.folder.quotes',
+  FOLDER_CONTRACTS: 'ext.folder.contracts',
+  FOLDER_BILLING: 'ext.folder.billing',
+  FOLDER_VENDOR_INVOICES: 'ext.folder.vendor_invoices',
+  FOLDER_PHOTOS: 'ext.folder.photos',
+  FOLDER_DOCUMENTS: 'ext.folder.documents',
+  FOLDER_GENERAL_FILES: 'ext.folder.general_files',
   // RFI / submittals / quality
   RFI_VIEW: 'ext.rfi.view',
   RFI_RAISE: 'ext.rfi.raise',
@@ -70,8 +79,28 @@ export const FINANCIAL_EXTERNAL_CAPABILITIES: readonly ExternalCapability[] = [
   EXTERNAL_CAPABILITIES.PAYMENT_VIEW,
 ];
 
+/** Folder capabilities are opt-in per folder — never implied by templates or document.view. */
+export const FOLDER_EXTERNAL_CAPABILITIES: readonly ExternalCapability[] = [
+  EXTERNAL_CAPABILITIES.FOLDER_QUOTES,
+  EXTERNAL_CAPABILITIES.FOLDER_CONTRACTS,
+  EXTERNAL_CAPABILITIES.FOLDER_BILLING,
+  EXTERNAL_CAPABILITIES.FOLDER_VENDOR_INVOICES,
+  EXTERNAL_CAPABILITIES.FOLDER_PHOTOS,
+  EXTERNAL_CAPABILITIES.FOLDER_DOCUMENTS,
+  EXTERNAL_CAPABILITIES.FOLDER_GENERAL_FILES,
+];
+
+const FOLDER_EXTERNAL_SET: ReadonlySet<string> = new Set(FOLDER_EXTERNAL_CAPABILITIES);
+
+export function isFolderExternalCapability(value: string): boolean {
+  return FOLDER_EXTERNAL_SET.has(value);
+}
+
 const OPERATIONAL_EXTERNAL: readonly ExternalCapability[] = ALL_EXTERNAL_CAPABILITIES.filter(
-  (capability) => !FINANCIAL_EXTERNAL_CAPABILITIES.includes(capability) && capability !== EXTERNAL_CAPABILITIES.BID_SUBMIT,
+  (capability) =>
+    !FINANCIAL_EXTERNAL_CAPABILITIES.includes(capability) &&
+    capability !== EXTERNAL_CAPABILITIES.BID_SUBMIT &&
+    !FOLDER_EXTERNAL_SET.has(capability),
 );
 
 /** Grant templates used by the invite UI. Keys are stable identifiers (not role names to branch on). */

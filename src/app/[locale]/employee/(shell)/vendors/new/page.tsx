@@ -5,6 +5,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { SubmitButton } from '@/components/ui/submit-button';
 import { employeeCreateVendorAction } from '../actions';
 
 export default async function EmployeeCreateVendorPage() {
@@ -63,12 +64,9 @@ export default async function EmployeeCreateVendorPage() {
           />
         </div>
 
-        <button
-          type="submit"
-          className="min-h-[48px] w-full rounded-xl bg-[var(--pf-primary)] px-4 py-3 text-sm font-medium text-white"
-        >
+        <SubmitButton block size="lg">
           {t('submit')}
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );

@@ -221,5 +221,19 @@
       "warning": "לתשומת לב",
       "urgent": "דחוף"
     }
+  },
+  "folderFiles": {
+    "emptyTitle": "התיקייה ריקה",
+    "folderLabel": "תיקייה: {name}",
+    "subfolder": "תיקייה",
+    "plansSection": "תיקיית תוכניות",
+    "registerSection": "פנקס שרטוטים",
+    "quotesSection": "תיקיית הצעות מחיר",
+    "contractsSection": "תיקיית חוזים",
+    "billingSection": "תיקיית חשבונות",
+    "vendorInvoicesSection": "תיקיית חשבוניות ספקים",
+    "photosSection": "תיקיית תמונות",
+    "documentsSection": "תיקיית מסמכים",
+    "generalFilesSection": "תיקיית קבצים כלליים"
   }
 }

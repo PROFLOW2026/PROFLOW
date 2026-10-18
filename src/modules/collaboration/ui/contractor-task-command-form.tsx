@@ -45,7 +45,7 @@ export function ContractorTaskCommandForm({
           variant={command === primary ? 'primary' : 'secondary'}
           size="md"
           block
-          disabled={pending}
+          loading={pending}
         >
           {t(`portal.tasks.command.${command}`)}
         </Button>

@@ -221,5 +221,19 @@
       "warning": "Внимание",
       "urgent": "Срочно"
     }
+  },
+  "folderFiles": {
+    "emptyTitle": "Папка пуста",
+    "folderLabel": "Папка: {name}",
+    "subfolder": "Папка",
+    "plansSection": "Папка чертежей",
+    "registerSection": "Реестр чертежей",
+    "quotesSection": "Папка КП",
+    "contractsSection": "Папка договоров",
+    "billingSection": "Папка счетов",
+    "vendorInvoicesSection": "Папка счетов поставщиков",
+    "photosSection": "Папка фото",
+    "documentsSection": "Папка документов",
+    "generalFilesSection": "Папка общих файлов"
   }
 }

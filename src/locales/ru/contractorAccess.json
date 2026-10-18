@@ -226,7 +226,8 @@
     "capabilityGroups": {
       "operational": "Операционные",
       "financial": "Финансовые",
-      "procurement": "Тендеры"
+      "procurement": "Тендеры",
+      "folders": "Папки проекта"
     },
     "capabilities": {
       "ext_project_view": "Просмотр проекта",
@@ -255,7 +256,14 @@
       "ext_payment_view": "Просмотр платежей",
       "ext_compliance_submit": "Подача документов соответствия",
       "ext_handover_submit": "Подача документов сдачи",
-      "ext_bid_submit": "Подача тендерных предложений"
+      "ext_bid_submit": "Подача тендерных предложений",
+      "ext_folder_quotes": "Папка: КП",
+      "ext_folder_contracts": "Папка: Договоры",
+      "ext_folder_billing": "Папка: Счета",
+      "ext_folder_vendor_invoices": "Папка: Счета поставщиков",
+      "ext_folder_photos": "Папка: Фото",
+      "ext_folder_documents": "Папка: Документы",
+      "ext_folder_general_files": "Папка: Общие файлы"
     },
     "list": {
       "title": "Пользователи подрядчиков с доступом к проекту",

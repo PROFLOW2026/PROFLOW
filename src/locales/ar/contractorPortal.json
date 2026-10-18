@@ -221,5 +221,19 @@
       "warning": "للانتباه",
       "urgent": "عاجل"
     }
+  },
+  "folderFiles": {
+    "emptyTitle": "هذا المجلد فارغ",
+    "folderLabel": "المجلد: {name}",
+    "subfolder": "مجلد",
+    "plansSection": "مجلد المخططات",
+    "registerSection": "سجل الرسومات",
+    "quotesSection": "مجلد عروض الأسعار",
+    "contractsSection": "مجلد العقود",
+    "billingSection": "مجلد الفوترة",
+    "vendorInvoicesSection": "مجلد فواتير الموردين",
+    "photosSection": "مجلد الصور",
+    "documentsSection": "مجلد المستندات",
+    "generalFilesSection": "مجلد الملفات العامة"
   }
 }

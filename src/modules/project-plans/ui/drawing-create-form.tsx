@@ -5,7 +5,11 @@ import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { DRAWING_DISCIPLINES } from '@/modules/project-plans/domain/types';
+import {
+  DRAWING_CONTRACTOR_VISIBILITIES,
+  DRAWING_DISCIPLINES,
+  type DrawingContractorVisibility,
+} from '@/modules/project-plans/domain/types';
 import { createDrawingAction } from '@/modules/project-plans/actions/internal-actions';
 
 export function DrawingCreateForm({
@@ -21,6 +25,7 @@ export function DrawingCreateForm({
   const [drawingNumber, setDrawingNumber] = useState('');
   const [title, setTitle] = useState('');
   const [discipline, setDiscipline] = useState<string>(DRAWING_DISCIPLINES[0]!);
+  const [visibility, setVisibility] = useState<DrawingContractorVisibility>('all_contractors');
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -31,7 +36,13 @@ export function DrawingCreateForm({
         event.preventDefault();
         setError(null);
         startTransition(async () => {
-          const result = await createDrawingAction({ projectId, drawingNumber, title, discipline });
+          const result = await createDrawingAction({
+            projectId,
+            drawingNumber,
+            title,
+            discipline,
+            contractorVisibility: visibility,
+          });
           if (!result.ok) {
             setError(result.error);
             return;
@@ -55,6 +66,21 @@ export function DrawingCreateForm({
           {DRAWING_DISCIPLINES.map((value) => (
             <option key={value} value={value}>
               {t(`discipline.${value}` as never)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex flex-col gap-1 text-sm">
+        <span>{t('visibilityLabel')}</span>
+        <select
+          className="min-h-11 rounded-md border border-[var(--pf-border-default)] px-3"
+          value={visibility}
+          onChange={(e) => setVisibility(e.target.value as DrawingContractorVisibility)}
+          disabled={pending}
+        >
+          {DRAWING_CONTRACTOR_VISIBILITIES.map((value) => (
+            <option key={value} value={value}>
+              {t(`visibility.${value}`)}
             </option>
           ))}
         </select>

@@ -34,7 +34,7 @@ export function PortalDeductionsSection(props: {
               {t('deductions.dispute')} · {bidiIsolate(item.amount)} {item.currency}
             </p>
             <Textarea name="comment" required rows={2} placeholder={t('deductions.disputePlaceholder')} />
-            <Button type="submit" size="sm" variant="secondary" disabled={pending}>
+            <Button type="submit" size="sm" variant="secondary" loading={pending}>
               {t('deductions.submitDispute')}
             </Button>
           </form>

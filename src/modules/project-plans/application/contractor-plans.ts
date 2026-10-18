@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { OpenedFile, ProjectFileDeps } from '@/modules/evidence';
 import { externalActor } from '@/shared/actor';
 import { AUDIT_ACTIONS, writeAuditEvent } from '@/shared/audit';
+import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import { DOMAIN_EVENTS, emitDomainEvent } from '@/shared/domain-events';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
 import { EXTERNAL_CAPABILITIES, hasExternalScope, type ExternalContext } from '@/shared/external';
@@ -57,19 +58,25 @@ export interface ContractorPlanItem {
   readonly acknowledgementPending: boolean;
 }
 
-/** Drawings visible to this contractor on a project, each with its CURRENT revision only. */
+/**
+ * Drawings with a published current revision on a project.
+ * Gate = ext.plan.view (plans-folder capability). After the check we read via service role so
+ * `contractor_visibility` (distribution metadata) does not hide files already in the plans folder.
+ */
 export async function listContractorPlans(
   context: ExternalContext,
   raw: z.input<typeof projectInput>,
 ): Promise<{ items: readonly ContractorPlanItem[]; canAcknowledge: boolean }> {
   const input = projectInput.parse(raw);
   requireExternalProjectCapability(context, input, X.PLAN_VIEW);
-  const rows = await listVisibleDrawingsWithCurrent(context.db, input);
-  const acks = await myRevisionAcknowledgements(
-    context.db,
-    input.organizationId,
-    context.principalId,
-    rows.map((row) => row.currentRevisionId),
+  const rows = await asServiceRoleWrite(context.db, () => listVisibleDrawingsWithCurrent(context.db, input));
+  const acks = await asServiceRoleWrite(context.db, () =>
+    myRevisionAcknowledgements(
+      context.db,
+      input.organizationId,
+      context.principalId,
+      rows.map((row) => row.currentRevisionId),
+    ),
   );
   const items = rows.map((row) => {
     const acknowledgedAt = acks.get(row.currentRevisionId) ?? null;
@@ -116,15 +123,21 @@ export async function getContractorDrawing(
   raw: { readonly organizationId: string; readonly drawingId: string },
 ): Promise<ContractorDrawingDetail> {
   const organizationId = uuid.parse(raw.organizationId);
-  const drawing = await findDrawing(context.db, organizationId, uuid.parse(raw.drawingId));
+  const drawing = await asServiceRoleWrite(context.db, () =>
+    findDrawing(context.db, organizationId, uuid.parse(raw.drawingId)),
+  );
   if (!drawing) throw new NotFoundError('Drawing');
   requireExternalProjectCapability(context, { organizationId, projectId: drawing.projectId }, X.PLAN_VIEW);
-  const revisions = await listRevisions(context.db, organizationId, drawing.id, { publishedOnly: true });
-  const acks = await myRevisionAcknowledgements(
-    context.db,
-    organizationId,
-    context.principalId,
-    revisions.map((revision) => revision.id),
+  const revisions = await asServiceRoleWrite(context.db, () =>
+    listRevisions(context.db, organizationId, drawing.id, { publishedOnly: true }),
+  );
+  const acks = await asServiceRoleWrite(context.db, () =>
+    myRevisionAcknowledgements(
+      context.db,
+      organizationId,
+      context.principalId,
+      revisions.map((revision) => revision.id),
+    ),
   );
   return {
     drawing: {
@@ -150,7 +163,9 @@ export async function acknowledgeDrawingRevision(
   deps: Pick<ProjectFileDeps, 'elevated'>,
 ): Promise<{ acknowledged: boolean }> {
   const organizationId = uuid.parse(raw.organizationId);
-  const revision = await findVisibleRevision(context.db, uuid.parse(raw.revisionId));
+  const revision = await asServiceRoleWrite(context.db, () =>
+    findVisibleRevision(context.db, uuid.parse(raw.revisionId)),
+  );
   if (!revision || revision.organizationId !== organizationId) throw new NotFoundError('Revision');
   if (revision.status !== 'current') {
     throw new DomainRuleError('Only the current revision can be acknowledged', 'projectPlans.errors.notCurrent');
@@ -203,7 +218,9 @@ export async function openExternalRevisionFile(
   input: { readonly revisionId: string; readonly rangeHeader?: string | null },
   deps: Pick<ProjectFileDeps, 'store'>,
 ): Promise<OpenedFile & { fileName: string }> {
-  const revision = await findVisibleRevision(context.db, uuid.parse(input.revisionId));
+  const revision = await asServiceRoleWrite(context.db, () =>
+    findVisibleRevision(context.db, uuid.parse(input.revisionId)),
+  );
   if (!revision || (revision.status !== 'current' && revision.status !== 'superseded')) {
     throw new NotFoundError('Revision');
   }

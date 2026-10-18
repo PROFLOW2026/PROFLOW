@@ -44,20 +44,20 @@ export function InternalTaskCommandForm({
             <option value="unacceptable">{t('quality.unacceptable')}</option>
           </select>
           <Input name="note" placeholder={t('internalCommands.notePlaceholder')} maxLength={4000} />
-          <Button type="submit" name="command" value="verify" size="sm" disabled={pending}>
+          <Button type="submit" name="command" value="verify" size="sm" loading={pending}>
             {t('internalCommands.submitVerify')}
           </Button>
         </fieldset>
       ) : null}
       {commands.includes('close') ? (
-        <Button type="submit" name="command" value="close" size="sm" variant="primary" disabled={pending}>
+        <Button type="submit" name="command" value="close" size="sm" variant="primary" loading={pending}>
           {t('internalCommands.close')}
         </Button>
       ) : null}
       {commands.includes('reopen') ? (
         <fieldset className="flex flex-col gap-2">
           <Input name="note" placeholder={t('internalCommands.reopenReason')} maxLength={4000} required />
-          <Button type="submit" name="command" value="reopen" size="sm" variant="secondary" disabled={pending}>
+          <Button type="submit" name="command" value="reopen" size="sm" variant="secondary" loading={pending}>
             {t('internalCommands.reopen')}
           </Button>
         </fieldset>
@@ -65,7 +65,7 @@ export function InternalTaskCommandForm({
       {commands.includes('cancel') ? (
         <fieldset className="flex flex-col gap-2">
           <Input name="note" placeholder={t('internalCommands.cancelReason')} maxLength={4000} required />
-          <Button type="submit" name="command" value="cancel" size="sm" variant="danger" disabled={pending}>
+          <Button type="submit" name="command" value="cancel" size="sm" variant="danger" loading={pending}>
             {t('internalCommands.cancel')}
           </Button>
         </fieldset>

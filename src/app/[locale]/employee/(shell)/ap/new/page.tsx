@@ -6,7 +6,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
-import { employeePrimaryButtonClass } from '@/modules/employee-app/ui/employee-surface-styles';
+import { SubmitButton } from '@/components/ui/submit-button';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { employeeCreateApBillDraftAction } from '../actions';
 
@@ -112,9 +112,9 @@ export default async function EmployeeNewApBillPage({
             </label>
             <input id="reference" name="reference" className={inputClass} />
           </div>
-          <button type="submit" className={employeePrimaryButtonClass}>
+          <SubmitButton block size="lg">
             {t('createForm.submit')}
-          </button>
+          </SubmitButton>
         </form>
       )}
     </div>

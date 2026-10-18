@@ -73,7 +73,7 @@ export function DiscussionComposerClient({
             </Alert>
           ))
         : null}
-      <Button type="submit" variant="primary" size="sm" disabled={pending} className="self-start">
+      <Button type="submit" variant="primary" size="sm" loading={pending} className="self-start">
         {submitLabel}
       </Button>
     </form>

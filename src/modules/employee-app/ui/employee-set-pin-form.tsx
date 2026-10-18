@@ -48,7 +48,7 @@ export function EmployeeSetPinForm() {
           className="text-lg tracking-widest"
         />
       </div>
-      <Button type="submit" size="lg" disabled={pending} className="w-full">
+      <Button type="submit" size="lg" loading={pending} className="w-full">
         {t('submit')}
       </Button>
     </form>

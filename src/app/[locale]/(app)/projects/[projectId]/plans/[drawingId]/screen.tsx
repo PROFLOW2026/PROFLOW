@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { getDrawingDetail } from '@/modules/project-plans';
+import { DrawingVisibilityForm } from '@/modules/project-plans/ui/drawing-visibility-form';
 import { RevisionUploadForm } from '@/modules/project-plans/ui/revision-upload-form';
 import { PROJECT_CAPABILITIES } from '@/modules/project-team';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
@@ -56,6 +57,23 @@ export async function ProjectDrawingDetailScreen({ surfaceRoot,
         <WithAppClientMessages extra={['projectPlans']}>
           <RevisionUploadForm projectId={projectId} drawingId={drawingId} suggestedLabel={detail.suggestedNextLabel} />
         </WithAppClientMessages>
+      ) : null}
+
+      {detail.canManage ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('visibilityTitle')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WithAppClientMessages extra={['projectPlans']}>
+              <DrawingVisibilityForm
+                projectId={projectId}
+                drawingId={drawingId}
+                value={detail.drawing.contractorVisibility}
+              />
+            </WithAppClientMessages>
+          </CardContent>
+        </Card>
       ) : null}
 
       <Card>

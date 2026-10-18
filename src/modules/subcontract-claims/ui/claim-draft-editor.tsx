@@ -221,7 +221,7 @@ export function ClaimDraftEditor(props: {
             {t('detail.totalsDraft')}: {bidiIsolate(totals.current)} {props.currency}
           </p>
 
-          <Button type="submit" variant="secondary" disabled={pending}>
+          <Button type="submit" variant="secondary" loading={pending}>
             {t('detail.saveDraft')}
           </Button>
           {state?.error ? <p className="text-sm text-[var(--pf-danger-fg)]">{state.error}</p> : null}

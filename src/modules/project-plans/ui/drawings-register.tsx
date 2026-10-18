@@ -40,6 +40,9 @@ export async function DrawingsRegister({
                 <Badge tone="neutral">{t('currentRev', { label: drawing.currentRevision.revisionLabel })}</Badge>
               ) : null}
               {drawing.draftCount > 0 ? <Badge tone="warning">{t('drafts', { count: drawing.draftCount })}</Badge> : null}
+              <Badge tone={drawing.contractorVisibility === 'internal' ? 'warning' : 'neutral'}>
+                {t(`visibility.${drawing.contractorVisibility}`)}
+              </Badge>
             </div>
           </Link>
         </li>
