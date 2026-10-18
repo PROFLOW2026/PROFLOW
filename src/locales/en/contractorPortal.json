@@ -74,6 +74,7 @@
     "greeting": "Hello, {name}",
     "subtitle": "What needs you today across your projects",
     "projectsTitle": "My projects",
+    "projectsShortcutHint": "{count, plural, one {# project available} other {# projects available}}",
     "installApp": "Install the app",
     "noAccess": {
       "title": "No active project access yet",

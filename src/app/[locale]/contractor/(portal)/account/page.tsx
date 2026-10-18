@@ -1,9 +1,14 @@
 import type { Metadata } from 'next';
 import { getFormatter, getTranslations } from 'next-intl/server';
-import { Card } from '@/components/ui/card';
 import { getContractorAccount, listExternalDirectory, requireExternalContext } from '@/modules/contractor-access';
 import { ContractorPasswordForm, ContractorProfileForm } from '@/modules/contractor-access/ui/contractor-account-forms';
-import { employeePageStackClass } from '@/modules/employee-app/ui/employee-surface-styles';
+import {
+  portalPageHeaderClass,
+  portalPageStackClass,
+  portalPageSubtitleClass,
+  portalPageTitleClass,
+  portalPanelClass,
+} from '@/modules/contractor-portal/ui/portal-surface';
 import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 import { contractorChangePasswordAction, contractorUpdateProfileAction } from './actions';
 
@@ -25,40 +30,44 @@ export default async function ContractorAccountPage({ params }: { params: Promis
 
   return (
     <WithPortalClientMessages extra={['auth', 'contractorAccess']}>
-      <div className={employeePageStackClass}>
-        <header className="space-y-1">
-          <h1 className="text-xl font-semibold">{t('account.title')}</h1>
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('account.subtitle')}</p>
+      <div className={portalPageStackClass}>
+        <header className={portalPageHeaderClass}>
+          <h1 className={portalPageTitleClass}>{t('account.title')}</h1>
+          <p className={portalPageSubtitleClass}>{t('account.subtitle')}</p>
         </header>
 
-        <Card className="p-4">
-          <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-            <div>
-              <dt className="text-[var(--pf-text-secondary)]">{t('account.details.username')}</dt>
-              <dd className="font-mono font-semibold">
+        <section className={portalPanelClass}>
+          <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+            <div className="space-y-1">
+              <dt className="text-xs font-medium text-[var(--pf-text-secondary)]">{t('account.details.username')}</dt>
+              <dd className="font-mono font-semibold text-[var(--pf-text-primary)]">
                 <bdi dir="ltr">{account.username}</bdi>
               </dd>
             </div>
-            <div>
-              <dt className="text-[var(--pf-text-secondary)]">{t('account.details.lastSignIn')}</dt>
-              <dd>
+            <div className="space-y-1">
+              <dt className="text-xs font-medium text-[var(--pf-text-secondary)]">{t('account.details.lastSignIn')}</dt>
+              <dd className="text-[var(--pf-text-primary)]">
                 {account.lastSignInAt
                   ? format.dateTime(account.lastSignInAt, { dateStyle: 'medium', timeStyle: 'short' })
                   : t('account.details.never')}
               </dd>
             </div>
           </dl>
-        </Card>
+        </section>
 
-        <Card className="p-4">
-          <h2 className="mb-3 text-base font-semibold">{t('account.access.title')}</h2>
+        <section className={portalPanelClass}>
+          <h2 className="mb-3 text-base font-semibold tracking-tight text-[var(--pf-text-primary)]">
+            {t('account.access.title')}
+          </h2>
           {directory.length === 0 ? (
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('account.access.empty')}</p>
           ) : (
             <ul className="flex flex-col divide-y divide-[var(--pf-border-default)]">
               {directory.map((entry) => (
-                <li key={`${entry.grantId}:${entry.subcontractAgreementId ?? 'none'}`} className="py-2 text-sm">
-                  <p className="font-medium">{entry.projectName ?? t('account.access.allProjects')}</p>
+                <li key={`${entry.grantId}:${entry.subcontractAgreementId ?? 'none'}`} className="py-3 text-sm first:pt-0 last:pb-0">
+                  <p className="font-medium text-[var(--pf-text-primary)]">
+                    {entry.projectName ?? t('account.access.allProjects')}
+                  </p>
                   <p className="text-[var(--pf-text-secondary)]">
                     {entry.organizationName} · {entry.vendorName}
                     {entry.agreementTitle ? ` · ${entry.agreementTitle}` : ''}
@@ -67,18 +76,18 @@ export default async function ContractorAccountPage({ params }: { params: Promis
               ))}
             </ul>
           )}
-        </Card>
+        </section>
 
-        <Card className="p-4">
+        <section className={portalPanelClass}>
           <ContractorProfileForm
             action={contractorUpdateProfileAction}
             initial={{ displayName: account.displayName ?? '', phone: account.phone ?? '', locale: account.locale ?? locale }}
           />
-        </Card>
+        </section>
 
-        <Card className="p-4">
+        <section className={portalPanelClass}>
           <ContractorPasswordForm action={contractorChangePasswordAction} username={account.username} />
-        </Card>
+        </section>
       </div>
     </WithPortalClientMessages>
   );

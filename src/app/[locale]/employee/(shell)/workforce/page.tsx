@@ -9,9 +9,9 @@ import {
   listEmployeeWorkforceHubRoster,
 } from '@/modules/employee-app/application/employee-operational';
 import {
-  employeeListPanelClass,
   employeeListRowClass,
-  employeePageStackClass,
+  employeeOfficeListPanelClass,
+  employeeOfficePageStackClass,
 } from '@/modules/employee-app/ui/employee-surface-styles';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 
@@ -35,9 +35,9 @@ export default async function EmployeeWorkforceHubPage() {
   const { members, canCost } = payload;
 
   return (
-    <div className={employeePageStackClass}>
+    <div className={employeeOfficePageStackClass}>
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
-      <ul className={employeeListPanelClass}>
+      <ul className={employeeOfficeListPanelClass}>
         {members.map((member) => (
           <li key={member.id} className={employeeListRowClass}>
             <div className="flex items-start justify-between gap-3">

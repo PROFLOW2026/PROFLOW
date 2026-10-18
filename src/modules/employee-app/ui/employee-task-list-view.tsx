@@ -20,24 +20,32 @@ import {
   type TaskFilterState,
 } from './employee-filter-logic';
 import {
+  employeeBadgeAccentClass,
+  employeeBadgeDangerClass,
+  employeeBadgeNeutralClass,
+  employeeBadgeSuccessClass,
+  employeeBadgeWarningClass,
   employeeFilterInputClass,
   employeeFilterSelectClass,
   employeeListPanelClass,
   employeeListRowLinkClass,
+  employeeMetaChipClass,
   employeePrimaryButtonClass,
   employeeScopeBarClass,
   employeeScopeTabClass,
 } from './employee-surface-styles';
+import { EmployeeEmptyState } from './employee-empty-state';
 import { EmployeeListFilterBar, FilterField } from './employee-list-filter-bar';
 import { EmployeePostponeMenu } from './employee-postpone-menu';
+import { ListChecks } from 'lucide-react';
 
 const STATUS_COLOR: Record<string, string> = {
-  todo: 'bg-[var(--pf-bg-muted)] text-[var(--pf-text-secondary)]',
-  in_progress: 'bg-blue-100 text-blue-700',
-  in_review: 'bg-purple-100 text-purple-700',
-  done: 'bg-green-100 text-green-700',
-  cancelled: 'bg-[var(--pf-bg-muted)] text-[var(--pf-text-muted)] line-through',
-  blocked: 'bg-red-100 text-red-700',
+  todo: employeeBadgeNeutralClass,
+  in_progress: employeeBadgeAccentClass,
+  in_review: employeeBadgeWarningClass,
+  done: employeeBadgeSuccessClass,
+  cancelled: `${employeeBadgeNeutralClass} line-through`,
+  blocked: employeeBadgeDangerClass,
 };
 
 interface EmployeeTaskListViewProps {
@@ -229,81 +237,76 @@ export function EmployeeTaskListView({
         </p>
       </div>
 
-      <ul className={employeeListPanelClass}>
-        {filtered.map((task) => {
-          const tone = dueDateTone(task.dueDate, today as never, task.status);
-          return (
-            <li key={task.id} className="group relative">
-              <Link href={`/employee/tasks/${task.id}`} className={employeeListRowLinkClass}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <div className="text-base font-semibold leading-snug text-[var(--pf-text-primary)]">
-                      {task.title}
+      {filtered.length > 0 ? (
+        <ul className={employeeListPanelClass}>
+          {filtered.map((task) => {
+            const tone = dueDateTone(task.dueDate, today as never, task.status);
+            return (
+              <li key={task.id} className="group relative">
+                <Link href={`/employee/tasks/${task.id}`} className={employeeListRowLinkClass}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <div className="text-[0.9375rem] font-semibold leading-snug text-[var(--pf-text-primary)] md:text-base">
+                        {task.title}
+                      </div>
+                      {task.projectDisplayName && !hideProjectColumn ? (
+                        <p className="truncate text-xs font-medium text-[var(--pf-text-secondary)] md:text-sm">
+                          {task.projectDisplayName}
+                        </p>
+                      ) : null}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className={STATUS_COLOR[task.status] ?? STATUS_COLOR.todo}>
+                          {tTasks(`status.${task.status}`, { defaultValue: task.status })}
+                        </span>
+                        {task.priority && task.priority !== 'none' ? (
+                          <span className={employeeMetaChipClass}>
+                            {tTasks(`priority.${task.priority}`, { defaultValue: task.priority })}
+                          </span>
+                        ) : null}
+                        {task.dueDate ? (
+                          <span
+                            className={cn(
+                              'text-xs font-semibold',
+                              tone === 'overdue' && 'text-[var(--pf-status-danger-fg)]',
+                              tone === 'today' && 'text-[var(--pf-accent)]',
+                              tone === 'future' && 'text-[var(--pf-text-muted)]',
+                            )}
+                          >
+                            {tTasks('dueDate', { date: task.dueDate })}
+                          </span>
+                        ) : null}
+                        {task.assigneeLabel ? (
+                          <span className={employeeMetaChipClass}>{task.assigneeLabel}</span>
+                        ) : null}
+                      </div>
                     </div>
-                    {task.projectDisplayName && !hideProjectColumn ? (
-                      <p className="truncate text-sm font-medium text-[var(--pf-text-secondary)]">
-                        {task.projectDisplayName}
-                      </p>
+                    {task.canPostpone ? (
+                      <EmployeePostponeMenu
+                        taskId={task.id}
+                        dueDate={task.dueDate}
+                        today={today}
+                        compact
+                      />
                     ) : null}
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={cn(
-                          'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
-                          STATUS_COLOR[task.status] ?? STATUS_COLOR.todo,
-                        )}
-                      >
-                        {tTasks(`status.${task.status}`, { defaultValue: task.status })}
-                      </span>
-                      {task.priority && task.priority !== 'none' ? (
-                        <span className="text-xs text-[var(--pf-text-muted)]">
-                          {tTasks(`priority.${task.priority}`, { defaultValue: task.priority })}
-                        </span>
-                      ) : null}
-                      {task.dueDate ? (
-                        <span
-                          className={cn(
-                            'text-xs font-medium',
-                            tone === 'overdue' && 'text-red-600',
-                            tone === 'today' && 'text-[var(--pf-primary)]',
-                            tone === 'future' && 'text-[var(--pf-text-muted)]',
-                          )}
-                        >
-                          {tTasks('dueDate', { date: task.dueDate })}
-                        </span>
-                      ) : null}
-                      {task.assigneeLabel ? (
-                        <span className="text-xs text-[var(--pf-text-secondary)]">
-                          {task.assigneeLabel}
-                        </span>
-                      ) : null}
-                    </div>
                   </div>
-                  {task.canPostpone ? (
-                    <EmployeePostponeMenu
-                      taskId={task.id}
-                      dueDate={task.dueDate}
-                      today={today}
-                      compact
-                    />
-                  ) : null}
-                </div>
-              </Link>
-            </li>
-          );
-        })}
-        {filtered.length === 0 ? (
-          <li className="space-y-3 px-4 py-8 text-center">
-            <p className="text-sm text-[var(--pf-text-secondary)]">
-              {tasks.length === 0 ? tTasks('emptyPmTasks') : t('filters.emptyTasksDetailed')}
-            </p>
-            {tasks.length > 0 && isActive ? (
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <EmployeeEmptyState
+          title={tasks.length === 0 ? tTasks('emptyPmTasks') : t('filters.emptyTasksDetailed')}
+          icon={ListChecks}
+          action={
+            tasks.length > 0 && isActive ? (
               <button type="button" className={employeePrimaryButtonClass} onClick={clearFilters}>
                 {t('filters.clear')}
               </button>
-            ) : null}
-          </li>
-        ) : null}
-      </ul>
+            ) : null
+          }
+        />
+      )}
     </div>
   );
 }

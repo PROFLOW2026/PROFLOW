@@ -1,9 +1,12 @@
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { requireExternalContext } from '@/modules/contractor-access';
-import { getContractorDrawing } from '@/modules/project-plans';
 import { PortalDrawingDetail } from '@/modules/contractor-portal/ui/portal-drawing-detail';
-import { employeePageStackClass } from '@/modules/employee-app/ui/employee-surface-styles';
+import {
+  portalLinkQuietClass,
+  portalPageStackClass,
+} from '@/modules/contractor-portal/ui/portal-surface';
+import { getContractorDrawing } from '@/modules/project-plans';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
 import { Link } from '@/shared/i18n/navigation';
 import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
@@ -31,8 +34,8 @@ export default async function ContractorDrawingPage({
   const t = await getTranslations('projectPlans.portal.drawing');
 
   return (
-    <div className={employeePageStackClass}>
-      <Link href={`/contractor/projects/${projectId}/plans`} className="text-sm text-[var(--pf-text-brand)] hover:underline">
+    <div className={portalPageStackClass}>
+      <Link href={`/contractor/projects/${projectId}/plans`} className={portalLinkQuietClass}>
         {t('back')}
       </Link>
       <WithPortalClientMessages extra={['projectPlans']}>

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600&display=swap');
 @import 'tailwindcss';
 
 /*
@@ -10,6 +11,9 @@
 
 @layer base {
   :root {
+    /* Arabic face via CSS (Turbopack-safe); Latin/Hebrew via next/font variables. */
+    --font-noto-arabic: 'Noto Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif;
+
     /* ---- Primitive palette: Deep Teal brand -------------------------- */
     --pf-teal-50: #f0fdfa;
     --pf-teal-100: #ccfbf1;
@@ -252,7 +256,7 @@
   --shadow-lg: var(--pf-shadow-lg);
 
   /*
-   * Loaded in the root layout via next/font (Hebrew, Arabic, Latin, Cyrillic).
+   * Hebrew/Latin via next/font variables; Arabic via CSS @import above.
    * System fonts remain the fallback if a face has not applied yet.
    */
   --font-sans:
@@ -375,8 +379,9 @@
   }
 
   /*
-   * Employee App: body min-h-dvh uses dynamic viewport height, which exceeds the
-   * visible mobile viewport when browser chrome is shown — causing empty scroll.
+   * Employee / contractor shells use document scroll (not a nested main
+   * overflow port). Unlock html/body so list pages scroll naturally; keep
+   * horizontal bleed clipped. Main app is unaffected (selector is scoped).
    */
   html:has([data-pf-employee-app]),
   body:has([data-pf-employee-app]),
@@ -384,7 +389,8 @@
   body:has([data-pf-contractor-portal]) {
     min-height: auto;
     height: auto;
-    overflow: hidden;
+    overflow-x: clip;
+    overflow-y: auto;
   }
 
   /*

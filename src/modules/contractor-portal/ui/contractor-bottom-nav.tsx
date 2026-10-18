@@ -15,7 +15,7 @@ export function ContractorBottomNav({ items }: { items: readonly PortalNavItem[]
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 box-border w-full min-w-0 max-w-full border-t border-[var(--pf-border)] bg-[var(--pf-surface)] pb-[env(safe-area-inset-bottom,0px)] lg:hidden print:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 box-border w-full min-w-0 max-w-full border-t border-[var(--pf-border-default)] bg-[color-mix(in_srgb,var(--pf-bg-surface)_94%,transparent)] pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-md lg:hidden print:hidden supports-[backdrop-filter]:bg-[color-mix(in_srgb,var(--pf-bg-surface)_88%,transparent)]"
       aria-label={t('shell.navLabel')}
       data-pf-contractor-mobile-nav=""
     >
@@ -30,12 +30,18 @@ export function ContractorBottomNav({ items }: { items: readonly PortalNavItem[]
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   pressableChromeClassName,
-                  'flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[0.6875rem] font-medium',
+                  'relative flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[0.6875rem] font-medium',
                   active
                     ? 'text-[var(--pf-accent)]'
                     : 'text-[var(--pf-text-secondary)] active:bg-[var(--pf-action-subtle-active)]',
                 )}
               >
+                {active ? (
+                  <span
+                    className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-[var(--pf-accent)]"
+                    aria-hidden
+                  />
+                ) : null}
                 <PortalNavIcon navKey={iconKey} className="size-5" />
                 <span className="max-w-full truncate">{t(item.labelKey)}</span>
               </Link>

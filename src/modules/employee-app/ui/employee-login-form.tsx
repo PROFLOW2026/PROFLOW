@@ -6,6 +6,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import {
   employeeLoginAction,
@@ -54,16 +55,14 @@ export function EmployeeLoginForm({ defaultUsername = '' }: { defaultUsername?: 
       </div>
       <div className="space-y-2">
         <Label htmlFor="pin">{t('pin')}</Label>
-        <Input
+        <PasswordInput
           id="pin"
           name="pin"
-          type="password"
           inputMode="numeric"
           pattern="[0-9]{6}"
           maxLength={6}
           autoComplete="current-password"
           required
-          dir="ltr"
           aria-invalid={pinError ? true : undefined}
           className="text-lg tracking-widest"
           onChange={() => {

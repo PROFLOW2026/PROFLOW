@@ -2,8 +2,13 @@ import { FileText } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { EmptyState } from '@/components/ui/empty-state';
-import { PageHeader } from '@/components/ui/page-header';
 import { requireExternalContext } from '@/modules/contractor-access';
+import {
+  portalPageHeaderClass,
+  portalPageStackClass,
+  portalPageSubtitleClass,
+  portalPageTitleClass,
+} from '@/modules/contractor-portal/ui/portal-surface';
 import { listContractorSharedDocuments } from '@/modules/project-plans';
 import { ContractorDocumentsList } from '@/modules/project-plans/ui/contractor-documents-list';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
@@ -34,13 +39,16 @@ export default async function ContractorDocumentsPage({ params }: { params: Prom
   const t = await getTranslations('projectPlans.portal.documents');
 
   return (
-    <div className="flex flex-col gap-4 pb-6">
-      <PageHeader title={t('pageTitle')} description={t('pageDescription')} />
+    <div className={portalPageStackClass}>
+      <header className={portalPageHeaderClass}>
+        <h1 className={portalPageTitleClass}>{t('pageTitle')}</h1>
+        <p className={portalPageSubtitleClass}>{t('pageDescription')}</p>
+      </header>
       {totalItems === 0 ? (
         <EmptyState icon={FileText} title={t('emptyTitle')} size="sm" />
       ) : (
         <WithPortalClientMessages extra={['projectPlans']}>
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-5">
             {sections.map((section) =>
               section.items.length === 0 ? null : (
                 <ContractorDocumentsList

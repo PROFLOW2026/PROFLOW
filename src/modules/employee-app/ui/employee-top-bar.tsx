@@ -13,10 +13,12 @@ export function EmployeeTopBar({
   organizationName,
 }: EmployeeTopBarProps) {
   return (
-    <header className="sticky top-0 z-40 flex h-[var(--pf-topbar-height)] w-full shrink-0 items-center gap-2 border-b border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-4 print:hidden sm:gap-3">
-      <span className="flex min-w-0 items-center gap-2 lg:hidden">
+    <header className="sticky top-0 z-40 flex h-[var(--pf-topbar-height)] w-full shrink-0 items-center gap-2 border-b border-[var(--pf-border-default)] bg-[color-mix(in_srgb,var(--pf-bg-surface)_92%,transparent)] px-4 backdrop-blur-md print:hidden sm:gap-3 supports-[backdrop-filter]:bg-[color-mix(in_srgb,var(--pf-bg-surface)_84%,transparent)]">
+      <span className="flex min-w-0 items-center gap-2.5 lg:hidden">
         <OrgShellMark organizationName={organizationName} />
-        <span className="max-w-40 truncate text-sm font-semibold">{organizationName}</span>
+        <span className="max-w-44 truncate text-sm font-semibold text-[var(--pf-text-primary)]">
+          {organizationName}
+        </span>
       </span>
 
       <div className="min-w-0 flex-1" />

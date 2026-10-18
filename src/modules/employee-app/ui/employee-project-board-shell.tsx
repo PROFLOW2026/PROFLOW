@@ -5,7 +5,10 @@ import { useTranslations } from 'next-intl';
 import { BoardView } from '@/modules/tasks/ui/board-view';
 import type { Bucket, TaskCardData, TaskDetail, TaskStatus } from '@/modules/tasks/ui/task-api';
 import { Link } from '@/shared/i18n/navigation';
-import { employeePrimaryButtonClass } from '@/modules/employee-app/ui/employee-surface-styles';
+import {
+  employeeBoardScrollRegionClass,
+  employeePrimaryButtonClass,
+} from '@/modules/employee-app/ui/employee-surface-styles';
 
 export interface EmployeeProjectBoardShellProps {
   projectId: string;
@@ -51,8 +54,13 @@ export function EmployeeProjectBoardShell({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm font-medium text-[var(--pf-text-secondary)]">{projectName}</p>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--pf-border-default)] pb-3">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-[var(--pf-accent)]">
+            {t('hub.board')}
+          </p>
+          <p className="truncate text-sm font-semibold text-[var(--pf-text-primary)]">{projectName}</p>
+        </div>
         {createTaskHref ? (
           <Link href={createTaskHref} className={employeePrimaryButtonClass}>
             {tTasks('createNewTask')}
@@ -60,16 +68,18 @@ export function EmployeeProjectBoardShell({
         ) : null}
       </div>
 
-      <BoardView
-        buckets={buckets}
-        initialTasks={initialTasks}
-        onOpenTask={handleOpenTask}
-        onAddTask={() => {}}
-        onMoveTask={canUpdate ? handleMoveTask : () => {}}
-      />
+      <div className={employeeBoardScrollRegionClass} data-pf-employee-board-scroll="">
+        <BoardView
+          buckets={buckets}
+          initialTasks={initialTasks}
+          onOpenTask={handleOpenTask}
+          onAddTask={() => {}}
+          onMoveTask={canUpdate ? handleMoveTask : () => {}}
+        />
+      </div>
 
       {selectedTaskId ? (
-        <div className="rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 shadow-[var(--pf-shadow-sm)]">
+        <div className="rounded-2xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 shadow-[var(--pf-shadow-sm)]">
           <Link
             href={`/employee/tasks/${selectedTaskId}`}
             className="text-sm font-semibold text-[var(--pf-action-primary)] hover:underline"

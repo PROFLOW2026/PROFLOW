@@ -74,6 +74,7 @@
     "greeting": "שלום, {name}",
     "subtitle": "מה מחכה לך היום בפרויקטים שלך",
     "projectsTitle": "הפרויקטים שלי",
+    "projectsShortcutHint": "{count, plural, one {פרויקט אחד פתוח} two {שני פרויקטים} other {# פרויקטים}}",
     "installApp": "התקנת האפליקציה",
     "noAccess": {
       "title": "אין עדיין גישה פעילה לפרויקט",

@@ -1,7 +1,12 @@
 import { getLocale, getTranslations } from 'next-intl/server';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PageHeader } from '@/components/ui/page-header';
 import { requireExternalContext } from '@/modules/contractor-access';
+import {
+  portalMetricCellClass,
+  portalPageHeaderClass,
+  portalPageStackClass,
+  portalPageTitleClass,
+  portalPanelClass,
+} from '@/modules/contractor-portal/ui/portal-surface';
 import { listContractorProjectPayments, resolveContractorPaymentsOrganization } from '@/modules/subcontract-claims';
 import { loadOrNotFound } from '@/modules/subcontract-claims/ui/page-guard';
 import { formatMoneyString } from '@/shared/money';
@@ -17,43 +22,47 @@ export default async function ContractorPaymentsPage({ params }: { params: Promi
 
   return (
     <WithPortalClientMessages extra={['subcontractClaims']}>
-      <div className="flex flex-col gap-4 pb-6">
-        <PageHeader title={t('portal.paymentsTitle')} />
+      <div className={portalPageStackClass}>
+        <header className={portalPageHeaderClass}>
+          <h1 className={portalPageTitleClass}>{t('portal.paymentsTitle')}</h1>
+        </header>
         {rows.length === 0 ? (
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('portal.paymentsEmpty')}</p>
+          <p className="rounded-2xl border border-dashed border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)]/40 px-4 py-6 text-sm text-[var(--pf-text-secondary)]">
+            {t('portal.paymentsEmpty')}
+          </p>
         ) : null}
-        {rows.map((row) => (
-          <Card key={row.agreementId}>
-            <CardHeader>
-              <CardTitle>{row.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2 text-sm">
-              <p>
-                {t('portal.payable')}:{' '}
-                <span dir="ltr" className="pf-numeric">
-                  {formatMoneyString(row.status.totals.payableNet, row.status.currency, locale)}
-                </span>
-              </p>
-              <p>
-                {t('portal.paid')}:{' '}
-                <span dir="ltr" className="pf-numeric">
-                  {formatMoneyString(row.status.totals.paid, row.status.currency, locale)}
-                </span>
-              </p>
-              <p>
-                {t('portal.retention')}:{' '}
-                <span dir="ltr" className="pf-numeric">
-                  {formatMoneyString(row.status.retention.remaining, row.status.currency, locale)}
-                </span>
-              </p>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:gap-4">
+          {rows.map((row) => (
+            <section key={row.agreementId} className={portalPanelClass}>
+              <h2 className="mb-3 text-base font-semibold tracking-tight text-[var(--pf-text-primary)]">{row.title}</h2>
+              <dl className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                <div className={portalMetricCellClass}>
+                  <dt className="text-xs text-[var(--pf-text-secondary)]">{t('portal.payable')}</dt>
+                  <dd className="mt-0.5 text-sm font-semibold tabular-nums" dir="ltr">
+                    {formatMoneyString(row.status.totals.payableNet, row.status.currency, locale)}
+                  </dd>
+                </div>
+                <div className={portalMetricCellClass}>
+                  <dt className="text-xs text-[var(--pf-text-secondary)]">{t('portal.paid')}</dt>
+                  <dd className="mt-0.5 text-sm font-semibold tabular-nums" dir="ltr">
+                    {formatMoneyString(row.status.totals.paid, row.status.currency, locale)}
+                  </dd>
+                </div>
+                <div className={portalMetricCellClass}>
+                  <dt className="text-xs text-[var(--pf-text-secondary)]">{t('portal.retention')}</dt>
+                  <dd className="mt-0.5 text-sm font-semibold tabular-nums" dir="ltr">
+                    {formatMoneyString(row.status.retention.remaining, row.status.currency, locale)}
+                  </dd>
+                </div>
+              </dl>
               {!row.status.eligibility.eligible && row.status.eligibility.holds.length > 0 ? (
-                <p className="text-[var(--pf-text-secondary)]">
+                <p className="mt-3 text-sm text-[var(--pf-text-secondary)]">
                   {t('portal.holds')}: {row.status.eligibility.holds.map((hold) => hold.kind).join(', ')}
                 </p>
               ) : null}
-            </CardContent>
-          </Card>
-        ))}
+            </section>
+          ))}
+        </div>
       </div>
     </WithPortalClientMessages>
   );

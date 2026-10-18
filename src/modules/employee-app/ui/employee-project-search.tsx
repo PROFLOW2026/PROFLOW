@@ -1,5 +1,6 @@
 'use client';
 
+import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { employeeFilterInputClass } from './employee-surface-styles';
@@ -24,15 +25,23 @@ export function EmployeeProjectSearch({ projects }: { projects: readonly Project
   }, [normalized, projects.length]);
 
   return (
-    <label className="block space-y-1">
-      <span className="text-xs font-medium text-[var(--pf-text-secondary)]">{t('projectSearchLabel')}</span>
-      <input
-        type="search"
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        placeholder={t('projectSearchPlaceholder')}
-        className={employeeFilterInputClass}
-      />
+    <label className="relative block">
+      <span className="mb-1.5 block text-xs font-semibold text-[var(--pf-text-secondary)]">
+        {t('projectSearchLabel')}
+      </span>
+      <span className="relative block">
+        <Search
+          className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-[var(--pf-text-muted)]"
+          aria-hidden
+        />
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder={t('projectSearchPlaceholder')}
+          className={`${employeeFilterInputClass} ps-9`}
+        />
+      </span>
     </label>
   );
 }

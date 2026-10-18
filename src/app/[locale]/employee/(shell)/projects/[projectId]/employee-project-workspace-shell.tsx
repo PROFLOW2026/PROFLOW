@@ -34,25 +34,31 @@ export function EmployeeProjectWorkspaceShell({
 
   if (mode === 'work') {
     return (
-      <div className="flex min-w-0 flex-col gap-4">
-        {workChrome}
-        {children}
+      <div className="flex min-w-0 flex-col gap-4 rounded-2xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 shadow-[var(--pf-shadow-sm)] md:gap-5 md:p-4">
+        <div className="space-y-3 border-b border-[var(--pf-border-default)] pb-3">{workChrome}</div>
+        <div className="min-w-0">{children}</div>
       </div>
     );
   }
 
   if (mode === 'execution') {
     return (
-      <div className="flex min-w-0 flex-col gap-4">
-        {executionChrome}
-        {children}
+      <div className="flex min-w-0 flex-col gap-4 rounded-2xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 shadow-[var(--pf-shadow-sm)] md:gap-5 md:p-4">
+        <div className="space-y-3 border-b border-[var(--pf-border-default)] pb-3">
+          {executionChrome}
+        </div>
+        <div className="min-w-0">{children}</div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
-      {commercialTop}
+    <div className="flex min-w-0 flex-col gap-4 md:gap-5">
+      {commercialTop ? (
+        <div className="rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 py-2 shadow-[var(--pf-shadow-sm)]">
+          {commercialTop}
+        </div>
+      ) : null}
       {children}
     </div>
   );

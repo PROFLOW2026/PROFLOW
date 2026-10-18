@@ -23,6 +23,12 @@ const EmployeeMobileNavMore = dynamic(
   { ssr: false },
 );
 
+function isNavActive(pathname: string, href: string): boolean {
+  return href === '/employee'
+    ? pathname === href
+    : pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export function EmployeeBottomNav({ items }: { items: readonly EmployeeNavItem[] }) {
   const t = useTranslations();
   const pathname = usePathname();
@@ -37,40 +43,38 @@ export function EmployeeBottomNav({ items }: { items: readonly EmployeeNavItem[]
     setMoreOpen(true);
   }
 
-  const moreActive = overflow.some(
-    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
-  );
+  const moreActive = overflow.some((item) => isNavActive(pathname, item.href));
 
   return (
     <>
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 box-border w-full min-w-0 max-w-full border-t border-[var(--pf-border)] bg-[var(--pf-surface)] pb-[env(safe-area-inset-bottom,0px)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 box-border w-full min-w-0 max-w-full border-t border-[var(--pf-border-default)] bg-[color-mix(in_srgb,var(--pf-bg-surface)_94%,transparent)] pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-md lg:hidden print:hidden supports-[backdrop-filter]:bg-[color-mix(in_srgb,var(--pf-bg-surface)_88%,transparent)]"
         aria-label={t('employeeApp.title')}
         data-pf-employee-mobile-nav=""
       >
         <ul className="flex h-[var(--pf-bottomnav-height)] w-full min-w-0 items-stretch">
           {primary.map((item) => {
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const active = isNavActive(pathname, item.href);
             const iconKey = employeeMobileNavIconKey(item);
             return (
               <li key={item.href} className="min-w-0 flex-1">
                 <Link
                   href={item.href}
-                  aria-current={
-                    (item.href === '/employee'
-                      ? pathname === item.href
-                      : pathname === item.href || pathname.startsWith(`${item.href}/`))
-                      ? 'page'
-                      : undefined
-                  }
+                  aria-current={active ? 'page' : undefined}
                   className={cn(
                     pressableChromeClassName,
-                    'flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[0.6875rem] font-medium',
+                    'relative flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[0.6875rem] font-medium',
                     active
                       ? 'text-[var(--pf-accent)]'
                       : 'text-[var(--pf-text-secondary)] active:bg-[var(--pf-action-subtle-active)]',
                   )}
                 >
+                  {active ? (
+                    <span
+                      className="absolute inset-x-4 top-0 h-0.5 rounded-b-full bg-[var(--pf-accent)]"
+                      aria-hidden
+                    />
+                  ) : null}
                   {iconKey ? <EmployeeNavIcon iconKey={iconKey} className="size-5" /> : null}
                   <span className="max-w-full truncate">{t(employeeMobileNavLabelKey(item))}</span>
                 </Link>
@@ -89,12 +93,18 @@ export function EmployeeBottomNav({ items }: { items: readonly EmployeeNavItem[]
                 data-pf-employee-mobile-nav-more=""
                 className={cn(
                   pressableChromeClassName,
-                  'flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[0.6875rem] font-medium',
+                  'relative flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[0.6875rem] font-medium',
                   moreOpen || moreActive
                     ? 'text-[var(--pf-accent)]'
                     : 'text-[var(--pf-text-secondary)] active:bg-[var(--pf-action-subtle-active)]',
                 )}
               >
+                {moreOpen || moreActive ? (
+                  <span
+                    className="absolute inset-x-4 top-0 h-0.5 rounded-b-full bg-[var(--pf-accent)]"
+                    aria-hidden
+                  />
+                ) : null}
                 <MoreHorizontal className="size-5" aria-hidden />
                 <span className="max-w-full truncate">{t('employeeApp.nav.more')}</span>
               </button>

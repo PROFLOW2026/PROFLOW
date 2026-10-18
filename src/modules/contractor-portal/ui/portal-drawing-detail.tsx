@@ -9,8 +9,8 @@ import type { ContractorDrawingDetail } from '@/modules/project-plans';
 import type { DrawingRevisionStatus } from '@/modules/project-plans/domain/types';
 import { acknowledgeDrawingRevisionAction } from '@/modules/project-plans/actions/external-actions';
 import { EXTERNAL_REVISION_DOWNLOAD_PATH } from '@/modules/project-plans/download-paths';
-import { employeePanelClass } from '@/modules/employee-app/ui/employee-surface-styles';
 import { cn } from '@/shared/ui/cn';
+import { portalItemCardClass, portalPageTitleClass, portalPanelClass } from './portal-surface';
 
 const REVISION_SHAPE: Record<DrawingRevisionStatus, StatusShape> = {
   draft: 'draft',
@@ -35,18 +35,18 @@ export function PortalDrawingDetail({
   const history = detail.revisions.filter((revision) => revision.status !== 'current');
 
   return (
-    <div className="flex flex-col gap-4">
-      <header className="space-y-1">
-        <h1 className="text-xl font-bold text-[var(--pf-text-primary)]">
+    <div className="flex flex-col gap-5">
+      <header className="space-y-1.5">
+        <h1 className={portalPageTitleClass}>
           {detail.drawing.drawingNumber} · {detail.drawing.title}
         </h1>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t(`discipline.${detail.drawing.discipline}`)}</p>
       </header>
 
       {current ? (
-        <section className={cn(employeePanelClass, 'flex flex-col gap-3')}>
+        <section className={cn(portalPanelClass, 'flex flex-col gap-3.5')}>
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-lg font-semibold">Rev {current.revisionLabel}</h2>
+            <h2 className="text-lg font-semibold tracking-tight">Rev {current.revisionLabel}</h2>
             <StatusBadge shape={REVISION_SHAPE[current.status]} label={t(`status.${current.status}`)} />
           </div>
           {current.fileReady ? (
@@ -85,11 +85,11 @@ export function PortalDrawingDetail({
       ) : null}
 
       {history.length > 0 ? (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-2.5">
           {history.map((revision) => (
             <li
               key={revision.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--pf-border-default)] p-3"
+              className={cn(portalItemCardClass, 'flex-row flex-wrap items-center justify-between')}
             >
               <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <span className="font-medium">Rev {revision.revisionLabel}</span>

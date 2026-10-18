@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, FileText, Folder, RefreshCw } from 'lucide-react';
+import { ArrowRight, Folder, RefreshCw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { Alert } from '@/components/ui/alert';
@@ -22,7 +22,9 @@ import {
   browseEmployeeProjectFolderAction,
   loadEmployeeProjectFileBrowserInitialAction,
 } from '@/app/[locale]/employee/(shell)/projects/project-files-actions';
+import { EmployeeFileTypeIcon } from './employee-file-type-icon';
 import {
+  employeeIconTileMutedClass,
   employeeListPanelClass,
   employeeListRowClass,
 } from './employee-surface-styles';
@@ -288,7 +290,9 @@ export function EmployeeProjectFilesBrowser({
                     className={`${employeeListRowClass} w-full text-start`}
                     onClick={() => openSubfolder(folder)}
                   >
-                    <Folder className="size-4 shrink-0 text-[var(--pf-text-secondary)]" aria-hidden />
+                    <span className={employeeIconTileMutedClass} aria-hidden>
+                      <Folder className="size-4" />
+                    </span>
                     <span className="min-w-0 flex-1 truncate font-semibold text-[var(--pf-text-primary)]">
                       {folder.name}
                     </span>
@@ -302,11 +306,11 @@ export function EmployeeProjectFilesBrowser({
                     className={`${employeeListRowClass} w-full text-start`}
                     onClick={() => openFilePreview(file)}
                   >
-                    <FileText className="size-4 shrink-0 text-[var(--pf-text-secondary)]" aria-hidden />
+                    <EmployeeFileTypeIcon mimeType={file.mimeType} filename={file.name} />
                     <span className="min-w-0 flex-1 truncate font-semibold text-[var(--pf-text-primary)]">
                       {file.name}
                     </span>
-                    <span className="shrink-0 text-sm text-[var(--pf-text-secondary)]">
+                    <span className="shrink-0 text-xs text-[var(--pf-text-secondary)] md:text-sm">
                       {file.sizeBytes != null ? formatFileSize(file.sizeBytes, tFileSize) : '—'}
                     </span>
                   </button>

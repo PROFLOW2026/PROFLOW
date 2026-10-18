@@ -4,8 +4,8 @@ import { useActionState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import {
   employeeSetPinAction,
   type EmployeeAuthFormState,
@@ -24,26 +24,26 @@ export function EmployeeSetPinForm() {
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       <div className="space-y-2">
         <Label htmlFor="newPin">{t('newPin')}</Label>
-        <Input
+        <PasswordInput
           id="newPin"
           name="newPin"
-          type="password"
           inputMode="numeric"
           pattern="[0-9]{6}"
           maxLength={6}
+          autoComplete="new-password"
           required
           className="text-lg tracking-widest"
         />
       </div>
       <div className="space-y-2">
         <Label htmlFor="confirmPin">{t('confirmPin')}</Label>
-        <Input
+        <PasswordInput
           id="confirmPin"
           name="confirmPin"
-          type="password"
           inputMode="numeric"
           pattern="[0-9]{6}"
           maxLength={6}
+          autoComplete="new-password"
           required
           className="text-lg tracking-widest"
         />

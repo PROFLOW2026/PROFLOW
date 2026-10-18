@@ -8,7 +8,6 @@ rem Does not touch other projects or other folders.
 
 set "PORT=3100"
 set "URL=http://localhost:%PORT%"
-set "LOCKFILE=.next\dev\lock"
 
 title ProjectFlow - Local Dev
 
@@ -31,74 +30,51 @@ if not exist "node_modules\.bin\next.cmd" (
   )
 )
 
-call :IsServerUp %PORT%
-if errorlevel 1 (
+rem Healthy server already up? Open browser and stop.
+call :IsServerHealthy %PORT%
+if "%ERRORLEVEL%"=="0" (
   echo [OK] ProjectFlow is already running on %URL%
-  start "" "%URL%/he-IL"
+  start "" "%URL%/he-IL/"
   pause
   exit /b 0
 )
 
-call :StopStaleProjectFlowDev
+rem Port held by a dead/broken ProjectFlow instance (often no lock file) — clear it.
+echo [INFO] Clearing any previous ProjectFlow dev on port %PORT% ^(this folder only^)...
+echo.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\start-local-cleanup.ps1" -Port %PORT% -RepoRoot "%~dp0"
+if errorlevel 1 (
+  echo [ERROR] Cannot free port %PORT%. Close the other app using it, then try again.
+  pause
+  exit /b 1
+)
 
+echo.
 echo [INFO] Starting dev server on port %PORT%...
 echo.
 
-rem Open browser once the server responds (does not block dev server).
-start "" powershell -NoProfile -WindowStyle Hidden -Command "$u='%URL%/he-IL'; for($i=0;$i -lt 90;$i++){ try { $r=Invoke-WebRequest -UseBasicParsing -Uri $u -TimeoutSec 2; if($r.StatusCode -ge 200 -and $r.StatusCode -lt 500){ Start-Process $u; break } } catch {}; Start-Sleep 1 }"
+rem Open browser once the server responds with a healthy status.
+rem First webpack compile can take 1-3 minutes; keep polling before opening the browser.
+start "" powershell -NoProfile -WindowStyle Hidden -Command "$u='%URL%/he-IL'; for($i=0;$i -lt 180;$i++){ try { $r=Invoke-WebRequest -UseBasicParsing -Uri $u -TimeoutSec 5; if($r.StatusCode -ge 200 -and $r.StatusCode -lt 400){ Start-Process $u; break } } catch {}; Start-Sleep 1 }"
 
-call npm run dev -- -p %PORT%
+rem IMPORTANT on Windows: do NOT use `npm run dev -- -p 3100`.
+rem npm swallows `-p` / `--port` and Next.js then treats `3100` as a project directory.
+rem Use the package script that already embeds `-p 3100`.
+set "PORT=%PORT%"
+call npm run dev:local
 set "EXITCODE=%ERRORLEVEL%"
 
 echo.
 if not "%EXITCODE%"=="0" (
   echo [ERROR] Dev server exited with code %EXITCODE%.
+  echo [HINT] If the port is busy, close other ProjectFlow windows or run this script again.
   echo.
 )
 
 pause
 exit /b %EXITCODE%
 
-:IsServerUp
+:IsServerHealthy
 set "P=%~1"
-powershell -NoProfile -Command "$r = try { (Invoke-WebRequest -UseBasicParsing -Uri 'http://localhost:%P%/' -TimeoutSec 2).StatusCode } catch { 0 }; exit ([int]($r -ge 200 -and $r -lt 500))" >nul 2>&1
+powershell -NoProfile -Command "try { $r = Invoke-WebRequest -UseBasicParsing -Uri 'http://localhost:%P%/he-IL' -TimeoutSec 2; if ($r.StatusCode -ge 200 -and $r.StatusCode -lt 400) { exit 0 } else { exit 1 } } catch { exit 1 }" >nul 2>&1
 exit /b %ERRORLEVEL%
-
-:StopStaleProjectFlowDev
-if not exist "%LOCKFILE%" exit /b 0
-
-echo [INFO] Found a previous ProjectFlow dev instance for this folder.
-echo [INFO] Stopping it so this site can run on port %PORT% ^(other projects are not touched^)...
-echo.
-
-powershell -NoProfile -Command ^
-  "$lockPath = Join-Path (Get-Location) '.next/dev/lock';" ^
-  "$targetPid = $null; $oldPort = $null;" ^
-  "if (Test-Path $lockPath) {" ^
-  "  try {" ^
-  "    $fs = [System.IO.File]::Open($lockPath, 'Open', 'Read', 'ReadWrite');" ^
-  "    $sr = New-Object System.IO.StreamReader($fs);" ^
-  "    $lock = $sr.ReadToEnd() | ConvertFrom-Json;" ^
-  "    $sr.Close(); $fs.Close();" ^
-  "    $targetPid = [int]$lock.pid; $oldPort = $lock.port;" ^
-  "  } catch {}" ^
-  "};" ^
-  "if (-not $targetPid) {" ^
-  "  $dir = (Get-Location).Path;" ^
-  "  $match = Get-CimInstance Win32_Process -Filter \"Name = 'node.exe'\" -ErrorAction SilentlyContinue ^|" ^
-  "    Where-Object { $_.CommandLine -and ($_.CommandLine -like \"*$dir*\") -and ($_.CommandLine -match 'next(\\.cmd)?\\s+dev') } ^|" ^
-  "    Select-Object -First 1;" ^
-  "  if ($match) { $targetPid = [int]$match.ProcessId }" ^
-  "};" ^
-  "if ($targetPid -and (Get-Process -Id $targetPid -ErrorAction SilentlyContinue)) {" ^
-  "  $msg = '[INFO] Stopping old ProjectFlow dev (PID ' + $targetPid;" ^
-  "  if ($oldPort) { $msg += ', was on port ' + $oldPort };" ^
-  "  Write-Host ($msg + ')...');" ^
-  "  & taskkill /PID $targetPid /T /F 2^>$null ^| Out-Null;" ^
-  "  Start-Sleep -Seconds 2;" ^
-  "} elseif (Test-Path $lockPath) {" ^
-  "  Write-Host '[INFO] Old lock file found; process already gone.';" ^
-  "};" ^
-  "Remove-Item $lockPath -Force -ErrorAction SilentlyContinue"
-
-exit /b 0

@@ -1,13 +1,17 @@
+import { Users } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
 import { withOrgContext } from '@/shared/auth/session';
 import { listEmployeeTeamRoster } from '@/modules/employee-app/application/employee-operational';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { EmployeeEmptyState } from '@/modules/employee-app/ui/employee-empty-state';
 import {
-  employeeListPanelClass,
-  employeeListRowClass,
-  employeePageStackClass,
+  employeeIconTileClass,
+  employeeMetaChipClass,
+  employeeOfficeListPanelClass,
+  employeeOfficePageStackClass,
+  employeePageSubtitleClass,
 } from '@/modules/employee-app/ui/employee-surface-styles';
 
 export default async function EmployeeTeamPage() {
@@ -23,9 +27,9 @@ export default async function EmployeeTeamPage() {
   });
 
   return (
-    <div className={employeePageStackClass}>
+    <div className={employeeOfficePageStackClass}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
+        <p className={employeePageSubtitleClass}>{t('intro')}</p>
         {showWorkforceHubLink ? (
           <Link
             href="/employee/workforce"
@@ -35,42 +39,44 @@ export default async function EmployeeTeamPage() {
           </Link>
         ) : null}
       </div>
-      <ul className={employeeListPanelClass}>
-        {members.map((member) => {
-          const tasksHref = `/employee/tasks?scope=company&assignee=${encodeURIComponent(member.id)}&status=open`;
-          return (
-            <li key={member.id} className={employeeListRowClass}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-[var(--pf-text-primary)]">{member.name}</p>
+      {members.length > 0 ? (
+        <ul className={employeeOfficeListPanelClass}>
+          {members.map((member) => {
+            const tasksHref = `/employee/tasks?scope=company&assignee=${encodeURIComponent(member.id)}&status=open`;
+            return (
+              <li
+                key={member.id}
+                className="flex items-center gap-3 bg-[var(--pf-bg-surface)] px-4 py-2.5 text-sm transition-colors hover:bg-[var(--pf-bg-subtle)] md:px-4 md:py-2"
+              >
+                <span className={employeeIconTileClass} aria-hidden>
+                  <Users className="size-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-[var(--pf-text-primary)]">
+                    {member.name}
+                  </p>
                   {member.title ? (
-                    <p className="text-xs text-[var(--pf-text-secondary)]">{member.title}</p>
+                    <p className="truncate text-xs text-[var(--pf-text-secondary)]">{member.title}</p>
                   ) : null}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
-                  <Link
-                    href={tasksHref}
-                    className="rounded-full border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-2.5 py-1 text-xs font-semibold text-[var(--pf-text-primary)] transition-colors hover:border-[var(--pf-border-strong)] hover:bg-[var(--pf-bg-elevated)]"
-                  >
+                  <Link href={tasksHref} className={employeeMetaChipClass}>
                     {t('openTasks', { count: member.openTaskCount })}
                   </Link>
                   <Link
                     href={tasksHref}
-                    className="text-xs font-medium text-[var(--pf-accent)] hover:underline"
+                    className="text-xs font-semibold text-[var(--pf-accent)] hover:underline"
                   >
                     {t('viewTasks')}
                   </Link>
                 </div>
-              </div>
-            </li>
-          );
-        })}
-        {members.length === 0 ? (
-          <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">
-            {t('empty')}
-          </li>
-        ) : null}
-      </ul>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <EmployeeEmptyState title={t('empty')} icon={Users} />
+      )}
     </div>
   );
 }

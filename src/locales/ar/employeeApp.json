@@ -98,9 +98,11 @@
     "notLinked": "حساب الموظف غير مرتبط. تواصل مع المدير",
     "installApp": "تثبيت التطبيق",
     "anonymousName": "هناك",
+    "secondaryLinksTitle": "وصول سريع",
     "workSummary": {
       "title": "ما يجب القيام به اليوم",
       "subtitle": "عملك الحالي في لمحة",
+      "priorityHeading": "مهام تتطلب الانتباه",
       "dueToday": "مستحق اليوم",
       "overdue": "متأخر",
       "dueTodayBadge": "اليوم",
@@ -242,9 +244,11 @@
     "createDescription": "أدخل اسمًا للبدء. كل شيء آخر اختياري.",
     "createSubmit": "إنشاء مشروع",
     "overview": {
+      "eyebrow": "مساحة المشروع",
       "subtitle": "نظرة عامة على المشروع"
     },
     "stats": {
+      "sectionTitle": "ملخص المهام",
       "totalTasks": "إجمالي المهام",
       "openTasks": "مهام مفتوحة",
       "dueToday": "مستحق اليوم",
@@ -338,10 +342,13 @@
   "lists": {
     "tasksEmpty": "لا مهام مسندة بعد",
     "projectsEmpty": "لا مشاريع مسندة بعد",
+    "projectsEmptyHint": "ستظهر هنا المشاريع المخصصة لك.",
+    "openProject": "فتح",
     "projectSearchLabel": "بحث مشروع",
     "projectSearchPlaceholder": "رقم المشروع أو الاسم…",
     "hoursEmpty": "لا ساعات مسجلة بعد",
     "documentsEmpty": "لا مستندات بعد",
+    "documentDate": "{date}",
     "noCategory": "بدون تصنيف",
     "noValue": "لا يوجد"
   },

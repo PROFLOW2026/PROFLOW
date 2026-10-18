@@ -1,17 +1,25 @@
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
-import { PageHeader } from '@/components/ui/page-header';
 import { requireExternalContext } from '@/modules/contractor-access';
+import {
+  portalItemCardClass,
+  portalItemCardDangerClass,
+  portalPageHeaderClass,
+  portalPageStackClass,
+  portalPageSubtitleClass,
+  portalPageTitleClass,
+  portalSegmentBarClass,
+  portalSegmentClass,
+} from '@/modules/contractor-portal/ui/portal-surface';
 import { listContractorDefects, resolveContractorProjectOrganization } from '@/modules/defects';
+import type { DefectStatusFilter } from '@/modules/defects/domain/lifecycle';
 import { defectStatusTone } from '@/modules/defects/ui/tones';
 import { loadOrNotFound } from '@/modules/site-log/shared/page-guard';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
-import { portalSegmentBarClass, portalSegmentClass } from '@/modules/contractor-portal/ui/portal-surface';
 import { Link } from '@/shared/i18n/navigation';
-import type { DefectStatusFilter } from '@/modules/defects/domain/lifecycle';
+import { cn } from '@/shared/ui/cn';
 
 export default async function ContractorDefectsPage({
   params,
@@ -35,8 +43,11 @@ export default async function ContractorDefectsPage({
   const base = `/contractor/projects/${projectId}/defects`;
 
   return (
-    <div className="flex min-w-0 flex-col gap-4 pb-6">
-      <PageHeader title={t('portal.title')} description={t('portal.description')} />
+    <div className={portalPageStackClass}>
+      <header className={portalPageHeaderClass}>
+        <h1 className={portalPageTitleClass}>{t('portal.title')}</h1>
+        <p className={portalPageSubtitleClass}>{t('portal.description')}</p>
+      </header>
 
       <nav className={portalSegmentBarClass} aria-label={t('portal.title')}>
         <Link href={base} className={portalSegmentClass(status === 'active')} aria-current={status === 'active' ? 'page' : undefined}>
@@ -50,25 +61,30 @@ export default async function ContractorDefectsPage({
       {list.items.length === 0 ? (
         <EmptyState title={t('portal.empty')} size="sm" />
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
           {list.items.map((item) => (
             <li key={item.id}>
-              <Link href={`${base}/${item.id}`} className="block">
-                <Card>
-                  <CardContent className="flex flex-col gap-2 p-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="min-w-0 font-medium">
-                        <span className="pf-numeric text-[var(--pf-text-secondary)]">#{item.referenceNo} </span>
-                        {item.title}
-                      </p>
-                      <Badge tone={defectStatusTone(item.status)}>{t(`status.${item.status}`)}</Badge>
-                    </div>
-                    <p className="text-xs text-[var(--pf-text-secondary)]">
-                      {t('list.cycle', { n: item.cycleNo })}
-                      {item.dueDate ? ` · ${t('list.due', { date: item.dueDate })}` : ''}
-                    </p>
-                  </CardContent>
-                </Card>
+              <Link
+                href={`${base}/${item.id}`}
+                className={cn(
+                  portalItemCardClass,
+                  'block hover:bg-[var(--pf-teal-50)]/30',
+                  item.status === 'open' || item.status === 'reopened' || item.status === 'assigned'
+                    ? portalItemCardDangerClass
+                    : null,
+                )}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <p className="min-w-0 font-semibold text-[var(--pf-text-primary)]">
+                    <span className="pf-numeric text-[var(--pf-text-secondary)]">#{item.referenceNo} </span>
+                    {item.title}
+                  </p>
+                  <Badge tone={defectStatusTone(item.status)}>{t(`status.${item.status}`)}</Badge>
+                </div>
+                <p className="text-xs text-[var(--pf-text-secondary)]">
+                  {t('list.cycle', { n: item.cycleNo })}
+                  {item.dueDate ? ` · ${t('list.due', { date: item.dueDate })}` : ''}
+                </p>
               </Link>
             </li>
           ))}
@@ -81,4 +97,3 @@ export default async function ContractorDefectsPage({
 function parseStatus(value?: string): DefectStatusFilter {
   return value === 'all' ? 'all' : 'active';
 }
-

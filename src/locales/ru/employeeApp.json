@@ -98,9 +98,11 @@
     "notLinked": "Учётная запись сотрудника не связана. Обратитесь к руководителю",
     "installApp": "Установить приложение",
     "anonymousName": "коллега",
+    "secondaryLinksTitle": "Быстрый доступ",
     "workSummary": {
       "title": "Что сделать сегодня",
       "subtitle": "Ваша текущая работа одним взглядом",
+      "priorityHeading": "Задачи, требующие внимания",
       "dueToday": "На сегодня",
       "overdue": "Просрочено",
       "dueTodayBadge": "Сегодня",
@@ -242,9 +244,11 @@
     "createDescription": "Введите название для начала. Всё остальное необязательно.",
     "createSubmit": "Создать проект",
     "overview": {
+      "eyebrow": "Рабочая область проекта",
       "subtitle": "Обзор проекта"
     },
     "stats": {
+      "sectionTitle": "Сводка по задачам",
       "totalTasks": "Всего задач",
       "openTasks": "Открытые задачи",
       "dueToday": "На сегодня",
@@ -338,10 +342,13 @@
   "lists": {
     "tasksEmpty": "Нет назначенных задач",
     "projectsEmpty": "Нет назначенных проектов",
+    "projectsEmptyHint": "Назначенные вам проекты появятся здесь.",
+    "openProject": "Открыть",
     "projectSearchLabel": "Поиск проектов",
     "projectSearchPlaceholder": "Номер или название проекта…",
     "hoursEmpty": "Нет записанных часов",
     "documentsEmpty": "Нет документов",
+    "documentDate": "{date}",
     "noCategory": "Без категории",
     "noValue": "нет"
   },

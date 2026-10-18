@@ -34,24 +34,27 @@ export function EmployeeShellHeader() {
   }
 
   return (
-    <header className="-mx-4 mb-4 border-b border-[var(--pf-border)] px-4 py-3">
+    <header className="-mx-4 mb-5 border-b border-[var(--pf-border-default)] bg-[var(--pf-bg-page)] px-4 pb-3 pt-0.5 md:-mx-6 md:px-6">
       <div className="flex items-center gap-2">
         {header.showBack ? (
           <button
             type="button"
             onClick={handleBack}
             className={cn(
-              'inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-lg',
+              'inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center gap-1 rounded-xl',
               'text-sm font-medium text-[var(--pf-text-primary)]',
-              'hover:bg-[var(--pf-bg-surface)] active:bg-[var(--pf-bg-surface)]',
+              'hover:bg-[var(--pf-bg-subtle)] active:bg-[var(--pf-action-subtle-active)]',
+              'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
             )}
             aria-label={t('back.label')}
           >
             <ChevronLeft className={rtlFlipClassName('size-5 shrink-0')} aria-hidden />
-            <span>{t('back.label')}</span>
+            <span className="hidden sm:inline">{t('back.label')}</span>
           </button>
         ) : null}
-        <h1 className="min-w-0 flex-1 truncate text-lg font-bold">{title}</h1>
+        <h1 className="min-w-0 flex-1 truncate text-lg font-bold tracking-tight text-[var(--pf-text-primary)] md:text-xl">
+          {title}
+        </h1>
       </div>
     </header>
   );

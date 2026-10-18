@@ -2,16 +2,23 @@ import { CalendarClock, MapPin } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
-import { PageHeader } from '@/components/ui/page-header';
 import { requireExternalContext } from '@/modules/contractor-access';
+import {
+  portalItemCardClass,
+  portalPageHeaderClass,
+  portalPageStackClass,
+  portalPageSubtitleClass,
+  portalPageTitleClass,
+  portalSegmentBarClass,
+  portalSegmentClass,
+} from '@/modules/contractor-portal/ui/portal-surface';
 import { listContractorSchedule, type ContractorEventListItem } from '@/modules/coordination';
 import { partyTone, statusTone } from '@/modules/coordination/ui/tones';
 import { formatInstant } from '@/shared/dates';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
-import { portalSegmentBarClass, portalSegmentClass } from '@/modules/contractor-portal/ui/portal-surface';
 import { Link } from '@/shared/i18n/navigation';
+import { cn } from '@/shared/ui/cn';
 
 export default async function ContractorSchedulePage({
   params,
@@ -35,8 +42,11 @@ export default async function ContractorSchedulePage({
   const base = `/contractor/projects/${projectId}/schedule`;
 
   return (
-    <div className="flex flex-col gap-4">
-      <PageHeader title={t('portal.scheduleTitle')} description={t('portal.scheduleDescription')} />
+    <div className={portalPageStackClass}>
+      <header className={portalPageHeaderClass}>
+        <h1 className={portalPageTitleClass}>{t('portal.scheduleTitle')}</h1>
+        <p className={portalPageSubtitleClass}>{t('portal.scheduleDescription')}</p>
+      </header>
       <nav className={portalSegmentBarClass} aria-label={t('portal.scheduleTitle')}>
         <Link href={base} className={portalSegmentClass(scope === 'upcoming')} aria-current={scope === 'upcoming' ? 'page' : undefined}>
           {t('portal.upcoming')}
@@ -52,7 +62,7 @@ export default async function ContractorSchedulePage({
           size="sm"
         />
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
           {items.map((item) => (
             <li key={item.id}>
               <ScheduleCard item={item} projectId={projectId} locale={locale} t={t} />
@@ -76,36 +86,37 @@ function ScheduleCard({
   t: Awaited<ReturnType<typeof getTranslations<'coordination'>>>;
 }) {
   return (
-    <Link href={`/contractor/projects/${projectId}/events/${item.id}`} className="block">
-      <Card className="flex flex-col gap-2 p-4 active:bg-[var(--pf-surface-hover)]">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-base font-semibold">{item.title}</span>
-          {item.status !== 'scheduled' ? <Badge tone={statusTone(item.status)}>{t(`statuses.${item.status}`)}</Badge> : null}
-          {item.needsAttention ? <Badge tone="warning">{t('portal.needsAnswer')}</Badge> : null}
-        </div>
+    <Link
+      href={`/contractor/projects/${projectId}/events/${item.id}`}
+      className={cn(portalItemCardClass, 'block hover:bg-[var(--pf-teal-50)]/30')}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-base font-semibold text-[var(--pf-text-primary)]">{item.title}</span>
+        {item.status !== 'scheduled' ? <Badge tone={statusTone(item.status)}>{t(`statuses.${item.status}`)}</Badge> : null}
+        {item.needsAttention ? <Badge tone="warning">{t('portal.needsAnswer')}</Badge> : null}
+      </div>
+      <span className="inline-flex items-center gap-1.5 text-sm text-[var(--pf-text-secondary)]">
+        <CalendarClock className="size-4" aria-hidden />
+        {formatInstant(item.startsAt, locale, item.timeZone)}
+      </span>
+      {item.locationName ? (
         <span className="inline-flex items-center gap-1.5 text-sm text-[var(--pf-text-secondary)]">
-          <CalendarClock className="size-4" aria-hidden />
-          {formatInstant(item.startsAt, locale, item.timeZone)}
+          <MapPin className="size-4" aria-hidden />
+          {item.locationName}
         </span>
-        {item.locationName ? (
-          <span className="inline-flex items-center gap-1.5 text-sm text-[var(--pf-text-secondary)]">
-            <MapPin className="size-4" aria-hidden />
-            {item.locationName}
-          </span>
-        ) : null}
-        {item.preparationDeadline && item.status === 'scheduled' ? (
-          <span className="text-sm text-[var(--pf-text-secondary)]">
-            {t('list.prepareBy', { date: formatInstant(item.preparationDeadline, locale, item.timeZone) })}
-          </span>
-        ) : null}
-        <div className="flex flex-wrap gap-2">
-          {item.invitations.map((invitation) => (
-            <Badge key={invitation.participantId} tone={partyTone(invitation.latestStatus ?? 'waiting')}>
-              {(invitation.tradeLabel ?? invitation.partyName) + ': ' + t(`partyStatus.${invitation.latestStatus ?? 'waiting'}`)}
-            </Badge>
-          ))}
-        </div>
-      </Card>
+      ) : null}
+      {item.preparationDeadline && item.status === 'scheduled' ? (
+        <span className="text-sm text-[var(--pf-text-secondary)]">
+          {t('list.prepareBy', { date: formatInstant(item.preparationDeadline, locale, item.timeZone) })}
+        </span>
+      ) : null}
+      <div className="flex flex-wrap gap-2">
+        {item.invitations.map((invitation) => (
+          <Badge key={invitation.participantId} tone={partyTone(invitation.latestStatus ?? 'waiting')}>
+            {(invitation.tradeLabel ?? invitation.partyName) + ': ' + t(`partyStatus.${invitation.latestStatus ?? 'waiting'}`)}
+          </Badge>
+        ))}
+      </div>
     </Link>
   );
 }

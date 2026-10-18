@@ -4,12 +4,21 @@ import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { composePortalSections } from '@/modules/contractor-portal/application/compose-sections';
 import { loadPortalSession } from '@/modules/contractor-portal/application/load-portal-session';
-import { buildPortalProjectNav } from '@/modules/contractor-portal/domain/nav';
 import { isContractorFinanceRouteKey } from '@/modules/contractor-portal/domain/mobile-tabs';
+import { buildPortalProjectNav } from '@/modules/contractor-portal/domain/nav';
 import { portalOrganizationLabel, portalProjectLabel } from '@/modules/contractor-portal/ui/labels';
 import { PortalNavIcon } from '@/modules/contractor-portal/ui/portal-nav-icon';
 import { PortalSectionList } from '@/modules/contractor-portal/ui/portal-sections';
-import { employeeHubCardClass, employeePageStackClass } from '@/modules/employee-app/ui/employee-surface-styles';
+import {
+  portalModuleGridClass,
+  portalModuleTileClass,
+  portalPageHeaderClass,
+  portalPageStackClass,
+  portalPageSubtitleClass,
+  portalPageTitleClass,
+  portalPanelClass,
+  portalSectionLabelClass,
+} from '@/modules/contractor-portal/ui/portal-surface';
 import { Link } from '@/shared/i18n/navigation';
 
 export async function generateMetadata({
@@ -41,10 +50,10 @@ export default async function ContractorPortalFinanceHubPage() {
     .filter((block) => block.links.length > 0);
 
   return (
-    <div className={employeePageStackClass}>
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold">{t('nav.finance')}</h1>
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('hub.finance.subtitle')}</p>
+    <div className={portalPageStackClass}>
+      <header className={portalPageHeaderClass}>
+        <h1 className={portalPageTitleClass}>{t('nav.finance')}</h1>
+        <p className={portalPageSubtitleClass}>{t('hub.finance.subtitle')}</p>
       </header>
 
       {projects.length === 0 ? (
@@ -62,22 +71,27 @@ export default async function ContractorPortalFinanceHubPage() {
           {projectBlocks.length === 0 ? (
             <EmptyState icon={KeyRound} title={t('hub.finance.empty')} description={t('hub.finance.subtitle')} />
           ) : (
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-5">
               {projectBlocks.map(({ project, links }) => (
-                <section key={project.projectId} className="space-y-2">
-                  <h2 className="text-sm font-semibold">
-                    {portalProjectLabel(t, project)}
-                    <span className="font-normal text-[var(--pf-text-secondary)]">
-                      {' · '}
+                <section key={project.projectId} className={portalPanelClass}>
+                  <div className="mb-3 space-y-1">
+                    <h2 className="text-base font-semibold tracking-tight text-[var(--pf-text-primary)]">
+                      {portalProjectLabel(t, project)}
+                    </h2>
+                    <p className={portalSectionLabelClass}>
                       {portalOrganizationLabel(t, project.organizationName)}
-                    </span>
-                  </h2>
-                  <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    </p>
+                  </div>
+                  <ul className={portalModuleGridClass}>
                     {links.map((item) => (
                       <li key={item.key}>
-                        <Link href={item.href} className={employeeHubCardClass}>
-                          <PortalNavIcon navKey={item.key} className="size-4 shrink-0 text-[var(--pf-accent)]" />
-                          <span className="truncate text-sm font-medium">{t(item.labelKey)}</span>
+                        <Link href={item.href} className={portalModuleTileClass}>
+                          <span className="flex size-9 items-center justify-center rounded-xl bg-[var(--pf-teal-50)] text-[var(--pf-accent)] ring-1 ring-[var(--pf-teal-100)]">
+                            <PortalNavIcon navKey={item.key} className="size-4" />
+                          </span>
+                          <span className="truncate text-sm font-medium text-[var(--pf-text-primary)]">
+                            {t(item.labelKey)}
+                          </span>
                         </Link>
                       </li>
                     ))}

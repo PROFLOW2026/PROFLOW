@@ -6,9 +6,9 @@ import { employeeHasPermission } from '@/modules/employee-app/application/load-e
 import { authorize } from '@/shared/permissions/authorize';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
-  employeeListPanelClass,
   employeeListRowLinkClass,
-  employeePageStackClass,
+  employeeOfficeListPanelClass,
+  employeeOfficePageStackClass,
   employeeSectionTitleClass,
 } from '@/modules/employee-app/ui/employee-surface-styles';
 
@@ -35,10 +35,10 @@ export default async function EmployeeReportsPage() {
   });
 
   return (
-    <div className={employeePageStackClass}>
+    <div className={employeeOfficePageStackClass}>
       <h1 className={employeeSectionTitleClass}>{t('title')}</h1>
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
-      <ul className={employeeListPanelClass}>
+      <ul className={employeeOfficeListPanelClass}>
         {links.map((item) => (
           <li key={item.href}>
             <Link href={item.href} className={employeeListRowLinkClass}>

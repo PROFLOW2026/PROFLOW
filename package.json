@@ -13,7 +13,7 @@
     "check:cad-licensing": "node scripts/check-cad-licensing-denylist.mjs",
     "predev": "npm run copy-pdf-worker && npm run copy-pf-cad-wasm && npm run copy-cad-assets",
     "dev": "next dev",
-    "dev:local": "next dev -p 3100",
+    "dev:local": "next dev --turbopack -p 3100",
     "build": "node scripts/copy-pdf-worker.mjs && node scripts/copy-pf-cad-wasm.mjs && node scripts/copy-cad-assets.mjs && next build --webpack",
     "start": "next start",
     "lint": "eslint .",

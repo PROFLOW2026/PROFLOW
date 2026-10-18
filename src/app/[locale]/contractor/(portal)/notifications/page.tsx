@@ -12,11 +12,15 @@ import { PORTAL_NOTIFICATION_SOURCE } from '@/modules/contractor-portal/applicat
 import type { PortalNotificationPage } from '@/modules/contractor-portal/domain/notifications';
 import { isLivePortalHref } from '@/modules/contractor-portal/domain/routes';
 import {
-  employeeListPanelClass,
-  employeeListRowLinkClass,
-  employeePageStackClass,
-  employeeSecondaryButtonClass,
-} from '@/modules/employee-app/ui/employee-surface-styles';
+  portalLinkQuietClass,
+  portalListPanelClass,
+  portalListRowLinkClass,
+  portalPageHeaderClass,
+  portalPageStackClass,
+  portalPageSubtitleClass,
+  portalPageTitleClass,
+  portalSecondaryButtonClass,
+} from '@/modules/contractor-portal/ui/portal-surface';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 
@@ -53,11 +57,11 @@ export default async function ContractorPortalNotificationsPage({ searchParams }
   const timeFormat = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' });
 
   return (
-    <div className={employeePageStackClass}>
-      <header className="flex items-start justify-between gap-3">
-        <div className="space-y-1">
-          <h1 className="text-xl font-bold">{t('notifications.title')}</h1>
-          <p className="text-sm text-[var(--pf-text-secondary)]">
+    <div className={portalPageStackClass}>
+      <header className={cn(portalPageHeaderClass, 'flex items-start justify-between gap-3')}>
+        <div className="min-w-0 space-y-1.5">
+          <h1 className={portalPageTitleClass}>{t('notifications.title')}</h1>
+          <p className={portalPageSubtitleClass}>
             {page.unreadCount > 0
               ? t('notifications.unreadSummary', { count: page.unreadCount })
               : t('notifications.subtitle')}
@@ -65,7 +69,7 @@ export default async function ContractorPortalNotificationsPage({ searchParams }
         </div>
         {page.unreadCount > 0 ? (
           <form action={markAllPortalNotificationsReadAction}>
-            <button type="submit" className={employeeSecondaryButtonClass}>
+            <button type="submit" className={portalSecondaryButtonClass}>
               {t('notifications.markAllRead')}
             </button>
           </form>
@@ -75,14 +79,16 @@ export default async function ContractorPortalNotificationsPage({ searchParams }
       {page.items.length === 0 ? (
         <EmptyState icon={Bell} title={t('notifications.empty.title')} description={t('notifications.empty.description')} />
       ) : (
-        <ul className={employeeListPanelClass}>
+        <ul className={portalListPanelClass}>
           {page.items.map((item) => {
             const unread = item.readAt === null;
             const href = isLivePortalHref(item.href) ? item.href : null;
             const body = (
               <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className={cn('text-sm', unread ? 'font-semibold' : 'font-medium')}>{item.title}</p>
+                <div className="min-w-0 space-y-0.5">
+                  <p className={cn('text-sm', unread ? 'font-semibold text-[var(--pf-text-primary)]' : 'font-medium')}>
+                    {item.title}
+                  </p>
                   {item.body ? <p className="text-xs text-[var(--pf-text-secondary)]">{item.body}</p> : null}
                   <p className="mt-0.5 text-xs text-[var(--pf-text-muted)]">
                     {timeFormat.format(new Date(item.createdAt))}
@@ -95,20 +101,20 @@ export default async function ContractorPortalNotificationsPage({ searchParams }
               </div>
             );
             return (
-              <li key={item.id} className={cn(unread && 'bg-[var(--pf-accent-soft)]/40')}>
+              <li key={item.id} className={cn(unread && 'bg-[var(--pf-teal-50)]/50')}>
                 {href ? (
-                  <Link href={href} className={employeeListRowLinkClass}>
+                  <Link href={href} className={portalListRowLinkClass}>
                     {body}
                   </Link>
                 ) : unread ? (
                   <form action={markPortalNotificationReadAction.bind(null, item.id)}>
-                    <button type="submit" className={cn(employeeListRowLinkClass, 'w-full text-start')}>
+                    <button type="submit" className={cn(portalListRowLinkClass, 'w-full text-start')}>
                       {body}
                       <span className="sr-only">{t('notifications.markRead')}</span>
                     </button>
                   </form>
                 ) : (
-                  <div className="px-4 py-3">{body}</div>
+                  <div className="px-4 py-3.5">{body}</div>
                 )}
               </li>
             );
@@ -119,7 +125,7 @@ export default async function ContractorPortalNotificationsPage({ searchParams }
       {page.nextCursor ? (
         <Link
           href={{ pathname: '/contractor/notifications', query: { cursor: page.nextCursor } }}
-          className="self-center text-sm font-medium text-[var(--pf-primary)] hover:underline"
+          className={cn(portalLinkQuietClass, 'self-center')}
         >
           {t('notifications.loadOlder')}
         </Link>

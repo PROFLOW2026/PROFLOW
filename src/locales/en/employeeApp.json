@@ -98,9 +98,11 @@
     "notLinked": "Employee account is not linked. Contact your manager",
     "installApp": "Install app",
     "anonymousName": "there",
+    "secondaryLinksTitle": "Quick access",
     "workSummary": {
       "title": "What to do today",
       "subtitle": "Your current work at a glance",
+      "priorityHeading": "Tasks that need attention",
       "dueToday": "Due today",
       "overdue": "Overdue",
       "dueTodayBadge": "Today",
@@ -451,9 +453,11 @@
     "createDescription": "Enter a name to get started. Everything else is optional.",
     "createSubmit": "Create project",
     "overview": {
+      "eyebrow": "Project workspace",
       "subtitle": "Project overview"
     },
     "stats": {
+      "sectionTitle": "Task summary",
       "totalTasks": "Total tasks",
       "openTasks": "Open tasks",
       "dueToday": "Due today",
@@ -547,10 +551,13 @@
   "lists": {
     "tasksEmpty": "No tasks assigned yet",
     "projectsEmpty": "No projects assigned yet",
+    "projectsEmptyHint": "Projects assigned to you will show up here.",
+    "openProject": "Open",
     "projectSearchLabel": "Search projects",
     "projectSearchPlaceholder": "Project number or name…",
     "hoursEmpty": "No hours logged yet",
     "documentsEmpty": "No documents yet",
+    "documentDate": "{date}",
     "noCategory": "Uncategorized",
     "noValue": "None"
   },

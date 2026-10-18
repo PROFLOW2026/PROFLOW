@@ -36,10 +36,27 @@ import {
 import { ContractorBottomNav } from './contractor-bottom-nav';
 import { portalOrganizationLabel, portalProjectLabel } from './labels';
 import { PortalNavIcon } from './portal-nav-icon';
-import { isPortalPlanViewerPath, portalMainWidthClass, portalPlanViewerWidthClass } from './portal-surface';
+import {
+  isPortalPlanViewerPath,
+  portalSectionLabelClass,
+  portalShellColumnClass,
+  portalShellFrameClass,
+  portalShellMainClass,
+  portalShellMainPlanViewerClass,
+  portalSideNavClass,
+  portalSideNavLinkClass,
+  portalSideNavRailClass,
+  portalTopBarClass,
+} from './portal-surface';
 
 type Translate = ReturnType<typeof useTranslations>;
 
+/**
+ * Contractor shell scroll model (same as employee):
+ * - Document/body is the single scroll root for normal list/form pages.
+ * - Do NOT put overflow-y-auto on <main> inside an h-svh overflow-hidden frame.
+ * - Side nav may scroll independently when the nav list is long.
+ */
 function useActiveProject(projects: readonly PortalShellProject[]): PortalShellProject | null {
   const pathname = usePathname();
   const projectId = projectIdFromPortalPath(pathname);
@@ -66,14 +83,13 @@ function SideNavLink({ item, active, t }: { item: PortalNavItem; active: boolean
     <Link
       href={item.href}
       aria-current={active ? 'page' : undefined}
-      className={cn(
-        'flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors',
-        active
-          ? 'bg-[var(--pf-accent-soft)] text-[var(--pf-accent)]'
-          : 'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-surface-2)] hover:text-[var(--pf-text)]',
-      )}
+      className={portalSideNavLinkClass(active)}
     >
-      <PortalNavIcon navKey={item.key} className="size-4 shrink-0" />
+      <span className={portalSideNavRailClass(active)} aria-hidden />
+      <PortalNavIcon
+        navKey={item.key}
+        className={cn('size-4 shrink-0', active ? 'text-[var(--pf-accent)]' : 'text-[var(--pf-text-muted)]')}
+      />
       <span className="min-w-0 truncate">{t(item.labelKey)}</span>
     </Link>
   );
@@ -105,7 +121,8 @@ function ProjectSwitcher({
         aria-label={t('shell.switchProject')}
         className={cn(
           pressableClassName,
-          'flex min-h-11 min-w-0 items-center gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm',
+          'flex min-h-11 min-w-0 items-center gap-2 rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm shadow-sm',
+          'hover:border-[var(--pf-teal-200)] hover:bg-[var(--pf-teal-50)]/40',
           'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
           className,
         )}
@@ -147,8 +164,8 @@ function NotificationBellLink({ href, unread }: { href: string; unread: number |
       aria-label={count > 0 ? t('shell.notificationsUnread', { count }) : t('nav.notifications')}
       className={cn(
         pressableChromeClassName,
-        'relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-md px-2',
-        'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)]',
+        'relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl px-2',
+        'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-teal-50)] hover:text-[var(--pf-accent)]',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
       )}
     >
@@ -190,11 +207,11 @@ function UserMenu({
         className={cn(
           pressableClassName,
           'flex min-h-11 min-w-11 items-center justify-center rounded-full p-1.5',
-          'hover:bg-[var(--pf-bg-muted)] active:bg-[var(--pf-action-subtle-active)]',
+          'hover:bg-[var(--pf-teal-50)] active:bg-[var(--pf-action-subtle-active)]',
           'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
         )}
       >
-        <span className="flex size-8 items-center justify-center rounded-full bg-[var(--pf-teal-100)] text-sm font-semibold text-[var(--pf-teal-800)]">
+        <span className="flex size-8 items-center justify-center rounded-full bg-[var(--pf-teal-100)] text-sm font-semibold text-[var(--pf-teal-800)] ring-1 ring-[var(--pf-teal-200)]">
           {displayName.charAt(0).toUpperCase()}
         </span>
       </DropdownMenuTrigger>
@@ -287,14 +304,14 @@ function ProjectModuleShortcuts({
   ].filter((group) => group.items.length > 0);
 
   return (
-    <details className="rounded-lg">
-      <summary className="flex min-h-11 cursor-pointer list-none items-center rounded-lg px-3 text-sm font-medium text-[var(--pf-text-secondary)] hover:bg-[var(--pf-surface-2)] hover:text-[var(--pf-text)] [&::-webkit-details-marker]:hidden">
+    <details className="group rounded-lg open:pb-1">
+      <summary className="flex min-h-10 cursor-pointer list-none items-center rounded-lg px-2.5 text-sm font-medium text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-subtle)] hover:text-[var(--pf-text-primary)] [&::-webkit-details-marker]:hidden">
         {t('shell.projectShortcuts')}
       </summary>
-      <div className="flex flex-col gap-3 px-1 pb-2">
+      <div className="flex flex-col gap-3 px-0.5 pb-1 pt-1">
         {groups.map((group) => (
           <div key={group.key} className="flex flex-col gap-0.5">
-            <p className="px-3 pt-1 text-xs font-semibold text-[var(--pf-text-secondary)]">{t(group.labelKey)}</p>
+            <p className={cn(portalSectionLabelClass, 'px-2.5')}>{t(group.labelKey)}</p>
             <ul className="flex flex-col gap-0.5">
               {group.items.map((item) => (
                 <li key={item.key}>
@@ -323,14 +340,13 @@ function MobileTabSideLink({
     <Link
       href={item.href}
       aria-current={active ? 'page' : undefined}
-      className={cn(
-        'flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors',
-        active
-          ? 'bg-[var(--pf-accent-soft)] text-[var(--pf-accent)]'
-          : 'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-surface-2)] hover:text-[var(--pf-text)]',
-      )}
+      className={portalSideNavLinkClass(active)}
     >
-      <PortalNavIcon navKey={iconKey} className="size-4 shrink-0" />
+      <span className={portalSideNavRailClass(active)} aria-hidden />
+      <PortalNavIcon
+        navKey={iconKey}
+        className={cn('size-4 shrink-0', active ? 'text-[var(--pf-accent)]' : 'text-[var(--pf-text-muted)]')}
+      />
       <span className="min-w-0 truncate">{t(item.labelKey)}</span>
     </Link>
   );
@@ -349,77 +365,99 @@ export function ContractorPortalShell({ shell, children }: { shell: PortalShellD
   const notificationsHref = shell.primaryNav.find((item) => item.key === 'notifications')?.href ?? null;
   const accountHref = shell.primaryNav.find((item) => item.key === 'account')?.href ?? null;
   const activeProjectNavKey = activePortalNavKey(pathname, projectItems);
+  const planViewer = isPortalPlanViewerPath(pathname);
 
   return (
-    <div className="flex h-svh overflow-hidden" data-pf-contractor-portal>
-      <nav
-        className="hidden w-[var(--pf-sidebar-width)] shrink-0 flex-col border-e border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] lg:flex print:hidden"
-        aria-label={t('shell.navLabel')}
-      >
-        <div className="flex h-[var(--pf-topbar-height)] items-center gap-2 border-b border-[var(--pf-border-default)] px-4">
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)]" aria-hidden>
-            <HardHat className="size-3.5" />
+    <div className={portalShellFrameClass} data-pf-contractor-portal>
+      <nav className={portalSideNavClass} aria-label={t('shell.navLabel')}>
+        <div className="flex h-[var(--pf-topbar-height)] shrink-0 items-center gap-2.5 border-b border-[var(--pf-border-default)] px-3.5">
+          <span
+            className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)] shadow-sm"
+            aria-hidden
+          >
+            <HardHat className="size-4" />
           </span>
           <span className="min-w-0">
-            <span className="block truncate text-sm font-semibold">{company.vendor ?? t('shell.title')}</span>
+            <span className="block truncate text-sm font-semibold text-[var(--pf-text-primary)]">
+              {company.vendor ?? t('shell.title')}
+            </span>
             {company.organization ? (
-              <span className="block truncate text-xs text-[var(--pf-text-secondary)]">{company.organization}</span>
-            ) : null}
+              <span className="block truncate text-[0.6875rem] text-[var(--pf-text-muted)]">{company.organization}</span>
+            ) : (
+              <span className="block truncate text-[0.6875rem] text-[var(--pf-text-muted)]">{t('shell.title')}</span>
+            )}
           </span>
         </div>
 
-        <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-2">
+        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-2 py-3">
           <ProjectSwitcher projects={shell.projects} active={active} className="w-full" />
 
-          <ul className="flex flex-col gap-0.5">
-            {mobileNav.map((item) => (
-              <li key={item.key}>
-                <MobileTabSideLink item={item} active={item.key === activeMobileTab} t={t} />
-              </li>
-            ))}
-          </ul>
+          <div className="flex flex-col gap-0.5">
+            <p className={cn(portalSectionLabelClass, 'px-2.5 pb-1')}>{t('shell.navLabel')}</p>
+            <ul className="flex flex-col gap-0.5">
+              {mobileNav.map((item) => (
+                <li key={item.key}>
+                  <MobileTabSideLink item={item} active={item.key === activeMobileTab} t={t} />
+                </li>
+              ))}
+            </ul>
+          </div>
 
           {active ? (
-            <ProjectModuleShortcuts items={projectItems} activeKey={activeProjectNavKey} t={t} />
+            <>
+              <div className="mx-2 border-t border-[var(--pf-border-default)]" aria-hidden />
+              <ProjectModuleShortcuts items={projectItems} activeKey={activeProjectNavKey} t={t} />
+            </>
           ) : shell.projects.length > 0 ? (
-            <div className="flex flex-col gap-0.5">
-              <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
-                {t('shell.myProjects')}
-              </p>
-              <ul className="flex flex-col gap-0.5">
-                {shell.projects.map((project) => (
-                  <li key={project.projectId}>
-                    <Link
-                      href={project.homeHref}
-                      className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-[var(--pf-text-secondary)] transition-colors hover:bg-[var(--pf-surface-2)] hover:text-[var(--pf-text)]"
-                    >
-                      <PortalNavIcon navKey="project.home" className="size-4 shrink-0" />
-                      <span className="min-w-0 truncate">{portalProjectLabel(t, project)}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <>
+              <div className="mx-2 border-t border-[var(--pf-border-default)]" aria-hidden />
+              <div className="flex flex-col gap-0.5">
+                <p className={cn(portalSectionLabelClass, 'px-2.5 pb-1')}>{t('shell.myProjects')}</p>
+                <ul className="flex flex-col gap-0.5">
+                  {shell.projects.map((project) => (
+                    <li key={project.projectId}>
+                      <Link href={project.homeHref} className={portalSideNavLinkClass(false)}>
+                        <span className={portalSideNavRailClass(false)} aria-hidden />
+                        <PortalNavIcon navKey="project.home" className="size-4 shrink-0 text-[var(--pf-text-muted)]" />
+                        <span className="min-w-0 truncate">{portalProjectLabel(t, project)}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
           ) : null}
         </div>
       </nav>
 
-      <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+      <div className={portalShellColumnClass}>
         <a
           href="#main"
           className="absolute start-2 -top-[100vh] z-critical h-px w-px overflow-hidden border-0 p-0 whitespace-nowrap opacity-0 focus:top-2 focus:h-auto focus:w-auto focus:overflow-visible focus:opacity-100 focus:rounded-md focus:bg-[var(--pf-bg-surface)] focus:px-3 focus:py-2 focus:text-sm focus:shadow-[var(--pf-shadow-md)]"
         >
           {tCommon('a11y.skipToContent')}
         </a>
-        <header className="sticky top-0 z-40 flex h-[var(--pf-topbar-height)] w-full shrink-0 items-center gap-2 border-b border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-4 print:hidden sm:gap-3">
-          <span className="min-w-0 lg:hidden">
-            <span className="block max-w-40 truncate text-sm font-semibold">{company.vendor ?? t('shell.title')}</span>
-            {company.organization ? (
-              <span className="block max-w-40 truncate text-xs text-[var(--pf-text-secondary)]">{company.organization}</span>
-            ) : null}
+        <header className={portalTopBarClass}>
+          <span className="flex min-w-0 items-center gap-2.5 lg:hidden">
+            <span
+              className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)]"
+              aria-hidden
+            >
+              <HardHat className="size-3.5" />
+            </span>
+            <span className="min-w-0">
+              <span className="block max-w-40 truncate text-sm font-semibold text-[var(--pf-text-primary)]">
+                {company.vendor ?? t('shell.title')}
+              </span>
+              {company.organization ? (
+                <span className="block max-w-40 truncate text-[0.6875rem] text-[var(--pf-text-muted)]">
+                  {company.organization}
+                </span>
+              ) : null}
+            </span>
           </span>
           <div className="min-w-0 flex-1" />
-          <ProjectSwitcher projects={shell.projects} active={active} className="max-w-48 lg:hidden" />
+          <ProjectSwitcher projects={shell.projects} active={active} className="max-w-52 lg:hidden" />
           {notificationsHref ? <NotificationBellLink href={notificationsHref} unread={shell.unreadNotifications} /> : null}
           <UserMenu
             principalName={shell.principalName}
@@ -428,13 +466,7 @@ export function ContractorPortalShell({ shell, children }: { shell: PortalShellD
             accountHref={accountHref}
           />
         </header>
-        <main
-          id="main"
-          className={cn(
-            'mx-auto min-h-0 flex-1 overflow-y-auto bg-[var(--pf-bg-page)] px-4 pt-4 pb-[var(--pf-employee-main-bottom)] lg:pb-6',
-            isPortalPlanViewerPath(pathname) ? portalPlanViewerWidthClass : portalMainWidthClass,
-          )}
-        >
+        <main id="main" className={planViewer ? portalShellMainPlanViewerClass : portalShellMainClass}>
           {children}
         </main>
         <ContractorBottomNav items={mobileNav} />

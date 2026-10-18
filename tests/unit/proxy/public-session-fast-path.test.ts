@@ -25,9 +25,12 @@ describe('proxy public session fast path', () => {
     expect(isPublicSessionFastPathCandidate('/he-IL/portal-access')).toBe(true);
     expect(isPublicSessionFastPathCandidate('/he-IL/legal/terms')).toBe(true);
     expect(isPublicSessionFastPathCandidate('/he-IL/legal/privacy')).toBe(true);
+    expect(isPublicSessionFastPathCandidate('/he-IL/employee/login')).toBe(true);
+    expect(isPublicSessionFastPathCandidate('/he-IL/contractor/sign-in')).toBe(true);
+    expect(isPublicSessionFastPathCandidate('/he-IL/contractor/activate')).toBe(true);
     expect(isPublicSessionFastPathCandidate('/he-IL/today')).toBe(false);
     expect(isPublicSessionFastPathCandidate('/he-IL/projects/abc')).toBe(false);
-    expect(isPublicSessionFastPathCandidate('/he-IL/contractor/sign-in')).toBe(false);
+    expect(isPublicSessionFastPathCandidate('/he-IL/contractor')).toBe(false);
   });
 
   it('skips session refresh on legal paths even with auth cookies', () => {
@@ -42,6 +45,27 @@ describe('proxy public session fast path', () => {
       shouldSkipProxySessionRefresh(
         req('/he-IL/sign-in', { 'sb-test-auth-token': '1' }),
         '/he-IL/sign-in',
+      ),
+    ).toBe(false);
+  });
+
+  it('skips employee/contractor login for anonymous visitors only', () => {
+    expect(
+      shouldSkipProxySessionRefresh(req('/he-IL/employee/login'), '/he-IL/employee/login'),
+    ).toBe(true);
+    expect(
+      shouldSkipProxySessionRefresh(req('/he-IL/contractor/sign-in'), '/he-IL/contractor/sign-in'),
+    ).toBe(true);
+    expect(
+      shouldSkipProxySessionRefresh(
+        req('/he-IL/employee/login', { 'sb-test-auth-token': '1' }),
+        '/he-IL/employee/login',
+      ),
+    ).toBe(false);
+    expect(
+      shouldSkipProxySessionRefresh(
+        req('/he-IL/contractor/sign-in', { 'sb-test-auth-token': '1' }),
+        '/he-IL/contractor/sign-in',
       ),
     ).toBe(false);
   });

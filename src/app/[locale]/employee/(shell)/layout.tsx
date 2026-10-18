@@ -11,6 +11,14 @@ import { getSessionState, withOrgContext } from '@/shared/auth/session';
 import { redirect } from '@/shared/i18n/navigation';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
+/**
+ * Employee shell scroll model:
+ * - Document/body is the single scroll root for normal list/form pages.
+ * - Do NOT put overflow-y-auto on <main> inside an h-svh overflow-hidden frame
+ *   (that caused nested scroll on /employee/projects).
+ * - Side nav may scroll independently when the nav list is long.
+ * - Kanban/viewer regions opt into local scroll via employeeBoardScrollRegionClass.
+ */
 export default async function EmployeeShellLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   const tCommon = await getTranslations('common');
@@ -29,28 +37,31 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
 
   return (
     <WithAppClientMessages>
-    <div className="flex h-svh overflow-hidden" data-pf-employee-app>
-      <EmployeeSideNav items={shell.nav} organizationName={shell.organizationName} />
-      <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-        <a
-          href="#main"
-          className="absolute start-2 -top-[100vh] z-critical h-px w-px overflow-hidden border-0 p-0 whitespace-nowrap opacity-0 focus:top-2 focus:h-auto focus:w-auto focus:overflow-visible focus:opacity-100 focus:rounded-md focus:bg-[var(--pf-bg-surface)] focus:px-3 focus:py-2 focus:text-sm focus:shadow-[var(--pf-shadow-md)]"
-        >
-          {tCommon('a11y.skipToContent')}
-        </a>
-        <EmployeeTopBar
-          employeeName={shell.employeeName}
-          email={session.user.email}
-          organizationName={shell.organizationName}
-        />
-        <main id="main" className="mx-auto min-h-0 w-full max-w-lg flex-1 overflow-y-auto bg-[var(--pf-bg-page)] px-4 pt-4 pb-[var(--pf-mobile-content-bottom)] md:max-w-6xl md:px-6 lg:pb-8">
-          <EmployeeShellHeader />
-          {children}
-        </main>
-        <EmployeeBottomNav items={shell.nav} />
+      <div className="flex min-h-svh bg-[var(--pf-bg-page)]" data-pf-employee-app>
+        <EmployeeSideNav items={shell.nav} organizationName={shell.organizationName} />
+        <div className="relative flex min-w-0 flex-1 flex-col">
+          <a
+            href="#main"
+            className="absolute start-2 -top-[100vh] z-critical h-px w-px overflow-hidden border-0 p-0 whitespace-nowrap opacity-0 focus:top-2 focus:h-auto focus:w-auto focus:overflow-visible focus:opacity-100 focus:rounded-md focus:bg-[var(--pf-bg-surface)] focus:px-3 focus:py-2 focus:text-sm focus:shadow-[var(--pf-shadow-md)]"
+          >
+            {tCommon('a11y.skipToContent')}
+          </a>
+          <EmployeeTopBar
+            employeeName={shell.employeeName}
+            email={session.user.email}
+            organizationName={shell.organizationName}
+          />
+          <main
+            id="main"
+            className="mx-auto w-full max-w-lg flex-1 px-4 pt-4 pb-[var(--pf-mobile-content-bottom)] md:max-w-6xl md:px-6 lg:pb-8"
+          >
+            <EmployeeShellHeader />
+            {children}
+          </main>
+          <EmployeeBottomNav items={shell.nav} />
+        </div>
+        <EmployeeQuickCreate actions={quickCreateActions} />
       </div>
-      <EmployeeQuickCreate actions={quickCreateActions} />
-    </div>
     </WithAppClientMessages>
   );
 }

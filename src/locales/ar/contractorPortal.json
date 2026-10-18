@@ -74,6 +74,7 @@
     "greeting": "مرحبًا، {name}",
     "subtitle": "ما ينتظرك اليوم في مشاريعك",
     "projectsTitle": "مشاريعي",
+    "projectsShortcutHint": "{count, plural, one {مشروع واحد متاح} other {# مشاريع متاحة}}",
     "installApp": "تثبيت التطبيق",
     "noAccess": {
       "title": "لا يوجد وصول فعّال إلى مشروع بعد",

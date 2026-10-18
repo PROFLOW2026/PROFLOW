@@ -1,17 +1,24 @@
 import type { Metadata } from 'next';
-import { KeyRound } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { ChevronLeft, ChevronRight, KeyRound } from 'lucide-react';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { loadPortalSession } from '@/modules/contractor-portal/application/load-portal-session';
-import { portalOrganizationLabel, portalProjectLabel } from '@/modules/contractor-portal/ui/labels';
-import { projectHomeHref } from '@/modules/contractor-portal/domain/routes';
 import type { PortalProjectAccess } from '@/modules/contractor-portal/domain/project-access';
-import { employeeHubCardClass, employeePageStackClass } from '@/modules/employee-app/ui/employee-surface-styles';
-import { Link } from '@/shared/i18n/navigation';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { isRtl } from '@/shared/i18n/config';
-import { getLocale } from 'next-intl/server';
+import { projectHomeHref } from '@/modules/contractor-portal/domain/routes';
+import { portalOrganizationLabel, portalProjectLabel } from '@/modules/contractor-portal/ui/labels';
 import { PortalNavIcon } from '@/modules/contractor-portal/ui/portal-nav-icon';
+import {
+  portalHubCardClass,
+  portalIconTileClass,
+  portalPageHeaderClass,
+  portalPageStackClass,
+  portalPageSubtitleClass,
+  portalPageTitleClass,
+  portalProjectCardGridClass,
+  portalSectionLabelClass,
+} from '@/modules/contractor-portal/ui/portal-surface';
+import { isRtl } from '@/shared/i18n/config';
+import { Link } from '@/shared/i18n/navigation';
 
 export async function generateMetadata({
   params,
@@ -46,10 +53,10 @@ export default async function ContractorPortalProjectsHubPage() {
   const groups = groupProjectsByOrganization(projects);
 
   return (
-    <div className={employeePageStackClass}>
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold">{t('nav.projects')}</h1>
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('hub.projects.subtitle')}</p>
+    <div className={portalPageStackClass}>
+      <header className={portalPageHeaderClass}>
+        <h1 className={portalPageTitleClass}>{t('nav.projects')}</h1>
+        <p className={portalPageSubtitleClass}>{t('hub.projects.subtitle')}</p>
       </header>
 
       {projects.length === 0 ? (
@@ -59,28 +66,37 @@ export default async function ContractorPortalProjectsHubPage() {
           description={t('dashboard.noAccess.description')}
         />
       ) : (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-7">
           {groups.map((group) => (
-            <section key={group.organizationId} className="space-y-2">
-              <h2 className="text-sm font-semibold text-[var(--pf-text-secondary)]">
+            <section key={group.organizationId} className="space-y-3">
+              <h2 className={portalSectionLabelClass}>
                 {portalOrganizationLabel(t, group.projects[0]!.organizationName)}
               </h2>
-              <ul className="flex flex-col gap-2">
+              <ul className={portalProjectCardGridClass}>
                 {group.projects.map((project) => {
                   const vendors = project.vendors
                     .map((vendor) => vendor.vendorName)
                     .filter((name): name is string => Boolean(name));
                   return (
                     <li key={project.projectId}>
-                      <Link href={projectHomeHref(project.projectId)} className={employeeHubCardClass}>
-                        <PortalNavIcon navKey="project.home" className="size-4 shrink-0 text-[var(--pf-accent)]" />
+                      <Link href={projectHomeHref(project.projectId)} className={portalHubCardClass}>
+                        <span className={portalIconTileClass}>
+                          <PortalNavIcon navKey="project.home" className="size-4" />
+                        </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-semibold">{portalProjectLabel(t, project)}</span>
+                          <span className="block truncate text-sm font-semibold text-[var(--pf-text-primary)]">
+                            {portalProjectLabel(t, project)}
+                          </span>
                           {vendors.length > 0 ? (
-                            <span className="block truncate text-xs text-[var(--pf-text-secondary)]">{vendors.join(', ')}</span>
+                            <span className="block truncate text-xs text-[var(--pf-text-secondary)]">
+                              {vendors.join(', ')}
+                            </span>
                           ) : null}
                         </span>
-                        <Chevron className="size-4 shrink-0 text-[var(--pf-text-muted)]" aria-hidden />
+                        <Chevron
+                          className="size-4 shrink-0 text-[var(--pf-text-muted)] transition-transform group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5"
+                          aria-hidden
+                        />
                       </Link>
                     </li>
                   );

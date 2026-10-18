@@ -5,7 +5,8 @@ import { listEmployeeAccessibleForms } from '@/modules/employee-app/application/
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import {
-  employeeListPanelClass,
+  employeeOfficeListPanelClass,
+  employeeOfficePageStackClass,
   employeeListRowClass,
   employeeSecondaryButtonClass,
 } from '@/modules/employee-app/ui/employee-surface-styles';
@@ -27,7 +28,7 @@ export default async function EmployeeFormsPage({
   });
 
   return (
-    <div className="space-y-4">
+    <div className={employeeOfficePageStackClass}>
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
       {query.submitted === '1' ? (
         <p className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] px-4 py-3 text-sm">
@@ -39,7 +40,7 @@ export default async function EmployeeFormsPage({
           {t('error')}
         </p>
       ) : null}
-      <ul className={employeeListPanelClass}>
+      <ul className={employeeOfficeListPanelClass}>
         {forms.map((form) => (
           <li key={form.id} className={employeeListRowClass}>
             <div className="flex items-start justify-between gap-3">

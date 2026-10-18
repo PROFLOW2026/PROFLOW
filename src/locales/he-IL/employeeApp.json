@@ -98,9 +98,11 @@
     "notLinked": "חשבון העובד לא מקושר. פנה למנהל",
     "installApp": "התקן אפליקציה",
     "anonymousName": "שם",
+    "secondaryLinksTitle": "גישה מהירה",
     "workSummary": {
       "title": "מה לעשות היום",
       "subtitle": "העבודה הנוכחית שלך במבט אחד",
+      "priorityHeading": "משימות שדורשות תשומת לב",
       "dueToday": "יעד היום",
       "overdue": "באיחור",
       "dueTodayBadge": "היום",
@@ -451,9 +453,11 @@
     "createDescription": "הזינו שם כדי להתחיל. כל השאר אופציונלי.",
     "createSubmit": "יצירת פרויקט",
     "overview": {
+      "eyebrow": "סביבת פרויקט",
       "subtitle": "סקירת פרויקט"
     },
     "stats": {
+      "sectionTitle": "סיכום משימות",
       "totalTasks": "סה\"כ משימות",
       "openTasks": "משימות פתוחות",
       "dueToday": "יעד היום",
@@ -547,10 +551,13 @@
   "lists": {
     "tasksEmpty": "אין משימות משויכות",
     "projectsEmpty": "אין פרויקטים משויכים",
+    "projectsEmptyHint": "כשיוקצו לך פרויקטים הם יופיעו כאן.",
+    "openProject": "פתיחה",
     "projectSearchLabel": "חיפוש פרויקט",
     "projectSearchPlaceholder": "מספר פרויקט או שם…",
     "hoursEmpty": "אין שעות רשומות",
     "documentsEmpty": "אין מסמכים",
+    "documentDate": "{date}",
     "noCategory": "ללא קטגוריה",
     "noValue": "אין"
   },

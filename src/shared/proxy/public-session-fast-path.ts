@@ -1,4 +1,5 @@
 import type { NextRequest } from 'next/server';
+import { CONTRACTOR_PUBLIC_SEGMENTS } from '@/modules/contractor-access/domain/surface';
 import { isLocale, type Locale } from '@/shared/i18n/config';
 
 /** Org auth/marketing paths that render without requiring an existing session. */
@@ -33,11 +34,31 @@ export function isOrgPublicAuthPath(segments: readonly string[]): boolean {
   );
 }
 
+/** Employee PIN login — public form; no session required to paint. */
+export function isEmployeePublicLoginPath(segments: readonly string[]): boolean {
+  return segments[0] === 'employee' && segments[1] === 'login';
+}
+
+/** Contractor activate / sign-in / password recovery forms. */
+export function isContractorPublicAuthPath(segments: readonly string[]): boolean {
+  if (segments[0] !== 'contractor') return false;
+  const second = segments[1];
+  return (
+    typeof second === 'string' &&
+    (CONTRACTOR_PUBLIC_SEGMENTS as readonly string[]).includes(second)
+  );
+}
+
 /** True when the pathname is a candidate for skipping Supabase session refresh. */
 export function isPublicSessionFastPathCandidate(pathname: string): boolean {
   const { locale, segments } = splitLocalizedPathname(pathname);
   if (!locale) return false;
-  return isLegalPublicPath(segments) || isOrgPublicAuthPath(segments);
+  return (
+    isLegalPublicPath(segments) ||
+    isOrgPublicAuthPath(segments) ||
+    isEmployeePublicLoginPath(segments) ||
+    isContractorPublicAuthPath(segments)
+  );
 }
 
 /** Supabase SSR auth cookies (chunked or single). */
@@ -51,8 +72,9 @@ export function requestHasSupabaseAuthCookies(request: NextRequest): boolean {
 /**
  * Skip `refreshSupabaseSession` when safe:
  * - Legal: always (contractor surface allows legal without redirect).
- * - Org auth pages: only for anonymous visitors (no auth cookies). When cookies exist,
- *   refresh still runs so contractor accounts are redirected off org sign-in, etc.
+ * - Public auth pages (org / employee login / contractor auth): only for
+ *   anonymous visitors (no auth cookies). When cookies exist, refresh still
+ *   runs so principals are redirected to the correct surface.
  */
 export function shouldSkipProxySessionRefresh(
   request: NextRequest,

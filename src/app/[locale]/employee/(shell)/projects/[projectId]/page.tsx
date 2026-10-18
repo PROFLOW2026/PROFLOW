@@ -12,6 +12,10 @@ import {
 } from '@/modules/employee-app/ui/employee-project-hub-nav';
 import {
   employeePageStackClass,
+  employeePageSubtitleClass,
+  employeePageTitleClass,
+  employeeSectionTitleClass,
+  employeeStatCardAccentClass,
   employeeStatCardClass,
 } from '@/modules/employee-app/ui/employee-surface-styles';
 import { cn } from '@/shared/ui/cn';
@@ -51,23 +55,32 @@ export default async function EmployeeProjectOverviewPage({ params }: PageProps)
 
   return (
     <div className={employeePageStackClass}>
-      <header className="space-y-1">
-        <h2 className="text-xl font-bold text-[var(--pf-text-primary)]">{overview.displayName}</h2>
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('overview.subtitle')}</p>
+      <header className="space-y-1 border-b border-[var(--pf-border-default)] pb-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.06em] text-[var(--pf-accent)]">
+          {t('overview.eyebrow')}
+        </p>
+        <h2 className={employeePageTitleClass}>{overview.displayName}</h2>
+        <p className={employeePageSubtitleClass}>{t('overview.subtitle')}</p>
       </header>
 
-      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard label={t('stats.totalTasks')} value={overview.totalTasks} />
-        <StatCard label={t('stats.openTasks')} value={overview.openTasks} />
-        <StatCard label={t('stats.dueToday')} value={overview.dueToday} />
-        <StatCard
-          label={t('stats.overdue')}
-          value={overview.overdue}
-          highlight={overview.overdue > 0}
-        />
-      </dl>
+      <section className="space-y-3">
+        <h3 className={employeeSectionTitleClass}>{t('stats.sectionTitle')}</h3>
+        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard label={t('stats.totalTasks')} value={overview.totalTasks} />
+          <StatCard label={t('stats.openTasks')} value={overview.openTasks} />
+          <StatCard label={t('stats.dueToday')} value={overview.dueToday} />
+          <StatCard
+            label={t('stats.overdue')}
+            value={overview.overdue}
+            highlight={overview.overdue > 0}
+          />
+        </dl>
+      </section>
 
-      <EmployeeProjectHubNav links={hubLinks} />
+      <section className="space-y-3">
+        <h3 className={employeeSectionTitleClass}>{t('hub.navAriaLabel')}</h3>
+        <EmployeeProjectHubNav links={hubLinks} />
+      </section>
     </div>
   );
 }
@@ -82,9 +95,14 @@ function StatCard({
   highlight?: boolean;
 }) {
   return (
-    <div className={employeeStatCardClass}>
+    <div className={highlight && value > 0 ? employeeStatCardAccentClass : employeeStatCardClass}>
       <dt className="text-xs font-medium text-[var(--pf-text-secondary)]">{label}</dt>
-      <dd className={cn('mt-1 text-2xl font-bold text-[var(--pf-text-primary)]', highlight && value > 0 && 'text-red-600')}>
+      <dd
+        className={cn(
+          'mt-1.5 text-2xl font-bold tracking-tight text-[var(--pf-text-primary)]',
+          highlight && value > 0 && 'text-[var(--pf-status-danger-fg)]',
+        )}
+      >
         {value}
       </dd>
     </div>

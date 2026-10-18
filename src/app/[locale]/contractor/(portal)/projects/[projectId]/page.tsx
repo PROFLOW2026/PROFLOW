@@ -10,7 +10,15 @@ import type { ComposedPortalSection } from '@/modules/contractor-portal/domain/s
 import { portalOrganizationLabel, portalProjectLabel } from '@/modules/contractor-portal/ui/labels';
 import { PortalNavIcon } from '@/modules/contractor-portal/ui/portal-nav-icon';
 import { PortalSectionList } from '@/modules/contractor-portal/ui/portal-sections';
-import { employeeHubCardClass, employeePageStackClass } from '@/modules/employee-app/ui/employee-surface-styles';
+import {
+  portalHeroClass,
+  portalModuleGridClass,
+  portalModuleTileClass,
+  portalPageStackClass,
+  portalPageSubtitleClass,
+  portalPageTitleClass,
+  portalSectionLabelClass,
+} from '@/modules/contractor-portal/ui/portal-surface';
 import { Link } from '@/shared/i18n/navigation';
 
 interface PageProps {
@@ -48,33 +56,44 @@ export default async function ContractorPortalProjectPage({ params }: PageProps)
     .filter((name): name is string => Boolean(name));
 
   return (
-    <div className={employeePageStackClass}>
-      <header className="space-y-1">
-        <h1 className="text-xl font-bold text-[var(--pf-text-primary)]">{portalProjectLabel(t, project)}</h1>
-        <p className="text-sm text-[var(--pf-text-secondary)]">
-          {portalOrganizationLabel(t, project.organizationName)}
-          {vendors.length > 0 ? ` · ${t('project.workingAs', { vendor: vendors.join(', ') })}` : ''}
-        </p>
+    <div className={portalPageStackClass}>
+      <header className={portalHeroClass}>
+        <p className={portalSectionLabelClass}>{portalOrganizationLabel(t, project.organizationName)}</p>
+        <h1 className={portalPageTitleClass}>{portalProjectLabel(t, project)}</h1>
+        {vendors.length > 0 ? (
+          <p className={portalPageSubtitleClass}>{t('project.workingAs', { vendor: vendors.join(', ') })}</p>
+        ) : null}
       </header>
 
       {fileLinks.length > 0 ? (
-        <ul className="grid grid-cols-2 gap-2">
-          {fileLinks.map((item) => {
-            const section = sectionForLink(allSections, item.key);
-            const count = section?.count ?? 0;
-            return (
-              <li key={item.key}>
-                <Link href={item.href} className={employeeHubCardClass}>
-                  <span className="flex min-w-0 items-center gap-2">
-                    <PortalNavIcon navKey={item.key} className="size-4 shrink-0 text-[var(--pf-accent)]" />
-                    <span className="truncate text-sm font-medium">{t(item.labelKey)}</span>
-                  </span>
-                  <span className="shrink-0 text-sm font-semibold tabular-nums">{count}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <section className="space-y-3" aria-labelledby="pf-portal-project-files">
+          <h2 id="pf-portal-project-files" className={portalSectionLabelClass}>
+            {t('project.linksLabel')}
+          </h2>
+          <ul className={portalModuleGridClass}>
+            {fileLinks.map((item) => {
+              const section = sectionForLink(allSections, item.key);
+              const count = section?.count ?? 0;
+              return (
+                <li key={item.key}>
+                  <Link href={item.href} className={portalModuleTileClass}>
+                    <span className="flex items-center gap-2.5">
+                      <span className="flex size-9 items-center justify-center rounded-xl bg-[var(--pf-teal-50)] text-[var(--pf-accent)] ring-1 ring-[var(--pf-teal-100)]">
+                        <PortalNavIcon navKey={item.key} className="size-4" />
+                      </span>
+                      <span className="truncate text-sm font-semibold text-[var(--pf-text-primary)]">
+                        {t(item.labelKey)}
+                      </span>
+                    </span>
+                    <span className="self-end rounded-lg bg-[var(--pf-bg-muted)] px-2.5 py-1 text-sm font-semibold tabular-nums text-[var(--pf-text-primary)]">
+                      {count}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       ) : null}
 
       {attention.length > 0 ? (

@@ -6,6 +6,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Link } from '@/shared/i18n/navigation';
 import { signInAction, type AuthFormState } from '../actions';
 import { textNavLinkClassName } from '@/components/ui/pressable';
@@ -46,10 +47,9 @@ export function SignInForm({ next }: { next?: string }) {
 
       <Field id="sign-in-password" label={t('password')} required>
         {(control) => (
-          <Input
+          <PasswordInput
             {...control}
             name="password"
-            type="password"
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
