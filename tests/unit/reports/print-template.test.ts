@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { chromium } from '@playwright/test';
 import { buildBrandedDocumentStyles } from '@/modules/reports/application/branded-document-shell';
@@ -68,7 +69,9 @@ describe('quote print template', () => {
     expect(longDoc).toContain('@page { size: A4; margin: 12mm; }');
   });
 
-  it('prints a short quote on one A4 page and a long quote across pages', async () => {
+  it.skipIf(!existsSync(chromium.executablePath()))(
+    'prints a short quote on one A4 page and a long quote across pages',
+    async () => {
     const browser = await chromium.launch();
     const page = await browser.newPage();
     try {
