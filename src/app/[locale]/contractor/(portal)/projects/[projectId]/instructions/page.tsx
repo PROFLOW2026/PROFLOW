@@ -1,6 +1,5 @@
 import { getFormatter, getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -8,6 +7,7 @@ import { requireExternalContext } from '@/modules/contractor-access';
 import { listContractorInstructions } from '@/modules/site-instructions';
 import { INSTRUCTION_STATUS_TONE } from '@/modules/site-instructions/ui/status-tone';
 import { loadOrNotFound } from '@/modules/site-log/shared/page-guard';
+import { portalSegmentBarClass, portalSegmentClass } from '@/modules/contractor-portal/ui/portal-surface';
 import { Link } from '@/shared/i18n/navigation';
 
 export default async function ContractorInstructionsPage({
@@ -35,13 +35,17 @@ export default async function ContractorInstructionsPage({
         meta={pending.length > 0 ? <Badge tone="warning">{t('portal.instructions.pendingCount', { count: pending.length })}</Badge> : null}
       />
 
-      <nav className="flex gap-2" aria-label={t('instructions.filterLabel')}>
-        <Button asChild size="sm" variant={status === 'open' ? 'primary' : 'secondary'}>
-          <Link href={basePath}>{t('instructions.filters.open')}</Link>
-        </Button>
-        <Button asChild size="sm" variant={status === 'all' ? 'primary' : 'secondary'}>
-          <Link href={`${basePath}?status=all`}>{t('instructions.filters.all')}</Link>
-        </Button>
+      <nav className={portalSegmentBarClass} aria-label={t('instructions.filterLabel')}>
+        <Link href={basePath} className={portalSegmentClass(status === 'open')} aria-current={status === 'open' ? 'page' : undefined}>
+          {t('instructions.filters.open')}
+        </Link>
+        <Link
+          href={`${basePath}?status=all`}
+          className={portalSegmentClass(status === 'all')}
+          aria-current={status === 'all' ? 'page' : undefined}
+        >
+          {t('instructions.filters.all')}
+        </Link>
       </nav>
 
       {items.length === 0 ? (

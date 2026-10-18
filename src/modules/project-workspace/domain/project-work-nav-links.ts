@@ -21,10 +21,7 @@ export const PROJECT_WORK_NAV_LINKS: readonly ProjectWorkNavLink[] = [
   { kind: 'meetings', labelKey: 'meetings' },
 ] as const;
 
-export function projectWorkNavLinksForSurface(projectRoot: string): readonly ProjectWorkNavLink[] {
-  if (projectRoot.startsWith('/employee/')) {
-    return PROJECT_WORK_NAV_LINKS.filter((link) => link.labelKey !== 'timeline');
-  }
+export function projectWorkNavLinksForSurface(_projectRoot: string): readonly ProjectWorkNavLink[] {
   return PROJECT_WORK_NAV_LINKS;
 }
 

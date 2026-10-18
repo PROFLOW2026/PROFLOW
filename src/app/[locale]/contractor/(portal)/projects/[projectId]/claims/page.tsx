@@ -8,6 +8,7 @@ import {
 } from '@/modules/subcontract-claims';
 import { claimShowsNetAmount } from '@/modules/contractor-portal/application/providers/claims';
 import { ClaimsList } from '@/modules/subcontract-claims/ui/claims-list';
+import { portalWideListClass } from '@/modules/contractor-portal/ui/portal-surface';
 import { PortalCreateClaimForm } from '@/modules/subcontract-claims/ui/portal-create-claim-form';
 import { loadOrNotFound } from '@/modules/subcontract-claims/ui/page-guard';
 import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
@@ -30,7 +31,9 @@ export default async function ContractorClaimsPage({ params }: { params: Promise
       <div className="flex flex-col gap-4 pb-6">
         <PageHeader title={t('portal.claimsTitle')} />
         <PortalCreateClaimForm organizationId={organizationId} projectId={projectId} agreements={agreements} />
-        <ClaimsList items={displayItems} basePath={basePath} />
+        <div className={portalWideListClass}>
+          <ClaimsList items={displayItems} basePath={basePath} />
+        </div>
       </div>
     </WithPortalClientMessages>
   );

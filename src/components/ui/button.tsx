@@ -5,12 +5,11 @@ import * as React from 'react';
 import { pressableClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
-const buttonVariants = cva(
+export const buttonVariants = cva(
   [
     'inline-flex max-w-full min-w-0 items-center justify-center gap-2 whitespace-normal break-words rounded-md md:whitespace-nowrap',
     'font-medium',
     pressableClassName,
-    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
     // Touch devices fire :active, not :hover - pressed feedback must not be hover-only.
     'disabled:pointer-events-none disabled:bg-[var(--pf-status-disabled-bg)] disabled:text-[var(--pf-status-disabled-fg)] disabled:border-[var(--pf-status-disabled-border)]',
     'aria-[busy=true]:cursor-wait aria-[busy=true]:opacity-90',
@@ -34,13 +33,12 @@ const buttonVariants = cva(
         link: 'border border-transparent text-[var(--pf-text-brand)] underline-offset-4 hover:underline active:underline active:opacity-80 active:scale-100 disabled:bg-transparent disabled:border-transparent',
       },
       size: {
-        // Mobile first: ≥44px touch (docs 62–63); denser on md+.
-        sm: 'min-h-11 px-3 text-[0.8125rem] md:h-8 md:min-h-8',
+        // 44px until a fine pointer (mouse). Touch tablets stay at 44px.
+        sm: 'min-h-11 px-3 text-[0.8125rem] pointer-fine:h-8 pointer-fine:min-h-8',
         md: 'min-h-11 h-11 px-4 text-sm',
-        // Comfortable touch target for the mobile surface (doc 62).
         lg: 'h-12 min-h-12 px-6 text-base',
         icon: 'size-11',
-        iconSm: 'size-11 md:size-8',
+        iconSm: 'size-11 pointer-fine:size-8',
       },
       block: {
         true: 'w-full',
@@ -93,4 +91,3 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
   );
 });
 
-export { buttonVariants };

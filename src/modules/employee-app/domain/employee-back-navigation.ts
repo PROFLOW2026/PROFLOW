@@ -53,7 +53,13 @@ export function resolveEmployeeShellHeader(pathname: string): EmployeeShellHeade
   const segments = remainder.split('/').filter(Boolean);
   const section = segments[0] ?? '';
   const hasNestedSegment = segments.length > 1;
-  const fallbackHref = hasNestedSegment ? `${EMPLOYEE_HOME_PATH}/${section}` : EMPLOYEE_HOME_PATH;
+  const projectId = section === 'projects' ? segments[1] : undefined;
+  const fallbackHref =
+    projectId && segments.length >= 3
+      ? `${EMPLOYEE_HOME_PATH}/projects/${projectId}`
+      : hasNestedSegment
+        ? `${EMPLOYEE_HOME_PATH}/${section}`
+        : EMPLOYEE_HOME_PATH;
 
   return {
     showHeader: true,

@@ -60,7 +60,7 @@ export default async function ContractorPortalFinanceHubPage() {
           ) : null}
 
           {projectBlocks.length === 0 ? (
-            <p className="text-sm text-[var(--pf-text-secondary)]">{t('hub.finance.empty')}</p>
+            <EmptyState icon={KeyRound} title={t('hub.finance.empty')} description={t('hub.finance.subtitle')} />
           ) : (
             <div className="flex flex-col gap-6">
               {projectBlocks.map(({ project, links }) => (

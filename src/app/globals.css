@@ -117,9 +117,10 @@
     --pf-status-info-bg: var(--pf-blue-50);
     --pf-status-info-border: var(--pf-blue-100);
 
-    --pf-status-pending-fg: var(--pf-amber-700);
-    --pf-status-pending-bg: var(--pf-amber-50);
-    --pf-status-pending-border: var(--pf-amber-100);
+    /* Pending is a cool neutral so it does not read as warning amber. */
+    --pf-status-pending-fg: var(--pf-blue-700);
+    --pf-status-pending-bg: var(--pf-neutral-100);
+    --pf-status-pending-border: var(--pf-blue-100);
 
     --pf-status-neutral-fg: var(--pf-neutral-700);
     --pf-status-neutral-bg: var(--pf-neutral-100);
@@ -251,18 +252,18 @@
   --shadow-lg: var(--pf-shadow-lg);
 
   /*
-   * A single UI family that covers Hebrew and Latin well. The production font
-   * is still open (V2); this system stack renders Hebrew natively on every
-   * target platform and costs nothing to load.
+   * Loaded in the root layout via next/font (Hebrew, Arabic, Latin, Cyrillic).
+   * System fonts remain the fallback if a face has not applied yet.
    */
   --font-sans:
-    'Assistant', 'Rubik', 'Noto Sans Arabic', 'Noto Sans', system-ui, -apple-system, 'Segoe UI',
-    'Noto Sans Hebrew', 'Arial Hebrew', Arial, 'Helvetica Neue', sans-serif;
+    var(--font-noto-hebrew), var(--font-noto-arabic), var(--font-noto-sans), system-ui, -apple-system,
+    'Segoe UI', Arial, 'Helvetica Neue', sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Code', 'Consolas', monospace;
 
   --z-index-sticky: 20;
   --z-index-dropdown: 40;
   --z-index-modal: 60;
+  --z-index-popover: 70;
   --z-index-toast: 80;
   --z-index-critical: 100;
 }

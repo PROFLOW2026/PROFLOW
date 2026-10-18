@@ -1,4 +1,6 @@
 import { getLocale, getTranslations } from 'next-intl/server';
+import { Badge } from '@/components/ui/badge';
+import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import {
@@ -11,11 +13,11 @@ import { portalHref } from '../domain/routes';
 import type { ComposedPortalSection, PortalItemTone, PortalSectionItem } from '../domain/sections';
 import { portalProjectLabel } from './labels';
 
-const TONE_CLASS: Record<PortalItemTone, string> = {
-  neutral: 'bg-[var(--pf-bg-muted)] text-[var(--pf-text-secondary)]',
-  attention: 'bg-amber-50 text-amber-800',
-  danger: 'bg-red-50 text-red-700',
-  success: 'bg-emerald-50 text-emerald-700',
+const TONE_SHAPE: Record<PortalItemTone, StatusShape> = {
+  neutral: 'draft',
+  attention: 'pending',
+  danger: 'overdue',
+  success: 'approved',
 };
 
 function formatDue(locale: string, value: string): string {
@@ -72,13 +74,14 @@ export async function PortalSectionList({
               </div>
               <div className="flex shrink-0 items-center gap-1.5">
                 {section.attentionCount > 0 ? (
-                  <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', TONE_CLASS.danger)}>
-                    {t('sections.attention', { count: section.attentionCount })}
-                  </span>
+                  <StatusBadge
+                    shape="overdue"
+                    label={t('sections.attention', { count: section.attentionCount })}
+                  />
                 ) : null}
-                <span className="rounded-full bg-[var(--pf-bg-muted)] px-2 py-0.5 text-xs font-semibold tabular-nums">
+                <Badge tone="neutral" className="tabular-nums">
                   {section.count}
-                </span>
+                </Badge>
               </div>
             </header>
 
@@ -87,16 +90,7 @@ export async function PortalSectionList({
                 {section.metrics.map((metric) => (
                   <div key={metric.labelKey} className="rounded-lg bg-[var(--pf-bg-subtle)] px-3 py-2">
                     <dt className="text-xs text-[var(--pf-text-secondary)]">{tAny(metric.labelKey)}</dt>
-                    <dd
-                      className={cn(
-                        'text-lg font-bold tabular-nums',
-                        metric.value > 0 && metric.tone === 'danger' && 'text-red-600',
-                        metric.value > 0 && metric.tone === 'attention' && 'text-amber-700',
-                        metric.value > 0 && metric.tone === 'success' && 'text-emerald-700',
-                      )}
-                    >
-                      {metric.value}
-                    </dd>
+                    <dd className="text-lg font-bold tabular-nums">{metric.value}</dd>
                   </div>
                 ))}
               </dl>
@@ -125,14 +119,7 @@ export async function PortalSectionList({
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-1">
                         {item.statusKey ? (
-                          <span
-                            className={cn(
-                              'rounded-full px-2 py-0.5 text-xs font-medium',
-                              TONE_CLASS[item.tone ?? 'neutral'],
-                            )}
-                          >
-                            {tAny(item.statusKey)}
-                          </span>
+                          <StatusBadge shape={TONE_SHAPE[item.tone ?? 'neutral']} label={tAny(item.statusKey)} />
                         ) : null}
                         {section.financial && item.amount ? (
                           <span className="text-sm font-semibold tabular-nums" dir="ltr">
@@ -160,8 +147,8 @@ export async function PortalSectionList({
             ) : null}
 
             {section.partial ? (
-              <p className="text-xs text-amber-800" role="status">
-                {t('sections.partial')}
+              <p role="status">
+                <StatusBadge shape="pending" label={t('sections.partial')} />
               </p>
             ) : null}
 

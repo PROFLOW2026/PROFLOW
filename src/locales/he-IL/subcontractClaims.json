@@ -124,6 +124,7 @@
     "payable": "לתשלום",
     "retention": "עיכבון",
     "holds": "עיכובי תשלום",
+    "paymentsEmpty": "אין תשלומים להצגה",
     "newClaim": "חשבון חדש",
     "createDraft": "יצירת טיוטה"
   },

@@ -21,7 +21,12 @@ import {
   persistExternalPrincipalLocaleAction,
 } from '../application/actions';
 import type { PortalShellData, PortalShellProject } from '../application/load-portal-session';
-import { activeContractorMobileTab, contractorMobileTabIconKey } from '../domain/mobile-tabs';
+import {
+  activeContractorMobileTab,
+  contractorMobileTabIconKey,
+  isContractorFinanceRouteKey,
+  isContractorWorkRouteKey,
+} from '../domain/mobile-tabs';
 import {
   activePortalNavKey,
   buildPortalMobileNav,
@@ -31,6 +36,7 @@ import {
 import { ContractorBottomNav } from './contractor-bottom-nav';
 import { portalOrganizationLabel, portalProjectLabel } from './labels';
 import { PortalNavIcon } from './portal-nav-icon';
+import { isPortalPlanViewerPath, portalMainWidthClass, portalPlanViewerWidthClass } from './portal-surface';
 
 type Translate = ReturnType<typeof useTranslations>;
 
@@ -257,6 +263,52 @@ function UserMenu({
   );
 }
 
+function ProjectModuleShortcuts({
+  items,
+  activeKey,
+  t,
+}: {
+  items: readonly PortalNavItem[];
+  activeKey: string | null;
+  t: Translate;
+}) {
+  const modules = items.filter((item) => item.key !== 'project.home');
+  const work = modules.filter((item) => isContractorWorkRouteKey(item.key));
+  const finance = modules.filter((item) => isContractorFinanceRouteKey(item.key));
+  const rest = modules.filter(
+    (item) => !isContractorWorkRouteKey(item.key) && !isContractorFinanceRouteKey(item.key),
+  );
+  if (modules.length === 0) return null;
+
+  const groups = [
+    { key: 'work', labelKey: 'nav.work', items: work },
+    { key: 'finance', labelKey: 'nav.finance', items: finance },
+    { key: 'rest', labelKey: 'nav.more', items: rest },
+  ].filter((group) => group.items.length > 0);
+
+  return (
+    <details className="rounded-lg">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center rounded-lg px-3 text-sm font-medium text-[var(--pf-text-secondary)] hover:bg-[var(--pf-surface-2)] hover:text-[var(--pf-text)] [&::-webkit-details-marker]:hidden">
+        {t('shell.projectShortcuts')}
+      </summary>
+      <div className="flex flex-col gap-3 px-1 pb-2">
+        {groups.map((group) => (
+          <div key={group.key} className="flex flex-col gap-0.5">
+            <p className="px-3 pt-1 text-xs font-semibold text-[var(--pf-text-secondary)]">{t(group.labelKey)}</p>
+            <ul className="flex flex-col gap-0.5">
+              {group.items.map((item) => (
+                <li key={item.key}>
+                  <SideNavLink item={item} active={item.key === activeKey} t={t} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </details>
+  );
+}
+
 function MobileTabSideLink({
   item,
   active,
@@ -287,6 +339,7 @@ function MobileTabSideLink({
 /** Must render inside `<WithAppClientMessages extra={['contractorPortal']}>` (the portal layout does). */
 export function ContractorPortalShell({ shell, children }: { shell: PortalShellData; children: React.ReactNode }) {
   const t = useTranslations('contractorPortal');
+  const tCommon = useTranslations('common');
   const pathname = usePathname();
   const mobileNav = React.useMemo(() => buildPortalMobileNav(), []);
   const activeMobileTab = activeContractorMobileTab(pathname);
@@ -327,18 +380,7 @@ export function ContractorPortalShell({ shell, children }: { shell: PortalShellD
           </ul>
 
           {active ? (
-            <div className="flex flex-col gap-0.5">
-              <p className="truncate px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
-                {portalProjectLabel(t, active)}
-              </p>
-              <ul className="flex flex-col gap-0.5">
-                {projectItems.map((item) => (
-                  <li key={item.key}>
-                    <SideNavLink item={item} active={item.key === activeProjectNavKey} t={t} />
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <ProjectModuleShortcuts items={projectItems} activeKey={activeProjectNavKey} t={t} />
           ) : shell.projects.length > 0 ? (
             <div className="flex flex-col gap-0.5">
               <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
@@ -362,7 +404,13 @@ export function ContractorPortalShell({ shell, children }: { shell: PortalShellD
         </div>
       </nav>
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+        <a
+          href="#main"
+          className="absolute start-2 -top-[100vh] z-critical h-px w-px overflow-hidden border-0 p-0 whitespace-nowrap opacity-0 focus:top-2 focus:h-auto focus:w-auto focus:overflow-visible focus:opacity-100 focus:rounded-md focus:bg-[var(--pf-bg-surface)] focus:px-3 focus:py-2 focus:text-sm focus:shadow-[var(--pf-shadow-md)]"
+        >
+          {tCommon('a11y.skipToContent')}
+        </a>
         <header className="sticky top-0 z-40 flex h-[var(--pf-topbar-height)] w-full shrink-0 items-center gap-2 border-b border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-4 print:hidden sm:gap-3">
           <span className="min-w-0 lg:hidden">
             <span className="block max-w-40 truncate text-sm font-semibold">{company.vendor ?? t('shell.title')}</span>
@@ -380,7 +428,13 @@ export function ContractorPortalShell({ shell, children }: { shell: PortalShellD
             accountHref={accountHref}
           />
         </header>
-        <main className="mx-auto min-h-0 w-full max-w-lg flex-1 overflow-y-auto bg-[var(--pf-bg-page)] px-4 pt-4 pb-[var(--pf-employee-main-bottom)] lg:max-w-5xl lg:pb-6">
+        <main
+          id="main"
+          className={cn(
+            'mx-auto min-h-0 flex-1 overflow-y-auto bg-[var(--pf-bg-page)] px-4 pt-4 pb-[var(--pf-employee-main-bottom)] lg:pb-6',
+            isPortalPlanViewerPath(pathname) ? portalPlanViewerWidthClass : portalMainWidthClass,
+          )}
+        >
           {children}
         </main>
         <ContractorBottomNav items={mobileNav} />

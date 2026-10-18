@@ -23,6 +23,7 @@
   },
   "nav": {
     "home": "בית",
+    "myWork": "העבודה שלי",
     "timeAndAttendance": "נוכחות ושעות",
     "attendance": "נוכחות",
     "hours": "שעות",
@@ -105,6 +106,13 @@
       "dueTodayBadge": "היום",
       "overdueBadge": "באיחור",
       "viewTasks": "צפייה בכל המשימות",
+      "openList": "רשימה",
+      "openCalendar": "לוח שנה",
+      "openProjects": "פרויקטים",
+      "openDocuments": "מסמכים",
+      "openNotifications": "התראות",
+      "emptyTitle": "אין משימות פתוחות שדורשות טיפול",
+      "emptyDescription": "הרשימה המלאה נשארת זמינה.",
       "dueDateLabel": "יעד: {date}",
       "badges": {
         "overdue": "באיחור",

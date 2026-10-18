@@ -154,7 +154,7 @@
       "dailyRateLabel": "תעריף יומי",
       "dailyEmployerCostLabel": "עלות מעסיק ליום",
       "hourlyEmployerCostLabel": "עלות מעסיק לשעה",
-      "burdenPercentLabel": "העמסה {percent}%",
+      "burdenPercentLabel": "העמסה {percent}",
       "monthlyStandardHoursLabel": "שעות תקן חודשיות (לנוכחות בלבד)",
       "derivedHourlyCostLabel": "עלות מחושבת לשעה",
       "derivedHourlyCostMissing": "לא ניתן לחשב ללא תעריף שעתי.",

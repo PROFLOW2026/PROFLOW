@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
+import { KeyRound } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { EmptyState } from '@/components/ui/empty-state';
 import { composePortalSections } from '@/modules/contractor-portal/application/compose-sections';
 import { loadPortalProject } from '@/modules/contractor-portal/application/load-portal-session';
-import { PORTAL_PROJECT_HOME_SECTION_EXCLUDE } from '@/modules/contractor-portal/domain/mobile-tabs';
 import { buildPortalProjectNav } from '@/modules/contractor-portal/domain/nav';
+import type { ComposedPortalSection } from '@/modules/contractor-portal/domain/sections';
 import { portalOrganizationLabel, portalProjectLabel } from '@/modules/contractor-portal/ui/labels';
 import { PortalNavIcon } from '@/modules/contractor-portal/ui/portal-nav-icon';
 import { PortalSectionList } from '@/modules/contractor-portal/ui/portal-sections';
@@ -15,11 +17,19 @@ interface PageProps {
   params: Promise<{ locale: string; projectId: string }>;
 }
 
+const FILE_LINK_KEYS = new Set(['project.plans', 'project.documents']);
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, projectId } = await params;
   const t = await getTranslations({ locale, namespace: 'contractorPortal' });
   const { project } = await loadPortalProject(projectId);
   return { title: project ? portalProjectLabel(t, project) : t('project.title') };
+}
+
+function sectionForLink(sections: readonly ComposedPortalSection[], key: string): ComposedPortalSection | undefined {
+  if (key === 'project.plans') return sections.find((section) => section.id === 'planRevisions');
+  if (key === 'project.documents') return sections.find((section) => section.id === 'documents');
+  return undefined;
 }
 
 export default async function ContractorPortalProjectPage({ params }: PageProps) {
@@ -29,9 +39,9 @@ export default async function ContractorPortalProjectPage({ params }: PageProps)
   if (!project) notFound();
 
   const allSections = await composePortalSections(session.context, [project]);
-  const sections = allSections.filter((section) => !PORTAL_PROJECT_HOME_SECTION_EXCLUDE.has(section.id));
-  const links = buildPortalProjectNav(project.projectId, project.capabilities).filter(
-    (item) => item.key !== 'project.home',
+  const attention = allSections.filter((section) => section.attentionCount > 0);
+  const fileLinks = buildPortalProjectNav(project.projectId, project.capabilities).filter((item) =>
+    FILE_LINK_KEYS.has(item.key),
   );
   const vendors = project.vendors
     .map((vendor) => vendor.vendorName)
@@ -47,29 +57,32 @@ export default async function ContractorPortalProjectPage({ params }: PageProps)
         </p>
       </header>
 
-      {links.length > 0 ? (
-        <nav aria-label={t('project.linksLabel')}>
-          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {links.map((item) => (
+      {fileLinks.length > 0 ? (
+        <ul className="grid grid-cols-2 gap-2">
+          {fileLinks.map((item) => {
+            const section = sectionForLink(allSections, item.key);
+            const count = section?.count ?? 0;
+            return (
               <li key={item.key}>
                 <Link href={item.href} className={employeeHubCardClass}>
                   <span className="flex min-w-0 items-center gap-2">
                     <PortalNavIcon navKey={item.key} className="size-4 shrink-0 text-[var(--pf-accent)]" />
                     <span className="truncate text-sm font-medium">{t(item.labelKey)}</span>
                   </span>
+                  <span className="shrink-0 text-sm font-semibold tabular-nums">{count}</span>
                 </Link>
               </li>
-            ))}
-          </ul>
-        </nav>
+            );
+          })}
+        </ul>
       ) : null}
 
-      {sections.length > 0 ? (
-        <PortalSectionList sections={sections} projects={[project]} projectId={project.projectId} />
+      {attention.length > 0 ? (
+        <PortalSectionList sections={attention} projects={[project]} projectId={project.projectId} />
       ) : null}
 
-      {links.length === 0 && sections.length === 0 ? (
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('project.nothingShared')}</p>
+      {fileLinks.length === 0 && attention.length === 0 ? (
+        <EmptyState icon={KeyRound} title={t('sections.today.empty')} description={t('project.nothingShared')} />
       ) : null}
     </div>
   );

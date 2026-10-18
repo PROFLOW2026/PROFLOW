@@ -23,6 +23,7 @@
   },
   "nav": {
     "home": "الرئيسية",
+    "myWork": "عملي",
     "timeAndAttendance": "الحضور والساعات",
     "attendance": "الحضور",
     "hours": "الساعات",
@@ -105,6 +106,13 @@
       "dueTodayBadge": "اليوم",
       "overdueBadge": "متأخر",
       "viewTasks": "عرض كل المهام",
+      "openList": "قائمة",
+      "openCalendar": "التقويم",
+      "openProjects": "المشاريع",
+      "openDocuments": "المستندات",
+      "openNotifications": "التنبيهات",
+      "emptyTitle": "لا توجد مهام مفتوحة تتطلب معالجة",
+      "emptyDescription": "القائمة الكاملة ما زالت متاحة.",
       "dueDateLabel": "الاستحقاق: {date}",
       "badges": {
         "overdue": "متأخر",

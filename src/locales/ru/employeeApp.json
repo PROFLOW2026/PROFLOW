@@ -23,6 +23,7 @@
   },
   "nav": {
     "home": "Главная",
+    "myWork": "Моя работа",
     "timeAndAttendance": "Посещаемость и часы",
     "attendance": "Посещаемость",
     "hours": "Часы",
@@ -105,6 +106,13 @@
       "dueTodayBadge": "Сегодня",
       "overdueBadge": "Просрочено",
       "viewTasks": "Все задачи",
+      "openList": "Список",
+      "openCalendar": "Календарь",
+      "openProjects": "Проекты",
+      "openDocuments": "Документы",
+      "openNotifications": "Уведомления",
+      "emptyTitle": "Нет открытых задач, требующих внимания",
+      "emptyDescription": "Полный список по-прежнему доступен.",
       "dueDateLabel": "Срок: {date}",
       "badges": {
         "overdue": "Просрочено",

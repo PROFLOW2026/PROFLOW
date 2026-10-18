@@ -38,7 +38,9 @@ describe('contractor portal five-tab mobile navigation', () => {
     expect(activeContractorMobileTab('/contractor/projects/p1')).toBe('projects');
     expect(activeContractorMobileTab('/contractor/projects/p1/tasks/t1')).toBe('work');
     expect(activeContractorMobileTab('/contractor/projects/p1/claims')).toBe('finance');
-    expect(activeContractorMobileTab('/contractor/projects/p1/documents')).toBe('more');
+    expect(activeContractorMobileTab('/contractor/projects/p1/documents')).toBe('work');
+    expect(activeContractorMobileTab('/contractor/projects/p1/plans')).toBe('work');
+    expect(activeContractorMobileTab('/contractor/projects/p1/plans/d1')).toBe('work');
     expect(activeContractorMobileTab('/contractor/account')).toBe('more');
   });
 

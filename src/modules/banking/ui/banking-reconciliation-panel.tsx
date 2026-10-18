@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useMemo, useState, useTransition } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { pressableClassName } from '@/components/ui/pressable';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { formatMoneyString } from '@/shared/money';
 import { cn } from '@/shared/ui/cn';
 import type {
   BankAccount,
@@ -47,6 +48,7 @@ export function BankingReconciliationPanel({
   canManage,
 }: BankingReconciliationPanelProps) {
   const t = useTranslations('banking');
+  const locale = useLocale();
   const [accounts, setAccounts] = useState<BankAccount[]>([...initialAccounts]);
   const [transactions, setTransactions] = useState<BankTransaction[]>([
     ...initialTransactions,
@@ -322,7 +324,9 @@ export function BankingReconciliationPanel({
                     <TableCell>{txn.date}</TableCell>
                     <TableCell>{txn.description}</TableCell>
                     <TableCell numeric>
-                      {txn.amount} {txn.currency}
+                      <span dir="ltr" className="pf-numeric">
+                        {formatMoneyString(txn.amount, txn.currency, locale)}
+                      </span>
                     </TableCell>
                     <TableCell>{t(`transactions.directions.${txn.direction}`)}</TableCell>
                     <TableCell>
@@ -362,7 +366,6 @@ export function BankingReconciliationPanel({
                     className={cn(
                       pressableClassName,
                       'flex w-full flex-col gap-0.5 rounded-md border px-3 py-2 text-start text-sm',
-                      'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
                       selectedSuggestionId === sug.id
                         ? 'border-[var(--pf-text-brand)] bg-[var(--pf-teal-50)]'
                         : 'border-[var(--pf-border-default)] active:bg-[var(--pf-action-subtle-active)]',
@@ -373,7 +376,10 @@ export function BankingReconciliationPanel({
                       {t(`suggestions.target.${sug.targetKind}`)} · {sug.targetId}
                     </span>
                     <span className="text-[var(--pf-text-secondary)]">
-                      {sug.suggestedAmount} {sug.currency} —{' '}
+                      <span dir="ltr" className="pf-numeric">
+                        {formatMoneyString(sug.suggestedAmount, sug.currency, locale)}
+                      </span>
+                      {' — '}
                       {t('suggestions.score', { score: sug.score })}
                     </span>
                   </button>

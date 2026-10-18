@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { money } from '@/shared/money';
 import { formatMoney } from '@/shared/money/format';
-import { formatDecimalDisplay, formatPercentDisplay } from '@/shared/number/display';
+import { formatDecimalDisplay, formatDecimalInputSeed, formatPercentDisplay } from '@/shared/number/display';
 
 describe('business decimal display', () => {
   it('shows exactly two fraction digits for quantities', () => {
@@ -14,6 +14,13 @@ describe('business decimal display', () => {
   it('rounds half-up at presentation time', () => {
     expect(formatDecimalDisplay('1.225', 'he-IL')).toBe('1.23');
     expect(formatDecimalDisplay('1.224', 'he-IL')).toBe('1.22');
+  });
+
+  it('seeds edit fields with two digits and no grouping', () => {
+    expect(formatDecimalInputSeed('1.000000')).toBe('1.00');
+    expect(formatDecimalInputSeed('1750000.5')).toBe('1750000.50');
+    expect(formatDecimalInputSeed('')).toBe('');
+    expect(formatDecimalInputSeed('not-a-number')).toBe('');
   });
 
   it('shows stored percent points with two fraction digits', () => {

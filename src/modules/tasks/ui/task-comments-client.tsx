@@ -685,7 +685,7 @@ export function CommentActionsClient({
   }
 
   return (
-    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+    <div className="flex items-center gap-1 opacity-100 transition-opacity pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:focus-within:opacity-100">
       <Button
         type="button"
         variant="ghost"

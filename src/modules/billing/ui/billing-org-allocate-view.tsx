@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { MoneyText } from '@/components/patterns/money-text';
 import { PageHeader } from '@/components/ui/page-header';
 import { listBillingRecords } from '@/modules/billing';
 import { getPaymentAllocationView } from '@/modules/billing/application/get-payment-allocation-view';
@@ -80,12 +81,10 @@ export async function BillingOrgAllocateView({
       ) : (
         <div className="rounded-lg border border-[var(--pf-border-default)] p-4 text-sm">
           <p>
-            {t('paymentForm.cashReceivedPreview')}: {payment.amount.amount}{' '}
-            {payment.amount.currency}
+            {t('paymentForm.cashReceivedPreview')}: <MoneyText value={payment.amount} />
           </p>
           <p className="mt-1">
-            {t('paymentForm.allocatedPreview')}: {payment.appliedAmount.amount}{' '}
-            {payment.appliedAmount.currency}
+            {t('paymentForm.allocatedPreview')}: <MoneyText value={payment.appliedAmount} />
           </p>
           <p className="mt-1">{t('paymentForm.fullyAllocatedHint')}</p>
         </div>

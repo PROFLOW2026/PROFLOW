@@ -121,6 +121,7 @@
     "payable": "مستحق",
     "retention": "احتجاز",
     "holds": "تعليق الدفع",
+    "paymentsEmpty": "لا توجد دفعات للعرض",
     "newClaim": "مطالبة جديدة",
     "createDraft": "إنشاء مسودة"
   },

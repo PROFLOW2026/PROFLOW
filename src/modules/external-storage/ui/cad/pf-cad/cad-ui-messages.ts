@@ -270,3 +270,15 @@ export function buildCadDwgBanners(
 
   return candidates.slice(0, 2);
 }
+
+const CAD_PLOT_VIEW_LABEL: Record<string, string> = {
+  en: 'Plot view',
+  'he-IL': 'תצוגת הדפסה',
+  ar: 'عرض الطباعة',
+  ru: 'Вид печати',
+};
+
+/** Toolbar label only. Does not change plot-view behavior. */
+export function cadPlotViewLabel(locale: string): string {
+  return CAD_PLOT_VIEW_LABEL[locale] ?? CAD_PLOT_VIEW_LABEL.en ?? 'Plot view';
+}

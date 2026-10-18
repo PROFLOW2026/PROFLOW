@@ -47,7 +47,7 @@ export default async function ContractorPortalWorkHubPage() {
           description={t('dashboard.noAccess.description')}
         />
       ) : projectBlocks.length === 0 ? (
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('hub.work.empty')}</p>
+        <EmptyState icon={KeyRound} title={t('hub.work.empty')} description={t('hub.work.subtitle')} />
       ) : (
         <div className="flex flex-col gap-6">
           {projectBlocks.map(({ project, links }) => (

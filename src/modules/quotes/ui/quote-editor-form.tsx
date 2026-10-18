@@ -24,6 +24,7 @@ import {
   QuoteTextBlocksEditor,
   type QuoteTextBlockDraft,
 } from '@/modules/quotes/ui/quote-text-blocks-editor';
+import { formatDecimalInputSeed } from '@/shared/number/display';
 
 export interface QuoteEditorLine {
   description: string;
@@ -84,7 +85,15 @@ export function QuoteEditorForm({
   const [clientId, setClientId] = useState(defaultClientId ?? '__none__');
   const [taxMode, setTaxMode] = useState<QuoteTaxMode>(defaultTaxMode);
   const [lines, setLines] = useState<QuoteEditorLine[]>(
-    defaultLines && defaultLines.length > 0 ? [...defaultLines] : [emptyLine()],
+    defaultLines && defaultLines.length > 0
+      ? defaultLines.map((line) => ({
+          ...line,
+          quantity: formatDecimalInputSeed(line.quantity) || line.quantity,
+          unitPriceAmount: formatDecimalInputSeed(line.unitPriceAmount) || line.unitPriceAmount,
+          estimatedUnitCostAmount:
+            formatDecimalInputSeed(line.estimatedUnitCostAmount) || line.estimatedUnitCostAmount,
+        }))
+      : [emptyLine()],
   );
 
   return (
@@ -193,7 +202,7 @@ export function QuoteEditorForm({
               name="discountAmount"
               inputMode="decimal"
               dir="ltr"
-              defaultValue={defaultDiscountAmount ?? ''}
+              defaultValue={formatDecimalInputSeed(defaultDiscountAmount) || (defaultDiscountAmount ?? '')}
             />
           )}
         </Field>
@@ -204,7 +213,7 @@ export function QuoteEditorForm({
               name="listSubtotalAmount"
               inputMode="decimal"
               dir="ltr"
-              defaultValue={defaultListSubtotalAmount ?? ''}
+              defaultValue={formatDecimalInputSeed(defaultListSubtotalAmount) || (defaultListSubtotalAmount ?? '')}
             />
           )}
         </Field>
@@ -215,7 +224,7 @@ export function QuoteEditorForm({
               name="discountPercent"
               inputMode="decimal"
               dir="ltr"
-              defaultValue={defaultDiscountPercent ?? ''}
+              defaultValue={formatDecimalInputSeed(defaultDiscountPercent) || (defaultDiscountPercent ?? '')}
             />
           )}
         </Field>

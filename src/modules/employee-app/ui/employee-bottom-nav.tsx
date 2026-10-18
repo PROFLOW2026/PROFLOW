@@ -56,6 +56,13 @@ export function EmployeeBottomNav({ items }: { items: readonly EmployeeNavItem[]
               <li key={item.href} className="min-w-0 flex-1">
                 <Link
                   href={item.href}
+                  aria-current={
+                    (item.href === '/employee'
+                      ? pathname === item.href
+                      : pathname === item.href || pathname.startsWith(`${item.href}/`))
+                      ? 'page'
+                      : undefined
+                  }
                   className={cn(
                     pressableChromeClassName,
                     'flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[0.6875rem] font-medium',

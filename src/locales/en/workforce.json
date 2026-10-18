@@ -182,7 +182,7 @@
       "dailyRateLabel": "Daily rate",
       "dailyEmployerCostLabel": "Daily employer cost",
       "hourlyEmployerCostLabel": "Hourly employer cost",
-      "burdenPercentLabel": "Burden {percent}%",
+      "burdenPercentLabel": "Burden {percent}",
       "monthlyStandardHoursLabel": "Monthly standard hours (attendance only)",
       "derivedHourlyCostLabel": "Calculated hourly cost",
       "derivedHourlyCostMissing": "Cannot calculate without a hourly rate.",

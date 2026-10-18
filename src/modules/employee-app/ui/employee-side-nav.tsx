@@ -16,14 +16,18 @@ function NavLink({
   pathname: string;
   t: ReturnType<typeof useTranslations>;
 }) {
-  const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+  const current =
+    item.href === '/employee'
+      ? pathname === item.href
+      : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
   return (
     <Link
       href={item.href}
+      aria-current={current ? 'page' : undefined}
       className={cn(
         'flex min-h-11 items-center rounded-lg px-3 text-sm font-medium transition-colors',
-        active
+        current
           ? 'bg-[var(--pf-accent-soft)] text-[var(--pf-accent)]'
           : 'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-surface-2)] hover:text-[var(--pf-text)]',
       )}
@@ -58,6 +62,9 @@ export function EmployeeSideNav({
       </div>
 
       <div className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2">
+        <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
+          {t('employeeApp.nav.myWork')}
+        </p>
         <ul className="flex flex-col gap-0.5">
           {planner.map((item) => (
             <li key={item.href}>

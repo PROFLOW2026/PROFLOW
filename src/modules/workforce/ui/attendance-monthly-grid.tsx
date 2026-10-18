@@ -1,5 +1,6 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import type {
@@ -103,20 +104,20 @@ export async function AttendanceMonthlyGrid({
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Link
             href={monthlyHref({ yearMonth: prevMonth, employeeId: selectedEmployeeId, missingOnly })}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--pf-border-default)]"
+            className="inline-flex size-11 items-center justify-center rounded-md border border-[var(--pf-border-default)]"
             scroll={false}
             aria-label={t('prevMonth')}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronLeft className={rtlFlipClassName('size-4')} />
           </Link>
           <span className="min-w-0 text-center text-sm font-medium sm:min-w-[10rem]">{formatMonthTitle(grid.yearMonth, locale)}</span>
           <Link
             href={monthlyHref({ yearMonth: nextMonth, employeeId: selectedEmployeeId, missingOnly })}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--pf-border-default)]"
+            className="inline-flex size-11 items-center justify-center rounded-md border border-[var(--pf-border-default)]"
             scroll={false}
             aria-label={t('nextMonth')}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronRight className={rtlFlipClassName('size-4')} />
           </Link>
         </div>
         <div className="flex flex-wrap gap-3 text-xs text-[var(--pf-text-muted)]">

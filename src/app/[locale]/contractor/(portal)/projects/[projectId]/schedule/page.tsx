@@ -10,8 +10,8 @@ import { listContractorSchedule, type ContractorEventListItem } from '@/modules/
 import { partyTone, statusTone } from '@/modules/coordination/ui/tones';
 import { formatInstant } from '@/shared/dates';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
+import { portalSegmentBarClass, portalSegmentClass } from '@/modules/contractor-portal/ui/portal-surface';
 import { Link } from '@/shared/i18n/navigation';
-import { cn } from '@/shared/ui/cn';
 
 export default async function ContractorSchedulePage({
   params,
@@ -33,20 +33,15 @@ export default async function ContractorSchedulePage({
   const items = await listContractorSchedule(context, projectId, { scope });
   const [t, locale] = await Promise.all([getTranslations('coordination'), getLocale()]);
   const base = `/contractor/projects/${projectId}/schedule`;
-  const tabClass = (active: boolean) =>
-    cn(
-      'inline-flex min-h-11 flex-1 items-center justify-center rounded-md px-3 text-sm font-medium sm:flex-none',
-      active ? 'bg-[var(--pf-bg-muted)] text-[var(--pf-text-primary)]' : 'text-[var(--pf-text-secondary)]',
-    );
 
   return (
     <div className="flex flex-col gap-4">
       <PageHeader title={t('portal.scheduleTitle')} description={t('portal.scheduleDescription')} />
-      <nav className="flex gap-1" aria-label={t('portal.scheduleTitle')}>
-        <Link href={base} className={tabClass(scope === 'upcoming')} aria-current={scope === 'upcoming' ? 'page' : undefined}>
+      <nav className={portalSegmentBarClass} aria-label={t('portal.scheduleTitle')}>
+        <Link href={base} className={portalSegmentClass(scope === 'upcoming')} aria-current={scope === 'upcoming' ? 'page' : undefined}>
           {t('portal.upcoming')}
         </Link>
-        <Link href={`${base}?view=past`} className={tabClass(scope === 'past')} aria-current={scope === 'past' ? 'page' : undefined}>
+        <Link href={`${base}?view=past`} className={portalSegmentClass(scope === 'past')} aria-current={scope === 'past' ? 'page' : undefined}>
           {t('portal.past')}
         </Link>
       </nav>

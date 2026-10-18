@@ -1,6 +1,7 @@
-import { ChevronLeft } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from '@/shared/i18n/navigation';
+import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import type { MetricCount } from '../domain/metric-value';
 
 export function ExecutionMetricCard({
@@ -15,7 +16,7 @@ export function ExecutionMetricCard({
   readonly unavailableLabel: string;
 }) {
   return (
-    <Link href={href} className="block min-h-11 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+    <Link href={href} className="block min-h-11 rounded-lg">
       <Card className="transition-colors hover:bg-[var(--pf-surface-hover)]">
         <CardContent className="flex items-center justify-between gap-3 p-4">
           <div className="flex min-w-0 flex-col gap-1">
@@ -24,7 +25,7 @@ export function ExecutionMetricCard({
               {metric.kind === 'count' ? metric.value : unavailableLabel}
             </span>
           </div>
-          <ChevronLeft className="size-5 shrink-0 rotate-180 text-[var(--pf-text-secondary)]" aria-hidden />
+          <ChevronRight className={rtlFlipClassName('size-5 shrink-0 text-[var(--pf-text-secondary)]')} aria-hidden />
         </CardContent>
       </Card>
     </Link>

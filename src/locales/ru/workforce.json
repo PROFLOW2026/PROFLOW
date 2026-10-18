@@ -182,7 +182,7 @@
       "dailyRateLabel": "Дневная ставка",
       "dailyEmployerCostLabel": "Дневные затраты работодателя",
       "hourlyEmployerCostLabel": "Почасовые затраты работодателя",
-      "burdenPercentLabel": "Нагрузка {percent}%",
+      "burdenPercentLabel": "Нагрузка {percent}",
       "monthlyStandardHoursLabel": "Месячная норма часов (только посещаемость)",
       "derivedHourlyCostLabel": "Расчётная почасовая стоимость",
       "derivedHourlyCostMissing": "Нельзя рассчитать без почасовой ставки.",

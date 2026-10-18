@@ -37,6 +37,13 @@ function OverflowNavLink({
     <Link
       href={item.href}
       onClick={onNavigate}
+      aria-current={
+        (item.href === '/employee'
+          ? pathname === item.href
+          : pathname === item.href || pathname.startsWith(`${item.href}/`))
+          ? 'page'
+          : undefined
+      }
       className={cn(
         'flex min-h-11 items-center rounded-lg px-3 py-2.5 text-sm font-medium',
         active

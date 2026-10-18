@@ -1,9 +1,9 @@
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { PageHeader } from '@/components/ui/page-header';
 import { requireExternalContext } from '@/modules/contractor-access';
 import { getContractorDrawing } from '@/modules/project-plans';
-import { ContractorDrawingDetailPanel } from '@/modules/project-plans/ui/contractor-drawing-detail';
+import { PortalDrawingDetail } from '@/modules/contractor-portal/ui/portal-drawing-detail';
+import { employeePageStackClass } from '@/modules/employee-app/ui/employee-surface-styles';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
 import { Link } from '@/shared/i18n/navigation';
 import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
@@ -31,17 +31,12 @@ export default async function ContractorDrawingPage({
   const t = await getTranslations('projectPlans.portal.drawing');
 
   return (
-    <div className="flex min-w-0 flex-col gap-4 pb-6">
-      <PageHeader
-        breadcrumb={
-          <Link href={`/contractor/projects/${projectId}/plans`} className="text-sm text-[var(--pf-text-brand)] hover:underline">
-            {t('back')}
-          </Link>
-        }
-        title={t('pageTitle')}
-      />
+    <div className={employeePageStackClass}>
+      <Link href={`/contractor/projects/${projectId}/plans`} className="text-sm text-[var(--pf-text-brand)] hover:underline">
+        {t('back')}
+      </Link>
       <WithPortalClientMessages extra={['projectPlans']}>
-        <ContractorDrawingDetailPanel organizationId={grant.organizationId} projectId={projectId} detail={detail} />
+        <PortalDrawingDetail organizationId={grant.organizationId} projectId={projectId} detail={detail} />
       </WithPortalClientMessages>
     </div>
   );

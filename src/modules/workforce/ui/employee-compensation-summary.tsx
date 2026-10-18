@@ -6,6 +6,7 @@ import { MoneyText } from '@/components/patterns/money-text';
 import type { EmployeeCompensationSummary } from '@/modules/workforce/application/compensation-summary';
 import { formatWorkHoursValue } from '@/modules/workforce/domain/format-work-hours';
 import { formatBusinessDate } from '@/shared/dates/format';
+import { formatPercentDisplay } from '@/shared/number/display';
 import type { BusinessDate } from '@/shared/dates';
 import { fromNumericString } from '@/shared/money';
 import { Link } from '@/shared/i18n/navigation';
@@ -161,7 +162,9 @@ export async function EmployeeCompensationSummaryPanel({
               />
               {summary.burdenPercent && Number(summary.burdenPercent) > 0 ? (
                 <span className="ms-2 text-xs text-[var(--pf-text-secondary)]">
-                  {t('employees.detail.burdenPercentLabel', { percent: summary.burdenPercent })}
+                  {t('employees.detail.burdenPercentLabel', {
+                    percent: formatPercentDisplay(summary.burdenPercent, locale),
+                  })}
                 </span>
               ) : null}
               {summary.rateUnit === 'monthly' ? (

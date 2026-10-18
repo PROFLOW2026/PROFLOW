@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { getFormatter, getTranslations } from 'next-intl/server';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { getContractorAccount, listExternalDirectory, requireExternalContext } from '@/modules/contractor-access';
 import { ContractorPasswordForm, ContractorProfileForm } from '@/modules/contractor-access/ui/contractor-account-forms';
+import { employeePageStackClass } from '@/modules/employee-app/ui/employee-surface-styles';
 import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
-import { contractorChangePasswordAction, contractorSignOutAction, contractorUpdateProfileAction } from './actions';
+import { contractorChangePasswordAction, contractorUpdateProfileAction } from './actions';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -25,17 +25,10 @@ export default async function ContractorAccountPage({ params }: { params: Promis
 
   return (
     <WithPortalClientMessages extra={['auth', 'contractorAccess']}>
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-6">
-        <header className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-xl font-semibold">{t('account.title')}</h1>
-            <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('account.subtitle')}</p>
-          </div>
-          <form action={contractorSignOutAction}>
-            <Button type="submit" variant="secondary">
-              {t('account.signOut')}
-            </Button>
-          </form>
+      <div className={employeePageStackClass}>
+        <header className="space-y-1">
+          <h1 className="text-xl font-semibold">{t('account.title')}</h1>
+          <p className="text-sm text-[var(--pf-text-secondary)]">{t('account.subtitle')}</p>
         </header>
 
         <Card className="p-4">

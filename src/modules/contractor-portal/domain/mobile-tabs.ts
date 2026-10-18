@@ -75,6 +75,9 @@ export const CONTRACTOR_WORK_PROJECT_ROUTE_KEYS = new Set<PortalRouteKey>([
   'project.handover',
   'project.tenders',
   'project.tender',
+  'project.documents',
+  'project.plans',
+  'project.plan',
 ]);
 
 /** Financial modules grouped under FINANCE (hub + deep links). */
@@ -91,9 +94,6 @@ export const CONTRACTOR_MORE_TAB_ROUTE_KEYS = new Set<PortalRouteKey>([
   'portal.more',
   'account',
   'notifications',
-  'project.documents',
-  'project.plans',
-  'project.plan',
 ]);
 
 export function buildContractorMobileNavItems(): readonly PortalNavItem[] {

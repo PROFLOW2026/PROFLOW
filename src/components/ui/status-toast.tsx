@@ -43,7 +43,7 @@ export function StatusToast({ open, tone, message, onDismiss, className }: Statu
   return createPortal(
     <div
       className={cn(
-        'pointer-events-none fixed inset-x-0 bottom-[calc(var(--pf-bottomnav-total-height)+1rem)] z-50 flex justify-center px-4 lg:bottom-6',
+        'pointer-events-none fixed inset-x-0 bottom-[calc(var(--pf-bottomnav-total-height)+1rem)] z-toast flex justify-center px-4 lg:bottom-6',
         className,
       )}
       data-pf-status-toast=""

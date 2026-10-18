@@ -33,11 +33,13 @@ describe('project work nav links (REG-007)', () => {
     );
   });
 
-  it('omits timeline on employee surface and maps boards to board', () => {
+  it('includes timeline on the employee surface and maps boards to board', () => {
     const employeeRoot = `/employee/projects/${PROJECT_ID}`;
     const labels = projectWorkNavLinksForSurface(employeeRoot).map((l) => l.labelKey);
-    expect(labels).not.toContain('timeline');
+    expect(labels).toContain('timeline');
     const boards = PROJECT_WORK_NAV_LINKS.find((l) => l.labelKey === 'boards')!;
     expect(projectWorkNavHref(employeeRoot, boards)).toBe(`${employeeRoot}/board`);
+    const timeline = PROJECT_WORK_NAV_LINKS.find((l) => l.labelKey === 'timeline')!;
+    expect(projectWorkNavHref(employeeRoot, timeline)).toBe(`${employeeRoot}/timeline`);
   });
 });

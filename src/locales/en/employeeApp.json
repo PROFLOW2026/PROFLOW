@@ -23,6 +23,7 @@
   },
   "nav": {
     "home": "Home",
+    "myWork": "My work",
     "timeAndAttendance": "Attendance & hours",
     "attendance": "Attendance",
     "hours": "Hours",
@@ -105,6 +106,13 @@
       "dueTodayBadge": "Today",
       "overdueBadge": "Overdue",
       "viewTasks": "View all tasks",
+      "openList": "List",
+      "openCalendar": "Calendar",
+      "openProjects": "Projects",
+      "openDocuments": "Documents",
+      "openNotifications": "Notifications",
+      "emptyTitle": "No open tasks need attention",
+      "emptyDescription": "The full list is still available.",
       "dueDateLabel": "Due: {date}",
       "badges": {
         "overdue": "Overdue",

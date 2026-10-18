@@ -35,6 +35,15 @@ describe('employee-back-navigation', () => {
     });
   });
 
+  it('falls back to the project hub from a deep project screen', () => {
+    expect(resolveEmployeeShellHeader('/employee/projects/proj-1/rfi/rfi-1')).toEqual({
+      showHeader: true,
+      showBack: true,
+      fallbackHref: '/employee/projects/proj-1',
+      titleKey: 'nav.projects',
+    });
+  });
+
   it('falls back to hours list from retroactive log form', () => {
     expect(resolveEmployeeShellHeader('/employee/hours/new')).toEqual({
       showHeader: true,

@@ -46,14 +46,15 @@
     "anonymousUser": "Contractor user",
     "language": "Language",
     "signOut": "Sign out",
-    "backToMainApp": "Back to main sign in"
+    "backToMainApp": "Back to main sign in",
+    "projectShortcuts": "Project modules"
   },
   "hub": {
     "projects": {
       "subtitle": "All projects you can access, grouped by client"
     },
     "work": {
-      "subtitle": "Tasks, quality, field reports and coordination",
+      "subtitle": "Tasks, plans, documents, quality and field work",
       "empty": "No work modules are shared with you yet."
     },
     "finance": {
@@ -61,7 +62,7 @@
       "empty": "No financial modules are shared with you yet."
     },
     "more": {
-      "subtitle": "Account, notifications, documents and app settings",
+      "subtitle": "Account, notifications and app settings",
       "accountSection": "Account & alerts",
       "connectOrgTitle": "Run ProjectFlow as your company?",
       "connectOrgDescription": "If your developer shared a connection code, sign in to your ProjectFlow organization and redeem it there. Your guest portal access stays unchanged; no duplicate business project is created when the engagement is already linked.",
@@ -85,6 +86,9 @@
     "workingAs": "working as {vendor}",
     "linksLabel": "Project areas",
     "nothingShared": "Nothing has been shared with you on this project yet. Tasks, events and documents the client shares will appear here."
+  },
+  "siteLog": {
+    "advanced": "More details"
   },
   "sections": {
     "attention": "{count} need action",

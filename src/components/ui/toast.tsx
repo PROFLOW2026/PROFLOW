@@ -47,7 +47,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       <div
-        className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--pf-bottomnav-total-height)+1rem)] z-50 flex flex-col items-center gap-2 px-4 lg:bottom-6"
+        className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--pf-bottomnav-total-height)+1rem)] z-toast flex flex-col items-center gap-2 px-4 lg:bottom-6"
         aria-relevant="additions"
       >
         {toasts.map((toast) => (

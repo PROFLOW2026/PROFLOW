@@ -8,6 +8,7 @@ import { requireExternalContext } from '@/modules/contractor-access';
 import { getContractorRfiSummary, listContractorRfis, listProjectLocationOptions, listProjectWorkPackageOptions } from '@/modules/rfi';
 import { ContractorRfiCreateForm } from '@/modules/rfi/ui/contractor-rfi-create-form';
 import { RfiList } from '@/modules/rfi/ui/rfi-list';
+import { portalWideListClass } from '@/modules/contractor-portal/ui/portal-surface';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
 import { Link } from '@/shared/i18n/navigation';
 import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
@@ -70,7 +71,9 @@ export default async function ContractorRfisPage({
       {items.length === 0 ? (
         <EmptyState icon={MessageCircleQuestion} title={t('portal.empty')} size="sm" />
       ) : (
-        <RfiList items={items} basePath={base} locale={locale} />
+        <div className={portalWideListClass}>
+          <RfiList items={items} basePath={base} locale={locale} />
+        </div>
       )}
     </div>
     </WithPortalClientMessages>

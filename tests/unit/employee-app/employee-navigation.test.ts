@@ -89,18 +89,16 @@ describe('employee mobile navigation', () => {
 
     expect(hrefs(primary)).toEqual([
       '/employee',
-      '/employee/time',
-      '/employee/projects',
       '/employee/tasks',
+      '/employee/projects',
     ]);
-    expect(hrefs(overflow).sort()).toEqual(
-      [
-        '/employee/documents',
-        '/employee/notifications',
-        '/employee/team',
-        '/employee/workforce',
-      ].sort(),
-    );
+    expect(hrefs(overflow)).toEqual([
+      '/employee/team',
+      '/employee/documents',
+      '/employee/notifications',
+      '/employee/workforce',
+      '/employee/time',
+    ]);
   });
 
   it('field_worker_time gets home and time only — no back-fill from secondary', () => {
@@ -113,8 +111,8 @@ describe('employee mobile navigation', () => {
     const primary = selectEmployeeMobilePrimaryItems(nav);
     const overflow = selectEmployeeMobileOverflowItems(nav);
 
-    expect(hrefs(primary)).toEqual(['/employee', '/employee/time']);
-    expect(hrefs(overflow)).toEqual(['/employee/notifications']);
+    expect(hrefs(primary)).toEqual(['/employee']);
+    expect(hrefs(overflow)).toEqual(['/employee/notifications', '/employee/time']);
   });
 
   it('field worker primary includes projects; documents go to More', () => {
@@ -129,11 +127,14 @@ describe('employee mobile navigation', () => {
 
     expect(hrefs(primary)).toEqual([
       '/employee',
-      '/employee/time',
-      '/employee/projects',
       '/employee/tasks',
+      '/employee/projects',
     ]);
-    expect(hrefs(overflow)).toEqual(['/employee/documents', '/employee/notifications']);
+    expect(hrefs(overflow)).toEqual([
+      '/employee/documents',
+      '/employee/notifications',
+      '/employee/time',
+    ]);
   });
 
   it('uses short attendance label on mobile only', () => {

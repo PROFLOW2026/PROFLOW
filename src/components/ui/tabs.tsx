@@ -48,7 +48,6 @@ export const TabsTrigger = React.forwardRef<
         'hover:text-[var(--pf-text-primary)]',
         // Touch press (active), not hover-only.
         'active:bg-[var(--pf-action-subtle-hover)] active:text-[var(--pf-text-primary)]',
-        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
         'data-[state=active]:border-[var(--pf-action-primary)] data-[state=active]:text-[var(--pf-text-brand)]',
         'data-[state=active]:active:bg-[var(--pf-action-subtle-active)]',
         // Optimistic / in-flight tab switch (set by ProjectTabsShell).

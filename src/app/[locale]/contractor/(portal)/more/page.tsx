@@ -2,10 +2,7 @@ import type { Metadata } from 'next';
 import { Bell, UserRound } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { loadPortalSession, loadPortalShellData } from '@/modules/contractor-portal/application/load-portal-session';
-import { buildPortalProjectNav } from '@/modules/contractor-portal/domain/nav';
 import { buildPortalHref } from '@/modules/contractor-portal/domain/routes';
-import { portalOrganizationLabel, portalProjectLabel } from '@/modules/contractor-portal/ui/labels';
-import { PortalNavIcon } from '@/modules/contractor-portal/ui/portal-nav-icon';
 import { employeeHubCardClass, employeePageStackClass } from '@/modules/employee-app/ui/employee-surface-styles';
 import { PwaInstallCta } from '@/modules/offline/ui/pwa-install-cta';
 import { Link } from '@/shared/i18n/navigation';
@@ -24,16 +21,6 @@ export default async function ContractorPortalMoreHubPage() {
   const t = await getTranslations('contractorPortal');
   const session = await loadPortalSession();
   const shell = await loadPortalShellData(session);
-  const { projects } = session;
-
-  const docBlocks = projects
-    .map((project) => {
-      const links = buildPortalProjectNav(project.projectId, project.capabilities).filter(
-        (item) => item.key === 'project.documents' || item.key === 'project.plans',
-      );
-      return { project, links };
-    })
-    .filter((block) => block.links.length > 0);
 
   const accountHref = buildPortalHref('account');
   const notificationsHref = buildPortalHref('notifications');
@@ -71,32 +58,6 @@ export default async function ContractorPortalMoreHubPage() {
           </li>
         </ul>
       </section>
-
-      {docBlocks.length > 0 ? (
-        <div className="flex flex-col gap-6">
-          {docBlocks.map(({ project, links }) => (
-            <section key={project.projectId} className="space-y-2">
-              <h2 className="text-sm font-semibold">
-                {portalProjectLabel(t, project)}
-                <span className="font-normal text-[var(--pf-text-secondary)]">
-                  {' · '}
-                  {portalOrganizationLabel(t, project.organizationName)}
-                </span>
-              </h2>
-              <ul className="grid grid-cols-2 gap-2">
-                {links.map((item) => (
-                  <li key={item.key}>
-                    <Link href={item.href} className={employeeHubCardClass}>
-                      <PortalNavIcon navKey={item.key} className="size-4 shrink-0 text-[var(--pf-accent)]" />
-                      <span className="truncate text-sm font-medium">{t(item.labelKey)}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
-      ) : null}
 
       <section className="space-y-2" aria-labelledby="pf-portal-more-connect-org">
         <h2 id="pf-portal-more-connect-org" className="text-sm font-semibold">

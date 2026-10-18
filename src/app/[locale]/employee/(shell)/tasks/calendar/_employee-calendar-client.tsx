@@ -31,7 +31,7 @@ export function EmployeeTasksCalendarClient({
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-lg font-semibold">{t('calendar.pageTitle')}</h1>
+        <h2 className="text-lg font-semibold">{t('calendar.pageTitle')}</h2>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('calendar.pageDescription')}</p>
       </div>
       <TaskFiltersBar value={filters} onChange={setFilters} />

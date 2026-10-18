@@ -14,9 +14,8 @@ export function partitionEmployeeNavItems(items: readonly EmployeeNavItem[]): {
 /** Fixed mobile primary destinations — order matters; permission filtering is applied separately. */
 export const EMPLOYEE_MOBILE_PRIMARY_HREFS = [
   '/employee',
-  '/employee/time',
-  '/employee/projects',
   '/employee/tasks',
+  '/employee/projects',
 ] as const;
 
 /** Lucide icon keys for fixed mobile primary tabs (href → icon). */
@@ -24,9 +23,8 @@ export const EMPLOYEE_MOBILE_NAV_ICON_BY_HREF: Readonly<
   Record<(typeof EMPLOYEE_MOBILE_PRIMARY_HREFS)[number], string>
 > = {
   '/employee': 'home',
-  '/employee/time': 'time',
-  '/employee/projects': 'projects',
   '/employee/tasks': 'tasks',
+  '/employee/projects': 'projects',
 };
 
 export function employeeMobileNavIconKey(item: EmployeeNavItem): string | null {
@@ -59,7 +57,12 @@ export function selectEmployeeMobileOverflowItems(
 ): EmployeeNavItem[] {
   const primary = selectEmployeeMobilePrimaryItems(items);
   const primaryHrefs = new Set(primary.map((item) => item.href));
-  return items.filter((item) => item.visible && !primaryHrefs.has(item.href));
+  const overflow = items.filter((item) => item.visible && !primaryHrefs.has(item.href));
+  const attendance = overflow.filter((item) => item.href === '/employee/time');
+  const rest = overflow.filter((item) => item.href !== '/employee/time');
+  const planner = rest.filter((item) => item.group !== 'management');
+  const management = rest.filter((item) => item.group === 'management');
+  return [...planner, ...attendance, ...management];
 }
 
 /** Mobile-only short label for attendance tab. */

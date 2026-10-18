@@ -16,6 +16,7 @@ import {
 } from '@/shared/dates';
 import { formatBusinessDateMonthDay } from '@/shared/dates/format';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
+import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import { cn } from '@/shared/ui/cn';
 import { uwmPrimaryPanelClass } from '@/shared/ui/uwm-surface-styles';
 import type { TaskCardData, TaskStatus } from './task-api';
@@ -182,7 +183,7 @@ export function TaskCalendarView({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Button type="button" variant="secondary" size="sm" onClick={() => shiftPeriod(-1)}>
-                <ChevronLeft aria-hidden className="size-4" />
+                <ChevronLeft aria-hidden className={rtlFlipClassName('size-4')} />
                 <span className="sr-only">{t('calendar.previous')}</span>
               </Button>
               <Button
@@ -194,7 +195,7 @@ export function TaskCalendarView({
                 {t('calendar.today')}
               </Button>
               <Button type="button" variant="secondary" size="sm" onClick={() => shiftPeriod(1)}>
-                <ChevronRight aria-hidden className="size-4" />
+                <ChevronRight aria-hidden className={rtlFlipClassName('size-4')} />
                 <span className="sr-only">{t('calendar.next')}</span>
               </Button>
               <h2 className="text-sm font-semibold text-[var(--pf-text-primary)]">

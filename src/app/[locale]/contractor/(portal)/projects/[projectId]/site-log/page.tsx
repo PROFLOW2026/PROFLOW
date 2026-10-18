@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { Textarea } from '@/components/ui/textarea';
 import { requireExternalContext } from '@/modules/contractor-access';
+import { portalExternalCaptureClass } from '@/modules/contractor-portal/ui/portal-surface';
 import { EvidenceUploader } from '@/modules/evidence/ui';
 import { getContractorDailyReports } from '@/modules/site-log';
 import { loadOrNotFound } from '@/modules/site-log/shared/page-guard';
@@ -18,11 +19,15 @@ import { submitDailyReportAction } from './actions';
 /** Portal default for the report date; the server accepts any date that is "today" somewhere. */
 const PORTAL_DEFAULT_TIME_ZONE = 'Asia/Jerusalem';
 
-const REPORT_TEXT_FIELDS = ['workPerformed', 'equipment', 'deliveries', 'delays', 'blockingIssues', 'safetyNotes', 'notes'] as const;
+const ADVANCED_REPORT_FIELDS = ['workPerformed', 'equipment', 'deliveries', 'delays', 'blockingIssues', 'safetyNotes'] as const;
 
 export default async function ContractorSiteLogPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
-  const [t, format] = await Promise.all([getTranslations('siteOps'), getFormatter()]);
+  const [t, tPortal, format] = await Promise.all([
+    getTranslations('siteOps'),
+    getTranslations('contractorPortal'),
+    getFormatter(),
+  ]);
   const { reports, minutes } = await loadOrNotFound(async () => {
     const context = await requireExternalContext();
     const reportsView = await getContractorDailyReports(context, projectId);
@@ -31,6 +36,7 @@ export default async function ContractorSiteLogPage({ params }: { params: Promis
   });
   const today = todayInTimeZone(PORTAL_DEFAULT_TIME_ZONE);
   const latest = reports.reports.filter((report) => report.isLatest);
+  const todayReport = latest.find((report) => report.reportDate === today) ?? null;
 
   return (
     <WithPortalClientMessages extra={['siteOps', 'projectPlans']}>
@@ -64,19 +70,41 @@ export default async function ContractorSiteLogPage({ params }: { params: Promis
                   </select>
                 </FieldLabel>
               ) : null}
-              <div className="grid grid-cols-2 gap-3">
-                <FieldLabel label={t('portal.siteLog.date')}>
-                  <Input name="reportDate" type="date" required defaultValue={today} />
-                </FieldLabel>
-                <FieldLabel label={t('reportFields.manpower')}>
-                  <Input name="manpowerCount" type="number" min={0} step={1} inputMode="numeric" numeric />
-                </FieldLabel>
-              </div>
-              {REPORT_TEXT_FIELDS.map((key) => (
-                <FieldLabel key={key} label={t(`reportFields.${key}`)}>
-                  <Textarea name={key} rows={key === 'workPerformed' ? 3 : 2} />
-                </FieldLabel>
-              ))}
+              <FieldLabel label={t('portal.siteLog.date')}>
+                <Input name="reportDate" type="date" required defaultValue={today} />
+              </FieldLabel>
+              <FieldLabel label={t('reportFields.manpower')}>
+                <Input name="manpowerCount" type="number" min={0} step={1} inputMode="numeric" numeric />
+              </FieldLabel>
+              <FieldLabel label={t('reportFields.notes')}>
+                <Textarea name="notes" rows={3} />
+              </FieldLabel>
+              {todayReport ? (
+                <div className={portalExternalCaptureClass}>
+                  <p className="text-sm font-medium">{t('portal.siteLog.addPhotos')}</p>
+                  <EvidenceUploader
+                    organizationId={todayReport.organizationId}
+                    projectId={projectId}
+                    entityType="site_daily_report"
+                    entityId={todayReport.id}
+                    viewer="external"
+                    locationId={todayReport.locationId}
+                    accept={['photo', 'video']}
+                  />
+                </div>
+              ) : null}
+              <details className="rounded-lg border border-[var(--pf-border-default)]">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center px-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
+                  {tPortal('siteLog.advanced')}
+                </summary>
+                <div className="flex flex-col gap-3 px-3 pb-3">
+                  {ADVANCED_REPORT_FIELDS.map((key) => (
+                    <FieldLabel key={key} label={t(`reportFields.${key}`)}>
+                      <Textarea name={key} rows={key === 'workPerformed' ? 3 : 2} />
+                    </FieldLabel>
+                  ))}
+                </div>
+              </details>
               <p className="text-xs text-[var(--pf-text-muted)]">{t('portal.siteLog.revisionHint')}</p>
             </FieldActionForm>
           </CardContent>
@@ -108,9 +136,9 @@ export default async function ContractorSiteLogPage({ params }: { params: Promis
                     {report.blockingIssues ? (
                       <p className="whitespace-pre-wrap break-words text-[var(--pf-status-danger-fg)]">{report.blockingIssues}</p>
                     ) : null}
-                    <details>
-                      <summary className="cursor-pointer text-xs text-[var(--pf-text-brand)]">{t('portal.siteLog.addPhotos')}</summary>
-                      <div className="mt-2">
+                    {report.id !== todayReport?.id ? (
+                      <div className={portalExternalCaptureClass}>
+                        <p className="text-sm font-medium">{t('portal.siteLog.addPhotos')}</p>
                         <EvidenceUploader
                           organizationId={report.organizationId}
                           projectId={projectId}
@@ -121,7 +149,7 @@ export default async function ContractorSiteLogPage({ params }: { params: Promis
                           accept={['photo', 'video']}
                         />
                       </div>
-                    </details>
+                    ) : null}
                   </CardContent>
                 </Card>
               </li>

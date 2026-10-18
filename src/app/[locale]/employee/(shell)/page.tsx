@@ -18,6 +18,8 @@ import {
   employeeListRowLinkClass,
   employeePageStackClass,
   employeePanelClass,
+  employeeTabBarClass,
+  employeeTabClass,
 } from '@/modules/employee-app/ui/employee-surface-styles';
 import { cn } from '@/shared/ui/cn';
 
@@ -111,28 +113,51 @@ export default async function EmployeeHomePage() {
     };
   });
 
+  const canProjects = data.nav.some((item) => item.visible && item.href === '/employee/projects');
+  const canDocuments = data.nav.some((item) => item.visible && item.href === '/employee/documents');
+  const canNotifications = data.nav.some((item) => item.visible && item.href === '/employee/notifications');
+
   return (
     <div className={employeePageStackClass}>
       <header>
         <h1 className="text-2xl font-bold">
           {t('greeting', { name: data.employeeName || t('home.anonymousName') })}
         </h1>
+        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('home.workSummary.subtitle')}</p>
       </header>
 
       {taskSummary ? (
         <section className={cn(employeePanelClass, 'space-y-4')}>
-          <div className="space-y-1">
-            <h2 className="text-sm font-semibold">{t('home.workSummary.title')}</h2>
-            <p className="text-xs text-[var(--pf-text-secondary)]">{t('home.workSummary.subtitle')}</p>
+          <h2 className="text-sm font-semibold">{t('home.workSummary.title')}</h2>
+          <div className={employeeTabBarClass}>
+            <Link href="/employee/tasks" className={employeeTabClass(false)}>
+              {t('home.workSummary.openList')}
+            </Link>
+            <Link href="/employee/tasks/calendar" className={employeeTabClass(false)}>
+              {t('home.workSummary.openCalendar')}
+            </Link>
+            {canProjects ? (
+              <Link href="/employee/projects" className={employeeTabClass(false)}>
+                {t('home.workSummary.openProjects')}
+              </Link>
+            ) : null}
           </div>
           <dl className="grid grid-cols-2 gap-3">
             <div>
-              <dt className="text-xs text-[var(--pf-text-secondary)]">{t('home.workSummary.dueToday')}</dt>
+              <dt className="text-xs text-[var(--pf-text-secondary)]">
+                <Link href="/employee/tasks" className="hover:underline">
+                  {t('home.workSummary.dueToday')}
+                </Link>
+              </dt>
               <dd className="text-2xl font-bold">{taskSummary.dueToday}</dd>
             </div>
             <div>
-              <dt className="text-xs text-[var(--pf-text-secondary)]">{t('home.workSummary.overdue')}</dt>
-              <dd className={cn('text-2xl font-bold', taskSummary.overdue > 0 && 'text-red-600')}>
+              <dt className="text-xs text-[var(--pf-text-secondary)]">
+                <Link href="/employee/tasks" className="hover:underline">
+                  {t('home.workSummary.overdue')}
+                </Link>
+              </dt>
+              <dd className={cn('text-2xl font-bold', taskSummary.overdue > 0 && 'text-[var(--pf-status-danger-fg)]')}>
                 {taskSummary.overdue}
               </dd>
             </div>
@@ -163,15 +188,13 @@ export default async function EmployeeHomePage() {
                       <span
                         className={cn(
                           'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
-                          task.kind === 'overdue'
-                            ? 'bg-red-50 text-red-700'
+                          task.kind === 'overdue' || task.kind === 'blocked'
+                            ? 'bg-[var(--pf-status-danger-bg)] text-[var(--pf-status-danger-fg)]'
                             : task.kind === 'dueToday'
                               ? 'bg-[var(--pf-accent-soft)] text-[var(--pf-accent)]'
-                              : task.kind === 'blocked'
-                                ? 'bg-red-100 text-red-700'
-                                : task.kind === 'reminder'
-                                  ? 'bg-amber-50 text-amber-800'
-                                  : 'bg-[var(--pf-bg-muted)] text-[var(--pf-text-secondary)]',
+                              : task.kind === 'reminder'
+                                ? 'bg-[var(--pf-status-warning-bg)] text-[var(--pf-status-warning-fg)]'
+                                : 'bg-[var(--pf-status-pending-bg)] text-[var(--pf-status-pending-fg)]',
                         )}
                       >
                         {t(`home.workSummary.badges.${task.kind}`)}
@@ -181,12 +204,32 @@ export default async function EmployeeHomePage() {
                 </li>
               ))}
             </ul>
-          ) : null}
+          ) : (
+            <div className="space-y-1">
+              <p className="text-sm font-medium">{t('home.workSummary.emptyTitle')}</p>
+              <p className="text-sm text-[var(--pf-text-secondary)]">{t('home.workSummary.emptyDescription')}</p>
+            </div>
+          )}
 
           <Link href="/employee/tasks" className="text-sm font-medium text-[var(--pf-primary)] hover:underline">
             {t('home.workSummary.viewTasks')}
           </Link>
         </section>
+      ) : null}
+
+      {canDocuments || canNotifications ? (
+        <div className="flex flex-wrap gap-3">
+          {canDocuments ? (
+            <Link href="/employee/documents" className="text-sm font-medium text-[var(--pf-primary)] hover:underline">
+              {t('home.workSummary.openDocuments')}
+            </Link>
+          ) : null}
+          {canNotifications ? (
+            <Link href="/employee/notifications" className="text-sm font-medium text-[var(--pf-primary)] hover:underline">
+              {t('home.workSummary.openNotifications')}
+            </Link>
+          ) : null}
+        </div>
       ) : null}
 
       <EmployeeInstallButton />

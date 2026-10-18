@@ -1,5 +1,6 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import type { AttendanceDayListItem } from '@/modules/workforce';
@@ -197,22 +198,22 @@ export async function AttendanceMonthCalendar({
         <div className="flex items-center gap-2">
           <Link
             href={`/workforce/attendance?employeeId=${employeeId}&month=${prevMonth}`}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--pf-border-default)] text-[var(--pf-text-secondary)] transition-colors hover:bg-[var(--pf-bg-subtle)]"
+            className="inline-flex size-11 items-center justify-center rounded-md border border-[var(--pf-border-default)] text-[var(--pf-text-secondary)] transition-colors hover:bg-[var(--pf-bg-subtle)]"
             scroll={false}
             aria-label={t('prevMonth')}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronLeft className={rtlFlipClassName('size-4')} />
           </Link>
           <span className="min-w-[10rem] text-center text-sm font-medium text-[var(--pf-text-primary)]">
             {monthTitle}
           </span>
           <Link
             href={`/workforce/attendance?employeeId=${employeeId}&month=${nextMonth}`}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--pf-border-default)] text-[var(--pf-text-secondary)] transition-colors hover:bg-[var(--pf-bg-subtle)]"
+            className="inline-flex size-11 items-center justify-center rounded-md border border-[var(--pf-border-default)] text-[var(--pf-text-secondary)] transition-colors hover:bg-[var(--pf-bg-subtle)]"
             scroll={false}
             aria-label={t('nextMonth')}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronRight className={rtlFlipClassName('size-4')} />
           </Link>
         </div>
       </div>

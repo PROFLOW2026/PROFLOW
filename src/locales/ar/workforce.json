@@ -182,7 +182,7 @@
       "dailyRateLabel": "سعر يومي",
       "dailyEmployerCostLabel": "تكلفة يومية للمُشغّل",
       "hourlyEmployerCostLabel": "تكلفة ساعية للمُشغّل",
-      "burdenPercentLabel": "عبء {percent}%",
+      "burdenPercentLabel": "عبء {percent}",
       "monthlyStandardHoursLabel": "ساعات شهرية معيارية (حضور فقط)",
       "derivedHourlyCostLabel": "تكلفة ساعية محسوبة",
       "derivedHourlyCostMissing": "لا يمكن الحساب بدون سعر بالساعة.",

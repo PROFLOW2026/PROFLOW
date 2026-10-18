@@ -121,6 +121,7 @@
     "payable": "Payable",
     "retention": "Retention",
     "holds": "Payment holds",
+    "paymentsEmpty": "No payments to show",
     "newClaim": "New claim",
     "createDraft": "Create draft"
   },

@@ -1,7 +1,9 @@
 'use client';
 
+import { ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';
+import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 
 /** Visual sales funnel hint — links only; same routes as section nav. */
 export function CrmPipelineHint() {
@@ -17,21 +19,15 @@ export function CrmPipelineHint() {
       <Link href="/crm/prospects" className={stepClass}>
         {t('nav.prospects')}
       </Link>
-      <span aria-hidden className="text-[var(--pf-text-muted)]">
-        →
-      </span>
+      <ChevronRight aria-hidden className={rtlFlipClassName('size-3 text-[var(--pf-text-muted)]')} />
       <Link href="/crm/leads" className={stepClass}>
         {t('nav.leads')}
       </Link>
-      <span aria-hidden className="text-[var(--pf-text-muted)]">
-        →
-      </span>
+      <ChevronRight aria-hidden className={rtlFlipClassName('size-3 text-[var(--pf-text-muted)]')} />
       <Link href="/crm" className={stepClass}>
         {t('nav.opportunities')}
       </Link>
-      <span aria-hidden className="text-[var(--pf-text-muted)]">
-        →
-      </span>
+      <ChevronRight aria-hidden className={rtlFlipClassName('size-3 text-[var(--pf-text-muted)]')} />
       <Link href="/quotes" className={stepClass}>
         {t('pipeline.quotes')}
       </Link>

@@ -10,6 +10,8 @@
 
 import React, { useActionState, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { buttonVariants } from '@/components/ui/button';
+import { inputClassName } from '@/components/ui/input';
 import { cn } from '@/shared/ui/cn';
 import type {
   PlanningDependency,
@@ -46,17 +48,13 @@ interface PlanningWritePanelProps {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const INPUT_CLASS =
-  'w-full rounded border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 py-1 text-sm text-[var(--pf-text-primary)] placeholder:text-[var(--pf-text-secondary)] focus:outline-none focus:ring-1 focus:ring-[var(--pf-status-info-fg)]';
+const INPUT_CLASS = inputClassName;
 
-const BTN_PRIMARY =
-  'rounded bg-[var(--pf-status-info-fg)] px-3 py-1 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50';
+const BTN_PRIMARY = buttonVariants({ variant: 'primary', size: 'sm' });
 
-const BTN_SECONDARY =
-  'rounded border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 py-1 text-sm text-[var(--pf-text-primary)] hover:bg-[var(--pf-bg-muted)] disabled:opacity-50';
+const BTN_SECONDARY = buttonVariants({ variant: 'secondary', size: 'sm' });
 
-const BTN_DANGER =
-  'rounded border border-[var(--pf-status-danger-fg)] px-3 py-1 text-sm text-[var(--pf-status-danger-fg)] hover:bg-[var(--pf-status-danger-bg)] disabled:opacity-50';
+const BTN_DANGER = buttonVariants({ variant: 'dangerGhost', size: 'sm' });
 
 // ─── Add Item Form ────────────────────────────────────────────────────────────
 

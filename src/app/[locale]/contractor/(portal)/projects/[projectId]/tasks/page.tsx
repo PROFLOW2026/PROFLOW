@@ -1,12 +1,12 @@
 import { getFormatter, getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { listContractorPortalTasks } from '@/modules/collaboration';
 import { requireExternalContext } from '@/modules/contractor-access';
 import { loadOrNotFound } from '@/modules/site-log/shared/page-guard';
+import { portalSegmentBarClass, portalSegmentClass } from '@/modules/contractor-portal/ui/portal-surface';
 import { Link } from '@/shared/i18n/navigation';
 
 export default async function ContractorTasksPage({
@@ -41,13 +41,13 @@ export default async function ContractorTasksPage({
     <div className="flex min-w-0 flex-col gap-4 pb-6">
       <PageHeader title={t('portal.tasks.title')} description={t('portal.tasks.description')} />
 
-      <nav className="flex gap-2" aria-label={t('portal.tasks.filterLabel')}>
-        <Button asChild size="sm" variant={scope === 'open' ? 'primary' : 'secondary'}>
-          <Link href={basePath}>{t('portal.tasks.filters.open')}</Link>
-        </Button>
-        <Button asChild size="sm" variant={scope === 'all' ? 'primary' : 'secondary'}>
-          <Link href={`${basePath}?scope=all`}>{t('portal.tasks.filters.all')}</Link>
-        </Button>
+      <nav className={portalSegmentBarClass} aria-label={t('portal.tasks.filterLabel')}>
+        <Link href={basePath} className={portalSegmentClass(scope === 'open')} aria-current={scope === 'open' ? 'page' : undefined}>
+          {t('portal.tasks.filters.open')}
+        </Link>
+        <Link href={`${basePath}?scope=all`} className={portalSegmentClass(scope === 'all')} aria-current={scope === 'all' ? 'page' : undefined}>
+          {t('portal.tasks.filters.all')}
+        </Link>
       </nav>
 
       {tasks.length === 0 ? (

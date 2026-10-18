@@ -9,6 +9,7 @@ import { listProjectLocationOptions, listProjectWorkPackageOptions } from '@/mod
 import { getContractorSubmittalSummary, listContractorSubmittals } from '@/modules/submittals';
 import { ContractorSubmittalCreateForm } from '@/modules/submittals/ui/contractor-submittal-create-form';
 import { SubmittalList } from '@/modules/submittals/ui/submittal-list';
+import { portalWideListClass } from '@/modules/contractor-portal/ui/portal-surface';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
 import { Link } from '@/shared/i18n/navigation';
 import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
@@ -79,7 +80,9 @@ export default async function ContractorSubmittalsPage({
       {items.length === 0 ? (
         <EmptyState icon={FileCheck2} title={t('portal.empty')} size="sm" />
       ) : (
-        <SubmittalList items={items} basePath={base} locale={locale} />
+        <div className={portalWideListClass}>
+          <SubmittalList items={items} basePath={base} locale={locale} />
+        </div>
       )}
     </div>
   );

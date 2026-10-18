@@ -3,6 +3,7 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import { useLocaleDir } from '@/shared/i18n/direction';
 import { pressableClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
@@ -26,7 +27,7 @@ const SheetOverlay = React.forwardRef<
     <DialogPrimitive.Overlay
       ref={ref}
       className={cn(
-        'fixed inset-0 z-60 bg-[rgb(27_36_48/0.45)]',
+        'fixed inset-0 z-modal bg-[rgb(27_36_48/0.45)]',
         'data-[state=open]:animate-in data-[state=open]:fade-in-0',
         'data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
         className,
@@ -69,10 +70,12 @@ export const SheetContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   SheetContentProps
 >(function SheetContent(
-  { className, children, closeLabel = 'Close', side = 'end', dir, ...props },
+  { className, children, closeLabel, side = 'end', dir, ...props },
   ref,
 ) {
   const localeDir = useLocaleDir();
+  const tCommon = useTranslations('common');
+  const resolvedCloseLabel = closeLabel ?? tCommon('actions.close');
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -80,7 +83,7 @@ export const SheetContent = React.forwardRef<
         ref={ref}
         dir={dir ?? localeDir}
         className={cn(
-          'fixed z-60 flex min-w-0 max-w-full flex-col overflow-hidden bg-[var(--pf-bg-elevated)] shadow-[var(--pf-shadow-lg)] text-start break-words',
+          'fixed z-modal flex min-w-0 max-w-full flex-col overflow-hidden bg-[var(--pf-bg-elevated)] shadow-[var(--pf-shadow-lg)] text-start break-words',
           SIDE_CLASSES[side],
           className,
         )}
@@ -92,9 +95,8 @@ export const SheetContent = React.forwardRef<
             pressableClassName,
             'absolute end-3 top-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-[var(--pf-text-muted)]',
             'hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)] active:bg-[var(--pf-action-subtle-active)]',
-            'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
           )}
-          aria-label={closeLabel}
+          aria-label={resolvedCloseLabel}
         >
           <X className="size-4" aria-hidden />
         </DialogPrimitive.Close>

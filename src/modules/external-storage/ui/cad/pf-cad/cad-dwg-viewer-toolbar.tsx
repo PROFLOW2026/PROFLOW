@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CadDwgCompactAlerts } from './cad-dwg-compact-alerts';
 import { CadDwgSpaceSelect } from './cad-dwg-space-select';
 import type { CadDwgBanner } from './cad-ui-messages';
+import { cadPlotViewLabel } from './cad-ui-messages';
 import {
   CadViewerVersionSelect,
   type CadViewerVersion,
@@ -53,7 +54,7 @@ export function CadDwgViewerToolbar({
           className="h-9 min-h-9 px-2.5 text-xs font-medium"
           onClick={() => onPlotViewChange(!plotView)}
         >
-          Plot view
+          <span dir="auto">{cadPlotViewLabel(locale)}</span>
         </Button>
         {showSpace ? (
           <CadDwgSpaceSelect

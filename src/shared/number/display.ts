@@ -30,6 +30,18 @@ export function formatDecimalDisplay(
   return formatted.replace(BIDI_MARKS, '').replace(/\u00A0/g, ' ');
 }
 
+/**
+ * Two fraction digits with no grouping. Use only to seed an editable field.
+ * Do not call this from onChange — grouping and live reformatting move the caret.
+ */
+export function formatDecimalInputSeed(
+  value: string | number | Decimal | null | undefined,
+): string {
+  const decimal = parseDisplayDecimal(value);
+  if (!decimal) return '';
+  return decimal.toDecimalPlaces(DISPLAY_FRACTION_DIGITS, Decimal.ROUND_HALF_UP).toFixed(2);
+}
+
 /** Percent points already stored as 5.000000 (meaning 5%), not a 0–1 ratio. */
 export function formatPercentDisplay(
   value: string | number | Decimal | null | undefined,

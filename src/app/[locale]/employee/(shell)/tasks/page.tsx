@@ -26,6 +26,7 @@ interface PageProps {
 
 export default async function EmployeeTasksPage({ searchParams }: PageProps) {
   const t = await getTranslations('employeeApp.tasks');
+  const tHome = await getTranslations('employeeApp.home.workSummary');
   const tLists = await getTranslations('employeeApp.lists');
   const tPunchStatus = await getTranslations('status.punch');
   const locale = await getLocale();
@@ -102,6 +103,9 @@ export default async function EmployeeTasksPage({ searchParams }: PageProps) {
         <div className={employeeTabBarClass}>
           <Link href="/employee/tasks" className={cn(employeeTabClass(activeTab === 'pm-tasks'))}>
             {t('tabs.pmTasks')}
+          </Link>
+          <Link href="/employee/tasks/calendar" className={employeeTabClass(false)}>
+            {tHome('openCalendar')}
           </Link>
           <Link
             href="/employee/tasks?tab=field-items"

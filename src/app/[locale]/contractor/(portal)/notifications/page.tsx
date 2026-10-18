@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Bell } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
+import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import {
   markAllPortalNotificationsReadAction,
   markPortalNotificationReadAction,
@@ -32,11 +33,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return { title: t('notifications.title') };
 }
 
-const SEVERITY_CLASS = {
-  info: 'bg-[var(--pf-bg-muted)] text-[var(--pf-text-secondary)]',
-  warning: 'bg-amber-50 text-amber-800',
-  urgent: 'bg-red-50 text-red-700',
-} as const;
+const SEVERITY_SHAPE = {
+  info: 'active',
+  warning: 'pending',
+  urgent: 'overdue',
+} as const satisfies Record<string, StatusShape>;
 
 export default async function ContractorPortalNotificationsPage({ searchParams }: PageProps) {
   const t = await getTranslations('contractorPortal');
@@ -87,9 +88,10 @@ export default async function ContractorPortalNotificationsPage({ searchParams }
                     {timeFormat.format(new Date(item.createdAt))}
                   </p>
                 </div>
-                <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-xs font-medium', SEVERITY_CLASS[item.severity])}>
-                  {t(`notifications.severity.${item.severity}`)}
-                </span>
+                <StatusBadge
+                  shape={SEVERITY_SHAPE[item.severity]}
+                  label={t(`notifications.severity.${item.severity}`)}
+                />
               </div>
             );
             return (
@@ -98,16 +100,16 @@ export default async function ContractorPortalNotificationsPage({ searchParams }
                   <Link href={href} className={employeeListRowLinkClass}>
                     {body}
                   </Link>
+                ) : unread ? (
+                  <form action={markPortalNotificationReadAction.bind(null, item.id)}>
+                    <button type="submit" className={cn(employeeListRowLinkClass, 'w-full text-start')}>
+                      {body}
+                      <span className="sr-only">{t('notifications.markRead')}</span>
+                    </button>
+                  </form>
                 ) : (
                   <div className="px-4 py-3">{body}</div>
                 )}
-                {unread ? (
-                  <form action={markPortalNotificationReadAction.bind(null, item.id)} className="px-4 pb-3">
-                    <button type="submit" className="text-xs font-medium text-[var(--pf-primary)] hover:underline">
-                      {t('notifications.markRead')}
-                    </button>
-                  </form>
-                ) : null}
               </li>
             );
           })}
