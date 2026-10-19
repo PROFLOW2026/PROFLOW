@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm';
 import { notifications } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import {
@@ -82,6 +82,7 @@ export async function listNotificationsForRecipient(
         isNull(notifications.dismissedAt),
         isNull(notifications.resolvedAt),
         or(isNull(notifications.expiresAt), sql`${notifications.expiresAt} > now()`),
+        or(ne(notifications.type, 'material_pressure_alert'), isNull(notifications.readAt)),
       ),
     )
     .orderBy(sql`(${notifications.readAt} is null) desc`, desc(notifications.createdAt))
@@ -356,6 +357,99 @@ export async function resolveNotificationsAsSystem(
         eq(notifications.type, type),
         eq(notifications.entityId, entityId),
         isNull(notifications.resolvedAt),
+      ),
+    )
+    .returning({ id: notifications.id });
+  return rows.length;
+}
+
+export interface MaterialPressureAlertRow {
+  readonly dedupeKey: string;
+  readonly readAt: Date | null;
+  readonly resolvedAt: Date | null;
+  readonly metadata: Record<string, unknown> | null;
+}
+
+export async function listMaterialPressureAlertsForRecipient(
+  db: DbExecutor,
+  organizationId: string,
+  recipientUserId: string,
+  trade: string,
+): Promise<MaterialPressureAlertRow[]> {
+  const rows = await db
+    .select({
+      dedupeKey: notifications.dedupeKey,
+      readAt: notifications.readAt,
+      resolvedAt: notifications.resolvedAt,
+      metadata: notifications.metadata,
+    })
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.organizationId, organizationId),
+        eq(notifications.recipientUserId, recipientUserId),
+        eq(notifications.type, 'material_pressure_alert'),
+      ),
+    );
+
+  return rows.flatMap((row) => {
+    const metadata = row.metadata ?? null;
+    const rowTrade = metadata && typeof metadata.trade === 'string' ? metadata.trade : null;
+    if (rowTrade !== trade) return [];
+    return [
+      {
+        dedupeKey: row.dedupeKey,
+        readAt: row.readAt,
+        resolvedAt: row.resolvedAt,
+        metadata,
+      },
+    ];
+  });
+}
+
+export async function setMaterialPressureAlertReadAt(
+  db: DbExecutor,
+  input: {
+    readonly organizationId: string;
+    readonly recipientUserId: string;
+    readonly dedupeKey: string;
+    readonly readAt: Date | null;
+  },
+): Promise<void> {
+  await db
+    .update(notifications)
+    .set({ readAt: input.readAt, updatedAt: new Date() })
+    .where(
+      and(
+        eq(notifications.organizationId, input.organizationId),
+        eq(notifications.recipientUserId, input.recipientUserId),
+        eq(notifications.type, 'material_pressure_alert'),
+        eq(notifications.dedupeKey, input.dedupeKey),
+      ),
+    );
+}
+
+/** Marks older copies of the same trade resolved. Does not delete rows. */
+export async function resolveSupersededMaterialPressureAlerts(
+  db: DbExecutor,
+  input: {
+    readonly organizationId: string;
+    readonly recipientUserId: string;
+    readonly trade: string;
+    readonly keepDedupeKey: string;
+  },
+): Promise<number> {
+  const rows = await db
+    .update(notifications)
+    .set({ resolvedAt: new Date(), updatedAt: new Date() })
+    .where(
+      and(
+        eq(notifications.organizationId, input.organizationId),
+        eq(notifications.recipientUserId, input.recipientUserId),
+        eq(notifications.type, 'material_pressure_alert'),
+        isNull(notifications.resolvedAt),
+        sql`${notifications.dedupeKey} <> ${input.keepDedupeKey}`,
+        sql`${notifications.metadata}->>'trade' = ${input.trade}`,
       ),
     )
     .returning({ id: notifications.id });

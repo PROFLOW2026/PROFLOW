@@ -4,10 +4,18 @@ import { getAdminDb, withUserContext } from '@/shared/db/client';
 import { listActiveOrganizationIds, resolveOrgContext } from '@/modules/tenancy';
 import { findActiveOrgOwnerUserId } from '@/modules/recurring-drafts/application/ops-worker';
 import { emitNotification } from '@/modules/notifications/application/emit';
+import {
+  finishMaterialPressureAlertDelivery,
+  loadMaterialPressureAlertHistory,
+} from '@/modules/notifications/application/material-pressure-delivery';
 import type { OrgContext } from '@/shared/auth/context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { listUserIdsWithPermission } from '@/modules/notifications';
 import { MATERIAL_TRADES, type MaterialTrade } from '../domain/types';
+import {
+  materialPressureEventSignatureFromMetadata,
+  planMaterialPressureEmit,
+} from '../domain/pressure-alert-policy';
 import { loadLatestSnapshotsForTrades } from '../data/repositories';
 
 /** Pressure score threshold that triggers an alert (0-100 scale). */
@@ -19,15 +27,6 @@ const HIGH_PRESSURE_THRESHOLD = 75;
  */
 const SIGNIFICANT_DELTA_THRESHOLD = 15;
 
-/** ISO week number for a date (YYYY-Www format), used for dedupe key. */
-function isoWeek(date: Date): string {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-  return `${d.getUTCFullYear()}-W${weekNo.toString().padStart(2, '0')}`;
-}
-
 interface PressureAlertPayload {
   trade: MaterialTrade;
   score: number;
@@ -38,11 +37,9 @@ interface PressureAlertPayload {
 async function emitPressureAlertsForOrg(
   context: OrgContext,
   alerts: PressureAlertPayload[],
-  week: string,
 ): Promise<number> {
   if (alerts.length === 0) return 0;
 
-  // Recipients: all users with procurement read permission
   const recipientIds = await listUserIdsWithPermission(
     context.db,
     context.organizationId,
@@ -56,8 +53,20 @@ async function emitPressureAlertsForOrg(
     const scoreRounded = Math.round(alert.score);
 
     for (const recipientUserId of recipientIds) {
-      // Stable dedupe key: one alert per trade per org per week
-      const dedupeKey = `material_pressure_alert:${alert.trade}:${week}`;
+      const history = await loadMaterialPressureAlertHistory(
+        context.organizationId,
+        recipientUserId,
+        alert.trade,
+      );
+      const plan = planMaterialPressureEmit(
+        history.map((row) => ({
+          dedupeKey: row.dedupeKey,
+          eventSignature: materialPressureEventSignatureFromMetadata(row.metadata),
+          readAt: row.readAt,
+          resolvedAt: row.resolvedAt,
+        })),
+        { trade: alert.trade, reason: alert.reason, score: scoreRounded },
+      );
 
       try {
         await emitNotification(context, {
@@ -65,7 +74,7 @@ async function emitPressureAlertsForOrg(
           type: 'material_pressure_alert',
           title: 'material_pressure_alert',
           body: 'material_pressure_alert',
-          dedupeKey,
+          dedupeKey: plan.dedupeKey,
           severity: alert.reason === 'high_pressure' ? 'warning' : 'info',
           entityType: 'material_trade',
           entityId: null,
@@ -76,8 +85,16 @@ async function emitPressureAlertsForOrg(
             score: scoreRounded,
             delta: alert.delta,
             reason: alert.reason,
-            week,
+            eventSignature: plan.eventSignature,
           },
+        });
+        await finishMaterialPressureAlertDelivery({
+          organizationId: context.organizationId,
+          recipientUserId,
+          trade: alert.trade,
+          keepDedupeKey: plan.dedupeKey,
+          reopenRead: plan.reopenRead,
+          preserveRead: plan.preserveRead,
         });
         emitted += 1;
       } catch {
@@ -104,8 +121,10 @@ export interface MaterialPressureAlertResult {
  *   1. Any trade's pressure score exceeds HIGH_PRESSURE_THRESHOLD (75/100), OR
  *   2. Any trade's 1-month score delta exceeds SIGNIFICANT_DELTA_THRESHOLD (15 pts)
  *
- * Dedupe key: `material_pressure_alert:{tradeId}:{isoWeek}` — prevents daily spam
- * by ensuring at most one alert per trade per org per week.
+ * Dedupe key: `material_pressure_alert:{trade}` — one open alert per trade per recipient.
+ * Repeating the same reason and score does not create another row and does not
+ * clear read state. A new reason or score replaces older rows for that trade.
+ * Older rows are resolved, not deleted.
  *
  * NOTE: To activate, add `await runMaterialPressureAlertScan()` to
  * `src/app/api/internal/ops-worker/route.ts` in the daily job handler.
@@ -115,7 +134,6 @@ export interface MaterialPressureAlertResult {
  */
 export async function runMaterialPressureAlertScan(): Promise<MaterialPressureAlertResult> {
   const db = getAdminDb();
-  const week = isoWeek(new Date());
 
   // Load latest snapshots for all trades (global, admin DB)
   const snapshotMap = await loadLatestSnapshotsForTrades(db, [...MATERIAL_TRADES]);
@@ -160,7 +178,7 @@ export async function runMaterialPressureAlertScan(): Promise<MaterialPressureAl
           organizationId: orgRow.id,
           locale,
         });
-        return emitPressureAlertsForOrg(context, alerts, week);
+        return emitPressureAlertsForOrg(context, alerts);
       });
       totalEmitted += emitted;
     } catch (error) {
