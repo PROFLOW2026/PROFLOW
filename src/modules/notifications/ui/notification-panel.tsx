@@ -17,6 +17,11 @@ function severityShape(severity: NotificationListItemDto['severity']): StatusSha
   return 'pending';
 }
 
+/** Opening a material alert only navigates. Other types still mark read on open. */
+export function notificationOpenMarksRead(type: NotificationListItemDto['type']): boolean {
+  return type !== 'material_pressure_alert';
+}
+
 export interface NotificationPanelProps {
   readonly items: readonly NotificationListItemDto[];
   readonly unreadCount: number;
@@ -147,7 +152,30 @@ export function NotificationPanel({
                 unread && 'bg-[var(--pf-bg-muted)]',
               )}
             >
-              {item.deepLink ? (
+              {item.type === 'material_pressure_alert' ? (
+                <div className="flex items-start gap-2">
+                  {item.deepLink ? (
+                    <Link
+                      href={item.deepLink}
+                      className="block min-h-11 min-w-0 flex-1 px-3 py-2.5 text-start hover:bg-[var(--pf-action-subtle-hover)]"
+                      onClick={() => onNavigate?.()}
+                    >
+                      {content}
+                    </Link>
+                  ) : (
+                    <div className="block min-h-11 min-w-0 flex-1 px-3 py-2.5 text-start">{content}</div>
+                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="me-2 mt-2 shrink-0"
+                    onClick={() => onMarkRead(item.id)}
+                  >
+                    {t('markRead')}
+                  </Button>
+                </div>
+              ) : item.deepLink ? (
                 <Link
                   href={item.deepLink}
                   className="block min-h-11 px-3 py-2.5 text-start hover:bg-[var(--pf-action-subtle-hover)]"
