@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { listOpportunitiesForOrg } from '@/modules/crm';
+import { CrmSearchForm } from '@/modules/crm/ui/crm-search-form';
 import { OpportunityPipelineViews } from '@/modules/crm/ui/opportunity-pipeline-views';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
@@ -22,11 +23,14 @@ import {
 interface CrmOpportunitiesHubViewProps {
   surface?: CrmUiSurface;
   afterHeader?: ReactNode;
+  /** Owner list only. Employee surface ignores this. */
+  search?: string;
 }
 
 export async function CrmOpportunitiesHubView({
   surface = 'owner',
   afterHeader,
+  search,
 }: CrmOpportunitiesHubViewProps) {
   const t = await getTranslations('crm');
 
@@ -49,7 +53,9 @@ export async function CrmOpportunitiesHubView({
     }
 
     return {
-      opportunities: await listOpportunitiesForOrg(context),
+      opportunities: await listOpportunitiesForOrg(context, {
+        search: search?.trim() || undefined,
+      }),
       canManage: hasPermission(context, PERMISSIONS.CRM_MANAGE),
       canRead: true,
     };
@@ -73,7 +79,7 @@ export async function CrmOpportunitiesHubView({
 
   if (!canRead) {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <PageHeader title={t('title')} description={t('description')} />
         <EmptyState title={t('noAccess.title')} description={t('noAccess.body')} />
       </div>
@@ -81,7 +87,7 @@ export async function CrmOpportunitiesHubView({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title={t('title')}
         description={t('description')}
@@ -97,6 +103,7 @@ export async function CrmOpportunitiesHubView({
         }
       />
       {afterHeader}
+      {surface === 'owner' ? <CrmSearchForm query={search} /> : null}
 
       {opportunities.length === 0 ? (
         <EmptyState

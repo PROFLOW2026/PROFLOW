@@ -68,7 +68,7 @@ export async function Contractor360Screen({
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title={data.agreement.title}
         description={t('contractors.overview.description')}

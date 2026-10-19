@@ -27,7 +27,7 @@ export async function SiteLogScreen({ surfaceRoot,
   const basePath = `${surfaceRoot ?? ('/projects/' + projectId)}/site-log`;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-4">
       <PageHeader
         title={t('siteLog.title')}
         description={t('siteLog.description')}

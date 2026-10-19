@@ -290,7 +290,20 @@ export function ExpensesOrgListView({
           }}
         />
       </div>
-      <div className="grid min-w-0 gap-3 rounded-lg border border-[var(--pf-border-default)] p-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="flex flex-wrap gap-2 sm:hidden">
+        <Button type="button" onClick={applyFilters}>
+          {tCommon('actions.filter')}
+        </Button>
+        <Button type="button" variant="ghost" onClick={clearFilters}>
+          {tCommon('actions.clearFilters')}
+        </Button>
+      </div>
+
+      <details className="group rounded-lg border border-[var(--pf-border-default)] p-3 sm:rounded-none sm:border-0 sm:p-0">
+        <summary className="cursor-pointer text-sm font-medium text-[var(--pf-text-primary)] sm:hidden">
+          {tCommon('actions.showMore')}
+        </summary>
+        <div className="mt-3 grid min-w-0 gap-3 group-open:grid sm:!mt-0 sm:!grid sm:grid-cols-2 lg:grid-cols-3">
 
         <Field label={t('filters.project')} className="min-w-0">
           {(control) => (
@@ -404,7 +417,7 @@ export function ExpensesOrgListView({
           )}
         </Field>
 
-        <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-3">
+        <div className="hidden flex-wrap gap-2 sm:col-span-2 sm:flex lg:col-span-3">
           <Button type="button" onClick={applyFilters}>
             {tCommon('actions.filter')}
           </Button>
@@ -412,7 +425,8 @@ export function ExpensesOrgListView({
             {tCommon('actions.clearFilters')}
           </Button>
         </div>
-      </div>
+        </div>
+      </details>
 
       {activeAttention ? (
         <div

@@ -24,7 +24,6 @@ import {
 } from '@/shared/db/org-list-pagination';
 import { listCloseoutStatusesForProjects } from '@/modules/closeout';
 import { titleWithDocumentNumber } from '@/modules/tenancy';
-import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import {
   isWorkListFacet,
   resolveWorkListFacet,
@@ -131,7 +130,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   const noResultsQuery = params.q?.trim() || t(`list.facets.${facet}`);
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <div className="flex min-w-0 max-w-full flex-col gap-4">
       <PageHeader
         title={t('title')}
         actions={
@@ -152,11 +151,6 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
       />
 
       <ProjectListFilters initialQuery={params.q ?? ''} initialFacet={facet} namespace="projects" />
-      <SavedListViewsBar
-        listKey="projects"
-        searchParams={{ q: params.q, facet, status: params.status, page: params.page }}
-        keys={['q', 'facet', 'page']}
-      />
 
       {projects.length === 0 ? (
         filtersActive ? (

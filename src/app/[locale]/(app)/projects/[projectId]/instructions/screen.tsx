@@ -41,7 +41,7 @@ export async function InstructionsScreen({ surfaceRoot,
   const logDate = query.logDate && isIsoDate(query.logDate) ? query.logDate : null;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-4">
       <PageHeader title={t('instructions.title')} description={t('instructions.description')} />
 
       {data.canIssue ? (

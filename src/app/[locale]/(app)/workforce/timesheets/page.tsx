@@ -6,11 +6,11 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { listTimesheetsForOrg, timesheetFiltersSchema } from '@/modules/workforce';
+import { listEmployeesForOrg, listTimesheetsForOrg, timesheetFiltersSchema } from '@/modules/workforce';
 import { WorkforceSubNav } from '@/modules/workforce/ui/workforce-sub-nav';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
-import { hasAnyPermission } from '@/shared/permissions/assert';
+import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { businessDate, todayInTimeZone } from '@/shared/dates/dates';
@@ -45,7 +45,7 @@ export default async function TimesheetsListPage({
   });
   const filters = parsed.success ? parsed.data : {};
 
-  const { sheets, today } = await withOrgContext(async (context) => {
+  const { sheets, today, employees } = await withOrgContext(async (context) => {
     if (
       !hasAnyPermission(context, [
         PERMISSIONS.WORKFORCE_READ,
@@ -55,21 +55,59 @@ export default async function TimesheetsListPage({
     ) {
       throw new AuthorizationError(PERMISSIONS.WORKFORCE_READ);
     }
+    const employees = hasPermission(context, PERMISSIONS.WORKFORCE_READ)
+      ? await listEmployeesForOrg(context, { status: 'active' })
+      : [];
     return {
       sheets: await listTimesheetsForOrg(context, { ...filters, status: filters.status ?? 'all' }),
       today: todayInTimeZone(context.organization.timezone),
+      employees,
     };
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader title={t('timesheets.title')} description={t('timesheets.description')} />
       <WorkforceSubNav active="timesheets" />
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('timesheets.notPayroll')}</p>
       <form method="get" className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-end gap-2">
+          {employees.length > 0 ? (
+            <label className="flex min-w-[10rem] flex-1 flex-col gap-1 text-xs text-[var(--pf-text-secondary)] sm:max-w-xs">
+              {t('time.filters.employee')}
+              <select
+                name="employeeId"
+                defaultValue={filters.employeeId ?? ''}
+                className="h-9 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 text-sm"
+              >
+                <option value="">{t('time.filters.all')}</option>
+                {employees.map((employee) => (
+                  <option key={employee.id} value={employee.id}>
+                    {employee.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : filters.employeeId ? (
+            <input type="hidden" name="employeeId" value={filters.employeeId} />
+          ) : null}
+          <label className="flex min-w-[10rem] flex-1 flex-col gap-1 text-xs text-[var(--pf-text-secondary)] sm:max-w-xs">
+            {t('timesheets.columns.status')}
+            <select
+              name="status"
+              defaultValue={filters.status ?? 'all'}
+              className="h-9 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 text-sm"
+            >
+              <option value="all">{t('time.filters.all')}</option>
+              <option value="pending">{t('time.approvals.filters.pending')}</option>
+              <option value="draft">{t('time.approvalStatus.draft')}</option>
+              <option value="submitted">{t('time.approvalStatus.submitted')}</option>
+              <option value="approved">{t('time.approvalStatus.approved')}</option>
+              <option value="returned">{t('time.approvalStatus.returned')}</option>
+            </select>
+          </label>
+        </div>
         <p className="text-xs text-[var(--pf-text-muted)]">{t('timesheets.filters.workDateHint')}</p>
-        {filters.employeeId ? <input type="hidden" name="employeeId" value={filters.employeeId} /> : null}
-        {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
         <DateRangeSelector
           today={today}
           defaultFrom={filters.fromDate ?? ''}

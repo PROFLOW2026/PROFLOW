@@ -18,7 +18,6 @@ import {
   resolveOrgListPage,
 } from '@/shared/db/org-list-pagination';
 import { titleWithDocumentNumber } from '@/modules/tenancy';
-import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import {
   isWorkListFacet,
   resolveWorkListFacet,
@@ -121,11 +120,6 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
       />
 
       <JobListFilters initialQuery={params.q ?? ''} initialFacet={facet} />
-      <SavedListViewsBar
-        listKey="jobs"
-        searchParams={{ q: params.q, facet, status: params.status, page: params.page }}
-        keys={['q', 'facet', 'page']}
-      />
 
       {jobs.length === 0 ? (
         filtersActive ? (

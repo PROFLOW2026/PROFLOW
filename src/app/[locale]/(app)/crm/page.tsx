@@ -14,11 +14,17 @@ export async function generateMetadata({
   return { title: t('title') };
 }
 
-export default async function CrmOpportunitiesPage() {
+export default async function CrmOpportunitiesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const params = await searchParams;
   return (
     <CrmShell>
       <CrmOpportunitiesHubView
         surface="owner"
+        search={params.q}
         afterHeader={
           <>
             <CrmSectionNav active="opportunities" />

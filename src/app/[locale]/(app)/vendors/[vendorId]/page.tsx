@@ -281,7 +281,7 @@ export default async function VendorDetailPage({
 
   return (
     <WithAppClientMessages extra={['contractorAccess']}>
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title={
           <span className="flex min-w-0 items-center gap-3">

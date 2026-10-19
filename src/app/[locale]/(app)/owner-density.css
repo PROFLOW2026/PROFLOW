@@ -1,0 +1,16 @@
+/* Main-app only. Imported from (app)/layout, not from the home dashboard. */
+
+[data-pf-owner-app] [data-pf-page-header] {
+  gap: 0.5rem;
+}
+
+[data-pf-owner-app] [data-pf-page-header] h1 {
+  font-size: 1.125rem;
+  line-height: 1.35;
+}
+
+@media (min-width: 640px) {
+  [data-pf-owner-app] [data-pf-page-header] h1 {
+    font-size: 1.25rem;
+  }
+}

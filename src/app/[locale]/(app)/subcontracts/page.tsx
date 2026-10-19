@@ -7,7 +7,6 @@ import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MoneyText } from '@/components/patterns/money-text';
-import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { listProjectsForOrg } from '@/modules/projects';
 import {
   isFinancialSubcontractRow,
@@ -115,23 +114,18 @@ export default async function SubcontractsPage({
 
   return (
     <WithAppClientMessages extra={['vendors']}>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <PageHeader title={t('title')} description={t('description')} />
 
         <SubcontractsListFilters
           initialVendorId={params.vendorId ?? ''}
           initialProjectId={params.projectId ?? ''}
           initialStatus={params.status ?? 'all'}
+          initialFrom={fromDate}
+          initialTo={toDate}
           vendors={vendors.map((vendor) => ({ id: vendor.id, name: vendor.name }))}
           projects={projects.map((project) => ({ id: project.id, name: project.name }))}
         />
-
-        <form method="get" className="flex flex-wrap items-center gap-2">
-          {params.vendorId && <input type="hidden" name="vendorId" value={params.vendorId} />}
-          {params.projectId && <input type="hidden" name="projectId" value={params.projectId} />}
-          {params.status && <input type="hidden" name="status" value={params.status} />}
-          <DateRangeSelector fromName="from" toName="to" defaultFrom={fromDate} defaultTo={toDate} />
-        </form>
 
         {items.length === 0 ? (
           <EmptyState icon={Handshake} title={t('empty.title')} description={t('empty.body')} />

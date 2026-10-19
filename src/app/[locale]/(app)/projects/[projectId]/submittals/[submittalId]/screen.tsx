@@ -42,7 +42,7 @@ export async function ProjectSubmittalDetailScreen({ surfaceRoot,
   const currentRevision = detail.revisions.find((r) => r.revisionNumber === detail.currentRevisionNumber);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         breadcrumb={
           <Link
@@ -64,8 +64,8 @@ export async function ProjectSubmittalDetailScreen({ surfaceRoot,
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        <div className="flex flex-col gap-6">
+      <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+        <div className="flex flex-col gap-4">
           <Card>
             <CardHeader>
               <CardTitle>{t('detail.revisions')}</CardTitle>

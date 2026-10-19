@@ -252,7 +252,7 @@ export async function BillingOrgHubView({
     }
 
     return (
-      <div className="flex min-w-0 flex-col gap-6">
+      <div className="flex min-w-0 flex-col gap-4">
         <PageHeader title={t('title')} description={t('subtitle')} />
         <EmptyState
           icon={ShieldX}
@@ -276,7 +276,7 @@ export async function BillingOrgHubView({
   const isOwnerSurface = surface === 'owner';
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-4">
       <PageHeader
         title={t('title')}
         description={t('subtitle')}

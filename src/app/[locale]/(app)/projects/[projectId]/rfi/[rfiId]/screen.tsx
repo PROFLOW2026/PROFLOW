@@ -42,7 +42,7 @@ export async function ProjectRfiDetailScreen({ surfaceRoot,
   const base = `${surfaceRoot ?? ('/projects/' + projectId)}/rfi`;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         breadcrumb={
           <Link
@@ -59,8 +59,8 @@ export async function ProjectRfiDetailScreen({ surfaceRoot,
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        <div className="flex flex-col gap-6">
+      <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+        <div className="flex flex-col gap-4">
           <Card>
             <CardHeader>
               <CardTitle>{t('detail.question')}</CardTitle>

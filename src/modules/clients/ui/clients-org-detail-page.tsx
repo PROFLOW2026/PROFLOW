@@ -280,7 +280,7 @@ export async function ClientsOrgDetailPage({
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title={client.name}
         description={t('title')}
@@ -297,7 +297,6 @@ export async function ClientsOrgDetailPage({
 
       {tabbedOwner && activeTab === 'overview' ? (
         <ClientOverviewPanel
-          clientId={clientId}
           linkedProjectCount={linkedProjects.length}
           openQuoteCount={openQuoteCount}
           contractCount={contracts.length}

@@ -118,7 +118,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   if (detail.project.workKind === 'job' || detail.project.workKind === 'work_order') {
     return (
       <WithAppClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-3">
           <Suspense fallback={<Project360SummaryFallback />}>
             <Project360Summary projectId={projectId} />
           </Suspense>

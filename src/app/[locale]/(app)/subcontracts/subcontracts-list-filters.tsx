@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,6 +15,8 @@ interface SubcontractsListFiltersProps {
   initialVendorId: string;
   initialProjectId: string;
   initialStatus: string;
+  initialFrom?: string;
+  initialTo?: string;
   vendors: readonly Option[];
   projects: readonly Option[];
 }
@@ -22,6 +25,8 @@ export function SubcontractsListFilters({
   initialVendorId,
   initialProjectId,
   initialStatus,
+  initialFrom,
+  initialTo,
   vendors,
   projects,
 }: SubcontractsListFiltersProps) {
@@ -30,7 +35,8 @@ export function SubcontractsListFilters({
   const tSub = useTranslations('vendors.subcontracts');
 
   return (
-    <form method="get" className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+    <form method="get" className="flex w-full flex-col gap-3">
+      <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
       <Field label={t('list.columns.vendor')} className="min-w-0 sm:w-44">
         {(control) => (
           <Select name="vendorId" defaultValue={initialVendorId || 'all'}>
@@ -84,6 +90,13 @@ export function SubcontractsListFilters({
       <Button type="submit" variant="secondary">
         {tCommon('actions.search')}
       </Button>
+      </div>
+      <DateRangeSelector
+        fromName="from"
+        toName="to"
+        defaultFrom={initialFrom}
+        defaultTo={initialTo}
+      />
     </form>
   );
 }

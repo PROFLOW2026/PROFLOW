@@ -44,7 +44,7 @@ export async function AgreementChangesScreen({ surfaceRoot,
 
   return (
     <WithAppClientMessages extra={['subcontracts']}>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <PageHeader
           title={agreement.title}
           description={t('changes.pageDescription')}

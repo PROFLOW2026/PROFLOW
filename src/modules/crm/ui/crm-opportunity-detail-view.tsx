@@ -109,7 +109,7 @@ export async function CrmOpportunityDetailView({
   const detailHref = crmOpportunityHref(surface, detail.id);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title={detail.name}
         meta={
@@ -290,7 +290,7 @@ export async function CrmOpportunityDetailView({
           <CardTitle className="text-base">{t('history.title')}</CardTitle>
           <CardDescription>{t('history.description')}</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-6">
+        <CardContent className="flex flex-col gap-4">
           <section className="flex flex-col gap-3">
             <h3 className="text-sm font-semibold">{t('history.notesHeading')}</h3>
             {detail.notes.length === 0 ? (
@@ -368,9 +368,6 @@ export async function CrmOpportunityDetailView({
               ))}
             </ul>
           )}
-          {canManage && detail.status === 'open' ? (
-            <CreateProductQuoteLink opportunityId={detail.id} surface={surface} />
-          ) : null}
         </CardContent>
       </Card>
 
@@ -379,7 +376,7 @@ export async function CrmOpportunityDetailView({
           {t('opportunity.advancedInternal')}
         </summary>
         <p className="mt-2 text-xs text-[var(--pf-text-muted)]">{t('opportunity.advancedInternalHint')}</p>
-        <div className="mt-4 flex flex-col gap-6">
+        <div className="mt-4 flex flex-col gap-4">
           <section className="flex flex-col gap-3">
             <h3 className="text-sm font-semibold">{t('opportunity.estimatesSection')}</h3>
             {detail.estimates.length === 0 ? (

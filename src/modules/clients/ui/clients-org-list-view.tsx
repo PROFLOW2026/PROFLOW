@@ -17,7 +17,6 @@ import {
   parseOrgListPage,
   resolveOrgListPage,
 } from '@/shared/db/org-list-pagination';
-import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -42,11 +41,8 @@ interface ClientsOrgListViewProps {
 export async function ClientsOrgListView({
   routeBase,
   surface = 'owner',
-  showSavedViews,
   searchParams: params,
 }: ClientsOrgListViewProps) {
-  const resolvedShowSavedViews = showSavedViews ?? surface === 'owner';
-
   const [t, tStatus, tCommon, shell, locale] = await Promise.all([
     getTranslations('clients'),
     getTranslations('status.generic'),
@@ -119,7 +115,7 @@ export async function ClientsOrgListView({
   const clientDetailHref = (clientId: string) => `${routeBase}/${clientId}`;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title={t('title')}
         actions={
@@ -140,19 +136,6 @@ export async function ClientsOrgListView({
         initialClientTypeId={params.clientTypeId ?? ''}
         clientTypes={localizeClientTypeOptions(clientTypes, locale)}
       />
-
-      {resolvedShowSavedViews ? (
-        <SavedListViewsBar
-          listKey="clients"
-          searchParams={{
-            q: params.q,
-            includeArchived: params.includeArchived,
-            clientTypeId: params.clientTypeId,
-            page: params.page,
-          }}
-          keys={['q', 'includeArchived', 'clientTypeId', 'page']}
-        />
-      ) : null}
 
       {clients.length === 0 ? (
         <EmptyState

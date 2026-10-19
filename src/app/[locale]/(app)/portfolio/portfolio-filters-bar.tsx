@@ -170,7 +170,7 @@ function PortfolioFilterControls({
   if (applied.stale) summary.push(t('chipStale'));
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <OwnerListFilterBar
         title={t('title')}
         applyLabel={t('apply')}

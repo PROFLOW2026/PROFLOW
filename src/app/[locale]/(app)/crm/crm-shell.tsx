@@ -26,5 +26,5 @@ export async function CrmSectionNav({ active }: { active: 'opportunities' | 'pro
 }
 
 export function CrmShell({ children }: { children: ReactNode }) {
-  return <div className="flex flex-col gap-6">{children}</div>;
+  return <div className="flex flex-col gap-4">{children}</div>;
 }

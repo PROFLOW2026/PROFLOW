@@ -137,7 +137,7 @@ export async function ProjectInspectionsScreen({ surfaceRoot,
 
     <WithAppClientMessages extra={['inspections', 'defects']}>
 
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
 
         <PageHeader
 
@@ -233,20 +233,6 @@ export async function ProjectInspectionsScreen({ surfaceRoot,
             title={t('list.empty')}
 
             description={t('list.emptyDescription')}
-
-            action={
-
-              data.permissions.manage && !data.formBundle ? (
-
-                <Link href={`${base}?new=1`} className={buttonVariants({ variant: 'primary' })}>
-
-                  {t('create.title')}
-
-                </Link>
-
-              ) : undefined
-
-            }
 
           />
 

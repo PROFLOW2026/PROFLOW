@@ -58,6 +58,7 @@ export function NotificationInboxClient({ initialInbox }: { readonly initialInbo
       <Card className="overflow-hidden p-0">
         <NotificationPanel
           density="full"
+          showViewAll={false}
           items={inbox.items}
           unreadCount={inbox.unreadCount}
           status={status}

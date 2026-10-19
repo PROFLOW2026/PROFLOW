@@ -3,12 +3,8 @@ import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link } from '@/shared/i18n/navigation';
-import { pressableCardLinkClassName } from '@/components/ui/pressable';
-import { cn } from '@/shared/ui/cn';
 import type { ClientFinancialView } from '@/modules/clients/application/get-client-financials';
 import type { ClientProfitabilitySnapshot } from '@/modules/clients/domain/client-profitability';
-import { clientDetailTabHref } from './client-detail-tab-order';
 import { isPositiveMoney } from '@/shared/money';
 
 function Stat({
@@ -26,24 +22,13 @@ function Stat({
   );
 }
 
-const TAB_LINKS = [
-  ['projects', 'goProjects'],
-  ['money', 'goMoney'],
-  ['sales', 'goSales'],
-  ['documents', 'goDocuments'],
-  ['activity', 'goActivity'],
-  ['details', 'goDetails'],
-] as const;
-
 export async function ClientOverviewPanel({
-  clientId,
   linkedProjectCount,
   openQuoteCount,
   contractCount,
   financials,
   profitability,
 }: {
-  readonly clientId: string;
   readonly linkedProjectCount: number;
   readonly openQuoteCount: number;
   readonly contractCount: number;
@@ -97,21 +82,6 @@ export async function ClientOverviewPanel({
           ) : null}
         </CardContent>
       </Card>
-
-      <div className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {TAB_LINKS.map(([tab, labelKey]) => (
-          <Link
-            key={tab}
-            href={clientDetailTabHref(clientId, tab)}
-            className={cn(
-              pressableCardLinkClassName,
-              'flex min-h-11 items-center justify-center rounded-lg border border-[var(--pf-border-default)] px-3 py-3 text-center text-sm font-medium',
-            )}
-          >
-            {t(labelKey)}
-          </Link>
-        ))}
-      </div>
     </div>
   );
 }

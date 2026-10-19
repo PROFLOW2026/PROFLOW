@@ -20,7 +20,7 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   return (
-    <header className={cn('flex min-w-0 max-w-full flex-col gap-3', className)}>
+    <header data-pf-page-header="" className={cn('flex min-w-0 max-w-full flex-col gap-3', className)}>
       {breadcrumb}
       <div className="flex min-w-0 max-w-full flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">

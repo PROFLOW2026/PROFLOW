@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import './owner-density.css';
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -24,7 +25,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <WithAppClientMessages>
-      <AppShell>{children}</AppShell>
+      <div data-pf-owner-app="" className="contents">
+        <AppShell contentClassName="mx-auto w-full min-w-0 max-w-[88rem]">{children}</AppShell>
+      </div>
     </WithAppClientMessages>
   );
 }

@@ -37,6 +37,8 @@ export interface NotificationPanelProps {
    * `full`: notifications page — full text, taller scroll region.
    */
   readonly density?: 'compact' | 'full';
+  /** Bell popover links to the inbox. The inbox page hides this self-link. */
+  readonly showViewAll?: boolean;
 }
 
 export function NotificationPanel({
@@ -50,6 +52,7 @@ export function NotificationPanel({
   scanning = false,
   onNavigate,
   density = 'compact',
+  showViewAll = true,
 }: NotificationPanelProps) {
   const t = useTranslations('notifications');
   const compact = density === 'compact';
@@ -201,15 +204,17 @@ export function NotificationPanel({
           );
         })}
       </ul>
-      <div className="border-t border-[var(--pf-border-default)] px-3 py-2">
-        <Link
-          href="/notifications"
-          className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--pf-text-brand)]"
-          onClick={() => onNavigate?.()}
-        >
-          {t('viewAll')}
-        </Link>
-      </div>
+      {showViewAll ? (
+        <div className="border-t border-[var(--pf-border-default)] px-3 py-2">
+          <Link
+            href="/notifications"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--pf-text-brand)]"
+            onClick={() => onNavigate?.()}
+          >
+            {t('viewAll')}
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }

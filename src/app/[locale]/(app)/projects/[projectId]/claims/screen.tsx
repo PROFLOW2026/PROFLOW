@@ -41,7 +41,7 @@ export async function ProjectClaimsScreen({
 
   return (
     <WithAppClientMessages extra={['subcontractClaims']}>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <PageHeader title={t('list.pageTitle')} description={t('list.pageDescription')} />
 
         {canOfferForm ? (

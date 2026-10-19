@@ -59,7 +59,7 @@ export function ProjectOwnerWorkspaceShell({
 
   if (mode === 'work') {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3">
         {workChrome}
         <Suspense fallback={panelFallback}>{children}</Suspense>
       </div>
@@ -68,7 +68,7 @@ export function ProjectOwnerWorkspaceShell({
 
   if (mode === 'execution') {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3">
         {executionChrome}
         <Suspense fallback={panelFallback}>{children}</Suspense>
       </div>
@@ -76,7 +76,7 @@ export function ProjectOwnerWorkspaceShell({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3">
       {commercialTop}
       <ProjectCommercialTabFrame
         tabs={tabs}

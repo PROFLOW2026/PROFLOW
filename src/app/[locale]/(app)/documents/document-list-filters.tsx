@@ -30,7 +30,7 @@ export function DocumentListFilters({
   const tCategories = useTranslations('documents.categories');
 
   return (
-    <form method="get" role="search" className="flex max-w-4xl flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+    <form method="get" role="search" className="flex max-w-4xl flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
       <Field label={tCommon('actions.search')} className="min-w-[12rem] flex-1">
         {(control) => (
           <Input

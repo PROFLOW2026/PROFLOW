@@ -37,7 +37,7 @@ export async function VendorFinancialActivityPanel({
         <CardTitle className="text-base">{t('title')}</CardTitle>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
       </CardHeader>
-      <CardContent className="flex flex-col gap-6">
+      <CardContent className="flex flex-col gap-4">
         <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
           <Metric label={t('recognizedNet')} amount={activity.totals.recognizedNet} currency={activity.totals.currency} />
           <Metric label={t('paidGross')} amount={activity.totals.paidGross} currency={activity.totals.currency} />

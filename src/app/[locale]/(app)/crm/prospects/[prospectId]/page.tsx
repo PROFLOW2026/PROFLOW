@@ -50,7 +50,7 @@ export default async function ProspectDetailPage({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title={prospect.name}
         meta={

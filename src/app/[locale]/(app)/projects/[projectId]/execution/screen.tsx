@@ -44,7 +44,7 @@ export async function ProjectExecutionDashboardScreen({ surfaceRoot, params }: {
 
   return (
     <WithAppClientMessages extra={['projectWorkspace']}>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <PageHeader title={t('execution.dashboard')} description={t('execution.dashboardDescription')} />
         <div className="flex flex-wrap gap-2">
           <Link

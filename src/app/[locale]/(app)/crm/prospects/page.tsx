@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { listProspectsForOrg } from '@/modules/crm';
+import { CrmSearchForm } from '@/modules/crm/ui/crm-search-form';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -26,10 +27,15 @@ export async function generateMetadata({
   return { title: t('nav.prospects') };
 }
 
-export default async function CrmProspectsPage() {
-  const t = await getTranslations('crm');
+export default async function CrmProspectsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const [t, params] = await Promise.all([getTranslations('crm'), searchParams]);
+  const search = params.q?.trim() || undefined;
   const { prospects, canManage } = await withOrgContext(async (context) => ({
-    prospects: await listProspectsForOrg(context),
+    prospects: await listProspectsForOrg(context, { search }),
     canManage: hasPermission(context, PERMISSIONS.CRM_MANAGE),
   }));
 
@@ -50,6 +56,7 @@ export default async function CrmProspectsPage() {
         }
       />
       <CrmSectionNav active="prospects" />
+      <CrmSearchForm query={params.q} />
 
       {prospects.length === 0 ? (
         <EmptyState

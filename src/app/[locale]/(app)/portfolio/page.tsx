@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/table';
 import { getPortfolio } from '@/modules/tasks/application/get-portfolio';
 import { HealthDot } from '@/modules/tasks/ui/health-dot';
-import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
@@ -144,7 +143,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
 
   if (!canRead) {
     return (
-      <div className="flex min-w-0 max-w-full flex-col gap-6">
+      <div className="flex min-w-0 max-w-full flex-col gap-4">
         <PageHeader title={t('portfolio.pageTitle')} />
         <EmptyState
           title={t('portfolio.accessDenied.title')}
@@ -155,7 +154,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
   }
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <div className="flex min-w-0 max-w-full flex-col gap-4">
       <PageHeader
         title={t('portfolio.pageTitle')}
         description={t('portfolio.description.projectCount', { count: totalCount })}
@@ -163,22 +162,6 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
 
       {/* Filter bar */}
       <PortfolioFiltersBar currentParams={params} totalCount={totalCount} />
-
-      {/* Saved views */}
-      <SavedListViewsBar
-        listKey="portfolio"
-        searchParams={{
-          clientId: params.clientId,
-          stageId: params.stageId,
-          workKind: params.workKind,
-          status: params.status,
-          has_overdue: params.has_overdue,
-          stale: params.stale,
-          employeeId: params.employeeId,
-          labelId: params.labelId,
-        }}
-        keys={['clientId', 'stageId', 'workKind', 'status', 'has_overdue', 'stale', 'employeeId', 'labelId']}
-      />
 
       {rows.length === 0 ? (
         hasFilters ? (

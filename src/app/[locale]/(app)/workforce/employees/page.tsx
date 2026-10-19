@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { listEmployeesForOrg } from '@/modules/workforce';
 import {
@@ -29,8 +30,17 @@ export async function generateMetadata({
   return { title: t('title') };
 }
 
-export default async function EmployeesPage() {
-  const t = await getTranslations('workforce');
+export default async function EmployeesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const [t, tCommon, raw] = await Promise.all([
+    getTranslations('workforce'),
+    getTranslations('common'),
+    searchParams,
+  ]);
+  const search = typeof raw.q === 'string' ? raw.q.trim() : '';
 
   const { employees, canManage, showCosts, laborDefaults, canManageFramework, canBootstrapCosting, employerCost } =
     await withOrgContext(async (context) => {
@@ -44,7 +54,7 @@ export default async function EmployeesPage() {
               m.getLaborCostDefaultsForApply(context).catch(() => null),
             )
           : null;
-        const rows = await listEmployeesForOrg(context);
+        const rows = await listEmployeesForOrg(context, search ? { search } : {});
         const avatarKeys = await mapEmployeeAvatarKeys(
           context.db,
           context.organizationId,
@@ -73,7 +83,7 @@ export default async function EmployeesPage() {
   const orgFrameworkConfigured = Boolean(laborDefaults?.standardHoursPerDay);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title={t('title')}
         description={t('description')}
@@ -104,6 +114,20 @@ export default async function EmployeesPage() {
       ) : null}
 
       {employerCost ? <EmployerCostOverview data={employerCost} /> : null}
+
+      <form method="get" role="search" className="flex flex-wrap items-center gap-2">
+        <Input
+          type="search"
+          name="q"
+          defaultValue={search}
+          aria-label={tCommon('actions.search')}
+          placeholder={tCommon('actions.search')}
+          className="h-9 min-h-9 w-full max-w-xs"
+        />
+        <Button type="submit" variant="secondary" size="sm">
+          {tCommon('actions.search')}
+        </Button>
+      </form>
 
       <EmployeesTable employees={employees} canManage={canManage} showCosts={showCosts} />
     </div>

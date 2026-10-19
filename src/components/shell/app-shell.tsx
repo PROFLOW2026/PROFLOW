@@ -23,7 +23,14 @@ import { HiddenCapabilityNotice } from './hidden-capability-notice';
  * the organization's module visibility, so the chrome itself is the first
  * expression of Progressive Complexity rather than a filter applied later.
  */
-export async function AppShell({ children }: { children: ReactNode }) {
+export async function AppShell({
+  children,
+  contentClassName = 'mx-auto w-full min-w-0 max-w-6xl',
+}: {
+  children: ReactNode;
+  /** Defaults to the dashboard width. The main app passes a wider column. */
+  contentClassName?: string;
+}) {
   const [tCommon, shell] = await Promise.all([getTranslations('common'), getShellContext()]);
   if (!shell) redirect({ href: '/onboarding', locale: await getLocale() });
 
@@ -93,7 +100,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             id="main"
             className="min-w-0 w-full max-w-full flex-1 px-4 pt-5 pb-[var(--pf-mobile-content-bottom)] sm:px-6 lg:pb-8"
           >
-            <div className="mx-auto w-full min-w-0 max-w-6xl">
+            <div className={contentClassName}>
               <HiddenCapabilityNotice modules={shell.modules} />
               <Suspense fallback={null}>{children}</Suspense>
             </div>

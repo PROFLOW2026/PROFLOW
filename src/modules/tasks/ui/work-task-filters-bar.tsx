@@ -221,22 +221,20 @@ function WorkTaskFilterControls({
         activeSummary={summary}
         onApply={() => onApply(draft)}
         onClear={onClear}
+        toolbar={
+          <input
+            type="search"
+            value={draft.search}
+            aria-label={tTasks('filters.search')}
+            className={uwmFilterInputClass}
+            placeholder={tTasks('filters.searchPlaceholder')}
+            onChange={(event) =>
+              setDraft((current) => ({ ...current, search: event.target.value }))
+            }
+          />
+        }
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="sm:col-span-2">
-            <OwnerFilterField label={tTasks('filters.search')}>
-              <input
-                type="search"
-                value={draft.search}
-                className={uwmFilterInputClass}
-                placeholder={tTasks('filters.searchPlaceholder')}
-                onChange={(event) =>
-                  setDraft((current) => ({ ...current, search: event.target.value }))
-                }
-              />
-            </OwnerFilterField>
-          </div>
-
           <OwnerFilterField label={tTasks('filters.status')}>
             <select
               value={draft.status}

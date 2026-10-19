@@ -38,7 +38,7 @@ export async function ProjectSiteSafetyScreen({ surfaceRoot: _surfaceRoot, param
 
   return (
     <WithAppClientMessages extra={['contractorCompliance']}>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <PageHeader title={t('safety.title')} description={t('safety.description')} />
 
         {defaultVendor ? (

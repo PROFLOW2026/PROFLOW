@@ -23,6 +23,8 @@ interface OwnerListFilterBarProps {
   readonly activeSummary: readonly string[];
   readonly onApply: () => void;
   readonly onClear: () => void;
+  /** Always visible, on the same row as the mobile filter button. */
+  readonly toolbar?: React.ReactNode;
   readonly children: React.ReactNode;
 }
 
@@ -38,13 +40,14 @@ export function OwnerListFilterBar({
   activeSummary,
   onApply,
   onClear,
+  toolbar,
   children,
 }: OwnerListFilterBarProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <section className={uwmFilterPanelClass} aria-label={title}>
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2">
         <h2 className={uwmFilterTitleClass}>{title}</h2>
         {isActive ? (
           <span className="shrink-0 rounded-full bg-[var(--pf-teal-100)] px-2.5 py-1 text-xs font-semibold text-[var(--pf-teal-900)]">
@@ -53,11 +56,14 @@ export function OwnerListFilterBar({
         ) : null}
       </div>
 
-      <div className="flex items-center justify-between gap-3 lg:hidden">
-        <button type="button" className={uwmSecondaryButtonClass} onClick={() => setOpen((v) => !v)}>
-          {activeCount > 0 && mobileWithCountLabel
-            ? mobileWithCountLabel
-            : mobileLabel}
+      <div className={cn('flex min-w-0 items-center gap-2', !toolbar && 'lg:hidden')}>
+        {toolbar ? <div className="min-w-0 flex-1">{toolbar}</div> : null}
+        <button
+          type="button"
+          className={cn(uwmSecondaryButtonClass, 'shrink-0 lg:hidden')}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {activeCount > 0 && mobileWithCountLabel ? mobileWithCountLabel : mobileLabel}
         </button>
       </div>
 

@@ -15,7 +15,6 @@ import { Link } from '@/shared/i18n/navigation';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
-import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import {
   orgListHasPermission,
   type OrgListSurface,
@@ -56,7 +55,7 @@ export async function QuotesOrgListView({
     getTranslations('status.estimateQuote'),
     getLocale(),
   ]);
-  const params = await searchParams;
+  await searchParams;
   const isOwner = surface === 'owner';
 
   const { items, canManage, canRead } = await withOrgContext(async (context) => {
@@ -78,7 +77,7 @@ export async function QuotesOrgListView({
 
   if (!canRead) {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         {isOwner ? <PageHeader title={t('title')} description={t('description')} /> : null}
         <EmptyState icon={FileSpreadsheet} title={t('empty.title')} description={t('empty.body')} />
       </div>
@@ -86,7 +85,7 @@ export async function QuotesOrgListView({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {isOwner ? (
         <PageHeader
           title={t('title')}
@@ -108,8 +107,6 @@ export async function QuotesOrgListView({
           }
         />
       ) : null}
-
-      {isOwner ? <SavedListViewsBar listKey="quotes" searchParams={params} /> : null}
 
       {items.length === 0 ? (
         <EmptyState

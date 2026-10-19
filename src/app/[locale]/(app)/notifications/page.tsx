@@ -37,7 +37,7 @@ export default async function NotificationsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader title={t('title')} description={t('pageDescription')} />
       <NotificationInboxClient initialInbox={inbox} />
     </div>

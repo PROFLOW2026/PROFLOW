@@ -18,7 +18,6 @@ import {
   resolveOrgListPage,
 } from '@/shared/db/org-list-pagination';
 import { listBusinessCatalog, localizeVendorCategoryOptions } from '@/modules/business-catalog';
-import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -121,7 +120,7 @@ export async function VendorsOrgListView({
     const tEmployee =
       surface === 'employee' ? await getTranslations('employeeApp.vendors') : null;
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         {isOwner ? <PageHeader title={t('title')} description={t('description')} /> : null}
         <EmptyState
           icon={Truck}
@@ -133,7 +132,7 @@ export async function VendorsOrgListView({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {isOwner ? (
         <PageHeader
           title={t('title')}
@@ -166,19 +165,6 @@ export async function VendorsOrgListView({
         initialCategoryId={params.categoryId ?? ''}
         categories={categories.map((row) => ({ id: row.id, name: row.name }))}
       />
-      {isOwner ? (
-        <SavedListViewsBar
-          listKey="vendors"
-          searchParams={{
-            q,
-            type: params.type,
-            status: params.status,
-            categoryId: params.categoryId,
-            page: params.page,
-          }}
-          keys={['q', 'type', 'status', 'categoryId', 'page']}
-        />
-      ) : null}
 
       {vendors.length === 0 ? (
         filtersActive ? (

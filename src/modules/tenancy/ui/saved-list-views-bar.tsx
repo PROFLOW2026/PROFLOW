@@ -1,10 +1,4 @@
-import {
-  compactSearchQuery,
-  listSavedListViews,
-  type SavedListKey,
-} from '@/modules/tenancy';
-import { withOrgContext } from '@/shared/auth/session';
-import { SavedListViewsControl } from './saved-list-views-control';
+import { type SavedListKey } from '@/modules/tenancy';
 
 export async function SavedListViewsBar({
   listKey,
@@ -15,10 +9,10 @@ export async function SavedListViewsBar({
   searchParams: Record<string, string | string[] | undefined>;
   keys?: readonly string[];
 }) {
-  const currentQuery = compactSearchQuery(searchParams, keys);
-  const views = await withOrgContext((context) => listSavedListViews(context, listKey));
-
-  return (
-    <SavedListViewsControl listKey={listKey} currentQuery={currentQuery} views={views} />
-  );
+  // Owner decision: saved-view controls stay out of the UI. Rows, API, and
+  // preferences remain. Call sites keep passing the current query.
+  void listKey;
+  void searchParams;
+  void keys;
+  return null;
 }

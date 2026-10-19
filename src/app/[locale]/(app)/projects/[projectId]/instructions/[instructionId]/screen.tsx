@@ -44,7 +44,7 @@ export async function InstructionDetailScreen({ surfaceRoot,
     : null;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-4">
       <PageHeader
         breadcrumb={
           <Link href={`${surfaceRoot ?? ('/projects/' + projectId)}/instructions`} className="text-sm text-[var(--pf-text-brand)] hover:underline">

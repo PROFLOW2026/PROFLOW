@@ -19,7 +19,7 @@ export default async function NewProspectPage() {
   const t = await getTranslations('crm');
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title={t('prospect.new')}
         breadcrumb={

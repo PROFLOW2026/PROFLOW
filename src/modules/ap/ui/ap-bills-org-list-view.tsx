@@ -32,7 +32,6 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import { ReportsEntryLink } from '@/modules/financials/ui/reports-entry-link';
-import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { ApBillTaxSummary } from '@/modules/ap/ui/ap-bill-tax-summary';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import {
@@ -144,7 +143,7 @@ export async function ApBillsOrgListView({
   if (!canRead) {
     const tEmployee = surface === 'employee' ? await getTranslations('employeeApp.ap') : null;
     return (
-      <div className="flex min-w-0 flex-col gap-6">
+      <div className="flex min-w-0 flex-col gap-4">
         {isOwner ? <PageHeader title={t('title')} description={t('description')} /> : null}
         {isOwner ? <ProcurementSectionNav active="ap" /> : null}
         <EmptyState
@@ -156,7 +155,7 @@ export async function ApBillsOrgListView({
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-4">
       {isOwner ? (
         <PageHeader
           title={t('title')}
@@ -190,22 +189,15 @@ export async function ApBillsOrgListView({
       ) : null}
 
       {isOwner ? <ProcurementSectionNav active="ap" /> : null}
-      {isOwner ? (
-        <SavedListViewsBar
-          listKey="ap_bills"
-          searchParams={params}
-          keys={['fromDate', 'toDate', 'paymentFrom', 'paymentTo', 'outstanding', 'page']}
-        />
-      ) : null}
 
       {outstandingOnly ? (
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('list.outstandingOnly')}</p>
       ) : null}
 
-      <form method="get" className="flex flex-col gap-3">
+      <form method="get" className="flex flex-col gap-2">
         {outstandingOnly ? <input type="hidden" name="outstanding" value="1" /> : null}
         <div>
-          <p className="mb-1 text-xs text-[var(--pf-text-muted)]">{t('list.billDateHint')}</p>
+          <p className="mb-0.5 text-xs text-[var(--pf-text-muted)]">{t('list.billDateHint')}</p>
           <DateRangeSelector
             today={today}
             defaultFrom={fromDate ?? ''}
@@ -215,7 +207,7 @@ export async function ApBillsOrgListView({
           />
         </div>
         <div>
-          <p className="mb-1 text-xs text-[var(--pf-text-muted)]">{t('list.paidInPeriodHint')}</p>
+          <p className="mb-0.5 text-xs text-[var(--pf-text-muted)]">{t('list.paidInPeriodHint')}</p>
           <DateRangeSelector
             today={today}
             defaultFrom={paymentFrom ?? ''}
@@ -247,7 +239,7 @@ export async function ApBillsOrgListView({
       </form>
 
       {paidInPeriod !== null && parseFloat(paidInPeriod) > 0 ? (
-        <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-4 py-3 text-sm">
+        <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm">
           <span className="font-medium">{t('list.paidInPeriodLabel')} </span>
           <MoneyText value={{ amount: paidInPeriod, currency }} />
           <span className="ms-2 text-[var(--pf-text-secondary)]">{t('list.paidInPeriodHint')}</span>

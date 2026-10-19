@@ -29,8 +29,9 @@ export default async function ReportsPage({
 }: {
   searchParams: Promise<{ workKind?: string; section?: string; from?: string; to?: string }>;
 }) {
-  const [t, params] = await Promise.all([
+  const [t, tCommon, params] = await Promise.all([
     getTranslations('dashboard.reports'),
+    getTranslations('common'),
     searchParams,
   ]);
   const workKindFilter = parseWorkKindFilter(params.workKind);
@@ -73,6 +74,12 @@ export default async function ReportsPage({
           {params.workKind && <input type="hidden" name="workKind" value={params.workKind} />}
           {params.section && <input type="hidden" name="section" value={params.section} />}
           <DateRangeSelector fromName="from" toName="to" defaultFrom={fromDate} defaultTo={toDate} />
+          <button
+            type="submit"
+            className="h-9 rounded-md border border-[var(--pf-border-strong)] px-4 text-sm font-medium"
+          >
+            {tCommon('actions.filter')}
+          </button>
         </form>
       ) : null}
 

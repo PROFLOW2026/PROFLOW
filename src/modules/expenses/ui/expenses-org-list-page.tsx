@@ -27,7 +27,6 @@ import {
   EXPENSE_LIST_STATUS_ALL,
 } from '@/modules/expenses/domain/expense-status-filter';
 import { OcrEntryLink } from '@/modules/ocr/ui/ocr-entry-link';
-import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ExpensesOrgListView } from './expenses-org-list-view';
@@ -107,7 +106,6 @@ export async function ExpensesOrgListPage({
   };
 
   const isOwnerSurface = surface === 'owner';
-  const showSavedViews = isOwnerSurface;
 
   const canCreateExpense = await withOrgContext(async (context) =>
     surface === 'employee'
@@ -169,7 +167,7 @@ export async function ExpensesOrgListPage({
   const pageCount = expenseListPageCount(listResult.total, EXPENSE_LIST_PAGE_SIZE);
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-4">
       {isOwnerSurface ? (
         <PageHeader
           title={t('title')}
@@ -208,26 +206,6 @@ export async function ExpensesOrgListPage({
           }
         />
       )}
-
-      {showSavedViews ? (
-        <SavedListViewsBar
-          listKey="expenses"
-          searchParams={rawParams}
-          keys={[
-            'dateFrom',
-            'dateTo',
-            'projectId',
-            'costFamily',
-            'costCategoryId',
-            'status',
-            'attention',
-            'unallocated',
-            'cash',
-            'cashSource',
-            'page',
-          ]}
-        />
-      ) : null}
 
       {showUnallocatedFilter ? (
         <div

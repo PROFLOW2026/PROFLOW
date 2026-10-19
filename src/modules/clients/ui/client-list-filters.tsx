@@ -33,9 +33,9 @@ export function ClientListFilters({
     <form
       method="get"
       role="search"
-      className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end"
+      className="flex w-full flex-row flex-wrap items-end gap-2"
     >
-      <Field label={tCommon('actions.search')} className="min-w-0 w-full sm:max-w-xs sm:flex-1">
+      <Field label={tCommon('actions.search')} className="min-w-0 flex-1">
         {(control) => (
           <Input
             {...control}
@@ -47,7 +47,7 @@ export function ClientListFilters({
         )}
       </Field>
       {clientTypes.length > 0 ? (
-        <Field label={t('list.columns.type')} className="min-w-0 sm:w-44">
+        <Field label={t('list.columns.type')} className="min-w-0 w-32 shrink-0 sm:w-44">
           {(control) => (
             <Select name="clientTypeId" defaultValue={initialClientTypeId || 'all'}>
               <SelectTrigger id={control.id}>
@@ -65,7 +65,7 @@ export function ClientListFilters({
           )}
         </Field>
       ) : null}
-      <label className="flex items-center gap-2 pb-2 text-sm text-[var(--pf-text-secondary)]">
+      <label className="flex shrink-0 items-center gap-2 pb-2 text-sm text-[var(--pf-text-secondary)]">
         <input
           type="checkbox"
           name="includeArchived"
@@ -75,8 +75,8 @@ export function ClientListFilters({
         />
         {t('list.includeArchived')}
       </label>
-      <Button type="submit" variant="secondary">
-        {tCommon('actions.search')}
+      <Button type="submit" variant="secondary" className="shrink-0">
+        {tCommon('actions.filter')}
       </Button>
     </form>
   );

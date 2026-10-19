@@ -9,7 +9,6 @@ import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { listWorkOrdersForOrg, type ServiceStatus } from '@/modules/service';
 import { titleWithDocumentNumber } from '@/modules/tenancy';
-import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
@@ -78,11 +77,6 @@ export default async function WorkOrdersPage({ searchParams }: WorkOrdersPagePro
       />
 
       <WorkOrderListFilters initialQuery={params.q ?? ''} initialStatus={serviceStatus ?? 'all'} />
-      <SavedListViewsBar
-        listKey="work_orders"
-        searchParams={{ q: params.q, status: params.status }}
-        keys={['q', 'status']}
-      />
 
       {workOrders.length === 0 ? (
         filtersActive ? (

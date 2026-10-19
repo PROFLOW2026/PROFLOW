@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { VENDOR_STATUSES, VENDOR_TYPES } from '@/modules/vendors/domain/types';
+import { cn } from '@/shared/ui/cn';
 
 interface CatalogOption {
   readonly id: string;
@@ -30,14 +32,12 @@ export function VendorListFilters({
   const t = useTranslations('vendors');
   const tCommon = useTranslations('common');
   const tTypes = useTranslations('vendors.types');
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   return (
-    <form
-      method="get"
-      role="search"
-      className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end"
-    >
-      <Field label={tCommon('actions.search')} className="min-w-0 flex-1 sm:max-w-xs">
+    <form method="get" role="search" className="flex min-w-0 max-w-full flex-col gap-2 sm:flex-row sm:items-end">
+      <div className="flex min-w-0 flex-1 items-end gap-2">
+      <Field label={tCommon('actions.search')} className="min-w-0 flex-1">
         {(control) => (
           <Input
             {...control}
@@ -48,7 +48,19 @@ export function VendorListFilters({
           />
         )}
       </Field>
-      <Field label={t('list.columns.type')} className="min-w-0 sm:w-40">
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        className="shrink-0 sm:hidden"
+        aria-expanded={filtersOpen}
+        onClick={() => setFiltersOpen((open) => !open)}
+      >
+        {tCommon('actions.filter')}
+      </Button>
+      </div>
+      <div className={cn('flex min-w-0 flex-wrap items-end gap-2', !filtersOpen && 'hidden sm:flex')}>
+      <Field label={t('list.columns.type')} className="min-w-0 w-full sm:w-36">
         {(control) => (
           <Select name="type" defaultValue={initialType}>
             <SelectTrigger id={control.id}>
@@ -65,7 +77,7 @@ export function VendorListFilters({
           </Select>
         )}
       </Field>
-      <Field label={t('list.columns.status')} className="min-w-0 sm:w-40">
+      <Field label={t('list.columns.status')} className="min-w-0 w-full sm:w-36">
         {(control) => (
           <Select name="status" defaultValue={initialStatus}>
             <SelectTrigger id={control.id}>
@@ -83,7 +95,7 @@ export function VendorListFilters({
         )}
       </Field>
       {categories.length > 0 ? (
-        <Field label={t('list.columns.category')} className="min-w-0 sm:w-44">
+        <Field label={t('list.columns.category')} className="min-w-0 w-full sm:w-40">
           {(control) => (
             <Select name="categoryId" defaultValue={initialCategoryId || 'all'}>
               <SelectTrigger id={control.id}>
@@ -101,9 +113,10 @@ export function VendorListFilters({
           )}
         </Field>
       ) : null}
-      <Button type="submit" variant="secondary">
-        {tCommon('actions.search')}
+      <Button type="submit" variant="secondary" size="sm" className="shrink-0">
+        {tCommon('actions.filter')}
       </Button>
+      </div>
     </form>
   );
 }

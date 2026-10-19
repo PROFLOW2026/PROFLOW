@@ -46,7 +46,7 @@ export async function ProjectContractorsScreen({
 
   return (
     <WithAppClientMessages extra={['projectWorkspace', 'subcontracts']}>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <PageHeader
           title={t('contractors.pageTitle')}
           description={t('contractors.pageDescription')}

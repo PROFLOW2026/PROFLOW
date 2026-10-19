@@ -54,7 +54,7 @@ export async function SiteLogDayScreen({ surfaceRoot, params }: {
   const latestReports = day.reports.filter((report) => report.isLatest);
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-4">
       <PageHeader
         title={title}
         description={t('siteLog.dayDescription')}

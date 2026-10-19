@@ -45,35 +45,33 @@ export function SettingsSectionNav({
   return (
     <nav
       aria-label={tSettings('navLabel')}
-      className="-mx-1 flex gap-1 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:thin] lg:mx-0 lg:flex-col lg:overflow-visible lg:pb-0"
+      className="flex w-full min-w-0 flex-col gap-1 lg:gap-0.5"
     >
-      <div className="flex gap-1 lg:flex-col lg:gap-0.5">
-        {groups.map(({ group, items: groupItems }) => (
-          <div key={group} className="flex gap-1 lg:flex-col lg:gap-0.5">
-            {!hideGroupHeaders ? (
-              <p className="hidden px-3 pb-1 text-xs font-semibold tracking-wide text-[var(--pf-text-secondary)] uppercase lg:block">
-                {tGroups(group)}
-              </p>
-            ) : null}
-            {groupItems.map((item) => {
-              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-              return (
-                <SectionNavLink
-                  key={item.key}
-                  href={item.href}
-                  active={active}
-                  className={cn(
-                    'shrink-0 whitespace-nowrap py-2 text-start',
-                    'lg:w-full',
-                  )}
-                >
-                  {tSections(item.key)}
-                </SectionNavLink>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+      {groups.map(({ group, items: groupItems }) => (
+        <div key={group} className="flex w-full min-w-0 flex-wrap gap-1 lg:flex-col lg:flex-nowrap lg:gap-0.5">
+          {!hideGroupHeaders ? (
+            <p className="hidden px-3 pb-1 text-xs font-semibold tracking-wide text-[var(--pf-text-secondary)] uppercase lg:block">
+              {tGroups(group)}
+            </p>
+          ) : null}
+          {groupItems.map((item) => {
+            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            return (
+              <SectionNavLink
+                key={item.key}
+                href={item.href}
+                active={active}
+                className={cn(
+                  'shrink-0 whitespace-nowrap py-2 text-start',
+                  'lg:w-full lg:shrink',
+                )}
+              >
+                {tSections(item.key)}
+              </SectionNavLink>
+            );
+          })}
+        </div>
+      ))}
     </nav>
   );
 }

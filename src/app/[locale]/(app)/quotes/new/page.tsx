@@ -63,7 +63,7 @@ export default async function NewQuotePage({
     opportunity?.convertedClientId ?? opportunity?.prospect?.convertedClientId ?? null;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title={t('create.title')}
         description={

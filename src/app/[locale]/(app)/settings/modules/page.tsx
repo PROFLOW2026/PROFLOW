@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { withOrgContext } from '@/shared/auth/session';
+import { Link } from '@/shared/i18n/navigation';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { hasPermission } from '@/shared/permissions/assert';
 import { getModuleVisibility, listModulePreferences } from '@/modules/tenancy';
@@ -22,6 +23,7 @@ export async function generateMetadata({
 
 export default async function ModulesSettingsPage() {
   const t = await getTranslations('settings.modules');
+  const tSections = await getTranslations('settings.sections');
 
   const data = await withOrgContext(async (context) => {
     if (!hasPermission(context, PERMISSIONS.SETTINGS_MANAGE)) {
@@ -53,6 +55,14 @@ export default async function ModulesSettingsPage() {
 
   return (
     <SettingsPageShell title={t('pageTitle')} description={t('pageDescription')}>
+      <p className="mb-3 text-sm">
+        <Link
+          href="/settings/features"
+          className="font-medium text-[var(--pf-text-brand)] underline-offset-2 hover:underline"
+        >
+          {tSections('features')}
+        </Link>
+      </p>
       <Card className="p-5">
         <FeaturesSettingsPanel
           visibility={data.visibility}
