@@ -100,15 +100,36 @@ function labelBodyRows(children: React.ReactNode, labels: readonly string[]): Re
   });
 }
 
-export function Table({ className, children, ...props }: React.TableHTMLAttributes<HTMLTableElement>) {
-  const labels = extractTableHeaderLabels(children);
+export type TableLayout = 'stack' | 'scroll';
+
+export interface TableProps extends React.TableHTMLAttributes<HTMLTableElement> {
+  /**
+   * `stack` (default): below md, rows become labeled cards via `data-pf-responsive-table`.
+   * `scroll`: keep a normal table at all widths; horizontal scroll stays inside the table region only.
+   */
+  layout?: TableLayout;
+}
+
+export function Table({ className, children, layout = 'stack', ...props }: TableProps) {
+  const labels = layout === 'stack' ? extractTableHeaderLabels(children) : [];
+  const tableChildren = layout === 'stack' ? withBodyLabels(children, labels) : children;
   return (
     <div
-      {...{ [RESPONSIVE_TABLE_ATTR]: '' }}
-      className="relative min-w-0 w-full max-w-full"
+      {...(layout === 'stack' ? { [RESPONSIVE_TABLE_ATTR]: '' } : {})}
+      className={cn(
+        'relative min-w-0 w-full max-w-full',
+        layout === 'scroll' && 'overflow-x-auto',
+      )}
     >
-      <table className={cn('w-full max-w-full caption-bottom border-collapse text-sm', className)} {...props}>
-        {withBodyLabels(children, labels)}
+      <table
+        className={cn(
+          'caption-bottom border-collapse text-sm',
+          layout === 'scroll' ? 'min-w-full' : 'w-full max-w-full',
+          className,
+        )}
+        {...props}
+      >
+        {tableChildren}
       </table>
     </div>
   );

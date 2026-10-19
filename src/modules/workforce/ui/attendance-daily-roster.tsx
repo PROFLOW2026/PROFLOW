@@ -78,7 +78,8 @@ export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterP
       </div>
 
       <div className="mt-4 min-w-0 max-w-full">
-        <Table>
+        {/* Keep compact one-row-per-employee layout; do not use global mobile card stacking. */}
+        <Table layout="scroll">
           <TableHeader>
             <TableRow>
               <TableHead>{t('todayView.columns.employee')}</TableHead>
@@ -99,7 +100,7 @@ export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterP
                     : 'bg-red-50/70 dark:bg-red-950/20'
                 }
               >
-                <TableCell className="font-medium">{row.employeeName}</TableCell>
+                <TableCell className="font-medium whitespace-nowrap">{row.employeeName}</TableCell>
                 <TableCell className="text-[var(--pf-text-secondary)]">
                   {row.projectNames.length > 0
                     ? row.projectNames.join(', ')
@@ -107,8 +108,12 @@ export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterP
                       ? t('todayView.noProject')
                       : '—'}
                 </TableCell>
-                <TableCell dir="ltr">{formatStartTime(row.startTime, locale)}</TableCell>
-                <TableCell dir="ltr">{formatHours(row.hours, locale)}</TableCell>
+                <TableCell className="whitespace-nowrap" dir="ltr">
+                  {formatStartTime(row.startTime, locale)}
+                </TableCell>
+                <TableCell className="whitespace-nowrap" dir="ltr">
+                  {formatHours(row.hours, locale)}
+                </TableCell>
                 <TableCell>
                   <StatusBadge
                     shape={
@@ -125,7 +130,7 @@ export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterP
                     label={t(`todayView.approval.${row.approvalStatus}`)}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell className="whitespace-nowrap">
                   {row.dayId ? (
                     <Link
                       href={`/workforce/attendance?dayId=${row.dayId}&employeeId=${row.employeeId}`}

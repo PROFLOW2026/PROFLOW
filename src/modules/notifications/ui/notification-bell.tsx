@@ -118,10 +118,12 @@ export function NotificationBell({
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-[min(100dvw-2rem,24rem)] max-w-[calc(100%-2rem)] p-0"
+        sideOffset={8}
+        className="w-[min(100dvw-2rem,22rem)] max-w-[calc(100%-1.5rem)] p-0"
         aria-label={t('title')}
       >
         <NotificationPanel
+          density="compact"
           items={inbox.items}
           unreadCount={inbox.unreadCount}
           status={status === 'idle' ? 'ready' : status}

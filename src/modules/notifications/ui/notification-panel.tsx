@@ -27,6 +27,11 @@ export interface NotificationPanelProps {
   readonly onScan?: () => void;
   readonly scanning?: boolean;
   readonly onNavigate?: () => void;
+  /**
+   * `compact` (default): popover density — clamped title/body and capped list height.
+   * `full`: notifications page — full text, taller scroll region.
+   */
+  readonly density?: 'compact' | 'full';
 }
 
 export function NotificationPanel({
@@ -39,8 +44,10 @@ export function NotificationPanel({
   onScan,
   scanning = false,
   onNavigate,
+  density = 'compact',
 }: NotificationPanelProps) {
   const t = useTranslations('notifications');
+  const compact = density === 'compact';
 
   if (status === 'loading') {
     return (
@@ -98,7 +105,13 @@ export function NotificationPanel({
           ) : null}
         </div>
       </div>
-      <ul className="max-h-[min(24rem,60dvh)] overflow-y-auto" aria-label={t('title')}>
+      <ul
+        className={cn(
+          'overflow-y-auto',
+          compact ? 'max-h-[min(20rem,45dvh)]' : 'max-h-[min(36rem,70dvh)]',
+        )}
+        aria-label={t('title')}
+      >
         {items.map((item) => {
           const unread = !item.readAt;
           const content = (
@@ -107,8 +120,22 @@ export function NotificationPanel({
                 <StatusBadge shape={severityShape(item.severity)} label={t(`severity.${item.severity}`)} />
                 <span className="text-xs text-[var(--pf-text-muted)]">{t(`types.${item.type}`)}</span>
               </div>
-              <p className="mt-1 text-sm font-medium leading-snug">{item.title}</p>
-              <p className="mt-0.5 text-sm text-[var(--pf-text-secondary)]">{item.body}</p>
+              <p
+                className={cn(
+                  'mt-1 text-sm font-medium leading-snug',
+                  compact && 'line-clamp-2',
+                )}
+              >
+                {item.title}
+              </p>
+              <p
+                className={cn(
+                  'mt-0.5 text-sm text-[var(--pf-text-secondary)]',
+                  compact && 'line-clamp-3',
+                )}
+              >
+                {item.body}
+              </p>
             </>
           );
 

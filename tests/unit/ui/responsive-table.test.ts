@@ -57,6 +57,30 @@ describe('responsive table cards', () => {
     expect(markup).not.toContain('whitespace-nowrap');
   });
 
+  it('keeps a scrollable table layout when stack cards are opted out', () => {
+    const markup = renderToStaticMarkup(
+      createElement(
+        Table,
+        { layout: 'scroll' },
+        createElement(
+          TableHeader,
+          null,
+          createElement(TableRow, null, createElement(TableHead, null, 'Employee')),
+        ),
+        createElement(
+          TableBody,
+          null,
+          createElement(TableRow, null, createElement(TableCell, null, 'Dana')),
+        ),
+      ),
+    );
+
+    expect(markup).not.toContain('data-pf-responsive-table');
+    expect(markup).toContain('overflow-x-auto');
+    expect(markup).toContain('Dana');
+    expect(markup).not.toContain('data-label=');
+  });
+
   it('joins labels when a cell spans columns', () => {
     const labels = extractTableHeaderLabels(
       createElement(

@@ -190,26 +190,26 @@ export async function AttendanceMonthCalendar({
 
   return (
     <div className="rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 shadow-sm">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h3 className="text-base font-semibold text-[var(--pf-text-primary)]">{t('title')}</h3>
-          <p className="text-sm text-[var(--pf-text-muted)]">{employeeName}</p>
+          <p className="truncate text-sm text-[var(--pf-text-muted)]">{employeeName}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center justify-between gap-2 sm:justify-end">
           <Link
             href={`/workforce/attendance?employeeId=${employeeId}&month=${prevMonth}`}
-            className="inline-flex size-11 items-center justify-center rounded-md border border-[var(--pf-border-default)] text-[var(--pf-text-secondary)] transition-colors hover:bg-[var(--pf-bg-subtle)]"
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-[var(--pf-border-default)] text-[var(--pf-text-secondary)] transition-colors hover:bg-[var(--pf-bg-subtle)] sm:size-11"
             scroll={false}
             aria-label={t('prevMonth')}
           >
             <ChevronLeft className={rtlFlipClassName('size-4')} />
           </Link>
-          <span className="min-w-[10rem] text-center text-sm font-medium text-[var(--pf-text-primary)]">
+          <span className="min-w-0 flex-1 truncate text-center text-sm font-medium text-[var(--pf-text-primary)] sm:min-w-[10rem] sm:flex-none">
             {monthTitle}
           </span>
           <Link
             href={`/workforce/attendance?employeeId=${employeeId}&month=${nextMonth}`}
-            className="inline-flex size-11 items-center justify-center rounded-md border border-[var(--pf-border-default)] text-[var(--pf-text-secondary)] transition-colors hover:bg-[var(--pf-bg-subtle)]"
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-[var(--pf-border-default)] text-[var(--pf-text-secondary)] transition-colors hover:bg-[var(--pf-bg-subtle)] sm:size-11"
             scroll={false}
             aria-label={t('nextMonth')}
           >
@@ -218,7 +218,7 @@ export async function AttendanceMonthCalendar({
         </div>
       </div>
 
-      <div className="mb-3 flex flex-wrap gap-3 text-xs">
+      <div className="mb-3 flex flex-wrap gap-x-3 gap-y-2 text-xs">
         <LegendItem color="bg-green-100 dark:bg-green-900/30" label={t('worked')} />
         <LegendItem color="bg-sky-100 dark:bg-sky-900/30" label={t('absencePaid')} />
         <LegendItem color="bg-orange-100 dark:bg-orange-900/30" label={t('absenceUnpaid')} />
@@ -250,6 +250,8 @@ export async function AttendanceMonthCalendar({
 
           const isToday = cell.dateStr === today;
           const statusLabel = t(`status.${cell.status}`);
+          const showStatusText =
+            cell.status !== 'not_applicable' && cell.status !== 'nonWorkday';
 
           const cellContent = (
             <div
@@ -261,11 +263,12 @@ export async function AttendanceMonthCalendar({
               title={statusLabel}
             >
               <span className="text-xs">{cell.day}</span>
-              <span className="mt-0.5 line-clamp-2 max-w-full text-[9px] font-normal opacity-90">
-                {cell.status === 'not_applicable' || cell.status === 'nonWorkday'
-                  ? ''
-                  : statusLabel}
-              </span>
+              {/* Desktop keeps status text; mobile relies on color + legend + title tooltip */}
+              {showStatusText ? (
+                <span className="mt-0.5 hidden max-w-full line-clamp-2 text-[9px] font-normal opacity-90 md:block">
+                  {statusLabel}
+                </span>
+              ) : null}
             </div>
           );
 
