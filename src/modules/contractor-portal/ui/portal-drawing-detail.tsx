@@ -2,13 +2,15 @@
 
 import { useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { useTransition } from 'react';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { useState, useTransition } from 'react';
+import { Button } from '@/components/ui/button';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
+import { AuthorizedFilePreviewDialog } from '@/modules/external-storage/ui/authorized-file-preview-dialog';
 import type { ContractorDrawingDetail } from '@/modules/project-plans';
 import type { DrawingRevisionStatus } from '@/modules/project-plans/domain/types';
 import { acknowledgeDrawingRevisionAction } from '@/modules/project-plans/actions/external-actions';
 import { EXTERNAL_REVISION_DOWNLOAD_PATH } from '@/modules/project-plans/download-paths';
+import { withExplicitAttachment } from '@/modules/contractor-portal/download-paths';
 import { cn } from '@/shared/ui/cn';
 import { portalItemCardClass, portalPageTitleClass, portalPanelClass } from './portal-surface';
 
@@ -29,10 +31,20 @@ export function PortalDrawingDetail({
   readonly detail: ContractorDrawingDetail;
 }) {
   const t = useTranslations('projectPlans.portal.drawing');
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [openRevisionId, setOpenRevisionId] = useState<string | null>(null);
   const current = detail.revisions.find((revision) => revision.status === 'current');
   const history = detail.revisions.filter((revision) => revision.status !== 'current');
+  const siblings = detail.revisions
+    .filter((revision) => revision.fileReady)
+    .map((revision) => ({
+      fileName: revision.fileName,
+      contentUrl: `${EXTERNAL_REVISION_DOWNLOAD_PATH}/${revision.id}`,
+    }));
+  const active = detail.revisions.find((revision) => revision.id === openRevisionId && revision.fileReady) ?? null;
+  const activeUrl = active ? `${EXTERNAL_REVISION_DOWNLOAD_PATH}/${active.id}` : null;
 
   return (
     <div className="flex flex-col gap-5">
@@ -50,14 +62,18 @@ export function PortalDrawingDetail({
             <StatusBadge shape={REVISION_SHAPE[current.status]} label={t(`status.${current.status}`)} />
           </div>
           {current.fileReady ? (
-            <a
-              href={`${EXTERNAL_REVISION_DOWNLOAD_PATH}/${current.id}`}
-              className={buttonVariants({ variant: 'primary', size: 'lg' })}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {current.fileName}
-            </a>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button type="button" size="lg" onClick={() => setOpenRevisionId(current.id)}>
+                {current.fileName}
+              </Button>
+              <a
+                href={withExplicitAttachment(`${EXTERNAL_REVISION_DOWNLOAD_PATH}/${current.id}`)}
+                download
+                className="text-sm text-[var(--pf-text-secondary)] hover:underline"
+              >
+                {tCommon('actions.download')}
+              </a>
+            </div>
           ) : null}
           {detail.canAcknowledge && current.acknowledgementRequired && !current.acknowledgedAt ? (
             <Button
@@ -96,19 +112,45 @@ export function PortalDrawingDetail({
                 <StatusBadge shape={REVISION_SHAPE[revision.status]} label={t(`status.${revision.status}`)} />
               </div>
               {revision.fileReady ? (
-                <a
-                  href={`${EXTERNAL_REVISION_DOWNLOAD_PATH}/${revision.id}`}
-                  className="text-sm text-[var(--pf-text-brand)] hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {revision.fileName}
-                </a>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="text-sm text-[var(--pf-text-brand)] hover:underline"
+                    onClick={() => setOpenRevisionId(revision.id)}
+                  >
+                    {revision.fileName}
+                  </button>
+                  <a
+                    href={withExplicitAttachment(`${EXTERNAL_REVISION_DOWNLOAD_PATH}/${revision.id}`)}
+                    download
+                    className="text-sm text-[var(--pf-text-secondary)] hover:underline"
+                  >
+                    {tCommon('actions.download')}
+                  </a>
+                </div>
               ) : null}
             </li>
           ))}
         </ul>
       ) : null}
+      <AuthorizedFilePreviewDialog
+        open={active !== null}
+        onOpenChange={(open) => {
+          if (!open) setOpenRevisionId(null);
+        }}
+        siblings={siblings}
+        file={
+          active && activeUrl
+            ? {
+                title: active.fileName,
+                fileName: active.fileName,
+                mimeType: active.mimeType,
+                contentUrl: activeUrl,
+                downloadUrl: withExplicitAttachment(activeUrl),
+              }
+            : null
+        }
+      />
     </div>
   );
 }

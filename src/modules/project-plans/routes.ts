@@ -9,6 +9,7 @@ import {
 } from '@/modules/project-plans/application/contractor-plans';
 import { requireSession, runInOrgContext } from '@/shared/auth/session';
 import { NotFoundError, apiRouteErrorFromUnknown } from '@/shared/errors';
+import { isExplicitAttachmentRequest } from '@/modules/external-storage/domain/authorized-preview';
 import { readRequestBytes, fileResponse, fileRouteError } from '@/modules/evidence/http';
 import { EVIDENCE_SIZE_LIMITS } from '@/modules/evidence';
 import { projectFileDeps } from '@/modules/evidence/server';
@@ -70,7 +71,9 @@ export async function handleExternalRevisionDownload(
       { revisionId, rangeHeader: request.headers.get('range') },
       projectFileDeps,
     );
-    const inline = file.mimeType.startsWith('image/') || file.mimeType === 'application/pdf';
+    const inline =
+      !isExplicitAttachmentRequest(new URL(request.url).searchParams.get('disposition')) &&
+      (file.mimeType.startsWith('image/') || file.mimeType === 'application/pdf');
     return fileResponse(file, inline);
   } catch (error) {
     if (error instanceof NotFoundError) return new Response(null, { status: 404 });
@@ -89,7 +92,9 @@ export async function handleExternalSharedDocumentDownload(
       { shareId, rangeHeader: request.headers.get('range') },
       projectFileDeps,
     );
-    const inline = file.mimeType.startsWith('image/') || file.mimeType === 'application/pdf';
+    const inline =
+      !isExplicitAttachmentRequest(new URL(request.url).searchParams.get('disposition')) &&
+      (file.mimeType.startsWith('image/') || file.mimeType === 'application/pdf');
     return fileResponse(file, inline);
   } catch (error) {
     if (error instanceof NotFoundError) return new Response(null, { status: 404 });

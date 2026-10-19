@@ -9,6 +9,7 @@ import {
   EXTERNAL_EVIDENCE_DOWNLOAD_PATH,
   INTERNAL_EVIDENCE_DOWNLOAD_PATH,
 } from '@/modules/evidence/routes';
+import { ContractorEvidenceFileOpen } from '@/modules/contractor-portal/ui/contractor-evidence-file-open';
 import type { EvidenceGalleryProps } from './types';
 import { EvidenceInlinePreview } from './evidence-inline-preview';
 
@@ -47,7 +48,14 @@ export async function EvidenceGallery(props: EvidenceGalleryProps) {
         const label = item.caption?.trim() || item.fileName;
         return (
           <li key={item.evidenceId ?? item.documentId} className="flex min-w-0 flex-col gap-1 rounded-lg border border-[var(--pf-border-default)] p-2">
-            {href ? (
+            {href && props.viewer === 'external' ? (
+              <ContractorEvidenceFileOpen
+                href={href}
+                fileName={item.fileName}
+                mimeType={item.mimeType}
+                label={label}
+              />
+            ) : href ? (
               <a href={href} className="truncate text-sm font-medium text-[var(--pf-text-brand)] hover:underline" target="_blank" rel="noopener noreferrer">
                 {label}
               </a>

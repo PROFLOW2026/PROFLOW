@@ -2,6 +2,7 @@ import { requireExternalContext } from '@/modules/contractor-access';
 import { openContractorFolderProviderFile } from '@/modules/contractor-portal/application/contractor-folder-files';
 import { capabilityForContractorFolder } from '@/modules/contractor-portal/domain/folder-capabilities';
 import type { SemanticFolderType } from '@/modules/external-storage/domain/types';
+import { isExplicitAttachmentRequest } from '@/modules/external-storage/domain/authorized-preview';
 import { fileResponse, fileRouteError } from '@/modules/evidence/http';
 import { NotFoundError } from '@/shared/errors';
 
@@ -40,7 +41,9 @@ export async function GET(request: Request): Promise<Response> {
       externalFileId,
       rangeHeader: request.headers.get('range'),
     });
-    const inline = file.mimeType.startsWith('image/') || file.mimeType === 'application/pdf';
+    const inline =
+      !isExplicitAttachmentRequest(url.searchParams.get('disposition')) &&
+      (file.mimeType.startsWith('image/') || file.mimeType === 'application/pdf');
     return fileResponse(file, inline);
   } catch (error) {
     if (error instanceof NotFoundError) return new Response(null, { status: 404 });

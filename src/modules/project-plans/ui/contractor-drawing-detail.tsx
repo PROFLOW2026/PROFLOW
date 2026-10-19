@@ -2,9 +2,11 @@
 
 import { useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { AuthorizedFilePreviewDialog } from '@/modules/external-storage/ui/authorized-file-preview-dialog';
+import { withExplicitAttachment } from '@/modules/contractor-portal/download-paths';
 import type { ContractorDrawingDetail } from '@/modules/project-plans';
 import { acknowledgeDrawingRevisionAction } from '@/modules/project-plans/actions/external-actions';
 import { EXTERNAL_REVISION_DOWNLOAD_PATH } from '@/modules/project-plans/download-paths';
@@ -19,9 +21,19 @@ export function ContractorDrawingDetailPanel({
   readonly detail: ContractorDrawingDetail;
 }) {
   const t = useTranslations('projectPlans.portal.drawing');
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [openRevisionId, setOpenRevisionId] = useState<string | null>(null);
   const current = detail.revisions.find((revision) => revision.status === 'current');
+  const active = detail.revisions.find((revision) => revision.id === openRevisionId && revision.fileReady) ?? null;
+  const activeUrl = active ? `${EXTERNAL_REVISION_DOWNLOAD_PATH}/${active.id}` : null;
+  const siblings = detail.revisions
+    .filter((revision) => revision.fileReady)
+    .map((revision) => ({
+      fileName: revision.fileName,
+      contentUrl: `${EXTERNAL_REVISION_DOWNLOAD_PATH}/${revision.id}`,
+    }));
 
   return (
     <div className="flex flex-col gap-4">
@@ -41,14 +53,22 @@ export function ContractorDrawingDetailPanel({
               </Badge>
             </div>
             {revision.fileReady ? (
-              <a
-                href={`${EXTERNAL_REVISION_DOWNLOAD_PATH}/${revision.id}`}
-                className="text-sm text-[var(--pf-text-brand)] hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {revision.fileName}
-              </a>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  className="text-sm text-[var(--pf-text-brand)] hover:underline"
+                  onClick={() => setOpenRevisionId(revision.id)}
+                >
+                  {revision.fileName}
+                </button>
+                <a
+                  href={withExplicitAttachment(`${EXTERNAL_REVISION_DOWNLOAD_PATH}/${revision.id}`)}
+                  download
+                  className="text-sm text-[var(--pf-text-secondary)] hover:underline"
+                >
+                  {tCommon('actions.download')}
+                </a>
+              </div>
             ) : null}
           </li>
         ))}
@@ -74,6 +94,24 @@ export function ContractorDrawingDetailPanel({
       ) : current?.acknowledgedAt ? (
         <p className="text-sm text-[var(--pf-text-muted)]">{t('acknowledged')}</p>
       ) : null}
+      <AuthorizedFilePreviewDialog
+        open={active !== null}
+        onOpenChange={(open) => {
+          if (!open) setOpenRevisionId(null);
+        }}
+        siblings={siblings}
+        file={
+          active && activeUrl
+            ? {
+                title: active.fileName,
+                fileName: active.fileName,
+                mimeType: active.mimeType,
+                contentUrl: activeUrl,
+                downloadUrl: withExplicitAttachment(activeUrl),
+              }
+            : null
+        }
+      />
     </div>
   );
 }

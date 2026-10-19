@@ -266,5 +266,6 @@ export const CONTRACTOR_PORTAL_CLIENT_MESSAGE_NAMESPACES = [
   'offline',
   'validation',
   'contractorPortal',
+  'externalStorage',
   ...PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES,
 ] as const satisfies readonly MessageNamespace[];
