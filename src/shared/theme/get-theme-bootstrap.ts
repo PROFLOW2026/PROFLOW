@@ -3,8 +3,7 @@ import 'server-only';
 import { cookies } from 'next/headers';
 import { getSupabaseUser } from '@/shared/supabase/server';
 import { resolveThemePreference, themeFromAuthMetadata } from './auth-theme';
-import { localeCookieSecure } from '@/shared/proxy/locale-cookie';
-import { readThemeCookieValue, themeCookieOptions, THEME_COOKIE_NAME } from './theme-cookie';
+import { readThemeCookieValue, THEME_COOKIE_NAME } from './theme-cookie';
 import type { ThemePreference } from './config';
 
 export type ThemeBootstrap = {
@@ -28,9 +27,8 @@ export async function getThemeBootstrap(): Promise<ThemeBootstrap> {
 
   const preference = resolveThemePreference([metadataPreference, cookiePreference]);
 
-  if (preference !== cookiePreference) {
-    cookieStore.set(THEME_COOKIE_NAME, preference, themeCookieOptions(localeCookieSecure()));
-  }
+  // Cookie writes belong in Server Actions / Route Handlers (auth callback, persist action).
+  // Setting here from a layout Server Component throws and breaks every locale page.
 
   return { preference, userId: authUser.id };
 }
