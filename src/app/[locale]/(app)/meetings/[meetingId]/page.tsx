@@ -18,6 +18,7 @@ import {
   Users,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getMeetingDetailById } from '@/modules/meetings';
 import type { MeetingActionItem, MeetingDecision } from '@/modules/meetings';
@@ -318,19 +319,17 @@ function ActionItemRow({
   t: Awaited<ReturnType<typeof getTranslations<'tasks'>>>;
   editLabel: string;
 }) {
-  const statusColors: Record<string, string> = {
-    open: 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
-    done: 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300',
-    cancelled: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
+  const statusTone: Record<string, 'info' | 'success' | 'neutral'> = {
+    open: 'info',
+    done: 'success',
+    cancelled: 'neutral',
   };
 
   return (
     <li className="flex min-w-0 items-start gap-3 rounded-md border border-[var(--pf-border)] p-3">
-      <span
-        className={`mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-xs font-medium capitalize ${statusColors[item.status] ?? statusColors.open}`}
-      >
+      <Badge tone={statusTone[item.status] ?? 'info'} className="mt-0.5 shrink-0 capitalize">
         {t(`meetings.actionItem.status.${item.status}`)}
-      </span>
+      </Badge>
 
       <div className="min-w-0 flex-1">
         <p className={`text-sm font-medium ${item.status === 'done' ? 'line-through text-[var(--pf-text-muted)]' : ''}`}>

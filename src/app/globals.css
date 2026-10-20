@@ -259,6 +259,19 @@
     --pf-bg-accent: rgb(20 184 166 / 0.12);
 
     --pf-overlay-scrim: rgb(0 0 0 / 0.62);
+
+    /*
+     * Teal/neutral primitives stay light in :root; components often reference them
+     * directly for nav, chips, and badges. Remap under .dark only (Navy palette unchanged).
+     */
+    --pf-teal-50: rgb(20 184 166 / 0.14);
+    --pf-teal-100: rgb(20 184 166 / 0.22);
+    --pf-teal-200: rgb(20 184 166 / 0.32);
+    --pf-teal-700: var(--pf-teal-300);
+    --pf-teal-800: var(--pf-teal-200);
+    --pf-teal-900: var(--pf-teal-100);
+
+    --pf-neutral-300: #3d4d66;
   }
 
   .dark ::selection {

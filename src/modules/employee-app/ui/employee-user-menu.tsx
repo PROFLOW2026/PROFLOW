@@ -58,7 +58,7 @@ export function EmployeeUserMenu({
           'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
         )}
       >
-        <span className="flex size-8 items-center justify-center overflow-hidden rounded-full bg-[var(--pf-teal-100)] text-sm font-semibold text-[var(--pf-teal-800)]">
+        <span className="flex size-8 items-center justify-center overflow-hidden rounded-full bg-[var(--pf-accent-soft)] text-sm font-semibold text-[var(--pf-text-brand)]">
           {avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- short-lived signed storage URL
             <img src={avatarUrl} alt="" className="size-full object-cover" />

@@ -300,7 +300,7 @@ function BoardColumn({
         'flex flex-col gap-2 rounded-xl border bg-[var(--pf-bg-subtle)] p-3',
         shellClassName ?? 'w-[min(17rem,80vw)] shrink-0',
         isDropTarget
-          ? 'border-[var(--pf-border-brand)] bg-[var(--pf-teal-50)]'
+          ? 'border-[color-mix(in_srgb,var(--pf-text-brand)_35%,var(--pf-border-default))] bg-[var(--pf-accent-soft)]'
           : 'border-[var(--pf-border-default)]',
       )}
       onDragOver={(e) => {

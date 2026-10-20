@@ -18,7 +18,8 @@ const badgeVariants = cva(
         info: 'border-[var(--pf-status-info-border)] bg-[var(--pf-status-info-bg)] text-[var(--pf-status-info-fg)]',
         pending:
           'border-[var(--pf-status-pending-border)] bg-[var(--pf-status-pending-bg)] text-[var(--pf-status-pending-fg)]',
-        brand: 'border-[var(--pf-teal-100)] bg-[var(--pf-teal-50)] text-[var(--pf-teal-800)]',
+        brand:
+          'border-[color-mix(in_srgb,var(--pf-text-brand)_35%,var(--pf-border-default))] bg-[var(--pf-accent-soft)] text-[var(--pf-text-brand)]',
       },
     },
     defaultVariants: { tone: 'neutral' },

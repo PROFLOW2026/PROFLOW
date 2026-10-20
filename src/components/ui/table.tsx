@@ -148,7 +148,7 @@ export function TableRow({ className, ...props }: React.HTMLAttributes<HTMLTable
     <tr
       className={cn(
         'border-b border-[var(--pf-border-default)] transition-colors last:border-0',
-        'hover:bg-[var(--pf-bg-subtle)] data-[state=selected]:bg-[var(--pf-teal-50)]',
+        'hover:bg-[var(--pf-bg-subtle)] data-[state=selected]:bg-[var(--pf-accent-soft)] data-[state=selected]:text-[var(--pf-text-brand)]',
         className,
       )}
       {...props}

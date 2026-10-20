@@ -71,7 +71,7 @@ export const employeeStatCardClass =
   'rounded-2xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3.5 shadow-[var(--pf-shadow-sm)] md:p-4';
 
 export const employeeStatCardAccentClass =
-  'rounded-2xl border border-[var(--pf-teal-200)] bg-[var(--pf-teal-50)] p-3.5 shadow-[var(--pf-shadow-sm)] md:p-4';
+  'rounded-2xl border border-[color-mix(in_srgb,var(--pf-text-brand)_35%,var(--pf-border-default))] bg-[var(--pf-accent-soft)] p-3.5 shadow-[var(--pf-shadow-sm)] md:p-4';
 
 export const employeeHubCardClass =
   'flex items-center justify-between gap-3 rounded-2xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-4 py-3.5 shadow-[var(--pf-shadow-sm)] transition-colors hover:border-[var(--pf-border-strong)] hover:bg-[var(--pf-bg-subtle)] active:bg-[var(--pf-action-subtle-active)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)] md:px-5 md:py-4';
@@ -104,10 +104,10 @@ export const employeeBadgeWarningClass =
   'inline-flex items-center rounded-full bg-[var(--pf-status-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--pf-status-warning-fg)]';
 
 export const employeeBadgeSuccessClass =
-  'inline-flex items-center rounded-full bg-[var(--pf-status-success-bg,var(--pf-teal-50))] px-2 py-0.5 text-xs font-medium text-[var(--pf-status-success-fg,var(--pf-teal-900))]';
+  'inline-flex items-center rounded-full bg-[var(--pf-status-success-bg)] px-2 py-0.5 text-xs font-medium text-[var(--pf-status-success-fg)]';
 
 export const employeeIconTileClass =
-  'flex size-9 shrink-0 items-center justify-center rounded-xl bg-[var(--pf-teal-50)] text-[var(--pf-accent)]';
+  'flex size-9 shrink-0 items-center justify-center rounded-xl bg-[var(--pf-accent-soft)] text-[var(--pf-text-brand)]';
 
 export const employeeIconTileMutedClass =
   'flex size-9 shrink-0 items-center justify-center rounded-xl bg-[var(--pf-bg-muted)] text-[var(--pf-text-secondary)]';

@@ -44,7 +44,7 @@ export const uwmSecondaryButtonClass =
   'inline-flex min-h-[44px] min-w-[5.5rem] items-center justify-center rounded-lg border border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] px-5 py-2 text-sm font-medium text-[var(--pf-text-primary)] shadow-sm transition-colors hover:bg-[var(--pf-bg-subtle)] active:bg-[var(--pf-action-secondary-active)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)] disabled:cursor-not-allowed disabled:opacity-50';
 
 export const uwmActiveChipClass =
-  'inline-flex items-center rounded-full border border-[var(--pf-teal-200)] bg-[var(--pf-teal-50)] px-2.5 py-1 text-xs font-medium text-[var(--pf-teal-900)]';
+  'inline-flex items-center rounded-full border border-[color-mix(in_srgb,var(--pf-text-brand)_35%,var(--pf-border-default))] bg-[var(--pf-accent-soft)] px-2.5 py-1 text-xs font-medium text-[var(--pf-text-brand)]';
 
 export const uwmActiveFilterBannerClass =
-  'flex flex-wrap items-center gap-2 rounded-lg border border-[var(--pf-teal-200)] bg-[var(--pf-teal-50)] px-3 py-2';
+  'flex flex-wrap items-center gap-2 rounded-lg border border-[color-mix(in_srgb,var(--pf-text-brand)_35%,var(--pf-border-default))] bg-[var(--pf-accent-soft)] px-3 py-2';

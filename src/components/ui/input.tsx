@@ -7,7 +7,7 @@ export const inputClassName = cn(
   'border-[var(--pf-border-strong)] text-[var(--pf-text-primary)]',
   'placeholder:text-[var(--pf-text-muted)]',
   'transition-colors duration-[var(--pf-motion-fast)]',
-  'focus:border-[var(--pf-border-focus)]',
+  'focus:border-[var(--pf-border-focus)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--pf-focus-ring)_35%,transparent)]',
   'disabled:cursor-not-allowed disabled:bg-[var(--pf-bg-muted)] disabled:text-[var(--pf-text-disabled)]',
   'aria-[invalid=true]:border-[var(--pf-action-danger)]',
 );

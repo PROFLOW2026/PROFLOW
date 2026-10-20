@@ -34,7 +34,7 @@ export function EmptyState({
       )}
     >
       {Icon ? (
-        <span className="flex size-11 items-center justify-center rounded-full bg-[var(--pf-teal-50)] text-[var(--pf-teal-700)]">
+        <span className="flex size-11 items-center justify-center rounded-full bg-[var(--pf-accent-soft)] text-[var(--pf-text-brand)]">
           <Icon className="size-5" aria-hidden />
         </span>
       ) : null}

@@ -49,7 +49,7 @@ export function UserMenu({ displayName, email, userId = null }: UserMenuProps) {
             'lg:min-h-8 lg:min-w-8 lg:p-0.5',
           )}
         >
-        <span className="flex size-8 items-center justify-center rounded-full bg-[var(--pf-teal-100)] text-sm font-semibold text-[var(--pf-teal-800)]">
+        <span className="flex size-8 items-center justify-center rounded-full bg-[var(--pf-accent-soft)] text-sm font-semibold text-[var(--pf-text-brand)]">
           {initials}
         </span>
         </DropdownMenuTrigger>

@@ -6,6 +6,13 @@ import { cn } from '@/shared/ui/cn';
 import type { MonthlyAttendanceGrid, MonthlyCellKind } from '../application/attendance-owner-views';
 import { AttendanceMonthlyGridFilter } from './attendance-monthly-grid-filter';
 import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
+import {
+  pfStatusCellDanger,
+  pfStatusCellDisabled,
+  pfStatusCellInfo,
+  pfStatusCellPending,
+  pfStatusCellSuccess,
+} from '@/shared/ui/status-cell-styles';
 
 interface AttendanceMonthlyGridProps {
   readonly grid: MonthlyAttendanceGrid;
@@ -16,22 +23,15 @@ interface AttendanceMonthlyGridProps {
 }
 
 const CELL_STYLES: Record<MonthlyCellKind, string> = {
-  approved:
-    'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800',
-  pending:
-    'bg-amber-100 text-amber-900 border-amber-200 dark:bg-amber-900/30 dark:text-amber-200 dark:border-amber-700',
-  worked:
-    'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800',
-  absence:
-    'bg-sky-100 text-sky-900 border-sky-200 dark:bg-sky-900/30 dark:text-sky-200 dark:border-sky-700',
-  missing:
-    'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/40 dark:text-red-200 dark:border-red-700 font-semibold',
-  exempt:
-    'bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)] border-[var(--pf-border-default)]',
-  dayOff:
-    'bg-gray-100 text-gray-400 border-gray-200 dark:bg-gray-800/50 dark:text-gray-500 dark:border-gray-700',
-  future: 'bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)] border-[var(--pf-border-default)]',
-  void: 'bg-gray-100 text-gray-400 border-gray-200 line-through dark:bg-gray-800/50 dark:text-gray-500',
+  approved: pfStatusCellSuccess,
+  pending: pfStatusCellPending,
+  worked: pfStatusCellSuccess,
+  absence: pfStatusCellInfo,
+  missing: `${pfStatusCellDanger} font-semibold`,
+  exempt: 'border border-[var(--pf-border-default)] bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)]',
+  dayOff: pfStatusCellDisabled,
+  future: 'border border-[var(--pf-border-default)] bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)]',
+  void: `${pfStatusCellDisabled} line-through`,
 };
 
 function prevMonthStr(yearMonth: string): string {

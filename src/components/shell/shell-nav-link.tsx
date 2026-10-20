@@ -94,7 +94,7 @@ export function ShellNavLink({
               'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium',
               'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
               active || busy
-                ? 'bg-[var(--pf-teal-50)] text-[var(--pf-text-brand)]'
+                ? 'bg-[var(--pf-accent-soft)] text-[var(--pf-text-brand)]'
                 : 'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)] active:bg-[var(--pf-action-subtle-active)] active:text-[var(--pf-text-primary)]',
             )
           : cn(

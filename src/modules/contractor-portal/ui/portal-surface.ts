@@ -41,13 +41,13 @@ export const portalListPanelClass =
   'overflow-hidden rounded-2xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] shadow-[var(--pf-shadow-sm)] divide-y divide-[var(--pf-border-default)]';
 
 export const portalListRowLinkClass =
-  'block px-4 py-3.5 transition-colors hover:bg-[var(--pf-teal-50)]/60 active:bg-[var(--pf-action-subtle-active)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--pf-focus-ring)]';
+  'block px-4 py-3.5 transition-colors hover:bg-[color-mix(in_srgb,var(--pf-accent-soft)_60%,transparent)] active:bg-[var(--pf-action-subtle-active)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--pf-focus-ring)]';
 
 export const portalHubCardClass = [
   'group flex items-center justify-between gap-3 rounded-2xl border border-[var(--pf-border-default)]',
   'bg-[var(--pf-bg-surface)] px-4 py-4 shadow-[var(--pf-shadow-sm)]',
   'transition-[border-color,box-shadow,background-color] duration-150',
-  'hover:border-[var(--pf-teal-200)] hover:bg-[var(--pf-teal-50)]/40 hover:shadow-[var(--pf-shadow-md)]',
+  'hover:border-[color-mix(in_srgb,var(--pf-text-brand)_35%,var(--pf-border-default))] hover:bg-[color-mix(in_srgb,var(--pf-accent-soft)_40%,transparent)] hover:shadow-[var(--pf-shadow-md)]',
   'active:bg-[var(--pf-action-subtle-active)]',
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
 ].join(' ');
@@ -56,7 +56,7 @@ export const portalModuleTileClass = [
   'group flex min-h-[4.5rem] flex-col justify-between gap-3 rounded-2xl border border-[var(--pf-border-default)]',
   'bg-[var(--pf-bg-surface)] p-4 shadow-[var(--pf-shadow-sm)]',
   'transition-[border-color,box-shadow,background-color] duration-150',
-  'hover:border-[var(--pf-teal-200)] hover:bg-[var(--pf-teal-50)]/40 hover:shadow-[var(--pf-shadow-md)]',
+  'hover:border-[color-mix(in_srgb,var(--pf-text-brand)_35%,var(--pf-border-default))] hover:bg-[color-mix(in_srgb,var(--pf-accent-soft)_40%,transparent)] hover:shadow-[var(--pf-shadow-md)]',
   'active:bg-[var(--pf-action-subtle-active)]',
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
 ].join(' ');
@@ -79,7 +79,7 @@ export const portalStatChipClass =
   'inline-flex items-center gap-1.5 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-1.5 text-sm';
 
 export const portalIconTileClass =
-  'flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--pf-teal-50)] text-[var(--pf-accent)] ring-1 ring-[var(--pf-teal-100)]';
+  'flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--pf-accent-soft)] text-[var(--pf-text-brand)] ring-1 ring-[color-mix(in_srgb,var(--pf-text-brand)_25%,var(--pf-border-default))]';
 
 export const portalIconTileMutedClass =
   'flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--pf-bg-muted)] text-[var(--pf-text-secondary)]';
