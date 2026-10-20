@@ -91,7 +91,7 @@ function patternsFromPageSource(source) {
   return applied;
 }
 
-function completionFromPatterns(patterns, archetype) {
+function completionFromPatterns(patterns, _archetype) {
   if (patterns.length === 0) return 'NOT_STARTED';
   if (patterns.includes('MainAppPage') && patterns.length >= 2) return 'PARTIAL';
   if (patterns.includes('MainAppPage')) return 'WRAPPER_ONLY';

@@ -69,7 +69,7 @@ function KindRows({
             {t(`kinds.${kind}`)}
           </p>
           <p
-            className="min-w-0 text-xs leading-snug text-[var(--pf-text-secondary)] sm:line-clamp-2 lg:line-clamp-1"
+            className="min-w-0 break-words text-xs leading-snug text-[var(--pf-text-secondary)] sm:line-clamp-2 lg:line-clamp-1"
             title={t(`kindHints.${kind}`)}
           >
             {t(`kindHints.${kind}`)}
@@ -182,7 +182,7 @@ export function ReportPacksSection({
   );
 
   return (
-    <div data-pf-reports-catalog="" className="flex min-w-0 w-full flex-col gap-4">
+    <div data-pf-reports-catalog="" className="flex min-w-0 max-w-full flex-col gap-4 w-full">
       <MainAppSection
         className="w-full"
         title={t('packsHeading')}

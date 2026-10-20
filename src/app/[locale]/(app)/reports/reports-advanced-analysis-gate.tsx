@@ -18,7 +18,7 @@ export function ReportsAdvancedAnalysisGate({
   return (
     <details
       id="reports-advanced-analysis"
-      className={cn(mainAppCardClass, 'min-w-0 w-full max-w-none')}
+      className={cn(mainAppCardClass, 'min-w-0 max-w-full w-full break-words')}
       onToggle={(event) => {
         const target = event.currentTarget;
         if (!target.open) return;

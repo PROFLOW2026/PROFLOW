@@ -1,4 +1,4 @@
-import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+import { MainAppPage } from '@/components/patterns/main-app';
 ﻿import type { ReactNode } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { SectionNavLink } from '@/components/ui/section-nav-link';

@@ -1,9 +1,16 @@
-export {
-  MAIN_APP_LIST_PAGE_SIZES as VENDOR_LIST_PAGE_SIZES,
-  MAIN_APP_DEFAULT_LIST_PAGE_SIZE as VENDOR_LIST_DEFAULT_PAGE_SIZE,
-  parseMainAppListPageSize as parseVendorListPageSize,
-  type MainAppListPageSize as VendorListPageSize,
-} from '@/shared/db/main-app-list-page-size';
+export const VENDOR_LIST_PAGE_SIZES = [10, 20, 50] as const;
+export type VendorListPageSize = (typeof VENDOR_LIST_PAGE_SIZES)[number];
+
+export const VENDOR_LIST_DEFAULT_PAGE_SIZE: VendorListPageSize = 20;
+
+export function parseVendorListPageSize(
+  raw: string | undefined,
+  defaultSize: VendorListPageSize = VENDOR_LIST_DEFAULT_PAGE_SIZE,
+): VendorListPageSize {
+  const parsed = parseInt(raw ?? '', 10);
+  if (parsed === 10 || parsed === 20 || parsed === 50) return parsed;
+  return defaultSize;
+}
 
 export function vendorListPageCount(total: number, pageSize: number): number {
   const size = Math.max(1, pageSize);

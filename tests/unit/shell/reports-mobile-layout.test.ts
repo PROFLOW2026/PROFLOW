@@ -18,7 +18,7 @@ describe('reports mobile layout (UI-MOB-001)', () => {
 
   it('keeps report pack rows and download actions within narrow viewports', () => {
     const packs = read('src/modules/reports/ui/report-packs-section.tsx');
-    expect(packs).toMatch(/min-w-0 max-w-full flex-col gap-6/);
+    expect(packs).toMatch(/min-w-0 max-w-full flex-col gap-4/);
     expect(packs).toContain('break-words');
 
     const downloads = read('src/modules/reports/ui/report-download-buttons.tsx');

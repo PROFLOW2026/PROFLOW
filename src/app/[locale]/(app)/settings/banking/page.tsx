@@ -10,6 +10,7 @@ import { BankingReconciliationPanelLazy } from '@/modules/banking/ui';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { SettingsNotAllowed } from '../settings-not-allowed';
 import { SettingsPageShell } from '../settings-shell';
 
 /**
@@ -49,9 +50,7 @@ export default async function BankingSettingsPage() {
   if (!data.allowed) {
     return (
       <SettingsPageShell title={title} description={description}>
-        <MainAppSection>
-          <p className="text-sm text-[var(--pf-text-secondary)]">Not allowed</p>
-        </MainAppSection>
+        <SettingsNotAllowed />
       </SettingsPageShell>
     );
   }

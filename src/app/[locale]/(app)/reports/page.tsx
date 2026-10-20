@@ -45,7 +45,7 @@ export default async function ReportsPage({
   const packs = await withOrgContext((context) => loadReportPackCatalog(context));
 
   return (
-    <MainAppPage data-pf-reports-hub="" className="w-full min-w-0">
+    <MainAppPage data-pf-reports-hub="" data-pf-reports-page="" className="w-full min-w-0 max-w-full">
       <PageHeader
         title={t('title')}
         actions={
