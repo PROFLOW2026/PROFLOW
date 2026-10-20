@@ -1,3 +1,4 @@
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
@@ -51,36 +52,40 @@ export default async function ProjectContractorAccessPage({ params }: { params: 
 
   return (
     <WithAppClientMessages extra={['contractorAccess', 'connectedProjects']}>
-      <div className="flex flex-col gap-6">
+      <MainAppPage className="w-full min-w-0">
         <PageHeader title={t('manage.title')} description={t('manage.subtitle')} />
-        {overview ? (
-          <>
-            <Alert tone="info">{t('manage.whereHint')}</Alert>
-          <ContractorAccessManager
-            projectId={projectId}
-            overview={overview}
-            organizationName={organizationName}
-            actions={{
-              invite: inviteContractorAction,
-              grant: grantContractorAccessAction,
-              update: updateContractorGrantAction,
-              revoke: revokeContractorGrantAction,
-              principalCommand: contractorPrincipalCommandAction,
-              updatePrincipal: updateContractorPrincipalProfileAction,
-            }}
-          />
-          <DeveloperConnectionSection
-            projectId={projectId}
-            overview={overview}
-            invitationsByAgreement={loaded?.invitationsByAgreement ?? {}}
-            actions={{ issue: issueConnectionCodeAction, revoke: revokeConnectionCodeAction }}
-          />
-          </>
-        ) : (
-          <Alert tone="warning">{t('manage.forbidden')}</Alert>
-        )}
-        {overview ? <ExecutionHubLinks hub="contractors" params={params} compact /> : null}
-      </div>
+        <MainAppSection className="w-full min-w-0">
+          <div className="flex w-full min-w-0 flex-col gap-4">
+            {overview ? (
+              <>
+                <Alert tone="info">{t('manage.whereHint')}</Alert>
+                <ContractorAccessManager
+                  projectId={projectId}
+                  overview={overview}
+                  organizationName={organizationName}
+                  actions={{
+                    invite: inviteContractorAction,
+                    grant: grantContractorAccessAction,
+                    update: updateContractorGrantAction,
+                    revoke: revokeContractorGrantAction,
+                    principalCommand: contractorPrincipalCommandAction,
+                    updatePrincipal: updateContractorPrincipalProfileAction,
+                  }}
+                />
+                <DeveloperConnectionSection
+                  projectId={projectId}
+                  overview={overview}
+                  invitationsByAgreement={loaded?.invitationsByAgreement ?? {}}
+                  actions={{ issue: issueConnectionCodeAction, revoke: revokeConnectionCodeAction }}
+                />
+                <ExecutionHubLinks hub="contractors" params={params} compact />
+              </>
+            ) : (
+              <Alert tone="warning">{t('manage.forbidden')}</Alert>
+            )}
+          </div>
+        </MainAppSection>
+      </MainAppPage>
     </WithAppClientMessages>
   );
 }

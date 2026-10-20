@@ -1,3 +1,4 @@
+﻿import { LegacyListTableShell, MainAppPage, MainAppSection, MainAppTableShell } from '@/components/patterns/main-app';
 import { Plus, Truck } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { countVendorsForOrg, listVendorsForOrg } from '@/modules/vendors';
 import { mapVendorLogoKeys, resolveIdentityImageUrls } from '@/modules/identity-images';
 import { IdentityAvatar } from '@/modules/identity-images/client';
 import { QueryPagination } from '@/components/ui/query-pagination';
+import { LtrIsland } from '@/shared/i18n/ltr-island';
 import {
   ORG_LIST_PAGE_SIZE,
   orgListOffset,
@@ -17,6 +19,14 @@ import {
   parseOrgListPage,
   resolveOrgListPage,
 } from '@/shared/db/org-list-pagination';
+import {
+  VENDOR_LIST_DEFAULT_PAGE_SIZE,
+  parseVendorListPageSize,
+  resolveVendorListPage,
+  vendorListOffset,
+  vendorListPageCount,
+} from '@/modules/vendors/domain/vendor-list-pagination';
+import { VendorsListPagination } from './vendors-list-pagination';
 import { listBusinessCatalog, localizeVendorCategoryOptions } from '@/modules/business-catalog';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -38,6 +48,7 @@ export interface VendorsOrgListViewProps {
     status?: string;
     categoryId?: string;
     page?: string;
+    pageSize?: string;
   }>;
 }
 
@@ -57,7 +68,10 @@ export async function VendorsOrgListView({
   const categoryId =
     params.categoryId && params.categoryId !== 'all' ? params.categoryId : undefined;
   const filtersActive = Boolean(q?.trim() || type || status || categoryId);
-  const requestedPage = parseOrgListPage(params.page);
+  const ownerPageSize = parseVendorListPageSize(params.pageSize);
+  const requestedPage = isOwner
+    ? parseOrgListPage(params.page)
+    : parseOrgListPage(params.page);
   const listFilters = {
     search: q,
     type: type as 'supplier' | undefined,
@@ -65,7 +79,7 @@ export async function VendorsOrgListView({
     categoryId,
   };
 
-  const { vendors, canManage, canRead, categories, totalCount, currentPage, totalPages } =
+  const { vendors, canManage, canRead, categories, totalCount, currentPage, totalPages, pageSize: resolvedPageSize } =
     await withOrgContext(async (context) => {
       const allowed = orgListHasPermission(context, PERMISSIONS.VENDORS_READ, surface);
       if (!allowed) {
@@ -77,16 +91,20 @@ export async function VendorsOrgListView({
           totalCount: 0,
           currentPage: 1,
           totalPages: 0,
+          pageSize: isOwner ? ownerPageSize : ORG_LIST_PAGE_SIZE,
         };
       }
 
       const categoryRows = await listBusinessCatalog(context, 'vendor_category').catch(() => []);
       const total = await countVendorsForOrg(context, listFilters);
-      const page = resolveOrgListPage(total, requestedPage);
+      const pageSize = isOwner ? ownerPageSize : ORG_LIST_PAGE_SIZE;
+      const page = isOwner
+        ? resolveVendorListPage(total, requestedPage, pageSize)
+        : resolveOrgListPage(total, requestedPage);
       const vendorRows = await listVendorsForOrg(context, {
         ...listFilters,
-        limit: ORG_LIST_PAGE_SIZE,
-        offset: orgListOffset(page),
+        limit: pageSize,
+        offset: isOwner ? vendorListOffset(page, pageSize) : orgListOffset(page),
       });
       const logoKeys = await mapVendorLogoKeys(
         context.db,
@@ -112,31 +130,35 @@ export async function VendorsOrgListView({
         ),
         totalCount: total,
         currentPage: page,
-        totalPages: orgListPageCount(total),
+        totalPages: isOwner ? vendorListPageCount(total, ownerPageSize) : orgListPageCount(total),
+        pageSize: isOwner ? ownerPageSize : ORG_LIST_PAGE_SIZE,
       };
     });
+
+  const pageSize = resolvedPageSize ?? (isOwner ? ownerPageSize : ORG_LIST_PAGE_SIZE);
 
   if (!canRead) {
     const tEmployee =
       surface === 'employee' ? await getTranslations('employeeApp.vendors') : null;
     return (
-      <div className="flex flex-col gap-4">
+      <MainAppPage>
         {isOwner ? <PageHeader title={t('title')} description={t('description')} /> : null}
+        <MainAppSection>
         <EmptyState
           icon={Truck}
           title={tEmployee?.('noAccess.title') ?? t('empty.title')}
           description={tEmployee?.('noAccess.description') ?? t('empty.body')}
         />
-      </div>
+        </MainAppSection>
+      </MainAppPage>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage {...(isOwner ? { 'data-pf-vendors-list-owner': '' } : {})}>
       {isOwner ? (
         <PageHeader
           title={t('title')}
-          description={t('description')}
           actions={
             canManage ? (
               <Button asChild>
@@ -154,11 +176,13 @@ export async function VendorsOrgListView({
         </Button>
       ) : null}
 
-      {isOwner ? (
+      <MainAppSection>
+      {!isOwner ? (
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('list.lifecycleHint')}</p>
       ) : null}
 
       <VendorListFilters
+        layout={isOwner ? 'ownerList' : 'default'}
         initialQuery={q ?? ''}
         initialType={params.type ?? 'all'}
         initialStatus={params.status ?? 'all'}
@@ -196,7 +220,102 @@ export async function VendorsOrgListView({
           items={vendors}
           getRowKey={(vendor) => vendor.id}
           desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            isOwner ? (
+            <MainAppTableShell className="pf-vendors-table-shell">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className={isOwner ? 'pf-vendors-col-name' : undefined}>
+                      {t('list.columns.name')}
+                    </TableHead>
+                    <TableHead className={isOwner ? 'pf-vendors-col-type' : undefined}>
+                      {t('list.columns.type')}
+                    </TableHead>
+                    <TableHead className={isOwner ? 'pf-vendors-col-category' : undefined}>
+                      {t('list.columns.category')}
+                    </TableHead>
+                    {isOwner ? (
+                      <>
+                        <TableHead className="pf-vendors-col-id">
+                          {t('list.columns.companyId')}
+                        </TableHead>
+                        <TableHead className="pf-vendors-col-contact">
+                          {t('list.columns.contact')}
+                        </TableHead>
+                        <TableHead className="pf-vendors-col-phone">{t('create.phoneLabel')}</TableHead>
+                      </>
+                    ) : null}
+                    <TableHead
+                      numeric={!isOwner}
+                      className={isOwner ? 'pf-vendors-col-projects' : undefined}
+                    >
+                      {t('list.columns.projects')}
+                    </TableHead>
+                    <TableHead className={isOwner ? 'pf-vendors-col-status' : undefined}>
+                      {t('list.columns.status')}
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {vendors.map((vendor) => (
+                    <TableRow key={vendor.id}>
+                      <TableCell className={isOwner ? 'pf-vendors-col-name pf-vendors-supplier-cell' : undefined}>
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <IdentityAvatar
+                            previewUrl={vendor.logoUrl}
+                            displayName={vendor.name}
+                            size="sm"
+                          />
+                          <Link
+                            href={`${routeBase}/${vendor.id}`}
+                            className={cn(textNavLinkClassName, 'font-medium')}
+                          >
+                            {vendor.name}
+                          </Link>
+                        </div>
+                      </TableCell>
+                      <TableCell className={isOwner ? 'pf-vendors-col-type' : undefined}>
+                        {t(`types.${vendor.type}`)}
+                      </TableCell>
+                      <TableCell className={isOwner ? 'pf-vendors-col-category' : undefined}>
+                        {vendor.categoryNames.length > 0
+                          ? vendor.categoryNames.join(', ')
+                          : '—'}
+                      </TableCell>
+                      {isOwner ? (
+                        <>
+                          <TableCell className="pf-vendors-col-id">
+                            <LtrIsland className="tabular-nums">
+                              {vendor.registrationId ?? '—'}
+                            </LtrIsland>
+                          </TableCell>
+                          <TableCell className="pf-vendors-col-contact">
+                            {vendor.primaryContactName ?? '—'}
+                          </TableCell>
+                          <TableCell className="pf-vendors-col-phone">
+                            <LtrIsland>{vendor.listPhone ?? '—'}</LtrIsland>
+                          </TableCell>
+                        </>
+                      ) : null}
+                      <TableCell
+                        numeric={!isOwner}
+                        className={isOwner ? 'pf-vendors-col-projects' : undefined}
+                      >
+                        {vendor.projectCount}
+                      </TableCell>
+                      <TableCell className={isOwner ? 'pf-vendors-col-status' : undefined}>
+                        <StatusBadge
+                          shape={vendor.status === 'active' ? 'active' : 'archived'}
+                          label={t(`list.status.${vendor.status}`)}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </MainAppTableShell>
+            ) : (
+            <LegacyListTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -242,10 +361,15 @@ export async function VendorsOrgListView({
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </LegacyListTableShell>
+            )
           }
+          mobileListClassName={isOwner ? 'pf-vendors-mobile-list flex flex-col' : undefined}
           renderMobileCard={(vendor) => (
-            <Link href={`${routeBase}/${vendor.id}`} className={pressableCardLinkClassName}>
+            <Link
+              href={`${routeBase}/${vendor.id}`}
+              className={isOwner ? 'pf-vendors-mobile-row' : pressableCardLinkClassName}
+            >
               <div className="flex items-start justify-between gap-2">
                 <span className="flex min-w-0 flex-1 items-center gap-2.5 text-start font-semibold">
                   <IdentityAvatar
@@ -273,23 +397,48 @@ export async function VendorsOrgListView({
         />
       )}
 
-      <QueryPagination
-        basePath={routeBase}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalCount={totalCount}
-        pageSize={ORG_LIST_PAGE_SIZE}
-        currentParams={{
-          q,
-          type: params.type,
-          status: params.status,
-          categoryId: params.categoryId,
-        }}
-        previousLabel={tCommon('actions.previous')}
-        nextLabel={tCommon('actions.next')}
-        pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
-        navLabel={tCommon('pagination.navLabel')}
-      />
-    </div>
+      {isOwner ? (
+        <VendorsListPagination
+          className="pf-vendors-list-pagination-wrap"
+          basePath={routeBase}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          pageSize={pageSize}
+          defaultPageSize={VENDOR_LIST_DEFAULT_PAGE_SIZE}
+          currentParams={{
+            q,
+            type: params.type,
+            status: params.status,
+            categoryId: params.categoryId,
+            pageSize: params.pageSize,
+          }}
+          previousLabel={tCommon('actions.previous')}
+          nextLabel={tCommon('actions.next')}
+          pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
+          navLabel={tCommon('pagination.navLabel')}
+          rowsPerPageLabel={tCommon('pagination.rowsPerPage')}
+        />
+      ) : (
+        <QueryPagination
+          basePath={routeBase}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          pageSize={ORG_LIST_PAGE_SIZE}
+          currentParams={{
+            q,
+            type: params.type,
+            status: params.status,
+            categoryId: params.categoryId,
+          }}
+          previousLabel={tCommon('actions.previous')}
+          nextLabel={tCommon('actions.next')}
+          pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
+          navLabel={tCommon('pagination.navLabel')}
+        />
+      )}
+      </MainAppSection>
+    </MainAppPage>
   );
 }

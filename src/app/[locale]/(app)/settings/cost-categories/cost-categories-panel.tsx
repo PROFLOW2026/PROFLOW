@@ -1,5 +1,6 @@
 'use client';
 
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
@@ -14,22 +15,19 @@ import {
   createCostCategoryAction,
   renameCostCategoryAction,
   setCostCategoryPolicyAction,
-  type SettingsActionState,
-} from '../actions';
+  type SettingsActionState} from '../actions';
 import {
   ALLOCATION_METHODS,
   COST_FAMILIES,
   PERIOD_BEHAVIORS,
-  type CostCategoryRow,
-} from '../_lib/cost-category-options';
+  type CostCategoryRow} from '../_lib/cost-category-options';
 import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 
 const NONE_VALUE = '__none__';
 
 export function CostCategoriesPanel({
   categories,
-  canEdit,
-}: {
+  canEdit}: {
   categories: CostCategoryRow[];
   canEdit: boolean;
 }) {
@@ -42,12 +40,12 @@ export function CostCategoriesPanel({
 
   const grouped = COST_FAMILIES.map((family) => ({
     family,
-    items: categories.filter((category) => category.family === family),
-  }));
+    items: categories.filter((category) => category.family === family)}));
 
   return (
-    <div className="flex flex-col gap-6">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
       <p className="text-xs text-[var(--pf-text-muted)]">{t('policyHint')}</p>
 
       {categories.length === 0 && !canEdit ? (
@@ -77,6 +75,8 @@ export function CostCategoriesPanel({
           />
         </section>
       ) : null}
+    
+      </MainAppSection>
     </div>
   );
 }
@@ -87,8 +87,7 @@ function PolicySelects({
   onMethodChange,
   onPeriodChange,
   methodName = 'defaultAllocationMethod',
-  periodName = 'defaultPeriodBehavior',
-}: {
+  periodName = 'defaultPeriodBehavior'}: {
   method: string;
   period: string;
   onMethodChange: (value: string) => void;
@@ -99,8 +98,8 @@ function PolicySelects({
   const t = useTranslations('settings.costCategories');
 
   return (
-    <div className="grid w-full gap-3 sm:grid-cols-2">
-      <Field label={t('defaultMethod')}>
+    <>
+      <Field label={t('defaultMethod')} className={mainAppFieldSpan.lg}>
         {(props) => (
           <>
             <input type="hidden" name={methodName} value={method} />
@@ -121,7 +120,7 @@ function PolicySelects({
         )}
       </Field>
 
-      <Field label={t('defaultPeriod')}>
+      <Field label={t('defaultPeriod')} className={mainAppFieldSpan.lg}>
         {(props) => (
           <>
             <input type="hidden" name={periodName} value={period} />
@@ -141,15 +140,14 @@ function PolicySelects({
           </>
         )}
       </Field>
-    </div>
+    </>
   );
 }
 
 function CreateCategoryForm({
   createAction,
   createState,
-  createPending,
-}: {
+  createPending}: {
   createAction: (payload: FormData) => void;
   createState: SettingsActionState;
   createPending: boolean;
@@ -162,7 +160,7 @@ function CreateCategoryForm({
   const [period, setPeriod] = useState(NONE_VALUE);
 
   return (
-    <form action={createAction} className="mt-3 flex w-full max-w-xl flex-col gap-3">
+    <form action={createAction} className="mt-3 flex w-full flex-col gap-4">
       {createState.error ? <Alert tone="danger">{createState.error}</Alert> : null}
       {createState.ok ? (
         <Alert tone="success" role="status" aria-live="polite">
@@ -170,11 +168,12 @@ function CreateCategoryForm({
         </Alert>
       ) : null}
 
-      <Field label={tCommon('labels.name')} required>
+      <MainAppFormGrid dense className="gap-4">
+      <Field label={tCommon('labels.name')} required className={mainAppFieldSpan.lg}>
         {(props) => <Input {...props} name="name" required />}
       </Field>
 
-      <Field label={t('family')} required>
+      <Field label={t('family')} required className={mainAppFieldSpan.lg}>
         {(props) => (
           <>
             <input type="hidden" name="family" value={family} />
@@ -201,9 +200,12 @@ function CreateCategoryForm({
         onPeriodChange={setPeriod}
       />
 
+      <div className={mainAppFieldSpan.full}>
       <Button type="submit" loading={createPending}>
         {t('addCategory')}
       </Button>
+      </div>
+      </MainAppFormGrid>
     </form>
   );
 }
@@ -272,14 +274,16 @@ function CategoryRow({ category, canEdit }: { category: CostCategoryRow; canEdit
       )}
 
       {canEdit ? (
-        <form action={policyAction} className="flex flex-col gap-3">
+        <form action={policyAction} className="flex flex-col gap-4">
           <input type="hidden" name="categoryId" value={category.id} />
+          <MainAppFormGrid dense className="gap-4">
           <PolicySelects
             method={method}
             period={period}
             onMethodChange={setMethod}
             onPeriodChange={setPeriod}
           />
+          </MainAppFormGrid>
           {policyState.error ? <Alert tone="danger">{policyState.error}</Alert> : null}
           {policyState.ok ? (
             <Alert tone="success" role="status" aria-live="polite">

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Textarea } from '@/components/ui/textarea';
 import {
   closeProjectAction,
@@ -65,13 +66,15 @@ export function CloseoutActions({
             </form>
           ) : null}
 
-          <form action={closeAction} className="flex min-w-0 flex-col gap-3">
+          <form action={closeAction} className="flex w-full min-w-0 max-w-xl flex-col gap-3">
             <input type="hidden" name="projectId" value={projectId} />
             <FormError state={closeState} />
             {hasHardBlockers ? <Alert tone="warning">{t('actions.blocked')}</Alert> : null}
-            <Field label={t('actions.reason')} required>
-              {(control) => <Textarea {...control} name="reason" required rows={3} />}
-            </Field>
+            <MainAppFormGrid dense>
+              <Field label={t('actions.reason')} required className={mainAppFieldSpan.full}>
+                {(control) => <Textarea {...control} name="reason" required rows={3} />}
+              </Field>
+            </MainAppFormGrid>
             <Button type="submit" disabled={closePending || hasHardBlockers}>
               {t('actions.close')}
             </Button>
@@ -81,12 +84,14 @@ export function CloseoutActions({
       ) : null}
 
       {closed ? (
-        <form action={reopenAction} className="flex min-w-0 flex-col gap-3">
+        <form action={reopenAction} className="flex w-full min-w-0 max-w-xl flex-col gap-3">
           <input type="hidden" name="projectId" value={projectId} />
           <FormError state={reopenState} />
-          <Field label={t('actions.reason')} required>
-            {(control) => <Textarea {...control} name="reason" required rows={3} />}
-          </Field>
+          <MainAppFormGrid dense>
+            <Field label={t('actions.reason')} required className={mainAppFieldSpan.full}>
+              {(control) => <Textarea {...control} name="reason" required rows={3} />}
+            </Field>
+          </MainAppFormGrid>
           <Button type="submit" variant="secondary" disabled={reopenPending}>
             {t('actions.reopen')}
           </Button>

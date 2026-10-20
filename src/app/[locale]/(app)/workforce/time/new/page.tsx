@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { findTimeEntryById, loadQuickLogFormData } from '@/modules/workforce';
@@ -103,12 +104,13 @@ export default async function QuickTimePage({
       : t('time.quickLogDescription');
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={query.correctsEntryId ? t('time.correctionTitle') : t('time.quickLog')}
         description={description}
       />
-      <TimeEntryForm
+      <MainAppSection>
+        <TimeEntryForm
         action={createTimeEntryAction}
         employees={formData.employees}
         projects={formData.projects}
@@ -127,6 +129,8 @@ export default async function QuickTimePage({
         canApproveOnCreate={formData.canApproveOnCreate}
         defaultTaskId={query.taskId ?? null}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

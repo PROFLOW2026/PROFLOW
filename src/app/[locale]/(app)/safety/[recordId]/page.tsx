@@ -1,3 +1,9 @@
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -79,8 +85,12 @@ export default async function SafetyRecordDetailPage({
 
   const { record, projects, members, documentsPanel, linkedDailyLog, canManage, today } = loaded;
 
+  const projectLabel = record.projectId
+    ? (projects.find((project) => project.id === record.projectId)?.name ?? record.projectId)
+    : t('fields.projectNone');
+
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={record.title}
         description={t(`types.${record.recordType}`)}
@@ -108,36 +118,58 @@ export default async function SafetyRecordDetailPage({
         }
       />
 
-      {linkedDailyLog ? (
-        <p className="text-sm">
-          <Link href={`/field-ops/logs/${linkedDailyLog.id}`} className={textNavLinkClassName}>
-            {t('linkedDailyLog')}
-            {' · '}
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('fields.type')}>
+            {t(`types.${record.recordType}`)}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('fields.severity')}>
+            {t(`severity.${record.severity}`)}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('fields.occurredAt')}>
             <span className="pf-ltr-island" dir="ltr">
-              {linkedDailyLog.logDate}
+              {intlDateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(
+                record.occurredAt,
+              )}
             </span>
-          </Link>
-        </p>
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('fields.project')}>{projectLabel}</MainAppSummaryItem>
+        </MainAppSummaryGrid>
+      </MainAppSection>
+
+      {linkedDailyLog ? (
+        <MainAppSection title={t('linkedDailyLog')}>
+          <p className="text-sm">
+            <Link href={`/field-ops/logs/${linkedDailyLog.id}`} className={textNavLinkClassName}>
+              {t('linkedDailyLog')}
+              {' · '}
+              <span className="pf-ltr-island" dir="ltr">
+                {linkedDailyLog.logDate}
+              </span>
+            </Link>
+          </p>
+        </MainAppSection>
       ) : null}
 
-      {canManage ? (
-        <SafetyRecordForm
-          mode="edit"
-          record={record}
-          projects={projects}
-          defaultOccurredAt={record.occurredAt}
-        />
-      ) : (
-        <dl className="grid max-w-lg gap-3 text-sm">
-          <div>
-            <dt className="text-[var(--pf-text-secondary)]">{t('fields.description')}</dt>
-            <dd className="mt-1 whitespace-pre-wrap">{record.description}</dd>
-          </div>
-        </dl>
-      )}
+      <MainAppSection>
+        {canManage ? (
+          <SafetyRecordForm
+            mode="edit"
+            record={record}
+            projects={projects}
+            defaultOccurredAt={record.occurredAt}
+          />
+        ) : (
+          <dl className="grid gap-3 text-sm">
+            <div>
+              <dt className="text-[var(--pf-text-secondary)]">{t('fields.description')}</dt>
+              <dd className="mt-1 whitespace-pre-wrap">{record.description}</dd>
+            </div>
+          </dl>
+        )}
+      </MainAppSection>
 
-      <section className="flex max-w-2xl flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
-        <h2 className="font-semibold">{t('detail.actionsTitle')}</h2>
+      <MainAppSection title={t('detail.actionsTitle')}>
         {record.actions.length === 0 ? (
           <EmptyState title={t('detail.noActions')} size="sm" />
         ) : (
@@ -173,11 +205,10 @@ export default async function SafetyRecordDetailPage({
         {canManage ? (
           <CorrectiveActionForm safetyRecordId={record.id} members={members} today={today} />
         ) : null}
-      </section>
+      </MainAppSection>
 
       {record.recordType === 'toolbox_talk' ? (
-        <section className="flex max-w-2xl flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
-          <h2 className="font-semibold">{t('detail.toolboxTitle')}</h2>
+        <MainAppSection title={t('detail.toolboxTitle')}>
           {record.toolboxTalk ? (
             <p className="text-sm">
               {record.toolboxTalk.topic}
@@ -212,20 +243,22 @@ export default async function SafetyRecordDetailPage({
             </ul>
           )}
           {canManage ? <ToolboxAttendeeForm safetyRecordId={record.id} /> : null}
-        </section>
+        </MainAppSection>
       ) : null}
 
       {documentsPanel ? (
-        <DocumentAttachments
-          ownerType={SAFETY_RECORD_DOCUMENT_OWNER}
-          ownerId={record.id}
-          documents={documentsPanel.documents}
-          linkCandidates={documentsPanel.linkCandidates}
-          canRead={documentsPanel.canRead}
-          canManage={documentsPanel.canManage && canManage}
-          storageConfigured={documentsPanel.storageConfigured}
-        />
+        <MainAppSection>
+          <DocumentAttachments
+            ownerType={SAFETY_RECORD_DOCUMENT_OWNER}
+            ownerId={record.id}
+            documents={documentsPanel.documents}
+            linkCandidates={documentsPanel.linkCandidates}
+            canRead={documentsPanel.canRead}
+            canManage={documentsPanel.canManage && canManage}
+            storageConfigured={documentsPanel.storageConfigured}
+          />
+        </MainAppSection>
       ) : null}
-    </div>
+    </MainAppPage>
   );
 }

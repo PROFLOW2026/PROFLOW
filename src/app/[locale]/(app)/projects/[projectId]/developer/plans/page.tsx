@@ -1,3 +1,4 @@
+﻿import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { Map } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -23,13 +24,15 @@ export default async function ConnectedDeveloperPlansPage({
   const t = await getTranslations('projectPlans.portal.plans');
 
   return (
-    <div className="flex flex-col gap-4 pb-6">
+    <MainAppPage className="w-full min-w-0">
       <PageHeader title={t('pageTitle')} description={t('pageDescription')} />
-      {plans.items.length === 0 ? (
-        <EmptyState icon={Map} title={t('emptyTitle')} size="sm" />
-      ) : (
-        <ContractorPlansList projectId={developerProjectId} items={plans.items} />
-      )}
-    </div>
+      <MainAppSection className="w-full min-w-0">
+        {plans.items.length === 0 ? (
+          <EmptyState icon={Map} title={t('emptyTitle')} size="sm" />
+        ) : (
+          <ContractorPlansList projectId={developerProjectId} items={plans.items} />
+        )}
+      </MainAppSection>
+    </MainAppPage>
   );
 }

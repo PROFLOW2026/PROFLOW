@@ -1,4 +1,4 @@
-import { getLocale, getTranslations } from 'next-intl/server';
+﻿import { getLocale, getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import { Link } from '@/shared/i18n/navigation';

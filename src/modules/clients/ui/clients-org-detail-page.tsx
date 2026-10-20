@@ -1,4 +1,5 @@
-import { notFound } from 'next/navigation';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -38,7 +39,6 @@ import {
 import { RelatedCommunicationsPanel } from '@/modules/communications/ui/related-panel';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
 import { CustomerStatementActions } from '@/modules/reports/ui';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ClientDetailTabNav } from '@/modules/clients/ui/client-detail-tab-nav';
 import {
   parseClientDetailTab,
@@ -260,27 +260,25 @@ export async function ClientsOrgDetailPage({
         />
       ) : null}
       {canReadBilling && financials ? (
-        <Card className="min-w-0">
-          <CardHeader>
-            <CardTitle className="text-start text-base">{t('customerStatement.title')}</CardTitle>
-            <CardDescription className="text-start">{t('customerStatement.subtitle')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CustomerStatementActions
-              clientId={client.id}
-              clientName={client.name}
-              clientEmail={client.email}
-              clientPhone={client.phone}
-              canCommunicate={canCommunicate}
-            />
-          </CardContent>
-        </Card>
+        <MainAppSection
+          className="min-w-0"
+          title={t('customerStatement.title')}
+          description={t('customerStatement.subtitle')}
+        >
+          <CustomerStatementActions
+            clientId={client.id}
+            clientName={client.name}
+            clientEmail={client.email}
+            clientPhone={client.phone}
+            canCommunicate={canCommunicate}
+          />
+        </MainAppSection>
       ) : null}
     </>
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={client.name}
         description={t('title')}
@@ -339,6 +337,6 @@ export async function ClientsOrgDetailPage({
           storageConfigured={documentsPanel.storageConfigured}
         />
       ) : null}
-    </div>
+    </MainAppPage>
   );
 }

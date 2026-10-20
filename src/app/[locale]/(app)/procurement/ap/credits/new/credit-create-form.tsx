@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useActionState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -54,7 +55,7 @@ export function VendorCreditCreateForm({
   );
 
   return (
-    <form action={formAction} className="flex w-full min-w-0 max-w-2xl flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <input type="hidden" name="currency" value={defaultCurrency} />
@@ -63,7 +64,8 @@ export function VendorCreditCreateForm({
       <input type="hidden" name="apBillId" value={apBillId === NONE ? '' : apBillId} />
       <input type="hidden" name="amount" value={amount} />
 
-      <Field label={tCreate('vendorLabel')} required>
+      <MainAppFormGrid dense>
+      <Field label={tCreate('vendorLabel')} required className={mainAppFieldSpan.lg}>
         {(props) => (
           <Select
             value={vendorId || undefined}
@@ -86,7 +88,7 @@ export function VendorCreditCreateForm({
         )}
       </Field>
 
-      <Field label={tCreate('projectLabel')}>
+      <Field label={tCreate('projectLabel')} className={mainAppFieldSpan.lg}>
         {(props) => (
           <Select value={projectId || NONE} onValueChange={setProjectId}>
             <SelectTrigger {...props}>
@@ -104,7 +106,7 @@ export function VendorCreditCreateForm({
         )}
       </Field>
 
-      <Field label={tCreate('relatedBillLabel')}>
+      <Field label={tCreate('relatedBillLabel')} className={mainAppFieldSpan.lg}>
         {(props) => (
           <Select value={apBillId || NONE} onValueChange={setApBillId} disabled={!vendorId}>
             <SelectTrigger {...props}>
@@ -122,11 +124,12 @@ export function VendorCreditCreateForm({
         )}
       </Field>
 
-      <Field label={t('amountLabel')} required>
+      <Field label={t('amountLabel')} required className={mainAppFieldSpan.lg}>
         {(controlProps) => (
           <MoneyInput {...controlProps} required value={amount} onValueChange={setAmount} />
         )}
       </Field>
+      </MainAppFormGrid>
 
       <label className="flex items-start gap-2 text-sm">
         <input type="checkbox" name="amountIncludesTax" defaultChecked className="mt-1" />
@@ -137,26 +140,28 @@ export function VendorCreditCreateForm({
       </label>
       <p className="text-xs text-[var(--pf-text-muted)]">{tCreate('actualVsPayableHint')}</p>
 
-      <Field label={t('creditDateLabel')} required>
-        {(controlProps) => (
-          <Input
-            {...controlProps}
-            name="creditDate"
-            type="date"
-            defaultValue={defaultCreditDate}
-            required
-            dir="ltr"
-          />
-        )}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field label={t('creditDateLabel')} required className={mainAppFieldSpan.md}>
+          {(controlProps) => (
+            <Input
+              {...controlProps}
+              name="creditDate"
+              type="date"
+              defaultValue={defaultCreditDate}
+              required
+              dir="ltr"
+            />
+          )}
+        </Field>
 
-      <Field label={t('referenceLabel')}>
-        {(controlProps) => <Input {...controlProps} name="reference" maxLength={120} />}
-      </Field>
+        <Field label={t('referenceLabel')} className={mainAppFieldSpan.lg}>
+          {(controlProps) => <Input {...controlProps} name="reference" maxLength={120} />}
+        </Field>
 
-      <Field label={t('notesLabel')}>
-        {(controlProps) => <Textarea {...controlProps} name="notes" rows={3} />}
-      </Field>
+        <Field label={t('notesLabel')} className={mainAppFieldSpan.full}>
+          {(controlProps) => <Textarea {...controlProps} name="notes" rows={3} />}
+        </Field>
+      </MainAppFormGrid>
 
       <p className="text-xs text-[var(--pf-text-muted)]">{t('notPaymentNote')}</p>
 

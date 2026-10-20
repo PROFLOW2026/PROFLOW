@@ -1,4 +1,10 @@
 import type { Metadata } from 'next';
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
@@ -24,6 +30,8 @@ import { WorkOrderStatusForm } from './work-order-status-form';
 import { WorkOrderBillingForm } from './work-order-billing-form';
 import { WorkOrderLinkedTasksSection } from '@/modules/service/ui/work-order-linked-tasks-section';
 import { PROJECT_CAPABILITIES, assertProjectCapability } from '@/modules/project-team';
+
+const EMPTY = '—';
 
 interface WorkOrderPageProps {
   params: Promise<{ locale: string; id: string }>;
@@ -110,8 +118,16 @@ export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps
       ] as const,
   );
 
+  const siteLabel = service.siteAddress ?? project.location ?? EMPTY;
+  const contactLabel = service.contactName
+    ? `${service.contactName}${service.contactPhone ? ` · ${service.contactPhone}` : ''}`
+    : EMPTY;
+  const windowLabel = service.scheduledStartAt
+    ? service.scheduledStartAt.toISOString().slice(0, 16).replace('T', ' ')
+    : EMPTY;
+
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={project.name}
         description={clientName ?? undefined}
@@ -123,116 +139,118 @@ export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps
         }
       />
 
-      <div className="flex flex-wrap gap-3 text-sm">
-        <Link href="/work-orders" className={cn(textNavLinkClassName)}>
-          {t('workspace.backToList')}
-        </Link>
-        <Link href="/dispatch" className={cn(textNavLinkClassName)}>
-          {t('workspace.openDispatch')}
-        </Link>
-        <Link href="/field" className={cn(textNavLinkClassName)}>
-          {t('workspace.openField')}
-        </Link>
-        <Link href={`/expenses/new?projectId=${id}`} className={cn(textNavLinkClassName)}>
-          {t('workspace.openExpenses')}
-        </Link>
-        <Link href="/workforce/time" className={cn(textNavLinkClassName)}>
-          {t('workspace.openTime')}
-        </Link>
-        <Link href={`/warranty?workOrderId=${id}`} className={cn(textNavLinkClassName)}>
-          {t('workspace.openWarranty')}
-        </Link>
-      </div>
-
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('workspace.sameEngineHint')}</p>
+      <MainAppSection>
+        <div className="flex flex-wrap gap-3 text-sm">
+          <Link href="/work-orders" className={cn(textNavLinkClassName)}>
+            {t('workspace.backToList')}
+          </Link>
+          <Link href="/dispatch" className={cn(textNavLinkClassName)}>
+            {t('workspace.openDispatch')}
+          </Link>
+          <Link href="/field" className={cn(textNavLinkClassName)}>
+            {t('workspace.openField')}
+          </Link>
+          <Link href={`/expenses/new?projectId=${id}`} className={cn(textNavLinkClassName)}>
+            {t('workspace.openExpenses')}
+          </Link>
+          <Link href="/workforce/time" className={cn(textNavLinkClassName)}>
+            {t('workspace.openTime')}
+          </Link>
+          <Link href={`/warranty?workOrderId=${id}`} className={cn(textNavLinkClassName)}>
+            {t('workspace.openWarranty')}
+          </Link>
+        </div>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('workspace.sameEngineHint')}</p>
+        <MainAppSummaryGrid className="mt-1">
+          <MainAppSummaryItem label={t('fields.site')}>{siteLabel}</MainAppSummaryItem>
+          <MainAppSummaryItem label={t('fields.priority')}>
+            {t(`priority.${service.priority}`)}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('fields.contact')}>{contactLabel}</MainAppSummaryItem>
+          <MainAppSummaryItem label={t('fields.window')}>
+            <span className="pf-ltr-island" dir="ltr">
+              {windowLabel}
+            </span>
+          </MainAppSummaryItem>
+          {service.category ? (
+            <MainAppSummaryItem label={t('create.categoryLabel')}>{service.category}</MainAppSummaryItem>
+          ) : null}
+          {service.requestedDate ? (
+            <MainAppSummaryItem label={t('create.requestedDateLabel')}>
+              <span className="pf-ltr-island" dir="ltr">
+                {service.requestedDate}
+              </span>
+            </MainAppSummaryItem>
+          ) : null}
+        </MainAppSummaryGrid>
+      </MainAppSection>
 
       <Suspense fallback={null}>
         <WorkOrderLinkedTasksSection workOrderId={id} canLink={canLinkTasks} />
       </Suspense>
 
       {canManage ? (
-        <WorkOrderStatusForm
-          workOrderId={id}
-          currentStatus={service.serviceStatus}
-          checklistBlocked={checklistState.required && !checklistState.satisfied}
-        />
+        <MainAppSection title={t('workspace.updateStatus')}>
+          <WorkOrderStatusForm
+            workOrderId={id}
+            currentStatus={service.serviceStatus}
+            checklistBlocked={checklistState.required && !checklistState.satisfied}
+          />
+        </MainAppSection>
       ) : null}
 
-      <WorkOrderBillingForm
-        workOrderId={id}
-        existingBillingRecordId={billingLink?.billingRecordId ?? null}
-        existingStatus={billingLink?.status ?? null}
-        canBill={canBill}
-      />
+      <MainAppSection title={t('billing.title')}>
+        <WorkOrderBillingForm
+          workOrderId={id}
+          existingBillingRecordId={billingLink?.billingRecordId ?? null}
+          existingStatus={billingLink?.status ?? null}
+          canBill={canBill}
+        />
+      </MainAppSection>
 
       {checklistState.required ? (
-        <WorkOrderChecklistCard workOrderId={id} state={checklistState} />
+        <MainAppSection>
+          <WorkOrderChecklistCard workOrderId={id} state={checklistState} />
+        </MainAppSection>
       ) : null}
 
-      {canManage ? (
-        <WorkOrderDetailForm
-          workOrderId={id}
-          checklistTemplates={checklistTemplates}
-          initial={{
-            name: project.name,
-            description: project.description ?? '',
-            siteAddress: service.siteAddress ?? project.location ?? '',
-            contactName: service.contactName ?? '',
-            contactPhone: service.contactPhone ?? '',
-            category: service.category ?? '',
-            priority: service.priority,
-            requestedDate: service.requestedDate ?? '',
-            scheduledStartAt: toDatetimeLocalValue(service.scheduledStartAt),
-            scheduledEndAt: toDatetimeLocalValue(service.scheduledEndAt),
-            serviceNotes: service.notes ?? '',
-            notes: project.notes ?? '',
-            serviceStatus: service.serviceStatus,
-            checklistTemplateId: service.checklistTemplateId,
-          }}
-        />
-      ) : (
-        <dl className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <dt className="text-xs text-[var(--pf-text-muted)]">{t('fields.site')}</dt>
-            <dd>{service.siteAddress ?? project.location ?? '-'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-[var(--pf-text-muted)]">{t('fields.priority')}</dt>
-            <dd>{t(`priority.${service.priority}`)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-[var(--pf-text-muted)]">{t('fields.contact')}</dt>
-            <dd>
-              {service.contactName ?? '-'}
-              {service.contactPhone ? ` · ${service.contactPhone}` : ''}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-[var(--pf-text-muted)]">{t('fields.window')}</dt>
-            <dd className="pf-ltr-island" dir="ltr">
-              {service.scheduledStartAt
-                ? service.scheduledStartAt.toISOString().slice(0, 16).replace('T', ' ')
-                : '-'}
-            </dd>
-          </div>
-          <div className="sm:col-span-2">
-            <dt className="text-xs text-[var(--pf-text-muted)]">{t('fields.notes')}</dt>
-            <dd className="whitespace-pre-wrap">{service.notes ?? project.notes ?? '-'}</dd>
-          </div>
-        </dl>
-      )}
+      <MainAppSection title={canManage ? t('list.columns.name') : t('fields.notes')}>
+        {canManage ? (
+          <WorkOrderDetailForm
+            workOrderId={id}
+            checklistTemplates={checklistTemplates}
+            initial={{
+              name: project.name,
+              description: project.description ?? '',
+              siteAddress: service.siteAddress ?? project.location ?? '',
+              contactName: service.contactName ?? '',
+              contactPhone: service.contactPhone ?? '',
+              category: service.category ?? '',
+              priority: service.priority,
+              requestedDate: service.requestedDate ?? '',
+              scheduledStartAt: toDatetimeLocalValue(service.scheduledStartAt),
+              scheduledEndAt: toDatetimeLocalValue(service.scheduledEndAt),
+              serviceNotes: service.notes ?? '',
+              notes: project.notes ?? '',
+              serviceStatus: service.serviceStatus,
+              checklistTemplateId: service.checklistTemplateId,
+            }}
+          />
+        ) : (
+          <p className="whitespace-pre-wrap text-sm">{service.notes ?? project.notes ?? EMPTY}</p>
+        )}
+      </MainAppSection>
 
       {shell?.modules.forms ? (
-        <section className="flex flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
+        <MainAppSection>
           <Suspense fallback={<p className="text-sm text-[var(--pf-text-muted)]">…</p>}>
             <ProjectFormsPanel ownerType="work_order" ownerId={id} />
           </Suspense>
-        </section>
+        </MainAppSection>
       ) : null}
 
       {canReadFinancials ? (
-        <section className="flex flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
-          <h2 className="text-base font-semibold">{t('workspace.financialsTitle')}</h2>
+        <MainAppSection title={t('workspace.financialsTitle')}>
           {project.pricingMode === 'open' ? (
             <Alert tone="info">
               <p className="font-medium">{t('pricing.priceNotSet')}</p>
@@ -242,8 +260,8 @@ export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps
           <Suspense fallback={<p className="text-sm text-[var(--pf-text-muted)]">…</p>}>
             <ProjectFinancialsPanel projectId={id} />
           </Suspense>
-        </section>
+        </MainAppSection>
       ) : null}
-    </div>
+    </MainAppPage>
   );
 }

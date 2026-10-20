@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { ChangeRequestForm } from '@/modules/commercial/ui/change-request-form';
@@ -45,14 +46,17 @@ export default async function NewChangePage({
   });
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('form.createTitle')} description={t('form.createDescription')} />
-      <ChangeRequestForm
+      <MainAppSection>
+        <ChangeRequestForm
         action={createChangeRequestAction}
         projectId={projectId}
         projects={projects.map((project) => ({ id: project.id, name: project.name }))}
         contracts={contracts}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

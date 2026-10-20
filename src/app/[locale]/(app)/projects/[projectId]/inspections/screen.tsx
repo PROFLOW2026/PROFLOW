@@ -1,4 +1,5 @@
-import { ClipboardCheck } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { ClipboardCheck } from 'lucide-react';
 
 import { getTranslations } from 'next-intl/server';
 
@@ -137,7 +138,7 @@ export async function ProjectInspectionsScreen({ surfaceRoot,
 
     <WithAppClientMessages extra={['inspections', 'defects']}>
 
-      <div className="flex flex-col gap-4">
+      <MainAppPage>
 
         <PageHeader
 
@@ -160,9 +161,7 @@ export async function ProjectInspectionsScreen({ surfaceRoot,
           }
 
         />
-
-
-
+      <MainAppSection>
         {data.formBundle ? (
 
           <InspectionCreateForm
@@ -268,7 +267,9 @@ export async function ProjectInspectionsScreen({ surfaceRoot,
 
         )}
 
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
 
     </WithAppClientMessages>
 

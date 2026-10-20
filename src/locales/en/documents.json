@@ -48,7 +48,9 @@
     "warranty_issue": "Warranty call",
     "closeout": "Closeout",
     "outbound_communication": "Outgoing message",
-    "calendar_event": "Calendar event"
+    "calendar_event": "Calendar event",
+    "task": "Task",
+    "task_comment": "Task comment"
   },
   "status": {
     "pending": "Upload pending",

@@ -2,6 +2,12 @@ import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
@@ -45,7 +51,9 @@ import { RateHistoryTable } from '@/modules/workforce/ui/rate-history-table';
 import { OrgWorkFrameworkForm } from '@/modules/workforce/ui/org-work-framework-form';
 import { withOrgContext } from '@/shared/auth/session';
 import { localizeCode } from '@/shared/i18n/code-display';
+import type { BusinessDate } from '@/shared/dates';
 import { businessDate, todayInTimeZone, startOfMonth, endOfMonth } from '@/shared/dates';
+import { formatBusinessDate } from '@/shared/dates/format';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -291,9 +299,16 @@ export default async function EmployeeDetailPage({
       ? t('employees.detail.salaryHistoryCount', { count: rateHistory.length })
       : t('employees.detail.noSalaryHistory');
 
+  const showCompensationSection =
+    canReadRates || (orgFrameworkConfigured && (allowManage || canManageCosts));
+
+  const statusLabel = employee.archivedAt
+    ? t('employees.detail.archivedBadge')
+    : t(`employeeStatus.${employee.status}`);
+
   return (
     <EmployeeDetailUnsavedProvider>
-      <div className="flex min-w-0 max-w-full flex-col gap-6 overflow-x-hidden">
+      <MainAppPage className="gap-6 overflow-x-hidden">
       <Suspense fallback={null}>
         <EmployeePageAlertFocus />
       </Suspense>
@@ -346,6 +361,35 @@ export default async function EmployeeDetailPage({
         }
       />
 
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('employees.columns.status')}>
+            <StatusBadge
+              shape={employee.status === 'active' && !employee.archivedAt ? 'active' : 'archived'}
+              label={statusLabel}
+            />
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('employees.form.jobTitle')}>
+            {employee.jobTitle?.trim() ? employee.jobTitle : '—'}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('employees.form.hireDate')}>
+            <span dir="ltr">
+              {employee.hireDate
+                ? formatBusinessDate(employee.hireDate as BusinessDate, locale, 'medium')
+                : t('employees.detail.hireDateNotSet')}
+            </span>
+          </MainAppSummaryItem>
+          {employee.endDate ? (
+            <MainAppSummaryItem label={t('employees.form.endDate')}>
+              <span dir="ltr">
+                {formatBusinessDate(employee.endDate as BusinessDate, locale, 'medium')}
+              </span>
+            </MainAppSummaryItem>
+          ) : null}
+        </MainAppSummaryGrid>
+      </MainAppSection>
+
+      <MainAppSection title={t('employees.detail.profile')}>
       <Card className="p-4 sm:p-5">
         <EmployeeAvatarPanel
           employeeId={employee.id}
@@ -403,24 +447,6 @@ export default async function EmployeeDetailPage({
         />
       ) : null}
 
-      {canReadRates && compensationSummary ? (
-        <EmployeeCompensationSummaryPanel
-          summary={compensationSummary}
-          locale={locale}
-          employeeId={employee.id}
-          employeeName={employee.name}
-          status={employee.status}
-          archivedAt={employee.archivedAt}
-          hireDate={employee.hireDate}
-          endDate={employee.endDate}
-          canManage={allowManage}
-          canManageCosts={canManageCosts}
-          canLogTime={allowLog}
-          canReadAttendance={canReadAttendance}
-          canManageAttendance={canManageAttendance}
-        />
-      ) : null}
-
       {allowManage ? (
         <EmployeeEditPanelSection employee={employee} linkableUsers={linkableUsers} />
       ) : (
@@ -444,100 +470,6 @@ export default async function EmployeeDetailPage({
         ) : null}
       </Card>
       )}
-
-      {canReadRates ? (
-        <EmployeeSalarySections
-          showSalaryUpdate={canManageCosts}
-          rateHistorySummary={rateHistorySummary}
-          salaryUpdate={
-            canManageCosts ? (
-              <AddRateVersionForm
-                employeeId={employee.id}
-                defaultCurrency={currency}
-                defaultValidFrom={
-                  currentRate ? businessDate(currentRate.validFrom) : today
-                }
-                defaultRateUnit={currentRate?.rateUnit ?? 'monthly'}
-                defaultBaseRate={currentRate?.baseRate ?? ''}
-                defaultBurdenPercent={currentRate?.burdenPercent ?? ''}
-                defaultWorkingDaysPerMonth={
-                  currentRate?.workingDaysPerMonth ??
-                  laborDefaults?.workingDaysPerMonth ??
-                  null
-                }
-              />
-            ) : null
-          }
-          rateHistory={<RateHistoryTable versions={rateHistory} />}
-        />
-      ) : null}
-
-      {payrollPayment ? (
-        <>
-          {showMonthReview ? (
-            <div id="employee-labor-allocation" className="scroll-mt-24">
-              <MonthlyEmployerCostReview
-                key={`${employee.id}:${payrollPayment.yearMonth}`}
-                employeeId={employee.id}
-                employeeName={employee.name}
-                currency={currency}
-                defaultYearMonth={payrollPayment.yearMonth}
-                projects={candidateProjects.map((project) => ({
-                  id: project.id,
-                  name: project.name,
-                }))}
-                canReview={canReadRates}
-                canManage={canManageCosts}
-                initialReview={monthReview}
-                payrollApprovalMode
-              />
-            </div>
-          ) : null}
-          <EmployeePayrollMonthPanel
-            employeeId={employee.id}
-            employeeName={employee.name}
-            yearMonth={payrollPayment.yearMonth}
-            paymentId={payrollPayment.id}
-            expectedAmount={payrollPayment.expectedAmount}
-            currency={payrollPayment.currency}
-            dueDate={payrollPayment.dueDate}
-            paymentStatus={payrollPayment.paymentStatus}
-            paidAt={payrollPayment.paidAt}
-            locale={locale}
-            canManage={canManageCosts}
-            defaultPaymentDate={today}
-          />
-        </>
-      ) : null}
-
-      {showMonthReview && !payrollPayment ? (
-        <details
-          id="employee-labor-allocation"
-          className="scroll-mt-24 rounded-lg border border-[var(--pf-border-default)] p-4 sm:p-6"
-        >
-          <summary className="cursor-pointer text-sm font-medium text-[var(--pf-text-secondary)]">
-            {t('monthReview.advancedSummary')}
-          </summary>
-          <div className="mt-4">
-            <MonthlyEmployerCostReview
-              key={`${employee.id}:${defaultYearMonth}`}
-              employeeId={employee.id}
-              employeeName={employee.name}
-              currency={currency}
-              defaultYearMonth={defaultYearMonth}
-              projects={candidateProjects.map((project) => ({
-                id: project.id,
-                name: project.name,
-              }))}
-              canReview={canReadRates}
-              canManage={canManageCosts}
-              initialReview={monthReview}
-            />
-          </div>
-        </details>
-      ) : !payrollPayment && canReadRates ? (
-        <p className="text-sm text-[var(--pf-text-muted)]">{t('monthReview.unusedHint')}</p>
-      ) : null}
 
       <EmployeeProjectsPanel
         employeeId={employee.id}
@@ -652,19 +584,120 @@ export default async function EmployeeDetailPage({
           )}
         </Card>
       ) : null}
+      </MainAppSection>
 
-      {documentsPanel ? (
-        <EmployeeDocumentAttachmentsSection
-          panelTitle={tDocuments('title')}
-          ownerType="employee"
-          ownerId={employee.id}
-          documents={documentsPanel.documents}
-          linkCandidates={documentsPanel.linkCandidates}
-          canRead={documentsPanel.canRead}
-          canManage={documentsPanel.canManage}
-          storageConfigured={documentsPanel.storageConfigured}
-          canClassifyCompensation={documentsPanel.canClassifyCompensation}
+      {showCompensationSection ? (
+      <MainAppSection title={t('employees.detail.compensationSummaryTitle')}>
+      {canReadRates && compensationSummary ? (
+        <EmployeeCompensationSummaryPanel
+          summary={compensationSummary}
+          locale={locale}
+          employeeId={employee.id}
+          employeeName={employee.name}
+          status={employee.status}
+          archivedAt={employee.archivedAt}
+          hireDate={employee.hireDate}
+          endDate={employee.endDate}
+          canManage={allowManage}
+          canManageCosts={canManageCosts}
+          canLogTime={allowLog}
+          canReadAttendance={canReadAttendance}
+          canManageAttendance={canManageAttendance}
         />
+      ) : null}
+
+      {canReadRates ? (
+        <EmployeeSalarySections
+          showSalaryUpdate={canManageCosts}
+          rateHistorySummary={rateHistorySummary}
+          salaryUpdate={
+            canManageCosts ? (
+              <AddRateVersionForm
+                employeeId={employee.id}
+                defaultCurrency={currency}
+                defaultValidFrom={
+                  currentRate ? businessDate(currentRate.validFrom) : today
+                }
+                defaultRateUnit={currentRate?.rateUnit ?? 'monthly'}
+                defaultBaseRate={currentRate?.baseRate ?? ''}
+                defaultBurdenPercent={currentRate?.burdenPercent ?? ''}
+                defaultWorkingDaysPerMonth={
+                  currentRate?.workingDaysPerMonth ??
+                  laborDefaults?.workingDaysPerMonth ??
+                  null
+                }
+              />
+            ) : null
+          }
+          rateHistory={<RateHistoryTable versions={rateHistory} />}
+        />
+      ) : null}
+
+      {payrollPayment ? (
+        <>
+          {showMonthReview ? (
+            <div id="employee-labor-allocation" className="scroll-mt-24">
+              <MonthlyEmployerCostReview
+                key={`${employee.id}:${payrollPayment.yearMonth}`}
+                employeeId={employee.id}
+                employeeName={employee.name}
+                currency={currency}
+                defaultYearMonth={payrollPayment.yearMonth}
+                projects={candidateProjects.map((project) => ({
+                  id: project.id,
+                  name: project.name,
+                }))}
+                canReview={canReadRates}
+                canManage={canManageCosts}
+                initialReview={monthReview}
+                payrollApprovalMode
+              />
+            </div>
+          ) : null}
+          <EmployeePayrollMonthPanel
+            employeeId={employee.id}
+            employeeName={employee.name}
+            yearMonth={payrollPayment.yearMonth}
+            paymentId={payrollPayment.id}
+            expectedAmount={payrollPayment.expectedAmount}
+            currency={payrollPayment.currency}
+            dueDate={payrollPayment.dueDate}
+            paymentStatus={payrollPayment.paymentStatus}
+            paidAt={payrollPayment.paidAt}
+            locale={locale}
+            canManage={canManageCosts}
+            defaultPaymentDate={today}
+          />
+        </>
+      ) : null}
+
+      {showMonthReview && !payrollPayment ? (
+        <details
+          id="employee-labor-allocation"
+          className="scroll-mt-24 rounded-lg border border-[var(--pf-border-default)] p-4 sm:p-6"
+        >
+          <summary className="cursor-pointer text-sm font-medium text-[var(--pf-text-secondary)]">
+            {t('monthReview.advancedSummary')}
+          </summary>
+          <div className="mt-4">
+            <MonthlyEmployerCostReview
+              key={`${employee.id}:${defaultYearMonth}`}
+              employeeId={employee.id}
+              employeeName={employee.name}
+              currency={currency}
+              defaultYearMonth={defaultYearMonth}
+              projects={candidateProjects.map((project) => ({
+                id: project.id,
+                name: project.name,
+              }))}
+              canReview={canReadRates}
+              canManage={canManageCosts}
+              initialReview={monthReview}
+            />
+          </div>
+        </details>
+      ) : !payrollPayment && canReadRates ? (
+        <p className="text-sm text-[var(--pf-text-muted)]">{t('monthReview.unusedHint')}</p>
       ) : null}
 
       {orgFrameworkConfigured && (allowManage || canManageCosts) ? (
@@ -682,7 +715,25 @@ export default async function EmployeeDetailPage({
           collapseWhenConfigured
         />
       ) : null}
-      </div>
+      </MainAppSection>
+      ) : null}
+
+      {documentsPanel ? (
+        <MainAppSection title={tDocuments('title')}>
+          <EmployeeDocumentAttachmentsSection
+            panelTitle={tDocuments('title')}
+            ownerType="employee"
+            ownerId={employee.id}
+            documents={documentsPanel.documents}
+            linkCandidates={documentsPanel.linkCandidates}
+            canRead={documentsPanel.canRead}
+            canManage={documentsPanel.canManage}
+            storageConfigured={documentsPanel.storageConfigured}
+            canClassifyCompensation={documentsPanel.canClassifyCompensation}
+          />
+        </MainAppSection>
+      ) : null}
+      </MainAppPage>
     </EmployeeDetailUnsavedProvider>
   );
 }

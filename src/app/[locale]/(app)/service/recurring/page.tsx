@@ -1,4 +1,5 @@
-import { Plus } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -52,7 +53,7 @@ export default async function RecurringListPage({ searchParams }: RecurringListP
     : [];
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         description={t('description')}
@@ -67,8 +68,8 @@ export default async function RecurringListPage({ searchParams }: RecurringListP
           ) : null
         }
       />
-
-      <p className="text-sm text-[var(--pf-text-secondary)]">
+      <MainAppSection>
+        <p className="text-sm text-[var(--pf-text-secondary)]">
         <Link href="/recurring-drafts" className="underline underline-offset-2">
           {t('draftsLink')}
         </Link>
@@ -158,6 +159,8 @@ export default async function RecurringListPage({ searchParams }: RecurringListP
           </Table>
         </div>
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

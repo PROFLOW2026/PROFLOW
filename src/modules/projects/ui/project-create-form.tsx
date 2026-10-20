@@ -7,6 +7,7 @@ import {
   previewCloneStructureAction,
   previewUwmProjectTemplateAction,
 } from '@/app/[locale]/(app)/projects/actions';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -295,15 +296,17 @@ export function ProjectCreateForm({
     <form
       action={boundAction}
       onSubmit={handleSubmit}
-      className="mx-auto flex w-full min-w-0 max-w-lg flex-col gap-4"
+      className="flex w-full min-w-0 flex-col gap-4"
     >
       {showValidationBanner(state) ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <FormSection title={t('create.sections.details')}>
+        <MainAppFormGrid dense>
         <Field
           label={t('create.nameLabel')}
           required
           error={state.fieldErrors?.name ?? nameError}
+          className={mainAppFieldSpan.lg}
         >
           {(control) => (
             <Input
@@ -329,6 +332,7 @@ export function ProjectCreateForm({
         <Field
           label={t('create.managementModeLabel')}
           description={t('create.managementModeHint')}
+          className={mainAppFieldSpan.lg}
         >
           {(control) => (
             <>
@@ -354,7 +358,7 @@ export function ProjectCreateForm({
           )}
         </Field>
 
-        <Field label={t('create.clientLabel')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('create.clientLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input type="hidden" name="clientMode" value={clientMode} />
@@ -384,7 +388,8 @@ export function ProjectCreateForm({
         </Field>
 
         {clientMode === 'new' ? (
-          <div className="flex flex-col gap-4 rounded-md border border-[var(--pf-border-default)] p-3">
+          <div className={`${mainAppFieldSpan.full} flex flex-col gap-4 rounded-md border border-[var(--pf-border-default)] p-3`}>
+            <MainAppFormGrid dense>
             <Field label={t('create.clientNew')} error={state.fieldErrors?.clientName}>
               {(control) => (
                 <Input
@@ -397,11 +402,12 @@ export function ProjectCreateForm({
                 />
               )}
             </Field>
-            <p className="text-sm text-[var(--pf-text-secondary)]">{t('create.contactPersonHint')}</p>
+            <p className={`${mainAppFieldSpan.full} text-sm text-[var(--pf-text-secondary)]`}>{t('create.contactPersonHint')}</p>
             <Field
               label={t('create.contactNameLabel')}
               optionalLabel={tCommon('labels.optional')}
               error={state.fieldErrors?.contactName}
+              className={mainAppFieldSpan.lg}
             >
               {(control) => (
                 <Input
@@ -430,14 +436,16 @@ export function ProjectCreateForm({
               label={t('create.contactEmailLabel')}
               optionalLabel={tCommon('labels.optional')}
               error={state.fieldErrors?.contactEmail}
+              className={mainAppFieldSpan.lg}
             >
               {(control) => <Input {...control} name="contactEmail" type="email" dir="ltr" />}
             </Field>
+            </MainAppFormGrid>
           </div>
         ) : null}
 
         {clientMode === 'existing' ? (
-          <div className="flex flex-col gap-4">
+          <div className={`${mainAppFieldSpan.full} flex flex-col gap-4`}>
             <Field label={t('create.clientSelect')} error={state.fieldErrors?.clientId}>
               {(control) => (
                 <Select
@@ -579,6 +587,7 @@ export function ProjectCreateForm({
           label={t('create.domainLabel')}
           optionalLabel={tCommon('labels.optional')}
           error={state.fieldErrors?.domainName}
+          className={mainAppFieldSpan.lg}
         >
           {(control) => (
             <Input {...control} name="domainName" placeholder={t('create.domainPlaceholder')} />
@@ -589,12 +598,14 @@ export function ProjectCreateForm({
           label={t('create.locationLabel')}
           optionalLabel={tCommon('labels.optional')}
           error={state.fieldErrors?.location}
+          className={mainAppFieldSpan.lg}
         >
           {(control) => (
             <Input {...control} name="location" placeholder={t('create.locationPlaceholder')} />
           )}
         </Field>
 
+        <div className={mainAppFieldSpan.full}>
         <Button
           type="button"
           variant="ghost"
@@ -609,11 +620,12 @@ export function ProjectCreateForm({
         </Button>
 
         {showMore ? (
-          <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
+          <MainAppFormGrid dense className="border-t border-[var(--pf-border-default)] pt-4">
             <Field
               label={t('details.descriptionLabel')}
               optionalLabel={tCommon('labels.optional')}
               error={state.fieldErrors?.description}
+              className={mainAppFieldSpan.full}
             >
               {(control) => <Textarea {...control} name="description" rows={3} />}
             </Field>
@@ -621,6 +633,7 @@ export function ProjectCreateForm({
               label={t('details.startDate')}
               optionalLabel={tCommon('labels.optional')}
               error={state.fieldErrors?.startDate}
+              className={mainAppFieldSpan.md}
             >
               {(control) => <Input {...control} name="startDate" type="date" dir="ltr" />}
             </Field>
@@ -628,6 +641,7 @@ export function ProjectCreateForm({
               label={t('details.targetEndDate')}
               optionalLabel={tCommon('labels.optional')}
               error={state.fieldErrors?.targetEndDate}
+              className={mainAppFieldSpan.md}
             >
               {(control) => <Input {...control} name="targetEndDate" type="date" dir="ltr" />}
             </Field>
@@ -635,11 +649,14 @@ export function ProjectCreateForm({
               label={t('details.notesLabel')}
               optionalLabel={tCommon('labels.optional')}
               error={state.fieldErrors?.notes}
+              className={mainAppFieldSpan.full}
             >
               {(control) => <Textarea {...control} name="notes" rows={2} />}
             </Field>
-          </div>
+          </MainAppFormGrid>
         ) : null}
+        </div>
+        </MainAppFormGrid>
       </FormSection>
 
       {capabilities.showTeamSection ? (
@@ -666,7 +683,8 @@ export function ProjectCreateForm({
           {capabilities.showTemplatePicker ? (
             <>
               <input type="hidden" name="launchMode" value={launchMode} />
-              <Field label={t('create.launchModeLabel')} optionalLabel={tCommon('labels.optional')}>
+              <MainAppFormGrid dense>
+              <Field label={t('create.launchModeLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
                 {(control) => (
                   <Select
                     value={launchMode}
@@ -687,7 +705,7 @@ export function ProjectCreateForm({
               </Field>
 
               {launchMode === 'structure' ? (
-                <Field label={t('create.fromTemplate')} optionalLabel={tCommon('labels.optional')}>
+                <Field label={t('create.fromTemplate')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
                   {(control) => (
                     <>
                       <input type="hidden" name="structureTemplateKey" value={structureTemplateKey} />
@@ -709,7 +727,7 @@ export function ProjectCreateForm({
               ) : null}
 
               {launchMode === 'uwm' ? (
-                <Field label={t('create.uwmTemplateLabel')} optionalLabel={tCommon('labels.optional')}>
+                <Field label={t('create.uwmTemplateLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
                   {(control) => (
                     <>
                       <input type="hidden" name="uwmTemplateId" value={uwmTemplateId} />
@@ -731,7 +749,7 @@ export function ProjectCreateForm({
               ) : null}
 
               {launchMode === 'clone' ? (
-                <Field label={t('clone.source')} optionalLabel={tCommon('labels.optional')}>
+                <Field label={t('clone.source')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
                   {(control) => (
                     <>
                       <input type="hidden" name="cloneSourceProjectId" value={cloneSourceProjectId} />
@@ -756,11 +774,11 @@ export function ProjectCreateForm({
               ) : null}
 
               {previewLoading ? (
-                <p className="text-sm text-[var(--pf-text-muted)]">{t('clone.loadingPreview')}</p>
+                <p className={`${mainAppFieldSpan.full} text-sm text-[var(--pf-text-muted)]`}>{t('clone.loadingPreview')}</p>
               ) : null}
 
               {structurePreview ? (
-                <div className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm text-[var(--pf-text-secondary)]">
+                <div className={`${mainAppFieldSpan.full} rounded-md border border-[var(--pf-border-default)] p-3 text-sm text-[var(--pf-text-secondary)]`}>
                   <p>{structurePreview.description}</p>
                   <p className="mt-2">
                     <span className="font-medium text-[var(--pf-text-primary)]">
@@ -780,7 +798,7 @@ export function ProjectCreateForm({
               ) : null}
 
               {displayedUwmPreview ? (
-                <div className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm text-[var(--pf-text-secondary)]">
+                <div className={`${mainAppFieldSpan.full} rounded-md border border-[var(--pf-border-default)] p-3 text-sm text-[var(--pf-text-secondary)]`}>
                   {displayedUwmPreview.description ? <p>{displayedUwmPreview.description}</p> : null}
                   <p className="mt-2">
                     <span className="font-medium text-[var(--pf-text-primary)]">
@@ -798,7 +816,7 @@ export function ProjectCreateForm({
               ) : null}
 
               {displayedClonePreview ? (
-                <div className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm text-[var(--pf-text-secondary)]">
+                <div className={`${mainAppFieldSpan.full} rounded-md border border-[var(--pf-border-default)] p-3 text-sm text-[var(--pf-text-secondary)]`}>
                   <p className="font-medium text-[var(--pf-text-primary)]">{displayedClonePreview.sourceProjectName}</p>
                   <p className="mt-2">
                     <span className="font-medium text-[var(--pf-text-primary)]">
@@ -814,6 +832,7 @@ export function ProjectCreateForm({
                   </p>
                 </div>
               ) : null}
+              </MainAppFormGrid>
             </>
           ) : (
             <p className="text-sm text-[var(--pf-text-secondary)]">
@@ -825,6 +844,8 @@ export function ProjectCreateForm({
 
       {capabilities.showFinance ? (
         <FormSection title={t('create.sections.finance')}>
+          <MainAppFormGrid dense>
+          <div className={mainAppFieldSpan.full}>
           <ContractAmountFields
             baseCurrency={baseCurrency}
             currencySymbol={currencySymbol}
@@ -835,7 +856,7 @@ export function ProjectCreateForm({
           />
 
           {capabilities.showBillingPlan ? (
-            <div className="flex flex-col gap-2">
+            <div className={`${mainAppFieldSpan.full} flex flex-col gap-2`}>
               <p className="text-xs text-[var(--pf-text-muted)]">
                 {tBillingPlan('projectCreate.sectionHint')}
               </p>
@@ -889,6 +910,8 @@ export function ProjectCreateForm({
               ) : null}
             </div>
           ) : null}
+          </div>
+          </MainAppFormGrid>
         </FormSection>
       ) : null}
 

@@ -1,4 +1,5 @@
-import { getFormatter, getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getFormatter, getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -41,10 +42,10 @@ export async function InstructionsScreen({ surfaceRoot,
   const logDate = query.logDate && isIsoDate(query.logDate) ? query.logDate : null;
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
+    <MainAppPage>
       <PageHeader title={t('instructions.title')} description={t('instructions.description')} />
-
-      {data.canIssue ? (
+      <MainAppSection>
+        {data.canIssue ? (
         <CollapsibleSection
           title={t('instructions.issue')}
           summary={t('instructions.issueHint')}
@@ -181,7 +182,9 @@ export async function InstructionsScreen({ surfaceRoot,
           ) : null}
         </nav>
       ) : null}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

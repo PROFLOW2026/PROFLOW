@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useActionState, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -14,14 +15,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  localizePaymentTermName,
-} from '@/modules/business-catalog/domain/payment-term-labels';
+  localizePaymentTermName} from '@/modules/business-catalog/domain/payment-term-labels';
 import { localizeCatalogEntryName } from '@/modules/business-catalog/domain/catalog-entry-localization';
 import {
   parsePaymentTermMetadata,
   type BusinessCatalogKind,
-  type PaymentTermStrategy,
-} from '@/modules/business-catalog/domain/types';
+  type PaymentTermStrategy} from '@/modules/business-catalog/domain/types';
 import type { SettingsActionState } from '../actions';
 import {
   createCatalogEntryAction,
@@ -30,29 +29,25 @@ import {
   deactivateDocumentRequirementsAction,
   setCostCodesEnabledAction,
   setDefaultPaymentTermKeyAction,
-  updateCatalogEntryAction,
-} from './actions';
+  updateCatalogEntryAction} from './actions';
 import { CatalogEntryNameField } from './_lib/catalog-entry-name-field';
 import {
   groupDocumentRequirements,
-  type DocumentRequirementGroupView,
-} from './_lib/document-requirement-groups';
+  type DocumentRequirementGroupView} from './_lib/document-requirement-groups';
 import {
   BUSINESS_CATALOG_KINDS,
   DOC_REQ_CONTEXT_KINDS,
   PAYMENT_TERM_STRATEGIES,
   VENDOR_TYPE_CONTEXT_KEYS,
   type CatalogEntryView,
-  type DocumentRequirementView,
-} from './_lib/types';
+  type DocumentRequirementView} from './_lib/types';
 
 export function BusinessCatalogsPanel({
   entriesByKind,
   documentRequirements,
   costCodesEnabled,
   defaultPaymentTermKey,
-  canEdit,
-}: {
+  canEdit}: {
   entriesByKind: Record<BusinessCatalogKind, CatalogEntryView[]>;
   documentRequirements: readonly DocumentRequirementView[];
   costCodesEnabled: boolean;
@@ -62,9 +57,12 @@ export function BusinessCatalogsPanel({
   const t = useTranslations('settings.businessCatalogs');
 
   return (
-    <div className="flex flex-col gap-8">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+      </MainAppSection>
 
+      <MainAppSection className="w-full min-w-0">
       <Tabs defaultValue="client_type">
         <TabsList aria-label={t('tabsLabel')}>
           {BUSINESS_CATALOG_KINDS.map((kind) => (
@@ -86,6 +84,7 @@ export function BusinessCatalogsPanel({
           </TabsContent>
         ))}
       </Tabs>
+      </MainAppSection>
 
       <DocumentRequirementsSection items={documentRequirements} canEdit={canEdit} />
     </div>
@@ -97,8 +96,7 @@ function CatalogKindTab({
   entries,
   canEdit,
   costCodesEnabled,
-  defaultPaymentTermKey,
-}: {
+  defaultPaymentTermKey}: {
   kind: BusinessCatalogKind;
   entries: readonly CatalogEntryView[];
   canEdit: boolean;
@@ -145,8 +143,7 @@ function CatalogKindTab({
 
 function CostCodesEnabledToggle({
   enabled,
-  canEdit,
-}: {
+  canEdit}: {
   enabled: boolean;
   canEdit: boolean;
 }) {
@@ -208,8 +205,7 @@ function CostCodesEnabledToggle({
 function DefaultPaymentTermSetting({
   entries,
   defaultKey,
-  canEdit,
-}: {
+  canEdit}: {
   entries: readonly CatalogEntryView[];
   defaultKey: string | null;
   canEdit: boolean;
@@ -283,8 +279,7 @@ function PaymentTermFields({
   strategy,
   onStrategyChange,
   netDays,
-  eomOffsetDays,
-}: {
+  eomOffsetDays}: {
   strategy: PaymentTermStrategy;
   onStrategyChange: (value: PaymentTermStrategy) => void;
   netDays?: number | '';
@@ -293,8 +288,8 @@ function PaymentTermFields({
   const t = useTranslations('settings.businessCatalogs');
 
   return (
-    <div className="grid w-full gap-3 sm:grid-cols-2">
-      <Field label={t('strategy')}>
+    <MainAppFormGrid dense className="w-full min-w-0 gap-3">
+      <Field label={t('strategy')} className={mainAppFieldSpan.lg}>
         {(props) => (
           <>
             <input type="hidden" name="strategy" value={strategy} />
@@ -318,7 +313,7 @@ function PaymentTermFields({
       </Field>
 
       {strategy === 'net_days' ? (
-        <Field label={t('netDays')}>
+        <Field label={t('netDays')} className={mainAppFieldSpan.lg}>
           {(props) => (
             <Input
               {...props}
@@ -334,7 +329,7 @@ function PaymentTermFields({
       ) : null}
 
       {strategy === 'eom_plus_days' ? (
-        <Field label={t('eomOffsetDays')}>
+        <Field label={t('eomOffsetDays')} className={mainAppFieldSpan.lg}>
           {(props) => (
             <Input
               {...props}
@@ -348,7 +343,7 @@ function PaymentTermFields({
           )}
         </Field>
       ) : null}
-    </div>
+    </MainAppFormGrid>
   );
 }
 
@@ -364,7 +359,7 @@ function AddCatalogEntryForm({ kind }: { kind: BusinessCatalogKind }) {
   return (
     <form
       action={createAction}
-      className="flex w-full max-w-xl flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-3"
+      className="flex w-full min-w-0 flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-3"
     >
       <h3 className="font-medium">{t('addItem')}</h3>
       <input type="hidden" name="kind" value={kind} />
@@ -375,31 +370,36 @@ function AddCatalogEntryForm({ kind }: { kind: BusinessCatalogKind }) {
         </Alert>
       ) : null}
 
-      <Field label={tCommon('labels.name')} required>
-        {(props) => <Input {...props} name="name" required />}
-      </Field>
-
-      {kind === 'payment_term' ? (
-        <PaymentTermFields strategy={strategy} onStrategyChange={setStrategy} />
-      ) : null}
-
-      {kind === 'cost_code' ? (
-        <Field label={t('code')} optionalLabel={tCommon('labels.optional')}>
-          {(props) => <Input {...props} name="code" dir="ltr" />}
+      <MainAppFormGrid dense className="gap-4">
+        <Field label={tCommon('labels.name')} required className={mainAppFieldSpan.lg}>
+          {(props) => <Input {...props} name="name" required />}
         </Field>
-      ) : null}
 
-      <Button type="submit" size="sm" loading={createPending}>
-        {t('addItem')}
-      </Button>
+        {kind === 'payment_term' ? (
+          <div className={mainAppFieldSpan.full}>
+            <PaymentTermFields strategy={strategy} onStrategyChange={setStrategy} />
+          </div>
+        ) : null}
+
+        {kind === 'cost_code' ? (
+          <Field label={t('code')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+            {(props) => <Input {...props} name="code" dir="ltr" />}
+          </Field>
+        ) : null}
+
+        <div className={mainAppFieldSpan.full}>
+          <Button type="submit" size="sm" loading={createPending}>
+            {t('addItem')}
+          </Button>
+        </div>
+      </MainAppFormGrid>
     </form>
   );
 }
 
 function CatalogEntryRow({
   entry,
-  canEdit,
-}: {
+  canEdit}: {
   entry: CatalogEntryView;
   canEdit: boolean;
 }) {
@@ -505,8 +505,7 @@ function CatalogEntryRow({
 
 function DocumentRequirementsSection({
   items,
-  canEdit,
-}: {
+  canEdit}: {
   items: readonly DocumentRequirementView[];
   canEdit: boolean;
 }) {
@@ -529,12 +528,7 @@ function DocumentRequirementsSection({
   );
 
   return (
-    <section className="flex flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
-      <div>
-        <h2 className="text-base font-semibold">{t('docReqsTitle')}</h2>
-        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('docReqsHint')}</p>
-      </div>
-
+    <MainAppSection title={t('docReqsTitle')} description={t('docReqsHint')} className="w-full min-w-0">
       {groups.length === 0 ? (
         <EmptyState title={t('docReqsEmpty')} description={t('docReqsHint')} />
       ) : (
@@ -548,7 +542,7 @@ function DocumentRequirementsSection({
       {canEdit ? (
         <form
           action={createAction}
-          className="flex w-full max-w-xl flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-3"
+          className="flex w-full min-w-0 flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-3"
         >
           {createState.error ? <Alert tone="danger">{createState.error}</Alert> : null}
           {createState.ok ? (
@@ -557,49 +551,24 @@ function DocumentRequirementsSection({
             </Alert>
           ) : null}
 
-          <Field label={t('contextKind')}>
-            {(props) => (
-              <>
-                <input type="hidden" name="contextKind" value={contextKind} />
-                <Select
-                  value={contextKind}
-                  onValueChange={(value) =>
-                    setContextKind(value as (typeof DOC_REQ_CONTEXT_KINDS)[number])
-                  }
-                >
-                  <SelectTrigger id={props.id} aria-describedby={props['aria-describedby']}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DOC_REQ_CONTEXT_KINDS.map((key) => (
-                      <SelectItem key={key} value={key}>
-                        {t(`contextKinds.${key}`)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </>
-            )}
-          </Field>
-
-          {contextKind === 'vendor_type' ? (
-            <Field label={t('contextKey')}>
+          <MainAppFormGrid dense className="gap-4">
+            <Field label={t('contextKind')} className={mainAppFieldSpan.lg}>
               {(props) => (
                 <>
-                  <input type="hidden" name="contextKey" value={contextKey} />
+                  <input type="hidden" name="contextKind" value={contextKind} />
                   <Select
-                    value={contextKey}
+                    value={contextKind}
                     onValueChange={(value) =>
-                      setContextKey(value as (typeof VENDOR_TYPE_CONTEXT_KEYS)[number])
+                      setContextKind(value as (typeof DOC_REQ_CONTEXT_KINDS)[number])
                     }
                   >
                     <SelectTrigger id={props.id} aria-describedby={props['aria-describedby']}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {VENDOR_TYPE_CONTEXT_KEYS.map((key) => (
+                      {DOC_REQ_CONTEXT_KINDS.map((key) => (
                         <SelectItem key={key} value={key}>
-                          {t(`vendorTypes.${key}`)}
+                          {t(`contextKinds.${key}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -607,22 +576,51 @@ function DocumentRequirementsSection({
                 </>
               )}
             </Field>
-          ) : null}
 
-          <Field label={t('documentTypeKey')} required>
-            {(props) => <Input {...props} name="documentTypeKey" dir="ltr" required />}
-          </Field>
+            {contextKind === 'vendor_type' ? (
+              <Field label={t('contextKey')} className={mainAppFieldSpan.lg}>
+                {(props) => (
+                  <>
+                    <input type="hidden" name="contextKey" value={contextKey} />
+                    <Select
+                      value={contextKey}
+                      onValueChange={(value) =>
+                        setContextKey(value as (typeof VENDOR_TYPE_CONTEXT_KEYS)[number])
+                      }
+                    >
+                      <SelectTrigger id={props.id} aria-describedby={props['aria-describedby']}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VENDOR_TYPE_CONTEXT_KEYS.map((key) => (
+                          <SelectItem key={key} value={key}>
+                            {t(`vendorTypes.${key}`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
+              </Field>
+            ) : null}
 
-          <Field label={t('label')} optionalLabel={tCommon('labels.optional')}>
-            {(props) => <Input {...props} name="label" />}
-          </Field>
+            <Field label={t('documentTypeKey')} required className={mainAppFieldSpan.lg}>
+              {(props) => <Input {...props} name="documentTypeKey" dir="ltr" required />}
+            </Field>
 
-          <Button type="submit" size="sm" loading={createPending}>
-            {t('addDocReq')}
-          </Button>
+            <Field label={t('label')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+              {(props) => <Input {...props} name="label" />}
+            </Field>
+
+            <div className={mainAppFieldSpan.full}>
+              <Button type="submit" size="sm" loading={createPending}>
+                {t('addDocReq')}
+              </Button>
+            </div>
+          </MainAppFormGrid>
         </form>
       ) : null}
-    </section>
+    </MainAppSection>
   );
 }
 
@@ -643,8 +641,7 @@ function formatDocumentRequirementContextLabel(
 
 function DocumentRequirementGroupRow({
   group,
-  canEdit,
-}: {
+  canEdit}: {
   group: DocumentRequirementGroupView;
   canEdit: boolean;
 }) {

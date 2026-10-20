@@ -1,4 +1,5 @@
-import { getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { tenderOfferVendorLabel } from '@/modules/contractor-procurement/domain/tender-offer-display';
@@ -43,8 +44,9 @@ export async function TenderPackageScreen({ surfaceRoot: _surfaceRoot,
 
   return (
     <WithAppClientMessages extra={['awards']}>
-      <div className="flex flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={detail.pkg.title} description={detail.pkg.scopeDescription ?? t('detail.scopeEmpty')} />
+      <MainAppSection>
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <StatusBadge label={t(`status.${detail.pkg.status}`)} shape="pending" />
           <span className="text-[var(--pf-text-muted)]">
@@ -102,7 +104,9 @@ export async function TenderPackageScreen({ surfaceRoot: _surfaceRoot,
             </ul>
           )}
         </section>
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

@@ -1,4 +1,11 @@
-import { Plus } from 'lucide-react';
+import {
+  MainAppListBody,
+  MainAppListPagination,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+﻿import { Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -14,14 +21,16 @@ import {
   resolveProjectCoverViewUrls,
 } from '@/modules/projects';
 import { ProjectListCoverThumb } from '@/modules/projects/ui/project-list-cover-thumb';
-import { QueryPagination } from '@/components/ui/query-pagination';
 import {
-  ORG_LIST_PAGE_SIZE,
   orgListOffset,
   orgListPageCount,
   parseOrgListPage,
   resolveOrgListPage,
 } from '@/shared/db/org-list-pagination';
+import {
+  MAIN_APP_DEFAULT_LIST_PAGE_SIZE,
+  parseMainAppListPageSize,
+} from '@/shared/db/main-app-list-page-size';
 import { listCloseoutStatusesForProjects } from '@/modules/closeout';
 import { titleWithDocumentNumber } from '@/modules/tenancy';
 import {
@@ -54,6 +63,7 @@ interface ProjectsPageProps {
     q?: string;
     facet?: string;
     page?: string;
+    pageSize?: string;
     /** @deprecated Prefer `facet`; kept for old bookmarks. */
     status?: string;
   }>;
@@ -83,6 +93,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   ]);
   const facet = resolveFacet(params);
   const resolved = resolveWorkListFacet(facet);
+  const pageSize = parseMainAppListPageSize(params.pageSize, MAIN_APP_DEFAULT_LIST_PAGE_SIZE);
   const requestedPage = parseOrgListPage(params.page);
   const listFilters = {
     search: params.q,
@@ -98,11 +109,11 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   const { projects, readyCloseoutIds, totalCount, currentPage, totalPages, coverUrls } =
     await withOrgContext(async (context) => {
       const total = await countProjectsForOrg(context, listFilters);
-      const page = resolveOrgListPage(total, requestedPage);
+      const page = resolveOrgListPage(total, requestedPage, pageSize);
       const listed = await listProjectsForOrg(context, {
         ...listFilters,
-        limit: ORG_LIST_PAGE_SIZE,
-        offset: orgListOffset(page),
+        limit: pageSize,
+        offset: orgListOffset(page, pageSize),
       });
       const statuses = await listCloseoutStatusesForProjects(
         context,
@@ -123,14 +134,14 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
         ),
         totalCount: total,
         currentPage: page,
-        totalPages: orgListPageCount(total),
+        totalPages: orgListPageCount(total, pageSize),
       };
     });
 
   const noResultsQuery = params.q?.trim() || t(`list.facets.${facet}`);
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         actions={
@@ -149,8 +160,9 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
           </div>
         }
       />
-
-      <ProjectListFilters initialQuery={params.q ?? ''} initialFacet={facet} namespace="projects" />
+      <MainAppSection>
+        <MainAppListBody>
+        <ProjectListFilters initialQuery={params.q ?? ''} initialFacet={facet} namespace="projects" />
 
       {projects.length === 0 ? (
         filtersActive ? (
@@ -188,7 +200,8 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
           items={projects}
           getRowKey={(project) => project.id}
           desktop={
-            <Table>
+            <MainAppTableShell>
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>{t('list.columns.name')}</TableHead>
@@ -239,6 +252,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                 })}
               </TableBody>
             </Table>
+            </MainAppTableShell>
           }
           renderMobileCard={(project) => {
             const money =
@@ -284,18 +298,21 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
         />
       )}
 
-      <QueryPagination
+      <MainAppListPagination
         basePath="/projects"
         currentPage={currentPage}
         totalPages={totalPages}
         totalCount={totalCount}
-        pageSize={ORG_LIST_PAGE_SIZE}
+        pageSize={pageSize}
         currentParams={{ q: params.q, facet, status: params.status }}
         previousLabel={tCommon('actions.previous')}
         nextLabel={tCommon('actions.next')}
         pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
         navLabel={tCommon('pagination.navLabel')}
+        rowsPerPageLabel={tCommon('pagination.rowsPerPage')}
       />
-    </div>
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

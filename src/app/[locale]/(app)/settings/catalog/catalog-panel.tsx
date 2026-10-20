@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useActionState, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { formatPercentDisplay } from '@/shared/number/display';
 import { localizeCode } from '@/shared/i18n/code-display';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
@@ -18,15 +19,13 @@ import {
   createServiceDomainAction,
   renameCatalogItemAction,
   saveLaborCostDefaultsAction,
-  type SettingsActionState,
-} from '../actions';
+  type SettingsActionState} from '../actions';
 
 export function CatalogSettingsPanel({
   domains,
   documentTypes,
   laborDefaults,
-  canEdit,
-}: {
+  canEdit}: {
   domains: readonly OrganizationDomainRow[];
   documentTypes: readonly OrganizationDomainRow[];
   laborDefaults: LaborCostDefaults;
@@ -35,8 +34,10 @@ export function CatalogSettingsPanel({
   const t = useTranslations('settings.catalog');
 
   return (
-    <div className="flex flex-col gap-8">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+      </MainAppSection>
 
       <CatalogList
         title={t('domainsTitle')}
@@ -70,8 +71,7 @@ function CatalogList({
   items,
   canEdit,
   createAction,
-  addLabel,
-}: {
+  addLabel}: {
   title: string;
   hint: string;
   emptyTitle: string;
@@ -88,12 +88,7 @@ function CatalogList({
   const [createState, action, pending] = useActionState(createAction, {} as SettingsActionState);
 
   return (
-    <section className="flex flex-col gap-3">
-      <div>
-        <h2 className="text-base font-semibold">{title}</h2>
-        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{hint}</p>
-      </div>
-
+    <MainAppSection title={title} description={hint} className="w-full min-w-0">
       {items.length === 0 ? (
         <EmptyState title={emptyTitle} description={hint} />
       ) : (
@@ -105,30 +100,33 @@ function CatalogList({
       )}
 
       {canEdit ? (
-        <form action={action} className="flex w-full max-w-md flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3">
+        <form action={action} className="flex w-full min-w-0 flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3">
           {createState.error ? <Alert tone="danger">{createState.error}</Alert> : null}
           {createState.ok ? (
             <Alert tone="success" role="status" aria-live="polite">
               {tCommon('states.saved')}
             </Alert>
           ) : null}
-          <Field label={tCommon('labels.name')} required>
-            {(props) => <Input {...props} name="name" required />}
-          </Field>
-          <Button type="submit" size="sm" loading={pending}>
-            {addLabel}
-          </Button>
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('copySemantics')}</p>
+          <MainAppFormGrid dense className="gap-4">
+            <Field label={tCommon('labels.name')} required className={mainAppFieldSpan.lg}>
+              {(props) => <Input {...props} name="name" required />}
+            </Field>
+            <div className={mainAppFieldSpan.full}>
+              <Button type="submit" size="sm" loading={pending}>
+                {addLabel}
+              </Button>
+              <p className="mt-2 text-xs text-[var(--pf-text-muted)]">{t('copySemantics')}</p>
+            </div>
+          </MainAppFormGrid>
         </form>
       ) : null}
-    </section>
+    </MainAppSection>
   );
 }
 
 function CatalogRow({
   item,
-  canEdit,
-}: {
+  canEdit}: {
   item: OrganizationDomainRow;
   canEdit: boolean;
 }) {
@@ -182,8 +180,7 @@ function CatalogRow({
 
 function LaborDefaultsForm({
   defaults,
-  canEdit,
-}: {
+  canEdit}: {
   defaults: LaborCostDefaults;
   canEdit: boolean;
 }) {
@@ -200,8 +197,7 @@ function LaborDefaultsForm({
       ? defaults.components.map((component) => ({
           name: component.key,
           basis: component.basis,
-          value: component.basis === 'percent' ? (component.percent ?? '') : (component.amount ?? ''),
-        }))
+          value: component.basis === 'percent' ? (component.percent ?? '') : (component.amount ?? '')}))
       : [{ name: '', basis: 'percent' as const, value: '' }];
 
   if (!canEdit && !defaults.burdenPercent && defaults.components.length === 0
@@ -210,60 +206,61 @@ function LaborDefaultsForm({
   }
 
   return (
-    <section className="flex flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
-      <div>
-        <h2 className="text-base font-semibold">{t('laborTitle')}</h2>
-        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('laborHint')}</p>
-      </div>
-
+    <MainAppSection title={t('laborTitle')} description={t('laborHint')} className="w-full min-w-0">
       {canEdit ? (
-        <form action={action} className="flex w-full max-w-lg flex-col gap-3">
+        <form action={action} className="flex w-full min-w-0 flex-col gap-3">
           {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
           {state.ok ? (
             <Alert tone="success" role="status" aria-live="polite">
               {t('laborSaved')}
             </Alert>
           ) : null}
-          <Field label={t('burdenPercent')} optionalLabel={tCommon('labels.optional')}>
-            {(props) => (
-              <Input
-                {...props}
-                name="burdenPercent"
-                inputMode="decimal"
-                dir="ltr"
-                defaultValue={defaults.burdenPercent ?? ''}
-              />
-            )}
-          </Field>
-          <Field label={t('standardHoursPerDay')} optionalLabel={tCommon('labels.optional')}>
-            {(props) => (
-              <Input
-                {...props}
-                name="standardHoursPerDay"
-                inputMode="decimal"
-                dir="ltr"
-                placeholder="8"
-                defaultValue={defaults.standardHoursPerDay ?? ''}
-              />
-            )}
-          </Field>
-          <Field label={t('workingDaysPerMonth')} optionalLabel={tCommon('labels.optional')}>
-            {(props) => (
-              <Input
-                {...props}
-                name="workingDaysPerMonth"
-                inputMode="decimal"
-                dir="ltr"
-                placeholder="22.75"
-                defaultValue={defaults.workingDaysPerMonth ?? ''}
-              />
-            )}
-          </Field>
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('workCalendarHint')}</p>
-          <LaborComponentsEditor initialRows={initialRows} />
-          <Button type="submit" loading={pending} variant="secondary">
-            {tCommon('actions.save')}
-          </Button>
+          <MainAppFormGrid dense className="gap-4">
+            <Field label={t('burdenPercent')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+              {(props) => (
+                <Input
+                  {...props}
+                  name="burdenPercent"
+                  inputMode="decimal"
+                  dir="ltr"
+                  defaultValue={defaults.burdenPercent ?? ''}
+                />
+              )}
+            </Field>
+            <Field label={t('standardHoursPerDay')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+              {(props) => (
+                <Input
+                  {...props}
+                  name="standardHoursPerDay"
+                  inputMode="decimal"
+                  dir="ltr"
+                  placeholder="8"
+                  defaultValue={defaults.standardHoursPerDay ?? ''}
+                />
+              )}
+            </Field>
+            <Field label={t('workingDaysPerMonth')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+              {(props) => (
+                <Input
+                  {...props}
+                  name="workingDaysPerMonth"
+                  inputMode="decimal"
+                  dir="ltr"
+                  placeholder="22.75"
+                  defaultValue={defaults.workingDaysPerMonth ?? ''}
+                />
+              )}
+            </Field>
+            <p className={`${mainAppFieldSpan.full} text-xs text-[var(--pf-text-muted)]`}>{t('workCalendarHint')}</p>
+            <div className={mainAppFieldSpan.full}>
+              <LaborComponentsEditor initialRows={initialRows} />
+            </div>
+            <div className={mainAppFieldSpan.full}>
+              <Button type="submit" loading={pending} variant="secondary">
+                {tCommon('actions.save')}
+              </Button>
+            </div>
+          </MainAppFormGrid>
         </form>
       ) : (
         <div className="flex flex-col gap-2">
@@ -292,7 +289,7 @@ function LaborDefaultsForm({
           ) : null}
         </div>
       )}
-    </section>
+    </MainAppSection>
   );
 }
 
@@ -320,7 +317,7 @@ function LaborComponentsEditor({ initialRows }: { initialRows: ComponentRow[] })
       <p className="text-xs text-[var(--pf-text-muted)]">{t('componentsHint')}</p>
       <input type="hidden" name="componentsText" value={serializeComponentRows(rows)} />
       {rows.map((row, index) => (
-        <div key={index} className="grid gap-2 rounded-md border border-[var(--pf-border-default)] p-2 sm:grid-cols-[1fr_8rem_6rem_auto]">
+        <div key={index} className="grid w-full min-w-0 gap-2 rounded-md border border-[var(--pf-border-default)] p-2 sm:grid-cols-[1fr_8rem_6rem_auto]">
           <Field label={t('componentName')}>
             {(props) => (
               <Input

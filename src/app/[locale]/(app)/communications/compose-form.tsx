@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import {
   saveDraftAction,
   type CommunicationsFormState,
@@ -38,7 +39,7 @@ export function CommunicationComposeForm({
   );
 
   return (
-    <form action={action} className="flex max-w-xl flex-col gap-4">
+    <form action={action} className="flex w-full min-w-0 flex-col gap-4">
       {defaults?.communicationId ? (
         <input type="hidden" name="communicationId" value={defaults.communicationId} />
       ) : null}
@@ -57,48 +58,50 @@ export function CommunicationComposeForm({
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{state.success}</Alert> : null}
 
-      <Field label={t('fields.related')}>
-        {(control) => (
-          <select
-            {...control}
-            name="relatedEntityType"
-            defaultValue={defaults?.relatedEntityType ?? 'other'}
-            className="h-10 rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 text-sm"
-          >
-            {COMMUNICATION_ENTITY_TYPES.map((kind) => (
-              <option key={kind} value={kind}>
-                {t(`kinds.${kind}`)}
-              </option>
-            ))}
-          </select>
-        )}
-      </Field>
-      <Field label={t('fields.to')} error={state.fieldErrors?.recipientEmail}>
-        {(control) => (
-          <Input
-            {...control}
-            name="recipientEmail"
-            type="email"
-            required
-            defaultValue={defaults?.recipientEmail ?? ''}
-          />
-        )}
-      </Field>
-      <Field label={t('fields.recipientName')}>
-        {(control) => (
-          <Input {...control} name="recipientName" defaultValue={defaults?.recipientName ?? ''} />
-        )}
-      </Field>
-      <Field label={t('fields.subject')}>
-        {(control) => (
-          <Input {...control} name="subject" required defaultValue={defaults?.subject ?? ''} />
-        )}
-      </Field>
-      <Field label={t('fields.body')}>
-        {(control) => (
-          <Textarea {...control} name="bodyText" required rows={8} defaultValue={defaults?.bodyText ?? ''} />
-        )}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field label={t('fields.related')} className={mainAppFieldSpan.md}>
+          {(control) => (
+            <select
+              {...control}
+              name="relatedEntityType"
+              defaultValue={defaults?.relatedEntityType ?? 'other'}
+              className="h-10 rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 text-sm"
+            >
+              {COMMUNICATION_ENTITY_TYPES.map((kind) => (
+                <option key={kind} value={kind}>
+                  {t(`kinds.${kind}`)}
+                </option>
+              ))}
+            </select>
+          )}
+        </Field>
+        <Field label={t('fields.to')} error={state.fieldErrors?.recipientEmail} className={mainAppFieldSpan.lg}>
+          {(control) => (
+            <Input
+              {...control}
+              name="recipientEmail"
+              type="email"
+              required
+              defaultValue={defaults?.recipientEmail ?? ''}
+            />
+          )}
+        </Field>
+        <Field label={t('fields.recipientName')} className={mainAppFieldSpan.lg}>
+          {(control) => (
+            <Input {...control} name="recipientName" defaultValue={defaults?.recipientName ?? ''} />
+          )}
+        </Field>
+        <Field label={t('fields.subject')} className={mainAppFieldSpan.full}>
+          {(control) => (
+            <Input {...control} name="subject" required defaultValue={defaults?.subject ?? ''} />
+          )}
+        </Field>
+        <Field label={t('fields.body')} className={mainAppFieldSpan.full}>
+          {(control) => (
+            <Textarea {...control} name="bodyText" required rows={8} defaultValue={defaults?.bodyText ?? ''} />
+          )}
+        </Field>
+      </MainAppFormGrid>
       <div className="flex flex-wrap gap-2">
         <Button type="submit" name="intent" value="draft" variant="secondary" disabled={pending}>
           {t('actions.saveDraft')}

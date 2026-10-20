@@ -1,3 +1,9 @@
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -20,8 +26,11 @@ import { DailyLogStatusActions } from '../daily-log-status-actions';
 import { isDailyLogLocked } from '@/modules/field-ops/domain/daily-log-status';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { ReportDownloadButtons } from '@/modules/reports/ui';
-
+import type { DailyLogRecord } from '@/modules/field-ops/domain/types';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
+
+const EMPTY = '—';
+
 export async function generateMetadata({
   params,
 }: {
@@ -122,9 +131,11 @@ export default async function DailyLogDetailPage({
     if (incidentNotes) params.set('description', incidentNotes.slice(0, 4000));
     return `/safety/new?${params.toString()}`;
   })();
+  const locked = isDailyLogLocked(log.status);
+  const showFullReadOnly = locked || !canManage;
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={
           <span className="pf-ltr-island" dir="ltr">
@@ -134,10 +145,7 @@ export default async function DailyLogDetailPage({
         description={projectName ?? t('detail.unknownProject')}
         actions={<ReportDownloadButtons kind="field_daily" id={log.id} compact />}
         breadcrumb={
-          <Link
-            href="/field-ops/logs"
-            className={textNavLinkMutedClassName}
-          >
+          <Link href="/field-ops/logs" className={textNavLinkMutedClassName}>
             {tCommon('actions.back')}
           </Link>
         }
@@ -153,10 +161,7 @@ export default async function DailyLogDetailPage({
               }
               label={t(`logStatus.${log.status}`)}
             />
-            <Link
-              href={`/projects/${log.projectId}`}
-              className={textNavLinkClassName}
-            >
+            <Link href={`/projects/${log.projectId}`} className={textNavLinkClassName}>
               {projectName ?? t('detail.unknownProject')}
             </Link>
             {workPackageName ? <span>· {workPackageName}</span> : null}
@@ -166,97 +171,157 @@ export default async function DailyLogDetailPage({
       />
 
       {canManage ? (
-        <>
+        <MainAppSection>
           <DailyLogStatusActions log={log} />
-          {isDailyLogLocked(log.status) ? (
-            <div className="flex max-w-lg flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-sm">
-              <DetailBlock label={t('createLog.summaryLabel')} value={log.summary} />
-              <DetailBlock label={t('createLog.workforceNotesLabel')} value={log.workforceNotes} />
-              <DetailBlock label={t('createLog.blockersLabel')} value={log.blockers} />
-              <DetailBlock
-                label={t('createLog.vendorsOnSite')}
-                value={vendorNames.length > 0 ? vendorNames.join(', ') : null}
-              />
-              <DetailBlock
-                label={t('createLog.employeesOnSite')}
-                value={employeeNames.length > 0 ? employeeNames.join(', ') : null}
-              />
-              <DetailBlock
-                label={t('createLog.assetsOnSite')}
-                value={assetNames.length > 0 ? assetNames.join(', ') : null}
-              />
-              <DetailBlock label={t('extraFields.workersOnSite')} value={log.workersOnSite} />
-              <DetailBlock label={t('extraFields.subcontractorsOnSite')} value={log.subcontractorsOnSite} />
-              <DetailBlock label={t('extraFields.equipmentOnSite')} value={log.equipmentOnSite} />
-              <DetailBlock label={t('extraFields.deliveries')} value={log.deliveries} />
-              <DetailBlock label={t('extraFields.delays')} value={log.delays} />
-              <DetailBlock label={t('extraFields.incidents')} value={log.incidents} />
-              <DetailBlock label={t('extraFields.safetyNotes')} value={log.safetyNotes} />
-              <DetailBlock label={t('extraFields.visitorNotes')} value={log.visitorNotes} />
-              <DetailBlock label={t('extraFields.managerNotes')} value={log.managerNotes} />
-              <DailyLogCorrectionNotes notes={log.correctionNotes} label={t('lifecycle.correctionHistory')} />
-            </div>
-          ) : (
-            <DailyLogEditForm
+        </MainAppSection>
+      ) : null}
+
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('createLog.workPackageLabel')}>
+            {workPackageName ?? EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('createLog.weatherLabel')}>
+            {log.weather?.trim() ? log.weather : EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('extraFields.workersOnSite')}>
+            {log.workersOnSite?.trim() ? log.workersOnSite : EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('createLog.vendorsOnSite')}>
+            {vendorNames.length > 0 ? vendorNames.join(', ') : EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('createLog.employeesOnSite')}>
+            {employeeNames.length > 0 ? employeeNames.join(', ') : EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('createLog.assetsOnSite')}>
+            {assetNames.length > 0 ? assetNames.join(', ') : EMPTY}
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
+      </MainAppSection>
+
+      {canManage && !locked ? (
+        <MainAppSection title={t('createLog.summaryLabel')}>
+          <DailyLogEditForm log={log} vendors={vendors} employees={employees} assets={assets} />
+        </MainAppSection>
+      ) : null}
+
+      {showFullReadOnly ? (
+        <>
+          <MainAppSection title={t('createLog.summaryLabel')}>
+            <DailyLogReadOnlyCore
               log={log}
-              vendors={vendors}
-              employees={employees}
-              assets={assets}
+              vendorNames={vendorNames}
+              employeeNames={employeeNames}
+              assetNames={assetNames}
             />
+          </MainAppSection>
+          <MainAppSection title={t('extraFields.title')}>
+            <DailyLogReadOnlyExtra log={log} includeAll={locked && canManage} />
+            <DailyLogCorrectionNotes notes={log.correctionNotes} label={t('lifecycle.correctionHistory')} />
+          </MainAppSection>
+        </>
+      ) : null}
+
+      {!locked && canManage ? (
+        <MainAppSection title={t('lifecycle.correctionHistory')}>
+          <DailyLogCorrectionNotes notes={log.correctionNotes} label={t('lifecycle.correctionHistory')} />
+        </MainAppSection>
+      ) : null}
+
+      {log.linkedSafetyRecordId || (canCreateSafety && incidentNotes) ? (
+        <MainAppSection>
+          {log.linkedSafetyRecordId ? (
+            <p className="text-sm">
+              <Link href={`/safety/${log.linkedSafetyRecordId}`} className={textNavLinkClassName}>
+                {t('lifecycle.linkedSafety')}
+              </Link>
+            </p>
+          ) : (
+            <p className="text-sm">
+              <Link href={safetyHref} className={textNavLinkClassName}>
+                {t('lifecycle.createSafety')}
+              </Link>
+            </p>
           )}
+        </MainAppSection>
+      ) : null}
+
+      <MainAppSection title={t('cockpit.actions.documents')}>
+        <DocumentAttachments
+          ownerType="daily_log"
+          ownerId={log.id}
+          documents={documentsPanel.documents}
+          linkCandidates={documentsPanel.linkCandidates}
+          canRead={documentsPanel.canRead}
+          canManage={documentsPanel.canManage}
+          storageConfigured={documentsPanel.storageConfigured}
+        />
+      </MainAppSection>
+    </MainAppPage>
+  );
+}
+
+async function DailyLogReadOnlyCore({
+  log,
+  vendorNames,
+  employeeNames,
+  assetNames,
+}: {
+  log: DailyLogRecord;
+  vendorNames: string[];
+  employeeNames: string[];
+  assetNames: string[];
+}) {
+  const t = await getTranslations('fieldOps');
+  return (
+    <div className="flex max-w-lg flex-col gap-4 text-sm">
+      <DetailBlock label={t('createLog.summaryLabel')} value={log.summary} />
+      <DetailBlock label={t('createLog.workforceNotesLabel')} value={log.workforceNotes} />
+      <DetailBlock label={t('createLog.blockersLabel')} value={log.blockers} />
+      <DetailBlock
+        label={t('createLog.vendorsOnSite')}
+        value={vendorNames.length > 0 ? vendorNames.join(', ') : null}
+      />
+      <DetailBlock
+        label={t('createLog.employeesOnSite')}
+        value={employeeNames.length > 0 ? employeeNames.join(', ') : null}
+      />
+      <DetailBlock
+        label={t('createLog.assetsOnSite')}
+        value={assetNames.length > 0 ? assetNames.join(', ') : null}
+      />
+    </div>
+  );
+}
+
+async function DailyLogReadOnlyExtra({
+  log,
+  includeAll,
+}: {
+  log: DailyLogRecord;
+  includeAll: boolean;
+}) {
+  const t = await getTranslations('fieldOps');
+  return (
+    <div className="flex max-w-lg flex-col gap-4 text-sm">
+      {includeAll ? (
+        <>
+          <DetailBlock label={t('extraFields.workersOnSite')} value={log.workersOnSite} />
+          <DetailBlock label={t('extraFields.subcontractorsOnSite')} value={log.subcontractorsOnSite} />
+          <DetailBlock label={t('extraFields.equipmentOnSite')} value={log.equipmentOnSite} />
+          <DetailBlock label={t('extraFields.deliveries')} value={log.deliveries} />
+          <DetailBlock label={t('extraFields.delays')} value={log.delays} />
+          <DetailBlock label={t('extraFields.incidents')} value={log.incidents} />
+          <DetailBlock label={t('extraFields.safetyNotes')} value={log.safetyNotes} />
+          <DetailBlock label={t('extraFields.visitorNotes')} value={log.visitorNotes} />
+          <DetailBlock label={t('extraFields.managerNotes')} value={log.managerNotes} />
         </>
       ) : (
-        <div className="flex max-w-lg flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-sm">
-          <DetailBlock label={t('createLog.summaryLabel')} value={log.summary} />
-          <DetailBlock label={t('createLog.workforceNotesLabel')} value={log.workforceNotes} />
-          <DetailBlock label={t('createLog.blockersLabel')} value={log.blockers} />
-          <DetailBlock
-            label={t('createLog.vendorsOnSite')}
-            value={vendorNames.length > 0 ? vendorNames.join(', ') : null}
-          />
-          <DetailBlock
-            label={t('createLog.employeesOnSite')}
-            value={employeeNames.length > 0 ? employeeNames.join(', ') : null}
-          />
-          <DetailBlock
-            label={t('createLog.assetsOnSite')}
-            value={assetNames.length > 0 ? assetNames.join(', ') : null}
-          />
+        <>
           <DetailBlock label={t('extraFields.subcontractorsOnSite')} value={log.subcontractorsOnSite} />
           <DetailBlock label={t('extraFields.managerNotes')} value={log.managerNotes} />
-          <DailyLogCorrectionNotes notes={log.correctionNotes} label={t('lifecycle.correctionHistory')} />
-        </div>
+        </>
       )}
-
-      {!isDailyLogLocked(log.status) && canManage ? (
-        <div className="max-w-lg">
-          <DailyLogCorrectionNotes notes={log.correctionNotes} label={t('lifecycle.correctionHistory')} />
-        </div>
-      ) : null}
-
-      {log.linkedSafetyRecordId ? (
-        <p className="text-sm">
-          <Link href={`/safety/${log.linkedSafetyRecordId}`} className={textNavLinkClassName}>
-            {t('lifecycle.linkedSafety')}
-          </Link>
-        </p>
-      ) : canCreateSafety && incidentNotes ? (
-        <p className="text-sm">
-          <Link href={safetyHref} className={textNavLinkClassName}>
-            {t('lifecycle.createSafety')}
-          </Link>
-        </p>
-      ) : null}
-
-      <DocumentAttachments
-        ownerType="daily_log"
-        ownerId={log.id}
-        documents={documentsPanel.documents}
-        linkCandidates={documentsPanel.linkCandidates}
-        canRead={documentsPanel.canRead}
-        canManage={documentsPanel.canManage}
-        storageConfigured={documentsPanel.storageConfigured}
-      />
     </div>
   );
 }

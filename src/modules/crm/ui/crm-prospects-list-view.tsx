@@ -1,0 +1,122 @@
+import { Building2, Plus } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
+import { MainAppListBody, MainAppSection, MainAppTableShell } from '@/components/patterns/main-app';
+import { ResponsiveTable } from '@/components/patterns/responsive-table';
+import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/ui/page-header';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { listProspectsForOrg } from '@/modules/crm';
+import { CrmSearchForm } from '@/modules/crm/ui/crm-search-form';
+import { withOrgContext } from '@/shared/auth/session';
+import { Link } from '@/shared/i18n/navigation';
+import { hasPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
+import { CrmSectionNav, CrmShell } from '@/app/[locale]/(app)/crm/crm-shell';
+
+export async function CrmProspectsListView({ searchQuery }: { searchQuery?: string }) {
+  const t = await getTranslations('crm');
+  const search = searchQuery?.trim() || undefined;
+  const { prospects, canManage } = await withOrgContext(async (context) => ({
+    prospects: await listProspectsForOrg(context, { search }),
+    canManage: hasPermission(context, PERMISSIONS.CRM_MANAGE),
+  }));
+
+  return (
+    <CrmShell>
+      <PageHeader
+        title={t('nav.prospects')}
+        actions={
+          canManage ? (
+            <Button asChild>
+              <Link href="/crm/prospects/new">
+                <Plus aria-hidden />
+                {t('prospect.new')}
+              </Link>
+            </Button>
+          ) : null
+        }
+      />
+      <CrmSectionNav active="prospects" />
+      <MainAppSection>
+        <MainAppListBody>
+          <CrmSearchForm query={searchQuery} />
+
+      {prospects.length === 0 ? (
+        <EmptyState
+          icon={Building2}
+          title={t('empty.prospects.title')}
+          description={t('empty.prospects.body')}
+          action={
+            canManage ? (
+              <Button asChild>
+                <Link href="/crm/prospects/new">{t('empty.prospects.action')}</Link>
+              </Button>
+            ) : undefined
+          }
+        />
+      ) : (
+        <ResponsiveTable
+          items={prospects}
+          getRowKey={(row) => row.id}
+          desktop={
+            <MainAppTableShell>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('list.columns.name')}</TableHead>
+                    <TableHead>{t('list.columns.company')}</TableHead>
+                    <TableHead>{t('list.columns.status')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {prospects.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell>
+                        <Link
+                          href={`/crm/prospects/${row.id}`}
+                          className={cn(textNavLinkClassName, 'font-medium')}
+                        >
+                          {row.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{row.companyName ?? '—'}</TableCell>
+                      <TableCell>
+                        <StatusBadge
+                          shape={row.status === 'active' ? 'active' : 'archived'}
+                          label={t(`statuses.prospect.${row.status}`)}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </MainAppTableShell>
+          }
+          renderMobileCard={(row) => (
+            <Link href={`/crm/prospects/${row.id}`} className={pressableCardLinkClassName}>
+              <div className="flex items-start justify-between gap-2">
+                <span className="min-w-0 flex-1 truncate text-start font-semibold">{row.name}</span>
+                <StatusBadge
+                  className="shrink-0"
+                  shape={row.status === 'active' ? 'active' : 'archived'}
+                  label={t(`statuses.prospect.${row.status}`)}
+                />
+              </div>
+              {row.companyName ? (
+                <p className="mt-1 truncate text-start text-sm text-[var(--pf-text-secondary)]">
+                  {row.companyName}
+                </p>
+              ) : null}
+            </Link>
+          )}
+        />
+      )}
+        </MainAppListBody>
+      </MainAppSection>
+    </CrmShell>
+  );
+}

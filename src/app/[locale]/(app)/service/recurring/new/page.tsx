@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { listClientsForOrg } from '@/modules/clients';
@@ -66,15 +67,18 @@ export default async function NewRecurringPage({
   }
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('create.title')} description={t('create.description')} />
-      <RecurrenceCreateForm
+      <MainAppSection>
+        <RecurrenceCreateForm
         clients={clients}
         employees={employees}
         baseCurrency={baseCurrency}
         defaultStartDate={defaultStartDate}
         action={createRecurrenceDefinitionAction}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

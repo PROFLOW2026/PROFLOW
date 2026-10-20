@@ -1,3 +1,10 @@
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
@@ -9,6 +16,7 @@ import { RecurrenceControls } from '@/modules/service/recurrence/ui/recurrence-c
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 import {
   endRecurrenceAction,
   generateRecurrenceAction,
@@ -16,6 +24,8 @@ import {
   resumeRecurrenceAction,
   skipRecurrenceAction,
 } from '../actions';
+
+const EMPTY = '—';
 
 export async function generateMetadata({
   params,
@@ -53,89 +63,87 @@ export default async function RecurringDetailPage({
 
   const { definition, clientName, occurrences, generatedCount } = detail;
 
+  const frequencyLabel = `${t(`frequency.${definition.frequency}`)}${
+    definition.intervalCount > 1 ? ` ×${definition.intervalCount}` : ''
+  }`;
+
+  const dateRange = definition.endDate
+    ? `${definition.startDate} → ${definition.endDate}`
+    : definition.startDate;
+
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={definition.title}
         description={t('detail.title')}
-        actions={
-          <Link
-            href="/service/recurring"
-            className="text-sm text-[var(--pf-text-brand)] underline-offset-4 hover:underline"
-          >
+        breadcrumb={
+          <Link href="/service/recurring" className={textNavLinkMutedClassName}>
             {t('actions.backToList')}
           </Link>
         }
+        meta={
+          <span className="text-sm text-[var(--pf-text-secondary)]">
+            {t(`status.${definition.status}`)}
+          </span>
+        }
       />
 
-      <Alert tone="info">{t('detail.financialNote')}</Alert>
-
-      <dl className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('fields.client')}</dt>
-          <dd>{clientName ?? t('fields.noClient')}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.status')}</dt>
-          <dd>{t(`status.${definition.status}`)}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('fields.frequency')}</dt>
-          <dd>
-            {t(`frequency.${definition.frequency}`)}
-            {definition.intervalCount > 1 ? ` ×${definition.intervalCount}` : ''}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.next')}</dt>
-          <dd dir="ltr">{definition.nextOccurrenceDate ?? '-'}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('fields.siteAddress')}</dt>
-          <dd>{definition.siteAddress ?? '-'}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('fields.startDate')}</dt>
-          <dd dir="ltr">
-            {definition.startDate}
-            {definition.endDate ? ` → ${definition.endDate}` : ''}
-          </dd>
-        </div>
-        {definition.defaultPriceAmount ? (
-          <div>
-            <dt className="text-xs text-[var(--pf-text-secondary)]">
-              {t('detail.templatePriceHint')}
-            </dt>
-            <dd dir="ltr">
-              {definition.defaultPriceAmount} {definition.currency}
-            </dd>
-          </div>
-        ) : null}
-      </dl>
+      <MainAppSection>
+        <Alert tone="info">{t('detail.financialNote')}</Alert>
+        <MainAppSummaryGrid className="mt-3">
+          <MainAppSummaryItem label={t('fields.client')}>
+            {clientName ?? t('fields.noClient')}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.status')}>
+            {t(`status.${definition.status}`)}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('fields.frequency')}>{frequencyLabel}</MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.next')}>
+            {definition.nextOccurrenceDate ? (
+              <span dir="ltr">{definition.nextOccurrenceDate}</span>
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('fields.siteAddress')}>
+            {definition.siteAddress?.trim() ? definition.siteAddress : EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('fields.startDate')}>
+            <span dir="ltr">{dateRange}</span>
+          </MainAppSummaryItem>
+          {definition.defaultPriceAmount ? (
+            <MainAppSummaryItem label={t('detail.templatePriceHint')}>
+              <span dir="ltr">
+                {definition.defaultPriceAmount} {definition.currency}
+              </span>
+            </MainAppSummaryItem>
+          ) : null}
+        </MainAppSummaryGrid>
+      </MainAppSection>
 
       {canManage ? (
-        <RecurrenceControls
-          definitionId={definition.id}
-          status={definition.status}
-          nextOccurrenceDate={definition.nextOccurrenceDate}
-          generateAction={generateRecurrenceAction}
-          pauseAction={pauseRecurrenceAction}
-          resumeAction={resumeRecurrenceAction}
-          endAction={endRecurrenceAction}
-          skipAction={skipRecurrenceAction}
-        />
+        <MainAppSection>
+          <RecurrenceControls
+            definitionId={definition.id}
+            status={definition.status}
+            nextOccurrenceDate={definition.nextOccurrenceDate}
+            generateAction={generateRecurrenceAction}
+            pauseAction={pauseRecurrenceAction}
+            resumeAction={resumeRecurrenceAction}
+            endAction={endRecurrenceAction}
+            skipAction={skipRecurrenceAction}
+          />
+        </MainAppSection>
       ) : null}
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">{t('detail.history')}</h2>
-        <p className="text-sm text-[var(--pf-text-secondary)]">
-          {t('detail.generatedCount', { count: generatedCount })}
-        </p>
-
+      <MainAppSection
+        title={t('detail.history')}
+        description={t('detail.generatedCount', { count: generatedCount })}
+      >
         {occurrences.length === 0 ? (
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.noHistory')}</p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+          <MainAppTableShell>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -153,7 +161,7 @@ export default async function RecurringDetailPage({
                       {row.generatedProjectId ? (
                         <Link
                           href={`/work-orders/${row.generatedProjectId}`}
-                          className="text-[var(--pf-text-brand)] underline-offset-4 hover:underline"
+                          className={textNavLinkClassName}
                         >
                           {row.generatedProjectName ?? t('detail.openWorkOrder')}
                         </Link>
@@ -162,16 +170,16 @@ export default async function RecurringDetailPage({
                           {row.skippedReason}
                         </span>
                       ) : (
-                        '-'
+                        EMPTY
                       )}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </MainAppTableShell>
         )}
-      </section>
-    </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

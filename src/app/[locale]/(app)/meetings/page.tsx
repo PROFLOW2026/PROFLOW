@@ -1,4 +1,11 @@
-import type { Metadata } from 'next';
+import {
+  MainAppListBody,
+  MainAppListPagination,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { Calendar, MapPin, Plus, Users } from 'lucide-react';
@@ -8,14 +15,16 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { countMeetingsForOrg, listMeetingsForOrg } from '@/modules/meetings';
 import { OwnerMeetingsFilterBar } from '@/modules/meetings/ui/owner-meetings-filter-bar';
-import { QueryPagination } from '@/components/ui/query-pagination';
 import {
-  ORG_LIST_PAGE_SIZE,
   orgListOffset,
   orgListPageCount,
   parseOrgListPage,
   resolveOrgListPage,
 } from '@/shared/db/org-list-pagination';
+import {
+  MAIN_APP_DEFAULT_LIST_PAGE_SIZE,
+  parseMainAppListPageSize,
+} from '@/shared/db/main-app-list-page-size';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import type { MeetingListFilters } from '@/modules/meetings';
@@ -25,7 +34,6 @@ import { Link } from '@/shared/i18n/navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import { loadProjectDisplayNameMap } from '@/modules/projects/application/project-display-names';
-import { uwmListPanelClass } from '@/shared/ui/uwm-surface-styles';
 
 export async function generateMetadata({
   params,
@@ -45,6 +53,7 @@ interface MeetingsPageProps {
     to?: string;
     q?: string;
     page?: string;
+    pageSize?: string;
   }>;
 }
 
@@ -62,6 +71,7 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
     getTranslations('common'),
     getLocale(),
   ]);
+  const pageSize = parseMainAppListPageSize(params.pageSize, MAIN_APP_DEFAULT_LIST_PAGE_SIZE);
   const requestedPage = parseOrgListPage(params.page);
 
   const baseFilters: MeetingListFilters = {
@@ -75,11 +85,11 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
   const { meetings, totalCount, currentPage, totalPages, projectOptions } = await withOrgContext(
     async (context) => {
       const total = await countMeetingsForOrg(context, baseFilters);
-      const page = resolveOrgListPage(total, requestedPage);
+      const page = resolveOrgListPage(total, requestedPage, pageSize);
       const rows = await listMeetingsForOrg(context, {
         ...baseFilters,
-        limit: ORG_LIST_PAGE_SIZE,
-        offset: orgListOffset(page),
+        limit: pageSize,
+        offset: orgListOffset(page, pageSize),
       });
       const projectIds = [...new Set(rows.map((row) => row.projectId).filter(Boolean) as string[])];
       const labels = await loadProjectDisplayNameMap(context.db, context.organizationId, projectIds);
@@ -90,17 +100,16 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
         meetings: rows,
         totalCount: total,
         currentPage: page,
-        totalPages: orgListPageCount(total),
+        totalPages: orgListPageCount(total, pageSize),
         projectOptions,
       };
     },
   );
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('meetings.pageTitle')}
-        description={t('meetings.pageDescription')}
         actions={
           canManage ? (
             <Button asChild>
@@ -112,8 +121,9 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
           ) : undefined
         }
       />
-
-      <Suspense fallback={null}>
+      <MainAppSection>
+        <MainAppListBody>
+        <Suspense fallback={null}>
         <OwnerMeetingsFilterBar projectOptions={projectOptions} totalCount={totalCount} />
       </Suspense>
 
@@ -135,7 +145,7 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
           }
         />
       ) : (
-        <div className={cn('overflow-x-auto', uwmListPanelClass)}>
+        <MainAppTableShell>
           <Table>
             <TableHeader>
               <TableRow>
@@ -198,15 +208,15 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
               ))}
             </TableBody>
           </Table>
-        </div>
+        </MainAppTableShell>
       )}
 
-      <QueryPagination
+      <MainAppListPagination
         basePath="/meetings"
         currentPage={currentPage}
         totalPages={totalPages}
         totalCount={totalCount}
-        pageSize={ORG_LIST_PAGE_SIZE}
+        pageSize={pageSize}
         currentParams={{
           project: params.project,
           workspace: params.workspace,
@@ -218,8 +228,11 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
         nextLabel={tCommon('actions.next')}
         pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
         navLabel={tCommon('pagination.navLabel')}
+        rowsPerPageLabel={tCommon('pagination.rowsPerPage')}
       />
-    </div>
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

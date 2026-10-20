@@ -9,6 +9,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState, useState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -51,16 +52,17 @@ export function AttendanceCorrectionRequestForm({
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       {state.error && (
         <Alert tone="danger">{state.error}</Alert>
       )}
 
-      {/* Date selection */}
+      <MainAppFormGrid dense className="gap-4">
       <Field
         label={t('workDate')}
         error={state.fieldErrors?.workDate}
         required
+        className={mainAppFieldSpan.md}
       >
         {(control) => (
           <Input
@@ -75,12 +77,11 @@ export function AttendanceCorrectionRequestForm({
         )}
       </Field>
 
-      {/* Requested times */}
-      <div className="grid grid-cols-2 gap-3">
         <Field
           label={t('requestedClockIn')}
           error={state.fieldErrors?.requestedClockIn}
           required
+          className={mainAppFieldSpan.md}
         >
           {(control) => (
             <Input
@@ -95,6 +96,7 @@ export function AttendanceCorrectionRequestForm({
           label={t('requestedClockOut')}
           error={state.fieldErrors?.requestedClockOut}
           required
+          className={mainAppFieldSpan.md}
         >
           {(control) => (
             <Input
@@ -105,13 +107,12 @@ export function AttendanceCorrectionRequestForm({
             />
           )}
         </Field>
-      </div>
 
-      {/* Reason */}
       <Field
         label={t('reason')}
         error={state.fieldErrors?.reason}
         required
+        className={mainAppFieldSpan.full}
       >
         {(control) => (
           <Textarea
@@ -124,6 +125,7 @@ export function AttendanceCorrectionRequestForm({
           />
         )}
       </Field>
+      </MainAppFormGrid>
 
       <Button type="submit" variant="primary" disabled={pending}>
         {pending ? t('submitting') : t('submit')}

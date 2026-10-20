@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { loadMaterialMarketDashboard } from '@/modules/material-market';
@@ -33,9 +34,10 @@ export default async function MaterialMarketPage({
   });
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('title')} description={t('description')} />
-      <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+      <MainAppSection>
+        <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
         {t('disclaimer')}
       </p>
 
@@ -80,6 +82,8 @@ export default async function MaterialMarketPage({
           />
         ))}
       </div>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

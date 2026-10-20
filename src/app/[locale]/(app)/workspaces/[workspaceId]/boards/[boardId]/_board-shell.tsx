@@ -149,7 +149,7 @@ export function BoardShell({
   const activeBoards = boards.filter((b) => !b.isArchived);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-w-0 max-w-full flex-col gap-3">
       {activeBoards.length > 1 && (
         <nav
           aria-label={t('boards.switcherLabel')}
@@ -190,8 +190,8 @@ export function BoardShell({
         </nav>
       )}
 
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-lg font-semibold">{activeBoard.name}</h1>
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+        <h1 className="min-w-0 truncate text-base font-semibold">{activeBoard.name}</h1>
         <Button
           variant="primary"
           size="sm"
@@ -222,15 +222,17 @@ export function BoardShell({
         />
       ) : null}
 
-      <BoardView
-        buckets={buckets}
-        initialTasks={boardTasks}
-        onOpenTask={handleOpenTask}
-        onAddTask={handleAddTask}
-        onMoveTask={handleMoveTask}
-        onChangePriority={handleChangePriority}
-        showInlineFilters={!loadMoreBoardTasks}
-      />
+      <div className="min-w-0 max-w-full overflow-x-auto">
+        <BoardView
+          buckets={buckets}
+          initialTasks={boardTasks}
+          onOpenTask={handleOpenTask}
+          onAddTask={handleAddTask}
+          onMoveTask={handleMoveTask}
+          onChangePriority={handleChangePriority}
+          showInlineFilters={!loadMoreBoardTasks}
+        />
+      </div>
 
       <TaskDetailSheet
         task={selectedTaskId != null && taskDetail?.id === selectedTaskId ? taskDetail : null}

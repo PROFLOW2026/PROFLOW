@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useTranslations } from 'next-intl';
 import { useActionState, useEffect, useState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { resolveOwnerManagerCreateCompensationDefaults } from '@/modules/workforce/domain/owner-manager-employer-cost';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -75,82 +76,87 @@ export function EmployeeForm({
   ]);
 
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
-      <Field label={t('employees.form.name')} required>
-        {(control) => <Input {...control} name="name" autoFocus required />}
-      </Field>
+      <MainAppFormGrid dense className="gap-4">
+        <Field label={t('employees.form.name')} required className={mainAppFieldSpan.lg}>
+          {(control) => <Input {...control} name="name" autoFocus required />}
+        </Field>
 
-      <Field
-        label={t('employees.form.hireDate')}
-        required={Boolean(baseRate.trim())}
-        description={t('employees.form.hireDateHint')}
-      >
-        {(control) => (
-          <Input {...control} name="hireDate" type="date" required={Boolean(baseRate.trim())} dir="ltr" />
-        )}
-      </Field>
+        <Field
+          label={t('employees.form.hireDate')}
+          required={Boolean(baseRate.trim())}
+          description={t('employees.form.hireDateHint')}
+          className={mainAppFieldSpan.md}
+        >
+          {(control) => (
+            <Input {...control} name="hireDate" type="date" required={Boolean(baseRate.trim())} dir="ltr" />
+          )}
+        </Field>
 
-      <Field
-        label={t('employees.form.employeeNumber')}
-        optionalLabel={tCommon('labels.optional')}
-      >
-        {(control) => <Input {...control} name="employeeNumber" dir="ltr" />}
-      </Field>
+        <Field
+          label={t('employees.form.employeeNumber')}
+          optionalLabel={tCommon('labels.optional')}
+          className={mainAppFieldSpan.md}
+        >
+          {(control) => <Input {...control} name="employeeNumber" dir="ltr" />}
+        </Field>
 
-      <Field
-        label={t('employees.form.jobTitle')}
-        optionalLabel={tCommon('labels.optional')}
-        description={t('employees.form.jobTitleHint')}
-      >
-        {(control) => <Input {...control} name="jobTitle" />}
-      </Field>
+        <Field
+          label={t('employees.form.jobTitle')}
+          optionalLabel={tCommon('labels.optional')}
+          description={t('employees.form.jobTitleHint')}
+          className={mainAppFieldSpan.lg}
+        >
+          {(control) => <Input {...control} name="jobTitle" />}
+        </Field>
 
-      <Field label={t('employees.form.compensationClass')}>
-        {(control) => (
-          <Select
-            value={compensationClass}
-            onValueChange={(value) => setCompensationClass(value as typeof compensationClass)}
-          >
-            <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="standard">{t('employees.form.compensationClassStandard')}</SelectItem>
-              <SelectItem value="owner_manager">
-                {t('employees.form.compensationClassOwnerManager')}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        )}
-      </Field>
-
-      {rateUnit === 'monthly' ? (
-        <Field label={t('employees.form.defaultLaborAllocationIntent')}>
+        <Field label={t('employees.form.compensationClass')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Select
-              value={defaultLaborAllocationIntent}
-              onValueChange={(value) =>
-                setDefaultLaborAllocationIntent(value as typeof defaultLaborAllocationIntent)
-              }
+              value={compensationClass}
+              onValueChange={(value) => setCompensationClass(value as typeof compensationClass)}
             >
               <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="company_only">
-                  {t('employees.form.laborIntentCompanyOnly')}
-                </SelectItem>
-                <SelectItem value="auto_pool">{t('employees.form.laborIntentAutoPool')}</SelectItem>
-                <SelectItem value="project_allocate">
-                  {t('employees.form.laborIntentProjectAllocate')}
+                <SelectItem value="standard">{t('employees.form.compensationClassStandard')}</SelectItem>
+                <SelectItem value="owner_manager">
+                  {t('employees.form.compensationClassOwnerManager')}
                 </SelectItem>
               </SelectContent>
             </Select>
           )}
         </Field>
-      ) : null}
+
+        {rateUnit === 'monthly' ? (
+          <Field label={t('employees.form.defaultLaborAllocationIntent')} className={mainAppFieldSpan.lg}>
+            {(control) => (
+              <Select
+                value={defaultLaborAllocationIntent}
+                onValueChange={(value) =>
+                  setDefaultLaborAllocationIntent(value as typeof defaultLaborAllocationIntent)
+                }
+              >
+                <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="company_only">
+                    {t('employees.form.laborIntentCompanyOnly')}
+                  </SelectItem>
+                  <SelectItem value="auto_pool">{t('employees.form.laborIntentAutoPool')}</SelectItem>
+                  <SelectItem value="project_allocate">
+                    {t('employees.form.laborIntentProjectAllocate')}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+        ) : null}
+      </MainAppFormGrid>
 
       <input type="hidden" name="compensationClass" value={compensationClass} />
       <input type="hidden" name="defaultLaborAllocationIntent" value={defaultLaborAllocationIntent} />
@@ -162,112 +168,121 @@ export function EmployeeForm({
           <p className="text-sm font-medium">{t('employees.form.salarySectionTitle')}</p>
           <p className="text-xs text-[var(--pf-text-muted)]">{t('employees.form.salarySectionHint')}</p>
 
-          <Field
-            label={t('employees.form.employmentStyle')}
-            description={t('employees.form.employmentStyleHint')}
-          >
-            {(control) => (
-              <Select value={rateUnit} onValueChange={(value) => setRateUnit(value as typeof rateUnit)}>
-                <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {RATE_UNITS.map((unit) => (
-                    <SelectItem key={unit} value={unit}>
-                      {t(`rateUnits.${unit}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </Field>
-
-          <Field
-            label={t('employees.form.baseRate')}
-            optionalLabel={tCommon('labels.optional')}
-            description={t('employees.form.baseRateHint')}
-          >
-            {(control) => (
-              <>
-                <input type="hidden" name="baseRate" value={baseRate} />
-                <MoneyInput
-                  {...control}
-                  value={baseRate}
-                  onValueChange={setBaseRate}
-                  currencySymbol={defaultCurrency}
-                />
-              </>
-            )}
-          </Field>
-
-          {rateUnit === 'monthly' ? (
+          <MainAppFormGrid dense className="gap-4">
             <Field
-              label={t('employees.form.workingDaysPerMonth')}
-              description={t('employees.form.workingDaysPerMonthHint')}
+              label={t('employees.form.employmentStyle')}
+              description={t('employees.form.employmentStyleHint')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => (
+                <Select value={rateUnit} onValueChange={(value) => setRateUnit(value as typeof rateUnit)}>
+                  <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RATE_UNITS.map((unit) => (
+                      <SelectItem key={unit} value={unit}>
+                        {t(`rateUnits.${unit}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+
+            <Field
+              label={t('employees.form.baseRate')}
+              optionalLabel={tCommon('labels.optional')}
+              description={t('employees.form.baseRateHint')}
+              className={mainAppFieldSpan.md}
+            >
+              {(control) => (
+                <>
+                  <input type="hidden" name="baseRate" value={baseRate} />
+                  <MoneyInput
+                    {...control}
+                    value={baseRate}
+                    onValueChange={setBaseRate}
+                    currencySymbol={defaultCurrency}
+                  />
+                </>
+              )}
+            </Field>
+
+            {rateUnit === 'monthly' ? (
+              <Field
+                label={t('employees.form.workingDaysPerMonth')}
+                description={t('employees.form.workingDaysPerMonthHint')}
+                className={mainAppFieldSpan.md}
+              >
+                {(control) => (
+                  <Input
+                    {...control}
+                    name="workingDaysPerMonth"
+                    inputMode="decimal"
+                    value={workingDaysPerMonth}
+                    onChange={(event) => setWorkingDaysPerMonth(event.target.value)}
+                    placeholder={defaultWorkingDaysPerMonth ?? t('employees.form.workingDaysDefault')}
+                    dir="ltr"
+                  />
+                )}
+              </Field>
+            ) : (
+              <input type="hidden" name="workingDaysPerMonth" value="" />
+            )}
+
+            <Field
+              label={t('employees.form.standardHoursPerDay')}
+              optionalLabel={tCommon('labels.optional')}
+              description={t('employees.form.standardHoursPerDayHint')}
+              className={mainAppFieldSpan.md}
             >
               {(control) => (
                 <Input
                   {...control}
-                  name="workingDaysPerMonth"
+                  name="standardHoursPerDay"
+                  type="text"
                   inputMode="decimal"
-                  value={workingDaysPerMonth}
-                  onChange={(event) => setWorkingDaysPerMonth(event.target.value)}
-                  placeholder={defaultWorkingDaysPerMonth ?? t('employees.form.workingDaysDefault')}
+                  placeholder={t('employees.form.standardHoursPlaceholder')}
                   dir="ltr"
                 />
               )}
             </Field>
-          ) : (
-            <input type="hidden" name="workingDaysPerMonth" value="" />
-          )}
-
-          <Field
-            label={t('employees.form.standardHoursPerDay')}
-            optionalLabel={tCommon('labels.optional')}
-            description={t('employees.form.standardHoursPerDayHint')}
-          >
-            {(control) => (
-              <Input
-                {...control}
-                name="standardHoursPerDay"
-                type="text"
-                inputMode="decimal"
-                placeholder={t('employees.form.standardHoursPlaceholder')}
-                dir="ltr"
-              />
-            )}
-          </Field>
+          </MainAppFormGrid>
         </div>
       ) : (
         <input type="hidden" name="baseRate" value="" />
       )}
 
-      <Field
-        label={t('employees.form.linkedUser')}
-        optionalLabel={tCommon('labels.optional')}
-        description={t('employees.form.linkedUserHint')}
-      >
-        {(control) => (
-          <>
-            <input type="hidden" name="userId" value={linkedUserId === UNLINKED ? '' : linkedUserId} />
-            <Select value={linkedUserId} onValueChange={setLinkedUserId}>
-              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                <SelectValue placeholder={t('employees.form.linkedUserNone')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={UNLINKED}>{t('employees.form.linkedUserNone')}</SelectItem>
-                {linkableUsers.map((member) => (
-                  <SelectItem key={member.userId} value={member.userId}>
-                    {formatOrgMemberLabel(member, {
-                      anonymousAppUserLabel: t('employees.form.anonymousAppUser'),
-                    })}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        )}
-      </Field>
+      <MainAppFormGrid dense className="gap-4">
+        <Field
+          label={t('employees.form.linkedUser')}
+          optionalLabel={tCommon('labels.optional')}
+          description={t('employees.form.linkedUserHint')}
+          className={mainAppFieldSpan.lg}
+        >
+          {(control) => (
+            <>
+              <input type="hidden" name="userId" value={linkedUserId === UNLINKED ? '' : linkedUserId} />
+              <Select value={linkedUserId} onValueChange={setLinkedUserId}>
+                <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                  <SelectValue placeholder={t('employees.form.linkedUserNone')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={UNLINKED}>{t('employees.form.linkedUserNone')}</SelectItem>
+                  {linkableUsers.map((member) => (
+                    <SelectItem key={member.userId} value={member.userId}>
+                      {formatOrgMemberLabel(member, {
+                        anonymousAppUserLabel: t('employees.form.anonymousAppUser'),
+                      })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
+        </Field>
+      </MainAppFormGrid>
 
       {!showAdvanced ? (
         <Button type="button" variant="ghost" className="self-start" onClick={() => setShowAdvanced(true)}>
@@ -277,46 +292,50 @@ export function EmployeeForm({
         <div className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
           <p className="text-sm font-medium">{t('employees.form.advancedTitle')}</p>
 
-          {showRateFields ? (
+          <MainAppFormGrid dense className="gap-4">
+            {showRateFields ? (
+              <Field
+                label={t('employees.form.burdenPercent')}
+                optionalLabel={tCommon('labels.optional')}
+                description={t('employees.form.burdenHint')}
+                className={mainAppFieldSpan.md}
+              >
+                {(control) => (
+                  <>
+                    <input type="hidden" name="burdenPercent" value={burdenPercent} />
+                    <Input
+                      {...control}
+                      inputMode="decimal"
+                      value={burdenPercent}
+                      onChange={(event) => setBurdenPercent(event.target.value)}
+                      placeholder={t('employees.form.burdenPercentPlaceholder')}
+                    />
+                  </>
+                )}
+              </Field>
+            ) : null}
+
             <Field
-              label={t('employees.form.burdenPercent')}
+              label={t('employees.form.endDate')}
               optionalLabel={tCommon('labels.optional')}
-              description={t('employees.form.burdenHint')}
+              description={t('employees.form.endDateHint')}
+              className={mainAppFieldSpan.md}
             >
-              {(control) => (
-                <>
-                  <input type="hidden" name="burdenPercent" value={burdenPercent} />
-                  <Input
-                    {...control}
-                    inputMode="decimal"
-                    value={burdenPercent}
-                    onChange={(event) => setBurdenPercent(event.target.value)}
-                    placeholder={t('employees.form.burdenPercentPlaceholder')}
-                  />
-                </>
-              )}
+              {(control) => <Input {...control} name="endDate" type="date" dir="ltr" />}
             </Field>
-          ) : null}
 
-          <Field
-            label={t('employees.form.endDate')}
-            optionalLabel={tCommon('labels.optional')}
-            description={t('employees.form.endDateHint')}
-          >
-            {(control) => <Input {...control} name="endDate" type="date" dir="ltr" />}
-          </Field>
+            <Field label={t('employees.form.email')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+              {(control) => <Input {...control} name="email" type="email" autoComplete="off" dir="ltr" />}
+            </Field>
 
-          <Field label={t('employees.form.email')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="email" type="email" autoComplete="off" dir="ltr" />}
-          </Field>
+            <Field label={t('employees.form.phone')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
+              {(control) => <Input {...control} name="phone" type="tel" autoComplete="off" dir="ltr" />}
+            </Field>
 
-          <Field label={t('employees.form.phone')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="phone" type="tel" autoComplete="off" dir="ltr" />}
-          </Field>
-
-          <Field label={t('employees.form.notes')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Textarea {...control} name="notes" rows={3} />}
-          </Field>
+            <Field label={t('employees.form.notes')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
+              {(control) => <Textarea {...control} name="notes" rows={3} />}
+            </Field>
+          </MainAppFormGrid>
         </div>
       )}
 

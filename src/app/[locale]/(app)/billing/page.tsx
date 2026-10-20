@@ -26,6 +26,7 @@ export default async function BillingListPage({
     paymentTo?: string;
     view?: string;
     page?: string;
+    pageSize?: string;
   }>;
 }) {
   const [{ locale }, search] = await Promise.all([params, searchParams]);

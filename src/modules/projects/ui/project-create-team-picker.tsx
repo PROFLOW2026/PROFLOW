@@ -76,11 +76,11 @@ export function ProjectCreateTeamPicker({
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="grid min-w-0 gap-5 lg:grid-cols-2">
       <input type="hidden" name="projectManagerKey" value={projectManagerKey ?? ''} />
       <input type="hidden" name="participantKeys" value={JSON.stringify(participantKeys)} />
 
-      <div className="flex flex-col gap-2">
+      <div className="flex min-w-0 flex-col gap-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm font-medium">{t('pmLabel')}</p>
           {selectedPm ? (
@@ -145,7 +145,7 @@ export function ProjectCreateTeamPicker({
         )}
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex min-w-0 flex-col gap-2">
         <p className="text-sm font-medium">{t('participantsLabel')}</p>
         <p className="text-xs text-[var(--pf-text-muted)]">{t('participantsHint')}</p>
 

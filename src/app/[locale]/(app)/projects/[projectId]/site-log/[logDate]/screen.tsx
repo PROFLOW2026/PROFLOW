@@ -1,4 +1,5 @@
-import { getFormatter, getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getFormatter, getTranslations } from 'next-intl/server';
 import { formatDecimalDisplay } from '@/shared/number/display';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
@@ -54,7 +55,7 @@ export async function SiteLogDayScreen({ surfaceRoot, params }: {
   const latestReports = day.reports.filter((report) => report.isLatest);
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={title}
         description={t('siteLog.dayDescription')}
@@ -83,8 +84,8 @@ export async function SiteLogDayScreen({ surfaceRoot, params }: {
           </>
         }
       />
-
-      {isFuture ? <EmptyState title={t('siteLog.futureTitle')} description={t('siteLog.futureDescription')} /> : null}
+      <MainAppSection>
+        {isFuture ? <EmptyState title={t('siteLog.futureTitle')} description={t('siteLog.futureDescription')} /> : null}
 
       <section aria-label={t('siteLog.summary.title')} className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {(
@@ -415,7 +416,9 @@ export async function SiteLogDayScreen({ surfaceRoot, params }: {
           )}
         </div>
       ) : null}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

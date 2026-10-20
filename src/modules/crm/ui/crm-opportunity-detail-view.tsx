@@ -1,7 +1,12 @@
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { canConvertOpportunity, getOpportunityById, nextActionUrgency } from '@/modules/crm';
@@ -51,6 +56,8 @@ function translateAuditAction(
   if (t.has(flatKey)) return t(flatKey);
   return action;
 }
+
+const EMPTY = '—';
 
 export async function CrmOpportunityDetailView({
   opportunityId,
@@ -109,7 +116,7 @@ export async function CrmOpportunityDetailView({
   const detailHref = crmOpportunityHref(surface, detail.id);
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={detail.name}
         meta={
@@ -135,35 +142,64 @@ export async function CrmOpportunityDetailView({
         }
       />
 
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('followUp.stageLabel')}>
+            {t(`stages.${detail.stage}`)}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('opportunity.expectedValueLabel')}>
+            {detail.expectedValueAmount
+              ? formatMoneyString(detail.expectedValueAmount, currency, locale)
+              : EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('followUp.nextActionAtLabel')}>
+            {detail.nextActionAt ? (
+              <span
+                className={
+                  nextActionUrgency(detail.nextActionAt) === 'overdue'
+                    ? 'text-[var(--pf-status-danger-fg)]'
+                    : undefined
+                }
+              >
+                {nextActionUrgency(detail.nextActionAt) === 'overdue'
+                  ? `${t('followUp.overdue')}: `
+                  : `${t('followUp.due')}: `}
+                {formatInstant(detail.nextActionAt, locale, timezone)}
+              </span>
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('followUp.expectedStartLabel')}>
+            {detail.expectedStartDate && isBusinessDate(detail.expectedStartDate)
+              ? formatBusinessDate(detail.expectedStartDate, locale)
+              : EMPTY}
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
+      </MainAppSection>
+
       {canManage && convertible ? (
-        <Card
-          id="convert-to-project"
-          className={
-            convertReady
-              ? 'border-[var(--pf-status-success-border)] bg-[var(--pf-status-success-bg)]'
-              : 'border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)]'
-          }
-        >
-          <CardHeader>
-            <CardTitle className="text-lg">{t('convert.title')}</CardTitle>
-            <CardDescription>{t('convert.ctaHint')}</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <div id="convert-to-project">
+          <MainAppSection
+            title={t('convert.title')}
+            description={t('convert.ctaHint')}
+            className={
+              convertReady
+                ? 'border-[var(--pf-status-success-border)] bg-[var(--pf-status-success-bg)]'
+                : 'border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)]'
+            }
+          >
             <ConvertWonForm
               opportunityId={detail.id}
               acceptedProductQuoteId={acceptedProductQuote?.id ?? null}
               surface={surface}
             />
-          </CardContent>
-        </Card>
+          </MainAppSection>
+        </div>
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t('followUp.title')}</CardTitle>
-          <CardDescription>{t('followUp.description')}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+      <MainAppSection title={t('followUp.title')} description={t('followUp.description')}>
+        <div className="flex flex-col gap-4">
           {canManage && detail.status === 'open' ? (
             <OpportunityFollowUpForm
               opportunityId={detail.id}
@@ -224,15 +260,12 @@ export async function CrmOpportunityDetailView({
           ) : (
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('followUp.empty')}</p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </MainAppSection>
 
       {surface === 'owner' && (detail.leadId || detail.prospect) ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t('opportunity.pipelineLinks')}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-3 text-sm">
+        <MainAppSection title={t('opportunity.pipelineLinks')}>
+          <div className="flex flex-wrap gap-3 text-sm">
             {detail.leadId ? (
               <Link href={`/crm/leads/${detail.leadId}`} className={textNavLinkClassName}>
                 {t('opportunity.openLead')}
@@ -243,16 +276,13 @@ export async function CrmOpportunityDetailView({
                 {t('opportunity.openProspect', { name: detail.prospect.name })}
               </Link>
             ) : null}
-          </CardContent>
-        </Card>
+          </div>
+        </MainAppSection>
       ) : null}
 
       {detail.convertedProjectId ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t('opportunity.converted')}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2 text-sm">
+        <MainAppSection title={t('opportunity.converted')}>
+          <div className="flex flex-col gap-2 text-sm">
             <div className="flex flex-wrap gap-3">
               <Link
                 href={crmProjectHref(surface, detail.convertedProjectId)}
@@ -274,8 +304,8 @@ export async function CrmOpportunityDetailView({
                 {t('opportunity.contractLinked', { id: detail.convertedContractId })}
               </p>
             ) : null}
-          </CardContent>
-        </Card>
+          </div>
+        </MainAppSection>
       ) : null}
 
       <EntityCustomFieldsPanel
@@ -285,12 +315,8 @@ export async function CrmOpportunityDetailView({
         saveAction={upsertEntityFieldValueAction}
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t('history.title')}</CardTitle>
-          <CardDescription>{t('history.description')}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+      <MainAppSection title={t('history.title')} description={t('history.description')}>
+        <div className="flex flex-col gap-4">
           <section className="flex flex-col gap-3">
             <h3 className="text-sm font-semibold">{t('history.notesHeading')}</h3>
             {detail.notes.length === 0 ? (
@@ -336,15 +362,13 @@ export async function CrmOpportunityDetailView({
               </ul>
             )}
           </section>
-        </CardContent>
-      </Card>
+        </div>
+      </MainAppSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t('opportunity.productQuotesSection')}</CardTitle>
-          <CardDescription>{t('opportunity.productQuotesHint')}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+      <MainAppSection
+        title={t('opportunity.productQuotesSection')}
+        description={t('opportunity.productQuotesHint')}
+      >
           {detail.productQuotes.length === 0 ? (
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('opportunity.productQuotesEmpty')}</p>
           ) : (
@@ -368,9 +392,9 @@ export async function CrmOpportunityDetailView({
               ))}
             </ul>
           )}
-        </CardContent>
-      </Card>
+      </MainAppSection>
 
+      <MainAppSection>
       <details className="rounded-lg border border-[var(--pf-border-default)] p-4">
         <summary className="cursor-pointer text-sm font-semibold">
           {t('opportunity.advancedInternal')}
@@ -463,17 +487,13 @@ export async function CrmOpportunityDetailView({
           </section>
         </div>
       </details>
+      </MainAppSection>
 
       {canManage && detail.status === 'open' ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t('opportunity.markLost')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MarkLostForm opportunityId={detail.id} />
-          </CardContent>
-        </Card>
+        <MainAppSection title={t('opportunity.markLost')}>
+          <MarkLostForm opportunityId={detail.id} />
+        </MainAppSection>
       ) : null}
-    </div>
+    </MainAppPage>
   );
 }

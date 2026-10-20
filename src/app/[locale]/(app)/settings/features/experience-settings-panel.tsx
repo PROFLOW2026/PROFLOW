@@ -2,7 +2,9 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -105,49 +107,49 @@ export function ExperienceSettingsPanel({
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
-      <div>
-        <h3 className="text-sm font-semibold text-[var(--pf-text-primary)]">{t('title')}</h3>
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
-      </div>
-      <label className="flex min-w-0 flex-col gap-1">
-        <span className="text-sm font-medium">{t('familyLabel')}</span>
-        <Select
-          value={family}
-          onValueChange={(value) => setFamily(value as ExperienceFamilyKey)}
-          disabled={!canEdit || pending}
-        >
-          <SelectTrigger className="w-full min-w-0">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {EXPERIENCE_FAMILY_KEYS.map((key) => (
-              <SelectItem key={key} value={key}>
-                {t(`families.${key}`)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </label>
-      <label className="flex min-w-0 flex-col gap-1">
-        <span className="text-sm font-medium">{t('modeLabel')}</span>
-        <Select
-          value={mode}
-          onValueChange={(value) => setMode(value as CapabilityCustomizationMode)}
-          disabled={!canEdit || pending}
-        >
-          <SelectTrigger className="w-full min-w-0">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {CAPABILITY_CUSTOMIZATION_MODES.map((key) => (
-              <SelectItem key={key} value={key}>
-                {t(`modes.${key}`)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </label>
+    <MainAppSection title={t('title')} description={t('description')} className="w-full min-w-0">
+      <MainAppFormGrid dense className="gap-4">
+        <Field label={t('familyLabel')} className={mainAppFieldSpan.lg}>
+          {(props) => (
+            <Select
+              value={family}
+              onValueChange={(value) => setFamily(value as ExperienceFamilyKey)}
+              disabled={!canEdit || pending}
+            >
+              <SelectTrigger {...props} className="w-full min-w-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EXPERIENCE_FAMILY_KEYS.map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {t(`families.${key}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+        <Field label={t('modeLabel')} className={mainAppFieldSpan.lg}>
+          {(props) => (
+            <Select
+              value={mode}
+              onValueChange={(value) => setMode(value as CapabilityCustomizationMode)}
+              disabled={!canEdit || pending}
+            >
+              <SelectTrigger {...props} className="w-full min-w-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CAPABILITY_CUSTOMIZATION_MODES.map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {t(`modes.${key}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+      </MainAppFormGrid>
 
       {customTogglesActive ? (
         <div className="flex min-w-0 flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
@@ -215,6 +217,6 @@ export function ExperienceSettingsPanel({
           ) : null}
         </div>
       ) : null}
-    </div>
+    </MainAppSection>
   );
 }

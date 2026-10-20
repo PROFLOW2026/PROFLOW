@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -55,14 +56,15 @@ export function ActionItemForm({
   const [status, setStatus] = useState(actionItem?.status ?? 'open');
 
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <input type="hidden" name="meetingId" value={meetingId} />
       {actionItem ? <input type="hidden" name="actionItemId" value={actionItem.id} /> : null}
       <input type="hidden" name="assigneeType" value={assigneeType} />
       {mode === 'edit' ? <input type="hidden" name="status" value={status} /> : null}
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
-      <Field label={t('meetings.fields.title')} required error={state.fieldErrors?.title}>
+      <MainAppFormGrid dense>
+      <Field label={t('meetings.fields.title')} required error={state.fieldErrors?.title} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Input
             {...control}
@@ -75,7 +77,7 @@ export function ActionItemForm({
       </Field>
 
       {decisions.length > 0 ? (
-        <Field label={t('meetings.form.relatedDecision')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('meetings.form.relatedDecision')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input type="hidden" name="decisionId" value={decisionId === NONE ? '' : decisionId} />
@@ -97,7 +99,7 @@ export function ActionItemForm({
         </Field>
       ) : null}
 
-      <Field label={t('meetings.form.assigneeType')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('meetings.form.assigneeType')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
         {(control) => (
           <select
             {...control}
@@ -113,7 +115,7 @@ export function ActionItemForm({
       </Field>
 
       {assigneeType === 'member' ? (
-        <Field label={t('meetings.form.assignee')}>
+        <Field label={t('meetings.form.assignee')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input
@@ -142,7 +144,7 @@ export function ActionItemForm({
       ) : null}
 
       {assigneeType === 'employee' ? (
-        <Field label={t('meetings.form.assignee')}>
+        <Field label={t('meetings.form.assignee')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input
@@ -170,7 +172,7 @@ export function ActionItemForm({
         </Field>
       ) : null}
 
-      <Field label={t('meetings.form.dueDate')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('meetings.form.dueDate')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
         {(control) => (
           <Input
             {...control}
@@ -183,7 +185,7 @@ export function ActionItemForm({
       </Field>
 
       {mode === 'edit' ? (
-        <Field label={t('meetings.form.status')}>
+        <Field label={t('meetings.form.status')} className={mainAppFieldSpan.md}>
           {(control) => (
             <select
               {...control}
@@ -200,6 +202,7 @@ export function ActionItemForm({
           )}
         </Field>
       ) : null}
+      </MainAppFormGrid>
 
       <Button type="submit" loading={pending} block>
         {mode === 'create' ? t('meetings.actionItem.add') : tCommon('actions.save')}

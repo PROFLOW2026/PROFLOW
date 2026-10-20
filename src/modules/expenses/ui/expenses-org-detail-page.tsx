@@ -1,3 +1,9 @@
+﻿import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import { Suspense } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -7,7 +13,6 @@ import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { ContextualBackLink } from '@/components/ui/contextual-back-link';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { getEntityDocumentPanelData } from '@/modules/documents';
@@ -215,7 +220,7 @@ export async function ExpensesOrgDetailPage({
   const detailAttention = resolveExpenseDetailAttention(expense, { hasActiveReversal });
 
   return (
-    <div className="mx-auto flex min-w-0 w-full max-w-2xl flex-col gap-6">
+    <MainAppPage>
       <Suspense fallback={null}>
         <ExpenseDetailResolveFocus attention={detailAttention} />
       </Suspense>
@@ -241,16 +246,22 @@ export async function ExpensesOrgDetailPage({
         </Alert>
       ) : null}
 
-      {detailAttention ? <ExpenseDetailAttentionPanel attention={detailAttention} /> : null}
+      {detailAttention ? (
+        <MainAppSection>
+          <ExpenseDetailAttentionPanel attention={detailAttention} />
+        </MainAppSection>
+      ) : null}
 
       {expense.status === 'finalized' && !expense.projectId ? (
-        <ExpenseRoutingStatusPanel
-          allocationIntent={expense.allocationIntent}
-          costFamily={expense.costFamily}
-          hasProjectAllocationLine={expense.allocations.some(
-            (line) => line.targetType === 'project' && line.projectId != null,
-          )}
-        />
+        <MainAppSection>
+          <ExpenseRoutingStatusPanel
+            allocationIntent={expense.allocationIntent}
+            costFamily={expense.costFamily}
+            hasProjectAllocationLine={expense.allocations.some(
+              (line) => line.targetType === 'project' && line.projectId != null,
+            )}
+          />
+        </MainAppSection>
       ) : null}
 
       {detailAttention === 'project_allocation' && readOnly ? (
@@ -275,42 +286,60 @@ export async function ExpensesOrgDetailPage({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-3">
-        <StatusBadge shape={statusShape(expense.status)} label={tStatus(`expense.${expense.status}`)} />
-        <MoneyText value={expense.grossAmount} className="text-xl font-semibold" />
-        <ExpenseDetailActions
-          section="primary"
-          expenseId={expense.id}
-          status={expense.status}
-          canFinalize={canFinalize}
-          canVoid={canVoid}
-          canReverse={canReverse}
-          canCorrect={canCorrect}
-          expense={expense}
-          projects={projects}
-          categories={categories}
-          amount={expense.grossAmount}
-          expenseDate={expense.expenseDate}
-        />
-      </div>
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={tCommon('labels.status')}>
+            <StatusBadge
+              shape={statusShape(expense.status)}
+              label={tStatus(`expense.${expense.status}`)}
+            />
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('fields.previewGross')}>
+            <MoneyText value={expense.grossAmount} className="font-semibold" />
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('fields.date')}>
+            <span dir="ltr">{formatBusinessDate(expense.expenseDate, locale)}</span>
+          </MainAppSummaryItem>
+          {readOnly && expense.supplierName?.trim() ? (
+            <MainAppSummaryItem label={t('fields.supplier')}>{expense.supplierName}</MainAppSummaryItem>
+          ) : null}
+        </MainAppSummaryGrid>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <ExpenseDetailActions
+            section="primary"
+            expenseId={expense.id}
+            status={expense.status}
+            canFinalize={canFinalize}
+            canVoid={canVoid}
+            canReverse={canReverse}
+            canCorrect={canCorrect}
+            expense={expense}
+            projects={projects}
+            categories={categories}
+            amount={expense.grossAmount}
+            expenseDate={expense.expenseDate}
+          />
+        </div>
+      </MainAppSection>
 
       {expense.status === 'finalized' ? (
-        <ExpensePaymentPanel
-          expense={expense}
-          locale={locale}
-          canManage={canFinalizeExpense}
-          defaultPaymentDate={data.defaultPaymentDate}
-        />
+        <MainAppSection>
+          <ExpensePaymentPanel
+            expense={expense}
+            locale={locale}
+            canManage={canFinalizeExpense}
+            defaultPaymentDate={data.defaultPaymentDate}
+          />
+        </MainAppSection>
       ) : null}
 
-      <ExpenseActivityTimelineSection expenseId={expense.id} locale={locale} />
+      <MainAppSection>
+        <ExpenseActivityTimelineSection expenseId={expense.id} locale={locale} />
+      </MainAppSection>
 
       {readOnly ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('detail.summary')}</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-3 text-sm">
+        <MainAppSection title={t('detail.summary')}>
+          <div className="grid gap-3 text-sm">
             <DetailRow label={t('fields.description')} value={expense.description} />
             <DetailRow label={t('fields.supplier')} value={expense.supplierName} />
             {expense.vendorId ? (
@@ -325,121 +354,114 @@ export async function ExpensesOrgDetailPage({
               label={t('fields.project')}
               value={expense.projectName ?? t('targeting.overhead')}
             />
-            <div className="grid gap-2 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 sm:grid-cols-3">
-              <div>
-                <span className="text-xs text-[var(--pf-text-muted)]">{t('fields.previewNet')}</span>
-                <div>
-                  <MoneyText value={expense.netAmount} className="font-medium" />
-                </div>
-              </div>
-              <div>
-                <span className="text-xs text-[var(--pf-text-muted)]">{t('fields.previewTax')}</span>
-                <div>
-                  {expense.taxAmount ? (
-                    <MoneyText value={expense.taxAmount} className="font-medium" />
-                  ) : (
-                    <span className="text-[var(--pf-text-muted)]">—</span>
-                  )}
-                </div>
-              </div>
-              <div>
-                <span className="text-xs text-[var(--pf-text-muted)]">{t('fields.previewGross')}</span>
-                <div>
-                  <MoneyText value={expense.grossAmount} className="font-medium" />
-                </div>
-              </div>
-              <p className="text-xs text-[var(--pf-text-muted)] sm:col-span-3">
-                {t('fields.previewActualHint')}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            <MainAppSummaryGrid className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] p-3">
+              <MainAppSummaryItem label={t('fields.previewNet')}>
+                <MoneyText value={expense.netAmount} className="font-medium" />
+              </MainAppSummaryItem>
+              <MainAppSummaryItem label={t('fields.previewTax')}>
+                {expense.taxAmount ? (
+                  <MoneyText value={expense.taxAmount} className="font-medium" />
+                ) : (
+                  <span className="text-[var(--pf-text-muted)]">—</span>
+                )}
+              </MainAppSummaryItem>
+              <MainAppSummaryItem label={t('fields.previewGross')}>
+                <MoneyText value={expense.grossAmount} className="font-medium" />
+              </MainAppSummaryItem>
+            </MainAppSummaryGrid>
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('fields.previewActualHint')}</p>
+          </div>
+        </MainAppSection>
       ) : (
-        <ExpenseEditForm
-          expense={expense}
-          projects={projects}
-          categories={categories}
-          workPackages={workPackages}
-          vendors={vendors}
-          inventoryItems={inventoryItems}
-          paymentInstruments={paymentInstruments}
-          supplierBillReferences={supplierBillReferences}
-          defaultToday={defaultPaymentDate}
-          taxRatePercent={taxRatePercent}
-          savedConfirmation={expenseEditSaved}
-        />
+        <MainAppSection>
+          <ExpenseEditForm
+            expense={expense}
+            projects={projects}
+            categories={categories}
+            workPackages={workPackages}
+            vendors={vendors}
+            inventoryItems={inventoryItems}
+            paymentInstruments={paymentInstruments}
+            supplierBillReferences={supplierBillReferences}
+            defaultToday={defaultPaymentDate}
+            taxRatePercent={taxRatePercent}
+            savedConfirmation={expenseEditSaved}
+          />
+        </MainAppSection>
       )}
 
       {canReverse || canCorrect || correctionChain?.hasLinks || expense.voidsExpenseId || expense.adjustsExpenseId || expense.notes || expense.recurrenceRule || showPromoteVendor ? (
-        <details className="rounded-lg border border-[var(--pf-border-default)]">
-          <summary className="cursor-pointer px-4 py-3 text-sm font-medium">{t('historyAdvanced')}</summary>
-          <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] px-4 py-4">
-            <ExpenseDetailActions
-              section="advanced"
-              expenseId={expense.id}
-              status={expense.status}
-              canFinalize={canFinalize}
-              canVoid={canVoid}
-              canReverse={canReverse}
-              canCorrect={canCorrect}
-              expense={expense}
-              projects={projects}
-              categories={categories}
-              amount={expense.grossAmount}
-              expenseDate={expense.expenseDate}
-            />
-
-            {correctionChain ? (
-              <ExpenseCorrectionHistory
-                chain={correctionChain}
-                currentExpenseId={expense.id}
-                returnTo={backNavigation.safeReturnTo}
-                routeBase={routeBase}
+        <MainAppSection>
+          <details className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+            <summary className="cursor-pointer px-4 py-3 text-sm font-medium">{t('historyAdvanced')}</summary>
+            <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] px-4 py-4">
+              <ExpenseDetailActions
+                section="advanced"
+                expenseId={expense.id}
+                status={expense.status}
+                canFinalize={canFinalize}
+                canVoid={canVoid}
+                canReverse={canReverse}
+                canCorrect={canCorrect}
+                expense={expense}
+                projects={projects}
+                categories={categories}
+                amount={expense.grossAmount}
+                expenseDate={expense.expenseDate}
               />
-            ) : null}
 
-            <div className="grid gap-3 text-sm">
-              <DetailRow label={t('fields.costFamily')} value={t(`costFamilies.${expense.costFamily}`)} />
-              {expense.recurrenceRule ? (
-                <DetailRow
-                  label={t('fields.recurrence')}
-                  value={
-                    recurrence.cadence === 'custom'
-                      ? recurrence.customLabel
-                      : t(`recurrence.${recurrence.cadence}`)
-                  }
+              {correctionChain ? (
+                <ExpenseCorrectionHistory
+                  chain={correctionChain}
+                  currentExpenseId={expense.id}
+                  returnTo={backNavigation.safeReturnTo}
+                  routeBase={routeBase}
                 />
               ) : null}
-              {expense.notes ? <DetailRow label={t('fields.notes')} value={expense.notes} /> : null}
-              {expense.voidsExpenseId ? (
-                <p className="text-[var(--pf-text-muted)]">
-                  {t('detail.reversalOf', { id: expense.voidsExpenseId })}
-                </p>
-              ) : null}
-              {expense.adjustsExpenseId ? (
-                <p className="text-[var(--pf-text-muted)]">
-                  {t('detail.adjustmentOf', { id: expense.adjustsExpenseId })}
-                </p>
+
+              <div className="grid gap-3 text-sm">
+                <DetailRow label={t('fields.costFamily')} value={t(`costFamilies.${expense.costFamily}`)} />
+                {expense.recurrenceRule ? (
+                  <DetailRow
+                    label={t('fields.recurrence')}
+                    value={
+                      recurrence.cadence === 'custom'
+                        ? recurrence.customLabel
+                        : t(`recurrence.${recurrence.cadence}`)
+                    }
+                  />
+                ) : null}
+                {expense.notes ? <DetailRow label={t('fields.notes')} value={expense.notes} /> : null}
+                {expense.voidsExpenseId ? (
+                  <p className="text-[var(--pf-text-muted)]">
+                    {t('detail.reversalOf', { id: expense.voidsExpenseId })}
+                  </p>
+                ) : null}
+                {expense.adjustsExpenseId ? (
+                  <p className="text-[var(--pf-text-muted)]">
+                    {t('detail.adjustmentOf', { id: expense.adjustsExpenseId })}
+                  </p>
+                ) : null}
+              </div>
+
+              {showPromoteVendor && expense.supplierName ? (
+                <PromoteVendorPanel expenseId={expense.id} supplierName={expense.supplierName} />
               ) : null}
             </div>
-
-            {showPromoteVendor && expense.supplierName ? (
-              <PromoteVendorPanel expenseId={expense.id} supplierName={expense.supplierName} />
-            ) : null}
-          </div>
-        </details>
+          </details>
+        </MainAppSection>
       ) : null}
 
       {expense.allocations.length > 0 ? (
-        <Card className="min-w-0 scroll-mt-24" id="expense-allocation">
-          <CardHeader>
-            <CardTitle className="text-start">
-              {expense.allocations.filter((line) => line.targetType === 'project').length > 1
+        <div id="expense-allocation" className="scroll-mt-24">
+          <MainAppSection
+            title={
+              expense.allocations.filter((line) => line.targetType === 'project').length > 1
                 ? t('destination.projectMulti')
-                : t('allocation.title')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex min-w-0 flex-col gap-3 text-sm">
+                : t('allocation.title')
+            }
+          >
+          <div className="flex min-w-0 flex-col gap-3 text-sm">
             <div className="flex flex-col gap-2">
               {expense.allocations
                 .filter((line) => line.targetType === 'project')
@@ -453,50 +475,57 @@ export async function ExpensesOrgDetailPage({
                         line.projectId}
                     </p>
                     {line.method === 'manual_percent' && line.percent ? (
-                      <p className="text-xs text-[var(--pf-text-muted)]">{formatPercentDisplay(line.percent, locale)}</p>
+                      <p className="text-xs text-[var(--pf-text-muted)]">
+                        {formatPercentDisplay(line.percent, locale)}
+                      </p>
                     ) : null}
                     <MoneyText value={line.amount} className="text-sm font-medium" />
                   </div>
                 ))}
-              {expense.allocations.some((line) => line.targetType === 'overhead') ? (
-                expense.allocations
-                  .filter((line) => line.targetType === 'overhead')
-                  .map((line, index) => (
-                    <div
-                      key={`overhead-${index}`}
-                      className="flex flex-col gap-1 rounded-md border border-[var(--pf-border-default)] p-3 text-start"
-                    >
-                      <p className="font-medium">{t('targeting.overhead')}</p>
-                      <MoneyText value={line.amount} className="text-sm font-medium" />
-                    </div>
-                  ))
-              ) : null}
+              {expense.allocations.some((line) => line.targetType === 'overhead')
+                ? expense.allocations
+                    .filter((line) => line.targetType === 'overhead')
+                    .map((line, index) => (
+                      <div
+                        key={`overhead-${index}`}
+                        className="flex flex-col gap-1 rounded-md border border-[var(--pf-border-default)] p-3 text-start"
+                      >
+                        <p className="font-medium">{t('targeting.overhead')}</p>
+                        <MoneyText value={line.amount} className="text-sm font-medium" />
+                      </div>
+                    ))
+                : null}
             </div>
             <div className="flex items-center justify-between gap-2 border-t border-[var(--pf-border-default)] pt-3 text-start">
               <span className="text-sm font-medium">{tCommon('labels.total')}</span>
               <MoneyText value={expense.netAmount} className="text-sm font-semibold" />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          </MainAppSection>
+        </div>
       ) : null}
 
-      <EntityCustomFieldsPanel
-        entityId={expense.id}
-        fields={customFields}
-        revalidatePath={`${routeBase}/${expense.id}`}
-        saveAction={upsertEntityFieldValueAction}
-      />
+      <MainAppSection>
+        <EntityCustomFieldsPanel
+          entityId={expense.id}
+          fields={customFields}
+          revalidatePath={`${routeBase}/${expense.id}`}
+          saveAction={upsertEntityFieldValueAction}
+        />
+      </MainAppSection>
 
-      <DocumentAttachments
-        ownerType="expense"
-        ownerId={expense.id}
-        documents={documentsPanel.documents}
-        linkCandidates={documentsPanel.linkCandidates}
-        canRead={documentsPanel.canRead}
-        canManage={documentsPanel.canManage}
-        storageConfigured={documentsPanel.storageConfigured}
-      />
-    </div>
+      <MainAppSection>
+        <DocumentAttachments
+          ownerType="expense"
+          ownerId={expense.id}
+          documents={documentsPanel.documents}
+          linkCandidates={documentsPanel.linkCandidates}
+          canRead={documentsPanel.canRead}
+          canManage={documentsPanel.canManage}
+          storageConfigured={documentsPanel.storageConfigured}
+        />
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,7 @@ export default async function ReceivedExpensesPage() {
   });
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('received.title')}
         description={t('received.subtitle')}
@@ -54,12 +55,14 @@ export default async function ReceivedExpensesPage() {
           </div>
         }
       />
-
-      {!data.ingestionEnabled ? (
+      <MainAppSection>
+        {!data.ingestionEnabled ? (
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('received.ingestionOff')}</p>
       ) : null}
 
       <ReceivedExpensesList rows={data.rows} />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { listAvailableCreateWorkKinds } from '@/components/shell/quick-create-actions';
 import { PageHeader } from '@/components/ui/page-header';
@@ -81,9 +82,10 @@ export default async function NewWorkOrderPage({
     : [];
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('create.title')} description={t('create.description')} />
-      <WorkKindCreateHint
+      <MainAppSection>
+        <WorkKindCreateHint
         current="work_order"
         defaultWorkKind={shell?.suggestedDefaults?.defaultWorkKind}
         options={workKindOptions}
@@ -98,6 +100,8 @@ export default async function NewWorkOrderPage({
         defaultRequestedDate={defaultRequestedDate}
         taxRatePercent={taxRatePercent}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

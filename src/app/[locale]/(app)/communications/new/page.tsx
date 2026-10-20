@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Mail } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -46,7 +47,7 @@ export default async function NewCommunicationPage({
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('new')}
         description={t('description')}
@@ -56,7 +57,8 @@ export default async function NewCommunicationPage({
           </Link>
         }
       />
-      <CommunicationComposeForm
+      <MainAppSection>
+        <CommunicationComposeForm
         emailConfigured={getEmailPort().configured}
         defaults={{
           relatedEntityType: asEntityType(one('entityType')),
@@ -68,6 +70,8 @@ export default async function NewCommunicationPage({
           subject: one('subject'),
         }}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

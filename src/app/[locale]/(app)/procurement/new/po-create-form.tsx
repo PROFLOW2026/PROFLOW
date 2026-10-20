@@ -3,6 +3,7 @@
 import { useMemo, useState, useActionState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -147,7 +148,7 @@ export function PurchaseOrderCreateForm({
   }
 
   return (
-    <form action={formAction} className="mx-auto flex w-full min-w-0 max-w-2xl flex-col gap-6">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <input type="hidden" name="currency" value={currency} />
@@ -160,54 +161,56 @@ export function PurchaseOrderCreateForm({
         <Alert tone="warning">{t('projectMissingWarning')}</Alert>
       ) : null}
 
-      <Field label={t('vendorLabel')} required error={state.fieldErrors?.vendorId}>
-        {(control) => (
-          <Select value={vendorId || NONE} onValueChange={(value) => setVendorId(value === NONE ? '' : value)}>
-            <SelectTrigger {...control}>
-              <SelectValue placeholder={t('vendorPlaceholder')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NONE}>{t('vendorPlaceholder')}</SelectItem>
-              {vendors.map((vendor) => (
-                <SelectItem key={vendor.id} value={vendor.id}>
-                  {vendor.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </Field>
-
-      {projects.length > 0 ? (
-        <Field label={t('projectLabel')} optionalLabel={tCommon('labels.optional')}>
+      <MainAppFormGrid dense>
+        <Field label={t('vendorLabel')} required error={state.fieldErrors?.vendorId} className={mainAppFieldSpan.lg}>
           {(control) => (
-            <Select
-              value={projectId || NONE}
-              onValueChange={(value) => setProjectId(value === NONE ? '' : value)}
-            >
+            <Select value={vendorId || NONE} onValueChange={(value) => setVendorId(value === NONE ? '' : value)}>
               <SelectTrigger {...control}>
-                <SelectValue placeholder={t('projectNone')} />
+                <SelectValue placeholder={t('vendorPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={NONE}>{t('projectNone')}</SelectItem>
-                {projects.map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name}
+                <SelectItem value={NONE}>{t('vendorPlaceholder')}</SelectItem>
+                {vendors.map((vendor) => (
+                  <SelectItem key={vendor.id} value={vendor.id}>
+                    {vendor.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           )}
         </Field>
-      ) : null}
 
-      <Field label={t('referenceLabel')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Input {...control} name="reference" />}
-      </Field>
+        {projects.length > 0 ? (
+          <Field label={t('projectLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+            {(control) => (
+              <Select
+                value={projectId || NONE}
+                onValueChange={(value) => setProjectId(value === NONE ? '' : value)}
+              >
+                <SelectTrigger {...control}>
+                  <SelectValue placeholder={t('projectNone')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE}>{t('projectNone')}</SelectItem>
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+        ) : null}
 
-      <Field label={t('orderedOnLabel')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Input {...control} name="orderedOn" type="date" dir="ltr" />}
-      </Field>
+        <Field label={t('referenceLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
+          {(control) => <Input {...control} name="reference" />}
+        </Field>
+
+        <Field label={t('orderedOnLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
+          {(control) => <Input {...control} name="orderedOn" type="date" dir="ltr" />}
+        </Field>
+      </MainAppFormGrid>
 
       <section className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -256,8 +259,8 @@ export function PurchaseOrderCreateForm({
               )}
             </Field>
 
-            <div className="grid gap-3 sm:grid-cols-3">
-              <Field label={t('lineQuantity')}>
+            <MainAppFormGrid dense>
+              <Field label={t('lineQuantity')} className={mainAppFieldSpan.md}>
                 {(control) => (
                   <Input
                     {...control}
@@ -268,7 +271,7 @@ export function PurchaseOrderCreateForm({
                   />
                 )}
               </Field>
-              <Field label={t('lineUnitAmount')} required>
+              <Field label={t('lineUnitAmount')} required className={mainAppFieldSpan.md}>
                 {(control) => (
                   <MoneyInput
                     {...control}
@@ -277,7 +280,7 @@ export function PurchaseOrderCreateForm({
                   />
                 )}
               </Field>
-              <Field label={t('lineTotal')}>
+              <Field label={t('lineTotal')} className={mainAppFieldSpan.md}>
                 {(control) => (
                   <MoneyInput
                     {...control}
@@ -286,7 +289,7 @@ export function PurchaseOrderCreateForm({
                   />
                 )}
               </Field>
-            </div>
+            </MainAppFormGrid>
 
             {lines.length > 1 ? (
               <Button
@@ -311,11 +314,13 @@ export function PurchaseOrderCreateForm({
         </span>
       </p>
 
-      <Field label={t('notesLabel')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Textarea {...control} name="notes" rows={3} />}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field label={t('notesLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
+          {(control) => <Textarea {...control} name="notes" rows={3} />}
+        </Field>
+      </MainAppFormGrid>
 
-      <Button type="submit" loading={pending} block>
+      <Button type="submit" loading={pending} className="self-start">
         {t('submit')}
       </Button>
     </form>

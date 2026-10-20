@@ -3,6 +3,7 @@
 import { useMemo, useState, useActionState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatDecimalDisplay } from '@/shared/number/display';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -59,7 +60,7 @@ export function PurchaseOrderReceiveForm({
   if (receivableLines.length === 0) return null;
 
   return (
-    <form action={action} className="flex max-w-lg flex-col gap-4">
+    <form action={action} className="flex w-full min-w-0 flex-col gap-4">
       <div className="flex flex-col gap-1">
         <h2 className="text-base font-semibold text-[var(--pf-text-primary)]">{t('title')}</h2>
         <p className="text-sm text-[var(--pf-text-muted)]">{t('description')}</p>
@@ -72,26 +73,28 @@ export function PurchaseOrderReceiveForm({
       <input type="hidden" name="purchaseOrderId" value={purchaseOrderId} />
       <input type="hidden" name="lines" value={linesPayload} />
 
-      <Field label={t('receivedOn')} required>
-        {(control) => (
-          <Input
-            {...control}
-            name="receivedOn"
-            type="date"
-            dir="ltr"
-            defaultValue={defaultReceivedOn}
-            required
-          />
-        )}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field label={t('receivedOn')} required className={mainAppFieldSpan.md}>
+          {(control) => (
+            <Input
+              {...control}
+              name="receivedOn"
+              type="date"
+              dir="ltr"
+              defaultValue={defaultReceivedOn}
+              required
+            />
+          )}
+        </Field>
 
-      <Field label={t('reference')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Input {...control} name="reference" maxLength={80} />}
-      </Field>
+        <Field label={t('reference')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
+          {(control) => <Input {...control} name="reference" maxLength={80} />}
+        </Field>
 
-      <Field label={t('notes')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Textarea {...control} name="notes" rows={2} />}
-      </Field>
+        <Field label={t('notes')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
+          {(control) => <Textarea {...control} name="notes" rows={2} />}
+        </Field>
+      </MainAppFormGrid>
 
       {receivableLines.map((line) => (
         <div
@@ -119,35 +122,37 @@ export function PurchaseOrderReceiveForm({
               </span>
             </div>
           </div>
-          <Field label={t('quantity')}>
-            {(control) => (
-              <Input
-                {...control}
-                numeric
-                inputMode="decimal"
-                placeholder={line.remainingQuantity}
-                value={quantities[line.id] ?? ''}
-                onChange={(event) =>
-                  setQuantities((current) => ({ ...current, [line.id]: event.target.value }))
-                }
-              />
-            )}
-          </Field>
-          <Field label={t('lineNotes')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => (
-              <Input
-                {...control}
-                value={lineNotes[line.id] ?? ''}
-                onChange={(event) =>
-                  setLineNotes((current) => ({ ...current, [line.id]: event.target.value }))
-                }
-              />
-            )}
-          </Field>
+          <MainAppFormGrid dense>
+            <Field label={t('quantity')} className={mainAppFieldSpan.md}>
+              {(control) => (
+                <Input
+                  {...control}
+                  numeric
+                  inputMode="decimal"
+                  placeholder={line.remainingQuantity}
+                  value={quantities[line.id] ?? ''}
+                  onChange={(event) =>
+                    setQuantities((current) => ({ ...current, [line.id]: event.target.value }))
+                  }
+                />
+              )}
+            </Field>
+            <Field label={t('lineNotes')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+              {(control) => (
+                <Input
+                  {...control}
+                  value={lineNotes[line.id] ?? ''}
+                  onChange={(event) =>
+                    setLineNotes((current) => ({ ...current, [line.id]: event.target.value }))
+                  }
+                />
+              )}
+            </Field>
+          </MainAppFormGrid>
         </div>
       ))}
 
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending} className="self-start">
         {pending ? t('pending') : t('submit')}
       </Button>
     </form>

@@ -1,0 +1,29 @@
+/**
+ * /reports hub only — width chain (no global import).
+ * Ensures flex/grid children can shrink and fill the AppShell content column.
+ */
+[data-pf-reports-hub] {
+  width: 100%;
+  min-width: 0;
+}
+
+[data-pf-reports-hub] [data-pf-reports-body],
+[data-pf-reports-hub] [data-pf-reports-catalog] {
+  width: 100%;
+  min-width: 0;
+}
+
+[data-pf-reports-hub] [data-pf-ma-section] {
+  width: 100%;
+  min-width: 0;
+}
+
+[data-pf-reports-hub] [data-pf-ma-list-toolbar] {
+  width: 100%;
+  min-width: 0;
+}
+
+[data-pf-reports-hub] [data-pf-reports-kind-row] {
+  min-width: 0;
+  width: 100%;
+}

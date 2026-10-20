@@ -1,3 +1,4 @@
+﻿import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getFormatter, getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -37,51 +38,54 @@ export default async function ConnectedDeveloperTasksPage({
   const portalTaskBase = portalDeveloperProjectHref(developerProjectId, 'tasks');
 
   return (
-    <div className="flex min-w-0 flex-col gap-4 pb-6">
+    <MainAppPage className="w-full min-w-0">
       <PageHeader title={t('portal.tasks.title')} description={t('portal.tasks.description')} />
+      <MainAppSection className="w-full min-w-0">
+        <div className="flex w-full min-w-0 flex-col gap-4">
+          <nav className="flex gap-2" aria-label={t('portal.tasks.filterLabel')}>
+            <Button asChild size="sm" variant={scope === 'open' ? 'primary' : 'secondary'}>
+              <Link href={filterBase}>{t('portal.tasks.filters.open')}</Link>
+            </Button>
+            <Button asChild size="sm" variant={scope === 'all' ? 'primary' : 'secondary'}>
+              <Link href={`${filterBase}?scope=all`}>{t('portal.tasks.filters.all')}</Link>
+            </Button>
+          </nav>
 
-      <nav className="flex gap-2" aria-label={t('portal.tasks.filterLabel')}>
-        <Button asChild size="sm" variant={scope === 'open' ? 'primary' : 'secondary'}>
-          <Link href={filterBase}>{t('portal.tasks.filters.open')}</Link>
-        </Button>
-        <Button asChild size="sm" variant={scope === 'all' ? 'primary' : 'secondary'}>
-          <Link href={`${filterBase}?scope=all`}>{t('portal.tasks.filters.all')}</Link>
-        </Button>
-      </nav>
-
-      {tasks.length === 0 ? (
-        <EmptyState title={t('portal.tasks.emptyTitle')} description={t('portal.tasks.emptyDescription')} />
-      ) : (
-        <ul className="flex flex-col gap-2">
-          {tasks.map((task) => (
-            <li key={task.taskId}>
-              <Link href={`${portalTaskBase}/${task.taskId}`} className="block" prefetch>
-                <Card className={task.overdue ? 'border-[var(--pf-status-danger-border)]' : undefined}>
-                  <CardContent className="flex flex-col gap-2 p-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="min-w-0 break-words font-medium">{task.title}</p>
-                      <Badge tone={task.overdue ? 'danger' : 'neutral'}>{t(`taskStatus.${task.status}`)}</Badge>
-                    </div>
-                    {task.dueDate ? (
-                      <p className="text-xs text-[var(--pf-text-secondary)]">
-                        {t('contractorPanel.due', { date: task.dueDate })}
-                      </p>
-                    ) : null}
-                    {task.availableCommands.length > 0 ? (
-                      <span className="text-sm font-medium text-[var(--pf-text-brand)]">
-                        {t('portal.tasks.actionRequired')}
-                      </span>
-                    ) : null}
-                    <p className="text-xs text-[var(--pf-text-muted)]">
-                      {format.dateTime(new Date(task.updatedAt), { dateStyle: 'medium', timeStyle: 'short' })}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+          {tasks.length === 0 ? (
+            <EmptyState title={t('portal.tasks.emptyTitle')} description={t('portal.tasks.emptyDescription')} />
+          ) : (
+            <ul className="flex w-full min-w-0 flex-col gap-2">
+              {tasks.map((task) => (
+                <li key={task.taskId}>
+                  <Link href={`${portalTaskBase}/${task.taskId}`} className="block" prefetch>
+                    <Card className={task.overdue ? 'border-[var(--pf-status-danger-border)]' : undefined}>
+                      <CardContent className="flex flex-col gap-2 p-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="min-w-0 break-words font-medium">{task.title}</p>
+                          <Badge tone={task.overdue ? 'danger' : 'neutral'}>{t(`taskStatus.${task.status}`)}</Badge>
+                        </div>
+                        {task.dueDate ? (
+                          <p className="text-xs text-[var(--pf-text-secondary)]">
+                            {t('contractorPanel.due', { date: task.dueDate })}
+                          </p>
+                        ) : null}
+                        {task.availableCommands.length > 0 ? (
+                          <span className="text-sm font-medium text-[var(--pf-text-brand)]">
+                            {t('portal.tasks.actionRequired')}
+                          </span>
+                        ) : null}
+                        <p className="text-xs text-[var(--pf-text-muted)]">
+                          {format.dateTime(new Date(task.updatedAt), { dateStyle: 'medium', timeStyle: 'short' })}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

@@ -1,4 +1,11 @@
-import { Plus } from 'lucide-react';
+import {
+  MainAppListBody,
+  MainAppListPagination,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+﻿import { Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -9,14 +16,16 @@ import { PageHeader } from '@/components/ui/page-header';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { countProjectsForOrg, jobListMissingProfitKind, listJobsForOrg } from '@/modules/projects';
-import { QueryPagination } from '@/components/ui/query-pagination';
 import {
-  ORG_LIST_PAGE_SIZE,
   orgListOffset,
   orgListPageCount,
   parseOrgListPage,
   resolveOrgListPage,
 } from '@/shared/db/org-list-pagination';
+import {
+  MAIN_APP_DEFAULT_LIST_PAGE_SIZE,
+  parseMainAppListPageSize,
+} from '@/shared/db/main-app-list-page-size';
 import { titleWithDocumentNumber } from '@/modules/tenancy';
 import {
   isWorkListFacet,
@@ -46,6 +55,7 @@ interface JobsPageProps {
     q?: string;
     facet?: string;
     page?: string;
+    pageSize?: string;
     /** @deprecated Prefer `facet`. */
     status?: string;
   }>;
@@ -77,6 +87,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
 
   const canCreate = shell?.permissions.has(PERMISSIONS.PROJECTS_CREATE) ?? false;
   const filtersActive = hasActiveFilters({ q: params.q, facet });
+  const pageSize = parseMainAppListPageSize(params.pageSize, MAIN_APP_DEFAULT_LIST_PAGE_SIZE);
   const requestedPage = parseOrgListPage(params.page);
   const listFilters = {
     search: params.q,
@@ -87,24 +98,24 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
 
   const { jobs, totalCount, currentPage, totalPages } = await withOrgContext(async (context) => {
     const total = await countProjectsForOrg(context, { ...listFilters, workKind: 'job' });
-    const page = resolveOrgListPage(total, requestedPage);
+    const page = resolveOrgListPage(total, requestedPage, pageSize);
     const rows = await listJobsForOrg(context, {
       ...listFilters,
-      limit: ORG_LIST_PAGE_SIZE,
-      offset: orgListOffset(page),
+      limit: pageSize,
+      offset: orgListOffset(page, pageSize),
     });
     return {
       jobs: rows,
       totalCount: total,
       currentPage: page,
-      totalPages: orgListPageCount(total),
+      totalPages: orgListPageCount(total, pageSize),
     };
   });
 
   const noResultsQuery = params.q?.trim() || t(`list.facets.${facet}`);
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6" data-pf-jobs-list="">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         actions={
@@ -118,8 +129,9 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
           ) : null
         }
       />
-
-      <JobListFilters initialQuery={params.q ?? ''} initialFacet={facet} />
+      <MainAppSection>
+        <MainAppListBody>
+        <JobListFilters initialQuery={params.q ?? ''} initialFacet={facet} />
 
       {jobs.length === 0 ? (
         filtersActive ? (
@@ -155,7 +167,8 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
           items={jobs}
           getRowKey={(job) => job.id}
           desktop={
-            <Table>
+            <MainAppTableShell>
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>{t('list.columns.client')}</TableHead>
@@ -235,6 +248,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
                 })}
               </TableBody>
             </Table>
+            </MainAppTableShell>
           }
           renderMobileCard={(job) => {
             const currency =
@@ -288,18 +302,21 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
         />
       )}
 
-      <QueryPagination
+      <MainAppListPagination
         basePath="/jobs"
         currentPage={currentPage}
         totalPages={totalPages}
         totalCount={totalCount}
-        pageSize={ORG_LIST_PAGE_SIZE}
+        pageSize={pageSize}
         currentParams={{ q: params.q, facet, status: params.status }}
         previousLabel={tCommon('actions.previous')}
         nextLabel={tCommon('actions.next')}
         pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
         navLabel={tCommon('pagination.navLabel')}
+        rowsPerPageLabel={tCommon('pagination.rowsPerPage')}
       />
-    </div>
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

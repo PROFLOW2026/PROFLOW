@@ -1,4 +1,5 @@
-import { getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
@@ -44,12 +45,13 @@ export async function AgreementChangesScreen({ surfaceRoot,
 
   return (
     <WithAppClientMessages extra={['subcontracts']}>
-      <div className="flex flex-col gap-4">
+      <MainAppPage>
         <PageHeader
           title={agreement.title}
           description={t('changes.pageDescription')}
           meta={<AgreementStatusBadge status={agreement.status} label={t(`agreementStatus.${agreement.status}`)} />}
         />
+      <MainAppSection>
         <AgreementSubNav overviewHref={base} linesHref={`${base}/lines`} changesHref={`${base}/changes`} current="changes" />
 
         {financial ? <AgreementValueCard financial={financial} showTerms={false} /> : null}
@@ -101,7 +103,9 @@ export async function AgreementChangesScreen({ surfaceRoot,
             />
           </CardContent>
         </Card>
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

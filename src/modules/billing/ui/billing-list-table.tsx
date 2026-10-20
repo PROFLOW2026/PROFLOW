@@ -1,8 +1,9 @@
-'use client';
+﻿'use client';
 
 import { useTranslations } from 'next-intl';
 import { MoneyText } from '@/components/patterns/money-text';
 import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
+import { LegacyListTableShell, MainAppTableShell } from '@/components/patterns/main-app';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,9 +17,15 @@ interface BillingListTableProps {
   records: readonly BillingRecordSummary[];
   locale: string;
   routeBase?: string;
+  listKit?: boolean;
 }
 
-export function BillingListTable({ records, locale, routeBase = '/billing' }: BillingListTableProps) {
+export function BillingListTable({
+  records,
+  locale,
+  routeBase = '/billing',
+  listKit = true,
+}: BillingListTableProps) {
   const t = useTranslations('billing');
   const tKind = useTranslations('billing.kinds');
 
@@ -26,12 +33,14 @@ export function BillingListTable({ records, locale, routeBase = '/billing' }: Bi
     return null;
   }
 
+  const TableShell = listKit ? MainAppTableShell : LegacyListTableShell;
+
   return (
     <ResponsiveTable
       items={records}
       getRowKey={(record) => record.id}
       desktop={
-        <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+        <TableShell>
           <Table>
             <TableHeader>
               <TableRow>
@@ -97,7 +106,7 @@ export function BillingListTable({ records, locale, routeBase = '/billing' }: Bi
               ))}
             </TableBody>
           </Table>
-        </div>
+        </TableShell>
       }
       renderMobileCard={(record) => (
         <Link

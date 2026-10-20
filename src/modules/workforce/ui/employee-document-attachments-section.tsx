@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { DocumentAttachments, type DocumentAttachmentsProps } from '@/modules/documents/ui';

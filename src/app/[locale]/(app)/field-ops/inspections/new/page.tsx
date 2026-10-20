@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -55,8 +56,9 @@ export default async function NewInspectionPage({
 
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={t('createInspection.title')} />
+      <MainAppSection>
         <EmptyState
           title={t('empty.projectsRequired.title')}
           description={t('empty.projectsRequired.body')}
@@ -66,12 +68,14 @@ export default async function NewInspectionPage({
             </Button>
           }
         />
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('createInspection.title')}
         description={t('createInspection.description')}
@@ -84,7 +88,8 @@ export default async function NewInspectionPage({
           </Link>
         }
       />
-      <InspectionCreateForm
+      <MainAppSection>
+        <InspectionCreateForm
         projects={projects.map((p) => ({ id: p.id, name: p.name }))}
         workPackages={workPackages}
         employees={employees}
@@ -93,6 +98,8 @@ export default async function NewInspectionPage({
         canManageDocuments={canManageDocuments}
         storageConfigured={storageConfigured}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

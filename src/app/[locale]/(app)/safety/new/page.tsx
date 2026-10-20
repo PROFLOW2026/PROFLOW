@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { listProjectsForOrg } from '@/modules/projects';
@@ -35,7 +36,7 @@ export default async function NewSafetyRecordPage({
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('create.title')}
         description={t('create.description')}
@@ -45,7 +46,8 @@ export default async function NewSafetyRecordPage({
           </Link>
         }
       />
-      <SafetyRecordForm
+      <MainAppSection>
+        <SafetyRecordForm
         mode="create"
         projects={projects}
         defaultOccurredAt={new Date()}
@@ -56,6 +58,8 @@ export default async function NewSafetyRecordPage({
           description: params.description,
         }}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

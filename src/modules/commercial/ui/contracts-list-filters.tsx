@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useTranslations } from 'next-intl';
-import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { MainAppListSearchToolbar } from '@/components/patterns/main-app';
 
 interface Option {
   readonly id: string;
@@ -19,6 +20,7 @@ interface ContractsListFiltersProps {
   selectedProjectName?: string | null;
   clients: readonly Option[];
   projects: readonly Option[];
+  listKit?: boolean;
 }
 
 /** Keep a selected id that is missing from the option list from rendering as a raw uuid. */
@@ -44,6 +46,7 @@ export function ContractsListFilters({
   selectedProjectName = null,
   clients,
   projects,
+  listKit = true,
 }: ContractsListFiltersProps) {
   const t = useTranslations('contracts');
   const tCommon = useTranslations('common');
@@ -52,9 +55,9 @@ export function ContractsListFilters({
   const clientOptions = clientSelection.extra ? [...clients, clientSelection.extra] : clients;
   const projectOptions = projectSelection.extra ? [...projects, projectSelection.extra] : projects;
 
-  return (
-    <form method="get" className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-      <Field label={t('list.columns.status')} className="min-w-0 sm:w-36">
+  const filterFields = (
+    <>
+      <Field label={t('list.columns.status')} className="min-w-0 w-full sm:w-36">
         {(control) => (
           <Select name="status" defaultValue={initialStatus}>
             <SelectTrigger id={control.id}>
@@ -70,7 +73,7 @@ export function ContractsListFilters({
           </Select>
         )}
       </Field>
-      <Field label={t('list.columns.type')} className="min-w-0 sm:w-36">
+      <Field label={t('list.columns.type')} className="min-w-0 w-full sm:w-36">
         {(control) => (
           <Select name="type" defaultValue={initialType}>
             <SelectTrigger id={control.id}>
@@ -85,7 +88,7 @@ export function ContractsListFilters({
           </Select>
         )}
       </Field>
-      <Field label={t('list.columns.client')} className="min-w-0 sm:w-44">
+      <Field label={t('list.columns.client')} className="min-w-0 w-full sm:w-44">
         {(control) => (
           <Select name="clientId" defaultValue={clientSelection.value}>
             <SelectTrigger id={control.id}>
@@ -102,7 +105,7 @@ export function ContractsListFilters({
           </Select>
         )}
       </Field>
-      <Field label={t('list.columns.project')} className="min-w-0 sm:w-44">
+      <Field label={t('list.columns.project')} className="min-w-0 w-full sm:w-44">
         {(control) => (
           <Select name="projectId" defaultValue={projectSelection.value}>
             <SelectTrigger id={control.id}>
@@ -119,9 +122,30 @@ export function ContractsListFilters({
           </Select>
         )}
       </Field>
-      <Button type="submit" variant="secondary">
-        {tCommon('actions.search')}
-      </Button>
-    </form>
+    </>
+  );
+
+  if (!listKit) {
+    return (
+      <form
+        method="get"
+        className="flex min-w-0 max-w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end"
+      >
+        {filterFields}
+        <Button type="submit" variant="secondary" className="min-h-11 w-full sm:w-auto">
+          {tCommon('actions.filter')}
+        </Button>
+      </form>
+    );
+  }
+
+  return (
+    <MainAppListSearchToolbar
+      initialQuery=""
+      searchPlaceholder=""
+      filterFields={filterFields}
+      compact
+      showSearch={false}
+    />
   );
 }

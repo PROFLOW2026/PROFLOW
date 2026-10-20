@@ -48,7 +48,9 @@
     "warranty_issue": "بلاغ ضمان",
     "closeout": "إغلاق",
     "outbound_communication": "رسالة صادرة",
-    "calendar_event": "حدث تقويم"
+    "calendar_event": "حدث تقويم",
+    "task": "مهمة",
+    "task_comment": "تعليق على مهمة"
   },
   "status": {
     "pending": "رفع معلّق",

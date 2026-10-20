@@ -1,6 +1,5 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { Card } from '@/components/ui/card';
 import { listTaxRules, resolveTaxForDate } from '@/modules/tax';
 import { todayInTimeZone } from '@/shared/dates';
 import { formatPercentDisplay } from '@/shared/number/display';
@@ -50,15 +49,13 @@ export default async function TaxSettingsPage() {
 
   return (
     <SettingsPageShell title={t('title')}>
-      <Card className="p-5">
-        <TaxSettingsPanel
-          rules={data.rules}
-          countryCode={data.countryCode}
-          timezone={data.timezone}
-          currentRateLabel={data.currentRateLabel}
-          canEdit={data.canEdit}
-        />
-      </Card>
+      <TaxSettingsPanel
+        rules={data.rules}
+        countryCode={data.countryCode}
+        timezone={data.timezone}
+        currentRateLabel={data.currentRateLabel}
+        canEdit={data.canEdit}
+      />
     </SettingsPageShell>
   );
 }

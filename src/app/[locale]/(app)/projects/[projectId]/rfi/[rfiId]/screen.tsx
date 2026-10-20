@@ -1,4 +1,5 @@
-import { ChevronLeft } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { ChevronLeft } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
@@ -42,7 +43,7 @@ export async function ProjectRfiDetailScreen({ surfaceRoot,
   const base = `${surfaceRoot ?? ('/projects/' + projectId)}/rfi`;
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         breadcrumb={
           <Link
@@ -58,8 +59,8 @@ export async function ProjectRfiDetailScreen({ surfaceRoot,
           <Badge tone={statusTone(rfiStatusTone(detail.status, detail.overdue))}>{t(`status.${detail.status}`)}</Badge>
         }
       />
-
-      <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+      <MainAppSection>
+        <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <div className="flex flex-col gap-4">
           <Card>
             <CardHeader>
@@ -199,7 +200,9 @@ export async function ProjectRfiDetailScreen({ surfaceRoot,
           ) : null}
         </aside>
       </div>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

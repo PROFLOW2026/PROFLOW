@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { OfflineDraftsPanelLazy } from '@/modules/offline/ui/offline-drafts-panel-lazy';

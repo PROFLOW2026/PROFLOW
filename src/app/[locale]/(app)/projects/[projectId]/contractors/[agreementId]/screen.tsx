@@ -1,6 +1,11 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { ActivityFeed } from '@/modules/collaboration/ui';
@@ -53,7 +58,16 @@ export async function Contractor360Screen({
   const base = `${root}/contractors/${agreementId}`;
   const when = intlDateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' });
   const money = (amount: string, currency: string) => bidiIsolate(formatMoneyString(amount, currency, locale));
+  const agreementPeriod =
+    data.agreement.startDate || data.agreement.endDate
+      ? bidiIsolate(`${data.agreement.startDate ?? '…'} – ${data.agreement.endDate ?? '…'}`)
+      : null;
   const showSchedule = data.events !== null || data.tasks !== null;
+  const sectionLink = (href: string) => (
+    <Link href={href} className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--pf-text-brand)]">
+      {t('contractors.overview.fullList')}
+    </Link>
+  );
   const sections = [
     { id: 'contract', label: t('contractors.overview.contract') },
     ...(data.progress ? [{ id: 'progress', label: t('contractors.overview.progress') }] : []),
@@ -68,32 +82,49 @@ export async function Contractor360Screen({
   ];
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={data.agreement.title}
         description={t('contractors.overview.description')}
         meta={<AgreementStatusBadge status={data.agreement.status} label={tSub(`agreementStatus.${data.agreement.status}`)} />}
       />
-      <AgreementSubNav overviewHref={base} linesHref={`${base}/lines`} changesHref={`${base}/changes`} current="overview" />
-      <nav aria-label={t('contractors.overview.jumpLabel')} className="flex flex-wrap gap-2">
-        {sections.map((section) => (
-          <a
-            key={section.id}
-            href={`#${section.id}`}
-            className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-[var(--pf-text-secondary)] hover:bg-[var(--pf-action-subtle-hover)]"
-          >
-            {section.label}
-          </a>
-        ))}
-      </nav>
+      <MainAppSection>
+        <AgreementSubNav overviewHref={base} linesHref={`${base}/lines`} changesHref={`${base}/changes`} current="overview" />
+        <nav aria-label={t('contractors.overview.jumpLabel')} className="flex flex-wrap gap-2">
+          {sections.map((section) => (
+            <a
+              key={section.id}
+              href={`#${section.id}`}
+              className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-[var(--pf-text-secondary)] hover:bg-[var(--pf-action-subtle-hover)]"
+            >
+              {section.label}
+            </a>
+          ))}
+        </nav>
+        <MainAppSummaryGrid className="mt-2">
+          <MainAppSummaryItem label={tSub('agreement.fields.vendor')}>
+            {data.agreement.vendorName ?? '—'}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={tSub('agreement.fields.trade')}>
+            {data.agreement.trade ?? '—'}
+          </MainAppSummaryItem>
+          {agreementPeriod ? (
+            <MainAppSummaryItem label={tSub('agreement.fields.period')}>{agreementPeriod}</MainAppSummaryItem>
+          ) : null}
+          {data.financial ? (
+            <MainAppSummaryItem label={tSub('value.current')}>
+              {money(data.financial.currentAmount, data.financial.currency)}
+            </MainAppSummaryItem>
+          ) : null}
+        </MainAppSummaryGrid>
+      </MainAppSection>
 
-      <section id="contract" className="flex scroll-mt-20 flex-col gap-3">
-        <SectionHeading title={t('contractors.overview.contract')} href={`${base}/lines`} linkLabel={t('contractors.overview.fullList')} />
-        <Card>
-          <CardContent className="pt-4">
-            <AgreementFacts agreement={data.agreement} />
-          </CardContent>
-        </Card>
+      <div id="contract" className="min-w-0 scroll-mt-20">
+      <MainAppSection
+        title={t('contractors.overview.contract')}
+        actions={sectionLink(`${base}/lines`)}
+      >
+        <AgreementFacts agreement={data.agreement} />
         {data.financial ? <AgreementValueCard financial={data.financial} showTerms={false} /> : null}
         {data.lines.length === 0 ? (
           <EmptyState size="sm" title={t('contractors.overview.empty.linesTitle')} description={t('contractors.overview.empty.linesDescription')} />
@@ -119,11 +150,15 @@ export async function Contractor360Screen({
             ))}
           </ul>
         )}
-      </section>
+      </MainAppSection>
+      </div>
 
       {data.progress ? (
-        <section id="progress" className="flex scroll-mt-20 flex-col gap-3">
-          <SectionHeading title={t('contractors.overview.progress')} href={`${base}/lines`} linkLabel={t('contractors.overview.fullList')} />
+        <div id="progress" className="min-w-0 scroll-mt-20">
+        <MainAppSection
+          title={t('contractors.overview.progress')}
+          actions={sectionLink(`${base}/lines`)}
+        >
           {data.progress.length === 0 ? (
             <EmptyState size="sm" title={t('contractors.overview.empty.progressTitle')} description={t('contractors.overview.empty.progressDescription')} />
           ) : (
@@ -144,76 +179,70 @@ export async function Contractor360Screen({
               ))}
             </ul>
           )}
-        </section>
+        </MainAppSection>
+        </div>
       ) : null}
 
       {showSchedule ? (
-        <section id="schedule" className="flex scroll-mt-20 flex-col gap-3">
-          <SectionHeading
-            title={t('contractors.overview.schedule')}
-            href={data.events ? `${root}/coordination` : undefined}
-            linkLabel={t('contractors.overview.fullList')}
-          />
+        <div id="schedule" className="min-w-0 scroll-mt-20">
+        <MainAppSection
+          title={t('contractors.overview.schedule')}
+          actions={data.events ? sectionLink(`${root}/coordination`) : undefined}
+        >
           {data.events ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('contractors.overview.events')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {data.events.length === 0 ? (
-                  <EmptyState size="sm" title={t('contractors.overview.empty.eventsTitle')} description={t('contractors.overview.empty.eventsDescription')} />
-                ) : (
-                  <ul className="flex flex-col gap-2">
-                    {data.events.map((event) => (
-                      <li key={event.id}>
-                        <Link href={`${root}/coordination/${event.id}`} className="block rounded-lg border border-[var(--pf-border-subtle)] p-3">
-                          <p className="font-medium break-words">{event.title}</p>
-                          <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-                            {when.format(new Date(event.startsAt))}
-                            {' · '}
-                            {tCoord(`statuses.${event.status}`)}
-                            {' · '}
-                            {tCoord(`readiness.${event.readiness}`)}
-                            {event.locationName ? ` · ${event.locationName}` : ''}
-                          </p>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
+            <MainAppSection title={t('contractors.overview.events')}>
+              {data.events.length === 0 ? (
+                <EmptyState size="sm" title={t('contractors.overview.empty.eventsTitle')} description={t('contractors.overview.empty.eventsDescription')} />
+              ) : (
+                <ul className="flex flex-col gap-2">
+                  {data.events.map((event) => (
+                    <li key={event.id}>
+                      <Link href={`${root}/coordination/${event.id}`} className="block rounded-lg border border-[var(--pf-border-subtle)] p-3">
+                        <p className="font-medium break-words">{event.title}</p>
+                        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+                          {when.format(new Date(event.startsAt))}
+                          {' · '}
+                          {tCoord(`statuses.${event.status}`)}
+                          {' · '}
+                          {tCoord(`readiness.${event.readiness}`)}
+                          {event.locationName ? ` · ${event.locationName}` : ''}
+                        </p>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </MainAppSection>
           ) : null}
           {data.tasks ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('contractors.overview.tasks')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {data.tasks.length === 0 ? (
-                  <EmptyState size="sm" title={t('contractors.overview.empty.tasksTitle')} description={t('contractors.overview.empty.tasksDescription')} />
-                ) : (
-                  <ul className="flex flex-col gap-2">
-                    {data.tasks.map((task) => (
-                      <li key={task.taskId} className="rounded-lg border border-[var(--pf-border-subtle)] p-3">
-                        <p className="font-medium break-words">{task.title}</p>
-                        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-                          {tCollab(`taskStatus.${task.status}`)}
-                          {task.dueDate ? ` · ${bidiIsolate(task.dueDate)}` : ''}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
+            <MainAppSection title={t('contractors.overview.tasks')}>
+              {data.tasks.length === 0 ? (
+                <EmptyState size="sm" title={t('contractors.overview.empty.tasksTitle')} description={t('contractors.overview.empty.tasksDescription')} />
+              ) : (
+                <ul className="flex flex-col gap-2">
+                  {data.tasks.map((task) => (
+                    <li key={task.taskId} className="rounded-lg border border-[var(--pf-border-subtle)] p-3">
+                      <p className="font-medium break-words">{task.title}</p>
+                      <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+                        {tCollab(`taskStatus.${task.status}`)}
+                        {task.dueDate ? ` · ${bidiIsolate(task.dueDate)}` : ''}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </MainAppSection>
           ) : null}
-        </section>
+        </MainAppSection>
+        </div>
       ) : null}
 
       {data.claims ? (
-        <section id="claims" className="flex scroll-mt-20 flex-col gap-3">
-          <SectionHeading title={t('contractors.overview.claims')} href={`${root}/claims`} linkLabel={t('contractors.overview.fullList')} />
+        <div id="claims" className="min-w-0 scroll-mt-20">
+        <MainAppSection
+          title={t('contractors.overview.claims')}
+          actions={sectionLink(`${root}/claims`)}
+        >
           {data.claims.items.length === 0 ? (
             <EmptyState size="sm" title={t('contractors.overview.empty.claimsTitle')} description={t('contractors.overview.empty.claimsDescription')} />
           ) : (
@@ -241,265 +270,226 @@ export async function Contractor360Screen({
               ))}
             </ul>
           )}
-        </section>
+        </MainAppSection>
+        </div>
       ) : null}
 
-      <section id="changes" className="flex scroll-mt-20 flex-col gap-3">
-        <SectionHeading title={t('contractors.overview.changes')} href={`${base}/changes`} linkLabel={t('contractors.overview.fullList')} />
+      <div id="changes" className="min-w-0 scroll-mt-20">
+      <MainAppSection
+        title={t('contractors.overview.changes')}
+        actions={sectionLink(`${base}/changes`)}
+      >
         <ChangesPanel changes={data.changes} lines={data.lines} />
-      </section>
+      </MainAppSection>
+      </div>
 
       {data.documents ? (
-        <section id="documents" className="flex scroll-mt-20 flex-col gap-3">
-          <SectionHeading title={t('contractors.overview.documents')} href={`${root}/plans`} linkLabel={t('contractors.overview.fullList')} />
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('contractors.overview.sharedDocuments')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {data.documents.shares.length === 0 ? (
-                <EmptyState size="sm" title={t('contractors.overview.empty.documentsTitle')} description={t('contractors.overview.empty.documentsDescription')} />
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {data.documents.shares.map((share) => (
-                    <li key={share.id} className="rounded-lg border border-[var(--pf-border-subtle)] p-3">
-                      <p className="font-medium break-words">{share.title}</p>
-                      <p className="mt-1 text-sm break-words text-[var(--pf-text-secondary)]">{share.fileName}</p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('contractors.overview.plans')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {data.documents.plans.length === 0 ? (
-                <EmptyState size="sm" title={t('contractors.overview.empty.plansTitle')} description={t('contractors.overview.empty.plansDescription')} />
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {data.documents.plans.map((plan) => (
-                    <li key={plan.id}>
-                      <Link href={`${root}/plans/${plan.id}`} className="block rounded-lg border border-[var(--pf-border-subtle)] p-3">
-                        <p className="font-medium break-words">
-                          {plan.drawingNumber} · {plan.title}
-                        </p>
-                        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-                          {tPlans('register.currentRev', { label: plan.revisionLabel })}
-                        </p>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-        </section>
+        <div id="documents" className="min-w-0 scroll-mt-20">
+        <MainAppSection
+          title={t('contractors.overview.documents')}
+          actions={sectionLink(`${root}/plans`)}
+        >
+          <MainAppSection title={t('contractors.overview.sharedDocuments')}>
+            {data.documents.shares.length === 0 ? (
+              <EmptyState size="sm" title={t('contractors.overview.empty.documentsTitle')} description={t('contractors.overview.empty.documentsDescription')} />
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {data.documents.shares.map((share) => (
+                  <li key={share.id} className="rounded-lg border border-[var(--pf-border-subtle)] p-3">
+                    <p className="font-medium break-words">{share.title}</p>
+                    <p className="mt-1 text-sm break-words text-[var(--pf-text-secondary)]">{share.fileName}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </MainAppSection>
+          <MainAppSection title={t('contractors.overview.plans')}>
+            {data.documents.plans.length === 0 ? (
+              <EmptyState size="sm" title={t('contractors.overview.empty.plansTitle')} description={t('contractors.overview.empty.plansDescription')} />
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {data.documents.plans.map((plan) => (
+                  <li key={plan.id}>
+                    <Link href={`${root}/plans/${plan.id}`} className="block rounded-lg border border-[var(--pf-border-subtle)] p-3">
+                      <p className="font-medium break-words">
+                        {plan.drawingNumber} · {plan.title}
+                      </p>
+                      <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+                        {tPlans('register.currentRev', { label: plan.revisionLabel })}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </MainAppSection>
+        </MainAppSection>
+        </div>
       ) : null}
 
-      <section id="rfi" className="flex scroll-mt-20 flex-col gap-3">
-        <SectionHeading title={t('contractors.overview.rfi')} />
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('contractors.overview.rfis')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.rfis.items.length === 0 ? (
-              <EmptyState size="sm" title={t('contractors.overview.empty.rfisTitle')} description={t('contractors.overview.empty.rfisDescription')} />
-            ) : (
-              <ul className="flex flex-col gap-2">
-                {data.rfis.items.map((item) => (
-                  <li key={item.id}>
-                    <Link href={`${root}/rfi/${item.id}`} className="block rounded-lg border border-[var(--pf-border-subtle)] p-3">
-                      <p className="font-medium break-words">
-                        {formatRfiNumber(item.number)} · {item.subject}
-                      </p>
-                      <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-                        {tRfi(`status.${item.status}`)}
-                        {item.overdue ? ` · ${tRfi('list.overdue')}` : ''}
-                        {item.dueDate ? ` · ${bidiIsolate(item.dueDate)}` : ''}
-                      </p>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="mt-3 text-sm">
-              <Link href={`${root}/rfi`} className="inline-flex min-h-11 items-center text-[var(--pf-text-brand)]">
-                {t('contractors.overview.fullList')}
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('contractors.overview.submittals')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.submittals.items.length === 0 ? (
-              <EmptyState size="sm" title={t('contractors.overview.empty.submittalsTitle')} description={t('contractors.overview.empty.submittalsDescription')} />
-            ) : (
-              <ul className="flex flex-col gap-2">
-                {data.submittals.items.map((item) => (
-                  <li key={item.id}>
-                    <Link href={`${root}/submittals/${item.id}`} className="block rounded-lg border border-[var(--pf-border-subtle)] p-3">
-                      <p className="font-medium break-words">
-                        {formatSubmittalNumber(item.number)} · {item.title}
-                      </p>
-                      <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-                        {tSubmittals(`type.${item.type}`)}
-                        {' · '}
-                        {tSubmittals(`status.${item.status}`)}
-                        {item.overdue ? ` · ${tSubmittals('list.overdue')}` : ''}
-                      </p>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="mt-3 text-sm">
-              <Link href={`${root}/submittals`} className="inline-flex min-h-11 items-center text-[var(--pf-text-brand)]">
-                {t('contractors.overview.fullList')}
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
-      </section>
+      <div id="rfi" className="min-w-0 scroll-mt-20">
+      <MainAppSection title={t('contractors.overview.rfi')}>
+        <MainAppSection title={t('contractors.overview.rfis')}>
+          {data.rfis.items.length === 0 ? (
+            <EmptyState size="sm" title={t('contractors.overview.empty.rfisTitle')} description={t('contractors.overview.empty.rfisDescription')} />
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {data.rfis.items.map((item) => (
+                <li key={item.id}>
+                  <Link href={`${root}/rfi/${item.id}`} className="block rounded-lg border border-[var(--pf-border-subtle)] p-3">
+                    <p className="font-medium break-words">
+                      {formatRfiNumber(item.number)} · {item.subject}
+                    </p>
+                    <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+                      {tRfi(`status.${item.status}`)}
+                      {item.overdue ? ` · ${tRfi('list.overdue')}` : ''}
+                      {item.dueDate ? ` · ${bidiIsolate(item.dueDate)}` : ''}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-3 text-sm">{sectionLink(`${root}/rfi`)}</p>
+        </MainAppSection>
+        <MainAppSection title={t('contractors.overview.submittals')}>
+          {data.submittals.items.length === 0 ? (
+            <EmptyState size="sm" title={t('contractors.overview.empty.submittalsTitle')} description={t('contractors.overview.empty.submittalsDescription')} />
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {data.submittals.items.map((item) => (
+                <li key={item.id}>
+                  <Link href={`${root}/submittals/${item.id}`} className="block rounded-lg border border-[var(--pf-border-subtle)] p-3">
+                    <p className="font-medium break-words">
+                      {formatSubmittalNumber(item.number)} · {item.title}
+                    </p>
+                    <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+                      {tSubmittals(`type.${item.type}`)}
+                      {' · '}
+                      {tSubmittals(`status.${item.status}`)}
+                      {item.overdue ? ` · ${tSubmittals('list.overdue')}` : ''}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-3 text-sm">{sectionLink(`${root}/submittals`)}</p>
+        </MainAppSection>
+      </MainAppSection>
+      </div>
 
-      <section id="quality" className="flex scroll-mt-20 flex-col gap-3">
-        <SectionHeading title={t('contractors.overview.quality')} />
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('contractors.overview.inspections')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.inspections.items.length === 0 ? (
-              <EmptyState size="sm" title={t('contractors.overview.empty.inspectionsTitle')} description={t('contractors.overview.empty.inspectionsDescription')} />
-            ) : (
-              <ul className="flex flex-col gap-2">
-                {data.inspections.items.map((item) => (
-                  <li key={item.id}>
-                    <Link href={`${root}/inspections/${item.id}`} className="block rounded-lg border border-[var(--pf-border-subtle)] p-3">
-                      <p className="font-medium break-words">{item.title}</p>
-                      <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-                        {tInspections('detailTitle', { ref: item.referenceNo })}
-                        {' · '}
-                        {tInspections(`status.${item.status}`)}
-                        {item.outcome ? ` · ${tInspections(`outcome.${item.outcome}`)}` : ''}
-                      </p>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="mt-3 text-sm">
-              <Link href={`${root}/inspections`} className="inline-flex min-h-11 items-center text-[var(--pf-text-brand)]">
-                {t('contractors.overview.fullList')}
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('contractors.overview.defects')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.defects.items.length === 0 ? (
-              <EmptyState size="sm" title={t('contractors.overview.empty.defectsTitle')} description={t('contractors.overview.empty.defectsDescription')} />
-            ) : (
-              <ul className="flex flex-col gap-2">
-                {data.defects.items.map((item) => (
-                  <li key={item.id}>
-                    <Link href={`${root}/defects/${item.id}`} className="block rounded-lg border border-[var(--pf-border-subtle)] p-3">
-                      <p className="font-medium break-words">{item.title}</p>
-                      <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-                        {tDefects('detailTitle', { ref: item.referenceNo })}
-                        {' · '}
-                        {tDefects(`status.${item.status}`)}
-                        {' · '}
-                        {tDefects(`severity.${item.severity}`)}
-                        {item.overdue ? ` · ${tDefects('counts.overdue')}` : ''}
-                      </p>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="mt-3 text-sm">
-              <Link href={`${root}/defects`} className="inline-flex min-h-11 items-center text-[var(--pf-text-brand)]">
-                {t('contractors.overview.fullList')}
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
-      </section>
+      <div id="quality" className="min-w-0 scroll-mt-20">
+      <MainAppSection title={t('contractors.overview.quality')}>
+        <MainAppSection title={t('contractors.overview.inspections')}>
+          {data.inspections.items.length === 0 ? (
+            <EmptyState size="sm" title={t('contractors.overview.empty.inspectionsTitle')} description={t('contractors.overview.empty.inspectionsDescription')} />
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {data.inspections.items.map((item) => (
+                <li key={item.id}>
+                  <Link href={`${root}/inspections/${item.id}`} className="block rounded-lg border border-[var(--pf-border-subtle)] p-3">
+                    <p className="font-medium break-words">{item.title}</p>
+                    <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+                      {tInspections('detailTitle', { ref: item.referenceNo })}
+                      {' · '}
+                      {tInspections(`status.${item.status}`)}
+                      {item.outcome ? ` · ${tInspections(`outcome.${item.outcome}`)}` : ''}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-3 text-sm">{sectionLink(`${root}/inspections`)}</p>
+        </MainAppSection>
+        <MainAppSection title={t('contractors.overview.defects')}>
+          {data.defects.items.length === 0 ? (
+            <EmptyState size="sm" title={t('contractors.overview.empty.defectsTitle')} description={t('contractors.overview.empty.defectsDescription')} />
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {data.defects.items.map((item) => (
+                <li key={item.id}>
+                  <Link href={`${root}/defects/${item.id}`} className="block rounded-lg border border-[var(--pf-border-subtle)] p-3">
+                    <p className="font-medium break-words">{item.title}</p>
+                    <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+                      {tDefects('detailTitle', { ref: item.referenceNo })}
+                      {' · '}
+                      {tDefects(`status.${item.status}`)}
+                      {' · '}
+                      {tDefects(`severity.${item.severity}`)}
+                      {item.overdue ? ` · ${tDefects('counts.overdue')}` : ''}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-3 text-sm">{sectionLink(`${root}/defects`)}</p>
+        </MainAppSection>
+      </MainAppSection>
+      </div>
 
-      <section id="payments" className="flex scroll-mt-20 flex-col gap-3">
-        <SectionHeading title={t('contractors.overview.payments')} />
+      <div id="payments" className="min-w-0 scroll-mt-20">
+      <MainAppSection title={t('contractors.overview.payments')}>
         {data.payments ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('contractors.overview.paymentFigures')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!data.payments.hasBases && data.payments.holdCount === 0 ? (
-                <EmptyState size="sm" title={t('contractors.overview.empty.paymentsTitle')} description={t('contractors.overview.empty.paymentsDescription')} />
-              ) : (
-                <div className="flex flex-col gap-3">
-                  {data.payments.hasBases ? (
-                    <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      <Figure label={tClaims('totals.certifiedCumulative')} value={money(data.payments.certified, data.payments.currency)} />
-                      <Figure label={tClaims('totals.payableNet')} value={money(data.payments.payableNet, data.payments.currency)} />
-                      <Figure label={tClaims('totals.paidRecorded')} value={money(data.payments.paid, data.payments.currency)} />
-                      <Figure label={tClaims('portal.retention')} value={money(data.payments.retentionHeld, data.payments.currency)} />
-                    </dl>
-                  ) : null}
-                  <p className="text-sm text-[var(--pf-text-secondary)]">
-                    {data.payments.eligible ? t('contractors.overview.paymentEligible') : t('contractors.overview.paymentHeld')}
-                    {data.payments.holdCount > 0 ? ` · ${tClaims('portal.holds')}: ${bidiIsolate(String(data.payments.holdCount))}` : ''}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ) : null}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('contractors.overview.compliance')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.compliance.requirements.length === 0 ? (
-              <EmptyState size="sm" title={t('contractors.overview.empty.complianceTitle')} description={t('contractors.overview.empty.complianceDescription')} />
+          <MainAppSection title={t('contractors.overview.paymentFigures')}>
+            {!data.payments.hasBases && data.payments.holdCount === 0 ? (
+              <EmptyState size="sm" title={t('contractors.overview.empty.paymentsTitle')} description={t('contractors.overview.empty.paymentsDescription')} />
             ) : (
-              <div className="flex flex-col gap-3">
-                {data.compliance.blockingCount > 0 ? (
-                  <p className="text-sm text-[var(--pf-text-secondary)]">
-                    {tCompliance('counts.blocking', { count: data.compliance.blockingCount })}
-                  </p>
+              <div className="flex min-w-0 flex-col gap-3">
+                {data.payments.hasBases ? (
+                  <MainAppSummaryGrid>
+                    <MainAppSummaryItem label={tClaims('totals.certifiedCumulative')}>
+                      {money(data.payments.certified, data.payments.currency)}
+                    </MainAppSummaryItem>
+                    <MainAppSummaryItem label={tClaims('totals.payableNet')}>
+                      {money(data.payments.payableNet, data.payments.currency)}
+                    </MainAppSummaryItem>
+                    <MainAppSummaryItem label={tClaims('totals.paidRecorded')}>
+                      {money(data.payments.paid, data.payments.currency)}
+                    </MainAppSummaryItem>
+                    <MainAppSummaryItem label={tClaims('portal.retention')}>
+                      {money(data.payments.retentionHeld, data.payments.currency)}
+                    </MainAppSummaryItem>
+                  </MainAppSummaryGrid>
                 ) : null}
-                <ul className="flex flex-col gap-2">
-                  {data.compliance.requirements.map((requirement) => (
-                    <li key={requirement.id} className="rounded-lg border border-[var(--pf-border-subtle)] p-3">
-                      <p className="font-medium break-words">{requirement.title}</p>
-                      <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-                        {tCompliance(`kinds.${requirement.kind}`)}
-                        {' · '}
-                        {tCompliance(`status.${requirement.status}`)}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
+                <p className="text-sm text-[var(--pf-text-secondary)]">
+                  {data.payments.eligible ? t('contractors.overview.paymentEligible') : t('contractors.overview.paymentHeld')}
+                  {data.payments.holdCount > 0 ? ` · ${tClaims('portal.holds')}: ${bidiIsolate(String(data.payments.holdCount))}` : ''}
+                </p>
               </div>
             )}
-            <p className="mt-3 text-sm">
-              <Link href={`${root}/contractor-compliance`} className="inline-flex min-h-11 items-center text-[var(--pf-text-brand)]">
-                {t('contractors.overview.fullList')}
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
+          </MainAppSection>
+        ) : null}
+        <MainAppSection
+          title={t('contractors.overview.compliance')}
+          actions={sectionLink(`${root}/contractor-compliance`)}
+        >
+          {data.compliance.requirements.length === 0 ? (
+            <EmptyState size="sm" title={t('contractors.overview.empty.complianceTitle')} description={t('contractors.overview.empty.complianceDescription')} />
+          ) : (
+            <div className="flex flex-col gap-3">
+              {data.compliance.blockingCount > 0 ? (
+                <p className="text-sm text-[var(--pf-text-secondary)]">
+                  {tCompliance('counts.blocking', { count: data.compliance.blockingCount })}
+                </p>
+              ) : null}
+              <ul className="flex flex-col gap-2">
+                {data.compliance.requirements.map((requirement) => (
+                  <li key={requirement.id} className="rounded-lg border border-[var(--pf-border-subtle)] p-3">
+                    <p className="font-medium break-words">{requirement.title}</p>
+                    <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+                      {tCompliance(`kinds.${requirement.kind}`)}
+                      {' · '}
+                      {tCompliance(`status.${requirement.status}`)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </MainAppSection>
         <ActivityFeed
           organizationId={data.organizationId}
           projectId={projectId}
@@ -508,7 +498,8 @@ export async function Contractor360Screen({
           limit={30}
           surfaceRoot={surfaceRoot}
         />
-      </section>
+      </MainAppSection>
+      </div>
 
       <AgreementHandoverPanel
         projectId={projectId}
@@ -516,29 +507,7 @@ export async function Contractor360Screen({
         root={root}
         canManage={data.canManageHandover}
       />
-    </div>
-  );
-}
-
-function SectionHeading({ title, href, linkLabel }: { title: string; href?: string; linkLabel?: string }) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <h2 className="text-base font-semibold text-[var(--pf-text-primary)]">{title}</h2>
-      {href ? (
-        <Link href={href} className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--pf-text-brand)]">
-          {linkLabel}
-        </Link>
-      ) : null}
-    </div>
-  );
-}
-
-function Figure({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="text-xs text-[var(--pf-text-muted)]">{label}</dt>
-      <dd className="text-base font-semibold tabular-nums">{value}</dd>
-    </div>
+    </MainAppPage>
   );
 }
 

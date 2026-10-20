@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
@@ -42,7 +43,7 @@ export default async function QuoteModuleSettingsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         description={t('subtitle')}
@@ -52,9 +53,12 @@ export default async function QuoteModuleSettingsPage() {
           </Link>
         }
       />
-      <Card className="min-w-0 overflow-hidden p-5">
+      <MainAppSection>
+        <Card className="min-w-0 overflow-hidden p-5">
         <QuoteSettingsPanel blocks={data.blocks} canEdit={data.canEdit} />
       </Card>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

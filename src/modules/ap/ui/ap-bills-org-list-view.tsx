@@ -1,6 +1,15 @@
-import { FileSpreadsheet, Plus } from 'lucide-react';
+﻿import { FileSpreadsheet, Plus } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
+import {
+  AdaptiveListBody,
+  AdaptiveListTableShell,
+  MainAppListPagination,
+  MainAppPage,
+  MainAppSection,
+  mainAppListKitEnabled,
+} from '@/components/patterns/main-app';
+import { QueryPagination } from '@/components/ui/query-pagination';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { Button } from '@/components/ui/button';
@@ -8,7 +17,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { QueryPagination } from '@/components/ui/query-pagination';
 import {
   countApBillsForOrg,
   getOrganizationApPayables,
@@ -23,6 +31,10 @@ import {
   parseOrgListPage,
   resolveOrgListPage,
 } from '@/shared/db/org-list-pagination';
+import {
+  MAIN_APP_DEFAULT_LIST_PAGE_SIZE,
+  parseMainAppListPageSize,
+} from '@/shared/db/main-app-list-page-size';
 import { isPositiveMoney, money } from '@/shared/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -81,11 +93,18 @@ export async function ApBillsOrgListView({
   ]);
 
   const isOwner = surface === 'owner';
+  const listKit = mainAppListKitEnabled(surface);
   const fromDate = typeof params.fromDate === 'string' && params.fromDate ? params.fromDate : undefined;
   const toDate = typeof params.toDate === 'string' && params.toDate ? params.toDate : undefined;
   const paymentFrom =
     typeof params.paymentFrom === 'string' && params.paymentFrom ? params.paymentFrom : undefined;
   const paymentTo = typeof params.paymentTo === 'string' && params.paymentTo ? params.paymentTo : undefined;
+  const pageSize = listKit
+    ? parseMainAppListPageSize(
+        typeof params.pageSize === 'string' ? params.pageSize : undefined,
+        MAIN_APP_DEFAULT_LIST_PAGE_SIZE,
+      )
+    : ORG_LIST_PAGE_SIZE;
   const requestedPage = parseOrgListPage(
     typeof params.page === 'string' ? params.page : undefined,
   );
@@ -119,13 +138,13 @@ export async function ApBillsOrgListView({
             )
           : null;
       const total = canReadAp ? await countApBillsForOrg(context, billListFilters) : 0;
-      const page = resolveOrgListPage(total, requestedPage);
+      const page = resolveOrgListPage(total, requestedPage, pageSize);
       return {
         bills: canReadAp
           ? await listApBillsForOrg(context, {
               ...billListFilters,
-              limit: ORG_LIST_PAGE_SIZE,
-              offset: orgListOffset(page),
+              limit: pageSize,
+              offset: orgListOffset(page, pageSize),
             })
           : [],
         canManage: orgListHasPermission(context, PERMISSIONS.AP_MANAGE, surface),
@@ -136,26 +155,28 @@ export async function ApBillsOrgListView({
         currency: orgCurrency,
         totalCount: total,
         currentPage: page,
-        totalPages: orgListPageCount(total),
+        totalPages: orgListPageCount(total, pageSize),
       };
     });
 
   if (!canRead) {
     const tEmployee = surface === 'employee' ? await getTranslations('employeeApp.ap') : null;
     return (
-      <div className="flex min-w-0 flex-col gap-4">
+      <MainAppPage>
         {isOwner ? <PageHeader title={t('title')} description={t('description')} /> : null}
         {isOwner ? <ProcurementSectionNav active="ap" /> : null}
+        <MainAppSection>
         <EmptyState
           title={tEmployee?.('noAccess.title') ?? t('empty.noAccess.title')}
           description={tEmployee?.('noAccess.description') ?? t('empty.noAccess.body')}
         />
-      </div>
+        </MainAppSection>
+      </MainAppPage>
     );
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
+    <MainAppPage>
       {isOwner ? (
         <PageHeader
           title={t('title')}
@@ -188,6 +209,7 @@ export async function ApBillsOrgListView({
         />
       ) : null}
 
+      <MainAppSection>
       {isOwner ? <ProcurementSectionNav active="ap" /> : null}
 
       {outstandingOnly ? (
@@ -246,6 +268,7 @@ export async function ApBillsOrgListView({
         </div>
       ) : null}
 
+      <AdaptiveListBody surface={surface}>
       {bills.length === 0 ? (
         <EmptyState
           icon={FileSpreadsheet}
@@ -264,7 +287,7 @@ export async function ApBillsOrgListView({
           items={bills}
           getRowKey={(bill) => bill.id}
           desktop={
-            <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+            <AdaptiveListTableShell surface={surface}>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -339,7 +362,7 @@ export async function ApBillsOrgListView({
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </AdaptiveListTableShell>
           }
           renderMobileCard={(bill) => (
             <Link
@@ -395,23 +418,48 @@ export async function ApBillsOrgListView({
         />
       )}
 
-      <QueryPagination
-        basePath={routeBase}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalCount={totalCount}
-        pageSize={ORG_LIST_PAGE_SIZE}
-        currentParams={{
-          fromDate,
-          toDate,
-          paymentFrom,
-          paymentTo,
-        }}
-        previousLabel={tCommon('actions.previous')}
-        nextLabel={tCommon('actions.next')}
-        pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
-        navLabel={tCommon('pagination.navLabel')}
-      />
-    </div>
+      {listKit ? (
+        <MainAppListPagination
+          basePath={routeBase}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          pageSize={pageSize}
+          currentParams={{
+            fromDate,
+            toDate,
+            paymentFrom,
+            paymentTo,
+            outstanding: outstandingOnly ? '1' : undefined,
+          }}
+          previousLabel={tCommon('actions.previous')}
+          nextLabel={tCommon('actions.next')}
+          pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
+          navLabel={tCommon('pagination.navLabel')}
+          rowsPerPageLabel={tCommon('pagination.rowsPerPage')}
+        />
+      ) : (
+        <QueryPagination
+          basePath={routeBase}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          pageSize={ORG_LIST_PAGE_SIZE}
+          currentParams={{
+            fromDate,
+            toDate,
+            paymentFrom,
+            paymentTo,
+            outstanding: outstandingOnly ? '1' : undefined,
+          }}
+          previousLabel={tCommon('actions.previous')}
+          nextLabel={tCommon('actions.next')}
+          pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
+          navLabel={tCommon('pagination.navLabel')}
+        />
+      )}
+      </AdaptiveListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

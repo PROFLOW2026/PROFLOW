@@ -1,3 +1,11 @@
+import {
+  MainAppPage,
+  MainAppReportWorkspace,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
+import { MainAppListToolbar } from '@/components/patterns/main-app/main-app-list-toolbar';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
@@ -69,21 +77,46 @@ export default async function MonthlyWorkforceReportPage({
   const previewHref = reportPreviewPath('monthly_workforce_report', data.month);
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <WorkforceSubNav active="employees" />
       <PageHeader title={t('title')} description={t('description')} />
-      <MonthlyWorkforceReportMonthForm defaultMonth={data.defaultMonth} selectedMonth={data.month} />
-      <div className="flex flex-wrap items-center gap-2">
-        <ReportDownloadButtons
-          kind="monthly_workforce_report"
-          id={data.month}
-          reportMonth={data.month}
-        />
-        <Link href={previewHref} className="text-sm text-[var(--pf-text-secondary)] underline">
-          {t('openPreview')}
-        </Link>
-      </div>
-      <GeneratedDocumentStatus artifacts={data.artifacts} />
-    </div>
+      <MainAppReportWorkspace
+        catalog={null}
+        panel={
+          <MainAppSection>
+            <MainAppSummaryGrid>
+              <MainAppSummaryItem label={t('monthLabel')}>
+                <span className="pf-ltr-island font-mono tabular-nums" dir="ltr">
+                  {data.month}
+                </span>
+              </MainAppSummaryItem>
+            </MainAppSummaryGrid>
+
+            <MainAppListToolbar className="sm:items-center">
+              <MonthlyWorkforceReportMonthForm
+                defaultMonth={data.defaultMonth}
+                selectedMonth={data.month}
+              />
+              <div className="flex min-w-0 flex-wrap items-center gap-2 sm:ms-auto">
+                <ReportDownloadButtons
+                  kind="monthly_workforce_report"
+                  id={data.month}
+                  reportMonth={data.month}
+                  compact
+                />
+                <Link
+                  href={previewHref}
+                  className="text-sm text-[var(--pf-text-secondary)] underline-offset-2 hover:underline"
+                >
+                  {t('openPreview')}
+                </Link>
+              </div>
+            </MainAppListToolbar>
+
+            <GeneratedDocumentStatus artifacts={data.artifacts} />
+          </MainAppSection>
+        }
+      />
+    </MainAppPage>
   );
 }

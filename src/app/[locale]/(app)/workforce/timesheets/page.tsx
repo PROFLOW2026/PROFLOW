@@ -1,4 +1,10 @@
-import type { Metadata } from 'next';
+import {
+  MainAppListBody,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { ClipboardList } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
@@ -66,9 +72,11 @@ export default async function TimesheetsListPage({
   });
 
   return (
-    <div className="flex flex-col gap-4">
-      <PageHeader title={t('timesheets.title')} description={t('timesheets.description')} />
-      <WorkforceSubNav active="timesheets" />
+    <MainAppPage>
+      <PageHeader title={t('timesheets.title')} />
+      <MainAppSection>
+        <WorkforceSubNav active="timesheets" />
+      <MainAppListBody>
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('timesheets.notPayroll')}</p>
       <form method="get" className="flex flex-col gap-2">
         <div className="flex flex-wrap items-end gap-2">
@@ -134,7 +142,7 @@ export default async function TimesheetsListPage({
           items={sheets}
           getRowKey={(sheet) => sheet.id}
           desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            <MainAppTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -180,7 +188,7 @@ export default async function TimesheetsListPage({
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </MainAppTableShell>
           }
           renderMobileCard={(sheet) => (
             <Link
@@ -200,6 +208,8 @@ export default async function TimesheetsListPage({
           )}
         />
       )}
-    </div>
+      </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

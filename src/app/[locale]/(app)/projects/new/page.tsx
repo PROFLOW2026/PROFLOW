@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { listAvailableCreateWorkKinds } from '@/components/shell/quick-create-actions';
 import { Alert } from '@/components/ui/alert';
@@ -162,9 +163,10 @@ export default async function NewProjectPage({
     : [];
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('create.title')} description={t('create.description')} />
-      {recommendedTemplateNames.length > 0 ? (
+      <MainAppSection>
+        {recommendedTemplateNames.length > 0 ? (
         <Alert tone="info" role="status">
           <p className="text-sm">
             {t('create.recommendedTemplatesTip', {
@@ -195,6 +197,8 @@ export default async function NewProjectPage({
           suggestedDefaults: shell?.suggestedDefaults ?? null,
         })}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

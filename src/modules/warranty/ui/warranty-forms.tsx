@@ -6,6 +6,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Textarea } from '@/components/ui/textarea';
 import {
   createWarrantyCoverageAction,
@@ -39,66 +40,71 @@ export function CreateCoverageForm({
   const types: WarrantyCoverageType[] = ['workmanship', 'materials', 'equipment', 'mixed'];
 
   return (
-    <form action={action} className="flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
+    <form
+      action={action}
+      className="flex w-full min-w-0 max-w-3xl flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4"
+    >
       <input type="hidden" name="projectId" value={projectId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{t('actions.created')}</Alert> : null}
-      <Field label={t('coverage.title')} required>
-        {(control) => <Input {...control} name="title" required maxLength={200} />}
-      </Field>
-      <Field label={t('coverage.type')}>
-        {(control) => (
-          <select {...control} name="coverageType" defaultValue="workmanship" className={SELECT_CLASS}>
-            {types.map((type) => (
-              <option key={type} value={type}>
-                {t(`coverage.types.${type}`)}
-              </option>
-            ))}
-          </select>
-        )}
-      </Field>
-      {workPackages.length > 0 ? (
-        <Field label={t('coverage.workPackage')}>
+      <MainAppFormGrid dense>
+        <Field label={t('coverage.title')} required className={mainAppFieldSpan.full}>
+          {(control) => <Input {...control} name="title" required maxLength={200} />}
+        </Field>
+        <Field label={t('coverage.type')} className={mainAppFieldSpan.lg}>
           {(control) => (
-            <select {...control} name="workPackageId" className={SELECT_CLASS}>
-              <option value="">{t('coverage.workPackage')}</option>
-              {workPackages.map((row) => (
-                <option key={row.id} value={row.id}>
-                  {row.name}
+            <select {...control} name="coverageType" defaultValue="workmanship" className={SELECT_CLASS}>
+              {types.map((type) => (
+                <option key={type} value={type}>
+                  {t(`coverage.types.${type}`)}
                 </option>
               ))}
             </select>
           )}
         </Field>
-      ) : null}
-      {vendors.length > 0 ? (
-        <Field label={t('coverage.vendor')}>
-          {(control) => (
-            <select {...control} name="vendorId" className={SELECT_CLASS}>
-              <option value="">{t('coverage.vendor')}</option>
-              {vendors.map((row) => (
-                <option key={row.id} value={row.id}>
-                  {row.name}
-                </option>
-              ))}
-            </select>
-          )}
-        </Field>
-      ) : null}
-      <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-        <Field label={t('coverage.start')}>
+        {workPackages.length > 0 ? (
+          <Field label={t('coverage.workPackage')} className={mainAppFieldSpan.lg}>
+            {(control) => (
+              <select {...control} name="workPackageId" className={SELECT_CLASS}>
+                <option value="">{t('coverage.workPackage')}</option>
+                {workPackages.map((row) => (
+                  <option key={row.id} value={row.id}>
+                    {row.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Field>
+        ) : null}
+        {vendors.length > 0 ? (
+          <Field label={t('coverage.vendor')} className={mainAppFieldSpan.lg}>
+            {(control) => (
+              <select {...control} name="vendorId" className={SELECT_CLASS}>
+                <option value="">{t('coverage.vendor')}</option>
+                {vendors.map((row) => (
+                  <option key={row.id} value={row.id}>
+                    {row.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Field>
+        ) : null}
+        <Field label={t('coverage.start')} className={mainAppFieldSpan.md}>
           {(control) => <Input {...control} name="startDate" type="date" />}
         </Field>
-        <Field label={t('coverage.end')}>
+        <Field label={t('coverage.end')} className={mainAppFieldSpan.md}>
           {(control) => <Input {...control} name="endDate" type="date" />}
         </Field>
-      </div>
-      <Field label={t('coverage.reminder')}>
-        {(control) => <Input {...control} name="reminderDaysBefore" type="number" min={0} defaultValue={30} />}
-      </Field>
-      <Field label={t('coverage.notes')}>
-        {(control) => <Textarea {...control} name="notes" rows={2} />}
-      </Field>
+        <Field label={t('coverage.reminder')} className={mainAppFieldSpan.md}>
+          {(control) => (
+            <Input {...control} name="reminderDaysBefore" type="number" min={0} defaultValue={30} />
+          )}
+        </Field>
+        <Field label={t('coverage.notes')} className={mainAppFieldSpan.full}>
+          {(control) => <Textarea {...control} name="notes" rows={2} />}
+        </Field>
+      </MainAppFormGrid>
       <Button type="submit" disabled={pending}>
         {t('list.new')}
       </Button>
@@ -137,17 +143,19 @@ export function CreateIssueForm({
   const t = useTranslations('warranty');
   const [state, action, pending] = useActionState(createWarrantyIssueAction, {});
   return (
-    <form action={action} className="flex min-w-0 flex-col gap-2">
+    <form action={action} className="flex w-full min-w-0 max-w-xl flex-col gap-2">
       <input type="hidden" name="coverageId" value={coverageId} />
       <input type="hidden" name="projectId" value={projectId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{t('actions.issueCreated')}</Alert> : null}
-      <Field label={t('issue.title')} required>
-        {(control) => <Input {...control} name="title" required maxLength={200} />}
-      </Field>
-      <Field label={t('coverage.notes')}>
-        {(control) => <Textarea {...control} name="notes" rows={2} />}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field label={t('issue.title')} required className={mainAppFieldSpan.full}>
+          {(control) => <Input {...control} name="title" required maxLength={200} />}
+        </Field>
+        <Field label={t('coverage.notes')} className={mainAppFieldSpan.full}>
+          {(control) => <Textarea {...control} name="notes" rows={2} />}
+        </Field>
+      </MainAppFormGrid>
       <Button type="submit" variant="secondary" disabled={pending}>
         {t('issue.new')}
       </Button>

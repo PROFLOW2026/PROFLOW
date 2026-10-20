@@ -1,5 +1,6 @@
 'use client';
 
+import { MainAppSection } from '@/components/patterns/main-app';
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
@@ -10,8 +11,7 @@ import { isOptionalModuleKey, type OptionalModuleKey } from '@/modules/tenancy/d
 import { previewOrgAdoptionAction, applyOrgAdoptionAction, type AdoptionActionState } from './actions';
 import {
   ORG_PROFILE_TYPES,
-  type OrgProfileType,
-} from '../org-profile/org-profile-domain';
+  type OrgProfileType} from '../org-profile/org-profile-domain';
 
 type Step = 'select' | 'preview' | 'done';
 
@@ -59,8 +59,9 @@ export function AdoptionPanel({ currentProfileType }: { currentProfileType: OrgP
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection>
+        <div>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
       </div>
 
@@ -172,6 +173,8 @@ export function AdoptionPanel({ currentProfileType }: { currentProfileType: OrgP
           </form>
         </section>
       )}
+    
+      </MainAppSection>
     </div>
   );
 }

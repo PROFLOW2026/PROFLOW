@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -100,7 +101,7 @@ export function QuoteEditorForm({
     <form
       action={formAction}
       data-testid={mode === 'edit' ? 'quote-edit-form' : 'quote-create-form'}
-      className="mx-auto flex w-full min-w-0 max-w-lg flex-col gap-4"
+      className="flex w-full min-w-0 flex-col gap-4"
     >
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success && mode === 'edit' ? (
@@ -110,58 +111,64 @@ export function QuoteEditorForm({
       {mode === 'edit' && quoteId ? <input type="hidden" name="quoteId" value={quoteId} /> : null}
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('profitHint')}</p>
 
-      <Field label={t('titleLabel')} required error={state.fieldErrors?.title}>
-        {(control) => (
-          <Input {...control} name="title" required autoFocus defaultValue={defaultTitle ?? ''} />
-        )}
-      </Field>
-
-      {mode === 'create' ? (
+      <MainAppFormGrid dense>
         <Field
-          label={t('referenceLabel')}
-          optionalLabel={tCommon('labels.optional')}
-          description={t('referenceHint')}
+          label={t('titleLabel')}
+          required
+          error={state.fieldErrors?.title}
+          className={mainAppFieldSpan.lg}
         >
           {(control) => (
-            <Input {...control} name="reference" autoComplete="off" dir="ltr" className="pf-ltr-island" />
+            <Input {...control} name="title" required autoFocus defaultValue={defaultTitle ?? ''} />
           )}
         </Field>
-      ) : null}
 
-      <Field label={t('clientLabel')}>
-        {(control) => (
-          <>
-            <input type="hidden" name="clientId" value={clientId} />
-            <Select value={clientId} onValueChange={setClientId}>
-              <SelectTrigger id={control.id}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">{t('clientNone')}</SelectItem>
-                {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        )}
-      </Field>
+        {mode === 'create' ? (
+          <Field
+            label={t('referenceLabel')}
+            optionalLabel={tCommon('labels.optional')}
+            description={t('referenceHint')}
+            className={mainAppFieldSpan.lg}
+          >
+            {(control) => (
+              <Input {...control} name="reference" autoComplete="off" dir="ltr" className="pf-ltr-island" />
+            )}
+          </Field>
+        ) : null}
 
-      <Field label={t('descriptionLabel')}>
-        {(control) => (
-          <Textarea {...control} name="description" rows={3} defaultValue={defaultDescription ?? ''} />
-        )}
-      </Field>
+        <Field label={t('clientLabel')} className={mainAppFieldSpan.lg}>
+          {(control) => (
+            <>
+              <input type="hidden" name="clientId" value={clientId} />
+              <Select value={clientId} onValueChange={setClientId}>
+                <SelectTrigger id={control.id}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">{t('clientNone')}</SelectItem>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
+        </Field>
 
-      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-        <Field label={t('currencyLabel')}>
+        <Field label={t('descriptionLabel')} className={mainAppFieldSpan.full}>
+          {(control) => (
+            <Textarea {...control} name="description" rows={3} defaultValue={defaultDescription ?? ''} />
+          )}
+        </Field>
+
+        <Field label={t('currencyLabel')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input {...control} name="currency" defaultValue={defaultCurrency} dir="ltr" maxLength={3} />
           )}
         </Field>
-        <Field label={t('taxModeLabel')}>
+        <Field label={t('taxModeLabel')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input type="hidden" name="taxMode" value={taxMode} />
@@ -180,22 +187,24 @@ export function QuoteEditorForm({
             </>
           )}
         </Field>
-      </div>
 
-      <Field label={t('validityLabel')}>
-        {(control) => (
-          <Input
-            {...control}
-            name="validityDate"
-            type="date"
-            dir="ltr"
-            defaultValue={defaultValidityDate ?? ''}
-          />
-        )}
-      </Field>
+        <Field label={t('validityLabel')} className={mainAppFieldSpan.lg}>
+          {(control) => (
+            <Input
+              {...control}
+              name="validityDate"
+              type="date"
+              dir="ltr"
+              defaultValue={defaultValidityDate ?? ''}
+            />
+          )}
+        </Field>
 
-      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-        <Field label={t('discountAmountLabel')} optionalLabel={tCommon('labels.optional')}>
+        <Field
+          label={t('discountAmountLabel')}
+          optionalLabel={tCommon('labels.optional')}
+          className={mainAppFieldSpan.lg}
+        >
           {(control) => (
             <Input
               {...control}
@@ -206,7 +215,11 @@ export function QuoteEditorForm({
             />
           )}
         </Field>
-        <Field label={t('listSubtotalLabel')} optionalLabel={tCommon('labels.optional')}>
+        <Field
+          label={t('listSubtotalLabel')}
+          optionalLabel={tCommon('labels.optional')}
+          className={mainAppFieldSpan.lg}
+        >
           {(control) => (
             <Input
               {...control}
@@ -217,7 +230,11 @@ export function QuoteEditorForm({
             />
           )}
         </Field>
-        <Field label={t('discountPercentLabel')} optionalLabel={tCommon('labels.optional')}>
+        <Field
+          label={t('discountPercentLabel')}
+          optionalLabel={tCommon('labels.optional')}
+          className={mainAppFieldSpan.lg}
+        >
           {(control) => (
             <Input
               {...control}
@@ -228,7 +245,7 @@ export function QuoteEditorForm({
             />
           )}
         </Field>
-      </div>
+      </MainAppFormGrid>
       <p className="text-xs text-[var(--pf-text-muted)]">{t('discountHint')}</p>
 
       <section className="flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3">
@@ -246,25 +263,25 @@ export function QuoteEditorForm({
         <input type="hidden" name="lineCount" value={lines.length} />
         {lines.map((line, index) => (
           <div key={index} className="flex flex-col gap-2 border-t border-[var(--pf-border-default)] pt-3">
-            <Field label={t('lineDescription')} required>
-              {(control) => (
-                <Input
-                  {...control}
-                  name={`line.${index}.description`}
-                  value={line.description}
-                  onChange={(e) =>
-                    setLines((prev) =>
-                      prev.map((row, i) =>
-                        i === index ? { ...row, description: e.target.value } : row,
-                      ),
-                    )
-                  }
-                  required
-                />
-              )}
-            </Field>
-            <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
-              <Field label={t('quantity')}>
+            <MainAppFormGrid dense>
+              <Field label={t('lineDescription')} required className={mainAppFieldSpan.full}>
+                {(control) => (
+                  <Input
+                    {...control}
+                    name={`line.${index}.description`}
+                    value={line.description}
+                    onChange={(e) =>
+                      setLines((prev) =>
+                        prev.map((row, i) =>
+                          i === index ? { ...row, description: e.target.value } : row,
+                        ),
+                      )
+                    }
+                    required
+                  />
+                )}
+              </Field>
+              <Field label={t('quantity')} className={mainAppFieldSpan.lg}>
                 {(control) => (
                   <Input
                     {...control}
@@ -282,7 +299,7 @@ export function QuoteEditorForm({
                   />
                 )}
               </Field>
-              <Field label={t('unit')}>
+              <Field label={t('unit')} className={mainAppFieldSpan.lg}>
                 {(control) => (
                   <Input
                     {...control}
@@ -296,7 +313,7 @@ export function QuoteEditorForm({
                   />
                 )}
               </Field>
-              <Field label={t('unitPrice')} required>
+              <Field label={t('unitPrice')} required className={mainAppFieldSpan.lg}>
                 {(control) => (
                   <Input
                     {...control}
@@ -315,7 +332,7 @@ export function QuoteEditorForm({
                   />
                 )}
               </Field>
-              <Field label={t('unitCost')}>
+              <Field label={t('unitCost')} className={mainAppFieldSpan.lg}>
                 {(control) => (
                   <Input
                     {...control}
@@ -335,7 +352,7 @@ export function QuoteEditorForm({
                   />
                 )}
               </Field>
-            </div>
+            </MainAppFormGrid>
             {lines.length > 1 ? (
               <Button
                 type="button"
@@ -358,11 +375,13 @@ export function QuoteEditorForm({
         }
       />
 
-      <Field label={t('notesLabel')}>
-        {(control) => (
-          <Textarea {...control} name="notes" rows={2} defaultValue={defaultNotes ?? ''} />
-        )}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field label={t('notesLabel')} className={mainAppFieldSpan.full}>
+          {(control) => (
+            <Textarea {...control} name="notes" rows={2} defaultValue={defaultNotes ?? ''} />
+          )}
+        </Field>
+      </MainAppFormGrid>
 
       <div className="flex w-full min-w-0 gap-2">
         <Button type="submit" className="w-full min-w-0 sm:w-auto" disabled={pending}>

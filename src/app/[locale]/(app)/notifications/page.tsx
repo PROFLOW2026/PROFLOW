@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppListBody, MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { listMergedNotificationInbox } from '@/modules/notifications/application/actionable-inbox';
@@ -37,9 +38,13 @@ export default async function NotificationsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader title={t('title')} description={t('pageDescription')} />
-      <NotificationInboxClient initialInbox={inbox} />
-    </div>
+      <MainAppSection>
+        <MainAppListBody>
+        <NotificationInboxClient initialInbox={inbox} />
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

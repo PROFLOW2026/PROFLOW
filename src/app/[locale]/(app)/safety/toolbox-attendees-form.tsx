@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -22,15 +23,19 @@ export function ToolboxAttendeeForm({ safetyRecordId }: { safetyRecordId: string
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+    <form action={formAction} className="flex w-full flex-col gap-4">
       <input type="hidden" name="safetyRecordId" value={safetyRecordId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <Field label={t('fields.attendeeName')} className="sm:flex-1" error={state.fieldErrors?.attendeeName}>
+      <MainAppFormGrid dense className="gap-4">
+      <Field label={t('fields.attendeeName')} className={mainAppFieldSpan.lg} error={state.fieldErrors?.attendeeName}>
         {(control) => <Input {...control} name="attendeeName" required className="h-11 text-base" />}
       </Field>
-      <Button type="submit" className="h-11" loading={pending}>
+      <div className={mainAppFieldSpan.lg}>
+      <Button type="submit" className="h-11 w-full sm:w-auto" loading={pending}>
         {pending ? tCommon('states.saving') : t('actions.addAttendee')}
       </Button>
+      </div>
+      </MainAppFormGrid>
     </form>
   );
 }

@@ -1,4 +1,5 @@
-import { getLocale, getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getLocale, getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
@@ -44,8 +45,9 @@ export async function ProjectExecutionDashboardScreen({ surfaceRoot, params }: {
 
   return (
     <WithAppClientMessages extra={['projectWorkspace']}>
-      <div className="flex flex-col gap-4">
+      <MainAppPage>
         <PageHeader title={t('execution.dashboard')} description={t('execution.dashboardDescription')} />
+      <MainAppSection>
         <div className="flex flex-wrap gap-2">
           <Link
             href={`${base}/structure`}
@@ -113,7 +115,9 @@ export async function ProjectExecutionDashboardScreen({ surfaceRoot, params }: {
             ))}
           </ul>
         </section>
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

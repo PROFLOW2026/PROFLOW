@@ -91,7 +91,12 @@ export function CreateAgreementForm({
         <FormField label={t('terms.vatTreatment')} name="vatTreatment" options={options.vat} />
         <FormField label={t('terms.paymentTermsDays')} name="paymentTermsDays" type="number" inputMode="numeric" />
       </FieldGrid>
-      <FormField label={t('agreement.fields.scope')} name="scopeSummary" multiline />
+      <FormField
+        label={t('agreement.fields.scope')}
+        name="scopeSummary"
+        multiline
+        className="col-span-full min-w-0 w-full"
+      />
     </ActionForm>
   );
 }

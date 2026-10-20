@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { listClientsForOrg } from '@/modules/clients';
@@ -63,7 +64,7 @@ export default async function NewQuotePage({
     opportunity?.convertedClientId ?? opportunity?.prospect?.convertedClientId ?? null;
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={t('create.title')}
         description={
@@ -75,7 +76,8 @@ export default async function NewQuotePage({
           </Link>
         }
       />
-      <QuoteCreateForm
+      <MainAppSection>
+        <QuoteCreateForm
         defaultCurrency={opportunity?.currency ?? shell?.organization.baseCurrency ?? 'ILS'}
         clients={clients.map((c) => ({ id: c.id, name: c.name }))}
         opportunityId={opportunity?.id ?? opportunityId}
@@ -83,6 +85,8 @@ export default async function NewQuotePage({
         defaultClientId={defaultClientId}
         defaultTextBlocks={defaultTextBlocks}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

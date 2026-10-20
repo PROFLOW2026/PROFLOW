@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState, useState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -64,7 +65,7 @@ export function AddRateVersionForm({
     <form
       id={EMPLOYEE_ADD_RATE_FORM_ID}
       action={formAction}
-      className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3"
+      className="flex w-full min-w-0 flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-3"
     >
       <input type="hidden" name="employeeId" value={employeeId} />
       <input type="hidden" name="currency" value={defaultCurrency} />
@@ -74,56 +75,57 @@ export function AddRateVersionForm({
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.ok ? <Alert tone="success">{t('employees.detail.updateSalarySuccess')}</Alert> : null}
 
-      <Field label={t('employees.detail.salaryEffectiveFrom')} required>
-        {(control) => (
-          <Input
-            {...control}
-            type="date"
-            name="validFrom"
-            defaultValue={defaultValidFrom}
-            required
-            dir="ltr"
-          />
-        )}
-      </Field>
-
-      <Field label={t('employees.form.employmentStyle')} required>
-        {(control) => (
-          <Select value={rateUnit} onValueChange={(value) => setRateUnit(value as typeof rateUnit)}>
-            <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {RATE_UNITS.map((unit) => (
-                <SelectItem key={unit} value={unit}>
-                  {t(`rateUnits.${unit}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </Field>
-
-      <Field label={t('employees.form.baseRate')} required>
-        {(control) => (
-          <>
-            <input type="hidden" name="baseRate" value={baseRate} />
-            <MoneyInput
+      <MainAppFormGrid dense className="gap-4">
+        <Field label={t('employees.detail.salaryEffectiveFrom')} required className={mainAppFieldSpan.md}>
+          {(control) => (
+            <Input
               {...control}
-              value={baseRate}
-              onValueChange={setBaseRate}
-              currencySymbol={defaultCurrency}
-              currency={defaultCurrency}
+              type="date"
+              name="validFrom"
+              defaultValue={defaultValidFrom}
+              required
+              dir="ltr"
             />
-          </>
-        )}
-      </Field>
+          )}
+        </Field>
 
-      {rateUnit === 'monthly' ? (
-        <>
+        <Field label={t('employees.form.employmentStyle')} required className={mainAppFieldSpan.lg}>
+          {(control) => (
+            <Select value={rateUnit} onValueChange={(value) => setRateUnit(value as typeof rateUnit)}>
+              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {RATE_UNITS.map((unit) => (
+                  <SelectItem key={unit} value={unit}>
+                    {t(`rateUnits.${unit}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+
+        <Field label={t('employees.form.baseRate')} required className={mainAppFieldSpan.md}>
+          {(control) => (
+            <>
+              <input type="hidden" name="baseRate" value={baseRate} />
+              <MoneyInput
+                {...control}
+                value={baseRate}
+                onValueChange={setBaseRate}
+                currencySymbol={defaultCurrency}
+                currency={defaultCurrency}
+              />
+            </>
+          )}
+        </Field>
+
+        {rateUnit === 'monthly' ? (
           <Field
             label={t('employees.form.workingDaysPerMonth')}
             description={t('employees.form.workingDaysPerMonthHint')}
+            className={mainAppFieldSpan.md}
           >
             {(control) => (
               <Input
@@ -137,36 +139,38 @@ export function AddRateVersionForm({
               />
             )}
           </Field>
-          {isWorkingDaysPerMonthBelowAccrualFloor(workingDaysPerMonth) ? (
-            <Alert tone="warning">
-              {t('workFramework.workingDaysPerMonthAccrualWarn', {
-                min: MIN_MONTHLY_ACCRUAL_WORKING_DAYS,
-              })}
-            </Alert>
-          ) : null}
-        </>
-      ) : (
-        <input type="hidden" name="workingDaysPerMonth" value="" />
-      )}
-
-      <Field
-        label={t('employees.form.burdenPercent')}
-        optionalLabel={tCommon('labels.optional')}
-        description={t('employees.form.burdenHint')}
-      >
-        {(control) => (
-          <>
-            <input type="hidden" name="burdenPercent" value={burdenPercent} />
-            <Input
-              {...control}
-              inputMode="decimal"
-              value={burdenPercent}
-              onChange={(event) => setBurdenPercent(event.target.value)}
-              dir="ltr"
-            />
-          </>
+        ) : (
+          <input type="hidden" name="workingDaysPerMonth" value="" />
         )}
-      </Field>
+
+        <Field
+          label={t('employees.form.burdenPercent')}
+          optionalLabel={tCommon('labels.optional')}
+          description={t('employees.form.burdenHint')}
+          className={mainAppFieldSpan.md}
+        >
+          {(control) => (
+            <>
+              <input type="hidden" name="burdenPercent" value={burdenPercent} />
+              <Input
+                {...control}
+                inputMode="decimal"
+                value={burdenPercent}
+                onChange={(event) => setBurdenPercent(event.target.value)}
+                dir="ltr"
+              />
+            </>
+          )}
+        </Field>
+      </MainAppFormGrid>
+
+      {rateUnit === 'monthly' && isWorkingDaysPerMonthBelowAccrualFloor(workingDaysPerMonth) ? (
+        <Alert tone="warning">
+          {t('workFramework.workingDaysPerMonthAccrualWarn', {
+            min: MIN_MONTHLY_ACCRUAL_WORKING_DAYS,
+          })}
+        </Alert>
+      ) : null}
 
       <Button type="submit" size="lg" block loading={pending} disabled={!baseRate.trim()}>
         {t('employees.detail.updateSalarySave')}

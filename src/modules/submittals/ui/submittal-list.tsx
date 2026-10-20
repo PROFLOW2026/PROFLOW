@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+﻿import { getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { formatBusinessDate } from '@/shared/dates';

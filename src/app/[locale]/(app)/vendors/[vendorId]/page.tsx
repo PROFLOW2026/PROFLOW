@@ -1,4 +1,10 @@
-import type { Metadata } from 'next';
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -60,6 +66,8 @@ import { RelatedCommunicationsPanel } from '@/modules/communications/ui/related-
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
 import { getVendorLogoAvailability, getVendorLogoPreviewUrl } from '@/modules/identity-images';
 import { VendorLogoPanel } from '@/modules/identity-images/client';
+
+const EMPTY = '—';
 
 export async function generateMetadata({
   params,
@@ -281,7 +289,7 @@ export default async function VendorDetailPage({
 
   return (
     <WithAppClientMessages extra={['contractorAccess']}>
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={
           <span className="flex min-w-0 items-center gap-3">
@@ -317,8 +325,44 @@ export default async function VendorDetailPage({
           />
         }
       />
-
-      <Vendor360Shell
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('create.typeLabel')}>
+            {tTypes(vendor.type)}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('create.emailLabel')}>
+            {vendor.email?.trim() ? (
+              <span dir="ltr" className="pf-ltr-island">
+                {vendor.email}
+              </span>
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('create.phoneLabel')}>
+            {vendor.phone?.trim() ? (
+              <span dir="ltr" className="pf-ltr-island">
+                {vendor.phone}
+              </span>
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('detail.paymentTermLabel')}>
+            {vendor.defaultPaymentTermName ? (
+              localizePaymentTermName(
+                vendor.defaultPaymentTermKey,
+                vendor.defaultPaymentTermName,
+                locale,
+              )
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
+      </MainAppSection>
+      <MainAppSection>
+        <Vendor360Shell
         details={
           <>
             <Card>
@@ -557,7 +601,9 @@ export default async function VendorDetailPage({
           </>
         }
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

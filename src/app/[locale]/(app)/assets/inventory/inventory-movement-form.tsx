@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatDecimalDisplay } from '@/shared/number/display';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -81,7 +82,7 @@ export function InventoryMovementForm({
       className={
         compact
           ? 'flex min-w-0 flex-wrap items-end gap-2'
-          : 'flex w-full min-w-0 max-w-xl flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3'
+          : 'flex w-full min-w-0 flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-3'
       }
     >
       <input type="hidden" name="inventoryItemId" value={inventoryItemId} />
@@ -91,35 +92,62 @@ export function InventoryMovementForm({
 
       {!compact ? <p className="text-sm font-medium">{t(labelKey)}</p> : null}
 
-      <div className={compact ? 'contents' : 'grid gap-3 sm:grid-cols-2'}>
-        <Field label={t('movementQuantity')} className={compact ? 'w-24' : undefined}>
-          {(control) => (
-            <Input
-              {...control}
-              name="quantity"
-              inputMode="decimal"
-              numeric
-              required
-              defaultValue={movementType === 'adjust' ? '-1' : '1'}
-            />
-          )}
-        </Field>
-        <Field label={t('occurredOn')} className={compact ? 'w-40 min-w-0' : undefined}>
-          {(control) => (
-            <Input
-              {...control}
-              type="date"
-              name="occurredOn"
-              required
-              defaultValue={defaultDate}
-              dir="ltr"
-            />
-          )}
-        </Field>
-      </div>
+      {compact ? (
+        <>
+          <Field label={t('movementQuantity')} className="w-24">
+            {(control) => (
+              <Input
+                {...control}
+                name="quantity"
+                inputMode="decimal"
+                numeric
+                required
+                defaultValue={movementType === 'adjust' ? '-1' : '1'}
+              />
+            )}
+          </Field>
+          <Field label={t('occurredOn')} className="w-40 min-w-0">
+            {(control) => (
+              <Input
+                {...control}
+                type="date"
+                name="occurredOn"
+                required
+                defaultValue={defaultDate}
+                dir="ltr"
+              />
+            )}
+          </Field>
+        </>
+      ) : (
+        <MainAppFormGrid dense>
+          <Field label={t('movementQuantity')} className={mainAppFieldSpan.md}>
+            {(control) => (
+              <Input
+                {...control}
+                name="quantity"
+                inputMode="decimal"
+                numeric
+                required
+                defaultValue={movementType === 'adjust' ? '-1' : '1'}
+              />
+            )}
+          </Field>
+          <Field label={t('occurredOn')} className={mainAppFieldSpan.md}>
+            {(control) => (
+              <Input
+                {...control}
+                type="date"
+                name="occurredOn"
+                required
+                defaultValue={defaultDate}
+                dir="ltr"
+              />
+            )}
+          </Field>
 
-      {!compact && locations.length > 0 && showFrom ? (
-        <Field label={t('fromLocation')} required={movementType === 'transfer'}>
+      {locations.length > 0 && showFrom ? (
+        <Field label={t('fromLocation')} required={movementType === 'transfer'} className={mainAppFieldSpan.lg}>
           {(control) => (
             <LocationSelect
               id={control.id}
@@ -133,8 +161,8 @@ export function InventoryMovementForm({
         </Field>
       ) : null}
 
-      {!compact && locations.length > 0 && showTo ? (
-        <Field label={t('toLocation')} required={movementType === 'transfer'}>
+      {locations.length > 0 && showTo ? (
+        <Field label={t('toLocation')} required={movementType === 'transfer'} className={mainAppFieldSpan.lg}>
           {(control) => (
             <LocationSelect
               id={control.id}
@@ -148,8 +176,8 @@ export function InventoryMovementForm({
         </Field>
       ) : null}
 
-      {!compact && locations.length > 0 && showSingleLocation ? (
-        <Field label={t('locationLabel')}>
+      {locations.length > 0 && showSingleLocation ? (
+        <Field label={t('locationLabel')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <LocationSelect
               id={control.id}
@@ -164,7 +192,7 @@ export function InventoryMovementForm({
       ) : null}
 
       {showProject ? (
-        <Field label={t('projectLabel')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('projectLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Select value={projectId} onValueChange={setProjectId}>
               <SelectTrigger id={control.id}>
@@ -183,8 +211,8 @@ export function InventoryMovementForm({
         </Field>
       ) : null}
 
-      {movementType === 'issue' && !compact && reservations.length > 0 ? (
-        <Field label={t('reservationLabel')} optionalLabel={tCommon('labels.optional')}>
+      {movementType === 'issue' && reservations.length > 0 ? (
+        <Field label={t('reservationLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Select value={reservationId} onValueChange={setReservationId}>
               <SelectTrigger id={control.id}>
@@ -203,11 +231,11 @@ export function InventoryMovementForm({
         </Field>
       ) : null}
 
-      {!compact ? (
-        <Field label={t('movementNotes')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('movementNotes')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
           {(control) => <Textarea {...control} name="notes" rows={2} />}
         </Field>
-      ) : null}
+        </MainAppFormGrid>
+      )}
 
       {movementType === 'adjust' && !compact ? (
         <p className="text-xs text-[var(--pf-text-secondary)]">{t('adjustQuantityHint')}</p>
@@ -217,7 +245,7 @@ export function InventoryMovementForm({
         <p className="text-xs text-[var(--pf-text-secondary)]">{t('movementNotExpense')}</p>
       ) : null}
 
-      <Button type="submit" size="sm" variant="secondary" loading={pending} className="min-h-11 md:min-h-8">
+      <Button type="submit" size="sm" variant="secondary" loading={pending} className="min-h-11 self-start md:min-h-8">
         {pending ? t('pending') : compact ? t(labelKey) : t('submitMovement')}
       </Button>
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}

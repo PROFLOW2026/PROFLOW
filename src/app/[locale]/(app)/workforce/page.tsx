@@ -1,4 +1,5 @@
-import { getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { redirect } from '@/shared/i18n/navigation';
@@ -22,9 +23,12 @@ export default async function WorkforcePage({ params }: { params: Promise<{ loca
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('title')} description={t('description')} />
-      <Alert tone="info">{t('noPermission')}</Alert>
-    </div>
+      <MainAppSection>
+        <Alert tone="info">{t('noPermission')}</Alert>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

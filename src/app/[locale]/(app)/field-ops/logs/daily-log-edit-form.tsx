@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -70,7 +71,7 @@ export function DailyLogEditForm({
   }
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full flex-col gap-4">
       <input type="hidden" name="dailyLogId" value={log.id} />
       <input type="hidden" name="projectId" value={log.projectId} />
       {log.workPackageId ? (
@@ -88,7 +89,8 @@ export function DailyLogEditForm({
         </Alert>
       ) : null}
 
-      <Field label={t('logDateLabel')} required error={state.fieldErrors?.logDate}>
+      <MainAppFormGrid dense className="gap-4">
+      <Field label={t('logDateLabel')} required error={state.fieldErrors?.logDate} className={mainAppFieldSpan.md}>
         {(control) => (
           <Input
             {...control}
@@ -101,7 +103,7 @@ export function DailyLogEditForm({
         )}
       </Field>
 
-      <Field label={t('weatherLabel')} error={state.fieldErrors?.weather}>
+      <Field label={t('weatherLabel')} error={state.fieldErrors?.weather} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Input
             {...control}
@@ -112,7 +114,7 @@ export function DailyLogEditForm({
         )}
       </Field>
 
-      <Field label={t('summaryLabel')} required error={state.fieldErrors?.summary}>
+      <Field label={t('summaryLabel')} required error={state.fieldErrors?.summary} className={mainAppFieldSpan.full}>
         {(control) => (
           <Textarea
             {...control}
@@ -125,7 +127,7 @@ export function DailyLogEditForm({
         )}
       </Field>
 
-      <Field label={t('workforceNotesLabel')} error={state.fieldErrors?.workforceNotes}>
+      <Field label={t('workforceNotesLabel')} error={state.fieldErrors?.workforceNotes} className={mainAppFieldSpan.full}>
         {(control) => (
           <Textarea
             {...control}
@@ -137,7 +139,7 @@ export function DailyLogEditForm({
         )}
       </Field>
 
-      <Field label={t('blockersLabel')} error={state.fieldErrors?.blockers}>
+      <Field label={t('blockersLabel')} error={state.fieldErrors?.blockers} className={mainAppFieldSpan.full}>
         {(control) => (
           <Textarea
             {...control}
@@ -148,6 +150,7 @@ export function DailyLogEditForm({
           />
         )}
       </Field>
+      </MainAppFormGrid>
 
       <DailyLogRelationshipFields
         vendors={vendors}

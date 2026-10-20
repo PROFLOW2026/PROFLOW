@@ -1,3 +1,4 @@
+import { MainAppListToolbar, MainAppPage } from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
@@ -9,6 +10,7 @@ import { WorkKindFilterChrome } from '@/modules/financials/ui/work-kind-filter-c
 import { loadReportPackCatalog } from '@/modules/reports';
 import { ReportPacksSection } from '@/modules/reports/ui';
 import { withOrgContext } from '@/shared/auth/session';
+import { mainAppFilterToolbarClass } from '@/shared/ui/main-app-surface-styles';
 import { FinancialYearBookExportGate } from './financial-year-book-export-gate';
 import { ReportsExportActionsLazy } from './reports-export-actions-lazy';
 import { ReportsAdvancedAnalysisGate } from './reports-advanced-analysis-gate';
@@ -43,55 +45,78 @@ export default async function ReportsPage({
   const packs = await withOrgContext((context) => loadReportPackCatalog(context));
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6" data-pf-reports-page="">
+    <MainAppPage data-pf-reports-hub="" className="w-full min-w-0">
       <PageHeader
         title={t('title')}
-        description={t('description')}
         actions={
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
             <FinancialYearBookExportGate />
             <ReportsExportActionsLazy />
           </div>
         }
       />
 
-      <ReportPacksSection
-        projects={packs.projects}
-        quotes={packs.quotes}
-        clients={packs.clients}
-        vendors={packs.vendors}
-        organizationId={packs.organizationId}
-        enabledKinds={packs.enabledKinds}
-        recommendedKinds={packs.recommendedKinds}
-        orderedKinds={packs.orderedKinds}
-      />
+      <div
+        className={`${mainAppFilterToolbarClass} flex min-w-0 w-full flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-4`}
+      >
+        <div className="min-w-0 w-full shrink-0 lg:w-auto">
+          <WorkKindFilterChrome active={workKindFilter} pathname="/reports" section={section} />
+        </div>
+        {loadAnalytics ? (
+          <form method="get" className="min-w-0 w-full flex-1 basis-full lg:min-w-[20rem]">
+            {params.workKind ? <input type="hidden" name="workKind" value={params.workKind} /> : null}
+            {params.section ? <input type="hidden" name="section" value={params.section} /> : null}
+            <MainAppListToolbar className="sm:items-end">
+              <div className="min-w-0 flex-1">
+                <DateRangeSelector
+                  fromName="from"
+                  toName="to"
+                  defaultFrom={fromDate}
+                  defaultTo={toDate}
+                />
+              </div>
+              <button
+                type="submit"
+                className="h-9 shrink-0 rounded-md border border-[var(--pf-border-strong)] px-4 text-sm font-medium"
+              >
+                {tCommon('actions.filter')}
+              </button>
+            </MainAppListToolbar>
+          </form>
+        ) : null}
+      </div>
 
-      <WorkKindFilterChrome active={workKindFilter} pathname="/reports" section={section} />
+      <div data-pf-reports-body="" className="flex min-w-0 w-full flex-col gap-4">
+        <ReportPacksSection
+          projects={packs.projects}
+          quotes={packs.quotes}
+          clients={packs.clients}
+          vendors={packs.vendors}
+          organizationId={packs.organizationId}
+          enabledKinds={packs.enabledKinds}
+          recommendedKinds={packs.recommendedKinds}
+          orderedKinds={packs.orderedKinds}
+        />
 
-      {/* Period filter for analytics section */}
-      {loadAnalytics ? (
-        <form method="get" className="flex flex-wrap items-center gap-2">
-          {params.workKind && <input type="hidden" name="workKind" value={params.workKind} />}
-          {params.section && <input type="hidden" name="section" value={params.section} />}
-          <DateRangeSelector fromName="from" toName="to" defaultFrom={fromDate} defaultTo={toDate} />
-          <button
-            type="submit"
-            className="h-9 rounded-md border border-[var(--pf-border-strong)] px-4 text-sm font-medium"
+        {section ? <ReportsSectionFocus section={section} /> : null}
+
+        {loadAnalytics ? (
+          <Suspense
+            fallback={
+              <p className="text-sm text-[var(--pf-text-secondary)]">{t('loadingAnalytics')}</p>
+            }
           >
-            {tCommon('actions.filter')}
-          </button>
-        </form>
-      ) : null}
-
-      {section ? <ReportsSectionFocus section={section} /> : null}
-
-      {loadAnalytics ? (
-        <Suspense fallback={<p className="text-sm text-[var(--pf-text-secondary)]">{t('loadingAnalytics')}</p>}>
-          <ReportsAnalyticsLoader workKindFilter={workKindFilter} section={section} fromDate={fromDate} toDate={toDate} />
-        </Suspense>
-      ) : (
-        <ReportsAdvancedAnalysisGate workKindFilter={workKindFilter} />
-      )}
-    </div>
+            <ReportsAnalyticsLoader
+              workKindFilter={workKindFilter}
+              section={section}
+              fromDate={fromDate}
+              toDate={toDate}
+            />
+          </Suspense>
+        ) : (
+          <ReportsAdvancedAnalysisGate workKindFilter={workKindFilter} />
+        )}
+      </div>
+    </MainAppPage>
   );
 }

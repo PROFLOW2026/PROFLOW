@@ -1,0 +1,43 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
+import { useActionState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { createProspectContactAction, type CrmFormState } from '@/app/[locale]/(app)/crm/actions';
+
+export function CrmProspectContactForm({ prospectId }: { prospectId: string }) {
+  const t = useTranslations('crm.prospect');
+  const tCommon = useTranslations('common');
+  const [state, formAction, pending] = useActionState<CrmFormState, FormData>(
+    createProspectContactAction,
+    {},
+  );
+
+  return (
+    <form action={formAction} className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
+      <input type="hidden" name="prospectId" value={prospectId} />
+      {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+      <MainAppFormGrid dense>
+        <Field label={t('contactName')} required className={mainAppFieldSpan.md}>
+          {(control) => <Input {...control} name="name" required />}
+        </Field>
+        <Field label={t('contactRole')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+          {(control) => <Input {...control} name="role" />}
+        </Field>
+        <Field label={t('emailLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+          {(control) => <Input {...control} name="email" type="email" dir="ltr" />}
+        </Field>
+        <Field label={t('phoneLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+          {(control) => <Input {...control} name="phone" type="tel" dir="ltr" />}
+        </Field>
+      </MainAppFormGrid>
+      <Button type="submit" loading={pending} className="self-start">
+        {t('addContact')}
+      </Button>
+    </form>
+  );
+}

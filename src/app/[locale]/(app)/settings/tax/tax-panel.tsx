@@ -1,5 +1,7 @@
 'use client';
 
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
+import { cn } from '@/shared/ui/cn';
 import { useActionState, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatPercentDisplay } from '@/shared/number/display';
@@ -23,8 +25,7 @@ export function TaxSettingsPanel({
   countryCode,
   timezone,
   canEdit,
-  currentRateLabel,
-}: {
+  currentRateLabel}: {
   rules: TaxRuleRecord[];
   countryCode: string;
   timezone: string;
@@ -46,16 +47,16 @@ export function TaxSettingsPanel({
     hasCountryPack ? tCountries(countryCode as 'IL' | 'US' | 'GB') : countryCode;
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6">
-      <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection>
+        <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
       <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('supportedPacks')}</p>
 
       {currentRateLabel ? (
         <p className="text-start text-sm">
           {t('currentRate', {
             rate: `\u2066${currentRateLabel}\u2069`,
-            date: `\u2066${formatBusinessDate(todayInTimeZone(timezone), locale)}\u2069`,
-          })}
+            date: `\u2066${formatBusinessDate(todayInTimeZone(timezone), locale)}\u2069`})}
         </p>
       ) : null}
 
@@ -101,11 +102,12 @@ export function TaxSettingsPanel({
               </Alert>
             ) : null}
 
-            <Field label={t('fields.name')} required>
+            <MainAppFormGrid dense>
+            <Field label={t('fields.name')} required className={mainAppFieldSpan.lg}>
               {(props) => <Input {...props} name="name" required />}
             </Field>
 
-            <Field label={t('fields.rate')} required>
+            <Field label={t('fields.rate')} required className={mainAppFieldSpan.lg}>
               {(props) => (
                 <Input
                   {...props}
@@ -121,15 +123,15 @@ export function TaxSettingsPanel({
 
             <input type="hidden" name="method" value="percentage" />
 
-            <Field label={t('fields.validFrom')} required>
+            <Field label={t('fields.validFrom')} required className={mainAppFieldSpan.lg}>
               {(props) => <Input {...props} name="validFrom" type="date" required dir="ltr" />}
             </Field>
 
-            <Field label={t('fields.validTo')} optionalLabel={tCommon('labels.optional')}>
+            <Field label={t('fields.validTo')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
               {(props) => <Input {...props} name="validTo" type="date" dir="ltr" />}
             </Field>
 
-            <div className="flex items-center gap-2">
+            <div className={cn(mainAppFieldSpan.full, 'flex items-center gap-2')}>
               <Checkbox
                 id="tax-is-default"
                 checked={isDefault}
@@ -141,12 +143,17 @@ export function TaxSettingsPanel({
               </Label>
             </div>
 
+            <div className={mainAppFieldSpan.full}>
             <Button type="submit" loading={pending}>
               {t('addRule')}
             </Button>
+            </div>
+            </MainAppFormGrid>
           </form>
         </section>
       ) : null}
+    
+      </MainAppSection>
     </div>
   );
 }
@@ -156,8 +163,7 @@ function TaxRulesTable({
   t,
   locale,
   emptyTitle,
-  emptyHint,
-}: {
+  emptyHint}: {
   rules: TaxRuleRecord[];
   t: ReturnType<typeof useTranslations<'tax'>>;
   locale: string;

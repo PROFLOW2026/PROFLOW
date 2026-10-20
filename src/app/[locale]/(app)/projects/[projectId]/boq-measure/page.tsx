@@ -1,3 +1,4 @@
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
@@ -21,5 +22,11 @@ export default async function BoqMeasurePage({ params }: BoqMeasurePageProps) {
   const canRead = shell?.permissions.has(PERMISSIONS.BOQ_READ) ?? false;
   if (!shell?.modules.boq || !canRead) notFound();
 
-  return <BoqMeasurePanel projectId={projectId} />;
+  return (
+    <MainAppPage className="w-full min-w-0">
+      <MainAppSection className="w-full min-w-0">
+        <BoqMeasurePanel projectId={projectId} />
+      </MainAppSection>
+    </MainAppPage>
+  );
 }

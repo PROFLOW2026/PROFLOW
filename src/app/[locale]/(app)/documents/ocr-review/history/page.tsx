@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
@@ -51,7 +52,7 @@ export default async function OcrReviewHistoryPage() {
   });
 
   return (
-    <div className="flex flex-col gap-6" data-pf-ocr-history-page>
+    <MainAppPage>
       <PageHeader
         title={tOcr('historyTitle')}
         description={`${tOcr(`configurationState.${featureMode}`)} ${tOcr('historyDescription')}`}
@@ -64,12 +65,14 @@ export default async function OcrReviewHistoryPage() {
           </Link>
         }
       />
-
-      {!data.allowed ? (
+      <MainAppSection>
+        {!data.allowed ? (
         <Alert tone="warning">{tOcr('notAllowed')}</Alert>
       ) : (
         <OcrReviewHistory jobs={data.jobs} />
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

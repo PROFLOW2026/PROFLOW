@@ -2,9 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -12,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { MainAppListSearchToolbar } from '@/components/patterns/main-app';
 import { WORK_LIST_FACETS, type WorkListFacet } from '@/modules/projects/domain/work-list-facets';
 
 interface ProjectListFiltersProps {
@@ -27,45 +26,36 @@ export function ProjectListFilters({
   namespace = 'projects',
 }: ProjectListFiltersProps) {
   const t = useTranslations(namespace);
-  const tCommon = useTranslations('common');
   const [facet, setFacet] = useState<WorkListFacet>(initialFacet);
 
+  const filterFields = (
+    <Field label={t('list.filterFacet')} className="min-w-0 w-full sm:w-52">
+      {(control) => (
+        <>
+          <input type="hidden" name="facet" value={facet} />
+          <Select value={facet} onValueChange={(value) => setFacet(value as WorkListFacet)}>
+            <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {WORK_LIST_FACETS.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {t(`list.facets.${value}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      )}
+    </Field>
+  );
+
   return (
-    <form method="get" role="search" className="flex min-w-0 max-w-full items-end gap-2">
-      <Field label={tCommon('actions.search')} className="min-w-0 flex-1">
-        {(control) => (
-          <Input
-            {...control}
-            type="search"
-            name="q"
-            defaultValue={initialQuery}
-            placeholder={t('list.searchPlaceholder')}
-            className="min-w-0"
-          />
-        )}
-      </Field>
-      <Field label={t('list.filterFacet')} className="min-w-0 w-36 sm:w-52">
-        {(control) => (
-          <>
-            <input type="hidden" name="facet" value={facet} />
-            <Select value={facet} onValueChange={(value) => setFacet(value as WorkListFacet)}>
-              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {WORK_LIST_FACETS.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {t(`list.facets.${value}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        )}
-      </Field>
-      <Button type="submit" variant="secondary" size="sm" className="shrink-0">
-        {tCommon('actions.filter')}
-      </Button>
-    </form>
+    <MainAppListSearchToolbar
+      initialQuery={initialQuery}
+      searchPlaceholder={t('list.searchPlaceholder')}
+      filterFields={filterFields}
+      compact
+    />
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { MainAppSection } from '@/components/patterns/main-app';
 import { PageHeader } from '@/components/ui/page-header';
 import { listClientsForOrg } from '@/modules/clients';
 import { withOrgContext, getShellContext } from '@/shared/auth/session';
@@ -14,6 +15,7 @@ import { WorkLensChrome } from '@/modules/tasks/ui/work-lens-chrome';
 import { TaskWorkSurfaceClient } from '@/modules/tasks/ui/task-work-surface-client';
 import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
 import { getTaskDetailAction, updateTaskFieldsAction } from '../actions';
+
 export async function generateMetadata({
   params,
 }: {
@@ -64,24 +66,24 @@ export default async function WorkTimelinePage({ searchParams }: WorkLensPagePro
   });
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader title={t('timeline.pageTitle')} description={t('timeline.pageDescription')} />
-
-      <WorkLensChrome searchParams={params} clients={clients} taskCount={taskCount} />
-
-      <TaskWorkSurfaceClient
-        tasks={tasks}
-        today={today}
-        hasMore={hasMore}
-        viewMode="timeline"
-        timelineDateEdit
-        urlBackedFilters
-        workLensFilterQuery={filterQuery}
-        getTaskDetail={getTaskDetailAction}
-        updateTask={updateTaskFieldsAction}
-        canAssign={shell.permissions.has(PERMISSIONS.TASKS_ASSIGN)}
-        canArchive={shell.permissions.has(PERMISSIONS.TASKS_DELETE)}
-      />
-    </div>
+    <>
+      <PageHeader title={t('timeline.pageTitle')} />
+      <MainAppSection>
+        <WorkLensChrome searchParams={params} clients={clients} taskCount={taskCount} />
+        <TaskWorkSurfaceClient
+          tasks={tasks}
+          today={today}
+          hasMore={hasMore}
+          viewMode="timeline"
+          timelineDateEdit
+          urlBackedFilters
+          workLensFilterQuery={filterQuery}
+          getTaskDetail={getTaskDetailAction}
+          updateTask={updateTaskFieldsAction}
+          canAssign={shell.permissions.has(PERMISSIONS.TASKS_ASSIGN)}
+          canArchive={shell.permissions.has(PERMISSIONS.TASKS_DELETE)}
+        />
+      </MainAppSection>
+    </>
   );
 }

@@ -1,3 +1,4 @@
+import { MainAppListToolbar, MainAppPage, MainAppReportWorkspace, MainAppSection } from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
@@ -42,19 +43,28 @@ export default async function ReportPreviewPage({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-2 print:hidden">
-        <ReportPrintButton label={t('print')} />
-        {isReportKind(kind) && supportsGeneratedStorageSave(kind) ? (
-          <ReportDownloadButtons
-            kind={kind}
-            id={id}
-            hidePreview
-            reportMonth={reportMonth ?? (kind === 'monthly_workforce_report' ? id : undefined)}
-          />
-        ) : null}
-      </div>
-      <ReportBrandedPreview payload={payload} />
-    </div>
+    <MainAppPage>
+      <MainAppReportWorkspace
+        catalog={null}
+        panel={
+          <div className="flex min-w-0 max-w-full flex-col gap-4">
+            <MainAppSection className="print:hidden">
+              <MainAppListToolbar>
+                <ReportPrintButton label={t('print')} />
+                {isReportKind(kind) && supportsGeneratedStorageSave(kind) ? (
+                  <ReportDownloadButtons
+                    kind={kind}
+                    id={id}
+                    hidePreview
+                    reportMonth={reportMonth ?? (kind === 'monthly_workforce_report' ? id : undefined)}
+                  />
+                ) : null}
+              </MainAppListToolbar>
+            </MainAppSection>
+            <ReportBrandedPreview payload={payload} />
+          </div>
+        }
+      />
+    </MainAppPage>
   );
 }

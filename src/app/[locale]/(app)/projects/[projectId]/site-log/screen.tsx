@@ -1,4 +1,5 @@
-import { getFormatter, getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getFormatter, getTranslations } from 'next-intl/server';
 import { NotebookPen } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,7 @@ export async function SiteLogScreen({ surfaceRoot,
   const basePath = `${surfaceRoot ?? ('/projects/' + projectId)}/site-log`;
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={t('siteLog.title')}
         description={t('siteLog.description')}
@@ -37,8 +38,8 @@ export async function SiteLogScreen({ surfaceRoot,
           </Button>
         }
       />
-
-      <SiteLogDateJump
+      <MainAppSection>
+        <SiteLogDateJump
         basePath={basePath}
         defaultDate={calendar.today}
         maxDate={calendar.today}
@@ -94,7 +95,9 @@ export async function SiteLogScreen({ surfaceRoot,
           </Button>
         ) : null}
       </nav>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

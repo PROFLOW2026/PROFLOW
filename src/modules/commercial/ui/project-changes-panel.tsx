@@ -1,6 +1,7 @@
-import { getTranslations } from 'next-intl/server';
+﻿import { getTranslations } from 'next-intl/server';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { MainAppSection } from '@/components/patterns/main-app';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
@@ -39,27 +40,34 @@ export async function ProjectChangesPanel({ projectId }: ProjectChangesPanelProp
   const listItems = items.map((item) => ({ ...item, projectName: '' }));
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
-      <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-        <div className="min-w-0 text-start">
-          <h2 className="text-lg font-semibold">{t('panel.title')}</h2>
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('panel.description')}</p>
-        </div>
-        {canManage ? (
-          <Button asChild size="sm" className="max-w-full shrink-0">
-            <Link href={`/changes/new?projectId=${projectId}`}>
-              <Plus aria-hidden />
-              {t('panel.new')}
-            </Link>
-          </Button>
-        ) : null}
-      </div>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection
+        title={t('panel.title')}
+        description={t('panel.description')}
+        actions={
+          canManage ? (
+            <Button asChild size="sm" className="max-w-full shrink-0">
+              <Link href={`/changes/new?projectId=${projectId}`}>
+                <Plus aria-hidden />
+                {t('panel.new')}
+              </Link>
+            </Button>
+          ) : undefined
+        }
+        className="w-full min-w-0"
+      >
+        {null}
+      </MainAppSection>
 
       {summary ? (
-        <CommercialSummaryCard position={summary.position} currency={summary.currency} />
+        <MainAppSection className="w-full min-w-0">
+          <CommercialSummaryCard position={summary.position} currency={summary.currency} />
+        </MainAppSection>
       ) : null}
 
-      <ChangeRequestList items={listItems} projectId={projectId} canManage={canManage} />
+      <MainAppSection className="w-full min-w-0">
+        <ChangeRequestList items={listItems} projectId={projectId} canManage={canManage} />
+      </MainAppSection>
     </div>
   );
 }

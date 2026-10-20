@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';

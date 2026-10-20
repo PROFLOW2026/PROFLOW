@@ -1,4 +1,5 @@
-import { ChevronLeft } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { ChevronLeft } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
@@ -41,7 +42,7 @@ export async function ProjectDrawingDetailScreen({ surfaceRoot,
   const t = await getTranslations('projectPlans.detail');
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         breadcrumb={
           <Link href={`${surfaceRoot ?? ('/projects/' + projectId)}/plans`} className="inline-flex min-h-11 items-center gap-1 text-sm text-[var(--pf-text-secondary)]">
@@ -52,8 +53,8 @@ export async function ProjectDrawingDetailScreen({ surfaceRoot,
         title={`${detail.drawing.drawingNumber} · ${detail.drawing.title}`}
         meta={<Badge tone="neutral">{t(`discipline.${detail.drawing.discipline}`)}</Badge>}
       />
-
-      {detail.canManage ? (
+      <MainAppSection>
+        {detail.canManage ? (
         <WithAppClientMessages extra={['projectPlans']}>
           <RevisionUploadForm projectId={projectId} drawingId={drawingId} suggestedLabel={detail.suggestedNextLabel} />
         </WithAppClientMessages>
@@ -139,7 +140,9 @@ export async function ProjectDrawingDetailScreen({ surfaceRoot,
           ) : null}
         </CardContent>
       </Card>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

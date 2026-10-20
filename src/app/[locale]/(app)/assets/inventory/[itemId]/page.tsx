@@ -1,4 +1,10 @@
 import { notFound } from 'next/navigation';
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
@@ -57,6 +63,8 @@ function reorderTone(status: ReorderStatus): 'success' | 'warning' | 'danger' | 
       return 'neutral';
   }
 }
+
+const EMPTY = '—';
 
 const MOVEMENT_TYPES: InventoryMovementType[] = [
   'receive',
@@ -133,7 +141,7 @@ export default async function InventoryItemDetailPage({
   } = loaded;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={item.name}
         description={t('inventory.detailDescription')}
@@ -157,90 +165,75 @@ export default async function InventoryItemDetailPage({
           </div>
         }
       />
+      <MainAppSection>
+        <Alert tone="info">
+          <span className="block font-medium">{t('inventory.qtyOnlyBanner')}</span>
+        </Alert>
 
-      <Alert tone="info">
-        <span className="block font-medium">{t('inventory.qtyOnlyBanner')}</span>
-      </Alert>
-
-      <dl className="grid min-w-0 gap-3 rounded-lg border border-[var(--pf-border-default)] p-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="min-w-0">
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.sku')}</dt>
-          <dd className="break-words font-medium">
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('list.columns.sku')}>
             {item.sku ? (
               <span dir="ltr" className="pf-numeric">
                 {item.sku}
               </span>
             ) : (
-              '-'
+              EMPTY
             )}
-          </dd>
-        </div>
-        <div className="min-w-0">
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.barcode')}</dt>
-          <dd className="break-words font-medium">
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.barcode')}>
             {item.barcode ? (
               <span dir="ltr" className="pf-numeric">
                 {item.barcode}
               </span>
             ) : (
-              '-'
+              EMPTY
             )}
-          </dd>
-        </div>
-        <div className="min-w-0">
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.unit')}</dt>
-          <dd className="font-medium">{item.unit}</dd>
-        </div>
-        <div className="min-w-0">
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.quantity')}</dt>
-          <dd className="font-medium tabular-nums" dir="ltr">
-            {item.quantityOnHand}
-          </dd>
-        </div>
-        <div className="min-w-0">
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.available')}</dt>
-          <dd className="font-medium tabular-nums" dir="ltr">
-            {item.availableQuantity}
-          </dd>
-        </div>
-        <div className="min-w-0">
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.reserved')}</dt>
-          <dd className="font-medium tabular-nums" dir="ltr">
-            {item.reservedQuantity}
-          </dd>
-        </div>
-        <div className="min-w-0">
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.minStock')}</dt>
-          <dd className="font-medium">
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.unit')}>{item.unit}</MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.quantity')}>
+            <span className="tabular-nums" dir="ltr">
+              {item.quantityOnHand}
+            </span>
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.available')}>
+            <span className="tabular-nums" dir="ltr">
+              {item.availableQuantity}
+            </span>
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.reserved')}>
+            <span className="tabular-nums" dir="ltr">
+              {item.reservedQuantity}
+            </span>
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.minStock')}>
             {item.minStockLevel || item.reorderLevel ? (
               <span dir="ltr">{item.minStockLevel ?? item.reorderLevel}</span>
             ) : (
-              '-'
+              EMPTY
             )}
-          </dd>
-        </div>
-      </dl>
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
 
-      {item.notes ? (
-        <p className="break-words text-sm text-[var(--pf-text-secondary)]">{item.notes}</p>
-      ) : null}
+        {item.notes ? (
+          <p className="break-words text-sm text-[var(--pf-text-secondary)]">{item.notes}</p>
+        ) : null}
 
-      {item.materialItemId ? (
-        <p className="text-sm">
-          <Link
-            href={`/procurement/materials/${item.materialItemId}`}
-            className={cn(textNavLinkMutedClassName, 'rounded-sm')}
-          >
-            {t('inventory.linkedMaterial')}
-          </Link>
-        </p>
-      ) : null}
+        {item.materialItemId ? (
+          <p className="text-sm">
+            <Link
+              href={`/procurement/materials/${item.materialItemId}`}
+              className={cn(textNavLinkMutedClassName, 'rounded-sm')}
+            >
+              {t('inventory.linkedMaterial')}
+            </Link>
+          </p>
+        ) : null}
 
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('inventory.movementNotExpense')}</p>
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('inventory.threeActionsHint')}</p>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('inventory.movementNotExpense')}</p>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('inventory.threeActionsHint')}</p>
+      </MainAppSection>
 
-      <section className="flex min-w-0 flex-col gap-3">
-        <h2 className="text-lg font-semibold">{t('inventory.balancesTitle')}</h2>
+      <MainAppSection title={t('inventory.balancesTitle')}>
         {item.locationBalances.length === 0 ? (
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('inventory.balancesEmpty')}</p>
         ) : (
@@ -273,23 +266,26 @@ export default async function InventoryItemDetailPage({
             </Table>
           </div>
         )}
-      </section>
+      </MainAppSection>
 
-      <DocumentAttachments
-        ownerType="inventory_item"
-        ownerId={item.id}
-        documents={documentsPanel.documents}
-        linkCandidates={documentsPanel.linkCandidates}
-        canRead={documentsPanel.canRead}
-        canManage={documentsPanel.canManage}
-        storageConfigured={documentsPanel.storageConfigured}
-      />
+      <MainAppSection>
+        <DocumentAttachments
+          ownerType="inventory_item"
+          ownerId={item.id}
+          documents={documentsPanel.documents}
+          linkCandidates={documentsPanel.linkCandidates}
+          canRead={documentsPanel.canRead}
+          canManage={documentsPanel.canManage}
+          storageConfigured={documentsPanel.storageConfigured}
+        />
+      </MainAppSection>
 
-      <InventoryMaterialUsagePanel inventoryItemId={item.id} />
+      <MainAppSection>
+        <InventoryMaterialUsagePanel inventoryItemId={item.id} />
+      </MainAppSection>
 
       {canManage ? (
-        <section className="flex min-w-0 flex-col gap-3">
-          <h2 className="text-lg font-semibold">{t('inventory.recordMovement')}</h2>
+        <MainAppSection title={t('inventory.recordMovement')}>
           <div className="grid min-w-0 gap-3 sm:grid-cols-1 lg:grid-cols-2">
             {MOVEMENT_TYPES.map((type) => (
               <InventoryMovementForm
@@ -304,11 +300,10 @@ export default async function InventoryItemDetailPage({
               />
             ))}
           </div>
-        </section>
+        </MainAppSection>
       ) : null}
 
-      <section className="flex min-w-0 flex-col gap-3">
-        <h2 className="text-lg font-semibold">{t('inventory.historyTitle')}</h2>
+      <MainAppSection title={t('inventory.historyTitle')}>
         {movements.length === 0 ? (
           <EmptyState
             title={t('inventory.emptyHistory')}
@@ -388,7 +383,7 @@ export default async function InventoryItemDetailPage({
             )}
           />
         )}
-      </section>
-    </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

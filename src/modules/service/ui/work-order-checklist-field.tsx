@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Field } from '@/components/ui/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -38,6 +39,7 @@ export function WorkOrderChecklistField({
         optionalLabel={tCommon('labels.optional')}
         description={t('create.checklistHint')}
         error={error}
+        className={mainAppFieldSpan.lg}
       >
         {(control) => (
           <Select value={value} onValueChange={setValue}>

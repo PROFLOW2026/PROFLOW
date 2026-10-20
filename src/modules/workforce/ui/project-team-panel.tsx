@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { Card } from '@/components/ui/card';
+import { MainAppSection } from '@/components/patterns/main-app';
 import { Link } from '@/shared/i18n/navigation';
 import {
   canManageProjectAccess,
@@ -104,7 +104,7 @@ export async function ProjectTeamPanel({ projectId }: ProjectTeamPanelProps) {
   if (!data) return null;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex w-full min-w-0 flex-col gap-4">
       <ProjectUnifiedTeamSummary
         projectId={projectId}
         members={data.unifiedTeam}
@@ -112,7 +112,7 @@ export async function ProjectTeamPanel({ projectId }: ProjectTeamPanelProps) {
         canOpenCapabilities={data.canProjectsRead}
       />
       {data.canWorkforceRead ? (
-        <Card className="flex flex-col gap-4 p-4 sm:p-6">
+        <MainAppSection className="gap-4">
           <ProjectTeamRoster
             projectId={projectId}
             team={data.team}
@@ -122,7 +122,7 @@ export async function ProjectTeamPanel({ projectId }: ProjectTeamPanelProps) {
             defaultStartDate={data.defaultStartDate}
           />
           <ProjectLaborActualSummary projectId={projectId} surface="team" />
-        </Card>
+        </MainAppSection>
       ) : null}
       <p className="text-start text-sm text-[var(--pf-text-muted)]">{t('projectPanel.assignmentNote')}</p>
       <Link

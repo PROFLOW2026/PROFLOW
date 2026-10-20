@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { VendorsOrgListView } from '@/modules/vendors/ui/vendors-org-list-view';
+import './vendors-list-owner.css';
 
 export async function generateMetadata({
   params,
@@ -21,6 +22,7 @@ export default function VendorsPage({
     status?: string;
     categoryId?: string;
     page?: string;
+    pageSize?: string;
   }>;
 }) {
   return (

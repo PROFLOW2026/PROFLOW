@@ -2,7 +2,9 @@
 
 import { useActionState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/shared/ui/cn';
 import { Field } from '@/components/ui/field';
 import type { TaskLinkSummary } from '../domain/types';
 
@@ -28,11 +30,12 @@ export function BusinessLinkTaskForm({
   const pickerLabel = t('linkedTasks.taskPickerLabel');
 
   return (
-    <form action={action} className="flex flex-col gap-2 sm:flex-row sm:items-end">
+    <form action={action} className="flex flex-col gap-2">
       {Object.entries(hiddenFields).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />
       ))}
-      <Field label={pickerLabel} className="min-w-0 flex-1">
+      <MainAppFormGrid dense className="items-end">
+      <Field label={pickerLabel} className={mainAppFieldSpan.lg}>
         {(control) => (
           <select
             id={control.id}
@@ -55,6 +58,7 @@ export function BusinessLinkTaskForm({
           </select>
         )}
       </Field>
+      <div className={mainAppFieldSpan.sm}>
       <Button
         type="submit"
         variant="secondary"
@@ -63,11 +67,13 @@ export function BusinessLinkTaskForm({
       >
         {t('linkedTasks.linkButton')}
       </Button>
+      </div>
       {state.error ? (
-        <p role="alert" className="w-full text-sm text-[var(--pf-status-danger-fg)]">
+        <p role="alert" className={cn(mainAppFieldSpan.full, 'text-sm text-[var(--pf-status-danger-fg)]')}>
           {state.error}
         </p>
       ) : null}
+      </MainAppFormGrid>
     </form>
   );
 }

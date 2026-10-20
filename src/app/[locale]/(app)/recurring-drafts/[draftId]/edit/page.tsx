@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
@@ -80,7 +81,7 @@ export default async function EditRecurringDraftPage({
   const { detail, vendors, projects, categories, paymentInstruments, defaultCurrency, defaultNextRunDate } = loaded;
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('edit.title')}
         description={detail.draft.title}
@@ -98,7 +99,8 @@ export default async function EditRecurringDraftPage({
           </Link>
         }
       />
-      <RecurringDraftForm
+      <MainAppSection>
+        <RecurringDraftForm
         mode="edit"
         action={updateRecurringDraftAction}
         defaultCurrency={defaultCurrency}
@@ -126,6 +128,8 @@ export default async function EditRecurringDraftPage({
           payload: detail.payload,
         }}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

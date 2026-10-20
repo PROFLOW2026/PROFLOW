@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
@@ -33,7 +34,7 @@ export default async function NewMeetingPage({
   const { projects, workspaces } = await withOrgContext(loadMeetingPickerData);
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('meetings.form.createMeetingTitle')}
         description={t('meetings.pageDescription')}
@@ -43,7 +44,8 @@ export default async function NewMeetingPage({
           </Link>
         }
       />
-      <MeetingForm
+      <MainAppSection>
+        <MeetingForm
         mode="create"
         projects={projects}
         workspaces={workspaces}
@@ -51,6 +53,8 @@ export default async function NewMeetingPage({
         defaultProjectId={params.project}
         defaultWorkspaceId={params.workspace}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

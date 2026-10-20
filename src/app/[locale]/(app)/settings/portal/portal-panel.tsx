@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useActionState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatMoneyString } from '@/shared/money/format';
 import { formatPercentDisplay } from '@/shared/number/display';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -235,10 +236,11 @@ function CustomerSafePreview({
       <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('preview.subtitle')}</p>
       <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('preview.grantHint')}</p>
 
-      <form action={action} className="mt-3 flex w-full max-w-lg flex-col gap-3">
+      <form action={action} className="mt-3 flex w-full max-w-3xl min-w-0 flex-col gap-4">
         {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
-        <Field label={t('fields.project')} required>
+        <MainAppFormGrid dense>
+        <Field label={t('fields.project')} required className={mainAppFieldSpan.lg}>
           {(props) => (
             <Select name="projectId" defaultValue="none" required>
               <SelectTrigger id={props.id}>
@@ -256,7 +258,7 @@ function CustomerSafePreview({
           )}
         </Field>
 
-        <Field label={t('preview.grantOptional')}>
+        <Field label={t('preview.grantOptional')} className={mainAppFieldSpan.lg}>
           {(props) => (
             <Select name="grantId" defaultValue="none">
               <SelectTrigger id={props.id}>
@@ -278,6 +280,7 @@ function CustomerSafePreview({
             </Select>
           )}
         </Field>
+        </MainAppFormGrid>
 
         <Button type="submit" variant="secondary" loading={pending} className="min-h-11 w-full sm:w-auto">
           {t('preview.run')}
@@ -486,9 +489,9 @@ function VendorSafePreview({
       <h3 className="font-medium">{t('vendorPreview.title')}</h3>
       <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('vendorPreview.subtitle')}</p>
 
-      <form action={action} className="mt-3 flex w-full max-w-lg flex-col gap-3">
+      <form action={action} className="mt-3 flex w-full max-w-xl min-w-0 flex-col gap-3">
         {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-        <Field label={t('vendorPreview.grant')} required>
+        <Field label={t('vendorPreview.grant')} required className={mainAppFieldSpan.lg}>
           {(props) => (
             <Select name="grantId" defaultValue="none" required>
               <SelectTrigger id={props.id}>
@@ -671,18 +674,19 @@ function VendorCandidateForms({
       <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4 lg:col-span-2">
         <h3 className="font-medium">{t('candidateQuote.title')}</h3>
         <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('candidateQuote.hint')}</p>
-        <form action={quoteAction} className="mt-3 grid w-full max-w-2xl gap-3 sm:grid-cols-2">
+        <form action={quoteAction} className="mt-3 flex w-full max-w-3xl min-w-0 flex-col gap-3">
           {quoteState.error ? (
-            <Alert tone="danger" className="sm:col-span-2">
+            <Alert tone="danger">
               {quoteState.error}
             </Alert>
           ) : null}
           {quoteState.ok ? (
-            <Alert tone="success" role="status" className="sm:col-span-2">
+            <Alert tone="success" role="status">
               {t('candidateQuote.saved')}
             </Alert>
           ) : null}
-          <Field label={t('vendorPreview.grant')} required>
+          <MainAppFormGrid dense>
+          <Field label={t('vendorPreview.grant')} required className={mainAppFieldSpan.lg}>
             {(props) => (
               <Select name="grantId" required>
                 <SelectTrigger id={props.id}>
@@ -701,7 +705,7 @@ function VendorCandidateForms({
               </Select>
             )}
           </Field>
-          <Field label={t('fields.vendor')} required>
+          <Field label={t('fields.vendor')} required className={mainAppFieldSpan.lg}>
             {(props) => (
               <Select name="vendorId" required defaultValue={activeGrants[0]?.vendorId ?? undefined}>
                 <SelectTrigger id={props.id}>
@@ -720,17 +724,16 @@ function VendorCandidateForms({
             )}
           </Field>
           <input type="hidden" name="currency" value={defaultCurrency} />
-          <Field label={t('fields.totalAmount')} required>
+          <Field label={t('fields.totalAmount')} required className={mainAppFieldSpan.md}>
             {(props) => <Input {...props} name="totalAmount" numeric required />}
           </Field>
-          <Field label={t('fields.lineDescription')} required>
+          <Field label={t('fields.lineDescription')} required className={mainAppFieldSpan.lg}>
             {(props) => <Input {...props} name="lineDescription" required />}
           </Field>
-          <div className="sm:col-span-2">
-            <Button type="submit" loading={quotePending} className="min-h-11 w-full sm:w-auto">
-              {t('candidateQuote.submit')}
-            </Button>
-          </div>
+          </MainAppFormGrid>
+          <Button type="submit" loading={quotePending} className="min-h-11 w-full sm:w-auto">
+            {t('candidateQuote.submit')}
+          </Button>
         </form>
       </section>
       <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
@@ -1063,7 +1066,7 @@ export function PortalGrantsPanel({
   );
 
   return (
-    <div className="flex min-w-0 flex-col gap-8">
+    <div className="flex min-w-0 flex-col gap-4">
       <Alert tone="warning">
         <p className="font-medium">{t('publicDisabled.title')}</p>
         <p>{t('publicDisabled.body')}</p>
@@ -1079,7 +1082,7 @@ export function PortalGrantsPanel({
         {canEdit ? (
           <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
             <h3 className="font-medium">{t('addGrant')}</h3>
-            <form action={createAction} className="mt-3 flex w-full max-w-lg flex-col gap-3">
+            <form action={createAction} className="mt-3 flex w-full max-w-3xl min-w-0 flex-col gap-4">
               {createState.error ? <Alert tone="danger">{createState.error}</Alert> : null}
               {createState.ok ? (
                 <Alert tone="success" role="status">
@@ -1087,7 +1090,8 @@ export function PortalGrantsPanel({
                 </Alert>
               ) : null}
 
-              <Field label={t('fields.email')} required>
+              <MainAppFormGrid dense>
+              <Field label={t('fields.email')} required className={mainAppFieldSpan.lg}>
                 {(props) => (
                   <Input
                     {...props}
@@ -1100,11 +1104,11 @@ export function PortalGrantsPanel({
                   />
                 )}
               </Field>
-              <Field label={t('fields.displayName')}>
+              <Field label={t('fields.displayName')} className={mainAppFieldSpan.lg}>
                 {(props) => <Input {...props} name="displayName" />}
               </Field>
 
-              <Field label={t('fields.client')}>
+              <Field label={t('fields.client')} className={mainAppFieldSpan.lg}>
                 {(props) => (
                   <Select name="clientId" defaultValue="none">
                     <SelectTrigger id={props.id}>
@@ -1122,7 +1126,7 @@ export function PortalGrantsPanel({
                 )}
               </Field>
 
-              <Field label={t('fields.project')}>
+              <Field label={t('fields.project')} className={mainAppFieldSpan.lg}>
                 {(props) => (
                   <Select name="projectId" defaultValue="none">
                     <SelectTrigger id={props.id}>
@@ -1140,6 +1144,19 @@ export function PortalGrantsPanel({
                 )}
               </Field>
 
+              <Field label={t('fields.expiresAt')} className={mainAppFieldSpan.md}>
+                {(props) => (
+                  <Input
+                    {...props}
+                    name="expiresAt"
+                    type="datetime-local"
+                    dir="ltr"
+                    className="pf-ltr-island"
+                  />
+                )}
+              </Field>
+              </MainAppFormGrid>
+
               <fieldset className="flex flex-col gap-1">
                 <legend className="text-sm font-medium">{t('fields.scopes')}</legend>
                 {CUSTOMER_PORTAL_SCOPES.map((scope) => (
@@ -1155,18 +1172,6 @@ export function PortalGrantsPanel({
                   </label>
                 ))}
               </fieldset>
-
-              <Field label={t('fields.expiresAt')}>
-                {(props) => (
-                  <Input
-                    {...props}
-                    name="expiresAt"
-                    type="datetime-local"
-                    dir="ltr"
-                    className="pf-ltr-island"
-                  />
-                )}
-              </Field>
 
               <Button type="submit" loading={createPending} className="min-h-11 w-full sm:w-auto">
                 {t('addGrant')}
@@ -1200,7 +1205,7 @@ export function PortalGrantsPanel({
         {canEdit ? (
           <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
             <h3 className="font-medium">{t('addVendorGrant')}</h3>
-            <form action={vendorCreateAction} className="mt-3 flex w-full max-w-lg flex-col gap-3">
+            <form action={vendorCreateAction} className="mt-3 flex w-full max-w-3xl min-w-0 flex-col gap-4">
               {vendorCreateState.error ? (
                 <Alert tone="danger">{vendorCreateState.error}</Alert>
               ) : null}
@@ -1210,7 +1215,8 @@ export function PortalGrantsPanel({
                 </Alert>
               ) : null}
 
-              <Field label={t('fields.vendorEmail')} required>
+              <MainAppFormGrid dense>
+              <Field label={t('fields.vendorEmail')} required className={mainAppFieldSpan.lg}>
                 {(props) => (
                   <Input
                     {...props}
@@ -1223,11 +1229,11 @@ export function PortalGrantsPanel({
                   />
                 )}
               </Field>
-              <Field label={t('fields.displayName')}>
+              <Field label={t('fields.displayName')} className={mainAppFieldSpan.lg}>
                 {(props) => <Input {...props} name="displayName" />}
               </Field>
 
-              <Field label={t('fields.vendor')} required>
+              <Field label={t('fields.vendor')} required className={mainAppFieldSpan.lg}>
                 {(props) => (
                   <Select name="vendorId" required>
                     <SelectTrigger id={props.id}>
@@ -1243,6 +1249,19 @@ export function PortalGrantsPanel({
                   </Select>
                 )}
               </Field>
+
+              <Field label={t('fields.expiresAt')} className={mainAppFieldSpan.md}>
+                {(props) => (
+                  <Input
+                    {...props}
+                    name="expiresAt"
+                    type="datetime-local"
+                    dir="ltr"
+                    className="pf-ltr-island"
+                  />
+                )}
+              </Field>
+              </MainAppFormGrid>
 
               <fieldset className="flex flex-col gap-1">
                 <legend className="text-sm font-medium">{t('fields.scopes')}</legend>
@@ -1260,18 +1279,6 @@ export function PortalGrantsPanel({
                 ))}
               </fieldset>
 
-              <Field label={t('fields.expiresAt')}>
-                {(props) => (
-                  <Input
-                    {...props}
-                    name="expiresAt"
-                    type="datetime-local"
-                    dir="ltr"
-                    className="pf-ltr-island"
-                  />
-                )}
-              </Field>
-
               <Button
                 type="submit"
                 loading={vendorCreatePending}
@@ -1287,7 +1294,7 @@ export function PortalGrantsPanel({
           <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
             <h3 className="font-medium">{t('recordQuoteTitle')}</h3>
             <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('recordQuoteHint')}</p>
-            <form action={quoteAction} className="mt-3 flex w-full max-w-lg flex-col gap-3">
+            <form action={quoteAction} className="mt-3 flex w-full max-w-3xl min-w-0 flex-col gap-4">
               {quoteState.error ? <Alert tone="danger">{quoteState.error}</Alert> : null}
               {quoteState.ok ? (
                 <Alert tone="success" role="status">
@@ -1295,7 +1302,8 @@ export function PortalGrantsPanel({
                 </Alert>
               ) : null}
 
-              <Field label={t('fields.vendor')} required>
+              <MainAppFormGrid dense>
+              <Field label={t('fields.vendor')} required className={mainAppFieldSpan.lg}>
                 {(props) => (
                   <Select name="vendorId" required>
                     <SelectTrigger id={props.id}>
@@ -1313,32 +1321,31 @@ export function PortalGrantsPanel({
               </Field>
 
               <input type="hidden" name="currency" value={defaultCurrency} />
-              <Field label={t('fields.totalAmount')} required>
+              <Field label={t('fields.totalAmount')} required className={mainAppFieldSpan.md}>
                 {(props) => (
                   <Input {...props} name="totalAmount" numeric required defaultValue="0" />
                 )}
               </Field>
-              <Field label={t('fields.lineDescription')} required>
+              <Field label={t('fields.lineDescription')} required className={mainAppFieldSpan.lg}>
                 {(props) => <Input {...props} name="lineDescription" required />}
               </Field>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field label={t('fields.lineQuantity')}>
-                  {(props) => (
-                    <Input {...props} name="lineQuantity" numeric defaultValue="1" />
-                  )}
-                </Field>
-                <Field label={t('fields.lineUnitAmount')}>
-                  {(props) => <Input {...props} name="lineUnitAmount" numeric />}
-                </Field>
-              </div>
-              <Field label={t('fields.lineTotal')}>
+              <Field label={t('fields.lineQuantity')} className={mainAppFieldSpan.md}>
+                {(props) => (
+                  <Input {...props} name="lineQuantity" numeric defaultValue="1" />
+                )}
+              </Field>
+              <Field label={t('fields.lineUnitAmount')} className={mainAppFieldSpan.md}>
+                {(props) => <Input {...props} name="lineUnitAmount" numeric />}
+              </Field>
+              <Field label={t('fields.lineTotal')} className={mainAppFieldSpan.md}>
                 {(props) => <Input {...props} name="lineTotal" numeric />}
               </Field>
-              <Field label={t('fields.receivedOn')}>
+              <Field label={t('fields.receivedOn')} className={mainAppFieldSpan.md}>
                 {(props) => (
                   <Input {...props} name="receivedOn" type="date" dir="ltr" className="pf-ltr-island" />
                 )}
               </Field>
+              </MainAppFormGrid>
               <Field label={t('fields.quoteNotes')}>
                 {(props) => <Input {...props} name="notes" />}
               </Field>

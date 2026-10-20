@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useActionState } from 'react';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { inputClassName } from '@/components/ui/input';
+import { MainAppFormGrid } from '@/components/patterns/main-app';
 import { cn } from '@/shared/ui/cn';
 import { INITIAL_FORM_STATE, type SubcontractFormState } from './form-state';
 
@@ -136,5 +137,5 @@ export function FormField({
 }
 
 export function FieldGrid({ children }: { children: React.ReactNode }) {
-  return <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{children}</div>;
+  return <MainAppFormGrid dense>{children}</MainAppFormGrid>;
 }

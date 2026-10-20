@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { CalendarRange } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -64,7 +65,7 @@ export default async function CalendarPage({
   const nextMonth = addDays(endOfMonth(businessDate(board.from)), 1).slice(0, 7);
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         description={t('description')}
@@ -85,8 +86,8 @@ export default async function CalendarPage({
           </div>
         }
       />
-
-      {canManage ? <CalendarEventForm /> : null}
+      <MainAppSection>
+        {canManage ? <CalendarEventForm /> : null}
 
       {board.items.length === 0 ? (
         <EmptyState icon={CalendarRange} title={t('empty.title')} description={t('empty.body')} />
@@ -107,6 +108,8 @@ export default async function CalendarPage({
           ))}
         </ul>
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

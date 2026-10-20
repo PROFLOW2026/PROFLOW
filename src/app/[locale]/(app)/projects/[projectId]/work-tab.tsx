@@ -3,9 +3,9 @@
 import { useTranslations } from 'next-intl';
 import { formatPercentDisplay } from '@/shared/number/display';
 import { useActionState, useState } from 'react';
+import { MainAppSection } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -57,7 +57,7 @@ export function WorkTab({
 
   if (!detail.showWorkPackages) {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex w-full min-w-0 flex-col gap-4">
         <SplitProjectForm projectId={detail.project.id} />
         {canEdit ? (
           <>
@@ -77,20 +77,18 @@ export function WorkTab({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex w-full min-w-0 flex-col gap-4">
       {detail.workPackages.map((pkg) => {
         const phases = detail.phases.filter((phase) => phase.workPackageId === pkg.id);
+        const packageTitle =
+          pkg.isDefault && pkg.name === DEFAULT_WORK_PACKAGE_NAME ? t('defaultName') : pkg.name;
         return (
-          <Card key={pkg.id}>
-            <CardHeader>
-              <CardTitle>
-                {pkg.isDefault && pkg.name === DEFAULT_WORK_PACKAGE_NAME
-                  ? t('defaultName')
-                  : pkg.name}
-              </CardTitle>
-              {pkg.description ? <CardDescription>{pkg.description}</CardDescription> : null}
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
+          <MainAppSection
+            key={pkg.id}
+            title={packageTitle}
+            description={pkg.description ?? undefined}
+          >
+            <div className="flex flex-col gap-3">
               <PhaseList
                 phases={phases}
                 projectId={detail.project.id}
@@ -116,8 +114,8 @@ export function WorkTab({
                     : null}
                 </p>
               ) : null}
-            </CardContent>
-          </Card>
+            </div>
+          </MainAppSection>
         );
       })}
 
@@ -397,34 +395,28 @@ function SplitProjectForm({ projectId }: { projectId: string }) {
   );
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('splitCta')}</CardTitle>
-        <CardDescription>{t('splitDescription')}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form action={formAction} className="flex flex-col gap-4">
-          <input type="hidden" name="projectId" value={projectId} />
-          {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-          <Field label={t('renameDefault')}>
-            {(control) => <Input {...control} name="defaultPackageName" />}
-          </Field>
-          <Field label={t('add')} description={t('splitDescription')}>
-            {(control) => (
-              <Textarea
-                {...control}
-                name="additionalPackages"
-                rows={4}
-                placeholder={tWork('areasPlaceholder')}
-              />
-            )}
-          </Field>
-          <Button type="submit" loading={pending}>
-            {t('splitCta')}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+    <MainAppSection title={t('splitCta')} description={t('splitDescription')}>
+      <form action={formAction} className="flex flex-col gap-4">
+        <input type="hidden" name="projectId" value={projectId} />
+        {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+        <Field label={t('renameDefault')}>
+          {(control) => <Input {...control} name="defaultPackageName" />}
+        </Field>
+        <Field label={t('add')} description={t('splitDescription')}>
+          {(control) => (
+            <Textarea
+              {...control}
+              name="additionalPackages"
+              rows={4}
+              placeholder={tWork('areasPlaceholder')}
+            />
+          )}
+        </Field>
+        <Button type="submit" loading={pending}>
+          {t('splitCta')}
+        </Button>
+      </form>
+    </MainAppSection>
   );
 }
 
@@ -437,22 +429,17 @@ function AddWorkPackageForm({ projectId }: { projectId: string }) {
   );
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('add')}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form action={formAction} className="flex flex-col gap-3">
-          <input type="hidden" name="projectId" value={projectId} />
-          {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-          <Field label={tCommon('labels.name')} required>
-            {(control) => <Input {...control} name="name" required />}
-          </Field>
-          <Button type="submit" loading={pending} variant="secondary">
-            {t('add')}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+    <MainAppSection title={t('add')}>
+      <form action={formAction} className="flex flex-col gap-3">
+        <input type="hidden" name="projectId" value={projectId} />
+        {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+        <Field label={tCommon('labels.name')} required>
+          {(control) => <Input {...control} name="name" required />}
+        </Field>
+        <Button type="submit" loading={pending} variant="secondary">
+          {t('add')}
+        </Button>
+      </form>
+    </MainAppSection>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -23,8 +24,9 @@ export function ClaimDetailPanel({
   const { detail, can } = view;
   const { header } = detail;
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <MainAppPage>
+      <MainAppSection>
+        <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold">
             CLM-{header.claimNumber}
@@ -131,6 +133,8 @@ export function ClaimDetailPanel({
       {can.review || can.certify ? (
         <ClaimReviewActions projectId={projectId} claimId={header.id} detail={detail} can={can} basePath={basePath} />
       ) : null}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

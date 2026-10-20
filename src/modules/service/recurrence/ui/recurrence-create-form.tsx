@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState, useState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -47,14 +48,15 @@ export function RecurrenceCreateForm({
   const [assigneeId, setAssigneeId] = useState(NONE);
 
   return (
-    <form action={formAction} className="flex max-w-xl flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
-      <Field label={t('fields.title')} error={state.fieldErrors?.title}>
+      <MainAppFormGrid dense>
+      <Field label={t('fields.title')} error={state.fieldErrors?.title} className={mainAppFieldSpan.lg}>
         {(control) => <Input {...control} name="title" required maxLength={200} autoComplete="off" />}
       </Field>
 
-      <Field label={t('fields.client')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('fields.client')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="clientId" value={clientId === NONE ? '' : clientId} />
@@ -75,14 +77,13 @@ export function RecurrenceCreateForm({
         )}
       </Field>
 
-      <Field label={t('fields.siteAddress')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('fields.siteAddress')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Input {...control} name="siteAddress" maxLength={500} autoComplete="street-address" />
         )}
       </Field>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label={t('fields.frequency')}>
+        <Field label={t('fields.frequency')} className={mainAppFieldSpan.md}>
           {(control) => (
             <>
               <input type="hidden" name="frequency" value={frequency} />
@@ -105,15 +106,13 @@ export function RecurrenceCreateForm({
           )}
         </Field>
 
-        <Field label={t('fields.intervalCount')}>
+        <Field label={t('fields.intervalCount')} className={mainAppFieldSpan.sm}>
           {(control) => (
             <Input {...control} name="intervalCount" type="number" min={1} max={365} defaultValue={1} />
           )}
         </Field>
-      </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label={t('fields.startDate')} error={state.fieldErrors?.startDate}>
+        <Field label={t('fields.startDate')} error={state.fieldErrors?.startDate} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               {...control}
@@ -129,18 +128,18 @@ export function RecurrenceCreateForm({
           label={t('fields.endDate')}
           optionalLabel={tCommon('labels.optional')}
           error={state.fieldErrors?.endDate}
+          className={mainAppFieldSpan.md}
         >
           {(control) => <Input {...control} name="endDate" type="date" dir="ltr" />}
         </Field>
-      </div>
 
-      <Field label={t('fields.durationMinutes')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('fields.durationMinutes')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.sm}>
         {(control) => (
           <Input {...control} name="defaultDurationMinutes" type="number" min={15} max={1440} step={15} />
         )}
       </Field>
 
-      <Field label={t('fields.pricingMode')}>
+      <Field label={t('fields.pricingMode')} className={mainAppFieldSpan.md}>
         {(control) => (
           <>
             <input type="hidden" name="defaultPricingMode" value={pricingMode} />
@@ -162,21 +161,21 @@ export function RecurrenceCreateForm({
       </Field>
 
       {pricingMode === 'fixed' ? (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t('fields.priceAmount')} error={state.fieldErrors?.defaultPriceAmount}>
+        <>
+          <Field label={t('fields.priceAmount')} error={state.fieldErrors?.defaultPriceAmount} className={mainAppFieldSpan.md}>
             {(control) => <Input {...control} name="defaultPriceAmount" inputMode="decimal" required />}
           </Field>
-          <Field label={t('fields.currency')}>
+          <Field label={t('fields.currency')} className={mainAppFieldSpan.sm}>
             {(control) => (
               <Input {...control} name="currency" defaultValue={baseCurrency} maxLength={3} dir="ltr" />
             )}
           </Field>
-        </div>
+        </>
       ) : (
         <input type="hidden" name="currency" value={baseCurrency} />
       )}
 
-      <Field label={t('fields.assignee')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('fields.assignee')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input
@@ -201,7 +200,7 @@ export function RecurrenceCreateForm({
         )}
       </Field>
 
-      <Field label={t('fields.checklistTemplateId')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('fields.checklistTemplateId')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Input
             {...control}
@@ -213,11 +212,12 @@ export function RecurrenceCreateForm({
         )}
       </Field>
 
-      <Field label={t('fields.notes')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('fields.notes')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
         {(control) => <Textarea {...control} name="notes" rows={3} maxLength={2000} />}
       </Field>
+      </MainAppFormGrid>
 
-      <Button type="submit" disabled={pending} className="min-h-11 w-full sm:w-auto">
+      <Button type="submit" disabled={pending} className="min-h-11 w-full sm:w-auto self-start">
         {pending ? tCommon('actions.saving') : t('create.submit')}
       </Button>
     </form>

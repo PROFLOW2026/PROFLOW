@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { listProjectsForOrg } from '@/modules/projects';
@@ -30,7 +31,7 @@ export default async function NewAssetPage() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('createAsset.title')}
         description={t('createAsset.description')}
@@ -40,10 +41,13 @@ export default async function NewAssetPage() {
           </Link>
         }
       />
-      <AssetCreateForm
+      <MainAppSection>
+        <AssetCreateForm
         projects={loaded.projects.map((p) => ({ id: p.id, name: p.name }))}
         defaultCurrency={loaded.baseCurrency}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

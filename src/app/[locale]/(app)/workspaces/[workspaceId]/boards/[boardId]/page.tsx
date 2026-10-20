@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { withOrgContext, getShellContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getWorkspaceDetail } from '@/modules/workspaces';
-// Agent A's real API
 import {
   listBoards,
   listBuckets,
@@ -76,7 +76,6 @@ export default async function WorkspaceBoardPage({
     const boards = rawBoards.map((b) => mapBoardToUiBoard(b));
     const taskCards = await mapTasksToCardDataForOrg(context, taskPage.tasks);
 
-    // Map buckets with their tasks
     const tasksByBucket = new Map<string, TaskCardData[]>();
     for (const task of taskCards) {
       if (task.bucketId) {
@@ -122,7 +121,6 @@ export default async function WorkspaceBoardPage({
     boardFilterLabels,
   } = data;
 
-  // Server Actions bound to Agent A's real functions
   async function moveTaskAction(
     taskId: string,
     newBucketId: string,
@@ -184,32 +182,34 @@ export default async function WorkspaceBoardPage({
   const { BoardUrlFiltersBar } = await import('@/modules/tasks/ui/board-url-filters-bar');
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-4">
-      <BoardUrlFiltersBar
-        searchParams={urlParams}
-        buckets={buckets.map((b) => ({ id: b.id, name: b.name }))}
-        assignees={boardFilterAssignees}
-        labels={boardFilterLabels}
-      />
-      <BoardSavedViewsChrome searchParams={urlParams} boardId={boardId} />
-    <BoardShell
-      workspaceId={workspaceId}
-      boards={boards}
-      activeBoard={activeBoard}
-      buckets={buckets}
-      initialTasks={tasks}
-      canAssign={canAssign}
-      canArchive={canArchive}
-      canManageBuckets={canManageBuckets}
-      initialHasMore={hasMore}
-      loadMoreBoardTasks={loadMoreBoardTasksAction}
-      actions={{
-        moveTask: moveTaskAction,
-        createTask: createTaskAction,
-        getTaskDetail: getTaskDetailAction,
-        updateTask: updateTaskAction,
-      }}
-    />
-    </div>
+    <MainAppPage>
+      <MainAppSection>
+        <BoardUrlFiltersBar
+          searchParams={urlParams}
+          buckets={buckets.map((b) => ({ id: b.id, name: b.name }))}
+          assignees={boardFilterAssignees}
+          labels={boardFilterLabels}
+        />
+        <BoardSavedViewsChrome searchParams={urlParams} boardId={boardId} />
+        <BoardShell
+          workspaceId={workspaceId}
+          boards={boards}
+          activeBoard={activeBoard}
+          buckets={buckets}
+          initialTasks={tasks}
+          canAssign={canAssign}
+          canArchive={canArchive}
+          canManageBuckets={canManageBuckets}
+          initialHasMore={hasMore}
+          loadMoreBoardTasks={loadMoreBoardTasksAction}
+          actions={{
+            moveTask: moveTaskAction,
+            createTask: createTaskAction,
+            getTaskDetail: getTaskDetailAction,
+            updateTask: updateTaskAction,
+          }}
+        />
+      </MainAppSection>
+    </MainAppPage>
   );
 }

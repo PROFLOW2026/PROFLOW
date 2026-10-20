@@ -1,4 +1,11 @@
-import type { Metadata } from 'next';
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
@@ -173,7 +180,7 @@ export default async function RecurringDraftDetailPage({
           : null;
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       {retroBanner ? <Alert tone="success">{retroBanner}</Alert> : null}
       {missingCategory && canManage ? (
         <Alert tone="warning">
@@ -204,87 +211,74 @@ export default async function RecurringDraftDetailPage({
           ) : null
         }
       />
-
-      <section className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
-        <h2 className="text-sm font-semibold">
-          {isMonthlyExpense ? t('detail.monthlyFixedExpense') : t('detail.schedule')}
-        </h2>
-        <dl className="grid gap-3 sm:grid-cols-2">
-          {isMonthlyExpense ? (
+      <MainAppSection
+        title={isMonthlyExpense ? t('detail.monthlyFixedExpense') : t('detail.schedule')}
+      >
+        {isMonthlyExpense ? (
+          <div className="mb-3 min-w-0">
+            <PayloadPreview
+              payload={payload}
+              preview={preview}
+              locale={locale}
+              categoryLabel={categoryLabel}
+            />
+          </div>
+        ) : null}
+        <MainAppSummaryGrid>
+          {!isMonthlyExpense ? (
             <>
-              <div className="sm:col-span-2">
-                <PayloadPreview
-                  payload={payload}
-                  preview={preview}
-                  locale={locale}
-                  categoryLabel={categoryLabel}
-                />
-              </div>
-              <div>
-                <dt className="text-xs text-[var(--pf-text-secondary)]">{t('fields.startDate')}</dt>
-                <dd dir="ltr">{formatBusinessDate(displayStartDate, locale)}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-[var(--pf-text-secondary)]">{t('fields.nextRunDate')}</dt>
-                <dd dir="ltr">{formatBusinessDate(draft.nextRunDate, locale)}</dd>
-              </div>
+              <MainAppSummaryItem label={t('fields.kind')}>{t(`kind.${draft.draftKind}`)}</MainAppSummaryItem>
+              <MainAppSummaryItem label={t('fields.frequency')}>
+                {t(`frequency.${draft.frequency}`)}
+                {draft.intervalCount > 1
+                  ? ` · ${t('detail.intervalLabel', { count: draft.intervalCount })}`
+                  : ''}
+              </MainAppSummaryItem>
             </>
           ) : (
-            <>
-              <div>
-                <dt className="text-xs text-[var(--pf-text-secondary)]">{t('fields.kind')}</dt>
-                <dd>{t(`kind.${draft.draftKind}`)}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-[var(--pf-text-secondary)]">{t('fields.frequency')}</dt>
-                <dd>
-                  {t(`frequency.${draft.frequency}`)}
-                  {draft.intervalCount > 1
-                    ? ` · ${t('detail.intervalLabel', { count: draft.intervalCount })}`
-                    : ''}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs text-[var(--pf-text-secondary)]">{t('fields.nextRunDate')}</dt>
-                <dd dir="ltr">{formatBusinessDate(draft.nextRunDate, locale)}</dd>
-              </div>
-            </>
+            <MainAppSummaryItem label={t('fields.startDate')}>
+              <span dir="ltr">{formatBusinessDate(displayStartDate, locale)}</span>
+            </MainAppSummaryItem>
           )}
-          <div>
-            <dt className="text-xs text-[var(--pf-text-secondary)]">{t('fields.endDate')}</dt>
-            <dd dir="ltr">
+          <MainAppSummaryItem label={t('fields.nextRunDate')}>
+            <span dir="ltr">{formatBusinessDate(draft.nextRunDate, locale)}</span>
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('fields.endDate')}>
+            <span dir="ltr">
               {draft.endDate ? formatBusinessDate(draft.endDate, locale) : t('fields.none')}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-[var(--pf-text-secondary)]">{t('detail.statusLabel')}</dt>
-            <dd>{t(`status.${draft.status}`)}</dd>
-          </div>
-        </dl>
+            </span>
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('detail.statusLabel')}>
+            {t(`status.${draft.status}`)}
+          </MainAppSummaryItem>
+          {isMonthlyExpense && preview.expense ? (
+            <MainAppSummaryItem label={t('fields.amount')}>
+              {formatMoneyString(preview.expense.amount, preview.expense.currency, locale)}
+            </MainAppSummaryItem>
+          ) : null}
+        </MainAppSummaryGrid>
         {draft.draftKind === 'expense' ? (
-          <p className="text-sm text-[var(--pf-text-secondary)]">
+          <p className="mt-3 text-sm text-[var(--pf-text-secondary)]">
             {draft.autoFinalizeExpense
               ? t('detail.autoFinalizeSimple')
               : t('detail.draftOnlySimple')}
           </p>
         ) : null}
-      </section>
+      </MainAppSection>
 
       {!isMonthlyExpense ? (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold">{t('detail.payload')}</h2>
+        <MainAppSection title={t('detail.payload')}>
           <PayloadPreview payload={payload} preview={preview} locale={locale} />
-        </section>
+        </MainAppSection>
       ) : null}
 
       {amountVersions.length > 1 ? (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold">{t('detail.amountHistory')}</h2>
+        <MainAppSection title={t('detail.amountHistory')}>
           <ResponsiveTable
             items={amountVersions}
             getRowKey={(version) => version.id}
             desktop={
-              <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+              <MainAppTableShell>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -311,7 +305,7 @@ export default async function RecurringDraftDetailPage({
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </MainAppTableShell>
             }
             renderMobileCard={(version) => (
               <div className="rounded-lg border border-[var(--pf-border-default)] p-3">
@@ -328,10 +322,11 @@ export default async function RecurringDraftDetailPage({
               </div>
             )}
           />
-        </section>
+        </MainAppSection>
       ) : null}
 
       {canManage ? (
+        <MainAppSection>
         <RecurringDraftActions
           draftId={draft.id}
           status={draft.status}
@@ -340,9 +335,11 @@ export default async function RecurringDraftDetailPage({
           resumeAction={resumeRecurringDraftAction}
           endAction={endRecurringDraftAction}
         />
+        </MainAppSection>
       ) : null}
 
       {canManage && isMonthlyExpense && draft.status === 'active' ? (
+        <MainAppSection>
         <MissingMonthsBackfill
           draftId={draft.id}
           missingFromYearMonth={missing?.fromYearMonth ?? null}
@@ -350,12 +347,12 @@ export default async function RecurringDraftDetailPage({
           missingCount={missing?.count ?? 0}
           action={generateRecurringDraftHistoryFormAction}
         />
+        </MainAppSection>
       ) : null}
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-semibold">
-          {isMonthlyExpense ? t('detail.generatedExpenses') : t('detail.history')}
-        </h2>
+      <MainAppSection
+        title={isMonthlyExpense ? t('detail.generatedExpenses') : t('detail.history')}
+      >
         {runs.length === 0 ? (
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.noHistory')}</p>
         ) : (
@@ -363,7 +360,7 @@ export default async function RecurringDraftDetailPage({
             items={runs}
             getRowKey={(run) => run.id}
             desktop={
-              <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+              <MainAppTableShell>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -402,7 +399,7 @@ export default async function RecurringDraftDetailPage({
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </MainAppTableShell>
             }
             renderMobileCard={(run) =>
               run.generatedEntityId ? (
@@ -437,7 +434,7 @@ export default async function RecurringDraftDetailPage({
             }
           />
         )}
-      </section>
-    </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

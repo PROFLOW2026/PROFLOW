@@ -1,3 +1,4 @@
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
@@ -33,25 +34,27 @@ export default async function ProjectTimelinePage({
   if (!data) notFound();
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage className="w-full min-w-0">
       <PageHeader
         title={t('timeline.projectPageTitle')}
         description={t('timeline.projectPageDescription')}
       />
-
-      <CoordinationCalendarSource projectId={projectId} />
-
-      <TaskWorkSurfaceClient
-        tasks={data.tasks}
-        today={data.today}
-        hasMore={data.hasMore}
-        viewMode="timeline"
-        showProject={false}
-        timelineDateEdit
-        projectId={projectId}
-        getTaskDetail={getTaskDetailAction}
-        updateTask={updateTaskFieldsAction}
-      />
-    </div>
+      <MainAppSection className="w-full min-w-0">
+        <div className="flex w-full min-w-0 flex-col gap-4">
+          <CoordinationCalendarSource projectId={projectId} />
+          <TaskWorkSurfaceClient
+            tasks={data.tasks}
+            today={data.today}
+            hasMore={data.hasMore}
+            viewMode="timeline"
+            showProject={false}
+            timelineDateEdit
+            projectId={projectId}
+            getTaskDetail={getTaskDetailAction}
+            updateTask={updateTaskFieldsAction}
+          />
+        </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

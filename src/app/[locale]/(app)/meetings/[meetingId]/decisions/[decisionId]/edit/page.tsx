@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
@@ -37,7 +38,7 @@ export default async function EditDecisionPage({
   if (!decision) notFound();
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('meetings.form.editDecisionTitle')}
         description={meeting.title}
@@ -47,7 +48,10 @@ export default async function EditDecisionPage({
           </Link>
         }
       />
-      <DecisionForm mode="edit" meetingId={meetingId} decision={decision} />
-    </div>
+      <MainAppSection>
+        <DecisionForm mode="edit" meetingId={meetingId} decision={decision} />
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

@@ -1,6 +1,10 @@
 import { Suspense, type ReactNode } from 'react';
 import { getTranslations } from 'next-intl/server';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import { ProjectFinancialsSnapshotView } from '@/modules/financials/ui/project-financials-snapshot-view';
 import type { ProjectFinancials } from '@/modules/financials/domain/types';
 import { buildScheduleSummary, type ProjectDetail } from '@/modules/projects';
@@ -89,66 +93,62 @@ export async function OverviewTab({
   const financialSummary =
     financialSnapshotSlot ??
     (canReadFinancials && preloadedFinancials && financialSnapshotT ? (
-      <Card className="min-w-0 max-w-full">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">{t('financialSnapshot')}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex min-w-0 flex-col gap-2 text-sm">
+      <MainAppSection title={t('financialSnapshot')}>
+        <div className="flex min-w-0 flex-col gap-2 text-sm">
           <ProjectFinancialsSnapshotView
             financials={preloadedFinancials}
             canReadProfit={preloadedCanReadProfit}
             t={financialSnapshotT}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </MainAppSection>
     ) : null);
 
   if (isJob) {
     return (
-      <div className="flex min-w-0 max-w-full flex-col gap-4">
-        <section className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <h2 className="text-sm font-semibold">{tJobs('overview.datesTitle')}</h2>
+      <div className="flex w-full min-w-0 max-w-full flex-col gap-4">
+        <MainAppSection
+          title={tJobs('overview.datesTitle')}
+          actions={
             <Link href={detailsHref} className={cn(textNavLinkClassName, 'text-sm')}>
               {tJobs('overview.editDates')}
             </Link>
-          </div>
-          <p className="mt-2 text-sm tabular-nums" dir="ltr">
-            {dateRange}
-          </p>
-        </section>
+          }
+        >
+          <MainAppSummaryGrid>
+            <MainAppSummaryItem label={t('datesLabel')}>
+              <span className="tabular-nums" dir="ltr">
+                {dateRange}
+              </span>
+            </MainAppSummaryItem>
+          </MainAppSummaryGrid>
+        </MainAppSection>
         {financialSummary}
       </div>
     );
   }
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-4">
+    <div className="flex w-full min-w-0 max-w-full flex-col gap-4">
       {canReadFinancials ? (
         <Suspense fallback={<ProjectEarlyWarningsFallback />}>
           <ProjectEarlyWarningsPanel projectId={detail.project.id} />
         </Suspense>
       ) : null}
 
-      <section className="grid min-w-0 grid-cols-1 gap-4">
-        {schedule ? (
-          <ScheduleSummaryPanel summary={schedule} projectId={detail.project.id} />
-        ) : (
-          <Card className="min-w-0 max-w-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">{t('summaryTitle')}</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm">
-              <div className="flex min-w-0 justify-between gap-2">
-                <span className="text-[var(--pf-text-secondary)]">{t('datesLabel')}</span>
-                <span className="min-w-0 text-end tabular-nums" dir="ltr">
-                  {dateRange}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </section>
+      {schedule ? (
+        <ScheduleSummaryPanel summary={schedule} projectId={detail.project.id} />
+      ) : (
+        <MainAppSection title={t('summaryTitle')}>
+          <MainAppSummaryGrid>
+            <MainAppSummaryItem label={t('datesLabel')}>
+              <span className="tabular-nums" dir="ltr">
+                {dateRange}
+              </span>
+            </MainAppSummaryItem>
+          </MainAppSummaryGrid>
+        </MainAppSection>
+      )}
 
       {financialSummary}
 

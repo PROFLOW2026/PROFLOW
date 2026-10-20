@@ -1,4 +1,5 @@
-import { FileText } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { FileText } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
@@ -98,14 +99,14 @@ export default async function DocumentsPage({
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         description={t('description')}
         actions={<OcrEntryLink workflow="general" />}
       />
-
-      {!loaded.storageConfigured ? <Alert tone="info">{t('storageNotConfigured')}</Alert> : null}
+      <MainAppSection>
+        {!loaded.storageConfigured ? <Alert tone="info">{t('storageNotConfigured')}</Alert> : null}
 
       <DocumentListFilters
         initialQuery={q ?? ''}
@@ -163,6 +164,8 @@ export default async function DocumentsPage({
           </Link>
         </p>
       ) : null}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

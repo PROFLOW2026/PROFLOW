@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { ContextualBackLink } from '@/components/ui/contextual-back-link';
@@ -21,7 +22,7 @@ export default async function NewVendorPage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         description={t('description')}
@@ -29,7 +30,10 @@ export default async function NewVendorPage() {
           <ContextualBackLink href="/vendors">{tVendors('backToList')}</ContextualBackLink>
         }
       />
-      <NewVendorForm />
-    </div>
+      <MainAppSection>
+        <NewVendorForm />
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -59,11 +60,12 @@ export function MeetingForm({
   );
 
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       {meeting ? <input type="hidden" name="meetingId" value={meeting.id} /> : null}
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
-      <Field label={t('meetings.fields.title')} required error={state.fieldErrors?.title}>
+      <MainAppFormGrid dense>
+      <Field label={t('meetings.fields.title')} required error={state.fieldErrors?.title} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Input
             {...control}
@@ -75,7 +77,7 @@ export function MeetingForm({
         )}
       </Field>
 
-      <Field label={t('meetings.form.scheduledAt')} required error={state.fieldErrors?.scheduledAt}>
+      <Field label={t('meetings.form.scheduledAt')} required error={state.fieldErrors?.scheduledAt} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Input
             {...control}
@@ -94,7 +96,7 @@ export function MeetingForm({
         )}
       </Field>
 
-      <Field label={t('meetings.fields.location')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('meetings.fields.location')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Input
             {...control}
@@ -105,7 +107,7 @@ export function MeetingForm({
         )}
       </Field>
 
-      <Field label={t('meetings.form.project')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('meetings.form.project')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="projectId" value={projectId === NONE ? '' : projectId} />
@@ -126,7 +128,7 @@ export function MeetingForm({
         )}
       </Field>
 
-      <Field label={t('meetings.form.workspace')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('meetings.form.workspace')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="workspaceId" value={workspaceId === NONE ? '' : workspaceId} />
@@ -147,7 +149,7 @@ export function MeetingForm({
         )}
       </Field>
 
-      <Field label={t('meetings.fields.notes')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('meetings.fields.notes')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
         {(control) => (
           <Textarea
             {...control}
@@ -158,6 +160,7 @@ export function MeetingForm({
           />
         )}
       </Field>
+      </MainAppFormGrid>
 
       <Button type="submit" loading={pending} block>
         {mode === 'create' ? t('meetings.form.submitCreate') : tCommon('actions.save')}

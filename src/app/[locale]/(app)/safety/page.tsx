@@ -1,4 +1,11 @@
-import { Plus, ShieldAlert } from 'lucide-react';
+import {
+  MainAppListBody,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+import { mainAppCardClass } from '@/shared/ui/main-app-surface-styles';
+﻿import { Plus, ShieldAlert } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -25,6 +32,7 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 import { SafetyListFilters } from './safety-list-filters';
 
 export async function generateMetadata({
@@ -88,7 +96,7 @@ export default async function SafetyPage({
   const projectName = new Map(projects.map((project) => [project.id, project.name]));
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         description={t('description')}
@@ -103,12 +111,16 @@ export default async function SafetyPage({
           ) : null
         }
       />
-
-      <ul className="grid gap-2 sm:grid-cols-2" aria-label={t('summary.open')}>
+      <MainAppSection>
+        <MainAppListBody>
+        <ul className="grid gap-2 sm:grid-cols-2" aria-label={t('summary.open')}>
         <li>
           <Link
             href="/safety?status=open"
-            className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-4 py-3 text-sm"
+            className={cn(
+              mainAppCardClass,
+              'flex min-h-11 items-center justify-between gap-2 px-4 py-3 text-sm transition-colors hover:bg-[var(--pf-bg-subtle)]',
+            )}
           >
             <span>{t('summary.open')}</span>
             <span className="font-semibold tabular-nums" dir="ltr">
@@ -117,7 +129,7 @@ export default async function SafetyPage({
           </Link>
         </li>
         <li>
-          <div className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-4 py-3 text-sm">
+          <div className={cn(mainAppCardClass, 'flex min-h-11 items-center justify-between gap-2 px-4 py-3 text-sm')}>
             <span>{t('summary.overdue')}</span>
             <span className="font-semibold tabular-nums" dir="ltr">
               {summary.overdueActions}
@@ -127,7 +139,7 @@ export default async function SafetyPage({
       </ul>
 
       <div className="grid gap-3 sm:grid-cols-3 text-sm">
-        <section className="rounded-lg border border-[var(--pf-border-default)] p-3">
+        <section className={cn(mainAppCardClass, 'p-3')}>
           <h2 className="font-medium">{t('summary.bySeverity')}</h2>
           <ul className="mt-2 flex flex-col gap-1">
             {SAFETY_SEVERITIES.map((key) => (
@@ -140,7 +152,7 @@ export default async function SafetyPage({
             ))}
           </ul>
         </section>
-        <section className="rounded-lg border border-[var(--pf-border-default)] p-3">
+        <section className={cn(mainAppCardClass, 'p-3')}>
           <h2 className="font-medium">{t('summary.byType')}</h2>
           <ul className="mt-2 flex flex-col gap-1">
             {SAFETY_RECORD_TYPES.map((key) => (
@@ -153,7 +165,7 @@ export default async function SafetyPage({
             ))}
           </ul>
         </section>
-        <section className="rounded-lg border border-[var(--pf-border-default)] p-3">
+        <section className={cn(mainAppCardClass, 'p-3')}>
           <h2 className="font-medium">{t('summary.byProject')}</h2>
           {summary.byProject.length === 0 ? (
             <p className="mt-2 text-[var(--pf-text-secondary)]">{t('empty')}</p>
@@ -197,7 +209,7 @@ export default async function SafetyPage({
           items={records}
           getRowKey={(record) => record.id}
           desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            <MainAppTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -245,7 +257,7 @@ export default async function SafetyPage({
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </MainAppTableShell>
           }
           renderMobileCard={(record) => (
             <Link href={`/safety/${record.id}`} className={pressableCardLinkClassName}>
@@ -264,6 +276,9 @@ export default async function SafetyPage({
           )}
         />
       )}
-    </div>
+
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

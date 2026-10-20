@@ -1,4 +1,5 @@
-import { getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
@@ -41,9 +42,9 @@ export async function ProjectClaimsScreen({
 
   return (
     <WithAppClientMessages extra={['subcontractClaims']}>
-      <div className="flex flex-col gap-4">
+      <MainAppPage>
         <PageHeader title={t('list.pageTitle')} description={t('list.pageDescription')} />
-
+      <MainAppSection>
         {canOfferForm ? (
           <Card>
             <CardHeader>
@@ -92,7 +93,9 @@ export async function ProjectClaimsScreen({
         {data.items.length > 0 || !wantsCreate || canOfferForm ? (
           <ClaimsList items={data.items} basePath={basePath} />
         ) : null}
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

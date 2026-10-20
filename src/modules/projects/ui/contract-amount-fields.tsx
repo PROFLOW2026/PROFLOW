@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { Alert } from '@/components/ui/alert';
 import { Field } from '@/components/ui/field';
@@ -143,11 +144,13 @@ export function ContractAmountFields({
         </Alert>
       ) : null}
 
+      <MainAppFormGrid dense>
       <Field
         label={amountLabel ?? t('create.contractValueLabel')}
         optionalLabel={!locked && optional ? tCommon('labels.optional') : undefined}
         error={amountError}
         description={locked ? undefined : (amountDescription ?? t('create.contractValueHint'))}
+        className={mainAppFieldSpan.lg}
       >
         {(control) => (
           <>
@@ -176,6 +179,7 @@ export function ContractAmountFields({
           optionalLabel={!locked ? tCommon('labels.optional') : undefined}
           error={reductionError}
           description={locked ? undefined : t('create.openingReductionHint')}
+          className={mainAppFieldSpan.lg}
         >
           {(control) => (
             <>
@@ -204,6 +208,7 @@ export function ContractAmountFields({
         description={
           locked ? undefined : (taxModeDescription ?? t('create.amountTaxModeHint'))
         }
+        className={mainAppFieldSpan.lg}
       >
         {(control) => (
           <>
@@ -230,6 +235,7 @@ export function ContractAmountFields({
           </>
         )}
       </Field>
+      </MainAppFormGrid>
 
       {managedPreview ? (
         <p className="text-sm text-[var(--pf-text-secondary)]" aria-live="polite">

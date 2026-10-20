@@ -1,5 +1,6 @@
 'use client';
 
+import { MainAppPage } from '@/components/patterns/main-app';
 import { AlertTriangle, BarChart3, Calendar, CheckCircle2, Clock, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/shared/ui/cn';
@@ -68,7 +69,7 @@ export function TaskInsightsView({ insights }: { insights: TaskInsights }) {
   const maxProject = Math.max(...insights.byProject.map((r) => r.openCount), 1);
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <section>
         <h2 className={cn('mb-3', uwmSectionHeadingClass)}>{t('insights.sections.summary')}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -158,6 +159,6 @@ export function TaskInsightsView({ insights }: { insights: TaskInsights }) {
           )}
         </section>
       </div>
-    </div>
+    </MainAppPage>
   );
 }

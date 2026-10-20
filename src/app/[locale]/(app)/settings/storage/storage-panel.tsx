@@ -5,7 +5,7 @@ import { useRouter } from '@/shared/i18n/navigation';
 import { useTransition } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MainAppSection } from '@/components/patterns/main-app';
 import { StatusBadge } from '@/components/ui/status-badge';
 import type { StorageConnectionRecord, StorageProviderKey } from '@/modules/external-storage/client';
 import {
@@ -86,9 +86,9 @@ export function StorageSettingsPanel({
   const byProvider = new Map(connections.map((c) => [c.provider, c]));
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex w-full min-w-0 flex-col gap-4">
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
-      <ul className="flex flex-col gap-3">
+      <ul className="flex flex-col gap-4">
         {PROVIDERS.map((provider) => {
           const connection = byProvider.get(provider);
           const configured = configuredProviders.includes(provider);
@@ -104,12 +104,11 @@ export function StorageSettingsPanel({
           const progress = connection ? provisionProgress[connection.id] : undefined;
           return (
             <li key={provider}>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
-                  <CardTitle className="text-base">{t(`providers.${provider}`)}</CardTitle>
-                  <StatusBadge shape={statusShape(status)} label={tStatus(status)} />
-                </CardHeader>
-                <CardContent className="flex flex-col gap-3 text-sm">
+              <MainAppSection
+                title={t(`providers.${provider}`)}
+                actions={<StatusBadge shape={statusShape(status)} label={tStatus(status)} />}
+              >
+                <div className="flex flex-col gap-4 text-sm">
                   {connection?.externalAccountEmail ? (
                     <p className="text-[var(--pf-text-secondary)]">{connection.externalAccountEmail}</p>
                   ) : null}
@@ -242,8 +241,8 @@ export function StorageSettingsPanel({
                       </Button>
                     ) : null}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </MainAppSection>
             </li>
           );
         })}

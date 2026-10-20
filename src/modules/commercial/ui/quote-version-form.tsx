@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -19,29 +20,29 @@ export function QuoteVersionForm({ changeRequestId, action, currency }: QuoteVer
   const [state, formAction, pending] = useActionState(action, {});
 
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-xl flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <input type="hidden" name="changeRequestId" value={changeRequestId} />
 
-      <Field label={t('lineDescription')} required>
-        {(control) => <Input {...control} name="lineDescription" required />}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field label={t('lineDescription')} required className={mainAppFieldSpan.lg}>
+          {(control) => <Input {...control} name="lineDescription" required />}
+        </Field>
 
-      <div className="grid min-w-0 gap-4 sm:grid-cols-2">
-        <Field label={t('lineTotal')} required description={t('currencyHint', { currency })}>
+        <Field label={t('lineTotal')} required description={t('currencyHint', { currency })} className={mainAppFieldSpan.md}>
           {(control) => <Input {...control} name="lineTotal" inputMode="decimal" required dir="ltr" />}
         </Field>
-        <Field label={t('taxAmount')}>
+        <Field label={t('taxAmount')} className={mainAppFieldSpan.md}>
           {(control) => <Input {...control} name="taxAmount" inputMode="decimal" dir="ltr" />}
         </Field>
-      </div>
 
-      <Field label={t('validUntil')}>
-        {(control) => <Input {...control} name="validUntil" type="date" dir="ltr" />}
-      </Field>
+        <Field label={t('validUntil')} className={mainAppFieldSpan.md}>
+          {(control) => <Input {...control} name="validUntil" type="date" dir="ltr" />}
+        </Field>
 
-      <Field label={t('notes')}>
-        {(control) => <Textarea {...control} name="notes" rows={2} />}
-      </Field>
+        <Field label={t('notes')} className={mainAppFieldSpan.full}>
+          {(control) => <Textarea {...control} name="notes" rows={2} />}
+        </Field>
+      </MainAppFormGrid>
 
       {state.error ? (
         <p className="text-sm text-[var(--pf-status-danger-fg)]" role="alert">

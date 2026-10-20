@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js';
+﻿import Decimal from 'decimal.js';
 import { ClipboardList } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -23,6 +23,11 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
+import {
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import { Button } from '@/components/ui/button';
 import {
   getBoqFinancialComparison,
@@ -236,88 +241,96 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
   }));
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
-      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 text-start">
-          <h2 className="text-lg font-semibold">{t('panel.title')}</h2>
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('panel.description')}</p>
-        </div>
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          {boq && permissions.canSubmitProgress ? (
-            <Button asChild>
-              <Link href={`/projects/${projectId}/boq-measure`}>{t('measure.link')}</Link>
-            </Button>
-          ) : null}
-          {boq && permissions.canManage ? (
-            <Link
-              href={`/exports/boq?projectId=${encodeURIComponent(projectId)}`}
-              className="text-sm font-medium text-[var(--pf-text-brand)] underline-offset-2 hover:underline"
-            >
-              {t('export.downloadCsv')}
-            </Link>
-          ) : null}
-        </div>
-      </div>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection
+        title={t('panel.title')}
+        description={t('panel.description')}
+        actions={
+          <>
+            {boq && permissions.canSubmitProgress ? (
+              <Button asChild size="sm">
+                <Link href={`/projects/${projectId}/boq-measure`}>{t('measure.link')}</Link>
+              </Button>
+            ) : null}
+            {boq && permissions.canManage ? (
+              <Link
+                href={`/exports/boq?projectId=${encodeURIComponent(projectId)}`}
+                className="text-sm font-medium text-[var(--pf-text-brand)] underline-offset-2 hover:underline"
+              >
+                {t('export.downloadCsv')}
+              </Link>
+            ) : null}
+          </>
+        }
+        className="w-full min-w-0"
+      >
+        {null}
+      </MainAppSection>
 
       {workspace.contracts.length > 1 ? (
-        <nav className="flex min-w-0 flex-wrap gap-2" aria-label={t('forms.contract')}>
-          {workspace.contracts.map((contract) => {
-            const href = `/projects/${projectId}?tab=boq&contractId=${contract.id}`;
-            const selected = workspace.selectedContractId === contract.id;
-            return (
-              <Link
-                key={contract.id}
-                href={href}
-                className={
-                  selected
-                    ? 'rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm font-medium'
-                    : 'rounded-md border border-transparent px-3 py-2 text-sm text-[var(--pf-text-secondary)]'
-                }
-              >
-                {contract.name ??
-                  contract.contractNumber ??
-                  (contract.isPrimary ? t('forms.contractPrimary') : contract.id.slice(0, 8))}
-              </Link>
-            );
-          })}
-        </nav>
+        <MainAppSection title={t('forms.contract')} className="w-full min-w-0">
+          <nav className="flex min-w-0 flex-wrap gap-2" aria-label={t('forms.contract')}>
+            {workspace.contracts.map((contract) => {
+              const href = `/projects/${projectId}?tab=boq&contractId=${contract.id}`;
+              const selected = workspace.selectedContractId === contract.id;
+              return (
+                <Link
+                  key={contract.id}
+                  href={href}
+                  className={
+                    selected
+                      ? 'rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm font-medium'
+                      : 'rounded-md border border-transparent px-3 py-2 text-sm text-[var(--pf-text-secondary)]'
+                  }
+                >
+                  {contract.name ??
+                    contract.contractNumber ??
+                    (contract.isPrimary ? t('forms.contractPrimary') : contract.id.slice(0, 8))}
+                </Link>
+              );
+            })}
+          </nav>
+        </MainAppSection>
       ) : null}
 
       {!boq ? (
-        <EmptyState
-          icon={ClipboardList}
-          title={t('panel.emptyTitle')}
-          description={t('panel.emptyBody')}
-        />
+        <MainAppSection className="w-full min-w-0">
+          <EmptyState
+            icon={ClipboardList}
+            title={t('panel.emptyTitle')}
+            description={t('panel.emptyBody')}
+          />
+        </MainAppSection>
       ) : null}
 
       {boq ? (
-        <section className="grid min-w-0 gap-3 rounded-md border border-[var(--pf-border-default)] p-3 sm:grid-cols-3">
-          <div className="min-w-0 text-start">
-            <p className="text-xs text-[var(--pf-text-muted)]">{t('kpis.performed')}</p>
-            <p className="text-lg font-semibold" dir="ltr">
-              {formatDecimalDisplay(performedQty.toString(), locale)}
-            </p>
-          </div>
-          <div className="min-w-0 text-start">
-            <p className="text-xs text-[var(--pf-text-muted)]">{t('kpis.billed')}</p>
-            <p className="text-lg font-semibold" dir="ltr">
-              {formatDecimalDisplay(billedQty.toString(), locale)}
-            </p>
-          </div>
-          <div className="min-w-0 text-start">
-            <p className="text-xs text-[var(--pf-text-muted)]">{t('kpis.remaining')}</p>
-            <p className="text-lg font-semibold" dir="ltr">
-              {formatDecimalDisplay(remainingQty.toString(), locale)}
-            </p>
-          </div>
-        </section>
+        <MainAppSection title={t('kpis.title')} className="w-full min-w-0">
+          <MainAppSummaryGrid>
+            <MainAppSummaryItem label={t('kpis.performed')}>
+              <span className="text-lg font-semibold" dir="ltr">
+                {formatDecimalDisplay(performedQty.toString(), locale)}
+              </span>
+            </MainAppSummaryItem>
+            <MainAppSummaryItem label={t('kpis.billed')}>
+              <span className="text-lg font-semibold" dir="ltr">
+                {formatDecimalDisplay(billedQty.toString(), locale)}
+              </span>
+            </MainAppSummaryItem>
+            <MainAppSummaryItem label={t('kpis.remaining')}>
+              <span className="text-lg font-semibold" dir="ltr">
+                {formatDecimalDisplay(remainingQty.toString(), locale)}
+              </span>
+            </MainAppSummaryItem>
+          </MainAppSummaryGrid>
+        </MainAppSection>
       ) : null}
 
       {permissions.canManage && importKinds.length > 0 ? (
-        <section className="flex min-w-0 flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3">
-          <h3 className="text-sm font-semibold">{t('import.title')}</h3>
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('import.hint')}</p>
+        <MainAppSection
+          title={t('import.title')}
+          description={t('import.hint')}
+          className="w-full min-w-0"
+        >
           {boq && boq.status !== 'draft' ? (
             <p className="text-xs text-[var(--pf-text-muted)]">{t('import.draftOnlyHint')}</p>
           ) : null}
@@ -328,7 +341,7 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
               boqId={boq?.status === 'draft' ? boq.id : undefined}
             />
           </WithAppClientMessages>
-        </section>
+        </MainAppSection>
       ) : null}
 
       <BoqPanelClient
@@ -380,10 +393,15 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
         selectedContractId={workspace.selectedContractId}
       />
 
-      {comparison ? <BoqFinancialComparisonStrip comparison={comparison} /> : null}
+      {comparison ? (
+        <MainAppSection className="w-full min-w-0">
+          <BoqFinancialComparisonStrip comparison={comparison} />
+        </MainAppSection>
+      ) : null}
 
       {boq && itemNodes.length > 0 ? (
-        <BoqItemMappingHost
+        <MainAppSection className="w-full min-w-0">
+          <BoqItemMappingHost
           projectId={projectId}
           canManage={permissions.canManage}
           items={itemNodes.map((node) => ({
@@ -408,10 +426,12 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
             label: line.label,
           }))}
         />
+        </MainAppSection>
       ) : null}
 
       {boq && (permissions.canManage || subSchedules.length > 0) ? (
-        <SubcontractorSchedulePanel
+        <MainAppSection className="w-full min-w-0">
+          <SubcontractorSchedulePanel
           projectId={projectId}
           boqId={boq.id}
           canManage={permissions.canManage}
@@ -460,6 +480,7 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
             })),
           }))}
         />
+        </MainAppSection>
       ) : null}
     </div>
   );

@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -26,19 +27,23 @@ export default async function WarrantyPage() {
 
   if (!canRead) {
     return (
-      <div className="flex min-w-0 max-w-full flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={t('title')} />
+      <MainAppSection>
         <EmptyState title={t('notAllowed.title')} description={t('notAllowed.body')} />
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     );
   }
 
   const coverages = await withOrgContext((context) => listOrgWarrantyCoverages(context));
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('title')} />
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
+      <MainAppSection>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
 
       {coverages.length === 0 ? (
         <EmptyState title={t('list.empty')} />
@@ -83,6 +88,8 @@ export default async function WarrantyPage() {
           ))}
         </ul>
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

@@ -1,3 +1,9 @@
+﻿import {
+  AdaptiveListBody,
+  AdaptiveListTableShell,
+  MainAppPage,
+  MainAppSection,
+} from '@/components/patterns/main-app';
 import { FileSpreadsheet, Plus } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -77,19 +83,20 @@ export async function QuotesOrgListView({
 
   if (!canRead) {
     return (
-      <div className="flex flex-col gap-4">
-        {isOwner ? <PageHeader title={t('title')} description={t('description')} /> : null}
-        <EmptyState icon={FileSpreadsheet} title={t('empty.title')} description={t('empty.body')} />
-      </div>
+      <MainAppPage>
+        {isOwner ? <PageHeader title={t('title')} /> : null}
+        <MainAppSection>
+          <EmptyState icon={FileSpreadsheet} title={t('empty.title')} description={t('empty.body')} />
+        </MainAppSection>
+      </MainAppPage>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       {isOwner ? (
         <PageHeader
           title={t('title')}
-          description={t('description')}
           actions={
             canManage ? (
               <div className="flex flex-wrap items-center gap-2">
@@ -108,6 +115,8 @@ export async function QuotesOrgListView({
         />
       ) : null}
 
+      <MainAppSection>
+        <AdaptiveListBody surface={surface}>
       {items.length === 0 ? (
         <EmptyState
           icon={FileSpreadsheet}
@@ -126,7 +135,7 @@ export async function QuotesOrgListView({
           items={items}
           getRowKey={(item) => item.id}
           desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            <AdaptiveListTableShell surface={surface}>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -172,7 +181,7 @@ export async function QuotesOrgListView({
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </AdaptiveListTableShell>
           }
           renderMobileCard={(item) => (
             <Link href={`${routeBase}/${item.id}`} className={pressableCardLinkClassName}>
@@ -190,6 +199,8 @@ export async function QuotesOrgListView({
           )}
         />
       )}
-    </div>
+        </AdaptiveListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

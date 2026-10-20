@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppListBody, MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
@@ -84,7 +85,7 @@ export default async function TimeEntriesPage({
     : 0;
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('time.title')}
         description={selfScoped ? t('time.selfDescription') : t('time.description')}
@@ -101,9 +102,10 @@ export default async function TimeEntriesPage({
           </div>
         }
       />
+      <MainAppSection>
+        <WorkforceSubNav active="time" />
 
-      <WorkforceSubNav active="time" />
-
+      <MainAppListBody>
       <div className="flex flex-col gap-4">
         <TimeEntryListFilters
           employees={employees.map((employee) => ({ id: employee.id, name: employee.name }))}
@@ -138,6 +140,8 @@ export default async function TimeEntriesPage({
           todayDate={todayDate}
         />
       </div>
-    </div>
+      </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

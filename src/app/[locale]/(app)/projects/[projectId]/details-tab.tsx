@@ -3,6 +3,11 @@
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  MainAppFormGrid,
+  MainAppSection,
+  mainAppFieldSpan,
+} from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -140,7 +145,7 @@ export function DetailsTab({
 
   return (
     <>
-      <div className="mb-6">
+      <MainAppSection className="mb-4">
         <ProjectCoverImageControl
           projectId={project.id}
           projectName={project.name}
@@ -149,19 +154,21 @@ export function DetailsTab({
           schemaReady={coverSchemaReady}
           storageConfigured={coverStorageConfigured}
         />
-      </div>
+      </MainAppSection>
+      <MainAppSection title={tCreate('sections.details')}>
       <form
         action={formAction}
-        className="mx-auto flex max-w-xl flex-col gap-4"
+        className="flex w-full min-w-0 flex-col gap-4"
       >
         <input type="hidden" name="projectId" value={project.id} />
         {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
-        <Field label={tCommon('labels.name')} required error={state.fieldErrors?.name}>
+        <MainAppFormGrid dense>
+        <Field label={tCommon('labels.name')} required error={state.fieldErrors?.name} className={mainAppFieldSpan.lg}>
           {(control) => <Input {...control} name="name" defaultValue={project.name} required />}
         </Field>
 
-        <Field label={t('experienceProfileLabel')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('experienceProfileLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Select
               name="experienceProfile"
@@ -183,7 +190,7 @@ export function DetailsTab({
           )}
         </Field>
 
-        <Field label={t('statusLabel')}>
+        <Field label={t('statusLabel')} className={mainAppFieldSpan.md}>
           {(control) =>
             isClassicProject && project.status === 'completed' ? (
               <>
@@ -217,7 +224,7 @@ export function DetailsTab({
           }
         </Field>
         {isClassicProject ? (
-          <p className="text-sm text-[var(--pf-text-secondary)]">
+          <p className={`${mainAppFieldSpan.full} text-sm text-[var(--pf-text-secondary)]`}>
             {project.status === 'completed' ? t('closeoutClosedHint') : t('closeoutUseTab')}{' '}
             <Link href={`/projects/${project.id}?tab=closeout`} className={cn(textNavLinkClassName, 'text-sm')}>
               {t('closeoutTabLink')}
@@ -225,7 +232,7 @@ export function DetailsTab({
           </p>
         ) : null}
 
-        <Field label={t('clientLabel')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('clientLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Select
               name="clientId"
@@ -252,7 +259,7 @@ export function DetailsTab({
         </Field>
 
         {selectedClientId !== 'none' ? (
-          <div className="flex flex-col gap-4 rounded-md border border-[var(--pf-border-default)] p-3">
+          <div className={`${mainAppFieldSpan.full} flex flex-col gap-4 rounded-md border border-[var(--pf-border-default)] p-3`}>
             <p className="text-sm font-medium">{t('contactPersonLabel')}</p>
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('contactPersonHint')}</p>
             <input type="hidden" name="contactMode" value={contactMode} />
@@ -346,7 +353,7 @@ export function DetailsTab({
         )}
 
         {canManageContract ? (
-          <div id="project-contracts" ref={contractAnchorRef} className="scroll-mt-24">
+          <div id="project-contracts" ref={contractAnchorRef} className={`${mainAppFieldSpan.full} scroll-mt-24`}>
           <ContractAmountFields
             baseCurrency={currency}
             currencySymbol={currencySymbol}
@@ -367,19 +374,19 @@ export function DetailsTab({
           </div>
         ) : null}
 
-        <Field label={t('domainLabel')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('domainLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Input {...control} name="domainName" defaultValue={detail.domainName ?? ''} />
           )}
         </Field>
 
-        <Field label={t('locationLabel')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('locationLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Input {...control} name="location" defaultValue={project.location ?? ''} />
           )}
         </Field>
 
-        <Field label={t('startDate')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('startDate')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               {...control}
@@ -390,7 +397,7 @@ export function DetailsTab({
           )}
         </Field>
 
-        <Field label={t('targetEndDate')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('targetEndDate')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               {...control}
@@ -401,7 +408,7 @@ export function DetailsTab({
           )}
         </Field>
 
-        <Field label={t('actualEndDate')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('actualEndDate')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               {...control}
@@ -412,11 +419,13 @@ export function DetailsTab({
           )}
         </Field>
 
+        <div className={mainAppFieldSpan.full}>
         <ProjectProgressModeControl
           projectId={project.id}
           progressSource={progressSource}
           onSourceChange={setProgressSource}
         />
+        </div>
 
         {tasksProgress ? (
           <input type="hidden" name="progressPercent" value={project.progressPercent ?? ''} />
@@ -425,6 +434,7 @@ export function DetailsTab({
         <Field
           label={tasksProgress ? t('progressStoredManual') : t('progressPercent')}
           optionalLabel={tCommon('labels.optional')}
+          className={mainAppFieldSpan.sm}
         >
           {(control) => (
             <Input
@@ -440,7 +450,7 @@ export function DetailsTab({
           )}
         </Field>
 
-        <Field label={t('progressStatus')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('progressStatus')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Select name="progressStatus" defaultValue={project.progressStatus ?? 'none'}>
               <SelectTrigger id={control.id}>
@@ -460,19 +470,19 @@ export function DetailsTab({
           )}
         </Field>
 
-        <Field label={t('roleLabel')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('roleLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Input {...control} name="projectRole" defaultValue={project.projectRole ?? ''} />
           )}
         </Field>
 
-        <Field label={t('deliveryModeLabel')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('deliveryModeLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Input {...control} name="deliveryMode" defaultValue={project.deliveryMode ?? ''} />
           )}
         </Field>
 
-        <Field label={t('descriptionLabel')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('descriptionLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
           {(control) => (
             <Textarea
               {...control}
@@ -483,18 +493,20 @@ export function DetailsTab({
           )}
         </Field>
 
-        <Field label={t('notesLabel')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('notesLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
           {(control) => (
             <Textarea {...control} name="notes" rows={2} defaultValue={project.notes ?? ''} />
           )}
         </Field>
+        </MainAppFormGrid>
 
         <Button type="submit" loading={pending}>
           {t('save')}
         </Button>
       </form>
+      </MainAppSection>
 
-      <div className="mx-auto mt-6 max-w-xl">
+      <div className="mt-4 w-full min-w-0">
         <EntityCustomFieldsPanel
           entityId={project.id}
           fields={customFields}

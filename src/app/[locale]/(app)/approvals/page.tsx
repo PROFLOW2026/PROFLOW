@@ -1,4 +1,5 @@
 import { BadgeCheck } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 // eslint-disable-next-line no-restricted-imports
 import { inArray } from 'drizzle-orm';
 import type { Metadata } from 'next';
@@ -63,15 +64,18 @@ export default async function ApprovalsPage() {
 
   if (!data.allowed) {
     return (
-      <div className="flex flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={t('title')} description={t('description')} />
+      <MainAppSection>
         <EmptyState title={t('pendingEmpty.title')} description={t('pendingEmpty.body')} />
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         description={t('description')}
@@ -83,8 +87,8 @@ export default async function ApprovalsPage() {
           ) : null
         }
       />
-
-      <section className="flex flex-col gap-3" aria-label={t('pendingTitle')}>
+      <MainAppSection>
+        <section className="flex flex-col gap-3" aria-label={t('pendingTitle')}>
         <h2 className="text-base font-semibold">{t('pendingTitle')}</h2>
         {data.items.length === 0 ? (
           <EmptyState
@@ -100,6 +104,8 @@ export default async function ApprovalsPage() {
           />
         )}
       </section>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

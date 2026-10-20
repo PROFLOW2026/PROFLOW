@@ -283,6 +283,49 @@ export async function listVendors(
           and vcl.organization_id = ${organizationId}
           and vcl.link_kind = 'vendor_category'
       )`,
+      primaryContactName: sql<string | null>`(
+        select vc.name from vendor_contacts vc
+        where vc.vendor_id = vendors.id
+          and vc.organization_id = ${organizationId}
+        order by
+          case vc.role
+            when 'primary' then 0
+            when 'billing' then 1
+            when 'site' then 2
+            else 3
+          end,
+          vc.name
+        limit 1
+      )`,
+      contactPhone: sql<string | null>`(
+        select vc.phone from vendor_contacts vc
+        where vc.vendor_id = vendors.id
+          and vc.organization_id = ${organizationId}
+          and vc.phone is not null
+          and trim(vc.phone) <> ''
+        order by
+          case vc.role
+            when 'primary' then 0
+            when 'billing' then 1
+            when 'site' then 2
+            else 3
+          end,
+          vc.name
+        limit 1
+      )`,
+      registrationId: sql<string | null>`(
+        select pi.value from party_identifiers pi
+        where pi.vendor_id = vendors.id
+          and pi.organization_id = ${organizationId}
+        order by
+          case pi.type
+            when 'tax_id' then 0
+            when 'company_number' then 1
+            when 'vat_number' then 2
+            else 3
+          end
+        limit 1
+      )`,
     })
     .from(vendors)
     .where(and(...conditions))
@@ -297,14 +340,22 @@ export async function listVendors(
     )
     .offset(resolveListOffset(filters.offset));
 
-  return rows.map((row) => ({
-    ...mapVendor(row.vendor),
-    engagementCount: row.engagementCount,
-    projectCount: row.projectCount,
-    categoryNames: row.categoryNames
-      ? row.categoryNames.split('|').filter((name) => name.length > 0)
-      : [],
-  }));
+  return rows.map((row) => {
+    const vendor = mapVendor(row.vendor);
+    const contactPhone = row.contactPhone?.trim() || null;
+    const vendorPhone = vendor.phone?.trim() || null;
+    return {
+      ...vendor,
+      engagementCount: row.engagementCount,
+      projectCount: row.projectCount,
+      categoryNames: row.categoryNames
+        ? row.categoryNames.split('|').filter((name) => name.length > 0)
+        : [],
+      primaryContactName: row.primaryContactName?.trim() || null,
+      listPhone: vendorPhone ?? contactPhone,
+      registrationId: row.registrationId?.trim() || null,
+    };
+  });
 }
 
 export async function getVendorDetail(

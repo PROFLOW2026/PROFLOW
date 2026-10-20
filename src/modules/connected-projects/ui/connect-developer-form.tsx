@@ -6,6 +6,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Field } from '@/components/ui/field';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Input } from '@/components/ui/input';
 import type { DeveloperEngagementPreview } from '../domain/types';
 
@@ -45,7 +46,7 @@ export function ConnectDeveloperForm(props: {
   const projectId = acceptState.contractorProjectId;
 
   return (
-    <div className="flex max-w-lg flex-col gap-4">
+    <div className="flex w-full min-w-0 max-w-2xl flex-col gap-4">
       <div>
         <h2 className="text-lg font-semibold">{t('title')}</h2>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle', { orgName: props.organizationName })}</p>
@@ -65,8 +66,8 @@ export function ConnectDeveloperForm(props: {
         </Alert>
       ) : null}
 
-      <form action={previewAction} className="flex flex-col gap-3">
-        <Field label={t('codeLabel')}>
+      <form action={previewAction} className="flex w-full max-w-md flex-col gap-3">
+        <Field label={t('codeLabel')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Input
               {...control}
@@ -115,11 +116,13 @@ export function ConnectDeveloperForm(props: {
             )}
           </dl>
 
-          <form action={acceptAction} className="flex flex-col gap-3">
+          <form action={acceptAction} className="flex w-full flex-col gap-3">
             <input type="hidden" name="code" value={codeValue} />
-            <Field label={t('projectNameLabel')}>
-              {(control) => <Input {...control} name="projectName" />}
-            </Field>
+            <MainAppFormGrid dense>
+              <Field label={t('projectNameLabel')} className={mainAppFieldSpan.full}>
+                {(control) => <Input {...control} name="projectName" />}
+              </Field>
+            </MainAppFormGrid>
             <label className="flex items-start gap-2 text-sm">
               <Checkbox checked={confirmOrg} onCheckedChange={(v) => setConfirmOrg(v === true)} />
               <span>{t('confirmOrg', { orgName: props.organizationName })}</span>

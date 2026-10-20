@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, FolderKanban, Plus, Receipt } from 'lucide-react';
+﻿import { ChevronLeft, ChevronRight, FolderKanban, Plus, Receipt } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';

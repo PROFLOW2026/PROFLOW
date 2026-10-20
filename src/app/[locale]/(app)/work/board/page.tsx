@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { MainAppSection } from '@/components/patterns/main-app';
 import { PageHeader } from '@/components/ui/page-header';
 import { listClientsForOrg } from '@/modules/clients';
 import { withOrgContext, getShellContext } from '@/shared/auth/session';
@@ -67,25 +68,24 @@ export default async function GlobalBoardPage({ searchParams }: WorkLensPageProp
   });
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
-      <PageHeader
-        title={t('board.globalPageTitle')}
-        description={t('board.globalPageDescription')}
-      />
-
-      <WorkLensChrome searchParams={params} clients={clients} taskCount={board.taskCount} />
-
-      <GlobalBoardView
-        tasks={board.tasks}
-        hasMore={board.hasMore}
-        nextOffset={board.nextOffset}
-        workLensFilterQuery={filterQuery}
-        loadMoreExcludeCancelled
-        onLoadTaskDetail={getTaskDetailAction}
-        onUpdateTask={updateTaskFieldsAction}
-        canAssign={shell.permissions.has(PERMISSIONS.TASKS_ASSIGN)}
-        canArchive={shell.permissions.has(PERMISSIONS.TASKS_DELETE)}
-      />
-    </div>
+    <>
+      <PageHeader title={t('board.globalPageTitle')} />
+      <MainAppSection>
+        <WorkLensChrome searchParams={params} clients={clients} taskCount={board.taskCount} />
+        <div className="min-w-0 max-w-full overflow-x-auto">
+          <GlobalBoardView
+            tasks={board.tasks}
+            hasMore={board.hasMore}
+            nextOffset={board.nextOffset}
+            workLensFilterQuery={filterQuery}
+            loadMoreExcludeCancelled
+            onLoadTaskDetail={getTaskDetailAction}
+            onUpdateTask={updateTaskFieldsAction}
+            canAssign={shell.permissions.has(PERMISSIONS.TASKS_ASSIGN)}
+            canArchive={shell.permissions.has(PERMISSIONS.TASKS_DELETE)}
+          />
+        </div>
+      </MainAppSection>
+    </>
   );
 }

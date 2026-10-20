@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Attendance Allocation Coverage panel (Task 3).
  *
  * Server component — shows per-employee attendance hours vs approved project

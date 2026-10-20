@@ -1,4 +1,11 @@
-import type { Metadata } from 'next';
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -99,7 +106,7 @@ export default async function QuoteDetailPage({
     'flex w-full min-w-0 max-w-full sm:w-auto [&_a]:w-full [&_a]:min-w-0 [&_a]:max-w-full [&_a]:justify-center sm:[&_a]:w-auto [&_button]:w-full [&_button]:min-w-0 [&_button]:max-w-full sm:[&_button]:w-auto';
 
   return (
-    <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={quote.title}
         description={quote.clientName ?? t('detail.title')}
@@ -129,18 +136,41 @@ export default async function QuoteDetailPage({
           </div>
         }
       />
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('list.columns.client')}>
+            {quote.clientName?.trim() ? quote.clientName : '—'}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.status')}>{tStatus(quote.status)}</MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.total')}>
+            {quote.totalAmount ? (
+              <MoneyText value={money(quote.totalAmount, quote.currency)} />
+            ) : (
+              '—'
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.validUntil')}>
+            {quote.validityDate ? (
+              <span className="pf-ltr-island" dir="ltr">
+                {quote.validityDate}
+              </span>
+            ) : (
+              '—'
+            )}
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
+        {quote.status === 'sent' ? (
+          <p className="mt-3 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm text-[var(--pf-text-secondary)]">
+            {t('detail.sentIsNotEmail')}
+          </p>
+        ) : null}
+        {quote.description ? (
+          <p className="mt-3 min-w-0 break-words whitespace-pre-wrap text-sm">{quote.description}</p>
+        ) : null}
+      </MainAppSection>
 
-      {quote.status === 'sent' ? (
-        <p className="rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm text-[var(--pf-text-secondary)]">
-          {t('detail.sentIsNotEmail')}
-        </p>
-      ) : null}
-
-      {quote.description ? (
-        <p className="min-w-0 break-words whitespace-pre-wrap text-sm">{quote.description}</p>
-      ) : null}
-
-      <section className="flex w-full min-w-0 flex-col gap-2">
+      <MainAppSection>
+        <div className="flex w-full min-w-0 flex-col gap-2">
         <ul className="flex w-full min-w-0 flex-col gap-2 md:hidden">
           {quote.lines.map((line) => (
             <li
@@ -189,7 +219,7 @@ export default async function QuoteDetailPage({
             </li>
           ))}
         </ul>
-        <div className="hidden w-full min-w-0 rounded-lg border border-[var(--pf-border-default)] md:block">
+        <MainAppTableShell className="hidden w-full min-w-0 md:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -232,38 +262,32 @@ export default async function QuoteDetailPage({
               ))}
             </TableBody>
           </Table>
+        </MainAppTableShell>
         </div>
-      </section>
+      </MainAppSection>
 
-      <dl className="grid min-w-0 gap-2 text-sm sm:grid-cols-2">
-        <div className="flex justify-between gap-2 sm:block">
-          <dt className="text-[var(--pf-text-secondary)]">{t('detail.subtotal')}</dt>
-          <dd>
-            {quote.subtotalAmount ? (
-              <MoneyText value={money(quote.subtotalAmount, quote.currency)} />
-            ) : (
-              '-'
-            )}
-          </dd>
-        </div>
-        <div className="flex justify-between gap-2 sm:block">
-          <dt className="text-[var(--pf-text-secondary)]">
-            {t('detail.tax')} ({tTax(quote.taxMode)})
-          </dt>
-          <dd>
-            {quote.taxAmount ? <MoneyText value={money(quote.taxAmount, quote.currency)} /> : '-'}
-          </dd>
-        </div>
-        <div className="flex justify-between gap-2 font-semibold sm:block">
-          <dt>{t('detail.total')}</dt>
-          <dd>
-            {quote.totalAmount ? (
-              <MoneyText value={money(quote.totalAmount, quote.currency)} />
-            ) : (
-              '-'
-            )}
-          </dd>
-        </div>
+      <MainAppSection title={t('detail.total')}>
+      <MainAppSummaryGrid>
+        <MainAppSummaryItem label={t('detail.subtotal')}>
+          {quote.subtotalAmount ? (
+            <MoneyText value={money(quote.subtotalAmount, quote.currency)} />
+          ) : (
+            '—'
+          )}
+        </MainAppSummaryItem>
+        <MainAppSummaryItem label={`${t('detail.tax')} (${tTax(quote.taxMode)})`}>
+          {quote.taxAmount ? <MoneyText value={money(quote.taxAmount, quote.currency)} /> : '—'}
+        </MainAppSummaryItem>
+        <MainAppSummaryItem label={t('detail.total')}>
+          {quote.totalAmount ? (
+            <MoneyText value={money(quote.totalAmount, quote.currency)} />
+          ) : (
+            '—'
+          )}
+        </MainAppSummaryItem>
+      </MainAppSummaryGrid>
+
+      <dl className="mt-3 grid min-w-0 gap-2 text-sm sm:grid-cols-2">
         {quote.estimatedCostAmount ? (
           <>
             <div className="flex justify-between gap-2 sm:block">
@@ -317,36 +341,30 @@ export default async function QuoteDetailPage({
             ) : null}
           </>
         ) : null}
-        {quote.validityDate ? (
-          <div className="flex justify-between gap-2 sm:block">
-            <dt className="text-[var(--pf-text-secondary)]">{t('list.columns.validUntil')}</dt>
-            <dd>
-              <span className="pf-ltr-island" dir="ltr">
-                {quote.validityDate}
-              </span>
-            </dd>
-          </div>
-        ) : null}
       </dl>
+      </MainAppSection>
 
       {quote.notes ? (
-        <p className="min-w-0 break-words whitespace-pre-wrap text-sm text-[var(--pf-text-secondary)]">
-          {quote.notes}
-        </p>
+        <MainAppSection title={t('create.notesLabel')}>
+          <p className="min-w-0 break-words whitespace-pre-wrap text-sm text-[var(--pf-text-secondary)]">
+            {quote.notes}
+          </p>
+        </MainAppSection>
       ) : null}
 
       {workHref ? (
-        <p className="text-sm">
-          {t('detail.convertedTo')}:{' '}
-          <Link href={workHref} className={textNavLinkClassName}>
-            {t('detail.openWork')}
-          </Link>
-        </p>
+        <MainAppSection>
+          <p className="text-sm">
+            {t('detail.convertedTo')}:{' '}
+            <Link href={workHref} className={textNavLinkClassName}>
+              {t('detail.openWork')}
+            </Link>
+          </p>
+        </MainAppSection>
       ) : null}
 
       {canManage && isQuoteEditable(quote.status) ? (
-        <section className="print:hidden">
-          <h2 className="mb-3 text-base font-semibold">{t('detail.editDraft')}</h2>
+        <MainAppSection title={t('detail.editDraft')} className="print:hidden">
           <QuoteEditorForm
             mode="edit"
             quoteId={quote.id}
@@ -375,7 +393,7 @@ export default async function QuoteDetailPage({
             }))}
             clients={clients.map((c) => ({ id: c.id, name: c.name }))}
           />
-        </section>
+        </MainAppSection>
       ) : null}
 
       <Suspense fallback={null}>
@@ -386,12 +404,14 @@ export default async function QuoteDetailPage({
         />
       </Suspense>
 
-      <QuoteDetailActions
-        quoteId={quote.id}
-        status={quote.status}
-        title={quote.title}
-        canManage={canManage}
-      />
-    </div>
+      <MainAppSection>
+        <QuoteDetailActions
+          quoteId={quote.id}
+          status={quote.status}
+          title={quote.title}
+          canManage={canManage}
+        />
+      </MainAppSection>
+    </MainAppPage>
   );
 }

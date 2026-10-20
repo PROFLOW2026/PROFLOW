@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -34,30 +35,32 @@ export function AssetAssignmentForm({
   );
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-3">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <input type="hidden" name="assetId" value={assetId} />
       <input type="hidden" name="assignedProjectId" value={projectId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{tCommon('states.saved')}</Alert> : null}
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('assignmentHint')}</p>
-      <Field label={t('assignedProject')}>
-        {(control) => (
-          <Select value={projectId} onValueChange={setProjectId}>
-            <SelectTrigger id={control.id}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none__">{t('unassigned')}</SelectItem>
-              {projects.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </Field>
-      <Button type="submit" loading={pending} size="sm">
+      <MainAppFormGrid dense>
+        <Field label={t('assignedProject')} className={mainAppFieldSpan.lg}>
+          {(control) => (
+            <Select value={projectId} onValueChange={setProjectId}>
+              <SelectTrigger id={control.id}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">{t('unassigned')}</SelectItem>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+      </MainAppFormGrid>
+      <Button type="submit" loading={pending} size="sm" className="self-start">
         {pending ? tCommon('states.saving') : t('saveAssignment')}
       </Button>
     </form>
@@ -81,29 +84,43 @@ export function AssetStatusForm({
   );
 
   return (
-    <form action={formAction} className="flex flex-wrap items-center gap-2">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-3">
       <input type="hidden" name="assetId" value={assetId} />
       <input type="hidden" name="status" value={status} />
       {state.error ? (
-        <span role="alert" className="w-full text-sm text-[var(--pf-status-danger-fg)]">
+        <span role="alert" className="text-sm text-[var(--pf-status-danger-fg)]">
           {state.error}
         </span>
       ) : null}
-      <Select value={status} onValueChange={(v) => setStatus(v as AssetStatus)}>
-        <SelectTrigger className="min-h-11 w-full sm:w-[12rem] md:h-9 md:min-h-9" aria-label={t('statusLabel')}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {ASSET_STATUSES.map((value) => (
-            <SelectItem key={value} value={value}>
-              {tStatus(value)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Button type="submit" size="sm" variant="secondary" disabled={pending || status === currentStatus} className="min-h-11 md:min-h-8">
-        {pending ? tCommon('states.saving') : t('saveStatus')}
-      </Button>
+      <MainAppFormGrid dense className="items-end">
+        <Field label={t('statusLabel')} className={mainAppFieldSpan.md}>
+          {(control) => (
+            <Select value={status} onValueChange={(v) => setStatus(v as AssetStatus)}>
+              <SelectTrigger id={control.id} aria-label={t('statusLabel')}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ASSET_STATUSES.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {tStatus(value)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+        <div className={mainAppFieldSpan.sm}>
+          <Button
+            type="submit"
+            size="sm"
+            variant="secondary"
+            disabled={pending || status === currentStatus}
+            className="w-full sm:w-auto"
+          >
+            {pending ? tCommon('states.saving') : t('saveStatus')}
+          </Button>
+        </div>
+      </MainAppFormGrid>
     </form>
   );
 }
@@ -134,72 +151,91 @@ export function AssetAcquisitionForm({
   );
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-3">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <input type="hidden" name="assetId" value={assetId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{tCommon('states.saved')}</Alert> : null}
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('acquisitionHint')}</p>
-      <Field label={tCreate('acquisitionAmountLabel')} error={state.fieldErrors?.acquisitionAmount}>
-        {(control) => (
-          <Input
-            {...control}
-            name="acquisitionAmount"
-            defaultValue={acquisitionAmount ?? ''}
-            inputMode="decimal"
-            numeric
-            dir="ltr"
-          />
-        )}
-      </Field>
-      <Field
-        label={tCreate('acquisitionCurrencyLabel')}
-        error={state.fieldErrors?.acquisitionCurrency}
-      >
-        {(control) => (
-          <Input
-            {...control}
-            name="acquisitionCurrency"
-            defaultValue={acquisitionCurrency ?? defaultCurrency}
-            maxLength={3}
-            dir="ltr"
-            className="uppercase"
-          />
-        )}
-      </Field>
-      <Field label={tCreate('acquiredOnLabel')} error={state.fieldErrors?.acquiredOn}>
-        {(control) => (
-          <Input
-            {...control}
-            name="acquiredOn"
-            type="date"
-            defaultValue={acquiredOn ?? ''}
-            dir="ltr"
-          />
-        )}
-      </Field>
-      <Field label={tCreate('sourceExpenseIdLabel')} error={state.fieldErrors?.sourceExpenseId}>
-        {(control) => (
-          <Input
-            {...control}
-            name="sourceExpenseId"
-            defaultValue={sourceExpenseId ?? ''}
-            dir="ltr"
-            placeholder="UUID"
-          />
-        )}
-      </Field>
-      <Field label={tCreate('sourceApBillIdLabel')} error={state.fieldErrors?.sourceApBillId}>
-        {(control) => (
-          <Input
-            {...control}
-            name="sourceApBillId"
-            defaultValue={sourceApBillId ?? ''}
-            dir="ltr"
-            placeholder="UUID"
-          />
-        )}
-      </Field>
-      <Button type="submit" loading={pending} size="sm">
+      <MainAppFormGrid dense>
+        <Field
+          label={tCreate('acquisitionAmountLabel')}
+          error={state.fieldErrors?.acquisitionAmount}
+          className={mainAppFieldSpan.md}
+        >
+          {(control) => (
+            <Input
+              {...control}
+              name="acquisitionAmount"
+              defaultValue={acquisitionAmount ?? ''}
+              inputMode="decimal"
+              numeric
+              dir="ltr"
+            />
+          )}
+        </Field>
+        <Field
+          label={tCreate('acquisitionCurrencyLabel')}
+          error={state.fieldErrors?.acquisitionCurrency}
+          className={mainAppFieldSpan.sm}
+        >
+          {(control) => (
+            <Input
+              {...control}
+              name="acquisitionCurrency"
+              defaultValue={acquisitionCurrency ?? defaultCurrency}
+              maxLength={3}
+              dir="ltr"
+              className="uppercase"
+            />
+          )}
+        </Field>
+        <Field
+          label={tCreate('acquiredOnLabel')}
+          error={state.fieldErrors?.acquiredOn}
+          className={mainAppFieldSpan.md}
+        >
+          {(control) => (
+            <Input
+              {...control}
+              name="acquiredOn"
+              type="date"
+              defaultValue={acquiredOn ?? ''}
+              dir="ltr"
+            />
+          )}
+        </Field>
+        <Field
+          label={tCreate('sourceExpenseIdLabel')}
+          error={state.fieldErrors?.sourceExpenseId}
+          className={mainAppFieldSpan.lg}
+        >
+          {(control) => (
+            <Input
+              {...control}
+              name="sourceExpenseId"
+              defaultValue={sourceExpenseId ?? ''}
+              dir="ltr"
+              placeholder="UUID"
+            />
+          )}
+        </Field>
+        <Field
+          label={tCreate('sourceApBillIdLabel')}
+          error={state.fieldErrors?.sourceApBillId}
+          className={mainAppFieldSpan.lg}
+        >
+          {(control) => (
+            <Input
+              {...control}
+              name="sourceApBillId"
+              defaultValue={sourceApBillId ?? ''}
+              dir="ltr"
+              placeholder="UUID"
+            />
+          )}
+        </Field>
+      </MainAppFormGrid>
+      <Button type="submit" loading={pending} size="sm" className="self-start">
         {pending ? tCommon('states.saving') : t('saveAcquisition')}
       </Button>
     </form>

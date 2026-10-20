@@ -1,3 +1,9 @@
+import {
+  MainAppListBody,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
 import { Package, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
@@ -42,111 +48,113 @@ export default async function MaterialsCatalogPage() {
   }));
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('materialsTitle')}
-        description={t('materialsDescription')}
         actions={
           <Button asChild variant="secondary" className="max-w-full">
             <Link href="/procurement">{t('title')}</Link>
           </Button>
         }
       />
+      <MainAppSection>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('threeActionsHint')}</p>
 
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('threeActionsHint')}</p>
+        <ProcurementSectionNav active="materials" />
 
-      <ProcurementSectionNav active="materials" />
-
-      {materials.length === 0 ? (
-        <EmptyState
-          icon={Package}
-          title={t('empty.materials.title')}
-          description={t('empty.materials.body')}
-        />
-      ) : (
-        <ResponsiveTable
-          items={materials}
-          getRowKey={(item) => item.id}
-          desktop={
-            <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('list.columns.name')}</TableHead>
-                    <TableHead>{t('list.columns.sku')}</TableHead>
-                    <TableHead>{t('list.columns.manufacturer')}</TableHead>
-                    <TableHead>{t('list.columns.model')}</TableHead>
-                    <TableHead>{t('list.columns.unit')}</TableHead>
-                    <TableHead numeric>{t('list.columns.defaultPrice')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {materials.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="max-w-[14rem] truncate font-medium">
-                        <Link
-                          href={`/procurement/materials/${item.id}`}
-                          className={cn(textNavLinkClassName, 'rounded-sm')}
-                        >
-                          {item.name}
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        {item.sku ? (
-                          <span dir="ltr" className="pf-numeric">
-                            {item.sku}
-                          </span>
-                        ) : (
-                          '-'
-                        )}
-                      </TableCell>
-                      <TableCell className="max-w-[10rem] truncate">
-                        {item.manufacturer ?? '-'}
-                      </TableCell>
-                      <TableCell className="max-w-[8rem] truncate">{item.model ?? '-'}</TableCell>
-                      <TableCell>{item.unit}</TableCell>
-                      <TableCell numeric>
-                        {item.defaultUnitPrice && item.currency ? (
-                          <MoneyText value={money(item.defaultUnitPrice, item.currency)} />
-                        ) : (
-                          '-'
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          }
-          renderMobileCard={(item) => (
-            <Link
-              href={`/procurement/materials/${item.id}`}
-              className={cn(pressableCardLinkClassName, 'min-w-0')}
-            >
-              <p className="break-words font-semibold">{item.name}</p>
-              <p className="mt-1 break-words text-sm text-[var(--pf-text-secondary)]">
-                {[item.sku, item.manufacturer, item.model, item.unit].filter(Boolean).join(' · ') ||
-                  '-'}
-              </p>
-              {item.defaultUnitPrice && item.currency ? (
-                <p className="mt-2 text-sm">
-                  <MoneyText value={money(item.defaultUnitPrice, item.currency)} />
-                </p>
-              ) : null}
-            </Link>
+        <MainAppListBody>
+          {materials.length === 0 ? (
+            <EmptyState
+              icon={Package}
+              title={t('empty.materials.title')}
+              description={t('empty.materials.body')}
+            />
+          ) : (
+            <ResponsiveTable
+              items={materials}
+              getRowKey={(item) => item.id}
+              desktop={
+                <MainAppTableShell>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('list.columns.name')}</TableHead>
+                        <TableHead>{t('list.columns.sku')}</TableHead>
+                        <TableHead>{t('list.columns.manufacturer')}</TableHead>
+                        <TableHead>{t('list.columns.model')}</TableHead>
+                        <TableHead>{t('list.columns.unit')}</TableHead>
+                        <TableHead numeric>{t('list.columns.defaultPrice')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {materials.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="max-w-[14rem] truncate font-medium">
+                            <Link
+                              href={`/procurement/materials/${item.id}`}
+                              className={cn(textNavLinkClassName, 'rounded-sm')}
+                            >
+                              {item.name}
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            {item.sku ? (
+                              <span dir="ltr" className="pf-numeric">
+                                {item.sku}
+                              </span>
+                            ) : (
+                              '-'
+                            )}
+                          </TableCell>
+                          <TableCell className="max-w-[10rem] truncate">
+                            {item.manufacturer ?? '-'}
+                          </TableCell>
+                          <TableCell className="max-w-[8rem] truncate">{item.model ?? '-'}</TableCell>
+                          <TableCell>{item.unit}</TableCell>
+                          <TableCell numeric>
+                            {item.defaultUnitPrice && item.currency ? (
+                              <MoneyText value={money(item.defaultUnitPrice, item.currency)} />
+                            ) : (
+                              '-'
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </MainAppTableShell>
+              }
+              renderMobileCard={(item) => (
+                <Link
+                  href={`/procurement/materials/${item.id}`}
+                  className={cn(pressableCardLinkClassName, 'min-w-0')}
+                >
+                  <p className="break-words font-semibold">{item.name}</p>
+                  <p className="mt-1 break-words text-sm text-[var(--pf-text-secondary)]">
+                    {[item.sku, item.manufacturer, item.model, item.unit].filter(Boolean).join(' · ') ||
+                      '-'}
+                  </p>
+                  {item.defaultUnitPrice && item.currency ? (
+                    <p className="mt-2 text-sm">
+                      <MoneyText value={money(item.defaultUnitPrice, item.currency)} />
+                    </p>
+                  ) : null}
+                </Link>
+              )}
+            />
           )}
-        />
-      )}
 
-      {canManage ? (
-        <div className="flex min-w-0 flex-col gap-2">
-          <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-[var(--pf-text-secondary)]">
-            <Plus aria-hidden className="size-4 shrink-0" />
-            {t('newMaterial')}
-          </p>
-          <MaterialCreateForm defaultCurrency={defaultCurrency} />
-        </div>
-      ) : null}
-    </div>
+          {canManage ? (
+            <div className="flex min-w-0 flex-col gap-2">
+              <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-[var(--pf-text-secondary)]">
+                <Plus aria-hidden className="size-4 shrink-0" />
+                {t('newMaterial')}
+              </p>
+              <MaterialCreateForm defaultCurrency={defaultCurrency} />
+            </div>
+          ) : null}
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

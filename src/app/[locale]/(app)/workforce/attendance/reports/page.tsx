@@ -1,7 +1,11 @@
+import {
+  MainAppPage,
+  MainAppReportWorkspace,
+  MainAppSection,
+} from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { canManageAttendanceRecords } from '@/modules/workforce';
 import { WorkforceSubNav } from '@/modules/workforce/ui/workforce-sub-nav';
@@ -33,26 +37,27 @@ export default async function AttendanceReportsPage() {
   if (!defaultMonth) notFound();
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('title')} description={t('description')} />
+      <MainAppReportWorkspace
+        catalog={null}
+        panel={
+          <>
+            <WorkforceSubNav active="attendance" />
 
-      <WorkforceSubNav active="attendance" />
+            <Link
+              href="/workforce/attendance"
+              className="w-fit text-sm font-medium text-[var(--pf-text-secondary)] underline-offset-2 hover:underline"
+            >
+              {t('backToAttendance')}
+            </Link>
 
-      <Link
-        href="/workforce/attendance"
-        className="w-fit text-sm font-medium text-[var(--pf-text-secondary)] underline-offset-2 hover:underline"
-      >
-        {t('backToAttendance')}
-      </Link>
-
-      <Card className="max-w-xl">
-        <CardHeader>
-          <CardTitle>{t('monthlyReportTitle')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AttendanceReportMonthForm defaultMonth={defaultMonth} />
-        </CardContent>
-      </Card>
-    </div>
+            <MainAppSection title={t('monthlyReportTitle')} className="max-w-3xl">
+              <AttendanceReportMonthForm defaultMonth={defaultMonth} />
+            </MainAppSection>
+          </>
+        }
+      />
+    </MainAppPage>
   );
 }

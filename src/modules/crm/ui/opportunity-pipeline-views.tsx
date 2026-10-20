@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { MoneyText } from '@/components/patterns/money-text';
 import { money } from '@/shared/money';
@@ -7,6 +7,7 @@ import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { useActionState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Columns3, Table2 } from 'lucide-react';
+import { MainAppTableShell } from '@/components/patterns/main-app';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -203,7 +204,7 @@ function OpportunityTable({
       items={items}
       getRowKey={(row) => row.id}
       desktop={
-        <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+        <MainAppTableShell>
           <Table>
             <TableHeader>
               <TableRow>
@@ -244,7 +245,7 @@ function OpportunityTable({
               ))}
             </TableBody>
           </Table>
-        </div>
+        </MainAppTableShell>
       }
       renderMobileCard={(row) => (
         <Link

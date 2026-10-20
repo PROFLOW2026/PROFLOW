@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -46,7 +47,7 @@ export default async function CreateTaskFromActionItemPage({
   if (!actionItem || actionItem.taskId || actionItem.status !== 'open') notFound();
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('meetings.form.createTaskTitle')}
         description={t('meetings.form.createTaskDescription')}
@@ -56,8 +57,8 @@ export default async function CreateTaskFromActionItemPage({
           </Link>
         }
       />
-
-      {workspaces.length === 0 ? (
+      <MainAppSection>
+        {workspaces.length === 0 ? (
         <EmptyState
           title={t('meetings.form.noWorkspacesTitle')}
           description={t('meetings.form.noWorkspacesDescription')}
@@ -72,6 +73,8 @@ export default async function CreateTaskFromActionItemPage({
           defaultProjectId={meeting.projectId}
         />
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

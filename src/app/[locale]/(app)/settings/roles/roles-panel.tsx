@@ -1,5 +1,6 @@
 'use client';
 
+import { MainAppSection } from '@/components/patterns/main-app';
 import { useActionState, useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
@@ -7,8 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
   ROLE_TEMPLATE_KEYS,
-  TOGGLEABLE_PERMISSIONS,
-} from '@/shared/permissions/role-templates';
+  TOGGLEABLE_PERMISSIONS} from '@/shared/permissions/role-templates';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { setRoleToggleAction, type SettingsActionState } from '../actions';
 
@@ -18,8 +18,7 @@ function RolePermissionToggle({
   enabled,
   label,
   hint,
-  onFeedback,
-}: {
+  onFeedback}: {
   roleKey: string;
   permission: PermissionKey;
   enabled: boolean;
@@ -63,8 +62,7 @@ function RolePermissionToggle({
 }
 
 export function RolesSettingsPanel({
-  rolePermissions,
-}: {
+  rolePermissions}: {
   rolePermissions: Record<string, PermissionKey[]>;
 }) {
   const t = useTranslations('settings.roles');
@@ -73,8 +71,9 @@ export function RolesSettingsPanel({
   const [feedback, setFeedback] = useState<SettingsActionState>({});
 
   return (
-    <div className="flex flex-col gap-6">
-      {feedback.error ? <Alert tone="danger">{feedback.error}</Alert> : null}
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection>
+        {feedback.error ? <Alert tone="danger">{feedback.error}</Alert> : null}
       {feedback.ok ? (
         <Alert tone="success" role="status" aria-live="polite">
           {t('saved')}
@@ -120,6 +119,8 @@ export function RolesSettingsPanel({
           </section>
         );
       })}
+    
+      </MainAppSection>
     </div>
   );
 }

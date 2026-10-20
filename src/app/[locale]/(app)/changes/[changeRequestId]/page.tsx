@@ -1,7 +1,14 @@
 import type { Metadata } from 'next';
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
+import { textNavLinkClassName } from '@/components/ui/pressable';
 import { Button } from '@/components/ui/button';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { getChangeRequestDetail, signedChangeAmount } from '@/modules/commercial';
@@ -107,9 +114,11 @@ export default async function ChangeDetailPage({
   const raw = selectedVersion?.totalAmount ?? detail.requestedAmount;
   const magnitude = raw ? fromNumericString(raw, detail.currency) : null;
   const signed = magnitude ? signedChangeAmount(detail.direction, magnitude) : null;
+  const directionLabel =
+    detail.direction === 'addition' ? t('form.directionAddition') : t('form.directionReduction');
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={detail.title}
         description={detail.description}
@@ -138,18 +147,39 @@ export default async function ChangeDetailPage({
           </div>
         }
       />
-
-      {signed ? (
-        <div className="min-w-0 text-start">
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.amount')}</p>
-          <MoneyText value={signed} className="text-lg font-semibold" colorizeNegative />
-        </div>
-      ) : null}
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('detail.amount')}>
+            {signed ? (
+              <MoneyText value={signed} className="text-base font-semibold" colorizeNegative />
+            ) : (
+              '—'
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.project')}>
+            <Link href={`/projects/${detail.projectId}`} className={textNavLinkClassName}>
+              {detail.projectName}
+            </Link>
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('form.direction')}>{directionLabel}</MainAppSummaryItem>
+          {detail.reference ? (
+            <MainAppSummaryItem label={t('list.reference')}>
+              <span className="font-mono text-xs" dir="ltr">
+                {detail.reference}
+              </span>
+            </MainAppSummaryItem>
+          ) : null}
+          {detail.requestedDate ? (
+            <MainAppSummaryItem label={t('list.date')}>
+              <span dir="ltr">{detail.requestedDate}</span>
+            </MainAppSummaryItem>
+          ) : null}
+        </MainAppSummaryGrid>
+      </MainAppSection>
 
       {detail.quoteVersions.length > 0 ? (
-        <section className="flex min-w-0 flex-col gap-2">
-          <h2 className="text-start text-base font-semibold">{t('detail.versionsTitle')}</h2>
-          <ul className="flex flex-col gap-2 text-sm">
+        <MainAppSection title={t('detail.versionsTitle')}>
+          <ul className="flex min-w-0 flex-col gap-2 text-sm">
             {detail.quoteVersions.map((version) => (
               <li
                 key={version.id}
@@ -167,7 +197,7 @@ export default async function ChangeDetailPage({
               </li>
             ))}
           </ul>
-        </section>
+        </MainAppSection>
       ) : null}
 
       {detail.status === 'approved' && detail.changeOrder ? (
@@ -183,18 +213,16 @@ export default async function ChangeDetailPage({
       ) : null}
 
       {detail.changeOrder ? (
-        <section className="flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-base font-semibold">{t('detail.changeOrderTitle')}</h2>
-            {detail.changeOrder.reversalOfChangeOrderId ? (
+        <MainAppSection
+          title={t('detail.changeOrderTitle')}
+          actions={
+            detail.changeOrder.reversalOfChangeOrderId ? (
               <StatusBadge shape="pending" label={t('changeOrder.reversalBadge')} />
             ) : detail.reversingChangeOrder ? (
-              <StatusBadge
-                shape="archived"
-                label={t('changeOrder.reversedBadge')}
-              />
-            ) : null}
-          </div>
+              <StatusBadge shape="archived" label={t('changeOrder.reversedBadge')} />
+            ) : null
+          }
+        >
           <p className="text-sm text-[var(--pf-text-secondary)]">{detail.changeOrder.reference}</p>
           {detail.changeOrder.reversalOfChangeOrderId || detail.reversingChangeOrder ? (
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('changeOrder.reversalNote')}</p>
@@ -206,7 +234,7 @@ export default async function ChangeDetailPage({
             action={reverseChangeOrderAction}
             canReverse={canApprove}
           />
-        </section>
+        </MainAppSection>
       ) : null}
 
       {canManage ? (
@@ -219,51 +247,53 @@ export default async function ChangeDetailPage({
         />
       ) : null}
 
-      <DocumentAttachments
-        ownerType="change_request"
-        ownerId={changeRequestId}
-        documents={changeRequestDocs.documents}
-        linkCandidates={changeRequestDocs.linkCandidates}
-        canRead={changeRequestDocs.canRead}
-        canManage={changeRequestDocs.canManage}
-        storageConfigured={changeRequestDocs.storageConfigured}
-      />
-
-      {selectedVersion && quoteVersionDocs ? (
+      <MainAppSection>
         <DocumentAttachments
-          ownerType="quote_version"
-          ownerId={selectedVersion.id}
-          documents={quoteVersionDocs.documents}
-          linkCandidates={quoteVersionDocs.linkCandidates}
-          canRead={quoteVersionDocs.canRead}
-          canManage={quoteVersionDocs.canManage}
-          storageConfigured={quoteVersionDocs.storageConfigured}
+          ownerType="change_request"
+          ownerId={changeRequestId}
+          documents={changeRequestDocs.documents}
+          linkCandidates={changeRequestDocs.linkCandidates}
+          canRead={changeRequestDocs.canRead}
+          canManage={changeRequestDocs.canManage}
+          storageConfigured={changeRequestDocs.storageConfigured}
         />
-      ) : null}
 
-      {detail.changeOrder && changeOrderDocs ? (
-        <DocumentAttachments
-          ownerType="change_order"
-          ownerId={detail.changeOrder.id}
-          documents={changeOrderDocs.documents}
-          linkCandidates={changeOrderDocs.linkCandidates}
-          canRead={changeOrderDocs.canRead}
-          canManage={changeOrderDocs.canManage}
-          storageConfigured={changeOrderDocs.storageConfigured}
-        />
-      ) : null}
+        {selectedVersion && quoteVersionDocs ? (
+          <DocumentAttachments
+            ownerType="quote_version"
+            ownerId={selectedVersion.id}
+            documents={quoteVersionDocs.documents}
+            linkCandidates={quoteVersionDocs.linkCandidates}
+            canRead={quoteVersionDocs.canRead}
+            canManage={quoteVersionDocs.canManage}
+            storageConfigured={quoteVersionDocs.storageConfigured}
+          />
+        ) : null}
 
-      {detail.changeOrder?.approvalId && approvalDocs ? (
-        <DocumentAttachments
-          ownerType="approval"
-          ownerId={detail.changeOrder.approvalId}
-          documents={approvalDocs.documents}
-          linkCandidates={approvalDocs.linkCandidates}
-          canRead={approvalDocs.canRead}
-          canManage={approvalDocs.canManage}
-          storageConfigured={approvalDocs.storageConfigured}
-        />
-      ) : null}
-    </div>
+        {detail.changeOrder && changeOrderDocs ? (
+          <DocumentAttachments
+            ownerType="change_order"
+            ownerId={detail.changeOrder.id}
+            documents={changeOrderDocs.documents}
+            linkCandidates={changeOrderDocs.linkCandidates}
+            canRead={changeOrderDocs.canRead}
+            canManage={changeOrderDocs.canManage}
+            storageConfigured={changeOrderDocs.storageConfigured}
+          />
+        ) : null}
+
+        {detail.changeOrder?.approvalId && approvalDocs ? (
+          <DocumentAttachments
+            ownerType="approval"
+            ownerId={detail.changeOrder.approvalId}
+            documents={approvalDocs.documents}
+            linkCandidates={approvalDocs.linkCandidates}
+            canRead={approvalDocs.canRead}
+            canManage={approvalDocs.canManage}
+            storageConfigured={approvalDocs.storageConfigured}
+          />
+        ) : null}
+      </MainAppSection>
+    </MainAppPage>
   );
 }

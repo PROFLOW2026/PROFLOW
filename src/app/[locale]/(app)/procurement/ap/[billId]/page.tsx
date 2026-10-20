@@ -1,4 +1,10 @@
-import type { Metadata } from 'next';
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -61,6 +67,8 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: 'ap' });
   return { title: t('detail.title') };
 }
+
+const EMPTY = '—';
 
 function billStatusShape(status: string): StatusShape {
   switch (status as ApBillStatus) {
@@ -249,7 +257,7 @@ export default async function ApBillDetailPage({
   } = data;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={bill.reference?.trim() || t('list.noReference')}
         description={t('detail.description')}
@@ -268,113 +276,101 @@ export default async function ApBillDetailPage({
           />
         }
       />
-
-      <ApBillTaxSummary
-        netAmount={bill.netAmount ?? bill.totalAmount}
-        taxAmount={bill.taxAmount ?? '0'}
-        grossAmount={bill.grossAmount ?? bill.totalAmount}
-        currency={bill.currency}
-        taxBasis={bill.taxBasis}
-      />
-      <div className="grid min-w-0 gap-4 sm:grid-cols-3">
-        <div className="min-w-0">
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('list.columns.billDate')}</p>
-          <p>
+      <MainAppSection>
+        <ApBillTaxSummary
+          netAmount={bill.netAmount ?? bill.totalAmount}
+          taxAmount={bill.taxAmount ?? '0'}
+          grossAmount={bill.grossAmount ?? bill.totalAmount}
+          currency={bill.currency}
+          taxBasis={bill.taxBasis}
+        />
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('list.columns.billDate')}>
             {bill.billDate ? (
-              <span dir="ltr">
+              <span dir="ltr" className="pf-ltr-island">
                 {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                   new Date(bill.billDate),
                 )}
               </span>
             ) : (
-              '-'
+              EMPTY
             )}
-          </p>
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.dueDate')}</p>
-          <p>
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('detail.dueDate')}>
             {bill.dueDate ? (
-              <span dir="ltr">
+              <span dir="ltr" className="pf-ltr-island">
                 {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                   new Date(bill.dueDate),
                 )}
               </span>
             ) : (
-              '-'
+              EMPTY
             )}
-          </p>
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.paymentTerm')}</p>
-          <p>{paymentTermName ?? (bill.paymentTermId ? bill.paymentTermId.slice(0, 8) : '-')}</p>
-        </div>
-      </div>
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('detail.paymentTerm')}>
+            {paymentTermName ??
+              (bill.paymentTermId ? bill.paymentTermId.slice(0, 8) : EMPTY)}
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
+        <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.ruleNote')}</p>
+      </MainAppSection>
 
       {(bill.purchaseOrderId || bill.subcontractAgreementId) ? (
-        <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
-          <h2 className="mb-2 text-sm font-semibold">{t('detail.linksTitle')}</h2>
-          <dl className="grid gap-3 text-sm sm:grid-cols-2">
-            <div>
-              <dt className="text-xs text-[var(--pf-text-muted)]">{t('detail.linkedPo')}</dt>
-              <dd className="mt-1" dir="ltr">
-                {bill.purchaseOrderId ? (
-                  <Link href={`/procurement/orders/${bill.purchaseOrderId}`} className={textNavLinkMutedClassName}>
-                    {bill.purchaseOrderId.slice(0, 8)}
-                  </Link>
-                ) : (
-                  '-'
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-xs text-[var(--pf-text-muted)]">{t('detail.subcontract')}</dt>
-              <dd className="mt-1" dir="ltr">
-                {bill.subcontractAgreementId ? bill.subcontractAgreementId.slice(0, 8) : '-'}
-              </dd>
-            </div>
-          </dl>
-        </section>
+        <MainAppSection title={t('detail.linksTitle')}>
+          <MainAppSummaryGrid>
+            <MainAppSummaryItem label={t('detail.linkedPo')}>
+              {bill.purchaseOrderId ? (
+                <Link
+                  href={`/procurement/orders/${bill.purchaseOrderId}`}
+                  className={textNavLinkMutedClassName}
+                  dir="ltr"
+                >
+                  {bill.purchaseOrderId.slice(0, 8)}
+                </Link>
+              ) : (
+                EMPTY
+              )}
+            </MainAppSummaryItem>
+            <MainAppSummaryItem label={t('detail.subcontract')}>
+              {bill.subcontractAgreementId ? (
+                <span dir="ltr" className="pf-ltr-island">
+                  {bill.subcontractAgreementId.slice(0, 8)}
+                </span>
+              ) : (
+                EMPTY
+              )}
+            </MainAppSummaryItem>
+          </MainAppSummaryGrid>
+        </MainAppSection>
       ) : null}
 
-      <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.ruleNote')}</p>
-
-      <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
-        <h2 className="mb-2 text-sm font-semibold">{t('detail.matchPositionTitle')}</h2>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div className="min-w-0">
-            <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.acceptedMatched')}</p>
-            <MoneyText
-              value={money(matchPosition.acceptedMatchedTotal, matchPosition.currency)}
-            />
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.remainingUnmatched')}</p>
-            <MoneyText
-              value={money(matchPosition.remainingUnmatched, matchPosition.currency)}
-            />
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.remainingIncludingProposed')}</p>
+      <MainAppSection title={t('detail.matchPositionTitle')}>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('detail.acceptedMatched')}>
+            <MoneyText value={money(matchPosition.acceptedMatchedTotal, matchPosition.currency)} />
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('detail.remainingUnmatched')}>
+            <MoneyText value={money(matchPosition.remainingUnmatched, matchPosition.currency)} />
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('detail.remainingIncludingProposed')}>
             <MoneyText
               value={money(matchPosition.remainingIncludingProposed, matchPosition.currency)}
             />
-          </div>
-        </div>
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
         {matchPosition.hasOverMatchVariance ? (
-          <Alert tone="warning" className="mt-3">
+          <Alert tone="warning">
             {t('detail.varianceWarning', {
               variance: matchPosition.overMatchVariance,
               currency: matchPosition.currency,
             })}
           </Alert>
         ) : (
-          <p className="mt-3 text-xs text-[var(--pf-text-muted)]">{t('detail.partialMatchHint')}</p>
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.partialMatchHint')}</p>
         )}
-      </section>
+      </MainAppSection>
 
-      <section className="min-w-0">
-        <h2 className="mb-2 text-sm font-semibold">{t('detail.linesTitle')}</h2>
+      <MainAppSection title={t('detail.linesTitle')}>
         <ResponsiveTable
           items={lines}
           getRowKey={(line) => line.id}
@@ -426,19 +422,20 @@ export default async function ApBillDetailPage({
             </div>
           )}
         />
-      </section>
 
-      {projects.length > 0 ? (
-        <VendorBillAllocationPanel
-          billId={bill.id}
-          currency={bill.currency}
-          recognizedNet={bill.netAmount ?? bill.totalAmount}
-          headerProjectId={bill.projectId}
-          projects={projects}
-          canManage={canManage}
-        />
-      ) : null}
+        {projects.length > 0 ? (
+          <VendorBillAllocationPanel
+            billId={bill.id}
+            currency={bill.currency}
+            recognizedNet={bill.netAmount ?? bill.totalAmount}
+            headerProjectId={bill.projectId}
+            projects={projects}
+            canManage={canManage}
+          />
+        ) : null}
+      </MainAppSection>
 
+      <MainAppSection>
       <RetentionPanel
         side="ap"
         sourceId={bill.id}
@@ -522,10 +519,9 @@ export default async function ApBillDetailPage({
       />
 
       <RestoreApBillPanel billId={bill.id} canManage={canManage} billStatus={bill.status} />
+      </MainAppSection>
 
-      <section className="flex min-w-0 flex-col gap-4">
-        <h2 className="text-sm font-semibold">{t('detail.matchesTitle')}</h2>
-
+      <MainAppSection title={t('detail.matchesTitle')}>
         {matches.length === 0 ? (
           <p className="text-sm text-[var(--pf-text-muted)]">{t('detail.noMatches')}</p>
         ) : (
@@ -618,17 +614,19 @@ export default async function ApBillDetailPage({
             suggestedExpenseId={requestedExpenseId}
           />
         ) : null}
-      </section>
+      </MainAppSection>
 
-      <DocumentAttachments
-        ownerType="ap_bill"
-        ownerId={bill.id}
-        documents={documentsPanel.documents}
-        linkCandidates={documentsPanel.linkCandidates}
-        canRead={documentsPanel.canRead}
-        canManage={documentsPanel.canManage}
-        storageConfigured={documentsPanel.storageConfigured}
-      />
-    </div>
+      <MainAppSection>
+        <DocumentAttachments
+          ownerType="ap_bill"
+          ownerId={bill.id}
+          documents={documentsPanel.documents}
+          linkCandidates={documentsPanel.linkCandidates}
+          canRead={documentsPanel.canRead}
+          canManage={documentsPanel.canManage}
+          storageConfigured={documentsPanel.storageConfigured}
+        />
+      </MainAppSection>
+    </MainAppPage>
   );
 }

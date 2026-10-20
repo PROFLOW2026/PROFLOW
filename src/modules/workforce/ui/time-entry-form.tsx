@@ -1,8 +1,9 @@
-'use client';
+﻿'use client';
 
 import { useTranslations } from 'next-intl';
 import { useActionState, useEffect, useMemo, useState } from 'react';
 import { listTasksForTimeLogAction } from '@/app/[locale]/(app)/workforce/time/actions';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -232,7 +233,7 @@ export function TimeEntryForm({
   }
 
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       {state.ok && state.error ? (
         <Alert tone="info" role="status">
           {state.error}
@@ -302,137 +303,112 @@ export function TimeEntryForm({
         <input key={day} type="hidden" name="weekdays" value={String(day)} />
       ))}
 
-      <Field label={t('time.form.employee')} required>
-        {(control) => (
-          <>
-            <input type="hidden" name="employeeId" value={employeeId} />
-            {employeeLocked ? (
-              <Input
-                {...control}
-                readOnly
-                value={employees.find((row) => row.id === employeeId)?.name ?? ''}
-              />
-            ) : (
-            <Select value={employeeId} onValueChange={setEmployeeId}>
-              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                <SelectValue placeholder={t('time.form.employeePlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                {showTeamGroups ? (
-                  <>
-                    <SelectGroup>
-                      <SelectLabel>{t('time.form.teamEmployees')}</SelectLabel>
-                      {teamEmployees.map((employee) => (
-                        <SelectItem key={employee.id} value={employee.id}>
-                          {employee.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                    <SelectGroup>
-                      <SelectLabel>{t('time.form.otherEmployees')}</SelectLabel>
-                      {otherEmployees.map((employee) => (
-                        <SelectItem key={employee.id} value={employee.id}>
-                          {employee.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </>
-                ) : (
-                  employees.map((employee) => (
-                    <SelectItem key={employee.id} value={employee.id}>
-                      {employee.name}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-            )}
-          </>
-        )}
-      </Field>
-
-      <Field label={t('time.form.date')} required>
-        {(control) => (
-          <Input
-            {...control}
-            name="workDate"
-            type="date"
-            value={workDate}
-            onChange={(event) => {
-              setWorkDate(event.target.value);
-              if (!showAdvanced) {
-                setFromDate(event.target.value);
-                setToDate(event.target.value);
-              }
-            }}
-            required
-          />
-        )}
-      </Field>
-
-      <Field label={t('time.form.hours')} required={!usePerDayHours}>
-        {(control) => (
-          <Input
-            {...control}
-            name="hours"
-            type="text"
-            inputMode="decimal"
-            numeric
-            placeholder={t('time.form.hoursPlaceholder')}
-            value={hours}
-            onChange={(event) => setHours(event.target.value)}
-            required={!usePerDayHours}
-            className="text-lg"
-          />
-        )}
-      </Field>
-
-      {kind === 'project' ? (
-        <>
-          <Field label={t('time.form.project')} required>
-            {(control) => (
-              <>
-                <input type="hidden" name="projectId" value={projectId} />
-                <Select
-                  value={projectId}
-                  onValueChange={(value) => {
-                    setProjectId(value);
-                    setTaskId('');
-                  }}
-                >
-                  <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                    <SelectValue placeholder={t('time.form.projectPlaceholder')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortedProjects.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.name}
+      <MainAppFormGrid dense className="gap-4">
+        <Field label={t('time.form.employee')} required className={mainAppFieldSpan.lg}>
+          {(control) => (
+            <>
+              <input type="hidden" name="employeeId" value={employeeId} />
+              {employeeLocked ? (
+                <Input
+                  {...control}
+                  readOnly
+                  value={employees.find((row) => row.id === employeeId)?.name ?? ''}
+                />
+              ) : (
+              <Select value={employeeId} onValueChange={setEmployeeId}>
+                <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                  <SelectValue placeholder={t('time.form.employeePlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {showTeamGroups ? (
+                    <>
+                      <SelectGroup>
+                        <SelectLabel>{t('time.form.teamEmployees')}</SelectLabel>
+                        {teamEmployees.map((employee) => (
+                          <SelectItem key={employee.id} value={employee.id}>
+                            {employee.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                      <SelectGroup>
+                        <SelectLabel>{t('time.form.otherEmployees')}</SelectLabel>
+                        {otherEmployees.map((employee) => (
+                          <SelectItem key={employee.id} value={employee.id}>
+                            {employee.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </>
+                  ) : (
+                    employees.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id}>
+                        {employee.name}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </>
-            )}
-          </Field>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              )}
+            </>
+          )}
+        </Field>
 
-          {projectId && taskOptions.length > 0 ? (
-            <Field label={t('time.form.task')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('time.form.date')} required className={mainAppFieldSpan.md}>
+          {(control) => (
+            <Input
+              {...control}
+              name="workDate"
+              type="date"
+              value={workDate}
+              onChange={(event) => {
+                setWorkDate(event.target.value);
+                if (!showAdvanced) {
+                  setFromDate(event.target.value);
+                  setToDate(event.target.value);
+                }
+              }}
+              required
+            />
+          )}
+        </Field>
+
+        <Field label={t('time.form.hours')} required={!usePerDayHours} className={mainAppFieldSpan.md}>
+          {(control) => (
+            <Input
+              {...control}
+              name="hours"
+              type="text"
+              inputMode="decimal"
+              numeric
+              placeholder={t('time.form.hoursPlaceholder')}
+              value={hours}
+              onChange={(event) => setHours(event.target.value)}
+              required={!usePerDayHours}
+              className="text-lg"
+            />
+          )}
+        </Field>
+
+        {kind === 'project' ? (
+          <>
+            <Field label={t('time.form.project')} required className={mainAppFieldSpan.lg}>
               {(control) => (
                 <>
-                  <input type="hidden" name="taskId" value={taskId} />
+                  <input type="hidden" name="projectId" value={projectId} />
                   <Select
-                    value={taskId || '__none__'}
-                    onValueChange={(value) => setTaskId(value === '__none__' ? '' : value)}
-                    disabled={tasksLoading}
+                    value={projectId}
+                    onValueChange={(value) => {
+                      setProjectId(value);
+                      setTaskId('');
+                    }}
                   >
                     <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                      <SelectValue placeholder={t('time.form.taskPlaceholder')} />
+                      <SelectValue placeholder={t('time.form.projectPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__none__">{t('time.form.taskNone')}</SelectItem>
-                      {taskOptions.map((task) => (
-                        <SelectItem key={task.id} value={task.id}>
-                          {task.name}
+                      {sortedProjects.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -440,37 +416,64 @@ export function TimeEntryForm({
                 </>
               )}
             </Field>
-          ) : (
-            <input type="hidden" name="taskId" value={taskId} />
-          )}
-        </>
-      ) : (
-        <Field label={t('time.form.timeCode')} required>
+
+            {projectId && taskOptions.length > 0 ? (
+              <Field label={t('time.form.task')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+                {(control) => (
+                  <>
+                    <input type="hidden" name="taskId" value={taskId} />
+                    <Select
+                      value={taskId || '__none__'}
+                      onValueChange={(value) => setTaskId(value === '__none__' ? '' : value)}
+                      disabled={tasksLoading}
+                    >
+                      <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                        <SelectValue placeholder={t('time.form.taskPlaceholder')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">{t('time.form.taskNone')}</SelectItem>
+                        {taskOptions.map((task) => (
+                          <SelectItem key={task.id} value={task.id}>
+                            {task.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
+              </Field>
+            ) : (
+              <input type="hidden" name="taskId" value={taskId} />
+            )}
+          </>
+        ) : (
+          <Field label={t('time.form.timeCode')} required className={mainAppFieldSpan.lg}>
+            {(control) => (
+              <>
+                <input type="hidden" name="timeCodeId" value={timeCodeId} />
+                <Select value={timeCodeId} onValueChange={setTimeCodeId}>
+                  <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                    <SelectValue placeholder={t('time.form.timeCodePlaceholder')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeCodes.map((code) => (
+                      <SelectItem key={code.id} value={code.id}>
+                        {code.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+          </Field>
+        )}
+
+        <Field label={t('time.form.notes')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
           {(control) => (
-            <>
-              <input type="hidden" name="timeCodeId" value={timeCodeId} />
-              <Select value={timeCodeId} onValueChange={setTimeCodeId}>
-                <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                  <SelectValue placeholder={t('time.form.timeCodePlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {timeCodes.map((code) => (
-                    <SelectItem key={code.id} value={code.id}>
-                      {code.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
+            <Textarea {...control} name="description" rows={2} defaultValue={initialDescription ?? ''} />
           )}
         </Field>
-      )}
-
-      <Field label={t('time.form.notes')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => (
-          <Textarea {...control} name="description" rows={2} defaultValue={initialDescription ?? ''} />
-        )}
-      </Field>
+      </MainAppFormGrid>
 
       {!showAdvanced ? (
         <Button type="button" variant="ghost" className="self-start" onClick={() => setShowAdvanced(true)}>
@@ -485,25 +488,25 @@ export function TimeEntryForm({
             </Button>
           </div>
 
-          <Field label={t('time.form.kind')}>
-            {(control) => (
-              <Select
-                value={kind}
-                onValueChange={(value) => setKind(value as 'project' | 'non_project')}
-              >
-                <SelectTrigger id={control.id}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="project">{t('time.form.kindProject')}</SelectItem>
-                  <SelectItem value="non_project">{t('time.form.kindNonProject')}</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          </Field>
+          <MainAppFormGrid dense className="gap-4">
+            <Field label={t('time.form.kind')} className={mainAppFieldSpan.lg}>
+              {(control) => (
+                <Select
+                  value={kind}
+                  onValueChange={(value) => setKind(value as 'project' | 'non_project')}
+                >
+                  <SelectTrigger id={control.id}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="project">{t('time.form.kindProject')}</SelectItem>
+                    <SelectItem value="non_project">{t('time.form.kindNonProject')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field label={t('time.form.fromDate')}>
+            <Field label={t('time.form.fromDate')} className={mainAppFieldSpan.md}>
               {(control) => (
                 <Input
                   {...control}
@@ -514,7 +517,7 @@ export function TimeEntryForm({
                 />
               )}
             </Field>
-            <Field label={t('time.form.toDate')}>
+            <Field label={t('time.form.toDate')} className={mainAppFieldSpan.md}>
               {(control) => (
                 <Input
                   {...control}
@@ -525,7 +528,7 @@ export function TimeEntryForm({
                 />
               )}
             </Field>
-          </div>
+          </MainAppFormGrid>
 
           <fieldset className="flex flex-col gap-2">
             <legend className="text-sm font-medium">{t('time.form.weekdays')}</legend>

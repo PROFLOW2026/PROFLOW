@@ -1,6 +1,12 @@
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { Alert } from '@/components/ui/alert';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
@@ -18,6 +24,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 
 function statusShape(status: FormSubmissionStatus): StatusShape {
   switch (status) {
@@ -43,7 +50,7 @@ export default async function FormSubmissionDetailPage({
   params: Promise<{ submissionId: string }>;
 }) {
   const { submissionId } = await params;
-  const t = await getTranslations('forms');
+  const [t, locale] = await Promise.all([getTranslations('forms'), getLocale()]);
 
   const data = await withOrgContext(async (context) => {
     try {
@@ -72,8 +79,8 @@ export default async function FormSubmissionDetailPage({
   const hasPhotoFields = data.template.schema.fields.some((field) => field.type === 'photo');
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
-      <div>
+    <MainAppPage>
+      <div className="min-w-0">
         <Link href="/forms" className={textNavLinkMutedClassName}>
           {t('list.title')}
         </Link>
@@ -89,30 +96,57 @@ export default async function FormSubmissionDetailPage({
         />
       </div>
 
-      <FormFillPanel
-        submission={data.submission}
-        template={data.template}
-        canManage={data.canManage}
-      />
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('list.columns.template')}>{data.template.name}</MainAppSummaryItem>
+          <MainAppSummaryItem label={t('new.ownerType')}>
+            {t(`ownerTypes.${data.submission.ownerType}`)}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.status')}>
+            {t(`status.${data.submission.status}`)}
+          </MainAppSummaryItem>
+          {data.submission.submittedAt ? (
+            <MainAppSummaryItem label={t('status.submitted')}>
+              <span className="pf-ltr-island" dir="ltr">
+                {intlDateTimeFormat(locale, {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }).format(data.submission.submittedAt)}
+              </span>
+            </MainAppSummaryItem>
+          ) : null}
+        </MainAppSummaryGrid>
+      </MainAppSection>
 
-      {hasPhotoFields ? (
-        data.documentsPanel && data.docOwner ? (
-          <DocumentAttachments
-            ownerType={data.docOwner.ownerType}
-            ownerId={data.docOwner.ownerId}
-            documents={data.documentsPanel.documents}
-            linkCandidates={data.documentsPanel.linkCandidates}
-            canRead={data.canReadDocs}
-            canManage={data.canManageDocs && data.submission.status === 'draft'}
-            storageConfigured={data.documentsPanel.storageConfigured}
-            titleKey="title"
-          />
-        ) : (
-          <Alert tone="info" title={t('photoNote.title')}>
-            {t('photoNote.body')}
-          </Alert>
-        )
-      ) : null}
-    </div>
+      <MainAppSection>
+        <FormFillPanel
+          submission={data.submission}
+          template={data.template}
+          canManage={data.canManage}
+        />
+
+        {hasPhotoFields ? (
+          data.documentsPanel && data.docOwner ? (
+            <DocumentAttachments
+              ownerType={data.docOwner.ownerType}
+              ownerId={data.docOwner.ownerId}
+              documents={data.documentsPanel.documents}
+              linkCandidates={data.documentsPanel.linkCandidates}
+              canRead={data.canReadDocs}
+              canManage={data.canManageDocs && data.submission.status === 'draft'}
+              storageConfigured={data.documentsPanel.storageConfigured}
+              titleKey="title"
+            />
+          ) : (
+            <Alert tone="info" title={t('photoNote.title')}>
+              {t('photoNote.body')}
+            </Alert>
+          )
+        ) : null}
+      </MainAppSection>
+    </MainAppPage>
   );
 }

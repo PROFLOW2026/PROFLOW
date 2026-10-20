@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+﻿import { getTranslations } from 'next-intl/server';
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

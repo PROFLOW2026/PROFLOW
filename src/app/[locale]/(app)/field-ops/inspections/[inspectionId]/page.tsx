@@ -1,3 +1,9 @@
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
@@ -25,6 +31,8 @@ import { InspectionStatusForm } from '../inspection-status-form';
 import { InspectionDetailsForm } from '../inspection-details-form';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { ReportDownloadButtons } from '@/modules/reports/ui';
+
+const EMPTY = '—';
 
 export async function generateMetadata({
   params,
@@ -98,21 +106,27 @@ export default async function InspectionDetailPage({
 
   if (!data) notFound();
 
-  const { item, projectName, workPackageName, documentsPanel, employees, formTemplates, formGate, inspectorName, canManage } =
-    data;
+  const {
+    item,
+    projectName,
+    workPackageName,
+    documentsPanel,
+    employees,
+    formTemplates,
+    formGate,
+    inspectorName,
+    canManage,
+  } = data;
   const kindKey = item.kind as InspectionKind;
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={item.title}
         description={projectName ?? t('detail.unknownProject')}
         actions={<ReportDownloadButtons kind="punch_inspection" id={item.id} compact />}
         breadcrumb={
-          <Link
-            href="/field-ops/inspections"
-            className={textNavLinkMutedClassName}
-          >
+          <Link href="/field-ops/inspections" className={textNavLinkMutedClassName}>
             {tCommon('actions.back')}
           </Link>
         }
@@ -126,50 +140,51 @@ export default async function InspectionDetailPage({
         }
       />
 
-      <div className="flex max-w-lg flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-sm">
-        <DetailRow
-          label={t('list.columns.project')}
-          value={
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('list.columns.project')}>
             <Link href={`/projects/${item.projectId}`} className={textNavLinkClassName}>
               {projectName ?? t('detail.unknownProject')}
             </Link>
-          }
-        />
-        {workPackageName ? (
-          <DetailRow label={t('createInspection.workPackageLabel')} value={workPackageName} />
-        ) : null}
-        {inspectorName ? (
-          <DetailRow label={t('createInspection.inspectorLabel')} value={inspectorName} />
-        ) : null}
-        {item.scheduledOn ? (
-          <DetailRow
-            label={t('createInspection.scheduledOnLabel')}
-            value={
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('createInspection.workPackageLabel')}>
+            {workPackageName ?? EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('createInspection.inspectorLabel')}>
+            {inspectorName ?? EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('createInspection.scheduledOnLabel')}>
+            {item.scheduledOn ? (
               <span className="pf-ltr-island" dir="ltr">
                 {item.scheduledOn}
               </span>
-            }
-          />
-        ) : null}
-        {item.completedOn ? (
-          <DetailRow
-            label={t('list.columns.completedOn')}
-            value={
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.completedOn')}>
+            {item.completedOn ? (
               <span className="pf-ltr-island" dir="ltr">
                 {item.completedOn}
               </span>
-            }
-          />
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('updateStatus.resultLabel')}>
+            {item.result?.trim() ? item.result : EMPTY}
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
+        {item.notes?.trim() ? (
+          <p className="mt-3 whitespace-pre-wrap text-start text-sm text-[var(--pf-text-secondary)]">
+            {item.notes}
+          </p>
         ) : null}
-        {item.result ? (
-          <DetailRow label={t('updateStatus.resultLabel')} value={item.result} />
-        ) : null}
-        {item.notes ? (
-          <DetailRow label={t('createInspection.notesLabel')} value={item.notes} />
-        ) : null}
+      </MainAppSection>
 
-        {canManage ? (
-          <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
+      {canManage ? (
+        <MainAppSection title={t('updateStatus.label')}>
+          <div className="flex max-w-lg flex-col gap-4">
             <InspectionDetailsForm
               inspectionId={item.id}
               inspectorEmployeeId={item.inspectorEmployeeId}
@@ -184,31 +199,24 @@ export default async function InspectionDetailPage({
               formBlocked={formGate.required && !formGate.satisfied}
             />
           </div>
-        ) : null}
-      </div>
+        </MainAppSection>
+      ) : null}
 
-      <InspectionFormCard inspectionId={item.id} state={formGate} />
+      <MainAppSection>
+        <InspectionFormCard inspectionId={item.id} state={formGate} />
+      </MainAppSection>
 
-      <DocumentAttachments
-        ownerType="inspection"
-        ownerId={item.id}
-        documents={documentsPanel.documents}
-        linkCandidates={documentsPanel.linkCandidates}
-        canRead={documentsPanel.canRead}
-        canManage={documentsPanel.canManage}
-        storageConfigured={documentsPanel.storageConfigured}
-      />
-    </div>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-[var(--pf-text-secondary)]">
-        {label}
-      </p>
-      <div className="mt-1 whitespace-pre-wrap">{value}</div>
-    </div>
+      <MainAppSection title={t('cockpit.actions.documents')}>
+        <DocumentAttachments
+          ownerType="inspection"
+          ownerId={item.id}
+          documents={documentsPanel.documents}
+          linkCandidates={documentsPanel.linkCandidates}
+          canRead={documentsPanel.canRead}
+          canManage={documentsPanel.canManage}
+          storageConfigured={documentsPanel.storageConfigured}
+        />
+      </MainAppSection>
+    </MainAppPage>
   );
 }

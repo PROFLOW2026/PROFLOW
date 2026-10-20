@@ -1,4 +1,5 @@
-import { getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -57,9 +58,9 @@ export async function UnpricedWorkScreen({ surfaceRoot,
 
   return (
     <WithAppClientMessages extra={['subcontracts']}>
-      <div className="flex flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={t('unpriced.pageTitle')} description={t('unpriced.pageDescription')} />
-
+      <MainAppSection>
         {page.access.canCoordinate && page.agreements.some((agreement) => runningAgreementIds.has(agreement.id)) ? (
           <Card>
             <CardHeader>
@@ -163,7 +164,9 @@ export async function UnpricedWorkScreen({ surfaceRoot,
             ) : null}
           </div>
         ) : null}
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { notFound } from 'next/navigation';
 import { cache, Suspense } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -269,7 +270,7 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={detail.project.name}
         actions={
@@ -324,8 +325,8 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
           </div>
         }
       />
-
-      {openPrice ? (
+      <MainAppSection>
+        {openPrice ? (
         <JobOpenPricePanel
           jobId={jobId}
           baseCurrency={baseCurrency}
@@ -466,6 +467,8 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
           </div>
         ) : null}
       </ProjectTabsShell>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

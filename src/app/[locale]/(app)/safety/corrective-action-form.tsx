@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -37,18 +38,19 @@ export function CorrectiveActionForm({
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex w-full flex-col gap-4">
       <input type="hidden" name="safetyRecordId" value={safetyRecordId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{t('detail.saved')}</Alert> : null}
-      <Field label={t('fields.correctiveAction')} required error={state.fieldErrors?.title}>
+      <MainAppFormGrid dense className="gap-4">
+      <Field label={t('fields.correctiveAction')} required error={state.fieldErrors?.title} className={mainAppFieldSpan.full}>
         {(control) => <Input {...control} name="title" required className="h-11 text-base" />}
       </Field>
-      <Field label={t('fields.description')}>
+      <Field label={t('fields.description')} className={mainAppFieldSpan.full}>
         {(control) => <Textarea {...control} name="description" rows={2} className="min-h-16 text-base" />}
       </Field>
       {members.length > 0 ? (
-        <Field label={t('fields.owner')}>
+        <Field label={t('fields.owner')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <select
               {...control}
@@ -66,11 +68,12 @@ export function CorrectiveActionForm({
           )}
         </Field>
       ) : null}
-      <Field label={t('fields.dueDate')}>
+      <Field label={t('fields.dueDate')} className={mainAppFieldSpan.md}>
         {(control) => (
           <Input {...control} type="date" name="dueDate" min={today} className="h-11 text-base" />
         )}
       </Field>
+      </MainAppFormGrid>
       <Button type="submit" className="h-11 w-full sm:w-auto" loading={pending}>
         {pending ? tCommon('states.saving') : t('actions.addAction')}
       </Button>
@@ -94,10 +97,10 @@ export function CorrectiveActionStatusForm({
   const overdue = isCorrectiveActionOverdue(action, today);
 
   return (
-    <form action={formAction} className="flex flex-col gap-2 sm:flex-row sm:items-end">
+    <form action={formAction} className="flex w-full flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
       <input type="hidden" name="actionId" value={action.id} />
-      {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <Field label={t('fields.status')} className="sm:w-44">
+      {state.error ? <Alert tone="danger" className="w-full">{state.error}</Alert> : null}
+      <Field label={t('fields.status')} className={mainAppFieldSpan.md}>
         {(control) => (
           <select
             {...control}

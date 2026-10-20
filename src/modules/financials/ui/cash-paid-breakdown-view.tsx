@@ -1,4 +1,5 @@
-import { getLocale, getTranslations } from 'next-intl/server';
+﻿import { getLocale, getTranslations } from 'next-intl/server';
+import { MainAppListBody, MainAppTableShell } from '@/components/patterns/main-app';
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
@@ -42,7 +43,7 @@ export async function CashPaidBreakdownView({
   const display = data.flow.display.paid;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppListBody className="gap-6">
       <form method="get" className="rounded-lg border border-[var(--pf-border-default)] p-3">
         <DateRangeSelector
           today={today}
@@ -99,7 +100,7 @@ export async function CashPaidBreakdownView({
         </CardContent>
       </Card>
 
-      <div className="min-w-0 overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+      <MainAppTableShell>
         <Table>
           <TableHeader>
             <TableRow>
@@ -126,8 +127,8 @@ export async function CashPaidBreakdownView({
             )}
           </TableBody>
         </Table>
-      </div>
-    </div>
+      </MainAppTableShell>
+    </MainAppListBody>
   );
 }
 

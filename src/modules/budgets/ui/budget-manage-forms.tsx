@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { MoneyInput } from '@/components/patterns/money-input';
@@ -97,8 +98,9 @@ export function BudgetManageForms({
       <h3 className="text-sm font-semibold">
         {mode === 'create' ? t('actions.createTitle') : t('actions.reviseTitle')}
       </h3>
+      <MainAppFormGrid dense>
       {lines.length === 0 ? (
-        <Field label={t('fields.totalBudget')}>
+        <Field label={t('fields.totalBudget')} className={mainAppFieldSpan.lg}>
           {(controlProps) => (
             <MoneyInput
               {...controlProps}
@@ -110,7 +112,7 @@ export function BudgetManageForms({
         </Field>
       ) : null}
       {mode === 'revise' ? (
-        <Field label={t('fields.revisionReason')}>
+        <Field label={t('fields.revisionReason')} className={mainAppFieldSpan.full}>
           {(controlProps) => (
             <input
               {...controlProps}
@@ -122,6 +124,7 @@ export function BudgetManageForms({
           )}
         </Field>
       ) : null}
+      </MainAppFormGrid>
 
       <div className="flex min-w-0 flex-col gap-3">
         {lines.map((line, index) => (
@@ -130,7 +133,8 @@ export function BudgetManageForms({
             className="flex min-w-0 flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3"
           >
             <legend className="text-xs font-medium">{t('lines.title')} {index + 1}</legend>
-            <Field label={t('fields.lineType')}>
+            <MainAppFormGrid dense>
+            <Field label={t('fields.lineType')} className={mainAppFieldSpan.lg}>
               {(controlProps) => (
                 <select
                   {...controlProps}
@@ -151,7 +155,7 @@ export function BudgetManageForms({
                 </select>
               )}
             </Field>
-            <Field label={t('fields.lineLabel')} required>
+            <Field label={t('fields.lineLabel')} required className={mainAppFieldSpan.lg}>
               {(controlProps) => (
                 <input
                   {...controlProps}
@@ -168,7 +172,7 @@ export function BudgetManageForms({
                 />
               )}
             </Field>
-            <Field label={t('fields.lineAmount')} required>
+            <Field label={t('fields.lineAmount')} required className={mainAppFieldSpan.lg}>
               {(controlProps) => (
                 <MoneyInput
                   {...controlProps}
@@ -185,7 +189,7 @@ export function BudgetManageForms({
               )}
             </Field>
             {line.lineType === 'category' ? (
-              <Field label={t('fields.categoryKey')}>
+              <Field label={t('fields.categoryKey')} className={mainAppFieldSpan.lg}>
                 {(controlProps) => (
                   <input
                     {...controlProps}
@@ -203,7 +207,7 @@ export function BudgetManageForms({
               </Field>
             ) : null}
             {line.lineType === 'work_package' ? (
-              <Field label={t('fields.workPackageId')}>
+              <Field label={t('fields.workPackageId')} className={mainAppFieldSpan.lg}>
                 {(controlProps) => (
                   <input
                     {...controlProps}
@@ -222,7 +226,7 @@ export function BudgetManageForms({
                 )}
               </Field>
             ) : null}
-            <Field label={t('fields.etcAmount')}>
+            <Field label={t('fields.etcAmount')} className={mainAppFieldSpan.lg}>
               {(controlProps) => (
                 <MoneyInput
                   {...controlProps}
@@ -247,6 +251,7 @@ export function BudgetManageForms({
             >
               {t('fields.removeLine')}
             </Button>
+            </MainAppFormGrid>
           </fieldset>
         ))}
         <Button

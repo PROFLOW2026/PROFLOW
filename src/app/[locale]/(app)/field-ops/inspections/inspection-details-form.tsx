@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -39,13 +40,14 @@ export function InspectionDetailsForm({
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex w-full flex-col gap-4">
       <input type="hidden" name="inspectionId" value={inspectionId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{t('detail.saved')}</Alert> : null}
 
+      <MainAppFormGrid dense className="gap-4">
       {employees.length > 0 ? (
-        <Field label={t('createInspection.inspectorLabel')}>
+        <Field label={t('createInspection.inspectorLabel')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input
@@ -78,6 +80,7 @@ export function InspectionDetailsForm({
           error={state.fieldErrors?.formTemplateId}
         />
       ) : null}
+      </MainAppFormGrid>
 
       <Button type="submit" variant="secondary" className="h-11 w-full sm:w-auto" loading={pending}>
         {pending ? tCommon('states.saving') : t('updateStatus.submit')}

@@ -1,8 +1,8 @@
 import { getTranslations } from 'next-intl/server';
+import { MainAppSection } from '@/components/patterns/main-app';
 import { CoverageDisclosure } from '@/components/patterns/coverage-disclosure';
 import { MoneyText } from '@/components/patterns/money-text';
 import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { pressableClassName } from '@/components/ui/pressable';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/shared/ui/cn';
@@ -70,21 +70,15 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-4">
-      <h3 className="text-base font-semibold">{t('panelTitle')}</h3>
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('profitVsCash')}</p>
-
-      {canReadBilling ? (
-        <BillingPlanStatusStrip projectId={projectId} />
-      ) : null}
+      <MainAppSection title={t('panelTitle')} description={t('profitVsCash')}>
+        {canReadBilling ? <BillingPlanStatusStrip projectId={projectId} /> : null}
+      </MainAppSection>
 
       <ProjectOwnerActualExperience projectId={projectId} variant="financials" />
 
       {canReadBilling ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('ownerStory.billingCollectionTitle')}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2 text-sm">
+        <MainAppSection title={t('ownerStory.billingCollectionTitle')}>
+          <div className="flex flex-col gap-2 text-sm">
             {financials.commercial ? (
               <div className="flex justify-between gap-2">
                 <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.currentContract')}</span>
@@ -125,17 +119,13 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
                 className="items-end text-end"
               />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </MainAppSection>
       ) : null}
 
       {canReadCommercial && (financials.perContract?.length ?? 0) > 1 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('perContract.title')}</CardTitle>
-            <CardDescription>{t('perContract.hint')}</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
+        <MainAppSection title={t('perContract.title')} description={t('perContract.hint')}>
+          <div className="flex flex-col gap-3">
             {financials.perContract!.map((slice) => (
               <div
                 key={slice.contractId}
@@ -161,8 +151,8 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
               </div>
             ))}
             <p className="text-xs text-[var(--pf-text-muted)]">{t('perContract.costProfitHint')}</p>
-          </CardContent>
-        </Card>
+          </div>
+        </MainAppSection>
       ) : null}
 
       {canReadBilling && cashFlow ? (
@@ -195,7 +185,8 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
         t={t}
       />
 
-      <details className="rounded-lg border border-[var(--pf-border-default)] p-4">
+      <MainAppSection className="gap-0 p-0 sm:p-0">
+        <details className="min-w-0 p-3 sm:p-4">
         <summary
           className={cn(
             pressableClassName,
@@ -359,7 +350,8 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
             <CoverageDisclosure sources={coverageSources} />
           ) : null}
         </div>
-      </details>
+        </details>
+      </MainAppSection>
     </div>
   );
 }

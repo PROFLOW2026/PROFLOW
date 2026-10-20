@@ -1,3 +1,9 @@
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { ArrowLeft } from 'lucide-react';
@@ -22,7 +28,8 @@ import { TaskContractorSection } from '@/modules/collaboration/ui';
 import { TaskRelatedWorkSection } from '@/modules/tasks/ui/task-related-work-section';
 import { TaskDetailHubNav } from '@/modules/tasks/ui/task-detail-hub-nav';
 import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+const EMPTY = '—';
 
 export async function generateMetadata({
   params,
@@ -62,8 +69,15 @@ export default async function TaskDetailPage({
   }));
   if (!detail) notFound();
 
+  const assigneeSummary =
+    detail.assignees.length > 0
+      ? detail.assignees
+          .map((assignee) => assignee.displayName?.trim() || EMPTY)
+          .join(', ')
+      : EMPTY;
+
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={detail.title}
         description={detail.projectName ?? undefined}
@@ -75,85 +89,120 @@ export default async function TaskDetailPage({
         }
       />
 
-      <TaskDetailHubNav
-        taskId={taskId}
-        projectId={detail.projectId}
-        projectName={detail.projectName}
-        reportedHours={detail.reportedHours}
-      />
+      <MainAppSection>
+        <TaskDetailHubNav
+          taskId={taskId}
+          projectId={detail.projectId}
+          projectName={detail.projectName}
+          reportedHours={detail.reportedHours}
+        />
+        <MainAppSummaryGrid className="mt-3">
+          <MainAppSummaryItem label={t('task.status')}>{t(`status.${detail.status}`)}</MainAppSummaryItem>
+          <MainAppSummaryItem label={t('task.priority')}>{t(`priority.${detail.priority}`)}</MainAppSummaryItem>
+          <MainAppSummaryItem label={t('task.dueDate')}>
+            {detail.dueDate ? (
+              <span className="pf-ltr-island" dir="ltr">
+                {detail.dueDate}
+              </span>
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('task.assignees')}>{assigneeSummary}</MainAppSummaryItem>
+          <MainAppSummaryItem label={t('detailHub.reportedHours')}>
+            {detail.reportedHours?.trim() ? detail.reportedHours : EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('detailHub.project')}>
+            {detail.projectId && detail.projectName ? (
+              <Link href={`/projects/${detail.projectId}`} className={textNavLinkClassName}>
+                {detail.projectName}
+              </Link>
+            ) : (
+              t('noProject')
+            )}
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
+      </MainAppSection>
 
-      <TaskDetailPageClient
-        initialTask={detail}
-        onUpdate={updateTaskFieldsAction}
-        getTaskDetail={getTaskDetailAction}
-        today={today}
-        canAssign={shell.permissions.has(PERMISSIONS.TASKS_ASSIGN)}
-        canArchive={shell.permissions.has(PERMISSIONS.TASKS_DELETE)}
-      />
+      <MainAppSection title={t('task.edit')}>
+        <TaskDetailPageClient
+          initialTask={detail}
+          onUpdate={updateTaskFieldsAction}
+          getTaskDetail={getTaskDetailAction}
+          today={today}
+          canAssign={shell.permissions.has(PERMISSIONS.TASKS_ASSIGN)}
+          canArchive={shell.permissions.has(PERMISSIONS.TASKS_DELETE)}
+        />
+      </MainAppSection>
 
-      <TaskDocumentAttachments
-        taskId={taskId}
-        documents={documentsPanel.documents}
-        linkCandidates={documentsPanel.linkCandidates}
-        canRead={documentsPanel.canRead}
-        canManage={documentsPanel.canManage}
-        storageConfigured={documentsPanel.storageConfigured}
-        canClassifyCompensation={documentsPanel.canClassifyCompensation}
-        projectId={documentsPanel.projectId}
-        canBrowseCloudFiles={documentsPanel.canBrowseCloudFiles}
-      />
+      <MainAppSection title={t('task.attachments')}>
+        <TaskDocumentAttachments
+          taskId={taskId}
+          documents={documentsPanel.documents}
+          linkCandidates={documentsPanel.linkCandidates}
+          canRead={documentsPanel.canRead}
+          canManage={documentsPanel.canManage}
+          storageConfigured={documentsPanel.storageConfigured}
+          canClassifyCompensation={documentsPanel.canClassifyCompensation}
+          projectId={documentsPanel.projectId}
+          canBrowseCloudFiles={documentsPanel.canBrowseCloudFiles}
+        />
+      </MainAppSection>
 
       {detail.projectId ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('evidenceSection.title')}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <EvidenceGallery
-              organizationId={organizationId}
-              entityType="task"
-              entityId={taskId}
-              viewer="internal"
-            />
-            <EvidenceUploader
-              organizationId={organizationId}
-              projectId={detail.projectId}
-              entityType="task"
-              entityId={taskId}
-              viewer="internal"
-              accept={['photo', 'video', 'document']}
-            />
-          </CardContent>
-        </Card>
+        <MainAppSection title={t('evidenceSection.title')}>
+          <EvidenceGallery
+            organizationId={organizationId}
+            entityType="task"
+            entityId={taskId}
+            viewer="internal"
+          />
+          <EvidenceUploader
+            organizationId={organizationId}
+            projectId={detail.projectId}
+            entityType="task"
+            entityId={taskId}
+            viewer="internal"
+            accept={['photo', 'video', 'document']}
+          />
+        </MainAppSection>
       ) : null}
 
-      <Suspense fallback={<Skeleton className="h-24 w-full rounded-lg" />}>
-        <TaskRelatedWorkSection taskId={taskId} />
-      </Suspense>
+      <MainAppSection title={t('relatedWork.title')}>
+        <Suspense fallback={<Skeleton className="h-24 w-full rounded-lg" />}>
+          <TaskRelatedWorkSection taskId={taskId} />
+        </Suspense>
+      </MainAppSection>
 
       {detail.approvalRequired ? (
-        <Suspense fallback={<TaskApprovalGateSkeleton />}>
-          <TaskApprovalGate taskId={taskId} approvalRequired={detail.approvalRequired} />
-        </Suspense>
+        <MainAppSection title={t('task.approvalRequired')}>
+          <Suspense fallback={<TaskApprovalGateSkeleton />}>
+            <TaskApprovalGate taskId={taskId} approvalRequired={detail.approvalRequired} />
+          </Suspense>
+        </MainAppSection>
       ) : null}
 
-      <div id="comments" className="scroll-mt-6">
-        <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
-          <TaskComments taskId={taskId} />
-        </Suspense>
-      </div>
+      <MainAppSection title={t('task.comments')}>
+        <div id="comments" className="scroll-mt-6">
+          <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
+            <TaskComments taskId={taskId} />
+          </Suspense>
+        </div>
+      </MainAppSection>
 
-      <div id="activity" className="scroll-mt-6">
-        <Suspense fallback={<TaskActivitySkeleton />}>
-          <TaskActivity taskId={taskId} />
-        </Suspense>
-      </div>
+      <MainAppSection title={t('task.activity')}>
+        <div id="activity" className="scroll-mt-6">
+          <Suspense fallback={<TaskActivitySkeleton />}>
+            <TaskActivity taskId={taskId} />
+          </Suspense>
+        </div>
+      </MainAppSection>
 
       {detail.projectId ? (
         <Suspense fallback={<Skeleton className="h-32 w-full rounded-lg" />}>
           <TaskContractorSection taskId={taskId} />
         </Suspense>
       ) : null}
-    </div>
+    </MainAppPage>
   );
 }

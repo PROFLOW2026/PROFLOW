@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { ReactNode } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { SectionNavLink } from '@/components/ui/section-nav-link';
 
@@ -26,5 +27,5 @@ export async function CrmSectionNav({ active }: { active: 'opportunities' | 'pro
 }
 
 export function CrmShell({ children }: { children: ReactNode }) {
-  return <div className="flex flex-col gap-4">{children}</div>;
+  return <MainAppPage>{children}</MainAppPage>;
 }

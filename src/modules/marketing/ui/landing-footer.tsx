@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+﻿import { getTranslations } from 'next-intl/server';
 import { LegalFooterLinks } from '@/modules/legal/ui/legal-footer-links';
 import { Link } from '@/shared/i18n/navigation';
 

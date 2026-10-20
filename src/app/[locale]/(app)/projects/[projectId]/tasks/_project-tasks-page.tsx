@@ -1,3 +1,4 @@
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -91,7 +92,7 @@ export default async function ProjectTasksPage({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage className="w-full min-w-0">
       <PageHeader
         title={t('tasks.projectTasksTitle')}
         description={t('tasks.projectTasksDescription')}
@@ -103,29 +104,30 @@ export default async function ProjectTasksPage({
           </div>
         }
       />
-
-      <PlanningVsTasksHint projectId={projectId} />
-
-      {hasMore ? (
-        <p role="status" className="text-sm text-[var(--pf-text-muted)]">
-          {t('list.hasMore')}
-        </p>
-      ) : null}
-
-      <ProjectTasksClient
-        tasks={tasks}
-        projectId={projectId}
-        workspaceId={workspaceId}
-        getTaskDetail={getTaskDetailAction}
-        updateTask={updateTaskFieldsAction}
-        createTask={createTaskAction}
-        syncAssignees={syncAssigneesAction}
-        assigneeOptions={assigneeOptions}
-        canAssign={canAssign}
-        canArchive={canArchive}
-        today={today}
-        initialCreateOpen={query.new === '1'}
-      />
-    </div>
+      <MainAppSection className="w-full min-w-0">
+        <div className="flex w-full min-w-0 flex-col gap-4">
+          <PlanningVsTasksHint projectId={projectId} />
+          {hasMore ? (
+            <p role="status" className="text-sm text-[var(--pf-text-muted)]">
+              {t('list.hasMore')}
+            </p>
+          ) : null}
+          <ProjectTasksClient
+            tasks={tasks}
+            projectId={projectId}
+            workspaceId={workspaceId}
+            getTaskDetail={getTaskDetailAction}
+            updateTask={updateTaskFieldsAction}
+            createTask={createTaskAction}
+            syncAssignees={syncAssigneesAction}
+            assigneeOptions={assigneeOptions}
+            canAssign={canAssign}
+            canArchive={canArchive}
+            today={today}
+            initialCreateOpen={query.new === '1'}
+          />
+        </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

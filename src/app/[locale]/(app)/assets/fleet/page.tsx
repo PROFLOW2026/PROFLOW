@@ -1,4 +1,10 @@
 import { Car, Plus } from 'lucide-react';
+import {
+  MainAppListBody,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
@@ -66,10 +72,9 @@ export default async function FleetPage({
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('fleet.title')}
-        description={t('fleet.description')}
         actions={
           canManage ? (
             <Button asChild>
@@ -81,7 +86,8 @@ export default async function FleetPage({
           ) : null
         }
       />
-      <AssetsSectionNav active="fleet" />
+      <MainAppSection>
+        <AssetsSectionNav active="fleet" />
 
       <Alert tone="info" title={t('fleet.schemaLimitsTitle')}>
         <p>{t('fleet.schemaLimitsBody')}</p>
@@ -98,6 +104,7 @@ export default async function FleetPage({
         </details>
       </Alert>
 
+      <MainAppListBody>
       {canManage && showNew === '1' ? (
         <div className="rounded-lg border border-[var(--pf-border-default)] p-4">
           <h2 className="mb-3 font-semibold">{t('fleet.createTitle')}</h2>
@@ -125,7 +132,7 @@ export default async function FleetPage({
           items={items}
           getRowKey={(item) => item.id}
           desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            <MainAppTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -196,7 +203,7 @@ export default async function FleetPage({
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </MainAppTableShell>
           }
           renderMobileCard={(item) => (
             <div className="min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
@@ -254,6 +261,8 @@ export default async function FleetPage({
           )}
         />
       ) : null}
-    </div>
+      </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

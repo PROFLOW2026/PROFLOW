@@ -1,4 +1,4 @@
-import type React from 'react';
+﻿import type React from 'react';
 import { Plus, Receipt } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';

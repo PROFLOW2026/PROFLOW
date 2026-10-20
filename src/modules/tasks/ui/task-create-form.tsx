@@ -18,6 +18,7 @@
 import { CalendarIcon, Flag, Tag, User } from 'lucide-react';
 import { useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/shared/ui/cn';
 import type { TaskPriority, TaskStatus } from './task-api';
@@ -215,8 +216,9 @@ export function TaskCreateForm({
       className={cn('flex flex-col gap-4', className)}
       noValidate
     >
+      <MainAppFormGrid dense>
       {/* Title */}
-      <FormField>
+      <FormField className={mainAppFieldSpan.full}>
         <FormLabel htmlFor="task-title" required>
           {t('create.titleLabel')}
         </FormLabel>
@@ -238,7 +240,7 @@ export function TaskCreateForm({
       </FormField>
 
       {/* Description */}
-      <FormField>
+      <FormField className={mainAppFieldSpan.full}>
         <FormLabel htmlFor="task-description">
           {t('create.descriptionLabel')}
         </FormLabel>
@@ -252,11 +254,9 @@ export function TaskCreateForm({
         />
       </FormField>
 
-      {/* Row: Bucket + Status + Priority */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {/* Bucket */}
         {buckets.length > 0 && (
-          <FormField>
+          <FormField className={mainAppFieldSpan.lg}>
             <FormLabel htmlFor="task-bucket">
               {t('create.bucketLabel')}
             </FormLabel>
@@ -277,7 +277,7 @@ export function TaskCreateForm({
         )}
 
         {/* Status */}
-        <FormField>
+        <FormField className={mainAppFieldSpan.lg}>
           <FormLabel htmlFor="task-status">
             {t('create.statusLabel')}
           </FormLabel>
@@ -296,7 +296,7 @@ export function TaskCreateForm({
         </FormField>
 
         {/* Priority */}
-        <FormField>
+        <FormField className={mainAppFieldSpan.lg}>
           <FormLabel htmlFor="task-priority">
             <Flag aria-hidden className="me-1 inline size-3.5" />
             {t('create.priorityLabel')}
@@ -314,10 +314,8 @@ export function TaskCreateForm({
             ))}
           </select>
         </FormField>
-      </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <FormField>
+        <FormField className={mainAppFieldSpan.lg}>
           <FormLabel htmlFor="task-start-date">
             <CalendarIcon aria-hidden className="me-1 inline size-3.5" />
             {t('task.startDate')}
@@ -331,7 +329,7 @@ export function TaskCreateForm({
           />
         </FormField>
 
-        <FormField>
+        <FormField className={mainAppFieldSpan.lg}>
           <FormLabel htmlFor="task-due-date">
             <CalendarIcon aria-hidden className="me-1 inline size-3.5" />
             {t('create.dueDateLabel')}
@@ -344,9 +342,8 @@ export function TaskCreateForm({
             className={inputCls}
           />
         </FormField>
-      </div>
 
-      <FormField>
+      <FormField className={mainAppFieldSpan.lg}>
         <FormLabel htmlFor="task-effort">{t('task.estimatedEffort')}</FormLabel>
         <input
           id="task-effort"
@@ -359,6 +356,7 @@ export function TaskCreateForm({
           className={inputCls}
         />
       </FormField>
+      </MainAppFormGrid>
 
       <TaskRecurrenceSection
         preset={recurrencePreset}

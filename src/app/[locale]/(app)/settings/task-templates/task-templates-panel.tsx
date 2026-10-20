@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppSection, MainAppTableShell } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,8 +13,7 @@ import {
   createTaskTemplateAction,
   updateTaskTemplateAction,
   archiveTaskTemplateAction,
-  type TemplateActionState,
-} from './actions';
+  type TemplateActionState} from './actions';
 
 const PRIORITY_VALUES = ['none', 'low', 'medium', 'high', 'urgent'] as const;
 
@@ -178,8 +178,7 @@ function CreateTemplateForm({ canEdit }: { canEdit: boolean }) {
 
 export function TaskTemplatesPanel({
   templates,
-  canEdit,
-}: {
+  canEdit}: {
   templates: TaskTemplateDef[];
   canEdit: boolean;
 }) {
@@ -189,33 +188,39 @@ export function TaskTemplatesPanel({
   const [showArchived, setShowArchived] = useState(false);
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
+      </MainAppSection>
 
-      <div className="rounded-lg border border-[var(--pf-border-default)] p-4">
-        {active.length === 0 && (
-          <p className="text-sm text-[var(--pf-text-muted)]">{t('emptyState')}</p>
-        )}
-        {active.map((tpl) => (
-          <TemplateRow key={tpl.id} template={tpl} canEdit={canEdit} />
-        ))}
-      </div>
+      <MainAppSection className="w-full min-w-0">
+        <MainAppTableShell className="w-full min-w-0 p-4">
+          {active.length === 0 && (
+            <p className="text-sm text-[var(--pf-text-muted)]">{t('emptyState')}</p>
+          )}
+          {active.map((tpl) => (
+            <TemplateRow key={tpl.id} template={tpl} canEdit={canEdit} />
+          ))}
+        </MainAppTableShell>
+      </MainAppSection>
 
-      <CreateTemplateForm canEdit={canEdit} />
+      <MainAppSection className="w-full min-w-0">
+        <CreateTemplateForm canEdit={canEdit} />
+      </MainAppSection>
 
       {archived.length > 0 && (
-        <div>
+        <MainAppSection className="w-full min-w-0">
           <Button type="button" size="sm" variant="ghost" onClick={() => setShowArchived(!showArchived)}>
             {showArchived ? t('hideArchived') : t('showArchived', { count: archived.length })}
           </Button>
           {showArchived && (
-            <div className="mt-2 rounded-lg border border-[var(--pf-border-default)] p-4 opacity-60">
+            <MainAppTableShell className="mt-2 w-full min-w-0 p-4 opacity-60">
               {archived.map((tpl) => (
                 <TemplateRow key={tpl.id} template={tpl} canEdit={canEdit} />
               ))}
-            </div>
+            </MainAppTableShell>
           )}
-        </div>
+        </MainAppSection>
       )}
     </div>
   );

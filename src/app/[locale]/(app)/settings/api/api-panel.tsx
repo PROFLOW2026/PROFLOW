@@ -1,8 +1,9 @@
-'use client';
+﻿'use client';
 
 import { useActionState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { localizeCode } from '@/shared/i18n/code-display';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -95,7 +96,7 @@ export function ApiSettingsPanel({
     hookState.plaintextSecret ?? rotateSecretState.plaintextSecret;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <div>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
         <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('versionNote')}</p>
@@ -115,7 +116,7 @@ export function ApiSettingsPanel({
       {canEdit ? (
         <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
           <h2 className="font-medium">{t('addClient')}</h2>
-          <form action={clientAction} className="mt-3 flex max-w-lg flex-col gap-3">
+          <form action={clientAction} className="mt-3 flex w-full max-w-xl min-w-0 flex-col gap-3">
             {clientState.error ? <Alert tone="danger">{clientState.error}</Alert> : null}
             {clientState.ok ? (
               <Alert tone="success" role="status">
@@ -135,7 +136,7 @@ export function ApiSettingsPanel({
       {canEdit && clients.length > 0 ? (
         <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
           <h2 className="font-medium">{t('addKey')}</h2>
-          <form action={keyAction} className="mt-3 flex max-w-lg flex-col gap-3">
+          <form action={keyAction} className="mt-3 flex w-full max-w-2xl min-w-0 flex-col gap-3">
             {keyState.error ? <Alert tone="danger">{keyState.error}</Alert> : null}
             {shownPlaintextKey ? (
               <Alert tone="warning">
@@ -145,25 +146,27 @@ export function ApiSettingsPanel({
                 </code>
               </Alert>
             ) : null}
-            <Field label={t('fields.apiClient')} required>
-              {(props) => (
-                <Select name="apiClientId" defaultValue={clients[0]?.id}>
-                  <SelectTrigger id={props.id}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </Field>
-            <Field label={t('fields.keyName')} required>
-              {(props) => <Input {...props} name="name" required />}
-            </Field>
+            <MainAppFormGrid dense>
+              <Field label={t('fields.apiClient')} required className={mainAppFieldSpan.lg}>
+                {(props) => (
+                  <Select name="apiClientId" defaultValue={clients[0]?.id}>
+                    <SelectTrigger id={props.id}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </Field>
+              <Field label={t('fields.keyName')} required className={mainAppFieldSpan.lg}>
+                {(props) => <Input {...props} name="name" required />}
+              </Field>
+            </MainAppFormGrid>
             <fieldset className="flex flex-col gap-1">
               <legend className="text-sm font-medium">{t('fields.scopes')}</legend>
               {API_KEY_SCOPES.map((scope) => (
@@ -323,7 +326,7 @@ export function ApiSettingsPanel({
       {canEdit ? (
         <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
           <h2 className="font-medium">{t('addWebhook')}</h2>
-          <form action={hookAction} className="mt-3 flex max-w-lg flex-col gap-3">
+          <form action={hookAction} className="mt-3 flex w-full max-w-2xl min-w-0 flex-col gap-3">
             {hookState.error ? <Alert tone="danger">{hookState.error}</Alert> : null}
             {shownPlaintextSecret ? (
               <Alert tone="warning">

@@ -1,3 +1,4 @@
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
@@ -26,9 +27,11 @@ export default async function ProjectStructurePage({
   const basePath = `/projects/${projectId}/structure`;
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage className="w-full min-w-0">
       <PageHeader title={t('page.title')} description={t('page.description')} />
-      <ProjectStructureScreen projectId={projectId} basePath={basePath} />
-    </div>
+      <MainAppSection className="w-full min-w-0">
+        <ProjectStructureScreen projectId={projectId} basePath={basePath} />
+      </MainAppSection>
+    </MainAppPage>
   );
 }

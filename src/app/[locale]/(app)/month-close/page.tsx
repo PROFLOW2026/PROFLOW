@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
@@ -85,17 +86,21 @@ export default async function MonthClosePage({
 
   if (!data.allowed) {
     return (
-      <div className="flex flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={t('title')} description={t('description')} />
+      <MainAppSection>
         <Card className="p-5 text-sm text-[var(--pf-text-secondary)]">{t('notAllowed')}</Card>
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('title')} description={t('description')} />
-      <Card className="p-5">
+      <MainAppSection>
+        <Card className="p-5">
         <MonthClosePanel
           periods={data.periods}
           selected={data.selected}
@@ -113,6 +118,8 @@ export default async function MonthClosePage({
           adjustmentAction={createMonthCloseAdjustmentAction}
         />
       </Card>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

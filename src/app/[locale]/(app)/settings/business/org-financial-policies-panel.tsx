@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -38,91 +39,96 @@ export function OrgFinancialPoliciesPanel({
   );
 
   return (
-    <form action={action} className="flex flex-col gap-5 border-b border-[var(--pf-border-default)] pb-5">
-      <div className="min-w-0">
-        <p className="text-start font-medium">{t('title')}</p>
-        <p className="mt-1 text-start text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
-      </div>
+    <MainAppSection title={t('title')} description={t('subtitle')}>
+      <form action={action} className="flex w-full min-w-0 flex-col gap-4">
+        <input type="hidden" name="expensePaymentConfirmationMode" value={expenseMode} />
+        <input type="hidden" name="salaryPaymentConfirmationMode" value={salaryMode} />
 
-      <input type="hidden" name="expensePaymentConfirmationMode" value={expenseMode} />
-      <input type="hidden" name="salaryPaymentConfirmationMode" value={salaryMode} />
+        <MainAppFormGrid dense className="gap-4">
+          <Field label={t('expensePaymentLabel')} className={mainAppFieldSpan.lg}>
+            {(control) => (
+              <Select
+                value={expenseMode}
+                onValueChange={(value) => setExpenseMode(value as ExpensePaymentConfirmationMode)}
+                disabled={!canEdit}
+              >
+                <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {EXPENSE_PAYMENT_MODES.map((mode) => (
+                    <SelectItem key={mode} value={mode}>
+                      {t(`expensePaymentModes.${mode}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+          <p className={`text-start text-xs text-[var(--pf-text-muted)] ${mainAppFieldSpan.full}`}>
+            {t('expensePaymentHint')}
+          </p>
 
-      <Field label={t('expensePaymentLabel')} className="min-w-0 sm:max-w-md">
-        {(control) => (
-          <Select
-            value={expenseMode}
-            onValueChange={(value) => setExpenseMode(value as ExpensePaymentConfirmationMode)}
-            disabled={!canEdit}
-          >
-            <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {EXPENSE_PAYMENT_MODES.map((mode) => (
-                <SelectItem key={mode} value={mode}>
-                  {t(`expensePaymentModes.${mode}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </Field>
-      <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('expensePaymentHint')}</p>
+          <Field label={t('salaryPaymentDayLabel')} className={mainAppFieldSpan.md}>
+            {(control) => (
+              <Input
+                id={control.id}
+                name="salaryPaymentDay"
+                type="number"
+                min={1}
+                max={28}
+                value={salaryDay}
+                onChange={(event) => setSalaryDay(event.target.value)}
+                disabled={!canEdit}
+                aria-describedby={control['aria-describedby']}
+              />
+            )}
+          </Field>
 
-      <Field label={t('salaryPaymentDayLabel')} className="min-w-0 sm:max-w-xs">
-        {(control) => (
-          <Input
-            id={control.id}
-            name="salaryPaymentDay"
-            type="number"
-            min={1}
-            max={28}
-            value={salaryDay}
-            onChange={(event) => setSalaryDay(event.target.value)}
-            disabled={!canEdit}
-            aria-describedby={control['aria-describedby']}
-          />
-        )}
-      </Field>
+          <Field label={t('salaryPaymentLabel')} className={mainAppFieldSpan.lg}>
+            {(control) => (
+              <Select
+                value={salaryMode}
+                onValueChange={(value) => setSalaryMode(value as SalaryPaymentConfirmationMode)}
+                disabled={!canEdit}
+              >
+                <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SALARY_PAYMENT_MODES.map((mode) => (
+                    <SelectItem key={mode} value={mode}>
+                      {t(`salaryPaymentModes.${mode}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+          <p className={`text-start text-xs text-[var(--pf-text-muted)] ${mainAppFieldSpan.full}`}>
+            {t('salaryPaymentHint')}
+          </p>
 
-      <Field label={t('salaryPaymentLabel')} className="min-w-0 sm:max-w-md">
-        {(control) => (
-          <Select
-            value={salaryMode}
-            onValueChange={(value) => setSalaryMode(value as SalaryPaymentConfirmationMode)}
-            disabled={!canEdit}
-          >
-            <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SALARY_PAYMENT_MODES.map((mode) => (
-                <SelectItem key={mode} value={mode}>
-                  {t(`salaryPaymentModes.${mode}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </Field>
-      <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('salaryPaymentHint')}</p>
+          {canEdit ? (
+            <div className={mainAppFieldSpan.full}>
+              <Button type="submit" size="sm" variant="secondary" loading={pending} className="self-start">
+                {tCommon('actions.save')}
+              </Button>
+            </div>
+          ) : null}
+        </MainAppFormGrid>
 
-      {canEdit ? (
-        <Button type="submit" size="sm" variant="secondary" loading={pending} className="self-start">
-          {tCommon('actions.save')}
-        </Button>
-      ) : null}
-
-      {state.error ? (
-        <Alert tone="danger" className="w-full">
-          {state.error}
-        </Alert>
-      ) : null}
-      {state.ok ? (
-        <Alert tone="success" className="w-full">
-          {tCommon('actions.saved')}
-        </Alert>
-      ) : null}
-    </form>
+        {state.error ? (
+          <Alert tone="danger" className="w-full">
+            {state.error}
+          </Alert>
+        ) : null}
+        {state.ok ? (
+          <Alert tone="success" className="w-full">
+            {tCommon('actions.saved')}
+          </Alert>
+        ) : null}
+      </form>
+    </MainAppSection>
   );
 }

@@ -1,4 +1,4 @@
-import dynamic from 'next/dynamic';
+﻿import dynamic from 'next/dynamic';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { marketingScreenshotSrc } from '@/modules/marketing/domain/marketing-screenshots';

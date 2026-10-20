@@ -1,4 +1,9 @@
-import type { ReactNode } from 'react';
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
@@ -24,6 +29,8 @@ import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui
 import { ReportDownloadButtons } from '@/modules/reports/ui';
 import { EntityLinkedTasksSection } from '@/modules/collaboration/ui';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
+
+const EMPTY = '—';
 
 export async function generateMetadata({
   params,
@@ -87,19 +94,17 @@ export default async function PunchDetailPage({
 
   if (!data) notFound();
 
-  const { item, projectName, workPackageName, assigneeName, employees, documentsPanel, canManage } = data;
+  const { item, projectName, workPackageName, assigneeName, employees, documentsPanel, canManage } =
+    data;
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={item.title}
         description={projectName ?? t('detail.unknownProject')}
         actions={<ReportDownloadButtons kind="punch_inspection" id={item.id} compact />}
         breadcrumb={
-          <Link
-            href="/field-ops/punch"
-            className={textNavLinkMutedClassName}
-          >
+          <Link href="/field-ops/punch" className={textNavLinkMutedClassName}>
             {tCommon('actions.back')}
           </Link>
         }
@@ -113,40 +118,42 @@ export default async function PunchDetailPage({
         }
       />
 
-      <div className="flex max-w-lg flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-sm">
-        <DetailRow
-          label={t('list.columns.project')}
-          value={
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('list.columns.project')}>
             <Link href={`/projects/${item.projectId}`} className={textNavLinkClassName}>
               {projectName ?? t('detail.unknownProject')}
             </Link>
-          }
-        />
-        {workPackageName ? (
-          <DetailRow label={t('createPunch.workPackageLabel')} value={workPackageName} />
-        ) : null}
-        {item.location ? (
-          <DetailRow label={t('createPunch.locationLabel')} value={item.location} />
-        ) : null}
-        {item.dueDate ? (
-          <DetailRow
-            label={t('createPunch.dueDateLabel')}
-            value={
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('createPunch.workPackageLabel')}>
+            {workPackageName ?? EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('createPunch.locationLabel')}>
+            {item.location?.trim() ? item.location : EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('createPunch.dueDateLabel')}>
+            {item.dueDate ? (
               <span className="pf-ltr-island" dir="ltr">
                 {item.dueDate}
               </span>
-            }
-          />
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('createPunch.assigneeLabel')}>
+            {assigneeName ?? EMPTY}
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
+        {item.description?.trim() ? (
+          <p className="mt-3 whitespace-pre-wrap text-start text-sm text-[var(--pf-text-secondary)]">
+            {item.description}
+          </p>
         ) : null}
-        {assigneeName ? (
-          <DetailRow label={t('createPunch.assigneeLabel')} value={assigneeName} />
-        ) : null}
-        {item.description ? (
-          <DetailRow label={t('createPunch.descriptionLabel')} value={item.description} />
-        ) : null}
+      </MainAppSection>
 
-        {canManage ? (
-          <div className="flex flex-col gap-3 border-t border-[var(--pf-border-default)] pt-4">
+      {canManage ? (
+        <MainAppSection title={t('updateStatus.label')}>
+          <div className="flex max-w-lg flex-col gap-3">
             <PunchEditDetailsForm
               punchListItemId={item.id}
               location={item.location}
@@ -157,18 +164,20 @@ export default async function PunchDetailPage({
             <PunchPriorityForm punchListItemId={item.id} currentPriority={item.priority} />
             <PunchStatusForm punchListItemId={item.id} currentStatus={item.status} />
           </div>
-        ) : null}
-      </div>
+        </MainAppSection>
+      ) : null}
 
-      <DocumentAttachments
-        ownerType="punch_list_item"
-        ownerId={item.id}
-        documents={documentsPanel.documents}
-        linkCandidates={documentsPanel.linkCandidates}
-        canRead={documentsPanel.canRead}
-        canManage={documentsPanel.canManage}
-        storageConfigured={documentsPanel.storageConfigured}
-      />
+      <MainAppSection title={t('cockpit.actions.documents')}>
+        <DocumentAttachments
+          ownerType="punch_list_item"
+          ownerId={item.id}
+          documents={documentsPanel.documents}
+          linkCandidates={documentsPanel.linkCandidates}
+          canRead={documentsPanel.canRead}
+          canManage={documentsPanel.canManage}
+          storageConfigured={documentsPanel.storageConfigured}
+        />
+      </MainAppSection>
 
       <WithAppClientMessages extra={['collaboration']}>
         <EntityLinkedTasksSection
@@ -178,17 +187,6 @@ export default async function PunchDetailPage({
           defaultTaskTitle={item.title}
         />
       </WithAppClientMessages>
-    </div>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-[var(--pf-text-secondary)]">
-        {label}
-      </p>
-      <div className="mt-1 whitespace-pre-wrap">{value}</div>
-    </div>
+    </MainAppPage>
   );
 }

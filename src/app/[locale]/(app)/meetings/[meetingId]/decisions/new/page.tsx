@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
@@ -34,7 +35,7 @@ export default async function NewDecisionPage({
   const meeting = await withOrgContext((context) => getMeetingDetailById(context, meetingId));
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('meetings.form.addDecisionTitle')}
         description={meeting.title}
@@ -44,7 +45,10 @@ export default async function NewDecisionPage({
           </Link>
         }
       />
-      <DecisionForm mode="create" meetingId={meetingId} />
-    </div>
+      <MainAppSection>
+        <DecisionForm mode="create" meetingId={meetingId} />
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

@@ -48,7 +48,9 @@
     "warranty_issue": "Гарантийное обращение",
     "closeout": "Закрытие",
     "outbound_communication": "Исходящее сообщение",
-    "calendar_event": "Событие календаря"
+    "calendar_event": "Событие календаря",
+    "task": "Задача",
+    "task_comment": "Комментарий к задаче"
   },
   "status": {
     "pending": "Ожидает загрузки",

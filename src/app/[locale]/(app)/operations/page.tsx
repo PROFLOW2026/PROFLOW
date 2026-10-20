@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppListBody, MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { AlertTriangle, BarChart2, Calendar, CheckSquare, Clock, Package, Users } from 'lucide-react';
@@ -9,10 +10,9 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import {
-  uwmSecondaryPanelClass,
-  uwmSectionHeadingClass,
-  uwmStatCardClass,
-} from '@/shared/ui/uwm-surface-styles';
+  mainAppCardClass,
+  mainAppSectionTitleClass,
+} from '@/shared/ui/main-app-surface-styles';
 
 export async function generateMetadata({
   params,
@@ -40,11 +40,12 @@ export default async function OperationsDashboardPage() {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('pageTitle')} description={t('pageDescription')} />
-
-      <section>
-        <h2 className={cn('mb-3', uwmSectionHeadingClass)}>{t('sections.projects')}</h2>
+      <MainAppSection>
+        <MainAppListBody className="flex flex-col gap-6">
+        <section>
+        <h2 className={cn('mb-3', mainAppSectionTitleClass)}>{t('sections.projects')}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           <StatCard
             icon={<Package className="h-4 w-4" />}
@@ -64,7 +65,7 @@ export default async function OperationsDashboardPage() {
       </section>
 
       <section>
-        <h2 className={cn('mb-3', uwmSectionHeadingClass)}>{t('sections.taskHealth')}</h2>
+        <h2 className={cn('mb-3', mainAppSectionTitleClass)}>{t('sections.taskHealth')}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <StatCard
             icon={<Calendar className="h-4 w-4" />}
@@ -88,7 +89,7 @@ export default async function OperationsDashboardPage() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className={uwmSecondaryPanelClass}>
+        <section className={cn(mainAppCardClass, 'p-4')}>
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
             <Calendar className="h-4 w-4 text-[var(--pf-text-secondary)]" />
             {t('sections.upcomingMilestones')}
@@ -119,7 +120,7 @@ export default async function OperationsDashboardPage() {
           )}
         </section>
 
-        <section className={uwmSecondaryPanelClass}>
+        <section className={cn(mainAppCardClass, 'p-4')}>
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
             <CheckSquare className="h-4 w-4 text-[var(--pf-text-secondary)]" />
             {t('sections.pendingApprovals')}
@@ -166,7 +167,7 @@ export default async function OperationsDashboardPage() {
       )}
 
       {data.teamWorkload && data.teamWorkload.length > 0 && (
-        <section className={uwmSecondaryPanelClass}>
+        <section className={cn(mainAppCardClass, 'p-4')}>
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
             <Users className="h-4 w-4 text-[var(--pf-text-secondary)]" />
             {t('sections.teamWorkload')}
@@ -185,7 +186,7 @@ export default async function OperationsDashboardPage() {
       )}
 
       {data.recentActivity.length > 0 && (
-        <section className={uwmSecondaryPanelClass}>
+        <section className={cn(mainAppCardClass, 'p-4')}>
           <h2 className="mb-3 text-sm font-semibold">{t('sections.recentActivity')}</h2>
           <ul className="space-y-2">
             {data.recentActivity.map((event) => (
@@ -209,7 +210,10 @@ export default async function OperationsDashboardPage() {
           </ul>
         </section>
       )}
-    </div>
+    
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 
@@ -230,7 +234,7 @@ function StatCard({ icon, label, value, href, variant = 'default' }: StatCardPro
         : 'text-[var(--pf-text-primary)]';
 
   const content = (
-    <div className={cn(uwmStatCardClass, variant === 'danger' && 'border-red-200', variant === 'warning' && 'border-amber-200')}>
+    <div className={cn(mainAppCardClass, 'p-3', variant === 'danger' && 'border-red-200', variant === 'warning' && 'border-amber-200')}>
       <div className="flex items-center gap-1.5 text-xs text-[var(--pf-text-secondary)]">
         {icon}
         <span>{label}</span>

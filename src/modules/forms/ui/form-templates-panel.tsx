@@ -1,5 +1,6 @@
 'use client';
 
+import { MainAppFormGrid, MainAppPage, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { useMemo, useState, useActionState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
@@ -100,7 +101,7 @@ export function FormTemplatesPanel({
   }
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6">
+    <MainAppPage>
       <div>
         <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('settings.subtitle')}</p>
         <Alert tone="info" className="mt-3">
@@ -111,7 +112,7 @@ export function FormTemplatesPanel({
       {canEdit ? (
         <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
           <h2 className="text-start font-medium">{t('settings.addTemplate')}</h2>
-          <form action={createAction} className="mt-3 flex w-full max-w-lg flex-col gap-3">
+          <form action={createAction} className="mt-3 flex w-full max-w-3xl min-w-0 flex-col gap-3">
             {createState.error ? <Alert tone="danger">{createState.error}</Alert> : null}
             {createState.ok ? (
               <Alert tone="success" role="status">
@@ -119,15 +120,17 @@ export function FormTemplatesPanel({
               </Alert>
             ) : null}
 
-            <Field label={t('settings.fields.name')} required>
-              {(props) => <Input {...props} name="name" required maxLength={200} />}
-            </Field>
-            <Field label={t('settings.fields.description')}>
-              {(props) => <Textarea {...props} name="description" rows={2} />}
-            </Field>
-            <Field label={t('settings.fields.category')}>
-              {(props) => <Input {...props} name="category" maxLength={100} />}
-            </Field>
+            <MainAppFormGrid dense>
+              <Field label={t('settings.fields.name')} required className={mainAppFieldSpan.lg}>
+                {(props) => <Input {...props} name="name" required maxLength={200} />}
+              </Field>
+              <Field label={t('settings.fields.category')} className={mainAppFieldSpan.md}>
+                {(props) => <Input {...props} name="category" maxLength={100} />}
+              </Field>
+              <Field label={t('settings.fields.description')} className={mainAppFieldSpan.full}>
+                {(props) => <Textarea {...props} name="description" rows={2} />}
+              </Field>
+            </MainAppFormGrid>
 
             <div className="rounded-md border border-[var(--pf-border-default)] p-3">
               <p className="mb-2 text-sm font-medium">{t('settings.fields.addField')}</p>
@@ -310,6 +313,6 @@ export function FormTemplatesPanel({
           ))}
         </ul>
       )}
-    </div>
+    </MainAppPage>
   );
 }

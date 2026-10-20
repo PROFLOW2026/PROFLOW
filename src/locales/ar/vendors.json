@@ -22,7 +22,9 @@
       "type": "النوع",
       "category": "الفئة",
       "projects": "المشاريع",
-      "status": "الحالة"
+      "status": "الحالة",
+      "companyId": "رقم الشركة",
+      "contact": "جهة الاتصال"
     }
   },
   "catalog": {

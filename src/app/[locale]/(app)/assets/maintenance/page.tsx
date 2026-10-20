@@ -1,4 +1,10 @@
 import { Wrench } from 'lucide-react';
+import {
+  MainAppListBody,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { formatMoneyString } from '@/shared/money/format';
@@ -72,7 +78,7 @@ function MaintenanceTable({
       items={items}
       getRowKey={(row) => row.id}
       desktop={
-        <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+        <MainAppTableShell>
           <Table>
             <TableHeader>
               <TableRow>
@@ -114,7 +120,7 @@ function MaintenanceTable({
               ))}
             </TableBody>
           </Table>
-        </div>
+        </MainAppTableShell>
       }
       renderMobileCard={(row) => (
         <Link
@@ -157,10 +163,13 @@ export default async function MaintenanceSchedulePage() {
   const schedule = await withOrgContext((context) => listMaintenanceScheduleForOrg(context));
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader title={t('schedule.title')} description={t('schedule.hint')} />
-      <AssetsSectionNav active="maintenance" />
+    <MainAppPage>
+      <PageHeader title={t('schedule.title')} />
+      <MainAppSection>
+        <AssetsSectionNav active="maintenance" />
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('schedule.hint')}</p>
 
+        <MainAppListBody>
       {schedule.all.length === 0 ? (
         <EmptyState
           icon={Wrench}
@@ -188,6 +197,8 @@ export default async function MaintenanceSchedulePage() {
           </section>
         </>
       )}
-    </div>
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

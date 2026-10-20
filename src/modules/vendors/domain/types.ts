@@ -121,6 +121,12 @@ export interface VendorListItem extends VendorRecord {
   readonly projectCount: number;
   readonly engagementCount: number;
   readonly categoryNames: readonly string[];
+  /** Primary/billing contact for list display. */
+  readonly primaryContactName: string | null;
+  /** Vendor phone, else first contact phone. */
+  readonly listPhone: string | null;
+  /** tax_id, company_number, or vat_number (first match). */
+  readonly registrationId: string | null;
 }
 
 export interface VendorEngagementSummary extends VendorEngagementRecord {

@@ -1,4 +1,9 @@
-import { getTranslations } from 'next-intl/server';
+﻿import { getTranslations } from 'next-intl/server';
+import {
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
 import { MoneyText } from '@/components/patterns/money-text';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -34,11 +39,10 @@ export async function ReportsAnalyticsView({
   const tFinancial = await getTranslations('financial');
   const { rollup, cashFlow } = analytics;
 
-  const sectionClass = (id: ReportsSection) =>
+  const sectionAnchorClass = (id: ReportsSection) =>
     cn(
-      'flex min-w-0 flex-col gap-3 scroll-mt-4',
-      focusSection === id &&
-        'rounded-lg ring-1 ring-[var(--pf-border-strong)] p-3',
+      'scroll-mt-4',
+      focusSection === id && 'rounded-lg p-1 ring-1 ring-[var(--pf-border-strong)]',
     );
 
   const moneyCopy = (
@@ -79,7 +83,7 @@ export async function ReportsAnalyticsView({
     focusSection != null && advancedFocusSections.includes(focusSection);
 
   return (
-    <div className="flex min-w-0 w-full max-w-full flex-col gap-8 text-start">
+    <div className="flex min-w-0 w-full max-w-full flex-col gap-3 text-start">
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
         <ul className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-[var(--pf-text-secondary)]">
           {analytics.disclosures.map((key) => (
@@ -122,17 +126,15 @@ export async function ReportsAnalyticsView({
         <summary className="min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">
           {t('advancedAnalysis')}
         </summary>
-        <div className="flex min-w-0 flex-col gap-8 border-t border-[var(--pf-border-default)] px-4 py-4">
+        <div className="flex min-w-0 flex-col gap-3 border-t border-[var(--pf-border-default)] px-4 py-4">
 
       {analytics.commercial ? (
-        <section id="reports-commercial" className={sectionClass('commercial')}>
-          <div className="min-w-0">
-            <h2 className="text-sm font-semibold">{t('sections.commercial')}</h2>
-            <p className="break-words text-xs text-[var(--pf-text-secondary)]">
-              {t('sections.commercialHint')}
-            </p>
-          </div>
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div id="reports-commercial" className={sectionAnchorClass('commercial')}>
+          <MainAppSection
+            title={t('sections.commercial')}
+            description={t('sections.commercialHint')}
+          >
+          <MainAppSummaryGrid className="min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             <MoneyReportMetricTile
               metric={analytics.commercial.original}
               copy={moneyCopy(analytics.commercial.original, tFinancial('originalContractValue'), 'netExVat')}
@@ -157,20 +159,17 @@ export async function ReportsAnalyticsView({
               metric={analytics.commercial.pending}
               copy={moneyCopy(analytics.commercial.pending, tFinancial('pendingChanges'))}
             />
-          </div>
-        </section>
+          </MainAppSummaryGrid>
+          </MainAppSection>
+        </div>
       ) : null}
 
       {analytics.cash || analytics.showArAging || cashFlow ? (
-        <section id="reports-cash" className={cn(sectionClass('cash'), 'gap-4')}>
-          <div className="min-w-0">
-            <h2 className="text-sm font-semibold">{t('sections.cash')}</h2>
-            <p className="break-words text-xs text-[var(--pf-text-secondary)]">
-              {t('sections.cashHint')}
-            </p>
-          </div>
+        <div id="reports-cash" className={sectionAnchorClass('cash')}>
+          <MainAppSection title={t('sections.cash')} description={t('sections.cashHint')}>
+          <div className="flex min-w-0 flex-col gap-3">
           {analytics.cash ? (
-            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
+            <MainAppSummaryGrid className="min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               <MoneyReportMetricTile
                 metric={analytics.cash.invoiced}
                 copy={{
@@ -196,7 +195,7 @@ export async function ReportsAnalyticsView({
                 }}
                 colorizeNegative
               />
-            </div>
+            </MainAppSummaryGrid>
           ) : null}
           {analytics.showArAging && analytics.arAging ? (
             <div className="min-w-0 max-w-full">
@@ -224,18 +223,16 @@ export async function ReportsAnalyticsView({
               />
             </div>
           ) : null}
-        </section>
+          </div>
+          </MainAppSection>
+        </div>
       ) : null}
 
       {analytics.cost ? (
-        <section id="reports-cost" className={sectionClass('cost')}>
-          <div className="min-w-0">
-            <h2 className="text-sm font-semibold">{t('sections.cost')}</h2>
-            <p className="break-words text-xs text-[var(--pf-text-secondary)]">
-              {t('sections.costHint')}
-            </p>
-          </div>
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div id="reports-cost" className={sectionAnchorClass('cost')}>
+          <MainAppSection title={t('sections.cost')} description={t('sections.costHint')}>
+          <div className="flex min-w-0 flex-col gap-3">
+          <MainAppSummaryGrid className="min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {analytics.cost.actual ? (
               <MoneyReportMetricTile
                 metric={analytics.cost.actual}
@@ -305,7 +302,7 @@ export async function ReportsAnalyticsView({
                 )}
               />
             ) : null}
-          </div>
+          </MainAppSummaryGrid>
           <p className="text-xs text-[var(--pf-text-secondary)]">{tFinancial('committedVsActual')}</p>
           <p className="text-xs text-[var(--pf-text-secondary)]">
             {tFinancial('orgCostReconciliationHint')}
@@ -313,18 +310,18 @@ export async function ReportsAnalyticsView({
           <p className="text-xs text-[var(--pf-text-secondary)]">
             {tFinancial('allocatedGeneralInProjectActualHint')}
           </p>
-        </section>
+          </div>
+          </MainAppSection>
+        </div>
       ) : null}
 
       {analytics.profitability ? (
-        <section id="reports-profitability" className={sectionClass('profitability')}>
-          <div className="min-w-0">
-            <h2 className="text-sm font-semibold">{t('sections.profitability')}</h2>
-            <p className="break-words text-xs text-[var(--pf-text-secondary)]">
-              {t('sections.profitabilityHint')}
-            </p>
-          </div>
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div id="reports-profitability" className={sectionAnchorClass('profitability')}>
+          <MainAppSection
+            title={t('sections.profitability')}
+            description={t('sections.profitabilityHint')}
+          >
+          <MainAppSummaryGrid className="min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {analytics.profitability.actualProfit ? (
               <MoneyReportMetricTile
                 metric={analytics.profitability.actualProfit}
@@ -355,7 +352,7 @@ export async function ReportsAnalyticsView({
               />
             ) : null}
             {rollup.ops.profitableCount != null ? (
-              <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 text-start">
+              <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2.5 text-start sm:p-3">
                 <p className="break-words text-xs text-[var(--pf-text-secondary)]">
                   {t('profitability.profitable')}
                 </p>
@@ -365,7 +362,7 @@ export async function ReportsAnalyticsView({
               </div>
             ) : null}
             {rollup.ops.lossMakingCount != null ? (
-              <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 text-start">
+              <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2.5 text-start sm:p-3">
                 <p className="break-words text-xs text-[var(--pf-text-secondary)]">
                   {t('profitability.lossMaking')}
                 </p>
@@ -374,11 +371,12 @@ export async function ReportsAnalyticsView({
                 </p>
               </div>
             ) : null}
-          </div>
-        </section>
+          </MainAppSummaryGrid>
+          </MainAppSection>
+        </div>
       ) : null}
 
-      <section id="reports-management" className={sectionClass('management')}>
+      <div id="reports-management" className={sectionAnchorClass('management')}>
         <ManagementAnalyticsView
           management={analytics.management}
           copy={{
@@ -419,20 +417,15 @@ export async function ReportsAnalyticsView({
               t(`management.workKinds.${kind}` as 'management.workKinds.project'),
           }}
         />
-      </section>
+      </div>
 
         </div>
       </details>
 
-      <section id="reports-operations" className={sectionClass('operations')}>
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold">{t('sections.operations')}</h2>
-          <p className="break-words text-xs text-[var(--pf-text-secondary)]">
-            {t('sections.operationsHint')}
-          </p>
-        </div>
-        <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 text-start">
+      <div id="reports-operations" className={sectionAnchorClass('operations')}>
+        <MainAppSection title={t('sections.operations')} description={t('sections.operationsHint')}>
+        <MainAppSummaryGrid className="min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2.5 text-start sm:p-3">
             <p className="break-words text-xs text-[var(--pf-text-secondary)]">
               {t('operations.activeProjects')}
             </p>
@@ -441,7 +434,7 @@ export async function ReportsAnalyticsView({
             </p>
           </div>
           {analytics.operations.progressAveragePercent != null ? (
-            <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 text-start">
+            <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2.5 text-start sm:p-3">
               <p className="break-words text-xs text-[var(--pf-text-secondary)]">
                 {t('operations.avgProgress')}
               </p>
@@ -560,20 +553,17 @@ export async function ReportsAnalyticsView({
               ) : null}
             </>
           ) : null}
-        </div>
-      </section>
+        </MainAppSummaryGrid>
+        </MainAppSection>
+      </div>
 
-      <section id="reports-comparison" className={sectionClass('comparison')}>
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold">{t('sections.comparison')}</h2>
-          <p className="break-words text-xs text-[var(--pf-text-secondary)]">
-            {t('sections.comparisonHint')}
-          </p>
-        </div>
+      <div id="reports-comparison" className={sectionAnchorClass('comparison')}>
+        <MainAppSection title={t('sections.comparison')} description={t('sections.comparisonHint')}>
         <ResponsiveTable
           items={rollup.rows}
           getRowKey={(row) => row.projectId}
           desktop={
+            <MainAppTableShell>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -634,6 +624,7 @@ export async function ReportsAnalyticsView({
                 ))}
               </TableBody>
             </Table>
+            </MainAppTableShell>
           }
           renderMobileCard={(row) => (
             <Link
@@ -705,7 +696,8 @@ export async function ReportsAnalyticsView({
             </Link>
           )}
         />
-      </section>
+        </MainAppSection>
+      </div>
     </div>
   );
 }

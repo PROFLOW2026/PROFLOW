@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 
 import { getTranslations } from 'next-intl/server';
 
@@ -89,7 +90,7 @@ export default async function NewRfqPage() {
 
   return (
 
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
 
       <PageHeader
 
@@ -114,12 +115,12 @@ export default async function NewRfqPage() {
         }
 
       />
+      <MainAppSection>
+        {canManage ? <RfqCreateForm projects={projects} materials={materials} /> : null}
 
-
-
-      {canManage ? <RfqCreateForm projects={projects} materials={materials} /> : null}
-
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
 
   );
 

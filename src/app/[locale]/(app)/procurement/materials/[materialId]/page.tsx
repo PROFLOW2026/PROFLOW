@@ -1,3 +1,10 @@
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
@@ -66,7 +73,7 @@ export default async function MaterialDetailPage({
   const { material, prices, vendors, canManage, defaultCurrency } = loaded;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={material.name}
         description={t('material.detailDescription')}
@@ -80,10 +87,9 @@ export default async function MaterialDetailPage({
         }
       />
 
-      <dl className="grid min-w-0 gap-3 rounded-lg border border-[var(--pf-border-default)] p-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="min-w-0">
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.sku')}</dt>
-          <dd className="break-words font-medium">
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('list.columns.sku')}>
             {material.sku ? (
               <span dir="ltr" className="pf-numeric">
                 {material.sku}
@@ -91,36 +97,25 @@ export default async function MaterialDetailPage({
             ) : (
               '-'
             )}
-          </dd>
-        </div>
-        <div className="min-w-0">
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.manufacturer')}</dt>
-          <dd className="break-words font-medium">{material.manufacturer ?? '-'}</dd>
-        </div>
-        <div className="min-w-0">
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.model')}</dt>
-          <dd className="break-words font-medium">{material.model ?? '-'}</dd>
-        </div>
-        <div className="min-w-0">
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.unit')}</dt>
-          <dd className="font-medium">{material.unit}</dd>
-        </div>
-        <div className="min-w-0">
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.defaultPrice')}</dt>
-          <dd className="font-medium">
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.manufacturer')}>
+            {material.manufacturer ?? '-'}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.model')}>
+            {material.model ?? '-'}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.unit')}>{material.unit}</MainAppSummaryItem>
+          <MainAppSummaryItem label={t('list.columns.defaultPrice')}>
             {material.defaultUnitPrice && material.currency ? (
               <MoneyText value={money(material.defaultUnitPrice, material.currency)} />
             ) : (
               '-'
             )}
-          </dd>
-        </div>
-      </dl>
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
+      </MainAppSection>
 
-      <section className="flex min-w-0 flex-col gap-3">
-        <h2 className="text-lg font-semibold">{t('vendorPrice.title')}</h2>
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('vendorPrice.description')}</p>
-
+      <MainAppSection title={t('vendorPrice.title')} description={t('vendorPrice.description')}>
         {prices.length === 0 ? (
           <EmptyState title={t('vendorPrice.emptyTitle')} description={t('vendorPrice.emptyBody')} />
         ) : (
@@ -128,7 +123,7 @@ export default async function MaterialDetailPage({
             items={prices}
             getRowKey={(price) => price.id}
             desktop={
-              <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+              <MainAppTableShell>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -165,7 +160,7 @@ export default async function MaterialDetailPage({
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </MainAppTableShell>
             }
             renderMobileCard={(price) => (
               <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
@@ -215,7 +210,7 @@ export default async function MaterialDetailPage({
             )}
           </div>
         ) : null}
-      </section>
-    </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

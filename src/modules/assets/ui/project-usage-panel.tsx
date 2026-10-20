@@ -1,5 +1,5 @@
-import { getLocale, getTranslations } from 'next-intl/server';
-import { Card } from '@/components/ui/card';
+﻿import { getLocale, getTranslations } from 'next-intl/server';
+import { MainAppSection, MainAppTableShell } from '@/components/patterns/main-app';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
@@ -139,17 +139,16 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
 
   return (
     <WithAppClientMessages extra={['assets']}>
-      <div className="flex flex-col gap-6">
+      <div className="flex w-full min-w-0 flex-col gap-4">
         <p className="text-sm text-[var(--pf-text-muted)]">{t('panelNote')}</p>
         <p className="text-sm text-[var(--pf-text-muted)]">{t('threeActionsHint')}</p>
 
         {data.canReadMaterials ? (
-          <Card className="flex flex-col gap-4 p-4 sm:p-6">
-            <div className="text-start">
-              <h2 className="text-base font-semibold">{t('materialSection')}</h2>
-              <p className="text-sm text-[var(--pf-text-secondary)]">{t('materialHint')}</p>
-            </div>
-
+          <MainAppSection
+            title={t('materialSection')}
+            description={t('materialHint')}
+            className="w-full min-w-0 gap-4"
+          >
             {data.canManageMaterials ? (
               <MaterialUsageForm
                 projectId={projectId}
@@ -163,7 +162,7 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
             {data.materialUsage.length === 0 ? (
               <EmptyState title={t('emptyMaterial.title')} description={t('emptyMaterial.body')} />
             ) : (
-              <div className="min-w-0 overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+              <MainAppTableShell>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -220,18 +219,17 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </MainAppTableShell>
             )}
-          </Card>
+          </MainAppSection>
         ) : null}
 
         {data.canReadAssets ? (
-          <Card className="flex flex-col gap-4 p-4 sm:p-6">
-            <div className="text-start">
-              <h2 className="text-base font-semibold">{t('equipmentSection')}</h2>
-              <p className="text-sm text-[var(--pf-text-secondary)]">{t('equipmentHint')}</p>
-            </div>
-
+          <MainAppSection
+            title={t('equipmentSection')}
+            description={t('equipmentHint')}
+            className="w-full min-w-0 gap-4"
+          >
             {data.canManageAssets && data.assets.length > 0 ? (
               <EquipmentUsageForm
                 projectId={projectId}
@@ -244,7 +242,7 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
             {data.equipmentUsage.length === 0 ? (
               <EmptyState title={t('emptyEquipment.title')} description={t('emptyEquipment.body')} />
             ) : (
-              <div className="min-w-0 overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+              <MainAppTableShell>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -311,9 +309,9 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </MainAppTableShell>
             )}
-          </Card>
+          </MainAppSection>
         ) : null}
       </div>
     </WithAppClientMessages>

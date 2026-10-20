@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { listClientsForOrg, listContactsForClients } from '@/modules/clients';
@@ -364,7 +365,8 @@ async function ModuleTabWithHubNav(input: {
     const panel = await loadActiveModulePanel({ ...input, activeTab: activeSection });
 
     return (
-      <div className="flex flex-col gap-4">
+      <MainAppPage>
+      <MainAppSection>
         {sections.length > 1 || hiddenCount > 0 ? (
           <ProjectHubSectionNav
             hub={hub}
@@ -377,7 +379,9 @@ async function ModuleTabWithHubNav(input: {
           />
         ) : null}
         {panel}
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     );
   });
 }

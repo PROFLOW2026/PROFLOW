@@ -1,4 +1,4 @@
-import { ChevronLeft } from 'lucide-react';
+﻿import { ChevronLeft } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
 

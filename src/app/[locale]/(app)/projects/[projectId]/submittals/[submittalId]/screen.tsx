@@ -1,4 +1,5 @@
-import { ChevronLeft } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { ChevronLeft } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
@@ -42,7 +43,7 @@ export async function ProjectSubmittalDetailScreen({ surfaceRoot,
   const currentRevision = detail.revisions.find((r) => r.revisionNumber === detail.currentRevisionNumber);
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         breadcrumb={
           <Link
@@ -63,8 +64,8 @@ export async function ProjectSubmittalDetailScreen({ surfaceRoot,
           </div>
         }
       />
-
-      <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+      <MainAppSection>
+        <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <div className="flex flex-col gap-4">
           <Card>
             <CardHeader>
@@ -190,7 +191,9 @@ export async function ProjectSubmittalDetailScreen({ surfaceRoot,
           ) : null}
         </aside>
       </div>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

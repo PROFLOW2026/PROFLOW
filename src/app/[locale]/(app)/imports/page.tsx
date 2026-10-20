@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppListBody, MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { Alert } from '@/components/ui/alert';
@@ -36,14 +37,17 @@ export default async function ImportsPage() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('title')} description={t('description')} />
-
-      {!data.allowed ? (
+      <MainAppSection>
+        <MainAppListBody>
+        {!data.allowed ? (
         <Alert tone="warning">{t('notAllowed')}</Alert>
       ) : (
         <ImportWizardLazy allowedKinds={data.kinds} />
       )}
-    </div>
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

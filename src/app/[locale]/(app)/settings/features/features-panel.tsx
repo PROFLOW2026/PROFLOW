@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useActionState, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppSection } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,18 +10,15 @@ import {
   CAPABILITY_GROUP_ORDER,
   listCapabilitiesByGroup,
   requiredFoundationsFor,
-  type CapabilityGroup,
-} from '@/modules/tenancy/domain/capability-registry';
+  type CapabilityGroup} from '@/modules/tenancy/domain/capability-registry';
 import {
   type ModuleVisibility,
-  type OptionalModuleKey,
-} from '@/modules/tenancy/domain/types';
+  type OptionalModuleKey} from '@/modules/tenancy/domain/types';
 import {
   enableAllCapabilitiesAction,
   resetCapabilitiesToProfileAction,
   setModuleVisibilityAction,
-  type SettingsActionState,
-} from '../actions';
+  type SettingsActionState} from '../actions';
 
 type VisibilityMode = 'auto' | 'on' | 'off';
 
@@ -39,8 +37,7 @@ function ModuleRow({
   moduleKey,
   defaultMode,
   canEdit,
-  hasExistingData,
-}: {
+  hasExistingData}: {
   moduleKey: OptionalModuleKey;
   defaultMode: VisibilityMode;
   canEdit: boolean;
@@ -71,8 +68,7 @@ function ModuleRow({
         {foundations.length > 0 && mode === 'on' ? (
           <p className="mt-1 text-start text-xs text-[var(--pf-text-secondary)]">
             {t('foundationsNote', {
-              modules: foundations.map((key) => t(key)).join(', '),
-            })}
+              modules: foundations.map((key) => t(key)).join(', ')})}
           </p>
         ) : null}
       </div>
@@ -117,8 +113,7 @@ function ModuleRow({
 
 function BulkActions({
   canEdit,
-  hasProfile,
-}: {
+  hasProfile}: {
   canEdit: boolean;
   hasProfile: boolean;
 }) {
@@ -135,7 +130,7 @@ function BulkActions({
   if (!canEdit) return null;
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
+    <MainAppSection className="w-full min-w-0">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         <form action={showAllAction}>
           <Button type="submit" size="sm" variant="secondary" loading={showAllPending}>
@@ -166,7 +161,7 @@ function BulkActions({
           {showAllState.message ?? resetState.message ?? t('bulkSaved')}
         </Alert>
       ) : null}
-    </div>
+    </MainAppSection>
   );
 }
 
@@ -174,8 +169,7 @@ export function FeaturesSettingsPanel({
   visibility,
   preferences,
   canEdit,
-  hasBusinessProfile = false,
-}: {
+  hasBusinessProfile = false}: {
   visibility: ModuleVisibility;
   preferences: readonly { moduleKey: string; enabled: boolean | null; firstUsedAt: Date | null }[];
   canEdit: boolean;
@@ -194,36 +188,36 @@ export function FeaturesSettingsPanel({
   const grouped = useMemo(() => {
     return CAPABILITY_GROUP_ORDER.map((group) => ({
       group,
-      capabilities: listCapabilitiesByGroup(group),
-    })).filter((entry) => entry.capabilities.length > 0);
+      capabilities: listCapabilitiesByGroup(group)})).filter((entry) => entry.capabilities.length > 0);
   }, []);
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('hideNeverDeletes')}</p>
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('autoHint')}</p>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('hideNeverDeletes')}</p>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('autoHint')}</p>
+      </MainAppSection>
 
       <BulkActions canEdit={canEdit} hasProfile={hasBusinessProfile} />
 
-      <div className="flex flex-col gap-6">
-        {grouped.map(({ group, capabilities }) => (
-          <section key={group} className="rounded-lg border border-[var(--pf-border-default)] p-4">
-            <h3 className="mb-2 text-start text-sm font-semibold text-[var(--pf-text-primary)]">
-              {t(`capabilityGroups.${group as CapabilityGroup}`)}
-            </h3>
-            {capabilities.map((capability) => (
-              <ModuleRow
-                key={capability.id}
-                moduleKey={capability.id}
-                defaultMode={resolveMode(capability.id, visibility, preferences)}
-                canEdit={canEdit}
-                hasExistingData={firstUsedByKey.get(capability.id) != null}
-              />
-            ))}
-          </section>
-        ))}
-      </div>
+      {grouped.map(({ group, capabilities }) => (
+        <MainAppSection
+          key={group}
+          title={t(`capabilityGroups.${group as CapabilityGroup}`)}
+          className="w-full min-w-0"
+        >
+          {capabilities.map((capability) => (
+            <ModuleRow
+              key={capability.id}
+              moduleKey={capability.id}
+              defaultMode={resolveMode(capability.id, visibility, preferences)}
+              canEdit={canEdit}
+              hasExistingData={firstUsedByKey.get(capability.id) != null}
+            />
+          ))}
+        </MainAppSection>
+      ))}
     </div>
   );
 }

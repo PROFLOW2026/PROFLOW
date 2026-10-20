@@ -8,6 +8,7 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from '@/shared/i18n/navigation';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import {
   saveCompanyDetailsAction,
   type SettingsActionState,
@@ -62,7 +63,7 @@ export function CompanyDetailsForm({
   const [state, action, pending] = useActionState(saveCompanyDetailsAction, {} as SettingsActionState);
 
   return (
-    <form action={action} className="flex w-full min-w-0 max-w-2xl flex-col gap-4">
+    <form action={action} className="flex w-full min-w-0 max-w-5xl flex-col gap-4">
       <div className="flex flex-col gap-1">
         <h2 className="text-base font-semibold">{t('title')}</h2>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
@@ -80,14 +81,15 @@ export function CompanyDetailsForm({
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.ok ? <Alert tone="success">{t('saved')}</Alert> : null}
 
-      <div className="grid gap-4 border-t border-[var(--pf-border-default)] pt-4 sm:grid-cols-2">
-        <h3 className="text-sm font-semibold sm:col-span-2">{t('identitySection')}</h3>
-        <Field label={t('legalName')} required className="sm:col-span-2">
+      <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
+        <h3 className="text-sm font-semibold">{t('identitySection')}</h3>
+        <MainAppFormGrid dense>
+        <Field label={t('legalName')} required className={mainAppFieldSpan.full}>
           {(props) => (
             <Input {...props} name="legalName" defaultValue={values.legalName} disabled={!canEdit} required />
           )}
         </Field>
-        <Field label={t('displayName')} required>
+        <Field label={t('displayName')} required className={mainAppFieldSpan.lg}>
           {(props) => (
             <Input
               {...props}
@@ -98,7 +100,7 @@ export function CompanyDetailsForm({
             />
           )}
         </Field>
-        <Field label={t('tradingName')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('tradingName')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(props) => (
             <Input
               {...props}
@@ -112,6 +114,7 @@ export function CompanyDetailsForm({
           label={t('vatTaxId')}
           optionalLabel={tCommon('labels.optional')}
           description={t('vatTaxIdHint')}
+          className={mainAppFieldSpan.md}
         >
           {(props) => (
             <Input
@@ -129,6 +132,7 @@ export function CompanyDetailsForm({
           label={t('registrationNumber')}
           optionalLabel={tCommon('labels.optional')}
           description={t('registrationNumberHint')}
+          className={mainAppFieldSpan.md}
         >
           {(props) => (
             <Input
@@ -142,11 +146,13 @@ export function CompanyDetailsForm({
             />
           )}
         </Field>
+        </MainAppFormGrid>
       </div>
 
-      <div className="grid gap-4 border-t border-[var(--pf-border-default)] pt-4 sm:grid-cols-2">
-        <h3 className="text-sm font-semibold sm:col-span-2">{t('contactSection')}</h3>
-        <Field label={t('mainPhone')} optionalLabel={tCommon('labels.optional')}>
+      <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
+        <h3 className="text-sm font-semibold">{t('contactSection')}</h3>
+        <MainAppFormGrid dense>
+        <Field label={t('mainPhone')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
           {(props) => (
             <Input
               {...props}
@@ -158,7 +164,7 @@ export function CompanyDetailsForm({
             />
           )}
         </Field>
-        <Field label={t('secondaryPhone')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('secondaryPhone')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
           {(props) => (
             <Input
               {...props}
@@ -170,7 +176,7 @@ export function CompanyDetailsForm({
             />
           )}
         </Field>
-        <Field label={t('whatsappPhone')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('whatsappPhone')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
           {(props) => (
             <Input
               {...props}
@@ -182,7 +188,7 @@ export function CompanyDetailsForm({
             />
           )}
         </Field>
-        <Field label={t('mainEmail')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('mainEmail')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(props) => (
             <Input
               {...props}
@@ -194,7 +200,7 @@ export function CompanyDetailsForm({
             />
           )}
         </Field>
-        <Field label={t('website')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('website')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(props) => (
             <Input
               {...props}
@@ -207,11 +213,13 @@ export function CompanyDetailsForm({
             />
           )}
         </Field>
+        </MainAppFormGrid>
       </div>
 
-      <div className="grid gap-4 border-t border-[var(--pf-border-default)] pt-4 sm:grid-cols-2">
-        <h3 className="text-sm font-semibold sm:col-span-2">{t('optionalContactSection')}</h3>
-        <Field label={t('billingEmail')} optionalLabel={tCommon('labels.optional')}>
+      <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
+        <h3 className="text-sm font-semibold">{t('optionalContactSection')}</h3>
+        <MainAppFormGrid dense>
+        <Field label={t('billingEmail')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(props) => (
             <Input
               {...props}
@@ -223,7 +231,7 @@ export function CompanyDetailsForm({
             />
           )}
         </Field>
-        <Field label={t('salesEmail')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('salesEmail')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(props) => (
             <Input
               {...props}
@@ -235,7 +243,7 @@ export function CompanyDetailsForm({
             />
           )}
         </Field>
-        <Field label={t('supportEmail')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('supportEmail')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(props) => (
             <Input
               {...props}
@@ -247,11 +255,13 @@ export function CompanyDetailsForm({
             />
           )}
         </Field>
+        </MainAppFormGrid>
       </div>
 
-      <div className="grid gap-4 border-t border-[var(--pf-border-default)] pt-4 sm:grid-cols-2">
-        <h3 className="text-sm font-semibold sm:col-span-2">{t('addressSection')}</h3>
-        <Field label={t('addressLine1')} optionalLabel={tCommon('labels.optional')} className="sm:col-span-2">
+      <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
+        <h3 className="text-sm font-semibold">{t('addressSection')}</h3>
+        <MainAppFormGrid dense>
+        <Field label={t('addressLine1')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
           {(props) => (
             <Input
               {...props}
@@ -261,7 +271,7 @@ export function CompanyDetailsForm({
             />
           )}
         </Field>
-        <Field label={t('addressLine2')} optionalLabel={tCommon('labels.optional')} className="sm:col-span-2">
+        <Field label={t('addressLine2')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
           {(props) => (
             <Input
               {...props}
@@ -271,17 +281,17 @@ export function CompanyDetailsForm({
             />
           )}
         </Field>
-        <Field label={t('city')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('city')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(props) => (
             <Input {...props} name="city" defaultValue={values.city ?? ''} disabled={!canEdit} />
           )}
         </Field>
-        <Field label={t('region')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('region')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(props) => (
             <Input {...props} name="region" defaultValue={values.region ?? ''} disabled={!canEdit} />
           )}
         </Field>
-        <Field label={t('postalCode')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('postalCode')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
           {(props) => (
             <Input
               {...props}
@@ -292,7 +302,7 @@ export function CompanyDetailsForm({
             />
           )}
         </Field>
-        <Field label={t('country')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('country')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
           {(props) => (
             <>
               <input type="hidden" name="countryCode" value={country} />
@@ -311,6 +321,7 @@ export function CompanyDetailsForm({
             </>
           )}
         </Field>
+        </MainAppFormGrid>
       </div>
 
       {canEdit ? (

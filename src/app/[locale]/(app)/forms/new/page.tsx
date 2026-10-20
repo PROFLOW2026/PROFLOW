@@ -1,3 +1,4 @@
+﻿import { MainAppFormGrid, MainAppPage, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from '@/shared/i18n/navigation';
@@ -76,8 +77,9 @@ export default async function NewFormSubmissionPage({
       : 'project';
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('new.title')} />
+      <MainAppSection>
       <Alert tone="info">{t('acknowledgementDisclaimer')}</Alert>
 
       {data.templates.length === 0 ? (
@@ -88,8 +90,9 @@ export default async function NewFormSubmissionPage({
           </Link>
         </Alert>
       ) : (
-        <form action={createSubmissionAction} className="flex flex-col gap-4">
-          <Field label={t('new.template')} required>
+        <form action={createSubmissionAction} className="flex w-full flex-col gap-4">
+          <MainAppFormGrid dense className="gap-4">
+          <Field label={t('new.template')} required className={mainAppFieldSpan.lg}>
             {(props) => (
               <select
                 id={props.id}
@@ -107,7 +110,7 @@ export default async function NewFormSubmissionPage({
             )}
           </Field>
 
-          <Field label={t('new.ownerType')} required>
+          <Field label={t('new.ownerType')} required className={mainAppFieldSpan.lg}>
             {(props) => (
               <select
                 id={props.id}
@@ -125,7 +128,7 @@ export default async function NewFormSubmissionPage({
             )}
           </Field>
 
-          <Field label={t('new.ownerId')} required description={t('new.ownerIdHint')}>
+          <Field label={t('new.ownerId')} required description={t('new.ownerIdHint')} className={mainAppFieldSpan.full}>
             {(props) => (
               <Input
                 {...props}
@@ -138,9 +141,13 @@ export default async function NewFormSubmissionPage({
             )}
           </Field>
 
+          <div className={mainAppFieldSpan.full}>
           <Button type="submit">{t('new.start')}</Button>
+          </div>
+          </MainAppFormGrid>
         </form>
       )}
-    </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

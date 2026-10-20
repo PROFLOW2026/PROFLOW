@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Folder } from 'lucide-react';
 import { useTranslations } from 'next-intl';

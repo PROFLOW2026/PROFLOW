@@ -3,6 +3,7 @@
 import { useMemo, useState, useActionState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
@@ -228,7 +229,7 @@ export function ApBillCreateForm({
   }, [currency, expenseOverlapCandidates, projectId, totalAmount, vendorId]);
 
   return (
-    <form action={formAction} className="flex w-full min-w-0 max-w-2xl flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       <ExpenseApOverlapWarning hits={overlapHits} namespace="ap.create" />
       <label className="flex items-start gap-2 text-sm">
@@ -262,86 +263,88 @@ export function ApBillCreateForm({
         value={paymentTermId === NONE ? '' : paymentTermId}
       />
 
-      <Field label={t('vendorLabel')} required>
-        {(props) => (
-          <Select
-            value={vendorId || undefined}
-            onValueChange={(value) => {
-              setVendorId(value);
-              setPurchaseOrderId('');
-              const vendor = vendors.find((row) => row.id === value);
-              setPaymentTermId(vendor?.defaultPaymentTermId ?? '');
-            }}
-          >
-            <SelectTrigger {...props}>
-              <SelectValue placeholder={t('vendorPlaceholder')} />
-            </SelectTrigger>
-            <SelectContent>
-              {vendors.map((vendor) => (
-                <SelectItem key={vendor.id} value={vendor.id}>
-                  {vendor.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field label={t('vendorLabel')} required className={mainAppFieldSpan.lg}>
+          {(props) => (
+            <Select
+              value={vendorId || undefined}
+              onValueChange={(value) => {
+                setVendorId(value);
+                setPurchaseOrderId('');
+                const vendor = vendors.find((row) => row.id === value);
+                setPaymentTermId(vendor?.defaultPaymentTermId ?? '');
+              }}
+            >
+              <SelectTrigger {...props}>
+                <SelectValue placeholder={t('vendorPlaceholder')} />
+              </SelectTrigger>
+              <SelectContent>
+                {vendors.map((vendor) => (
+                  <SelectItem key={vendor.id} value={vendor.id}>
+                    {vendor.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
 
-      <Field label={t('projectLabel')}>
-        {(props) => (
-          <Select value={projectId || NONE} onValueChange={setProjectId}>
-            <SelectTrigger {...props}>
-              <SelectValue placeholder={t('projectNone')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NONE}>{t('projectNone')}</SelectItem>
-              {projects.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </Field>
+        <Field label={t('projectLabel')} className={mainAppFieldSpan.lg}>
+          {(props) => (
+            <Select value={projectId || NONE} onValueChange={setProjectId}>
+              <SelectTrigger {...props}>
+                <SelectValue placeholder={t('projectNone')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE}>{t('projectNone')}</SelectItem>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
 
-      <Field label={t('poLabel')}>
-        {(props) => (
-          <Select
-            value={purchaseOrderId || NONE}
-            onValueChange={(value) => {
-              setPurchaseOrderId(value);
-              setLines((prev) => prev.map((row) => ({ ...row, purchaseOrderLineId: '' })));
-            }}
-          >
-            <SelectTrigger {...props}>
-              <SelectValue placeholder={t('poNone')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NONE}>{t('poNone')}</SelectItem>
-              {filteredPos.map((po) => (
-                <SelectItem key={po.id} value={po.id}>
-                  {po.reference?.trim() || po.id.slice(0, 8)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </Field>
+        <Field label={t('poLabel')} className={mainAppFieldSpan.lg}>
+          {(props) => (
+            <Select
+              value={purchaseOrderId || NONE}
+              onValueChange={(value) => {
+                setPurchaseOrderId(value);
+                setLines((prev) => prev.map((row) => ({ ...row, purchaseOrderLineId: '' })));
+              }}
+            >
+              <SelectTrigger {...props}>
+                <SelectValue placeholder={t('poNone')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE}>{t('poNone')}</SelectItem>
+                {filteredPos.map((po) => (
+                  <SelectItem key={po.id} value={po.id}>
+                    {po.reference?.trim() || po.id.slice(0, 8)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
 
-      <Field label={t('referenceLabel')}>
-        {(props) => (
-          <Input
-            {...props}
-            name="reference"
-            value={reference}
-            onChange={(event) => {
-              setReference(event.target.value);
-              setAcknowledgeDuplicateReference(false);
-            }}
-          />
-        )}
-      </Field>
+        <Field label={t('referenceLabel')} className={mainAppFieldSpan.lg}>
+          {(props) => (
+            <Input
+              {...props}
+              name="reference"
+              value={reference}
+              onChange={(event) => {
+                setReference(event.target.value);
+                setAcknowledgeDuplicateReference(false);
+              }}
+            />
+          )}
+        </Field>
+      </MainAppFormGrid>
 
       <DuplicateVendorBillReferenceWarning
         hits={duplicateReferenceHits}
@@ -354,38 +357,38 @@ export function ApBillCreateForm({
         onSelectExpenseId={setLinkExpenseId}
       />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label={t('billDateLabel')}>
+      <MainAppFormGrid dense>
+        <Field label={t('billDateLabel')} className={mainAppFieldSpan.md}>
           {(props) => <Input {...props} name="billDate" type="date" dir="ltr" />}
         </Field>
-        <Field label={t('dueDateLabel')} description={t('dueDateHint')}>
+        <Field label={t('dueDateLabel')} description={t('dueDateHint')} className={mainAppFieldSpan.md}>
           {(props) => <Input {...props} name="dueDate" type="date" dir="ltr" />}
         </Field>
-      </div>
 
-      {paymentTerms.length > 0 ? (
-        <Field label={t('paymentTermLabel')} description={t('paymentTermHint')}>
-          {(props) => (
-            <Select value={paymentTermId || NONE} onValueChange={setPaymentTermId}>
-              <SelectTrigger {...props}>
-                <SelectValue placeholder={t('paymentTermNone')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NONE}>{t('paymentTermNone')}</SelectItem>
-                {paymentTerms.map((term) => (
-                  <SelectItem key={term.id} value={term.id}>
-                    {term.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+        {paymentTerms.length > 0 ? (
+          <Field label={t('paymentTermLabel')} description={t('paymentTermHint')} className={mainAppFieldSpan.lg}>
+            {(props) => (
+              <Select value={paymentTermId || NONE} onValueChange={setPaymentTermId}>
+                <SelectTrigger {...props}>
+                  <SelectValue placeholder={t('paymentTermNone')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE}>{t('paymentTermNone')}</SelectItem>
+                  {paymentTerms.map((term) => (
+                    <SelectItem key={term.id} value={term.id}>
+                      {term.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+        ) : null}
+
+        <Field label={t('notesLabel')} className={mainAppFieldSpan.full}>
+          {(props) => <Textarea {...props} name="notes" rows={3} />}
         </Field>
-      ) : null}
-
-      <Field label={t('notesLabel')}>
-        {(props) => <Textarea {...props} name="notes" rows={3} />}
-      </Field>
+      </MainAppFormGrid>
 
       <div className="rounded-lg border border-[var(--pf-border-default)] p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -408,9 +411,10 @@ export function ApBillCreateForm({
           {lines.map((line, index) => (
             <div
               key={line.key}
-              className="grid gap-3 rounded-md border border-[var(--pf-border-default)] p-3 sm:grid-cols-2"
+              className="flex flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-3"
             >
-              <Field label={t('lineDescription')} className="sm:col-span-2">
+              <MainAppFormGrid dense>
+              <Field label={t('lineDescription')} className={mainAppFieldSpan.full}>
                 {(props) => (
                   <Input
                     {...props}
@@ -424,7 +428,7 @@ export function ApBillCreateForm({
                   />
                 )}
               </Field>
-              <Field label={t('lineQuantity')}>
+              <Field label={t('lineQuantity')} className={mainAppFieldSpan.md}>
                 {(props) => (
                   <Input
                     {...props}
@@ -447,7 +451,7 @@ export function ApBillCreateForm({
                   />
                 )}
               </Field>
-              <Field label={t('lineUnitAmount')}>
+              <Field label={t('lineUnitAmount')} className={mainAppFieldSpan.md}>
                 {(props) => (
                   <MoneyInput
                     {...props}
@@ -469,7 +473,7 @@ export function ApBillCreateForm({
                 )}
               </Field>
               {availablePoLines.length > 0 ? (
-                <Field label={t('linePoLine')} className="sm:col-span-2">
+                <Field label={t('linePoLine')} className={mainAppFieldSpan.full}>
                   {(props) => (
                     <Select
                       value={line.purchaseOrderLineId || NONE}
@@ -505,7 +509,7 @@ export function ApBillCreateForm({
                   )}
                 </Field>
               ) : null}
-              <Field label={t('lineCategory')} className="sm:col-span-2">
+              <Field label={t('lineCategory')} className={mainAppFieldSpan.full}>
                 {(props) => (
                   <Select
                     value={line.costCategoryId || NONE}
@@ -533,7 +537,7 @@ export function ApBillCreateForm({
                 )}
               </Field>
               {inventoryItems.length > 0 ? (
-                <Field label={t('inventoryItemLabel')} className="sm:col-span-2">
+                <Field label={t('inventoryItemLabel')} className={mainAppFieldSpan.full}>
                   {(props) => (
                     <Select
                       value={line.inventoryItemId || NONE}
@@ -561,7 +565,7 @@ export function ApBillCreateForm({
                   )}
                 </Field>
               ) : null}
-              <div className="flex flex-wrap items-end justify-between gap-2 sm:col-span-2">
+              <div className={`flex flex-wrap items-end justify-between gap-2 ${mainAppFieldSpan.full}`}>
                 <p className="text-sm text-[var(--pf-text-secondary)]">
                   {t('lineTotal')}:{' '}
                   <span dir="ltr" className="pf-numeric">
@@ -580,6 +584,7 @@ export function ApBillCreateForm({
                   </Button>
                 ) : null}
               </div>
+              </MainAppFormGrid>
             </div>
           ))}
         </div>

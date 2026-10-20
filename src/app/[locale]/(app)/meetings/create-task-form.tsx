@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -36,12 +37,13 @@ export function CreateTaskFromActionItemForm({
   const [projectId, setProjectId] = useState(defaultProjectId ?? NONE);
 
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <input type="hidden" name="meetingId" value={meetingId} />
       <input type="hidden" name="actionItemId" value={actionItem.id} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
-      <Field label={t('meetings.form.workspaceRequired')} required error={state.fieldErrors?.workspaceId}>
+      <MainAppFormGrid dense>
+      <Field label={t('meetings.form.workspaceRequired')} required error={state.fieldErrors?.workspaceId} className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="workspaceId" value={workspaceId === NONE ? '' : workspaceId} />
@@ -67,7 +69,7 @@ export function CreateTaskFromActionItemForm({
         )}
       </Field>
 
-      <Field label={t('meetings.form.project')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('meetings.form.project')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="projectId" value={projectId === NONE ? '' : projectId} />
@@ -92,6 +94,7 @@ export function CreateTaskFromActionItemForm({
         label={t('meetings.form.taskTitle')}
         optionalLabel={t('meetings.form.taskTitleHint')}
         error={state.fieldErrors?.title}
+        className={mainAppFieldSpan.lg}
       >
         {(control) => (
           <Input
@@ -103,7 +106,7 @@ export function CreateTaskFromActionItemForm({
         )}
       </Field>
 
-      <Field label={t('meetings.form.dueDate')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('meetings.form.dueDate')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
         {(control) => (
           <Input
             {...control}
@@ -114,6 +117,7 @@ export function CreateTaskFromActionItemForm({
           />
         )}
       </Field>
+      </MainAppFormGrid>
 
       <Button type="submit" loading={pending} disabled={workspaces.length === 0} block>
         {t('meetings.form.submitCreateTask')}

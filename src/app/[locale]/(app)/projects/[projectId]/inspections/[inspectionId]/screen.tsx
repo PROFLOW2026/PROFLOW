@@ -1,4 +1,5 @@
-import { getLocale, getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getLocale, getTranslations } from 'next-intl/server';
 
 import { notFound } from 'next/navigation';
 
@@ -88,7 +89,7 @@ export async function ProjectInspectionDetailScreen({ surfaceRoot,
 
     <WithAppClientMessages extra={['inspections', 'defects']}>
 
-      <div className="flex flex-col gap-4">
+      <MainAppPage>
 
         <PageHeader
 
@@ -123,9 +124,7 @@ export async function ProjectInspectionDetailScreen({ surfaceRoot,
           }
 
         />
-
-
-
+      <MainAppSection>
         <Card>
 
           <CardHeader>
@@ -308,7 +307,9 @@ export async function ProjectInspectionDetailScreen({ surfaceRoot,
 
         />
 
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
 
     </WithAppClientMessages>
 

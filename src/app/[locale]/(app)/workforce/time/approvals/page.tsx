@@ -1,4 +1,10 @@
-import type { Metadata } from 'next';
+import {
+  MainAppListBody,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { ClipboardCheck } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
@@ -80,9 +86,11 @@ export default async function TimesheetApprovalsPage({
   const approvableEntryIds = data.entries.filter(entryApprovableNow).map((entry) => entry.id);
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader title={t('time.approvals.title')} description={t('time.approvals.description')} />
-      <WorkforceSubNav active="approvals" />
+    <MainAppPage>
+      <PageHeader title={t('time.approvals.title')} />
+      <MainAppSection>
+        <WorkforceSubNav active="approvals" />
+      <MainAppListBody>
       <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('time.approvals.queueHint')}</p>
 
       <TimesheetApprovalFilters
@@ -151,7 +159,7 @@ export default async function TimesheetApprovalsPage({
             items={data.entries}
             getRowKey={(entry) => entry.id}
             desktop={
-              <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+              <MainAppTableShell>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -200,7 +208,7 @@ export default async function TimesheetApprovalsPage({
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </MainAppTableShell>
             }
             renderMobileCard={(entry) => (
               <div className="min-h-11 rounded-lg border border-[var(--pf-border-default)] p-4">
@@ -238,6 +246,8 @@ export default async function TimesheetApprovalsPage({
           />
         </div>
       )}
-    </div>
+      </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

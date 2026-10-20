@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { listProjectsForOrg } from '@/modules/projects';
@@ -42,7 +43,7 @@ export default async function NewComplianceArtifactPage() {
   const subjects = await loadSubjectOptions();
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('create.title')}
         description={t('create.description')}
@@ -52,7 +53,10 @@ export default async function NewComplianceArtifactPage() {
           </Link>
         }
       />
-      <ArtifactForm mode="create" subjects={subjects} />
-    </div>
+      <MainAppSection>
+        <ArtifactForm mode="create" subjects={subjects} />
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

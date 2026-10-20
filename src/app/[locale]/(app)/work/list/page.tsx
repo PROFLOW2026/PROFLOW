@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppListBody, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
@@ -75,10 +76,11 @@ export default async function WorkListPage({ searchParams }: WorkListPageProps) 
   });
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
-      <PageHeader title={t('list.pageTitle')} description={t('list.pageDescription')} />
-
-      <WorkLensChrome searchParams={params} clients={clients} taskCount={table.taskCount} />
+    <>
+      <PageHeader title={t('list.pageTitle')} />
+      <MainAppSection className="w-full min-w-0">
+        <MainAppListBody>
+        <WorkLensChrome searchParams={params} clients={clients} taskCount={table.taskCount} />
 
       <WorkListTableClient
         key={workTaskQueryString(filterQuery)}
@@ -94,6 +96,8 @@ export default async function WorkListPage({ searchParams }: WorkListPageProps) 
         canArchive={canArchive}
         archivedView={archivedView}
       />
-    </div>
+        </MainAppListBody>
+      </MainAppSection>
+    </>
   );
 }

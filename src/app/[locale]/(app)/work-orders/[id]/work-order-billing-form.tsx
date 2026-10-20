@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Link } from '@/shared/i18n/navigation';
 import { createWorkOrderBillingAction, type WorkOrderFormState } from '../actions';
 
@@ -44,15 +45,15 @@ export function WorkOrderBillingForm({
   return (
     <form
       action={formAction}
-      className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4"
+      className="flex w-full min-w-0 max-w-3xl flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4"
     >
       <input type="hidden" name="workOrderId" value={workOrderId} />
       <div>
         <h2 className="text-base font-semibold">{t('billing.title')}</h2>
         <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('billing.hint')}</p>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field label={t('billing.laborHours')}>
+      <MainAppFormGrid dense>
+        <Field label={t('billing.laborHours')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               id={control.id}
@@ -63,7 +64,7 @@ export function WorkOrderBillingForm({
             />
           )}
         </Field>
-        <Field label={t('billing.laborRate')}>
+        <Field label={t('billing.laborRate')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               id={control.id}
@@ -74,7 +75,7 @@ export function WorkOrderBillingForm({
             />
           )}
         </Field>
-        <Field label={t('billing.materialsAmount')}>
+        <Field label={t('billing.materialsAmount')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               id={control.id}
@@ -85,7 +86,7 @@ export function WorkOrderBillingForm({
             />
           )}
         </Field>
-        <Field label={t('billing.callOutFee')}>
+        <Field label={t('billing.callOutFee')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               id={control.id}
@@ -96,7 +97,7 @@ export function WorkOrderBillingForm({
             />
           )}
         </Field>
-        <Field label={t('billing.additionalCharges')}>
+        <Field label={t('billing.additionalCharges')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               id={control.id}
@@ -107,7 +108,7 @@ export function WorkOrderBillingForm({
             />
           )}
         </Field>
-        <Field label={t('billing.discountAmount')}>
+        <Field label={t('billing.discountAmount')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               id={control.id}
@@ -118,10 +119,10 @@ export function WorkOrderBillingForm({
             />
           )}
         </Field>
-      </div>
-      <Field label={t('billing.notes')}>
+        <Field label={t('billing.notes')} className={mainAppFieldSpan.full}>
         {(control) => <Textarea id={control.id} name="notes" rows={3} />}
-      </Field>
+        </Field>
+      </MainAppFormGrid>
       <Button type="submit" loading={pending}>
         {t('billing.submit')}
       </Button>

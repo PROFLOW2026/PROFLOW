@@ -1,8 +1,12 @@
-'use client';
+﻿'use client';
 
 import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import {
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -91,6 +95,7 @@ export function QuickCaptureReview({
   readonly initialData: CaptureReviewData;
 }) {
   const t = useTranslations('quickCapture');
+  const tCommon = useTranslations('common');
   const tExpenses = useTranslations('expenses');
   const tOcrErrors = useTranslations('quickCapture.review.ocrErrors');
   const tField = useTranslations('quickCapture.fieldMedia');
@@ -204,6 +209,54 @@ export function QuickCaptureReview({
     if (!capture.suggestedProjectId || capture.explicitProjectId) return null;
     return initialData.projects.find((project) => project.id === capture.suggestedProjectId)?.name ?? null;
   }, [capture.explicitProjectId, capture.suggestedProjectId, initialData.projects]);
+
+  const captureStatusLabelKey = useMemo(() => {
+    if (capture.status === 'ready_for_review') return 'inbox.statusReady' as const;
+    if (capture.status === 'failed') return 'inbox.statusFailed' as const;
+    return 'inbox.statusProcessing' as const;
+  }, [capture.status]);
+
+  const selectedTypeLabel = useMemo(() => {
+    if (ownerType === 'financial_document') return t('review.financialDocument');
+    if (ownerType === 'field_media') {
+      return isVideo ? tField('videoTitle') : t('review.fieldMedia');
+    }
+    if (ownerType === 'other_document') return t('review.otherDocument');
+    return t(`inbox.kind.${capture.sessionKind}` as 'inbox.kind.images');
+  }, [capture.sessionKind, isVideo, ownerType, t, tField]);
+
+  const summaryProjectLabel = useMemo(() => {
+    const projectIdForSummary =
+      ownerType === 'financial_document'
+        ? financialExpenseMode === 'project'
+          ? financialProjectId
+          : ''
+        : ownerType === 'field_media' || ownerType === 'other_document'
+          ? projectId
+          : capture.explicitProjectId ?? capture.suggestedProjectId ?? '';
+
+    if (projectIdForSummary) {
+      return (
+        initialData.projects.find((project) => project.id === projectIdForSummary)?.name ??
+        suggestedProjectName ??
+        '—'
+      );
+    }
+    if (ownerType === 'financial_document' && financialExpenseMode === 'company') {
+      return t('review.expenseAssignment.company');
+    }
+    return suggestedProjectName ?? '—';
+  }, [
+    capture.explicitProjectId,
+    capture.suggestedProjectId,
+    financialExpenseMode,
+    financialProjectId,
+    initialData.projects,
+    ownerType,
+    projectId,
+    suggestedProjectName,
+    t,
+  ]);
 
   const handleSelectFinancialDocument = (documentId: string) => {
     setSelectedFinancialDocumentId(documentId);
@@ -402,7 +455,15 @@ export function QuickCaptureReview({
     ((capture.sessionKind === 'pdf' || capture.sessionKind === 'file') && soleDocument);
 
   return (
-    <div className="mx-auto flex w-full max-w-[88rem] flex-col gap-6">
+    <div className="mx-auto flex w-full min-w-0 max-w-[88rem] flex-col gap-6">
+      <MainAppSummaryGrid>
+        <MainAppSummaryItem label={tCommon('labels.status')}>{t(captureStatusLabelKey)}</MainAppSummaryItem>
+        <MainAppSummaryItem label={t('review.changeType')}>{selectedTypeLabel}</MainAppSummaryItem>
+        <MainAppSummaryItem label={t('review.expenseAssignment.projectLabel')}>
+          <span className="min-w-0 truncate">{summaryProjectLabel}</span>
+        </MainAppSummaryItem>
+      </MainAppSummaryGrid>
+
       {hasPreview ? (
         <div className="flex w-full flex-col gap-4 lg:items-center">
           <div className="w-full lg:mx-auto lg:max-w-[28rem]">

@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
@@ -49,10 +50,10 @@ export default async function FieldHomePage() {
   const data = await withOrgContext((context) => getFieldCockpit(context));
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6" data-pf-field-cockpit="">
+    <MainAppPage>
       <PageHeader title={t('cockpit.title')} description={t('cockpit.description')} />
-
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <MainAppSection>
+        <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {data.capabilities.fieldOpsManage ? (
           <>
             <ActionTile
@@ -263,6 +264,8 @@ export default async function FieldHomePage() {
       !data.projects.length ? (
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('cockpit.empty')}</p>
       ) : null}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

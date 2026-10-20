@@ -21,7 +21,8 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { coerceBusinessDate, type BusinessDate } from '@/shared/dates/dates';
 import { formatBusinessDateMonthDay } from '@/shared/dates/format';
 import { cn } from '@/shared/ui/cn';
-import { uwmListPanelClass, uwmListRowClass } from '@/shared/ui/uwm-surface-styles';
+import { MainAppTableShell } from '@/components/patterns/main-app';
+import { uwmListRowClass } from '@/shared/ui/uwm-surface-styles';
 import type { TaskCardData, TaskPriority, TaskStatus } from './task-api';
 
 // ---------------------------------------------------------------------------
@@ -366,9 +367,9 @@ export function TaskListView({
   }
 
   return (
-    <div className={cn('flex flex-col gap-2', className)}>
+    <div className={cn('flex flex-col gap-2', className)} data-pf-ma-list="">
       {/* Desktop table */}
-      <div className={cn('hidden md:block', uwmListPanelClass)}>
+      <MainAppTableShell className="hidden md:block">
         <table className="w-full text-sm">
           <thead className="border-b border-[var(--pf-border-default)] bg-[var(--pf-bg-subtle)]">
             <tr>
@@ -586,7 +587,7 @@ export function TaskListView({
             })}
           </tbody>
         </table>
-      </div>
+      </MainAppTableShell>
 
       {/* Mobile card stack */}
       <div className="flex flex-col gap-2 md:hidden">

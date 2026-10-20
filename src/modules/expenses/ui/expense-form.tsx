@@ -1,8 +1,9 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { ChevronRight } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -713,7 +714,7 @@ export function ExpenseForm({
   }
 
   return (
-    <div className="flex min-w-0 w-full flex-col gap-6">
+    <div className="flex min-w-0 w-full flex-col gap-4">
       {displayError ? (
         <p
           role="alert"
@@ -731,7 +732,8 @@ export function ExpenseForm({
       </label>
 
       <section className="flex min-w-0 flex-col gap-4">
-        <Field label={t('fields.amount')} required error={fieldErrors.amount}>
+        <MainAppFormGrid dense>
+        <Field label={t('fields.amount')} required error={fieldErrors.amount} className={mainAppFieldSpan.lg}>
           {(controlProps) => (
             <MoneyInput
               {...controlProps}
@@ -752,6 +754,7 @@ export function ExpenseForm({
           label={t('fields.amountTaxMode')}
           error={fieldErrors.vatMode ?? fieldErrors.amountIncludesTax}
           description={t('fields.amountTaxModeHint')}
+          className={mainAppFieldSpan.full}
         >
           {(controlProps) => (
             <ExpenseVatModeSelector
@@ -766,7 +769,7 @@ export function ExpenseForm({
 
         {taxPreview ? (
           <dl
-            className="grid gap-2 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm sm:grid-cols-3"
+            className={`${mainAppFieldSpan.full} grid gap-2 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm sm:grid-cols-3`}
             aria-live="polite"
           >
             <div>
@@ -792,6 +795,7 @@ export function ExpenseForm({
             </p>
           </dl>
         ) : null}
+        </MainAppFormGrid>
 
         <VendorSelector
           vendors={vendors}
@@ -822,7 +826,8 @@ export function ExpenseForm({
           }
         />
 
-        <Field label={t('destination.label')} description={t('fields.expenseType')}>
+        <MainAppFormGrid dense>
+        <Field label={t('destination.label')} description={t('fields.expenseType')} className={mainAppFieldSpan.lg}>
           {(controlProps) => (
             <Select
               value={costDestinationMode}
@@ -844,7 +849,7 @@ export function ExpenseForm({
 
         {isProjectDestinationMode ? (
           <>
-            <Field label={t('fields.project')}>
+            <Field label={t('fields.project')} className={mainAppFieldSpan.lg}>
               {(controlProps) => (
                 <Select
                   value={targeting === OVERHEAD_VALUE ? NONE_VALUE : targeting}
@@ -871,10 +876,14 @@ export function ExpenseForm({
         ) : (
           <>
             {destination === 'inventory' ? (
-              <p className="text-sm text-[var(--pf-text-secondary)]">{t('destination.inventory')}</p>
+              <p className={`${mainAppFieldSpan.full} text-sm text-[var(--pf-text-secondary)]`}>
+                {t('destination.inventory')}
+              </p>
             ) : null}
             {destination === 'asset' ? (
-              <p className="text-sm text-[var(--pf-text-secondary)]">{t('destination.asset')}</p>
+              <p className={`${mainAppFieldSpan.full} text-sm text-[var(--pf-text-secondary)]`}>
+                {t('destination.asset')}
+              </p>
             ) : null}
             <input type="hidden" name="destinationTarget" value={OVERHEAD_VALUE} />
             <input type="hidden" name="allocationIntent" value={allocationIntent} />
@@ -882,7 +891,7 @@ export function ExpenseForm({
         )}
 
         {showMultiProjectAllocation ? (
-          <div id="expense-allocation" className="flex scroll-mt-24 flex-col gap-3">
+          <div id="expense-allocation" className={`${mainAppFieldSpan.full} flex scroll-mt-24 flex-col gap-3`}>
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('destination.projectMultiHint')}</p>
             <AllocationEditor
               currency={currency}
@@ -898,7 +907,7 @@ export function ExpenseForm({
         ) : null}
 
         {showGeneralIntentHint ? (
-          <p className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-start text-sm text-[var(--pf-text-secondary)]">
+          <p className={`${mainAppFieldSpan.full} rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-start text-sm text-[var(--pf-text-secondary)]`}>
             {costDestinationMode === 'company_only'
               ? t('allocationIntent.companyOnlyHint')
               : t('allocationIntent.autoPoolHint')}
@@ -914,7 +923,7 @@ export function ExpenseForm({
         {showSharedAllocationWarning ? (
           <p
             role="status"
-            className="rounded-md border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-3 py-2 text-start text-sm text-[var(--pf-status-warning-fg)]"
+            className={`${mainAppFieldSpan.full} rounded-md border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-3 py-2 text-start text-sm text-[var(--pf-status-warning-fg)]`}
           >
             {t('lifecycle.sharedUnallocatedWarning')}
           </p>
@@ -922,7 +931,7 @@ export function ExpenseForm({
 
         <input type="hidden" name="projectId" value={projectId} />
 
-        <div id="expense-category" className="scroll-mt-24">
+        <div id="expense-category" className={`${mainAppFieldSpan.lg} scroll-mt-24`}>
           <Field
             label={isProjectRouteMode ? t('fields.projectCostType') : t('fields.category')}
             description={
@@ -989,13 +998,13 @@ export function ExpenseForm({
         {isInternalPayrollCategory ? (
           <p
             role="status"
-            className="rounded-md border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-3 py-2 text-start text-sm text-[var(--pf-status-warning-fg)]"
+            className={`${mainAppFieldSpan.full} rounded-md border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-3 py-2 text-start text-sm text-[var(--pf-status-warning-fg)]`}
           >
             {t('fields.internalPayrollWarning')}
           </p>
         ) : null}
 
-        <Field label={t('fields.date')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('fields.date')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
           {(controlProps) => (
             <Input
               {...controlProps}
@@ -1009,7 +1018,7 @@ export function ExpenseForm({
           )}
         </Field>
 
-        <Field label={t('fields.description')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('fields.description')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(controlProps) => (
             <Input
               {...controlProps}
@@ -1021,6 +1030,7 @@ export function ExpenseForm({
             />
           )}
         </Field>
+        </MainAppFormGrid>
 
         <PaymentMethodPicker
           paymentMethod={paymentMethod}
@@ -1117,8 +1127,9 @@ export function ExpenseForm({
         <section className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
           <h2 className="text-sm font-semibold">{t('advancedOptions')}</h2>
 
+          <MainAppFormGrid dense>
           {projectId ? (
-            <Field label={t('fields.workPackage')} optionalLabel={tCommon('labels.optional')}>
+            <Field label={t('fields.workPackage')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
               {(controlProps) => (
                 <Select
                   value={workPackageId || NONE_VALUE}
@@ -1144,13 +1155,13 @@ export function ExpenseForm({
           )}
 
           {vendorId && selectedVendorName ? (
-            <p className="text-sm text-[var(--pf-text-secondary)]">
+            <p className={`${mainAppFieldSpan.full} text-sm text-[var(--pf-text-secondary)]`}>
               {t('vendor.advancedSynced', { name: selectedVendorName })}
             </p>
           ) : null}
 
           {paymentTerms.length > 0 && paymentStructure === 'single' ? (
-            <Field label={t('fields.paymentTerm')} optionalLabel={tCommon('labels.optional')}>
+            <Field label={t('fields.paymentTerm')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
               {(controlProps) => (
                 <>
                   <input type="hidden" name="paymentTermId" value={paymentTermId} />
@@ -1179,7 +1190,7 @@ export function ExpenseForm({
           )}
 
           {paymentStructure === 'single' ? (
-            <Field label={t('payment.dueDate')} optionalLabel={tCommon('labels.optional')}>
+            <Field label={t('payment.dueDate')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
               {(controlProps) => (
                 <Input
                   {...controlProps}
@@ -1195,7 +1206,7 @@ export function ExpenseForm({
             <input type="hidden" name="dueDate" value="" />
           )}
 
-          <Field label={t('destination.label')} optionalLabel={tCommon('labels.optional')}>
+          <Field label={t('destination.label')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
             {(controlProps) => (
               <Select
                 value={destination}
@@ -1214,6 +1225,7 @@ export function ExpenseForm({
               </Select>
             )}
           </Field>
+          </MainAppFormGrid>
 
           {inventoryItems.length > 0 ? (
             <div className="flex flex-col gap-4 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
@@ -1247,8 +1259,8 @@ export function ExpenseForm({
               />
 
               {inventoryStockPurchase ? (
-                <>
-                  <Field label={t('fields.inventoryItem')} error={fieldErrors.inventoryItemId}>
+                <MainAppFormGrid dense>
+                  <Field label={t('fields.inventoryItem')} error={fieldErrors.inventoryItemId} className={mainAppFieldSpan.lg}>
                     {(controlProps) => (
                       <Select
                         value={inventoryItemId || NONE_VALUE}
@@ -1278,6 +1290,7 @@ export function ExpenseForm({
                     label={t('fields.inventoryPurchaseQty')}
                     error={fieldErrors.inventoryPurchaseQty}
                     description={t('fields.inventoryPurchaseQtyHint')}
+                    className={mainAppFieldSpan.md}
                   >
                     {(controlProps) => (
                       <Input
@@ -1291,7 +1304,7 @@ export function ExpenseForm({
                       />
                     )}
                   </Field>
-                </>
+                </MainAppFormGrid>
               ) : (
                 <>
                   <input type="hidden" name="inventoryItemId" value="" />
@@ -1312,7 +1325,7 @@ export function ExpenseForm({
           {selectedCategory ? (
             <div
               role="status"
-              className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-start text-sm"
+              className={`${mainAppFieldSpan.full} rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-start text-sm`}
             >
               <p className="font-medium text-[var(--pf-text-primary)]">{t('categoryPolicy.title')}</p>
               <dl className="mt-2 grid gap-1 text-xs text-[var(--pf-text-secondary)] sm:grid-cols-3">
@@ -1363,7 +1376,8 @@ export function ExpenseForm({
 
           {showAllocationControls ? (
             <div id="expense-allocation" className="flex scroll-mt-24 flex-col gap-3">
-              <Field label={t('allocation.driverLabel')}>
+              <MainAppFormGrid dense>
+              <Field label={t('allocation.driverLabel')} className={mainAppFieldSpan.lg}>
                 {(controlProps) => (
                   <Select
                     value={allocationDriverMethod || MANUAL_DRIVER}
@@ -1392,12 +1406,13 @@ export function ExpenseForm({
                   </Select>
                 )}
               </Field>
+              </MainAppFormGrid>
               <input type="hidden" name="allocationDriverMethod" value={allocationDriverMethod} />
               <input type="hidden" name="allocationScheduleMode" value={allocationScheduleMode} />
 
               {usesAutomaticDriver || selectedCategory?.defaultPeriodBehavior === 'date_range' ? (
-                <div className="grid min-w-0 gap-4 sm:grid-cols-2">
-                  <Field label={t('allocation.periodStart')}>
+                <MainAppFormGrid dense>
+                  <Field label={t('allocation.periodStart')} className={mainAppFieldSpan.md}>
                     {(controlProps) => (
                       <Input
                         {...controlProps}
@@ -1413,7 +1428,7 @@ export function ExpenseForm({
                       />
                     )}
                   </Field>
-                  <Field label={t('allocation.periodEnd')}>
+                  <Field label={t('allocation.periodEnd')} className={mainAppFieldSpan.md}>
                     {(controlProps) => (
                       <Input
                         {...controlProps}
@@ -1429,7 +1444,7 @@ export function ExpenseForm({
                       />
                     )}
                   </Field>
-                </div>
+                </MainAppFormGrid>
               ) : (
                 <>
                   <input type="hidden" name="allocationPeriodStart" value="" />
@@ -1467,24 +1482,26 @@ export function ExpenseForm({
             </>
           )}
 
-          <Field label={t('fields.notes')} optionalLabel={tCommon('labels.optional')}>
-            {(controlProps) => (
-              <Textarea
-                {...controlProps}
-                name="notes"
-                value={notes}
-                onChange={(event) => setNotes(event.target.value)}
-                disabled={readOnly}
-                rows={3}
-              />
-            )}
-          </Field>
+          <MainAppFormGrid dense>
+            <Field label={t('fields.notes')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
+              {(controlProps) => (
+                <Textarea
+                  {...controlProps}
+                  name="notes"
+                  value={notes}
+                  onChange={(event) => setNotes(event.target.value)}
+                  disabled={readOnly}
+                  rows={3}
+                />
+              )}
+            </Field>
+          </MainAppFormGrid>
 
           <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
             <h3 className="text-sm font-semibold">{tCommon('actions.showAdvanced')}</h3>
 
-            <div className="grid min-w-0 gap-4 sm:grid-cols-2">
-              <Field label={t('fields.netAmount')} optionalLabel={tCommon('labels.optional')}>
+            <MainAppFormGrid dense>
+              <Field label={t('fields.netAmount')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
                 {(controlProps) => (
                   <MoneyInput
                     {...controlProps}
@@ -1497,7 +1514,7 @@ export function ExpenseForm({
                 )}
               </Field>
 
-              <Field label={t('fields.taxAmount')} optionalLabel={tCommon('labels.optional')}>
+              <Field label={t('fields.taxAmount')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
                 {(controlProps) => (
                   <MoneyInput
                     {...controlProps}
@@ -1509,7 +1526,7 @@ export function ExpenseForm({
                   />
                 )}
               </Field>
-            </div>
+            </MainAppFormGrid>
           </div>
         </section>
       )}

@@ -1,5 +1,7 @@
 'use client';
 
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
+import { cn } from '@/shared/ui/cn';
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
@@ -13,15 +15,13 @@ import { MoneyText } from '@/components/patterns/money-text';
 import {
   APPROVAL_ENTITY_TYPES,
   type ApprovalRuleWithSteps,
-  type ApproverStrategy,
-} from '@/modules/approvals/domain/types';
+  type ApproverStrategy} from '@/modules/approvals/domain/types';
 import { money } from '@/shared/money';
 import {
   createApprovalRuleAction,
   replaceApprovalRuleStepsAction,
   toggleApprovalRuleAction,
-  type ApprovalsActionState,
-} from '../../approvals/actions';
+  type ApprovalsActionState} from '../../approvals/actions';
 
 /** Local copy so this client panel never imports the approvals server barrel. */
 const APPROVER_STRATEGIES = ['role_template', 'permission', 'user'] as const;
@@ -40,8 +40,7 @@ function emptyStep(): DraftStep {
     roleTemplateKey: 'manager',
     permissionKey: 'approvals.decide',
     userId: '',
-    name: '',
-  };
+    name: ''};
 }
 
 function RuleRow({ rule }: { rule: ApprovalRuleWithSteps }) {
@@ -58,8 +57,7 @@ function RuleRow({ rule }: { rule: ApprovalRuleWithSteps }) {
           roleTemplateKey: step.roleTemplateKey ?? 'manager',
           permissionKey: step.permissionKey ?? 'approvals.decide',
           userId: step.userId ?? '',
-          name: step.name ?? '',
-        }))
+          name: step.name ?? ''}))
       : [],
   );
 
@@ -99,11 +97,11 @@ function RuleRow({ rule }: { rule: ApprovalRuleWithSteps }) {
         <p className="text-sm font-medium">{t('steps.title')}</p>
         <p className="text-xs text-[var(--pf-text-muted)]">{t('steps.hint')}</p>
         {draftSteps.map((step, index) => (
-          <div key={index} className="grid gap-2 rounded-md bg-[var(--pf-bg-muted)] p-3 sm:grid-cols-2">
-            <Field label={t('steps.order')}>
+          <MainAppFormGrid key={index} dense className={cn('gap-4 rounded-md bg-[var(--pf-bg-muted)] p-3')}>
+            <Field label={t('steps.order')} className={mainAppFieldSpan.sm}>
               {(props) => <Input {...props} value={String(index + 1)} readOnly />}
             </Field>
-            <Field label={t('steps.strategy')}>
+            <Field label={t('steps.strategy')} className={mainAppFieldSpan.lg}>
               {(props) => (
                 <select
                   {...props}
@@ -113,8 +111,7 @@ function RuleRow({ rule }: { rule: ApprovalRuleWithSteps }) {
                     const next = [...draftSteps];
                     next[index] = {
                       ...step,
-                      strategy: event.target.value as ApproverStrategy,
-                    };
+                      strategy: event.target.value as ApproverStrategy};
                     setDraftSteps(next);
                   }}
                 >
@@ -127,7 +124,7 @@ function RuleRow({ rule }: { rule: ApprovalRuleWithSteps }) {
               )}
             </Field>
             {step.strategy === 'role_template' ? (
-              <Field label={t('steps.roleTemplate')}>
+              <Field label={t('steps.roleTemplate')} className={mainAppFieldSpan.lg}>
                 {(props) => (
                   <select
                     {...props}
@@ -149,7 +146,7 @@ function RuleRow({ rule }: { rule: ApprovalRuleWithSteps }) {
               </Field>
             ) : null}
             {step.strategy === 'permission' ? (
-              <Field label={t('steps.permission')}>
+              <Field label={t('steps.permission')} className={mainAppFieldSpan.lg}>
                 {(props) => (
                   <Input
                     {...props}
@@ -164,7 +161,7 @@ function RuleRow({ rule }: { rule: ApprovalRuleWithSteps }) {
               </Field>
             ) : null}
             {step.strategy === 'user' ? (
-              <Field label={t('steps.userId')}>
+              <Field label={t('steps.userId')} className={mainAppFieldSpan.lg}>
                 {(props) => (
                   <Input
                     {...props}
@@ -178,7 +175,7 @@ function RuleRow({ rule }: { rule: ApprovalRuleWithSteps }) {
                 )}
               </Field>
             ) : null}
-            <div className="sm:col-span-2">
+            <div className={mainAppFieldSpan.full}>
               <Button
                 type="button"
                 size="sm"
@@ -188,7 +185,7 @@ function RuleRow({ rule }: { rule: ApprovalRuleWithSteps }) {
                 {t('steps.remove')}
               </Button>
             </div>
-          </div>
+          </MainAppFormGrid>
         ))}
         <div className="flex flex-wrap gap-2">
           <Button type="button" size="sm" variant="secondary" onClick={() => setDraftSteps([...draftSteps, emptyStep()])}>
@@ -212,8 +209,7 @@ function RuleRow({ rule }: { rule: ApprovalRuleWithSteps }) {
 export function ApprovalRulesPanel({
   rules,
   canEdit,
-  defaultCurrency,
-}: {
+  defaultCurrency}: {
   rules: readonly ApprovalRuleWithSteps[];
   canEdit: boolean;
   defaultCurrency: string;
@@ -226,8 +222,9 @@ export function ApprovalRulesPanel({
   const [state, action, pending] = useActionState(createApprovalRuleAction, {} as ApprovalsActionState);
 
   return (
-    <div className="flex flex-col gap-6">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('rulesDescription')}</p>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('rulesDescription')}</p>
 
       {rules.length === 0 ? (
         <EmptyState title={t('rulesEmpty.title')} description={t('rulesEmpty.body')} />
@@ -240,13 +237,14 @@ export function ApprovalRulesPanel({
       )}
 
       {canEdit ? (
-        <form action={action} className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
+        <form action={action} className="flex w-full flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
           <h3 className="font-semibold">{t('addRule')}</h3>
           <input type="hidden" name="stepsJson" value={JSON.stringify(createSteps)} />
-          <Field label={t('fields.name')} required>
+          <MainAppFormGrid dense className="gap-4">
+          <Field label={t('fields.name')} required className={mainAppFieldSpan.full}>
             {(props) => <Input {...props} name="name" required minLength={2} maxLength={120} />}
           </Field>
-          <Field label={t('fields.entityType')} required>
+          <Field label={t('fields.entityType')} required className={mainAppFieldSpan.lg}>
             {(props) => (
               <>
                 <input type="hidden" name="entityType" value={entityType} />
@@ -267,13 +265,12 @@ export function ApprovalRulesPanel({
               </>
             )}
           </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('fields.thresholdAmount')} optionalLabel={tCommon('labels.optional')}>
+            <Field label={t('fields.thresholdAmount')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
               {(props) => (
                 <Input {...props} name="thresholdAmount" inputMode="decimal" placeholder="1000" />
               )}
             </Field>
-            <Field label={t('fields.currency')} optionalLabel={tCommon('labels.optional')}>
+            <Field label={t('fields.currency')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
               {(props) => (
                 <Input
                   {...props}
@@ -284,8 +281,7 @@ export function ApprovalRulesPanel({
                 />
               )}
             </Field>
-          </div>
-          <div className="flex items-center gap-2">
+          <div className={cn(mainAppFieldSpan.full, 'flex items-center gap-2')}>
             <Checkbox
               id="approval-rule-enabled"
               checked={enabled}
@@ -296,13 +292,14 @@ export function ApprovalRulesPanel({
               {t('fields.enabled')}
             </Label>
           </div>
+          </MainAppFormGrid>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex w-full flex-col gap-4">
             <p className="text-sm font-medium">{t('steps.title')}</p>
             <p className="text-xs text-[var(--pf-text-muted)]">{t('steps.createHint')}</p>
             {createSteps.map((step, index) => (
-              <div key={index} className="grid gap-2 rounded-md bg-[var(--pf-bg-muted)] p-3 sm:grid-cols-2">
-                <Field label={t('steps.strategy')}>
+              <MainAppFormGrid key={index} dense className={cn('gap-4 rounded-md bg-[var(--pf-bg-muted)] p-3')}>
+                <Field label={t('steps.strategy')} className={mainAppFieldSpan.lg}>
                   {(props) => (
                     <select
                       {...props}
@@ -323,7 +320,7 @@ export function ApprovalRulesPanel({
                   )}
                 </Field>
                 {step.strategy === 'role_template' ? (
-                  <Field label={t('steps.roleTemplate')}>
+                  <Field label={t('steps.roleTemplate')} className={mainAppFieldSpan.lg}>
                     {(props) => (
                       <select
                         {...props}
@@ -345,7 +342,7 @@ export function ApprovalRulesPanel({
                   </Field>
                 ) : null}
                 {step.strategy === 'permission' ? (
-                  <Field label={t('steps.permission')}>
+                  <Field label={t('steps.permission')} className={mainAppFieldSpan.lg}>
                     {(props) => (
                       <Input
                         {...props}
@@ -360,7 +357,7 @@ export function ApprovalRulesPanel({
                   </Field>
                 ) : null}
                 {step.strategy === 'user' ? (
-                  <Field label={t('steps.userId')}>
+                  <Field label={t('steps.userId')} className={mainAppFieldSpan.lg}>
                     {(props) => (
                       <Input
                         {...props}
@@ -374,7 +371,7 @@ export function ApprovalRulesPanel({
                     )}
                   </Field>
                 ) : null}
-                <div className="sm:col-span-2">
+                <div className={mainAppFieldSpan.full}>
                   <Button
                     type="button"
                     size="sm"
@@ -384,7 +381,7 @@ export function ApprovalRulesPanel({
                     {t('steps.remove')}
                   </Button>
                 </div>
-              </div>
+              </MainAppFormGrid>
             ))}
             <Button type="button" size="sm" variant="secondary" onClick={() => setCreateSteps([...createSteps, emptyStep()])}>
               {t('steps.add')}
@@ -402,6 +399,8 @@ export function ApprovalRulesPanel({
           ) : null}
         </form>
       ) : null}
+    
+      </MainAppSection>
     </div>
   );
 }

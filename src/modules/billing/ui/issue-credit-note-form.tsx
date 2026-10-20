@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,7 +55,7 @@ export function IssueCreditNoteForm({
         <CardTitle className="text-start">{t('creditNote.title')}</CardTitle>
       </CardHeader>
       <CardContent className="text-start">
-        <form action={formAction} className="flex flex-col gap-4">
+        <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('creditNote.description')}</p>
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('creditNote.listHint')}</p>
           {state.error ? (
@@ -62,8 +63,8 @@ export function IssueCreditNoteForm({
               {resolveBillingMessage(state.error, t, tErrors)}
             </p>
           ) : null}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('creditNote.amount')} required>
+          <MainAppFormGrid dense>
+            <Field label={t('creditNote.amount')} required className={mainAppFieldSpan.lg}>
               {(control) => (
                 <>
                   <MoneyInput
@@ -76,7 +77,7 @@ export function IssueCreditNoteForm({
                 </>
               )}
             </Field>
-            <Field label={t('creditNote.issueDate')} required>
+            <Field label={t('creditNote.issueDate')} required className={mainAppFieldSpan.md}>
               {(control) => (
                 <Input
                   {...control}
@@ -87,10 +88,10 @@ export function IssueCreditNoteForm({
                 />
               )}
             </Field>
-          </div>
-          <Field label={t('creditNote.notes')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Textarea {...control} name="notes" rows={2} />}
-          </Field>
+            <Field label={t('creditNote.notes')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
+              {(control) => <Textarea {...control} name="notes" rows={2} />}
+            </Field>
+          </MainAppFormGrid>
           <div>
             <Button type="submit" disabled={pending || amount.trim().length === 0}>
               {t('creditNote.submit')}

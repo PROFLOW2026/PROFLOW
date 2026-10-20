@@ -18,6 +18,7 @@ interface ClientsPageProps {
     includeArchived?: string;
     clientTypeId?: string;
     page?: string;
+    pageSize?: string;
   }>;
 }
 

@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -21,8 +22,9 @@ export function AttendanceOvertimeForm({ dayId, isOvertime, action }: Attendance
   const [state, formAction, pending] = useActionState(action, {} as AttendanceActionState);
 
   return (
-    <form action={formAction} className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
-      <Field label={t('label')}>
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
+      <MainAppFormGrid dense className="gap-4">
+      <Field label={t('label')} className={mainAppFieldSpan.full}>
         {() => (
           <div className="flex flex-wrap gap-4" role="group">
             <label className="flex items-center gap-2 text-sm">
@@ -48,6 +50,7 @@ export function AttendanceOvertimeForm({ dayId, isOvertime, action }: Attendance
           </div>
         )}
       </Field>
+      </MainAppFormGrid>
       <input type="hidden" name="dayId" value={dayId} />
       <p className="text-xs text-[var(--pf-text-muted)]">{t('hint')}</p>
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}

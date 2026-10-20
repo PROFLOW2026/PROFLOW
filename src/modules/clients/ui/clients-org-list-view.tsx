@@ -1,4 +1,13 @@
-import { Plus, Users } from 'lucide-react';
+import {
+  AdaptiveListBody,
+  AdaptiveListTableShell,
+  MainAppListPagination,
+  MainAppPage,
+  MainAppSection,
+  mainAppListKitEnabled,
+} from '@/components/patterns/main-app';
+import { QueryPagination } from '@/components/ui/query-pagination';
+﻿import { Plus, Users } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { localizeClientTypeName, localizeClientTypeOptions } from '@/modules/business-catalog';
 import { Button } from '@/components/ui/button';
@@ -9,7 +18,6 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { countClientsForOrg, listClientsForOrg } from '@/modules/clients';
-import { QueryPagination } from '@/components/ui/query-pagination';
 import {
   ORG_LIST_PAGE_SIZE,
   orgListOffset,
@@ -17,6 +25,10 @@ import {
   parseOrgListPage,
   resolveOrgListPage,
 } from '@/shared/db/org-list-pagination';
+import {
+  MAIN_APP_DEFAULT_LIST_PAGE_SIZE,
+  parseMainAppListPageSize,
+} from '@/shared/db/main-app-list-page-size';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -29,6 +41,7 @@ export interface ClientsOrgListSearchParams {
   includeArchived?: string;
   clientTypeId?: string;
   page?: string;
+  pageSize?: string;
 }
 
 interface ClientsOrgListViewProps {
@@ -54,6 +67,10 @@ export async function ClientsOrgListView({
   const includeArchived = params.includeArchived === '1';
   const clientTypeId =
     params.clientTypeId && params.clientTypeId !== 'all' ? params.clientTypeId : undefined;
+  const listKit = mainAppListKitEnabled(surface);
+  const pageSize = listKit
+    ? parseMainAppListPageSize(params.pageSize, MAIN_APP_DEFAULT_LIST_PAGE_SIZE)
+    : ORG_LIST_PAGE_SIZE;
   const requestedPage = parseOrgListPage(params.page);
   const listFilters = {
     search: params.q,
@@ -77,7 +94,7 @@ export async function ClientsOrgListView({
 
       const { listBusinessCatalog } = await import('@/modules/business-catalog');
       const total = await countClientsForOrg(context, listFilters);
-      const page = resolveOrgListPage(total, requestedPage);
+      const page = resolveOrgListPage(total, requestedPage, pageSize);
       const canManageClients =
         surface === 'employee'
           ? employeeHasPermission(context, PERMISSIONS.CLIENTS_MANAGE)
@@ -86,13 +103,13 @@ export async function ClientsOrgListView({
       return {
         clients: await listClientsForOrg(context, {
           ...listFilters,
-          limit: ORG_LIST_PAGE_SIZE,
-          offset: orgListOffset(page),
+          limit: pageSize,
+          offset: orgListOffset(page, pageSize),
         }),
         clientTypes: await listBusinessCatalog(context, 'client_type').catch(() => []),
         totalCount: total,
         currentPage: page,
-        totalPages: orgListPageCount(total),
+        totalPages: orgListPageCount(total, pageSize),
         canManage: canManageClients,
         canRead: true,
       };
@@ -115,7 +132,7 @@ export async function ClientsOrgListView({
   const clientDetailHref = (clientId: string) => `${routeBase}/${clientId}`;
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         actions={
@@ -129,12 +146,14 @@ export async function ClientsOrgListView({
           ) : null
         }
       />
-
-      <ClientListFilters
+      <MainAppSection>
+        <AdaptiveListBody surface={surface}>
+        <ClientListFilters
         initialQuery={params.q ?? ''}
         includeArchived={includeArchived}
         initialClientTypeId={params.clientTypeId ?? ''}
         clientTypes={localizeClientTypeOptions(clientTypes, locale)}
+        listKit={listKit}
       />
 
       {clients.length === 0 ? (
@@ -154,7 +173,7 @@ export async function ClientsOrgListView({
           items={clients}
           getRowKey={(client) => client.id}
           desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            <AdaptiveListTableShell surface={surface}>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -204,7 +223,7 @@ export async function ClientsOrgListView({
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </AdaptiveListTableShell>
           }
           renderMobileCard={(client) => (
             <Link
@@ -231,22 +250,44 @@ export async function ClientsOrgListView({
         />
       )}
 
-      <QueryPagination
-        basePath={routeBase}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalCount={totalCount}
-        pageSize={ORG_LIST_PAGE_SIZE}
-        currentParams={{
-          q: params.q,
-          includeArchived: params.includeArchived,
-          clientTypeId: params.clientTypeId,
-        }}
-        previousLabel={tCommon('actions.previous')}
-        nextLabel={tCommon('actions.next')}
-        pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
-        navLabel={tCommon('pagination.navLabel')}
-      />
-    </div>
+      {listKit ? (
+        <MainAppListPagination
+          basePath={routeBase}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          pageSize={pageSize}
+          currentParams={{
+            q: params.q,
+            includeArchived: params.includeArchived,
+            clientTypeId: params.clientTypeId,
+          }}
+          previousLabel={tCommon('actions.previous')}
+          nextLabel={tCommon('actions.next')}
+          pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
+          navLabel={tCommon('pagination.navLabel')}
+          rowsPerPageLabel={tCommon('pagination.rowsPerPage')}
+        />
+      ) : (
+        <QueryPagination
+          basePath={routeBase}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          pageSize={ORG_LIST_PAGE_SIZE}
+          currentParams={{
+            q: params.q,
+            includeArchived: params.includeArchived,
+            clientTypeId: params.clientTypeId,
+          }}
+          previousLabel={tCommon('actions.previous')}
+          nextLabel={tCommon('actions.next')}
+          pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
+          navLabel={tCommon('pagination.navLabel')}
+        />
+      )}
+        </AdaptiveListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

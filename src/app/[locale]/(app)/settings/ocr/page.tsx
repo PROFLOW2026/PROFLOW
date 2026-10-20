@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';

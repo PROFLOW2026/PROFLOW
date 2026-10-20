@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -63,41 +64,44 @@ export function DraftBillingEditForm({
         <CardTitle className="text-start">{t('draft.title')}</CardTitle>
       </CardHeader>
       <CardContent>
-        <form action={formAction} className="flex max-w-xl flex-col gap-4">
+        <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
           <Alert tone="info">{t('draft.notTaxInvoice')}</Alert>
           {overContract ? <Alert tone="warning">{t('draft.overContract')}</Alert> : null}
           {formError ? <Alert tone="danger">{formError}</Alert> : null}
           <input type="hidden" name="projectId" value={projectId} />
           <input type="hidden" name="reference" value={reference ?? ''} />
           <input type="hidden" name="notes" value={notes ?? ''} />
-          <Field label={t('form.amount')} required error={state.fieldErrors?.amount}>
-            {(control) => (
-              <>
-                <MoneyInput
-                  {...control}
-                  required
-                  value={amount}
-                  onValueChange={setAmount}
-                  currency={currency}
-                />
-                <input type="hidden" name="amount" value={amount} />
-              </>
-            )}
-          </Field>
-          <Field label={t('list.issueDate')} required error={state.fieldErrors?.issueDate}>
-            {(control) => (
-              <Input {...control} type="date" name="issueDate" required defaultValue={issueDate} />
-            )}
-          </Field>
-          <Field
-            label={t('detail.dueDate')}
-            optionalLabel={tCommon('labels.optional')}
-            error={state.fieldErrors?.dueDate}
-          >
-            {(control) => (
-              <Input {...control} type="date" name="dueDate" defaultValue={dueDate ?? ''} />
-            )}
-          </Field>
+          <MainAppFormGrid dense>
+            <Field label={t('form.amount')} required error={state.fieldErrors?.amount} className={mainAppFieldSpan.lg}>
+              {(control) => (
+                <>
+                  <MoneyInput
+                    {...control}
+                    required
+                    value={amount}
+                    onValueChange={setAmount}
+                    currency={currency}
+                  />
+                  <input type="hidden" name="amount" value={amount} />
+                </>
+              )}
+            </Field>
+            <Field label={t('list.issueDate')} required error={state.fieldErrors?.issueDate} className={mainAppFieldSpan.md}>
+              {(control) => (
+                <Input {...control} type="date" name="issueDate" required defaultValue={issueDate} />
+              )}
+            </Field>
+            <Field
+              label={t('detail.dueDate')}
+              optionalLabel={tCommon('labels.optional')}
+              error={state.fieldErrors?.dueDate}
+              className={mainAppFieldSpan.md}
+            >
+              {(control) => (
+                <Input {...control} type="date" name="dueDate" defaultValue={dueDate ?? ''} />
+              )}
+            </Field>
+          </MainAppFormGrid>
           <Button type="submit" disabled={pending || !amount}>
             {t('draft.save')}
           </Button>

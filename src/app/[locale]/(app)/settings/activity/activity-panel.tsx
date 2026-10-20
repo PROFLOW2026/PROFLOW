@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
+import { MainAppSection, MainAppTableShell } from '@/components/patterns/main-app';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -28,8 +29,7 @@ function translateAuditKey(
 export function ActivityLogPanel({
   items,
   nextCursor,
-  timezone,
-}: {
+  timezone}: {
   items: readonly AuditEventSummary[];
   nextCursor: string | null;
   timezone: string;
@@ -38,18 +38,25 @@ export function ActivityLogPanel({
   const locale = useLocale();
 
   if (items.length === 0) {
-    return <EmptyState title={t('empty')} description={t('subtitle')} />;
+    return (
+      <div className="flex w-full min-w-0 flex-col gap-4">
+        <MainAppSection className="w-full min-w-0">
+          <EmptyState title={t('empty')} description={t('subtitle')} />
+        </MainAppSection>
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection className="w-full min-w-0">
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
 
       <ResponsiveTable
         items={items}
         getRowKey={(event) => event.id}
         desktop={
-          <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+          <MainAppTableShell className="w-full min-w-0">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -77,7 +84,7 @@ export function ActivityLogPanel({
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </MainAppTableShell>
         }
         renderMobileCard={(event) => (
           <div className="rounded-lg border border-[var(--pf-border-default)] p-4">
@@ -104,6 +111,7 @@ export function ActivityLogPanel({
           {t('loadMore')}
         </Link>
       ) : null}
+      </MainAppSection>
     </div>
   );
 }

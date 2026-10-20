@@ -1,5 +1,6 @@
 'use client';
 
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 
 
 import { useActionState, type ReactNode } from 'react';
@@ -196,9 +197,9 @@ export function DefectManagePanel({
 
   return (
 
-    <div className="flex flex-col gap-4">
-
-      {canManage ? (
+    <MainAppPage>
+      <MainAppSection>
+        {canManage ? (
 
         <ActionBlock title={t('edit.title')}>
 
@@ -464,7 +465,9 @@ export function DefectManagePanel({
 
       ) : null}
 
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
 
   );
 

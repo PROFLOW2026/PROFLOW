@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -54,12 +55,7 @@ export function PaymentInstrumentsPanel({
   }
 
   return (
-    <div className="flex flex-col gap-5 border-b border-[var(--pf-border-default)] pb-5">
-      <div className="min-w-0">
-        <p className="text-start font-medium">{t('title')}</p>
-        <p className="mt-1 text-start text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
-      </div>
-
+    <MainAppSection title={t('title')} description={t('subtitle')}>
       {instruments.length > 0 ? (
         <ul className="flex flex-col gap-2">
           {instruments.map((instrument) => (
@@ -89,9 +85,10 @@ export function PaymentInstrumentsPanel({
       )}
 
       {canEdit ? (
-        <form action={saveAction} className="flex flex-col gap-4">
+        <form action={saveAction} className="flex w-full flex-col gap-4">
           {editingId ? <input type="hidden" name="instrumentId" value={editingId} /> : null}
-          <Field label={t('displayName')} optionalLabel={tCommon('labels.optional')}>
+          <MainAppFormGrid dense className="gap-4">
+          <Field label={t('displayName')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
             {(control) => (
               <Input
                 id={control.id}
@@ -102,7 +99,7 @@ export function PaymentInstrumentsPanel({
               />
             )}
           </Field>
-          <Field label={t('lastFour')} optionalLabel={tCommon('labels.optional')}>
+          <Field label={t('lastFour')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
             {(control) => (
               <Input
                 id={control.id}
@@ -115,7 +112,7 @@ export function PaymentInstrumentsPanel({
               />
             )}
           </Field>
-          <Field label={t('debitDay')} optionalLabel={tCommon('labels.optional')}>
+          <Field label={t('debitDay')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
             {(control) => (
               <Input
                 id={control.id}
@@ -129,7 +126,7 @@ export function PaymentInstrumentsPanel({
               />
             )}
           </Field>
-          <div className="flex flex-wrap gap-2">
+          <div className={`flex flex-wrap gap-2 ${mainAppFieldSpan.full}`}>
             <Button type="submit" loading={savePending}>
               {editingId ? tCommon('actions.save') : t('addCard')}
             </Button>
@@ -139,6 +136,7 @@ export function PaymentInstrumentsPanel({
               </Button>
             ) : null}
           </div>
+          </MainAppFormGrid>
           {saveState.ok ? <Alert tone="success">{t('saved')}</Alert> : null}
           {saveState.error ? <Alert tone="danger">{saveState.error}</Alert> : null}
         </form>
@@ -146,6 +144,6 @@ export function PaymentInstrumentsPanel({
 
       {deactivateState.ok ? <Alert tone="success">{t('removed')}</Alert> : null}
       {deactivateState.error ? <Alert tone="danger">{deactivateState.error}</Alert> : null}
-    </div>
+    </MainAppSection>
   );
 }

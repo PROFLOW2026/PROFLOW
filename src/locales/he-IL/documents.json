@@ -48,7 +48,9 @@
     "warranty_issue": "קריאת אחריות",
     "closeout": "סגירת פרויקט",
     "outbound_communication": "הודעה יוצאת",
-    "calendar_event": "אירוע ביומן"
+    "calendar_event": "אירוע ביומן",
+    "task": "משימה",
+    "task_comment": "תגובה במשימה"
   },
   "status": {
     "pending": "ממתין להעלאה",

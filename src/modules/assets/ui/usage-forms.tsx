@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -64,13 +65,14 @@ export function MaterialUsageForm({
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('materialHint')}</p>
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{t('materialSaved')}</Alert> : null}
 
+      <MainAppFormGrid dense>
       {projects && projects.length > 0 ? (
-        <Field label={t('projectLabel')} required>
+        <Field label={t('projectLabel')} required className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input type="hidden" name="projectId" value={resolvedProjectId} />
@@ -93,7 +95,7 @@ export function MaterialUsageForm({
         <input type="hidden" name="projectId" value={projectId ?? ''} />
       )}
 
-      <Field label={t('descriptionLabel')} required>
+      <Field label={t('descriptionLabel')} required className={mainAppFieldSpan.lg}>
         {(control) => (
           <Input
             {...control}
@@ -105,18 +107,16 @@ export function MaterialUsageForm({
         )}
       </Field>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field label={t('quantityLabel')} required>
+        <Field label={t('quantityLabel')} required className={mainAppFieldSpan.md}>
           {(control) => (
             <Input {...control} name="quantity" inputMode="decimal" required dir="ltr" />
           )}
         </Field>
-        <Field label={t('unitLabel')}>
+        <Field label={t('unitLabel')} className={mainAppFieldSpan.md}>
           {(control) => <Input {...control} name="unit" maxLength={32} />}
         </Field>
-      </div>
 
-      <Field label={t('usageDateLabel')} required>
+      <Field label={t('usageDateLabel')} required className={mainAppFieldSpan.md}>
         {(control) => (
           <Input
             {...control}
@@ -130,7 +130,7 @@ export function MaterialUsageForm({
       </Field>
 
       {materials.length > 0 ? (
-        <Field label={t('materialLabel')}>
+        <Field label={t('materialLabel')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input
@@ -158,7 +158,7 @@ export function MaterialUsageForm({
       ) : null}
 
       {inventoryItems.length > 0 ? (
-        <Field label={t('inventoryLabel')}>
+        <Field label={t('inventoryLabel')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input
@@ -186,7 +186,7 @@ export function MaterialUsageForm({
       ) : null}
 
       {employees.length > 0 ? (
-        <Field label={t('employeeLabel')}>
+        <Field label={t('employeeLabel')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input
@@ -212,9 +212,10 @@ export function MaterialUsageForm({
         </Field>
       ) : null}
 
-      <Field label={t('notesLabel')}>
+      <Field label={t('notesLabel')} className={mainAppFieldSpan.full}>
         {(control) => <Textarea {...control} name="notes" rows={2} maxLength={4000} />}
       </Field>
+      </MainAppFormGrid>
 
       <Button
         type="submit"
@@ -256,13 +257,14 @@ export function EquipmentUsageForm({
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('equipmentHint')}</p>
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{t('equipmentSaved')}</Alert> : null}
 
+      <MainAppFormGrid dense>
       {projects && projects.length > 0 ? (
-        <Field label={t('projectLabel')} required>
+        <Field label={t('projectLabel')} required className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input type="hidden" name="projectId" value={resolvedProjectId} />
@@ -288,7 +290,7 @@ export function EquipmentUsageForm({
       {defaultAssetId ? (
         <input type="hidden" name="assetId" value={defaultAssetId} />
       ) : (
-        <Field label={t('assetLabel')} required>
+        <Field label={t('assetLabel')} required className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input type="hidden" name="assetId" value={assetId} />
@@ -310,8 +312,7 @@ export function EquipmentUsageForm({
         </Field>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field label={t('usageDateLabel')} required>
+        <Field label={t('usageDateLabel')} required className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               {...control}
@@ -323,25 +324,22 @@ export function EquipmentUsageForm({
             />
           )}
         </Field>
-        <Field label={t('endDateLabel')}>
+        <Field label={t('endDateLabel')} className={mainAppFieldSpan.md}>
           {(control) => <Input {...control} name="endDate" type="date" dir="ltr" />}
         </Field>
-      </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Field label={t('hoursLabel')}>
+        <Field label={t('hoursLabel')} className={mainAppFieldSpan.md}>
           {(control) => <Input {...control} name="hours" inputMode="decimal" dir="ltr" />}
         </Field>
-        <Field label={t('daysLabel')}>
+        <Field label={t('daysLabel')} className={mainAppFieldSpan.md}>
           {(control) => <Input {...control} name="days" inputMode="decimal" dir="ltr" />}
         </Field>
-        <Field label={t('mileageLabel')}>
+        <Field label={t('mileageLabel')} className={mainAppFieldSpan.md}>
           {(control) => <Input {...control} name="mileage" inputMode="decimal" dir="ltr" />}
         </Field>
-      </div>
 
       {employees.length > 0 ? (
-        <Field label={t('employeeLabel')}>
+        <Field label={t('employeeLabel')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input
@@ -367,9 +365,10 @@ export function EquipmentUsageForm({
         </Field>
       ) : null}
 
-      <Field label={t('notesLabel')}>
+      <Field label={t('notesLabel')} className={mainAppFieldSpan.full}>
         {(control) => <Textarea {...control} name="notes" rows={2} maxLength={4000} />}
       </Field>
+      </MainAppFormGrid>
 
       <Button type="submit" disabled={pending || (!projectId && !resolvedProjectId)} className="self-start">
         {pending ? tCommon('states.saving') : t('submitEquipment')}

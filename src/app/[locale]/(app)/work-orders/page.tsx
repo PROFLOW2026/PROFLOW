@@ -1,4 +1,10 @@
-import { Plus } from 'lucide-react';
+import {
+  MainAppListBody,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+﻿import { Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
@@ -61,7 +67,7 @@ export default async function WorkOrdersPage({ searchParams }: WorkOrdersPagePro
   );
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6" data-pf-work-orders-list="">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         actions={
@@ -75,8 +81,9 @@ export default async function WorkOrdersPage({ searchParams }: WorkOrdersPagePro
           ) : null
         }
       />
-
-      <WorkOrderListFilters initialQuery={params.q ?? ''} initialStatus={serviceStatus ?? 'all'} />
+      <MainAppSection>
+        <MainAppListBody>
+        <WorkOrderListFilters initialQuery={params.q ?? ''} initialStatus={serviceStatus ?? 'all'} />
 
       {workOrders.length === 0 ? (
         filtersActive ? (
@@ -114,7 +121,8 @@ export default async function WorkOrdersPage({ searchParams }: WorkOrdersPagePro
           items={workOrders}
           getRowKey={(row) => row.id}
           desktop={
-            <Table>
+            <MainAppTableShell>
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>{t('list.columns.customer')}</TableHead>
@@ -161,7 +169,8 @@ export default async function WorkOrdersPage({ searchParams }: WorkOrdersPagePro
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+              </Table>
+            </MainAppTableShell>
           }
           renderMobileCard={(row) => (
             <Link
@@ -193,6 +202,9 @@ export default async function WorkOrdersPage({ searchParams }: WorkOrdersPagePro
           )}
         />
       )}
-    </div>
+
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

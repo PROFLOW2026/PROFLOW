@@ -34,19 +34,21 @@ function ReportMetricShell({
   readonly secondaryLabel?: string;
 }) {
   return (
-    <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 text-start">
-      <div className="flex items-start justify-between gap-2">
-        <p className="min-w-0 flex-1 break-words text-xs font-medium text-[var(--pf-text-secondary)]">
+    <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2.5 text-start sm:p-3">
+      <div className="flex items-start justify-between gap-1.5">
+        <p className="min-w-0 flex-1 break-words text-[11px] font-medium leading-snug text-[var(--pf-text-secondary)] sm:text-xs">
           {label}
         </p>
-        <span className="shrink-0 rounded bg-[var(--pf-bg-muted)] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[var(--pf-text-muted)]">
+        <span className="shrink-0 rounded bg-[var(--pf-bg-muted)] px-1 py-0.5 text-[9px] font-medium uppercase tracking-wide text-[var(--pf-text-muted)] sm:px-1.5 sm:text-[10px]">
           {natureLabel}
         </span>
       </div>
       {basisLabel ? (
-        <p className="mt-1 break-words text-[11px] text-[var(--pf-text-muted)]">{basisLabel}</p>
+        <p className="mt-0.5 break-words text-[10px] text-[var(--pf-text-muted)] sm:mt-1 sm:text-[11px]">
+          {basisLabel}
+        </p>
       ) : null}
-      <div className="mt-1 min-w-0 max-w-full overflow-x-auto text-base font-semibold">
+      <div className="mt-0.5 min-w-0 max-w-full overflow-x-auto text-sm font-semibold sm:mt-1 sm:text-base">
         {value}
       </div>
       {secondaryMoney && secondaryLabel ? (

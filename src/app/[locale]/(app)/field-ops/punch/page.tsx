@@ -1,4 +1,10 @@
-import { ListChecks, Plus } from 'lucide-react';
+import {
+  MainAppListBody,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+﻿import { ListChecks, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -91,7 +97,7 @@ export default async function FieldOpsPunchPage({
   const projectName = new Map(projects.map((p) => [p.id, p.name]));
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('nav.punch')}
         description={t('description')}
@@ -110,7 +116,9 @@ export default async function FieldOpsPunchPage({
           ) : null
         }
       />
-      <FieldOpsSectionNav active="punch" />
+      <MainAppSection>
+        <MainAppListBody>
+        <FieldOpsSectionNav active="punch" />
       <PunchListFilters
         projectId={projectId}
         initialStatus={statusParam ?? 'all'}
@@ -135,7 +143,7 @@ export default async function FieldOpsPunchPage({
           items={items}
           getRowKey={(item) => item.id}
           desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            <MainAppTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -187,7 +195,7 @@ export default async function FieldOpsPunchPage({
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </MainAppTableShell>
           }
           renderMobileCard={(item) => (
             <div className="flex min-h-11 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
@@ -221,6 +229,9 @@ export default async function FieldOpsPunchPage({
           )}
         />
       )}
-    </div>
+
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

@@ -1,4 +1,5 @@
-import { FileCheck2 } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { FileCheck2 } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { buttonVariants } from '@/components/ui/button';
@@ -60,10 +61,10 @@ export async function ProjectSubmittalsScreen({ surfaceRoot,
     );
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader title={t('title')} description={t('description')} />
-
-      {data.formOptions ? (
+      <MainAppSection>
+        {data.formOptions ? (
         <WithAppClientMessages extra={['submittals', 'common']}>
           <SubmittalCreateForm projectId={projectId} options={data.formOptions} cancelHref={base} />
         </WithAppClientMessages>
@@ -98,7 +99,9 @@ export async function ProjectSubmittalsScreen({ surfaceRoot,
       ) : (
         <SubmittalList items={data.list.items} basePath={base} locale={locale} />
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

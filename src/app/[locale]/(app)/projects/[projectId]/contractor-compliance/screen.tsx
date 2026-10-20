@@ -1,4 +1,5 @@
-import { ShieldCheck } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { ShieldCheck } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -28,9 +29,9 @@ export async function ProjectContractorComplianceScreen({ surfaceRoot: _surfaceR
 
   return (
     <WithAppClientMessages extra={['contractorCompliance']}>
-      <div className="flex flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={t('title')} description={t('description')} />
-
+      <MainAppSection>
         {overview.canManage ? <ApplyStandardSetButton projectId={projectId} agreementIds={agreementIds} /> : null}
 
         {overview.pendingReviews.length > 0 ? (
@@ -52,7 +53,9 @@ export async function ProjectContractorComplianceScreen({ surfaceRoot: _surfaceR
         ) : (
           <ComplianceAgreementList overview={overview} />
         )}
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

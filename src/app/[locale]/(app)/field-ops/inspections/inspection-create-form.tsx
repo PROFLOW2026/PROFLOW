@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -77,7 +78,7 @@ export function InspectionCreateForm({
   );
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.offlineQueued ? (
         <Alert tone="info" role="status">
@@ -88,7 +89,8 @@ export function InspectionCreateForm({
         </Alert>
       ) : null}
 
-      <Field label={t('projectLabel')} required>
+      <MainAppFormGrid dense className="gap-4">
+      <Field label={t('projectLabel')} required className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="projectId" value={projectId} />
@@ -115,7 +117,7 @@ export function InspectionCreateForm({
       </Field>
 
       {projectPackages.length > 0 ? (
-        <Field label={t('workPackageLabel')}>
+        <Field label={t('workPackageLabel')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input
@@ -141,11 +143,11 @@ export function InspectionCreateForm({
         </Field>
       ) : null}
 
-      <Field label={t('titleLabel')} required error={state.fieldErrors?.title}>
+      <Field label={t('titleLabel')} required error={state.fieldErrors?.title} className={mainAppFieldSpan.full}>
         {(control) => <Input {...control} name="title" required autoFocus />}
       </Field>
 
-      <Field label={t('kindLabel')}>
+      <Field label={t('kindLabel')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="kind" value={kind} />
@@ -165,12 +167,12 @@ export function InspectionCreateForm({
         )}
       </Field>
 
-      <Field label={t('scheduledOnLabel')}>
+      <Field label={t('scheduledOnLabel')} className={mainAppFieldSpan.md}>
         {(control) => <Input {...control} type="date" name="scheduledOn" />}
       </Field>
 
       {employees.length > 0 ? (
-        <Field label={t('inspectorLabel')}>
+        <Field label={t('inspectorLabel')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input
@@ -200,9 +202,10 @@ export function InspectionCreateForm({
         <InspectionFormTemplateField templates={formTemplates} error={state.fieldErrors?.formTemplateId} />
       ) : null}
 
-      <Field label={t('notesLabel')}>
+      <Field label={t('notesLabel')} className={mainAppFieldSpan.full}>
         {(control) => <Textarea {...control} name="notes" rows={3} />}
       </Field>
+      </MainAppFormGrid>
 
       <FieldOpsPhotoStaging
         files={photos.files}

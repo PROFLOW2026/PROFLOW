@@ -1,4 +1,5 @@
-import { getFormatter, getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getFormatter, getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
@@ -44,7 +45,7 @@ export async function InstructionDetailScreen({ surfaceRoot,
     : null;
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         breadcrumb={
           <Link href={`${surfaceRoot ?? ('/projects/' + projectId)}/instructions`} className="text-sm text-[var(--pf-text-brand)] hover:underline">
@@ -66,8 +67,8 @@ export async function InstructionDetailScreen({ surfaceRoot,
           </>
         }
       />
-
-      <Card>
+      <MainAppSection>
+        <Card>
         <CardContent className="grid gap-3 p-4 text-sm sm:grid-cols-2">
           <div className="sm:col-span-2">
             <p className="whitespace-pre-wrap break-words">{instruction.description || t('common.none')}</p>
@@ -273,7 +274,9 @@ export async function InstructionDetailScreen({ surfaceRoot,
         entityId={instruction.id}
         viewer="internal"
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

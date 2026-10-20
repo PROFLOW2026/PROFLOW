@@ -1,3 +1,4 @@
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getFormatter, getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,8 +21,9 @@ export async function TaskContractorSection({ taskId }: { readonly taskId: strin
   const assignment = panel.assignment;
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card>
+    <MainAppPage>
+      <MainAppSection>
+        <Card>
         <CardHeader>
           <CardTitle>{t('contractorPanel.title')}</CardTitle>
         </CardHeader>
@@ -71,6 +73,8 @@ export async function TaskContractorSection({ taskId }: { readonly taskId: strin
         entityId={taskId}
         viewer="internal"
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

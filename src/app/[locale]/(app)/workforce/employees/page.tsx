@@ -1,7 +1,7 @@
-import type { Metadata } from 'next';
+import { MainAppListBody, MainAppListSearchToolbar, MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { listEmployeesForOrg } from '@/modules/workforce';
 import {
@@ -83,10 +83,9 @@ export default async function EmployeesPage({
   const orgFrameworkConfigured = Boolean(laborDefaults?.standardHoursPerDay);
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
-        description={t('description')}
         actions={
           canManage ? (
             <Button asChild>
@@ -95,8 +94,8 @@ export default async function EmployeesPage({
           ) : undefined
         }
       />
-
-      <WorkforceSubNav active="employees" />
+      <MainAppSection>
+        <WorkforceSubNav active="employees" />
 
       {canManageFramework ? (
         <OrgWorkFrameworkForm
@@ -115,21 +114,16 @@ export default async function EmployeesPage({
 
       {employerCost ? <EmployerCostOverview data={employerCost} /> : null}
 
-      <form method="get" role="search" className="flex flex-wrap items-center gap-2">
-        <Input
-          type="search"
-          name="q"
-          defaultValue={search}
-          aria-label={tCommon('actions.search')}
-          placeholder={tCommon('actions.search')}
-          className="h-9 min-h-9 w-full max-w-xs"
-        />
-        <Button type="submit" variant="secondary" size="sm">
-          {tCommon('actions.search')}
-        </Button>
-      </form>
+      <MainAppListBody>
+      <MainAppListSearchToolbar
+        initialQuery={search}
+        searchPlaceholder={tCommon('actions.search')}
+        compact
+      />
 
       <EmployeesTable employees={employees} canManage={canManage} showCosts={showCosts} />
-    </div>
+      </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

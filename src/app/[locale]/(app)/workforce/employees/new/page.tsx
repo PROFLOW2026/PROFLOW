@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmployeeForm } from '@/modules/workforce/ui/employee-form';
@@ -38,15 +39,18 @@ export default async function NewEmployeePage() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('employees.new')} description={t('employees.newDescription')} />
-      <EmployeeForm
+      <MainAppSection>
+        <EmployeeForm
         action={createEmployeeAction}
         defaultCurrency={defaults.currency}
         defaultValidFrom={defaults.validFrom}
         linkableUsers={defaults.linkableUsers}
         defaultWorkingDaysPerMonth={defaults.workingDaysPerMonth}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

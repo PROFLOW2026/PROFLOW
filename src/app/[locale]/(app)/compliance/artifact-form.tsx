@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState, useState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -73,11 +74,12 @@ export function ArtifactForm({
           : [];
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full flex-col gap-4">
       {artifact ? <input type="hidden" name="artifactId" value={artifact.id} /> : null}
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
-      <Field label={tForm('nameLabel')} required error={state.fieldErrors?.name}>
+      <MainAppFormGrid dense className="gap-4">
+      <Field label={tForm('nameLabel')} required error={state.fieldErrors?.name} className={mainAppFieldSpan.full}>
         {(control) => (
           <Input
             {...control}
@@ -90,7 +92,7 @@ export function ArtifactForm({
         )}
       </Field>
 
-      <Field label={tForm('kindLabel')} required>
+      <Field label={tForm('kindLabel')} required className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="artifactKind" value={kind} />
@@ -110,7 +112,7 @@ export function ArtifactForm({
         )}
       </Field>
 
-      <Field label={tForm('subjectTypeLabel')} required>
+      <Field label={tForm('subjectTypeLabel')} required className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="subjectType" value={subjectType} />
@@ -142,6 +144,7 @@ export function ArtifactForm({
           description={tForm('subjectIdHint')}
           optionalLabel={tCommon('labels.optional')}
           error={state.fieldErrors?.subjectId}
+          className={mainAppFieldSpan.lg}
         >
           {(control) => (
             <>
@@ -170,6 +173,7 @@ export function ArtifactForm({
         label={tForm('referenceLabel')}
         optionalLabel={tCommon('labels.optional')}
         error={state.fieldErrors?.referenceNumber}
+        className={mainAppFieldSpan.lg}
       >
         {(control) => (
           <Input
@@ -185,13 +189,14 @@ export function ArtifactForm({
         label={tForm('issuerLabel')}
         optionalLabel={tCommon('labels.optional')}
         error={state.fieldErrors?.issuer}
+        className={mainAppFieldSpan.lg}
       >
         {(control) => (
           <Input {...control} name="issuer" defaultValue={artifact?.issuer ?? ''} />
         )}
       </Field>
 
-      <Field label={tForm('issuedOnLabel')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={tForm('issuedOnLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
         {(control) => (
           <Input
             {...control}
@@ -202,7 +207,7 @@ export function ArtifactForm({
         )}
       </Field>
 
-      <Field label={tForm('expiresOnLabel')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={tForm('expiresOnLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
         {(control) => (
           <Input
             {...control}
@@ -213,7 +218,7 @@ export function ArtifactForm({
         )}
       </Field>
 
-      <Field label={tForm('statusModeLabel')} description={tForm('statusModeHint')}>
+      <Field label={tForm('statusModeLabel')} description={tForm('statusModeHint')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="statusMode" value={statusMode} />
@@ -240,11 +245,13 @@ export function ArtifactForm({
         label={tForm('notesLabel')}
         optionalLabel={tCommon('labels.optional')}
         error={state.fieldErrors?.notes}
+        className={mainAppFieldSpan.full}
       >
         {(control) => (
           <Textarea {...control} name="notes" rows={3} defaultValue={artifact?.notes ?? ''} />
         )}
       </Field>
+      </MainAppFormGrid>
 
       <Button type="submit" loading={pending} className="h-11 w-full sm:w-auto">
         {mode === 'create' ? t('create.submit') : t('detail.save')}

@@ -1,8 +1,12 @@
 'use client';
 
+import { mainAppFieldSpan } from '@/components/patterns/main-app';
+import { MainAppListToolbar } from '@/components/patterns/main-app/main-app-list-toolbar';
 import { useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
 
 export function MonthlyWorkforceReportMonthForm({
   defaultMonth,
@@ -16,7 +20,7 @@ export function MonthlyWorkforceReportMonthForm({
 
   return (
     <form
-      className="flex flex-wrap items-end gap-3"
+      className="min-w-0 flex-1"
       onSubmit={(event) => {
         event.preventDefault();
         const form = event.currentTarget;
@@ -26,28 +30,33 @@ export function MonthlyWorkforceReportMonthForm({
         }
       }}
     >
-      <label className="flex flex-col gap-1 text-sm">
-        <span>{t('monthLabel')}</span>
-        <input
-          name="month"
-          type="month"
-          defaultValue={selectedMonth}
-          className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 py-2"
-        />
-      </label>
-      <Button type="submit" variant="secondary" size="sm">
-        {t('loadMonth')}
-      </Button>
-      {selectedMonth !== defaultMonth ? (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => router.push(`/workforce/reports/monthly?month=${defaultMonth}`)}
-        >
-          {t('latestCompleted')}
+      <MainAppListToolbar className="items-end">
+        <Field label={t('monthLabel')} className={mainAppFieldSpan.md}>
+          {(control) => (
+            <Input
+              {...control}
+              name="month"
+              type="month"
+              defaultValue={selectedMonth}
+              dir="ltr"
+              className="h-9 w-full min-w-0 font-mono tabular-nums"
+            />
+          )}
+        </Field>
+        <Button type="submit" variant="secondary" size="sm">
+          {t('loadMonth')}
         </Button>
-      ) : null}
+        {selectedMonth !== defaultMonth ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push(`/workforce/reports/monthly?month=${defaultMonth}`)}
+          >
+            {t('latestCompleted')}
+          </Button>
+        ) : null}
+      </MainAppListToolbar>
     </form>
   );
 }

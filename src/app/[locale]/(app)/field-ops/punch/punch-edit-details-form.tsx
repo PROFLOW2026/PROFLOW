@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -38,14 +39,15 @@ export function PunchEditDetailsForm({
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex w-full flex-col gap-4">
       <input type="hidden" name="punchListItemId" value={punchListItemId} />
-      <Field label={t('locationLabel')}>
+      <MainAppFormGrid dense className="gap-4">
+      <Field label={t('locationLabel')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Input {...control} name="location" defaultValue={location ?? ''} className="min-h-11" />
         )}
       </Field>
-      <Field label={t('dueDateLabel')}>
+      <Field label={t('dueDateLabel')} className={mainAppFieldSpan.md}>
         {(control) => (
           <Input
             {...control}
@@ -56,7 +58,7 @@ export function PunchEditDetailsForm({
           />
         )}
       </Field>
-      <Field label={t('assigneeLabel')}>
+      <Field label={t('assigneeLabel')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="assigneeEmployeeId" value={assignee === NONE ? '' : assignee} />
@@ -76,6 +78,7 @@ export function PunchEditDetailsForm({
           </>
         )}
       </Field>
+      </MainAppFormGrid>
       <Button type="submit" className="min-h-11 w-full sm:w-auto" disabled={pending}>
         {pending ? tCommon('states.saving') : t('saveDetails')}
       </Button>

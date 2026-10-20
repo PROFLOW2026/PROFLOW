@@ -1,4 +1,5 @@
-import { getLocale, getTranslations } from 'next-intl/server';
+﻿import { getLocale, getTranslations } from 'next-intl/server';
+import { MainAppSection, MainAppTableShell } from '@/components/patterns/main-app';
 import { MoneyText } from '@/components/patterns/money-text';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -59,33 +60,30 @@ export async function ProjectBudgetPanel({ projectId }: ProjectBudgetPanelProps)
   const varianceLabel = includeGeneral ? t('metrics.varianceFull') : t('metrics.variance');
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
-      <div className="min-w-0 text-start">
-        <h2 className="text-lg font-semibold">{t('panel.title')}</h2>
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('panel.description')}</p>
-      </div>
-
-      {workspace.control ? (
-        <div className="flex min-w-0 flex-col gap-2">
-          <BudgetVarianceSummary
-            control={workspace.control}
-            hasEngineActual={workspace.hasEngineActual}
-            labels={{
-              budget: t('metrics.budget'),
-              actual: t('metrics.actual'),
-              remainingCommitment: t('metrics.committed'),
-              etc: t('metrics.etc'),
-              forecast: forecastLabel,
-              variance: varianceLabel,
-              engineMissing: t('metrics.engineMissing'),
-            }}
-          />
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('metrics.positionNote')}</p>
-          <p className="text-xs text-[var(--pf-text-muted)]">{tForecast('budgetVersusForecast.note')}</p>
-        </div>
-      ) : (
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('panel.empty')}</p>
-      )}
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection title={t('panel.title')} description={t('panel.description')} className="w-full min-w-0 gap-3">
+        {workspace.control ? (
+          <div className="flex min-w-0 flex-col gap-2">
+            <BudgetVarianceSummary
+              control={workspace.control}
+              hasEngineActual={workspace.hasEngineActual}
+              labels={{
+                budget: t('metrics.budget'),
+                actual: t('metrics.actual'),
+                remainingCommitment: t('metrics.committed'),
+                etc: t('metrics.etc'),
+                forecast: forecastLabel,
+                variance: varianceLabel,
+                engineMissing: t('metrics.engineMissing'),
+              }}
+            />
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('metrics.positionNote')}</p>
+            <p className="text-xs text-[var(--pf-text-muted)]">{tForecast('budgetVersusForecast.note')}</p>
+          </div>
+        ) : (
+          <p className="text-sm text-[var(--pf-text-secondary)]">{t('panel.empty')}</p>
+        )}
+      </MainAppSection>
 
       <MarginTrendList
         rows={workspace.trend}
@@ -147,31 +145,32 @@ export async function ProjectBudgetPanel({ projectId }: ProjectBudgetPanelProps)
       ) : null}
 
       {workspace.revisions.length > 0 ? (
-        <div className="flex min-w-0 flex-col gap-2">
-          <h3 className="text-sm font-semibold">{t('revisions.title')}</h3>
-          <ul className="divide-y divide-[var(--pf-border-default)] rounded-md border border-[var(--pf-border-default)]">
-            {workspace.revisions.map((revision) => {
-              const snapshot =
-                fromNumericString(revision.snapshotTotalAmount, currency) ??
-                zeroMoney(currency);
-              return (
-                <li
-                  key={revision.id}
-                  className="flex flex-col gap-1 px-3 py-2 text-start sm:flex-row sm:items-baseline sm:justify-between"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">
-                      {t('revisions.item', { number: revision.revisionNumber })}
-                    </p>
-                    <p className="text-xs text-[var(--pf-text-muted)]">{revision.reason}</p>
-                  </div>
-                  <MoneyText value={snapshot} className="shrink-0 text-sm" />
-                </li>
-              );
-            })}
-          </ul>
+        <MainAppSection title={t('revisions.title')} className="w-full min-w-0 gap-3">
+          <MainAppTableShell>
+            <ul className="divide-y divide-[var(--pf-border-default)]">
+              {workspace.revisions.map((revision) => {
+                const snapshot =
+                  fromNumericString(revision.snapshotTotalAmount, currency) ??
+                  zeroMoney(currency);
+                return (
+                  <li
+                    key={revision.id}
+                    className="flex flex-col gap-1 px-3 py-2 text-start sm:flex-row sm:items-baseline sm:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">
+                        {t('revisions.item', { number: revision.revisionNumber })}
+                      </p>
+                      <p className="text-xs text-[var(--pf-text-muted)]">{revision.reason}</p>
+                    </div>
+                    <MoneyText value={snapshot} className="shrink-0 text-sm" />
+                  </li>
+                );
+              })}
+            </ul>
+          </MainAppTableShell>
           <p className="text-xs text-[var(--pf-text-muted)]">{t('revisions.historyHint')}</p>
-        </div>
+        </MainAppSection>
       ) : null}
 
       {workspace.canManage ? (

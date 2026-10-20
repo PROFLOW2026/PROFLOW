@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useActionState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -16,25 +17,23 @@ import {
   upsertOrgPhasePackAction,
   upsertOrgProjectTemplateAction,
   upsertOrgWorkPackagePackAction,
-  type SettingsActionState,
-} from '../actions';
+  type SettingsActionState} from '../actions';
 
 export function TemplatesSettingsPanel({
   bag,
-  canEdit,
-}: {
+  canEdit}: {
   bag: OrgStructureTemplatesBag;
   canEdit: boolean;
 }) {
   const t = useTranslations('settings.templates');
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-8">
-      <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection>
+        <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+      </MainAppSection>
 
-      <section className="flex min-w-0 flex-col gap-3">
-        <h2 className="text-start text-base font-semibold">{t('projectTemplates')}</h2>
-        <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('projectTemplatesHint')}</p>
+      <MainAppSection title={t('projectTemplates')} description={t('projectTemplatesHint')} className="w-full min-w-0">
         {bag.projectTemplates.length === 0 ? (
           <EmptyState title={t('emptyProject')} description={t('projectTemplatesHint')} />
         ) : (
@@ -78,11 +77,9 @@ export function TemplatesSettingsPanel({
           </ul>
         )}
         {canEdit ? <UpsertProjectTemplateForm /> : null}
-      </section>
+      </MainAppSection>
 
-      <section className="flex min-w-0 flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
-        <h2 className="text-start text-base font-semibold">{t('phasePacks')}</h2>
-        <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('phasePacksHint')}</p>
+      <MainAppSection title={t('phasePacks')} description={t('phasePacksHint')} className="w-full min-w-0">
         {bag.phasePacks.length === 0 ? (
           <EmptyState title={t('emptyPhase')} description={t('phasePacksHint')} />
         ) : (
@@ -119,11 +116,9 @@ export function TemplatesSettingsPanel({
           </ul>
         )}
         {canEdit ? <UpsertPhasePackForm /> : null}
-      </section>
+      </MainAppSection>
 
-      <section className="flex min-w-0 flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
-        <h2 className="text-start text-base font-semibold">{t('wpPacks')}</h2>
-        <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('wpPacksHint')}</p>
+      <MainAppSection title={t('wpPacks')} description={t('wpPacksHint')} className="w-full min-w-0">
         {bag.workPackagePacks.length === 0 ? (
           <EmptyState title={t('emptyWp')} description={t('wpPacksHint')} />
         ) : (
@@ -162,7 +157,7 @@ export function TemplatesSettingsPanel({
           </ul>
         )}
         {canEdit ? <UpsertWpPackForm /> : null}
-      </section>
+      </MainAppSection>
     </div>
   );
 }
@@ -176,45 +171,49 @@ function UpsertProjectTemplateForm() {
   );
 
   return (
-    <form action={action} className="flex w-full max-w-lg flex-col gap-3 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
+    <form action={action} className="flex w-full min-w-0 flex-col gap-3 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.ok ? (
         <Alert tone="success" role="status" aria-live="polite">
           {t('saved')}
         </Alert>
       ) : null}
-      <Field label={t('name')} required>
-        {(props) => <Input {...props} name="name" required />}
-      </Field>
-      <Field label={t('description')} optionalLabel={tCommon('labels.optional')}>
-        {(props) => <Input {...props} name="description" />}
-      </Field>
-      <Field label={t('workPackagesText')} required>
-        {(props) => (
-          <textarea
-            {...props}
-            name="workPackagesText"
-            required
-            rows={4}
-            className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-start text-sm"
-            placeholder={t('workPackagesPlaceholder')}
-          />
-        )}
-      </Field>
-      <Field label={t('milestonesText')} optionalLabel={tCommon('labels.optional')}>
-        {(props) => (
-          <textarea
-            {...props}
-            name="milestonesText"
-            rows={3}
-            className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-start text-sm"
-            placeholder={t('milestonesPlaceholder')}
-          />
-        )}
-      </Field>
-      <Button type="submit" loading={pending}>
-        {t('addProjectTemplate')}
-      </Button>
+      <MainAppFormGrid dense className="gap-4">
+        <Field label={t('name')} required className={mainAppFieldSpan.lg}>
+          {(props) => <Input {...props} name="name" required />}
+        </Field>
+        <Field label={t('description')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+          {(props) => <Input {...props} name="description" />}
+        </Field>
+        <Field label={t('workPackagesText')} required className={mainAppFieldSpan.full}>
+          {(props) => (
+            <textarea
+              {...props}
+              name="workPackagesText"
+              required
+              rows={4}
+              className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-start text-sm"
+              placeholder={t('workPackagesPlaceholder')}
+            />
+          )}
+        </Field>
+        <Field label={t('milestonesText')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
+          {(props) => (
+            <textarea
+              {...props}
+              name="milestonesText"
+              rows={3}
+              className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-start text-sm"
+              placeholder={t('milestonesPlaceholder')}
+            />
+          )}
+        </Field>
+        <div className={mainAppFieldSpan.full}>
+          <Button type="submit" loading={pending}>
+            {t('addProjectTemplate')}
+          </Button>
+        </div>
+      </MainAppFormGrid>
     </form>
   );
 }
@@ -227,31 +226,35 @@ function UpsertPhasePackForm() {
   );
 
   return (
-    <form action={action} className="flex w-full max-w-lg flex-col gap-3 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
+    <form action={action} className="flex w-full min-w-0 flex-col gap-3 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.ok ? (
         <Alert tone="success" role="status" aria-live="polite">
           {t('saved')}
         </Alert>
       ) : null}
-      <Field label={t('name')} required>
-        {(props) => <Input {...props} name="name" required />}
-      </Field>
-      <Field label={t('phasesText')} required>
-        {(props) => (
-          <textarea
-            {...props}
-            name="phasesText"
-            required
-            rows={3}
-            className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-start text-sm"
-            placeholder={t('phasesPlaceholder')}
-          />
-        )}
-      </Field>
-      <Button type="submit" loading={pending}>
-        {t('addPhasePack')}
-      </Button>
+      <MainAppFormGrid dense className="gap-4">
+        <Field label={t('name')} required className={mainAppFieldSpan.lg}>
+          {(props) => <Input {...props} name="name" required />}
+        </Field>
+        <Field label={t('phasesText')} required className={mainAppFieldSpan.full}>
+          {(props) => (
+            <textarea
+              {...props}
+              name="phasesText"
+              required
+              rows={3}
+              className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-start text-sm"
+              placeholder={t('phasesPlaceholder')}
+            />
+          )}
+        </Field>
+        <div className={mainAppFieldSpan.full}>
+          <Button type="submit" loading={pending}>
+            {t('addPhasePack')}
+          </Button>
+        </div>
+      </MainAppFormGrid>
     </form>
   );
 }
@@ -264,31 +267,35 @@ function UpsertWpPackForm() {
   );
 
   return (
-    <form action={action} className="flex w-full max-w-lg flex-col gap-3 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
+    <form action={action} className="flex w-full min-w-0 flex-col gap-3 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.ok ? (
         <Alert tone="success" role="status" aria-live="polite">
           {t('saved')}
         </Alert>
       ) : null}
-      <Field label={t('name')} required>
-        {(props) => <Input {...props} name="name" required />}
-      </Field>
-      <Field label={t('wpNamesText')} required>
-        {(props) => (
-          <textarea
-            {...props}
-            name="workPackagesText"
-            required
-            rows={3}
-            className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-start text-sm"
-            placeholder={t('wpNamesPlaceholder')}
-          />
-        )}
-      </Field>
-      <Button type="submit" loading={pending}>
-        {t('addWpPack')}
-      </Button>
+      <MainAppFormGrid dense className="gap-4">
+        <Field label={t('name')} required className={mainAppFieldSpan.lg}>
+          {(props) => <Input {...props} name="name" required />}
+        </Field>
+        <Field label={t('wpNamesText')} required className={mainAppFieldSpan.full}>
+          {(props) => (
+            <textarea
+              {...props}
+              name="workPackagesText"
+              required
+              rows={3}
+              className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-start text-sm"
+              placeholder={t('wpNamesPlaceholder')}
+            />
+          )}
+        </Field>
+        <div className={mainAppFieldSpan.full}>
+          <Button type="submit" loading={pending}>
+            {t('addWpPack')}
+          </Button>
+        </div>
+      </MainAppFormGrid>
     </form>
   );
 }

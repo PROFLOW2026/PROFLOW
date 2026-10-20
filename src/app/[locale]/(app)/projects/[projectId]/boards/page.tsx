@@ -1,3 +1,4 @@
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { LayoutGrid } from 'lucide-react';
@@ -59,7 +60,7 @@ export default async function ProjectBoardsPage({
   const defaultBoard = activeBoards.find((b) => b.isDefault);
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage className="w-full min-w-0">
       <PageHeader
         title={workspaceName ? `${workspaceName} — ${t('boards.pageTitle')}` : t('boards.pageTitle')}
         description={t('boards.pageDescription')}
@@ -73,47 +74,48 @@ export default async function ProjectBoardsPage({
           ) : null
         }
       />
-
-      {activeBoards.length === 0 ? (
-        <EmptyState
-          icon={LayoutGrid}
-          title={t('boards.empty.title')}
-          description={t('boards.empty.description')}
-        />
-      ) : (
-        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {activeBoards.map((board) => (
-            <li key={board.id}>
-              <Link
-                href={`/projects/${projectId}/boards/${board.id}`}
-                className={cn(
-                  pressableCardLinkClassName,
-                  'flex flex-col gap-2',
-                  board.id === defaultBoard?.id &&
-                    'border-[var(--pf-border-brand)] bg-[var(--pf-teal-50)]',
-                )}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <span className="min-w-0 flex-1 truncate font-semibold">{board.name}</span>
-                  <div className="flex shrink-0 gap-1.5">
-                    {board.id === defaultBoard?.id && (
-                      <Badge tone="brand" className="text-xs">
-                        {t('boards.default')}
+      <MainAppSection className="w-full min-w-0">
+        {activeBoards.length === 0 ? (
+          <EmptyState
+            icon={LayoutGrid}
+            title={t('boards.empty.title')}
+            description={t('boards.empty.description')}
+          />
+        ) : (
+          <ul className="grid w-full min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {activeBoards.map((board) => (
+              <li key={board.id}>
+                <Link
+                  href={`/projects/${projectId}/boards/${board.id}`}
+                  className={cn(
+                    pressableCardLinkClassName,
+                    'flex flex-col gap-2',
+                    board.id === defaultBoard?.id &&
+                      'border-[var(--pf-border-brand)] bg-[var(--pf-teal-50)]',
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="min-w-0 flex-1 truncate font-semibold">{board.name}</span>
+                    <div className="flex shrink-0 gap-1.5">
+                      {board.id === defaultBoard?.id && (
+                        <Badge tone="brand" className="text-xs">
+                          {t('boards.default')}
+                        </Badge>
+                      )}
+                      <Badge tone="neutral" className="text-xs">
+                        {board.taskCount} {t('boards.tasks')}
                       </Badge>
-                    )}
-                    <Badge tone="neutral" className="text-xs">
-                      {board.taskCount} {t('boards.tasks')}
-                    </Badge>
+                    </div>
                   </div>
-                </div>
-                <p className="mt-auto text-xs text-[var(--pf-text-muted)]">
-                  {t('boards.openBoard')} →
-                </p>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+                  <p className="mt-auto text-xs text-[var(--pf-text-muted)]">
+                    {t('boards.openBoard')} →
+                  </p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </MainAppSection>
+    </MainAppPage>
   );
 }

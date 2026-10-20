@@ -1,4 +1,12 @@
-import { Receipt, ShieldX, Wallet } from 'lucide-react';
+import {
+  AdaptiveListBody,
+  MainAppListPagination,
+  MainAppPage,
+  MainAppSection,
+  mainAppListKitEnabled,
+} from '@/components/patterns/main-app';
+import { QueryPagination } from '@/components/ui/query-pagination';
+﻿import { Receipt, ShieldX, Wallet } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -32,7 +40,6 @@ import { ReportsEntryLink } from '@/modules/financials/ui/reports-entry-link';
 import { isPositiveMoney, isZeroMoney, money, type MoneyValue } from '@/shared/money';
 import { sumCollectionsInDateRange } from '@/modules/financials';
 import type { UnallocatedPaymentRow } from '@/modules/billing/domain/types';
-import { QueryPagination } from '@/components/ui/query-pagination';
 import {
   ORG_LIST_PAGE_SIZE,
   orgListOffset,
@@ -40,6 +47,10 @@ import {
   parseOrgListPage,
   resolveOrgListPage,
 } from '@/shared/db/org-list-pagination';
+import {
+  MAIN_APP_DEFAULT_LIST_PAGE_SIZE,
+  parseMainAppListPageSize,
+} from '@/shared/db/main-app-list-page-size';
 
 const FILTERS: BillingListFilter[] = ['all', 'paid', 'outstanding', 'overdue'];
 
@@ -52,6 +63,7 @@ export interface BillingOrgHubSearchParams {
   paymentTo?: string;
   view?: string;
   page?: string;
+  pageSize?: string;
 }
 
 interface BillingOrgHubViewProps {
@@ -87,6 +99,10 @@ export async function BillingOrgHubView({
   const paymentTo =
     typeof search.paymentTo === 'string' && search.paymentTo ? search.paymentTo : undefined;
   const paymentsView = search.view === 'payments';
+  const listKit = mainAppListKitEnabled(surface);
+  const pageSize = listKit
+    ? parseMainAppListPageSize(search.pageSize, MAIN_APP_DEFAULT_LIST_PAGE_SIZE)
+    : ORG_LIST_PAGE_SIZE;
   const requestedPage = parseOrgListPage(search.page);
 
   function billingListHref(
@@ -196,8 +212,8 @@ export async function BillingOrgHubView({
         return true;
       });
     const total = filtered.length;
-    const page = resolveOrgListPage(total, requestedPage);
-    const listed = filtered.slice(orgListOffset(page), orgListOffset(page) + ORG_LIST_PAGE_SIZE);
+    const page = resolveOrgListPage(total, requestedPage, pageSize);
+    const listed = filtered.slice(orgListOffset(page, pageSize), orgListOffset(page, pageSize) + pageSize);
 
     const contractOptions = [
       ...new Map(
@@ -234,7 +250,7 @@ export async function BillingOrgHubView({
       today: asOf,
       totalCount: total,
       currentPage: page,
-      totalPages: orgListPageCount(total),
+      totalPages: orgListPageCount(total, pageSize),
     };
   });
 
@@ -252,15 +268,18 @@ export async function BillingOrgHubView({
     }
 
     return (
-      <div className="flex min-w-0 flex-col gap-4">
+      <MainAppPage>
         <PageHeader title={t('title')} description={t('subtitle')} />
+      <MainAppSection>
         <EmptyState
           icon={ShieldX}
           title={t('notAllowed.title')}
           description={t('notAllowed.body')}
           size="md"
         />
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     );
   }
 
@@ -446,6 +465,7 @@ export async function BillingOrgHubView({
           ))}
         </TabsList>
         <TabsContent value={filter} className="mt-4 min-w-0">
+          <AdaptiveListBody surface={surface}>
           {records.length === 0 ? (
             <EmptyState
               icon={Receipt}
@@ -461,31 +481,63 @@ export async function BillingOrgHubView({
             />
           ) : (
             <>
-              <BillingListTable records={records} locale={locale} routeBase={routeBase} />
-              <QueryPagination
-                basePath={routeBase}
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalCount={totalCount}
-                pageSize={ORG_LIST_PAGE_SIZE}
-                currentParams={{
-                  filter: filter !== 'all' ? filter : undefined,
-                  contractId,
-                  fromDate,
-                  toDate,
-                  paymentFrom,
-                  paymentTo,
-                }}
-                previousLabel={tCommon('actions.previous')}
-                nextLabel={tCommon('actions.next')}
-                pageOfLabel={tCommon('pagination.pageOf', {
-                  page: currentPage,
-                  pageCount: totalPages,
-                })}
-                navLabel={tCommon('pagination.navLabel')}
+              <BillingListTable
+                records={records}
+                locale={locale}
+                routeBase={routeBase}
+                listKit={listKit}
               />
+              {listKit ? (
+                <MainAppListPagination
+                  basePath={routeBase}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalCount={totalCount}
+                  pageSize={pageSize}
+                  currentParams={{
+                    filter: filter !== 'all' ? filter : undefined,
+                    contractId,
+                    fromDate,
+                    toDate,
+                    paymentFrom,
+                    paymentTo,
+                  }}
+                  previousLabel={tCommon('actions.previous')}
+                  nextLabel={tCommon('actions.next')}
+                  pageOfLabel={tCommon('pagination.pageOf', {
+                    page: currentPage,
+                    pageCount: totalPages,
+                  })}
+                  navLabel={tCommon('pagination.navLabel')}
+                  rowsPerPageLabel={tCommon('pagination.rowsPerPage')}
+                />
+              ) : (
+                <QueryPagination
+                  basePath={routeBase}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalCount={totalCount}
+                  pageSize={ORG_LIST_PAGE_SIZE}
+                  currentParams={{
+                    filter: filter !== 'all' ? filter : undefined,
+                    contractId,
+                    fromDate,
+                    toDate,
+                    paymentFrom,
+                    paymentTo,
+                  }}
+                  previousLabel={tCommon('actions.previous')}
+                  nextLabel={tCommon('actions.next')}
+                  pageOfLabel={tCommon('pagination.pageOf', {
+                    page: currentPage,
+                    pageCount: totalPages,
+                  })}
+                  navLabel={tCommon('pagination.navLabel')}
+                />
+              )}
             </>
           )}
+          </AdaptiveListBody>
         </TabsContent>
       </Tabs>
       ) : null}
@@ -498,7 +550,12 @@ export async function BillingOrgHubView({
               {t('paymentHistory.subtitle')}
             </p>
           </div>
-          <PaymentHistoryTable rows={payments} locale={locale} routeBase={routeBase} />
+          <PaymentHistoryTable
+            rows={payments}
+            locale={locale}
+            routeBase={routeBase}
+            listKit={listKit}
+          />
         </section>
       ) : null}
     </div>

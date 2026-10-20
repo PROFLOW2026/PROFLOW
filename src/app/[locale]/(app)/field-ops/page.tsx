@@ -1,4 +1,5 @@
-import { HardHat } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { HardHat } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -20,9 +21,10 @@ export default async function FieldOpsIndexPage() {
   const t = await getTranslations('fieldOps');
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('title')} description={t('description')} />
-      <FieldOpsSectionNav active="logs" />
+      <MainAppSection>
+        <FieldOpsSectionNav active="logs" />
       <div className="grid gap-4 sm:grid-cols-3">
         <Link
           href="/field-ops/logs"
@@ -58,6 +60,8 @@ export default async function FieldOpsIndexPage() {
           <Link href="/field-ops/inspections/new">{t('newInspection')}</Link>
         </Button>
       </div>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

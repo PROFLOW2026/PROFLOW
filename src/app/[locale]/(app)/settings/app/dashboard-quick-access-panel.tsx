@@ -3,6 +3,7 @@
 import { useActionState, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronUp, Plus, X } from 'lucide-react';
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -77,12 +78,8 @@ export function DashboardQuickAccessPanel({
   }
 
   return (
-    <form action={action} className="flex flex-col gap-3 border-b border-[var(--pf-border-default)] pb-5">
-      <div className="min-w-0">
-        <p className="text-start font-medium">{t('shortcuts.title')}</p>
-        <p className="mt-1 text-start text-sm text-[var(--pf-text-secondary)]">{t('shortcuts.subtitle')}</p>
-      </div>
-
+    <MainAppSection title={t('shortcuts.title')} description={t('shortcuts.subtitle')} className="w-full min-w-0">
+    <form action={action} className="flex w-full min-w-0 flex-col gap-3">
       <input type="hidden" name="shortcutKeys" value={JSON.stringify(keys)} />
 
       {selected.length === 0 ? (
@@ -138,8 +135,8 @@ export function DashboardQuickAccessPanel({
       )}
 
       {canEdit && availableToAdd.length > 0 && keys.length < DASHBOARD_QUICK_ACCESS_MAX ? (
-        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-end">
-          <Field label={t('shortcuts.add')} className="min-w-0 flex-1 sm:max-w-sm">
+        <MainAppFormGrid dense className="gap-4">
+          <Field label={t('shortcuts.add')} className={mainAppFieldSpan.lg}>
             {(control) => (
               <Select value={addKey} onValueChange={setAddKey} disabled={pending}>
                 <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
@@ -155,18 +152,20 @@ export function DashboardQuickAccessPanel({
               </Select>
             )}
           </Field>
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            onClick={addShortcut}
-            disabled={pending || !addKey}
-            className="self-start sm:mb-0.5"
-          >
-            <Plus className="size-4" aria-hidden />
-            {t('shortcuts.add')}
-          </Button>
-        </div>
+          <div className={`${mainAppFieldSpan.lg} flex items-end`}>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={addShortcut}
+              disabled={pending || !addKey}
+              className="self-start"
+            >
+              <Plus className="size-4" aria-hidden />
+              {t('shortcuts.add')}
+            </Button>
+          </div>
+        </MainAppFormGrid>
       ) : null}
 
       {canEdit && keys.length >= DASHBOARD_QUICK_ACCESS_MAX ? (
@@ -190,5 +189,6 @@ export function DashboardQuickAccessPanel({
         </Alert>
       ) : null}
     </form>
+    </MainAppSection>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -62,79 +63,85 @@ export function OpportunityFollowUpForm({
   const wonDisabled = isFollowUpWonStageDisabled(status);
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <input type="hidden" name="opportunityId" value={opportunityId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <Field label={t('stageLabel')} description={t('stageHint')}>
-        {(control) => (
-          <select
-            {...control}
-            name="stage"
-            defaultValue={stage}
-            className="block min-h-11 w-full rounded-md border border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] px-3 py-2 text-sm"
-          >
-            {stageOptions.map((value) => (
-              <option
-                key={value}
-                value={value}
-                disabled={value === 'won' && wonDisabled}
-              >
-                {tStages(value)}
-              </option>
-            ))}
-          </select>
-        )}
-      </Field>
-      {wonDisabled ? (
-        <p className="text-xs text-[var(--pf-text-muted)]">{t('wonHint')}</p>
-      ) : null}
-      <Field
-        label={t('nextActionLabel')}
-        optionalLabel={tCommon('labels.optional')}
-        description={t('nextActionHint')}
-      >
-        {(control) => (
-          <Input {...control} name="nextActionText" defaultValue={nextActionText ?? ''} />
-        )}
-      </Field>
-      <Field
-        label={t('nextActionAtLabel')}
-        optionalLabel={tCommon('labels.optional')}
-        description={t('nextActionAtHint')}
-      >
-        {(control) => (
-          <Input
-            {...control}
-            name="nextActionAt"
-            type="datetime-local"
-            dir="ltr"
-            defaultValue={toDatetimeLocalValue(nextActionAt)}
-          />
-        )}
-      </Field>
-      <Field
-        label={t('notesLabel')}
-        optionalLabel={tCommon('labels.optional')}
-        description={t('notesHint')}
-      >
-        {(control) => (
-          <Textarea {...control} name="notes" rows={3} defaultValue={notes ?? ''} />
-        )}
-      </Field>
-      <Field
-        label={t('expectedStartLabel')}
-        optionalLabel={tCommon('labels.optional')}
-        description={t('expectedStartHint')}
-      >
-        {(control) => (
-          <Input
-            {...control}
-            name="expectedStartDate"
-            type="date"
-            defaultValue={expectedStartDate ?? ''}
-          />
-        )}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field label={t('stageLabel')} description={t('stageHint')} className={mainAppFieldSpan.full}>
+          {(control) => (
+            <select
+              {...control}
+              name="stage"
+              defaultValue={stage}
+              className="block min-h-11 w-full rounded-md border border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] px-3 py-2 text-sm"
+            >
+              {stageOptions.map((value) => (
+                <option
+                  key={value}
+                  value={value}
+                  disabled={value === 'won' && wonDisabled}
+                >
+                  {tStages(value)}
+                </option>
+              ))}
+            </select>
+          )}
+        </Field>
+        {wonDisabled ? (
+          <p className={`text-xs text-[var(--pf-text-muted)] ${mainAppFieldSpan.full}`}>{t('wonHint')}</p>
+        ) : null}
+        <Field
+          label={t('nextActionLabel')}
+          optionalLabel={tCommon('labels.optional')}
+          description={t('nextActionHint')}
+          className={mainAppFieldSpan.lg}
+        >
+          {(control) => (
+            <Input {...control} name="nextActionText" defaultValue={nextActionText ?? ''} />
+          )}
+        </Field>
+        <Field
+          label={t('nextActionAtLabel')}
+          optionalLabel={tCommon('labels.optional')}
+          description={t('nextActionAtHint')}
+          className={mainAppFieldSpan.lg}
+        >
+          {(control) => (
+            <Input
+              {...control}
+              name="nextActionAt"
+              type="datetime-local"
+              dir="ltr"
+              defaultValue={toDatetimeLocalValue(nextActionAt)}
+            />
+          )}
+        </Field>
+        <Field
+          label={t('notesLabel')}
+          optionalLabel={tCommon('labels.optional')}
+          description={t('notesHint')}
+          className={mainAppFieldSpan.full}
+        >
+          {(control) => (
+            <Textarea {...control} name="notes" rows={3} defaultValue={notes ?? ''} />
+          )}
+        </Field>
+        <Field
+          label={t('expectedStartLabel')}
+          optionalLabel={tCommon('labels.optional')}
+          description={t('expectedStartHint')}
+          className={mainAppFieldSpan.lg}
+        >
+          {(control) => (
+            <Input
+              {...control}
+              name="expectedStartDate"
+              type="date"
+              defaultValue={expectedStartDate ?? ''}
+            />
+          )}
+        </Field>
+      </MainAppFormGrid>
       <Button type="submit" loading={pending} className="self-start">
         {t('save')}
       </Button>
@@ -150,12 +157,14 @@ export function OpportunityNoteForm({ opportunityId }: { opportunityId: string }
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <input type="hidden" name="opportunityId" value={opportunityId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <Field label={t('noteBody')} required description={t('noteHint')}>
-        {(control) => <Textarea {...control} name="body" rows={2} required />}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field label={t('noteBody')} required description={t('noteHint')} className={mainAppFieldSpan.full}>
+          {(control) => <Textarea {...control} name="body" rows={2} required />}
+        </Field>
+      </MainAppFormGrid>
       <Button type="submit" loading={pending} className="self-start">
         {t('addNote')}
       </Button>
@@ -178,16 +187,22 @@ export function OpportunityEstimateForm({
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <input type="hidden" name="opportunityId" value={opportunityId} />
       <input type="hidden" name="currency" value={currency} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <Field label={t('estimateName')} required>
-        {(control) => <Input {...control} name="name" required />}
-      </Field>
-      <Field label={t('estimateAmount')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Input {...control} name="internalAmount" inputMode="decimal" />}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field label={t('estimateName')} required className={mainAppFieldSpan.lg}>
+          {(control) => <Input {...control} name="name" required />}
+        </Field>
+        <Field
+          label={t('estimateAmount')}
+          optionalLabel={tCommon('labels.optional')}
+          className={mainAppFieldSpan.lg}
+        >
+          {(control) => <Input {...control} name="internalAmount" inputMode="decimal" />}
+        </Field>
+      </MainAppFormGrid>
       <Button type="submit" loading={pending} className="self-start">
         {t('addEstimate')}
       </Button>
@@ -225,12 +240,18 @@ export function MarkLostForm({ opportunityId }: { opportunityId: string }) {
     {},
   );
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <input type="hidden" name="opportunityId" value={opportunityId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <Field label={t('lostReasonLabel')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Input {...control} name="lostReason" />}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field
+          label={t('lostReasonLabel')}
+          optionalLabel={tCommon('labels.optional')}
+          className={mainAppFieldSpan.lg}
+        >
+          {(control) => <Input {...control} name="lostReason" />}
+        </Field>
+      </MainAppFormGrid>
       <Button type="submit" variant="secondary" loading={pending} className="self-start">
         {t('markLost')}
       </Button>

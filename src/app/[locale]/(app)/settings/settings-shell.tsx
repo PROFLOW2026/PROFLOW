@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { PageHeader } from '@/components/ui/page-header';
 import { withOrgContext } from '@/shared/auth/session';
 import { accessibleSections } from './_lib/access';
@@ -23,16 +24,17 @@ export async function SettingsPageShell({
   );
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6">
-      <PageHeader title={title} description={description} />
-
-      <div className="flex w-full min-w-0 flex-col gap-6 lg:flex-row lg:items-start">
-        <aside className="w-full min-w-0 shrink-0 lg:w-56">
-          <SettingsNavShell items={navItems} />
-        </aside>
-        <div className="min-w-0 max-w-full flex-1">{children}</div>
-      </div>
-    </div>
+    <MainAppPage>
+      <PageHeader title={title} description={description} className="gap-2" />
+      <MainAppSection>
+        <div className="flex w-full min-w-0 flex-col gap-4 lg:flex-row lg:items-start">
+          <aside className="w-full min-w-0 shrink-0 lg:w-56">
+            <SettingsNavShell items={navItems} />
+          </aside>
+          <div className="min-w-0 max-w-full flex-1">{children}</div>
+        </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

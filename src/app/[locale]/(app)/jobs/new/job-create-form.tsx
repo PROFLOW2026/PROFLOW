@@ -3,6 +3,7 @@
 import { ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { startTransition, useActionState, useState, type FormEvent } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -65,10 +66,11 @@ export function JobCreateForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-lg flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex w-full min-w-0 flex-col gap-4">
       {showValidationBanner(state) ? <Alert tone="danger">{state.error}</Alert> : null}
 
-      <Field label={t('create.clientLabel')} required error={state.fieldErrors?.clientId ?? state.fieldErrors?.clientName}>
+      <MainAppFormGrid dense>
+      <Field label={t('create.clientLabel')} required error={state.fieldErrors?.clientId ?? state.fieldErrors?.clientName} className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="clientMode" value={clientMode} />
@@ -88,7 +90,7 @@ export function JobCreateForm({
       </Field>
 
       {clientMode === 'new' ? (
-        <Field label={t('create.clientNew')} required error={state.fieldErrors?.clientName}>
+        <Field label={t('create.clientNew')} required error={state.fieldErrors?.clientName} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Input
               {...control}
@@ -101,7 +103,7 @@ export function JobCreateForm({
           )}
         </Field>
       ) : (
-        <Field label={t('create.clientSelect')} required error={state.fieldErrors?.clientId}>
+        <Field label={t('create.clientSelect')} required error={state.fieldErrors?.clientId} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Select name="clientId" required>
               <SelectTrigger id={control.id} aria-invalid={control['aria-invalid']}>
@@ -119,7 +121,7 @@ export function JobCreateForm({
         </Field>
       )}
 
-      <Field label={t('create.nameLabel')} required error={state.fieldErrors?.name}>
+      <Field label={t('create.nameLabel')} required error={state.fieldErrors?.name} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Input
             {...control}
@@ -132,7 +134,7 @@ export function JobCreateForm({
         )}
       </Field>
 
-      <Field label={t('create.pricingModeLabel')} required>
+      <Field label={t('create.pricingModeLabel')} required className={mainAppFieldSpan.md}>
         {(control) => (
           <>
             <input type="hidden" name="pricingMode" value={pricingMode} />
@@ -150,6 +152,7 @@ export function JobCreateForm({
       </Field>
 
       {pricingMode === 'fixed' ? (
+        <div className={mainAppFieldSpan.full}>
         <ContractAmountFields
           baseCurrency={baseCurrency}
           currencySymbol={currencySymbol}
@@ -163,11 +166,12 @@ export function JobCreateForm({
           amountPlaceholder={t('pricing.pricePlaceholder')}
           taxModeDescription={t('pricing.taxModeHint')}
         />
+        </div>
       ) : (
-        <Alert tone="info">{t('pricing.priceNotSet')}</Alert>
+        <Alert tone="info" className={mainAppFieldSpan.full}>{t('pricing.priceNotSet')}</Alert>
       )}
 
-      <Field label={t('create.startDateLabel')} required error={state.fieldErrors?.startDate}>
+      <Field label={t('create.startDateLabel')} required error={state.fieldErrors?.startDate} className={mainAppFieldSpan.md}>
         {(control) => (
           <Input
             {...control}
@@ -181,12 +185,15 @@ export function JobCreateForm({
       </Field>
 
       {canAssignEmployees ? (
-        <JobCreateEmployeePicker
-          employees={employees}
-          error={state.fieldErrors?.employeeIds}
-        />
+        <div className={mainAppFieldSpan.full}>
+          <JobCreateEmployeePicker
+            employees={employees}
+            error={state.fieldErrors?.employeeIds}
+          />
+        </div>
       ) : null}
 
+      <div className={mainAppFieldSpan.full}>
       <Button
         type="button"
         variant="ghost"
@@ -201,11 +208,12 @@ export function JobCreateForm({
       </Button>
 
       {showMore ? (
-        <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
+        <MainAppFormGrid dense className="border-t border-[var(--pf-border-default)] pt-4">
           <Field
             label={t('create.endDateLabel')}
             optionalLabel={tCommon('labels.optional')}
             error={state.fieldErrors?.targetEndDate}
+            className={mainAppFieldSpan.md}
           >
             {(control) => <Input {...control} name="targetEndDate" type="date" dir="ltr" />}
           </Field>
@@ -214,6 +222,7 @@ export function JobCreateForm({
             optionalLabel={tCommon('labels.optional')}
             error={state.fieldErrors?.notes}
             description={t('create.notesHint')}
+            className={mainAppFieldSpan.full}
           >
             {(control) => (
               <Textarea
@@ -228,11 +237,14 @@ export function JobCreateForm({
             label={tCommon('labels.description')}
             optionalLabel={tCommon('labels.optional')}
             error={state.fieldErrors?.description}
+            className={mainAppFieldSpan.full}
           >
             {(control) => <Textarea {...control} name="description" rows={2} />}
           </Field>
-        </div>
+        </MainAppFormGrid>
       ) : null}
+      </div>
+      </MainAppFormGrid>
 
       <Button type="submit" loading={pending} block>
         {t('create.submit')}

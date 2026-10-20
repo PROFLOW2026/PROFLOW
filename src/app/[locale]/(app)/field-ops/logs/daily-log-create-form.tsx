@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -78,7 +79,7 @@ export function DailyLogCreateForm({
   );
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.offlineQueued ? (
         <Alert tone="info" role="status">
@@ -89,7 +90,8 @@ export function DailyLogCreateForm({
         </Alert>
       ) : null}
 
-      <Field label={t('projectLabel')} required error={state.fieldErrors?.projectId}>
+      <MainAppFormGrid dense className="gap-4">
+      <Field label={t('projectLabel')} required error={state.fieldErrors?.projectId} className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="projectId" value={projectId} />
@@ -116,7 +118,7 @@ export function DailyLogCreateForm({
       </Field>
 
       {projectPackages.length > 0 ? (
-        <Field label={t('workPackageLabel')} error={state.fieldErrors?.workPackageId}>
+        <Field label={t('workPackageLabel')} error={state.fieldErrors?.workPackageId} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input
@@ -142,7 +144,7 @@ export function DailyLogCreateForm({
         </Field>
       ) : null}
 
-      <Field label={t('logDateLabel')} required error={state.fieldErrors?.logDate}>
+      <Field label={t('logDateLabel')} required error={state.fieldErrors?.logDate} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Input {...control} type="date" name="logDate" defaultValue={defaultLogDate} required />
         )}
@@ -152,6 +154,7 @@ export function DailyLogCreateForm({
         label={t('weatherLabel')}
         description={t('weatherHint')}
         error={state.fieldErrors?.weather}
+        className={mainAppFieldSpan.lg}
       >
         {(control) => <Input {...control} name="weather" placeholder={t('weatherPlaceholder')} />}
       </Field>
@@ -161,6 +164,7 @@ export function DailyLogCreateForm({
         description={t('summaryHint')}
         required
         error={state.fieldErrors?.summary}
+        className={mainAppFieldSpan.full}
       >
         {(control) => (
           <Textarea
@@ -178,6 +182,7 @@ export function DailyLogCreateForm({
         label={t('workforceNotesLabel')}
         description={t('workforceNotesHint')}
         error={state.fieldErrors?.workforceNotes}
+        className={mainAppFieldSpan.full}
       >
         {(control) => (
           <Textarea
@@ -194,6 +199,7 @@ export function DailyLogCreateForm({
         label={t('blockersLabel')}
         description={t('blockersHint')}
         error={state.fieldErrors?.blockers}
+        className={mainAppFieldSpan.full}
       >
         {(control) => (
           <Textarea
@@ -205,6 +211,7 @@ export function DailyLogCreateForm({
           />
         )}
       </Field>
+      </MainAppFormGrid>
 
       <DailyLogRelationshipFields vendors={vendors} employees={employees} assets={assets} />
 

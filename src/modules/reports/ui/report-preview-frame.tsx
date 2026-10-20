@@ -14,7 +14,7 @@ export function ReportPreviewFrame({ title, html }: { title: string; html: strin
         const height = frame.contentDocument?.documentElement.scrollHeight;
         if (height && height > 0) frame.style.height = `${height}px`;
       }}
-      className="block w-full min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-white"
+      className="block h-auto w-full min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-white"
       sandbox="allow-same-origin allow-modals"
     />
   );

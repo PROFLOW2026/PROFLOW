@@ -1,5 +1,10 @@
+import { MainAppSection, MainAppSummaryGrid } from '@/components/patterns/main-app';
 import { MoneyText } from '@/components/patterns/money-text';
+import { cn } from '@/shared/ui/cn';
 import type { CashFlowOutlook } from '../domain/cash-flow';
+
+const forecastBucketGridClassName =
+  'min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7';
 
 export interface CashFlowViewCopy {
   readonly title: string;
@@ -30,14 +35,8 @@ export function CashFlowView({
   const undated = cashFlow.forecastBuckets.find((bucket) => bucket.key === 'undated');
 
   return (
-    <section
-      className="flex min-w-0 max-w-full flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4 text-start"
-      aria-labelledby="cash-flow-heading"
-    >
-      <h2 id="cash-flow-heading" className="text-sm font-semibold">
-        {copy.title}
-      </h2>
-
+    <MainAppSection title={copy.title} className="text-start">
+      <div className="flex min-w-0 flex-col gap-3">
       <div className="flex min-w-0 flex-col gap-2">
         <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-2">
           <div className="min-w-0">
@@ -73,21 +72,21 @@ export function CashFlowView({
             {copy.forecastHint}
           </p>
         </div>
-        <ul className="grid min-w-0 list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+        <MainAppSummaryGrid className={forecastBucketGridClassName}>
           {cashFlow.forecastBuckets.map((bucket) => (
-            <li
+            <div
               key={bucket.key}
-              className="min-w-0 max-w-full rounded-md bg-[var(--pf-bg-muted)] p-3"
+              className="min-w-0 max-w-full rounded-md bg-[var(--pf-bg-muted)] p-2.5 sm:p-3"
             >
               <p className="break-words text-xs text-[var(--pf-text-secondary)]">
                 {copy.bucketLabel(bucket.key)}
               </p>
-              <p className="mt-1 max-w-full overflow-x-auto text-base font-semibold">
+              <p className="mt-1 max-w-full overflow-x-auto text-sm font-semibold sm:text-base">
                 <MoneyText value={bucket.expectedIn} />
               </p>
-            </li>
+            </div>
           ))}
-        </ul>
+        </MainAppSummaryGrid>
         {undated && undated.count > 0 ? (
           <p className="break-words text-xs text-[var(--pf-text-secondary)]">{copy.undatedNote}</p>
         ) : null}
@@ -104,16 +103,16 @@ export function CashFlowView({
                 {copy.outgoingAvailableHint}
               </p>
             ) : null}
-            <ul className="mt-2 grid min-w-0 list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+            <MainAppSummaryGrid className={cn('mt-2', forecastBucketGridClassName)}>
               {cashFlow.outgoing.forecastBuckets.map((bucket) => (
-                <li
+                <div
                   key={`out-${bucket.key}`}
-                  className="min-w-0 max-w-full rounded-md bg-[var(--pf-bg-muted)] p-3"
+                  className="min-w-0 max-w-full rounded-md bg-[var(--pf-bg-muted)] p-2.5 sm:p-3"
                 >
                   <p className="break-words text-xs text-[var(--pf-text-secondary)]">
                     {copy.bucketLabel(bucket.key)}
                   </p>
-                  <p className="mt-1 max-w-full overflow-x-auto text-base font-semibold">
+                  <p className="mt-1 max-w-full overflow-x-auto text-sm font-semibold sm:text-base">
                     <MoneyText value={bucket.expectedOut} />
                   </p>
                   {copy.billCount ? (
@@ -121,9 +120,9 @@ export function CashFlowView({
                       {copy.billCount(bucket.count)}
                     </p>
                   ) : null}
-                </li>
+                </div>
               ))}
-            </ul>
+            </MainAppSummaryGrid>
           </>
         ) : (
           <p className="mt-1 break-words text-xs text-[var(--pf-text-secondary)]">
@@ -131,6 +130,7 @@ export function CashFlowView({
           </p>
         )}
       </div>
-    </section>
+      </div>
+    </MainAppSection>
   );
 }

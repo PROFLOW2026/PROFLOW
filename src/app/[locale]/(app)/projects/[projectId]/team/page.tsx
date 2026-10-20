@@ -1,3 +1,4 @@
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { PROJECT_CAPABILITIES, loadProjectTeamPage } from '@/modules/project-team';
@@ -28,18 +29,22 @@ export default async function ProjectTeamPage({
   ]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage className="w-full min-w-0">
       <PageHeader title={t('page.title')} description={t('page.description')} />
-      <p className="text-sm text-[var(--pf-text-muted)]">{t('page.consultantRosterHint')}</p>
-      {canManageRoster ? (
-        <Link
-          href={`/projects/${projectId}?tab=team`}
-          className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--pf-text-brand)] hover:underline"
-        >
-          {tWorkforce('projectPanel.addToRoster')}
-        </Link>
-      ) : null}
-      <ProjectTeamScreen data={data} />
-    </div>
+      <MainAppSection className="w-full min-w-0">
+        <div className="flex w-full min-w-0 flex-col gap-4">
+          <p className="text-sm text-[var(--pf-text-muted)]">{t('page.consultantRosterHint')}</p>
+          {canManageRoster ? (
+            <Link
+              href={`/projects/${projectId}?tab=team`}
+              className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--pf-text-brand)] hover:underline"
+            >
+              {tWorkforce('projectPanel.addToRoster')}
+            </Link>
+          ) : null}
+          <ProjectTeamScreen data={data} />
+        </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

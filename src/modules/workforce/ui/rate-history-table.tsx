@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+﻿import { getTranslations } from 'next-intl/server';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';

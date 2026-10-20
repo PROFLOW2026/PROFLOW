@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { listBillingRecords } from '@/modules/billing';
@@ -65,18 +66,21 @@ export default async function NewPaymentPage({
   );
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('paymentForm.recordPaymentTitle')}
         description={t('paymentForm.recordPaymentDescription')}
       />
-      <PaymentForm
+      <MainAppSection>
+        <PaymentForm
         billingRecords={records}
         clients={clients}
         defaultBillingRecordId={billingRecordId}
         defaultPaymentDate={defaultPaymentDate}
         defaultCurrency={defaultCurrency}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

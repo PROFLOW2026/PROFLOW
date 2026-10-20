@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+﻿import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from '@/shared/i18n/navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';

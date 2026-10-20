@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -45,83 +46,86 @@ export function MaintenanceCreateForm({
   const [vendorId, setVendorId] = useState('__none__');
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <input type="hidden" name="assetId" value={assetId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{tCommon('states.saved')}</Alert> : null}
 
-      <Field label={t('maintenanceTitle')} required>
-        {(control) => <Input {...control} name="title" required />}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field label={t('maintenanceTitle')} required className={mainAppFieldSpan.lg}>
+          {(control) => <Input {...control} name="title" required />}
+        </Field>
 
-      <Field label={t('maintenanceStatus')}>
-        {(control) => (
-          <>
-            <input type="hidden" name="status" value={status} />
-            <Select value={status} onValueChange={(v) => setStatus(v as MaintenanceStatus)}>
-              <SelectTrigger id={control.id}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {MAINTENANCE_STATUSES.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {tStatus(value)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        )}
-      </Field>
+        <Field label={t('maintenanceStatus')} className={mainAppFieldSpan.md}>
+          {(control) => (
+            <>
+              <input type="hidden" name="status" value={status} />
+              <Select value={status} onValueChange={(v) => setStatus(v as MaintenanceStatus)}>
+                <SelectTrigger id={control.id}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MAINTENANCE_STATUSES.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {tStatus(value)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
+        </Field>
 
-      <Field label={t('performedOn')}>
-        {(control) => <Input {...control} type="date" name="performedOn" />}
-      </Field>
+        <Field label={t('performedOn')} className={mainAppFieldSpan.md}>
+          {(control) => <Input {...control} type="date" name="performedOn" dir="ltr" />}
+        </Field>
 
-      <Field label={t('vendor')}>
-        {(control) => (
-          <>
-            <input type="hidden" name="vendorId" value={vendorId} />
-            <Select value={vendorId} onValueChange={setVendorId}>
-              <SelectTrigger id={control.id}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">{t('vendorNone')}</SelectItem>
-                {vendors.map((vendor) => (
-                  <SelectItem key={vendor.id} value={vendor.id}>
-                    {vendor.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        )}
-      </Field>
+        <Field label={t('vendor')} className={mainAppFieldSpan.lg}>
+          {(control) => (
+            <>
+              <input type="hidden" name="vendorId" value={vendorId} />
+              <Select value={vendorId} onValueChange={setVendorId}>
+                <SelectTrigger id={control.id}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">{t('vendorNone')}</SelectItem>
+                  {vendors.map((vendor) => (
+                    <SelectItem key={vendor.id} value={vendor.id}>
+                      {vendor.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
+        </Field>
 
-      <Field label={t('costAmount')}>
-        {(control) => <Input {...control} name="costAmount" inputMode="decimal" numeric />}
-      </Field>
+        <Field label={t('costAmount')} className={mainAppFieldSpan.md}>
+          {(control) => <Input {...control} name="costAmount" inputMode="decimal" numeric dir="ltr" />}
+        </Field>
 
-      <Field label={t('currency')}>
-        {(control) => (
-          <Input
-            {...control}
-            name="currency"
-            defaultValue={defaultCurrency}
-            maxLength={3}
-            dir="ltr"
-          />
-        )}
-      </Field>
+        <Field label={t('currency')} className={mainAppFieldSpan.sm}>
+          {(control) => (
+            <Input
+              {...control}
+              name="currency"
+              defaultValue={defaultCurrency}
+              maxLength={3}
+              dir="ltr"
+              className="uppercase"
+            />
+          )}
+        </Field>
+
+        <Field label={t('notes')} className={mainAppFieldSpan.full}>
+          {(control) => <Textarea {...control} name="notes" rows={2} />}
+        </Field>
+      </MainAppFormGrid>
 
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('costNotExpense')}</p>
 
-      <Field label={t('notes')}>
-        {(control) => <Textarea {...control} name="notes" rows={2} />}
-      </Field>
-
-      <Button type="submit" className="h-11 w-full sm:w-auto" loading={pending}>
+      <Button type="submit" className="self-start" loading={pending}>
         {pending ? tCommon('states.saving') : t('submitMaintenance')}
       </Button>
     </form>
@@ -154,31 +158,39 @@ export function MaintenanceStatusForm({
   }
 
   return (
-    <form action={formAction} className="flex flex-wrap items-center gap-2">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-3">
       <input type="hidden" name="assetId" value={assetId} />
       <input type="hidden" name="maintenanceRecordId" value={maintenanceRecordId} />
       <input type="hidden" name="status" value={status} />
-      <Select value={status} onValueChange={(v) => setStatus(v as MaintenanceStatus)}>
-        <SelectTrigger className="min-h-11 w-full sm:w-[10rem] md:h-9 md:min-h-9" aria-label={t('maintenanceStatus')}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((value) => (
-            <SelectItem key={value} value={value}>
-              {tStatus(value)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Button
-        type="submit"
-        size="sm"
-        variant="secondary"
-        disabled={pending || status === currentStatus}
-        className="min-h-11 md:min-h-8"
-      >
-        {pending ? t('updateStatusPending') : t('updateStatus')}
-      </Button>
+      <MainAppFormGrid dense className="items-end">
+        <Field label={t('maintenanceStatus')} className={mainAppFieldSpan.md}>
+          {(control) => (
+            <Select value={status} onValueChange={(v) => setStatus(v as MaintenanceStatus)}>
+              <SelectTrigger id={control.id} aria-label={t('maintenanceStatus')}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {options.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {tStatus(value)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+        <div className={mainAppFieldSpan.sm}>
+          <Button
+            type="submit"
+            size="sm"
+            variant="secondary"
+            disabled={pending || status === currentStatus}
+            className="w-full sm:w-auto"
+          >
+            {pending ? t('updateStatusPending') : t('updateStatus')}
+          </Button>
+        </div>
+      </MainAppFormGrid>
       {state.error ? (
         <span role="alert" className="text-sm text-[var(--pf-status-danger-fg)]">
           {state.error}

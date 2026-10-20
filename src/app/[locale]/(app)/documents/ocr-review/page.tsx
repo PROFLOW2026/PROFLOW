@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
@@ -108,7 +109,7 @@ export default async function OcrReviewPage({
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={tOcr('title')}
         description={`${tOcr(`configurationState.${featureMode}`)} ${tOcr('description')}`}
@@ -129,8 +130,8 @@ export default async function OcrReviewPage({
           </div>
         }
       />
-
-      {!data.allowed ? (
+      <MainAppSection>
+        {!data.allowed ? (
         <Alert tone="warning">{tOcr('notAllowed')}</Alert>
       ) : (
         <OcrReviewPanelLazy
@@ -148,6 +149,8 @@ export default async function OcrReviewPage({
           initialSelectedJobId={jobId ?? null}
         />
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

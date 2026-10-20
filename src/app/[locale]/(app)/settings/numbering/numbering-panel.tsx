@@ -2,14 +2,14 @@
 
 import { useActionState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import type {
   DocumentNumberKind,
-  DocumentNumberSequenceRecord,
-} from '@/modules/tenancy/domain/document-numbers';
+  DocumentNumberSequenceRecord} from '@/modules/tenancy/domain/document-numbers';
 import { defaultDocumentNumberSequence } from '@/modules/tenancy/domain/document-numbers';
 import { saveDocumentNumberSettingsAction, type SettingsActionState } from '../actions';
 
@@ -27,8 +27,7 @@ const KIND_ORDER: readonly DocumentNumberKind[] = [
 
 export function NumberingSettingsPanel({
   sequences,
-  canEdit,
-}: {
+  canEdit}: {
   sequences: readonly DocumentNumberSequenceRecord[];
   canEdit: boolean;
 }) {
@@ -40,12 +39,15 @@ export function NumberingSettingsPanel({
   const byKind = new Map(sequences.map((sequence) => [sequence.documentKind, sequence]));
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-5">
-      <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
-      <Alert tone="warning">{t('legalDisclaimer')}</Alert>
-      <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('commercialNote')}</p>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection className="w-full min-w-0">
+        <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+        <Alert tone="warning">{t('legalDisclaimer')}</Alert>
+        <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('commercialNote')}</p>
+      </MainAppSection>
 
-      <form action={action} className="flex flex-col gap-4">
+      <MainAppSection className="w-full min-w-0">
+      <form action={action} className="flex w-full min-w-0 flex-col gap-4">
         {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
         {state.ok ? (
           <Alert tone="success" role="status" aria-live="polite">
@@ -57,17 +59,17 @@ export function NumberingSettingsPanel({
           {KIND_ORDER.map((kind) => {
             const sequence = byKind.get(kind) ?? defaultDocumentNumberSequence('', kind);
             return (
-              <li
-                key={kind}
-                className="rounded-lg border border-[var(--pf-border-default)] p-4"
-              >
+              <li key={kind} className="w-full min-w-0">
+                <MainAppSection
+                  title={t(`kinds.${kind}`)}
+                  description={
+                    kind === 'change_request' || kind === 'change_order' ? t('perProjectNote') : undefined
+                  }
+                  className="w-full min-w-0"
+                >
                 <input type="hidden" name={`kind.${kind}`} value={kind} />
-                <h3 className="text-sm font-semibold">{t(`kinds.${kind}`)}</h3>
-                {kind === 'change_request' || kind === 'change_order' ? (
-                  <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('perProjectNote')}</p>
-                ) : null}
-                <div className="mt-3 grid gap-3 sm:grid-cols-3">
-                  <Field label={t('prefix')}>
+                <MainAppFormGrid dense className="gap-4">
+                  <Field label={t('prefix')} className={mainAppFieldSpan.lg}>
                     {(props) => (
                       <Input
                         {...props}
@@ -80,7 +82,7 @@ export function NumberingSettingsPanel({
                       />
                     )}
                   </Field>
-                  <Field label={t('padding')}>
+                  <Field label={t('padding')} className={mainAppFieldSpan.lg}>
                     {(props) => (
                       <Input
                         {...props}
@@ -95,7 +97,7 @@ export function NumberingSettingsPanel({
                       />
                     )}
                   </Field>
-                  <Field label={t('nextNumber')}>
+                  <Field label={t('nextNumber')} className={mainAppFieldSpan.lg}>
                     {(props) => (
                       <Input
                         {...props}
@@ -109,7 +111,8 @@ export function NumberingSettingsPanel({
                       />
                     )}
                   </Field>
-                </div>
+                </MainAppFormGrid>
+                </MainAppSection>
               </li>
             );
           })}
@@ -123,6 +126,7 @@ export function NumberingSettingsPanel({
           </div>
         ) : null}
       </form>
+      </MainAppSection>
     </div>
   );
 }

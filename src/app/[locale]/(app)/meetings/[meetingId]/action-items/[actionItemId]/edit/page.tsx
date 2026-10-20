@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
@@ -42,7 +43,7 @@ export default async function EditActionItemPage({
   if (!actionItem) notFound();
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('meetings.form.editActionItemTitle')}
         description={meeting.title}
@@ -52,7 +53,8 @@ export default async function EditActionItemPage({
           </Link>
         }
       />
-      <ActionItemForm
+      <MainAppSection>
+        <ActionItemForm
         mode="edit"
         meetingId={meetingId}
         actionItem={actionItem}
@@ -63,6 +65,8 @@ export default async function EditActionItemPage({
         members={members}
         employees={employees}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

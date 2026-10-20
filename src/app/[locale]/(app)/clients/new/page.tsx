@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { ClientCreateForm } from './client-create-form';
@@ -17,9 +18,12 @@ export default async function NewClientPage() {
   const t = await getTranslations('clients');
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('create.title')} description={t('create.description')} />
-      <ClientCreateForm />
-    </div>
+      <MainAppSection>
+        <ClientCreateForm />
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

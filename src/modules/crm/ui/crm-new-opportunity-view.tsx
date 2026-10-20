@@ -1,4 +1,5 @@
-import { notFound } from 'next/navigation';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { listLeadsForOrg, listProspectsForOrg } from '@/modules/crm';
@@ -54,7 +55,7 @@ export async function CrmNewOpportunityView({
       : undefined;
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={t('opportunity.new')}
         breadcrumb={
@@ -63,13 +64,16 @@ export async function CrmNewOpportunityView({
           </Link>
         }
       />
-      <CrmNewOpportunityForm
+      <MainAppSection>
+        <CrmNewOpportunityForm
         prospects={prospects.map((p) => ({ id: p.id, name: p.name }))}
         leads={leads.map((lead) => ({ id: lead.id, title: lead.title }))}
         defaultCurrency={currency}
         defaultLeadId={defaultLeadId}
         createOpportunityAction={createAction}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

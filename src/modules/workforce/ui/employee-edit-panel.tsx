@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useTranslations } from 'next-intl';
 import { useActionState, useEffect, useState, useTransition } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,18 +70,19 @@ export function EmployeeEditPanel({
         </CardHeader>
       ) : null}
       <CardContent className={showHeader ? 'flex flex-col gap-4' : 'flex flex-col gap-4 p-0 pt-0'}>
-        <form id={EMPLOYEE_EDIT_FORM_ID} action={formAction} className="flex flex-col gap-4">
+        <form id={EMPLOYEE_EDIT_FORM_ID} action={formAction} className="flex w-full min-w-0 flex-col gap-4">
           <input type="hidden" name="employeeId" value={employee.id} />
           {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
           {state.ok ? <Alert tone="success">{t('employees.detail.saved')}</Alert> : null}
 
-          <Field label={t('employees.form.name')} required>
+          <MainAppFormGrid dense className="gap-4">
+          <Field label={t('employees.form.name')} required className={mainAppFieldSpan.lg}>
             {(control) => (
               <Input {...control} name="name" defaultValue={employee.name} required />
             )}
           </Field>
 
-          <Field label={t('employees.form.employeeNumber')} optionalLabel={tCommon('labels.optional')}>
+          <Field label={t('employees.form.employeeNumber')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
             {(control) => (
               <Input
                 {...control}
@@ -95,6 +97,7 @@ export function EmployeeEditPanel({
             label={t('employees.form.linkedUser')}
             optionalLabel={tCommon('labels.optional')}
             description={t('employees.form.linkedUserHint')}
+            className={mainAppFieldSpan.lg}
           >
             {(control) => (
               <>
@@ -122,13 +125,13 @@ export function EmployeeEditPanel({
             )}
           </Field>
 
-          <Field label={t('employees.form.jobTitle')} optionalLabel={tCommon('labels.optional')}>
+          <Field label={t('employees.form.jobTitle')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
             {(control) => (
               <Input {...control} name="jobTitle" defaultValue={employee.jobTitle ?? ''} />
             )}
           </Field>
 
-          <Field label={t('employees.form.compensationClass')}>
+          <Field label={t('employees.form.compensationClass')} className={mainAppFieldSpan.lg}>
             {(control) => (
               <>
                 <input type="hidden" name="compensationClass" value={compensationClass} />
@@ -153,7 +156,7 @@ export function EmployeeEditPanel({
           </Field>
 
           {employee.employmentBasis === 'monthly' ? (
-            <Field label={t('employees.form.defaultLaborAllocationIntent')}>
+            <Field label={t('employees.form.defaultLaborAllocationIntent')} className={mainAppFieldSpan.lg}>
               {(control) => (
                 <>
                   <input
@@ -190,6 +193,7 @@ export function EmployeeEditPanel({
           <Field
             label={t('employees.form.hireDate')}
             description={t('employees.form.hireDateEditHint')}
+            className={mainAppFieldSpan.md}
           >
             {(control) => (
               <Input
@@ -206,6 +210,7 @@ export function EmployeeEditPanel({
             label={t('employees.form.endDate')}
             optionalLabel={tCommon('labels.optional')}
             description={t('employees.form.endDateHint')}
+            className={mainAppFieldSpan.md}
           >
             {(control) => (
               <Input
@@ -218,7 +223,7 @@ export function EmployeeEditPanel({
             )}
           </Field>
 
-          <Field label={t('employees.columns.status')}>
+          <Field label={t('employees.columns.status')} className={mainAppFieldSpan.md}>
             {(control) => (
               <>
                 <input type="hidden" name="status" value={status} />
@@ -238,7 +243,7 @@ export function EmployeeEditPanel({
             )}
           </Field>
 
-          <Field label={t('employees.form.email')} optionalLabel={tCommon('labels.optional')}>
+          <Field label={t('employees.form.email')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
             {(control) => (
               <Input
                 {...control}
@@ -250,7 +255,7 @@ export function EmployeeEditPanel({
             )}
           </Field>
 
-          <Field label={t('employees.form.phone')} optionalLabel={tCommon('labels.optional')}>
+          <Field label={t('employees.form.phone')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
             {(control) => (
               <Input
                 {...control}
@@ -266,6 +271,7 @@ export function EmployeeEditPanel({
             label={t('employees.form.standardHoursPerDay')}
             optionalLabel={tCommon('labels.optional')}
             description={t('employees.form.standardHoursPerDayHint')}
+            className={mainAppFieldSpan.md}
           >
             {(control) => (
               <Input
@@ -281,11 +287,12 @@ export function EmployeeEditPanel({
             )}
           </Field>
 
-          <Field label={t('employees.form.notes')} optionalLabel={tCommon('labels.optional')}>
+          <Field label={t('employees.form.notes')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
             {(control) => (
               <Textarea {...control} name="notes" rows={3} defaultValue={employee.notes ?? ''} />
             )}
           </Field>
+          </MainAppFormGrid>
 
           <Button type="submit" loading={pending} size="lg" block>
             {t('employees.detail.save')}

@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
@@ -23,7 +24,7 @@ export default async function QuickCapturePage() {
   const formData = await getQuickCaptureFormDataAction();
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         description={t('form.description')}
@@ -36,8 +37,8 @@ export default async function QuickCapturePage() {
           </Link>
         }
       />
-
-      {!formData.ok ? (
+      <MainAppSection>
+        {!formData.ok ? (
         <Alert tone="warning">{formData.error}</Alert>
       ) : (
         <QuickCaptureForm
@@ -46,6 +47,8 @@ export default async function QuickCapturePage() {
           storageConfigured={formData.data.storageConfigured}
         />
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

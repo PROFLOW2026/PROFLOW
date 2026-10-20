@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
@@ -40,7 +41,7 @@ export default async function AddAttendeePage({
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('meetings.form.addAttendeeTitle')}
         description={t('meetings.form.addAttendeeDescription')}
@@ -50,12 +51,15 @@ export default async function AddAttendeePage({
           </Link>
         }
       />
-      <AttendeeForm
+      <MainAppSection>
+        <AttendeeForm
         meetingId={meetingId}
         members={members}
         employees={employees}
         contacts={contacts}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

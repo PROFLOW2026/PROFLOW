@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
@@ -29,16 +30,19 @@ export default async function TodayPage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('title')} description={t('description')} />
-      <Suspense
+      <MainAppSection>
+        <Suspense
         fallback={
           <p className="text-sm text-[var(--pf-text-secondary)]">{tCommon('states.loading')}</p>
         }
       >
         <TodayInboxBody />
       </Suspense>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

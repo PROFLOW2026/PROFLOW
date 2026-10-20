@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
@@ -27,10 +28,11 @@ export default async function WorkInsightsPage() {
   const insights = await withOrgContext((context) => getTaskInsights(context));
 
   return (
-    <div className="flex flex-col gap-6">
+    <>
       <PageHeader title={t('insights.pageTitle')} description={t('insights.pageDescription')} />
-
-      <TaskInsightsView insights={insights} />
-    </div>
+      <MainAppSection className="w-full min-w-0">
+        <TaskInsightsView insights={insights} />
+      </MainAppSection>
+    </>
   );
 }

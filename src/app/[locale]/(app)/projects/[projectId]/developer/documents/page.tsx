@@ -1,3 +1,4 @@
+﻿import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { FileText } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -30,21 +31,23 @@ export default async function ConnectedDeveloperDocumentsPage({
   const t = await getTranslations('projectPlans.portal.documents');
 
   return (
-    <div className="flex flex-col gap-4 pb-6">
+    <MainAppPage className="w-full min-w-0">
       <PageHeader title={t('pageTitle')} description={t('pageDescription')} />
-      {listed.items.length === 0 ? (
-        <EmptyState icon={FileText} title={t('emptyTitle')} size="sm" />
-      ) : (
-        <WithPortalClientMessages extra={['projectPlans', 'projects']}>
-          <ConnectedDeveloperDocumentsList
-            contractorProjectId={contractorProjectId}
-            developerOrganizationId={session.developer.organizationId}
-            developerProjectId={developerProjectId}
-            items={listed.items}
-            showSaveCopyAction={showSaveCopyAction}
-          />
-        </WithPortalClientMessages>
-      )}
-    </div>
+      <MainAppSection className="w-full min-w-0">
+        {listed.items.length === 0 ? (
+          <EmptyState icon={FileText} title={t('emptyTitle')} size="sm" />
+        ) : (
+          <WithPortalClientMessages extra={['projectPlans', 'projects']}>
+            <ConnectedDeveloperDocumentsList
+              contractorProjectId={contractorProjectId}
+              developerOrganizationId={session.developer.organizationId}
+              developerProjectId={developerProjectId}
+              items={listed.items}
+              showSaveCopyAction={showSaveCopyAction}
+            />
+          </WithPortalClientMessages>
+        )}
+      </MainAppSection>
+    </MainAppPage>
   );
 }

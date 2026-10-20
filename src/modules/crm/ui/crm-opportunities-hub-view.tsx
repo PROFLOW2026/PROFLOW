@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { AdaptiveListBody, MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { ReactNode } from 'react';
 import { Handshake, Plus } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -79,18 +80,20 @@ export async function CrmOpportunitiesHubView({
 
   if (!canRead) {
     return (
-      <div className="flex flex-col gap-4">
+      <MainAppPage>
         <PageHeader title={t('title')} description={t('description')} />
+      <MainAppSection>
         <EmptyState title={t('noAccess.title')} description={t('noAccess.body')} />
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
-        description={t('description')}
         actions={
           canManage ? (
             <Button asChild>
@@ -102,7 +105,9 @@ export async function CrmOpportunitiesHubView({
           ) : null
         }
       />
-      {afterHeader}
+      <MainAppSection>
+        {afterHeader}
+        <AdaptiveListBody surface={surface}>
       {surface === 'owner' ? <CrmSearchForm query={search} /> : null}
 
       {opportunities.length === 0 ? (
@@ -125,6 +130,8 @@ export async function CrmOpportunitiesHubView({
           opportunitiesRouteBase={opportunitiesRouteBase}
         />
       )}
-    </div>
+        </AdaptiveListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

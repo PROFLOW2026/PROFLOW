@@ -1,4 +1,10 @@
 import { Package, Plus } from 'lucide-react';
+import {
+  MainAppListBody,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
@@ -127,10 +133,9 @@ export default async function InventoryPage({
   } = loaded;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('inventory.title')}
-        description={t('inventory.description')}
         actions={
           canManage ? (
             <Button asChild className="max-w-full">
@@ -142,7 +147,8 @@ export default async function InventoryPage({
           ) : null
         }
       />
-      <AssetsSectionNav active="inventory" />
+      <MainAppSection>
+        <AssetsSectionNav active="inventory" />
 
       <Alert tone="info">
         <span className="block font-medium">{t('inventory.qtyOnlyBanner')}</span>
@@ -169,6 +175,7 @@ export default async function InventoryPage({
         canManage={canManage}
       />
 
+      <MainAppListBody>
       <form method="get" role="search" className="flex max-w-xl flex-col gap-3 sm:flex-row sm:items-end">
         <Field label={t('inventory.searchLabel')} className="flex-1">
           {(control) => (
@@ -233,7 +240,7 @@ export default async function InventoryPage({
           items={items}
           getRowKey={(item) => item.id}
           desktop={
-            <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+            <MainAppTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -305,7 +312,7 @@ export default async function InventoryPage({
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </MainAppTableShell>
           }
           renderMobileCard={(item) => (
             <Link
@@ -349,6 +356,8 @@ export default async function InventoryPage({
           )}
         />
       ) : null}
-    </div>
+      </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

@@ -1,4 +1,10 @@
-import type { Metadata } from 'next';
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -36,6 +42,8 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: 'ap' });
   return { title: t('credits.detail.title') };
 }
+
+const EMPTY = '—';
 
 function creditStatusShape(status: ApCreditLifecycleDisplayStatus): StatusShape {
   switch (status) {
@@ -119,7 +127,7 @@ export default async function VendorCreditDetailPage({
     compareMoney(money(remaining, credit.currency), zeroMoney(credit.currency)) > 0;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={credit.reference?.trim() || t('credits.list.noReference')}
         description={t('credits.detail.description')}
@@ -135,57 +143,49 @@ export default async function VendorCreditDetailPage({
           />
         }
       />
+      <MainAppSection>
+        <Alert tone={displayStatus === 'pending_approval' ? 'warning' : 'info'}>
+          {t(`credits.detail.${lifecycleHintKey(displayStatus)}`)}
+        </Alert>
 
-      <Alert tone={displayStatus === 'pending_approval' ? 'warning' : 'info'}>
-        {t(`credits.detail.${lifecycleHintKey(displayStatus)}`)}
-      </Alert>
+        <ApBillTaxSummary
+          netAmount={credit.netAmount ?? credit.amount}
+          taxAmount={credit.taxAmount ?? '0'}
+          grossAmount={credit.grossAmount ?? credit.amount}
+          currency={credit.currency}
+          taxBasis={credit.taxBasis}
+        />
 
-      <ApBillTaxSummary
-        netAmount={credit.netAmount ?? credit.amount}
-        taxAmount={credit.taxAmount ?? '0'}
-        grossAmount={credit.grossAmount ?? credit.amount}
-        currency={credit.currency}
-        taxBasis={credit.taxBasis}
-      />
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('credits.detail.amount')}>
+            <MoneyText value={money(credit.amount, credit.currency)} />
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('credits.detail.applied')}>
+            <MoneyText value={money(appliedTotal, credit.currency)} />
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('credits.detail.remaining')}>
+            <MoneyText value={money(remaining, credit.currency)} />
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('credits.detail.creditDate')}>
+            <span dir="ltr" className="pf-ltr-island">
+              {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                new Date(credit.creditDate),
+              )}
+            </span>
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('credits.detail.vendor')}>
+            {credit.vendorName?.trim() ? credit.vendorName : EMPTY}
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
 
-      <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="min-w-0">
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('credits.detail.amount')}</p>
-          <MoneyText value={money(credit.amount, credit.currency)} />
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('credits.detail.applied')}</p>
-          <MoneyText value={money(appliedTotal, credit.currency)} />
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('credits.detail.remaining')}</p>
-          <MoneyText value={money(remaining, credit.currency)} />
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('credits.detail.creditDate')}</p>
-          <p dir="ltr">
-            {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
-              new Date(credit.creditDate),
-            )}
-          </p>
-        </div>
-      </div>
-
-      <div className="grid min-w-0 gap-2 sm:grid-cols-2">
-        <p className="min-w-0 break-words text-sm">
-          <span className="text-[var(--pf-text-muted)]">{t('credits.detail.vendor')}: </span>
-          {credit.vendorName ?? '-'}
-        </p>
         {credit.notes ? (
-          <p className="min-w-0 break-words text-sm">
-            <span className="text-[var(--pf-text-muted)]">{t('credits.detail.notes')}: </span>
+          <p className="min-w-0 break-words text-sm text-[var(--pf-text-secondary)]">
             {credit.notes}
           </p>
         ) : null}
-      </div>
+      </MainAppSection>
 
-      <section className="flex min-w-0 flex-col gap-3">
-        <h2 className="text-sm font-semibold">{t('credits.detail.applicationsTitle')}</h2>
+      <MainAppSection title={t('credits.detail.applicationsTitle')}>
         {applications.length === 0 ? (
           <p className="text-sm text-[var(--pf-text-muted)]">
             {t('credits.detail.applicationsEmpty')}
@@ -215,32 +215,42 @@ export default async function VendorCreditDetailPage({
             ))}
           </ul>
         )}
-      </section>
+      </MainAppSection>
 
       {canManage && isDraft ? (
-        <EditDraftCreditForm
-          creditId={credit.id}
-          amount={credit.amount}
-          creditDate={credit.creditDate}
-          reference={credit.reference}
-          notes={credit.notes}
-        />
+        <MainAppSection>
+          <EditDraftCreditForm
+            creditId={credit.id}
+            amount={credit.amount}
+            creditDate={credit.creditDate}
+            reference={credit.reference}
+            notes={credit.notes}
+          />
+        </MainAppSection>
       ) : null}
 
       {canManage ? (
-        <PostVendorCreditPanel creditId={credit.id} displayStatus={displayStatus} />
+        <MainAppSection>
+          <PostVendorCreditPanel creditId={credit.id} displayStatus={displayStatus} />
+        </MainAppSection>
       ) : null}
 
       {canManage && isOpen && hasRemaining ? (
-        <ApplyVendorCreditForm
-          creditId={credit.id}
-          remaining={remaining}
-          currency={credit.currency}
-          bills={payableBills}
-        />
+        <MainAppSection>
+          <ApplyVendorCreditForm
+            creditId={credit.id}
+            remaining={remaining}
+            currency={credit.currency}
+            bills={payableBills}
+          />
+        </MainAppSection>
       ) : null}
 
-      {canManage && !isVoid ? <VoidVendorCreditPanel creditId={credit.id} /> : null}
-    </div>
+      {canManage && !isVoid ? (
+        <MainAppSection>
+          <VoidVendorCreditPanel creditId={credit.id} />
+        </MainAppSection>
+      ) : null}
+    </MainAppPage>
   );
 }

@@ -1,4 +1,5 @@
-import { Shield } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { Shield } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -28,8 +29,9 @@ export async function ContractorWarrantyScreen({
 
   return (
     <WithAppClientMessages extra={['handover']}>
-      <div className="flex flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={t('warranty.title')} description={t('warranty.description')} />
+      <MainAppSection>
         {visible.length === 0 ? (
           <EmptyState icon={Shield} title={t('warranty.empty.title')} description={t('warranty.empty.description')} />
         ) : (
@@ -50,7 +52,9 @@ export async function ContractorWarrantyScreen({
             ))}
           </ul>
         )}
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -167,7 +168,7 @@ export function RecurringDraftForm({
   })).filter((group) => group.items.length > 0);
 
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-5">
+    <form action={formAction} className="flex w-full flex-col gap-4">
       {initial?.draftId ? <input type="hidden" name="draftId" value={initial.draftId} /> : null}
       {mode === 'edit' ? <input type="hidden" name="draftKind" value={initialKind} /> : null}
       <input type="hidden" name="frequency" value={frequency} />
@@ -191,10 +192,12 @@ export function RecurringDraftForm({
 
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
+      <MainAppFormGrid dense className="gap-4">
       <Field
         label={showExpensePrimary && kind === 'expense' ? t('fields.expenseTitle') : t('fields.title')}
         required
         error={state.fieldErrors?.title}
+        className={mainAppFieldSpan.full}
       >
         {(controlProps) => (
           <Input
@@ -209,7 +212,7 @@ export function RecurringDraftForm({
 
       {showExpensePrimary && kind === 'expense' ? (
         <>
-          <Field label={t('fields.amount')} required error={state.fieldErrors?.amount}>
+          <Field label={t('fields.amount')} required error={state.fieldErrors?.amount} className={mainAppFieldSpan.lg}>
             {(controlProps) => (
               <>
                 <MoneyInput {...controlProps} value={amount} onValueChange={setAmount} required />
@@ -218,7 +221,7 @@ export function RecurringDraftForm({
             )}
           </Field>
 
-          <Field label={t('fields.vatMode')}>
+          <Field label={t('fields.vatMode')} className={mainAppFieldSpan.lg}>
             {() => (
               <ExpenseVatModeSelector value={vatMode} onChange={setVatMode} name="vatMode" />
             )}
@@ -226,7 +229,7 @@ export function RecurringDraftForm({
 
           <input type="hidden" name="currency" value={currency} />
 
-          <Field label={t('fields.supplierName')} optionalLabel={tCommon('labels.optional')}>
+          <Field label={t('fields.supplierName')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
             {(controlProps) => (
               <Input
                 {...controlProps}
@@ -241,6 +244,7 @@ export function RecurringDraftForm({
             label={t('fields.costCategory')}
             required
             error={state.fieldErrors?.costCategoryId}
+            className={mainAppFieldSpan.lg}
           >
             {(controlProps) => (
               <>
@@ -267,7 +271,7 @@ export function RecurringDraftForm({
             )}
           </Field>
 
-          <Field label={t('fields.destination')} required error={state.fieldErrors?.projectId}>
+          <Field label={t('fields.destination')} required error={state.fieldErrors?.projectId} className={mainAppFieldSpan.lg}>
             {(controlProps) => (
               <>
                 <Select
@@ -292,6 +296,7 @@ export function RecurringDraftForm({
               label={t('fields.project')}
               required={destination === 'project'}
               error={state.fieldErrors?.projectId}
+              className={mainAppFieldSpan.lg}
             >
               {(controlProps) => (
                 <>
@@ -315,7 +320,7 @@ export function RecurringDraftForm({
             <input type="hidden" name="projectId" value="" />
           )}
 
-          <Field label={t('fields.frequency')} required>
+          <Field label={t('fields.frequency')} required className={mainAppFieldSpan.lg}>
             {(controlProps) => (
               <Select value={frequency} onValueChange={(value) => setFrequency(value as DraftFrequency)}>
                 <SelectTrigger {...controlProps}>
@@ -336,6 +341,7 @@ export function RecurringDraftForm({
             label={isMonthlyExpenseForm ? t('fields.startDate') : t('fields.nextRunDate')}
             required
             error={state.fieldErrors?.nextRunDate}
+            className={mainAppFieldSpan.md}
           >
             {(controlProps) => (
               <Input
@@ -350,7 +356,7 @@ export function RecurringDraftForm({
             )}
           </Field>
 
-          <Field label={t('fields.endDate')} optionalLabel={tCommon('labels.optional')}>
+          <Field label={t('fields.endDate')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
             {(controlProps) => (
               <Input
                 {...controlProps}
@@ -363,7 +369,7 @@ export function RecurringDraftForm({
           </Field>
 
           {showRetroOption ? (
-            <div className="flex flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] p-3">
+            <div className={`flex flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] p-3 ${mainAppFieldSpan.full}`}>
               <label className="flex items-start gap-3 text-sm">
                 <input
                   type="checkbox"
@@ -386,9 +392,216 @@ export function RecurringDraftForm({
               </label>
             </div>
           ) : null}
+        </>
+      ) : (
+        <>
+          <Field label={t('fields.kind')} required className={mainAppFieldSpan.lg}>
+            {(controlProps) =>
+              mode === 'edit' ? (
+                <Input {...controlProps} value={t(`kind.${initialKind}`)} readOnly />
+              ) : (
+                <>
+                  <Select name="draftKind" value={kind} onValueChange={(value) => setKind(value as DraftKind)}>
+                    <SelectTrigger {...controlProps}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {kinds.map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {t(`kind.${value}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <input type="hidden" name="draftKind" value={kind} />
+                </>
+              )
+            }
+          </Field>
 
+          <Field label={t('fields.frequency')} required className={mainAppFieldSpan.lg}>
+            {(controlProps) => (
+              <Select value={frequency} onValueChange={(value) => setFrequency(value as DraftFrequency)}>
+                <SelectTrigger {...controlProps}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DRAFT_FREQUENCIES.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {t(`frequency.${value}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+
+          <Field label={t('fields.intervalCount')} required className={mainAppFieldSpan.md}>
+            {(controlProps) => (
+              <Input
+                {...controlProps}
+                name="intervalCount"
+                type="number"
+                min={1}
+                max={52}
+                defaultValue={String(initial?.intervalCount ?? 1)}
+                dir="ltr"
+              />
+            )}
+          </Field>
+
+          <Field label={t('fields.nextRunDate')} required error={state.fieldErrors?.nextRunDate} className={mainAppFieldSpan.md}>
+            {(controlProps) => (
+              <Input
+                {...controlProps}
+                type="date"
+                required
+                value={startDate}
+                onChange={(event) => setStartDate(event.target.value)}
+                dir="ltr"
+              />
+            )}
+          </Field>
+
+          <Field label={t('fields.endDate')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
+            {(controlProps) => (
+              <Input
+                {...controlProps}
+                name="endDate"
+                type="date"
+                defaultValue={initial?.endDate ?? ''}
+                dir="ltr"
+              />
+            )}
+          </Field>
+
+          <Field label={t('fields.amount')} required error={state.fieldErrors?.amount} className={mainAppFieldSpan.lg}>
+            {(controlProps) => (
+              <>
+                <MoneyInput {...controlProps} value={amount} onValueChange={setAmount} required />
+                <input type="hidden" name="amount" value={amount} />
+              </>
+            )}
+          </Field>
+
+          <Field label={t('fields.currency')} required className={mainAppFieldSpan.md}>
+            {(controlProps) => (
+              <Input
+                {...controlProps}
+                name="currency"
+                value={currency}
+                onChange={(event) => setCurrency(event.target.value.toUpperCase())}
+                maxLength={3}
+                dir="ltr"
+                required
+              />
+            )}
+          </Field>
+
+          {kind === 'vendor_bill' ? (
+            <>
+              <Field label={t('fields.vendor')} required error={state.fieldErrors?.vendorId} className={mainAppFieldSpan.lg}>
+                {(controlProps) => (
+                  <>
+                    <input type="hidden" name="vendorId" value={vendorId} />
+                    <Select value={vendorId} onValueChange={setVendorId}>
+                      <SelectTrigger {...controlProps}>
+                        <SelectValue placeholder={t('fields.vendor')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {vendors.map((vendor) => (
+                          <SelectItem key={vendor.id} value={vendor.id}>
+                            {vendor.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
+              </Field>
+              <Field label={t('fields.lineDescription')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
+                {(controlProps) => (
+                  <Input
+                    {...controlProps}
+                    name="lineDescription"
+                    maxLength={500}
+                    defaultValue={vendorLineDescription(initial?.payload)}
+                  />
+                )}
+              </Field>
+              <Field label={t('fields.reference')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+                {(controlProps) => (
+                  <Input
+                    {...controlProps}
+                    name="reference"
+                    maxLength={80}
+                    defaultValue={payloadString(initial?.payload, 'reference')}
+                  />
+                )}
+              </Field>
+              <Field label={t('fields.project')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+                {(controlProps) => (
+                  <>
+                    <input type="hidden" name="projectId" value={projectId === NONE ? '' : projectId} />
+                    <Select value={projectId} onValueChange={setProjectId}>
+                      <SelectTrigger {...controlProps}>
+                        <SelectValue placeholder={t('fields.none')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={NONE}>{t('fields.none')}</SelectItem>
+                        {projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
+              </Field>
+            </>
+          ) : null}
+
+          {kind === 'billing_record' ? (
+            <Field label={t('fields.project')} required error={state.fieldErrors?.projectId} className={mainAppFieldSpan.lg}>
+              {(controlProps) => (
+                <>
+                  <input type="hidden" name="projectId" value={projectId === NONE ? '' : projectId} />
+                  <Select value={projectId} onValueChange={setProjectId}>
+                    <SelectTrigger {...controlProps}>
+                      <SelectValue placeholder={t('fields.project')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projects.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+            </Field>
+          ) : null}
+
+          <Field label={t('fields.notes')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
+            {(controlProps) => (
+              <Textarea
+                {...controlProps}
+                name="notes"
+                rows={3}
+                defaultValue={payloadString(initial?.payload, 'notes')}
+              />
+            )}
+          </Field>
+        </>
+      )}
+      </MainAppFormGrid>
+
+      {showExpensePrimary && kind === 'expense' ? (
+        <>
           {showExpensePrimary ? (
-            <fieldset className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3">
+            <fieldset className="flex w-full flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-3">
               <legend className="px-1 text-sm font-medium">{t('payment.title')}</legend>
               <label className="flex items-start gap-3 text-sm">
                 <input
@@ -423,7 +636,8 @@ export function RecurringDraftForm({
                 </span>
               </label>
               {paymentBehavior === 'automatic' ? (
-                <Field label={t('payment.dayLabel')} required>
+                <MainAppFormGrid dense className="gap-4">
+                <Field label={t('payment.dayLabel')} required className={mainAppFieldSpan.sm}>
                   {(controlProps) => (
                     <Input
                       {...controlProps}
@@ -434,10 +648,10 @@ export function RecurringDraftForm({
                       value={recurringPaymentDay}
                       onChange={(event) => setRecurringPaymentDay(event.target.value)}
                       dir="ltr"
-                      className="max-w-[8rem]"
                     />
                   )}
                 </Field>
+                </MainAppFormGrid>
               ) : (
                 <input type="hidden" name="recurringPaymentDay" value="" />
               )}
@@ -453,10 +667,10 @@ export function RecurringDraftForm({
             </fieldset>
           ) : null}
 
-          <details className="rounded-lg border border-[var(--pf-border-default)] p-3">
+          <details className="w-full rounded-lg border border-[var(--pf-border-default)] p-3">
             <summary className="cursor-pointer text-sm font-medium">{t('advanced.title')}</summary>
-            <div className="mt-4 flex flex-col gap-4">
-              <Field label={t('fields.description')} optionalLabel={tCommon('labels.optional')}>
+            <MainAppFormGrid dense className="mt-4 gap-4">
+              <Field label={t('fields.description')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
                 {(controlProps) => (
                   <Input
                     {...controlProps}
@@ -466,7 +680,7 @@ export function RecurringDraftForm({
                   />
                 )}
               </Field>
-              <Field label={t('fields.intervalCount')} required>
+              <Field label={t('fields.intervalCount')} required className={mainAppFieldSpan.md}>
                 {(controlProps) => (
                   <Input
                     {...controlProps}
@@ -479,7 +693,7 @@ export function RecurringDraftForm({
                   />
                 )}
               </Field>
-              <fieldset className="flex flex-col gap-3">
+              <fieldset className={`flex flex-col gap-3 ${mainAppFieldSpan.full}`}>
                 <legend className="text-sm font-medium">{t('advanced.creationMode')}</legend>
                 <label className="flex items-start gap-3 text-sm">
                   <input
@@ -514,212 +728,10 @@ export function RecurringDraftForm({
                   </span>
                 </label>
               </fieldset>
-            </div>
+            </MainAppFormGrid>
           </details>
         </>
-      ) : (
-        <>
-          <Field label={t('fields.kind')} required>
-            {(controlProps) =>
-              mode === 'edit' ? (
-                <Input {...controlProps} value={t(`kind.${initialKind}`)} readOnly />
-              ) : (
-                <>
-                  <Select name="draftKind" value={kind} onValueChange={(value) => setKind(value as DraftKind)}>
-                    <SelectTrigger {...controlProps}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {kinds.map((value) => (
-                        <SelectItem key={value} value={value}>
-                          {t(`kind.${value}`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <input type="hidden" name="draftKind" value={kind} />
-                </>
-              )
-            }
-          </Field>
-
-          <Field label={t('fields.frequency')} required>
-            {(controlProps) => (
-              <Select value={frequency} onValueChange={(value) => setFrequency(value as DraftFrequency)}>
-                <SelectTrigger {...controlProps}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DRAFT_FREQUENCIES.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {t(`frequency.${value}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </Field>
-
-          <Field label={t('fields.intervalCount')} required>
-            {(controlProps) => (
-              <Input
-                {...controlProps}
-                name="intervalCount"
-                type="number"
-                min={1}
-                max={52}
-                defaultValue={String(initial?.intervalCount ?? 1)}
-                dir="ltr"
-              />
-            )}
-          </Field>
-
-          <Field label={t('fields.nextRunDate')} required error={state.fieldErrors?.nextRunDate}>
-            {(controlProps) => (
-              <Input
-                {...controlProps}
-                type="date"
-                required
-                value={startDate}
-                onChange={(event) => setStartDate(event.target.value)}
-                dir="ltr"
-              />
-            )}
-          </Field>
-
-          <Field label={t('fields.endDate')} optionalLabel={tCommon('labels.optional')}>
-            {(controlProps) => (
-              <Input
-                {...controlProps}
-                name="endDate"
-                type="date"
-                defaultValue={initial?.endDate ?? ''}
-                dir="ltr"
-              />
-            )}
-          </Field>
-
-          <Field label={t('fields.amount')} required error={state.fieldErrors?.amount}>
-            {(controlProps) => (
-              <>
-                <MoneyInput {...controlProps} value={amount} onValueChange={setAmount} required />
-                <input type="hidden" name="amount" value={amount} />
-              </>
-            )}
-          </Field>
-
-          <Field label={t('fields.currency')} required>
-            {(controlProps) => (
-              <Input
-                {...controlProps}
-                name="currency"
-                value={currency}
-                onChange={(event) => setCurrency(event.target.value.toUpperCase())}
-                maxLength={3}
-                dir="ltr"
-                required
-              />
-            )}
-          </Field>
-
-          {kind === 'vendor_bill' ? (
-            <>
-              <Field label={t('fields.vendor')} required error={state.fieldErrors?.vendorId}>
-                {(controlProps) => (
-                  <>
-                    <input type="hidden" name="vendorId" value={vendorId} />
-                    <Select value={vendorId} onValueChange={setVendorId}>
-                      <SelectTrigger {...controlProps}>
-                        <SelectValue placeholder={t('fields.vendor')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {vendors.map((vendor) => (
-                          <SelectItem key={vendor.id} value={vendor.id}>
-                            {vendor.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </>
-                )}
-              </Field>
-              <Field label={t('fields.lineDescription')} optionalLabel={tCommon('labels.optional')}>
-                {(controlProps) => (
-                  <Input
-                    {...controlProps}
-                    name="lineDescription"
-                    maxLength={500}
-                    defaultValue={vendorLineDescription(initial?.payload)}
-                  />
-                )}
-              </Field>
-              <Field label={t('fields.reference')} optionalLabel={tCommon('labels.optional')}>
-                {(controlProps) => (
-                  <Input
-                    {...controlProps}
-                    name="reference"
-                    maxLength={80}
-                    defaultValue={payloadString(initial?.payload, 'reference')}
-                  />
-                )}
-              </Field>
-              <Field label={t('fields.project')} optionalLabel={tCommon('labels.optional')}>
-                {(controlProps) => (
-                  <>
-                    <input type="hidden" name="projectId" value={projectId === NONE ? '' : projectId} />
-                    <Select value={projectId} onValueChange={setProjectId}>
-                      <SelectTrigger {...controlProps}>
-                        <SelectValue placeholder={t('fields.none')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={NONE}>{t('fields.none')}</SelectItem>
-                        {projects.map((project) => (
-                          <SelectItem key={project.id} value={project.id}>
-                            {project.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </>
-                )}
-              </Field>
-            </>
-          ) : null}
-
-          {kind === 'billing_record' ? (
-            <Field label={t('fields.project')} required error={state.fieldErrors?.projectId}>
-              {(controlProps) => (
-                <>
-                  <input type="hidden" name="projectId" value={projectId === NONE ? '' : projectId} />
-                  <Select value={projectId} onValueChange={setProjectId}>
-                    <SelectTrigger {...controlProps}>
-                      <SelectValue placeholder={t('fields.project')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {projects.map((project) => (
-                        <SelectItem key={project.id} value={project.id}>
-                          {project.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-            </Field>
-          ) : null}
-
-          <Field label={t('fields.notes')} optionalLabel={tCommon('labels.optional')}>
-            {(controlProps) => (
-              <Textarea
-                {...controlProps}
-                name="notes"
-                rows={3}
-                defaultValue={payloadString(initial?.payload, 'notes')}
-              />
-            )}
-          </Field>
-        </>
-      )}
+      ) : null}
 
       {showExpensePrimary && kind === 'expense' ? (
         <input type="hidden" name="draftKind" value="expense" />

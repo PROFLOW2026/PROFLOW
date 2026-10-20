@@ -1,8 +1,15 @@
-import { FileText } from 'lucide-react';
+﻿import { FileText } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
+import {
+  AdaptiveListBody,
+  AdaptiveListTableShell,
+  MainAppPage,
+  MainAppSection,
+  mainAppListKitEnabled,
+} from '@/components/patterns/main-app';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -61,6 +68,7 @@ export async function ContractsOrgListView({
 }: ContractsOrgListViewProps) {
   const t = await getTranslations('contracts');
   const params = await searchParams;
+  const listKit = mainAppListKitEnabled(surface);
 
   const { items, clients, projects, canRead } = await withOrgContext(async (context) => {
     const allowed = orgListHasPermission(context, PERMISSIONS.CONTRACTS_READ, surface);
@@ -96,31 +104,36 @@ export async function ContractsOrgListView({
     const tEmployee =
       surface === 'employee' ? await getTranslations('employeeApp.contracts') : null;
     return (
-      <div className="flex flex-col gap-6">
+      <MainAppPage>
         {surface === 'owner' ? (
-          <PageHeader title={t('title')} description={t('description')} />
+          <PageHeader title={t('title')} />
         ) : null}
+        <MainAppSection>
         <EmptyState
           icon={FileText}
           title={tEmployee?.('noAccess.title') ?? t('empty.title')}
           description={tEmployee?.('noAccess.description') ?? t('empty.body')}
         />
-      </div>
+        </MainAppSection>
+      </MainAppPage>
     );
   }
 
   return (
     <WithAppClientMessages extra={['contracts']}>
-      <div className="flex flex-col gap-6">
+      <MainAppPage>
         {surface === 'owner' ? (
-          <PageHeader title={t('title')} description={t('description')} />
+          <PageHeader title={t('title')} />
         ) : null}
 
+        <MainAppSection>
+        <AdaptiveListBody surface={surface}>
         <ContractsListFilters
           initialStatus={params.status ?? 'all'}
           initialType={params.type ?? 'all'}
           initialClientId={params.clientId ?? ''}
           initialProjectId={params.projectId ?? ''}
+          listKit={listKit}
           selectedClientName={
             items.find((item) => item.clientId && item.clientId === params.clientId)?.clientName ??
             null
@@ -139,7 +152,7 @@ export async function ContractsOrgListView({
             items={items}
             getRowKey={(item) => item.id}
             desktop={
-              <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+              <AdaptiveListTableShell surface={surface}>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -216,7 +229,7 @@ export async function ContractsOrgListView({
                     })}
                   </TableBody>
                 </Table>
-              </div>
+              </AdaptiveListTableShell>
             }
             renderMobileCard={(item) => (
               <Link
@@ -240,7 +253,9 @@ export async function ContractsOrgListView({
             )}
           />
         )}
-      </div>
+        </AdaptiveListBody>
+        </MainAppSection>
+      </MainAppPage>
     </WithAppClientMessages>
   );
 }

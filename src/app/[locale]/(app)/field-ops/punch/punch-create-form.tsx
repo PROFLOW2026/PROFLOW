@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -74,7 +75,7 @@ export function PunchCreateForm({
   );
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.offlineQueued ? (
         <Alert tone="info" role="status">
@@ -85,7 +86,8 @@ export function PunchCreateForm({
         </Alert>
       ) : null}
 
-      <Field label={t('projectLabel')} required>
+      <MainAppFormGrid dense className="gap-4">
+      <Field label={t('projectLabel')} required className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="projectId" value={projectId} />
@@ -112,7 +114,7 @@ export function PunchCreateForm({
       </Field>
 
       {projectPackages.length > 0 ? (
-        <Field label={t('workPackageLabel')}>
+        <Field label={t('workPackageLabel')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input
@@ -138,15 +140,15 @@ export function PunchCreateForm({
         </Field>
       ) : null}
 
-      <Field label={t('titleLabel')} required error={state.fieldErrors?.title}>
+      <Field label={t('titleLabel')} required error={state.fieldErrors?.title} className={mainAppFieldSpan.full}>
         {(control) => <Input {...control} name="title" required autoFocus />}
       </Field>
 
-      <Field label={t('descriptionLabel')} error={state.fieldErrors?.description}>
+      <Field label={t('descriptionLabel')} error={state.fieldErrors?.description} className={mainAppFieldSpan.full}>
         {(control) => <Textarea {...control} name="description" rows={3} />}
       </Field>
 
-      <Field label={t('priorityLabel')}>
+      <Field label={t('priorityLabel')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="priority" value={priority} />
@@ -166,15 +168,15 @@ export function PunchCreateForm({
         )}
       </Field>
 
-      <Field label={t('locationLabel')}>
+      <Field label={t('locationLabel')} className={mainAppFieldSpan.lg}>
         {(control) => <Input {...control} name="location" />}
       </Field>
 
-      <Field label={t('dueDateLabel')}>
+      <Field label={t('dueDateLabel')} className={mainAppFieldSpan.md}>
         {(control) => <Input {...control} type="date" name="dueDate" className="min-h-11" />}
       </Field>
 
-      <Field label={t('assigneeLabel')}>
+      <Field label={t('assigneeLabel')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input
@@ -198,6 +200,7 @@ export function PunchCreateForm({
           </>
         )}
       </Field>
+      </MainAppFormGrid>
 
       <FieldOpsPhotoStaging
         files={photos.files}

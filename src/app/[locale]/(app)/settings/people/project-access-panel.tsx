@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -52,12 +53,8 @@ export function ProjectAccessPanel({
     projects.find((item) => item.id === projectId)?.name ?? projectId;
 
   return (
-    <section className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-5">
-      <div>
-        <h2 className="text-base font-semibold">{t('accessTitle')}</h2>
-        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('accessHint')}</p>
-        <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">{t('assignedModeHint')}</p>
-      </div>
+    <MainAppSection title={t('accessTitle')} description={t('accessHint')}>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('assignedModeHint')}</p>
 
       {mode !== 'all' && accessAllMembers.length > 0 ? (
         <Alert tone="warning">
@@ -70,30 +67,34 @@ export function ProjectAccessPanel({
       ) : null}
 
       {canManage ? (
-        <form action={modeAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <Field label={t('accessMode')} className="min-w-0 flex-1">
-            {(control) => (
-              <Select name="mode" defaultValue={mode}>
-                <SelectTrigger id={control.id}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PROJECT_ACCESS_MODES.map((item) => (
-                    <SelectItem key={item} value={item}>
-                      {item === 'all'
-                        ? t('modeAll')
-                        : item === 'selected'
-                          ? t('modeSelected')
-                          : t('modeAssigned')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </Field>
-          <Button type="submit" variant="secondary" loading={modePending}>
-            {t('saveMode')}
-          </Button>
+        <form action={modeAction} className="w-full min-w-0">
+          <MainAppFormGrid dense className="gap-4 sm:items-end">
+            <Field label={t('accessMode')} className={mainAppFieldSpan.lg}>
+              {(control) => (
+                <Select name="mode" defaultValue={mode}>
+                  <SelectTrigger id={control.id}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROJECT_ACCESS_MODES.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {item === 'all'
+                          ? t('modeAll')
+                          : item === 'selected'
+                            ? t('modeSelected')
+                            : t('modeAssigned')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+            <div className={mainAppFieldSpan.md}>
+              <Button type="submit" variant="secondary" loading={modePending}>
+                {t('saveMode')}
+              </Button>
+            </div>
+          </MainAppFormGrid>
         </form>
       ) : (
         <p className="text-sm">{mode === 'all' ? t('modeAll') : mode === 'selected' ? t('modeSelected') : t('modeAssigned')}</p>
@@ -102,55 +103,59 @@ export function ProjectAccessPanel({
       {modeState.error ? <Alert tone="danger">{modeState.error}</Alert> : null}
 
       {canManage && mode !== 'all' ? (
-        <form action={grantAction} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:items-end">
-          <Field label={t('grantUser')}>
-            {(control) => (
-              <Select name="userId">
-                <SelectTrigger id={control.id}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {members.map((member) => (
-                    <SelectItem key={member.userId} value={member.userId}>
-                      {member.displayName || employeeUsernameFromAuthEmail(member.email) || member.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </Field>
-          <Field label={t('grantProject')}>
-            {(control) => (
-              <Select name="projectId">
-                <SelectTrigger id={control.id}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </Field>
-          <Field label={t('grantLevel')}>
-            {(control) => (
-              <Select name="accessLevel" defaultValue="read">
-                <SelectTrigger id={control.id}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="read">{t('levelRead')}</SelectItem>
-                  <SelectItem value="manage">{t('levelManage')}</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          </Field>
-          <Button type="submit" loading={grantPending}>
-            {t('grantAdd')}
-          </Button>
+        <form action={grantAction} className="w-full min-w-0">
+          <MainAppFormGrid dense className="gap-4 sm:items-end">
+            <Field label={t('grantUser')} className={mainAppFieldSpan.lg}>
+              {(control) => (
+                <Select name="userId">
+                  <SelectTrigger id={control.id}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {members.map((member) => (
+                      <SelectItem key={member.userId} value={member.userId}>
+                        {member.displayName || employeeUsernameFromAuthEmail(member.email) || member.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+            <Field label={t('grantProject')} className={mainAppFieldSpan.lg}>
+              {(control) => (
+                <Select name="projectId">
+                  <SelectTrigger id={control.id}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+            <Field label={t('grantLevel')} className={mainAppFieldSpan.md}>
+              {(control) => (
+                <Select name="accessLevel" defaultValue="read">
+                  <SelectTrigger id={control.id}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="read">{t('levelRead')}</SelectItem>
+                    <SelectItem value="manage">{t('levelManage')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+            <div className={mainAppFieldSpan.md}>
+              <Button type="submit" loading={grantPending}>
+                {t('grantAdd')}
+              </Button>
+            </div>
+          </MainAppFormGrid>
         </form>
       ) : null}
 
@@ -195,6 +200,6 @@ export function ProjectAccessPanel({
           ))}
         </ul>
       )}
-    </section>
+    </MainAppSection>
   );
 }

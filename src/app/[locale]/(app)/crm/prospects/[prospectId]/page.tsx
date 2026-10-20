@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,7 +51,7 @@ export default async function ProspectDetailPage({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={prospect.name}
         meta={
@@ -68,8 +69,8 @@ export default async function ProspectDetailPage({
           </Link>
         }
       />
-
-      {(prospect.companyName || prospect.email || prospect.phone || prospect.notes) && (
+      <MainAppSection>
+        {(prospect.companyName || prospect.email || prospect.phone || prospect.notes) && (
         <Card>
           <CardContent className="flex flex-col gap-1 pt-6 text-sm">
             {prospect.companyName ? <p className="text-start">{prospect.companyName}</p> : null}
@@ -135,6 +136,8 @@ export default async function ProspectDetailPage({
           {canManage ? <ProspectContactForm prospectId={prospect.id} /> : null}
         </CardContent>
       </Card>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

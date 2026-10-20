@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppListBody, MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -45,17 +46,24 @@ export default async function FinancialsOverviewPage({
 
   if (!result.allowed || !result.data) {
     return (
-      <div className="flex min-w-0 flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={t('pageTitle')} description={t('pageHint')} />
+      <MainAppSection>
         <EmptyState title={t('noAccessTitle')} description={t('noAccessBody')} />
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     );
   }
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('pageTitle')} description={t('pageHint')} />
-      <FinancialsOverviewView data={result.data} />
-    </div>
+      <MainAppSection>
+        <MainAppListBody>
+        <FinancialsOverviewView data={result.data} />
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

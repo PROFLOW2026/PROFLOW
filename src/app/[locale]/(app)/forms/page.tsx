@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -69,7 +70,7 @@ export default async function FormsListPage({
   });
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         description={t('subtitle')}
@@ -81,8 +82,8 @@ export default async function FormsListPage({
           ) : null
         }
       />
-
-      <div className="flex flex-wrap gap-3 text-sm">
+      <MainAppSection>
+        <div className="flex flex-wrap gap-3 text-sm">
         {data.canManageTemplates ? (
           <Link href="/settings/forms" className={textNavLinkClassName}>
             {t('list.templatesLink')}
@@ -132,6 +133,8 @@ export default async function FormsListPage({
           ))}
         </ul>
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

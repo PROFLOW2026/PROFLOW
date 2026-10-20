@@ -1,3 +1,4 @@
+﻿import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
@@ -28,7 +29,7 @@ export default async function QuickCaptureReviewPage({
   const review = await getQuickCaptureReviewAction(captureId);
 
   return (
-    <div className="mx-auto flex w-full max-w-[88rem] flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('review.title')}
         actions={
@@ -42,10 +43,14 @@ export default async function QuickCaptureReviewPage({
       />
 
       {!review.ok ? (
-        <Alert tone="warning">{review.error}</Alert>
+        <MainAppSection className="min-w-0">
+          <Alert tone="warning">{review.error}</Alert>
+        </MainAppSection>
       ) : (
-        <QuickCaptureReview initialData={review.data} />
+        <MainAppSection className="min-w-0">
+          <QuickCaptureReview initialData={review.data} />
+        </MainAppSection>
       )}
-    </div>
+    </MainAppPage>
   );
 }

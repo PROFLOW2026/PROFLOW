@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { PageHeader } from '@/components/ui/page-header';
 import { withOrgContext } from '@/shared/auth/session';
 import {
@@ -44,9 +45,13 @@ export async function SettingsHubPage() {
   }
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6">
-      <PageHeader title={t('title')} description={t('hub.description')} />
-      <SettingsGroupHub groups={[...hubGroups, ...devGroups]} />
-    </div>
+    <MainAppPage>
+      <PageHeader title={t('title')} description={t('hub.description')} className="gap-2" />
+      <MainAppSection>
+        <div className="w-full min-w-0">
+          <SettingsGroupHub groups={[...hubGroups, ...devGroups]} />
+        </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

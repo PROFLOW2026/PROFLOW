@@ -1,5 +1,6 @@
 'use client';
 
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { useActionState, useMemo, useState } from 'react';
 import { ImageIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -18,14 +19,12 @@ import {
   archiveBrandProfileAction,
   createBrandProfileAction,
   setDefaultBrandProfileAction,
-  updateBrandProfileAction,
-} from './actions';
+  updateBrandProfileAction} from './actions';
 import type {
   BrandingCompanySummary,
   BrandProfileSettingsView,
   FooterStylePreset,
-  HeaderLayoutPreset,
-} from './_lib/types';
+  HeaderLayoutPreset} from './_lib/types';
 
 const HEADER_LAYOUTS: readonly HeaderLayoutPreset[] = [
   'letterhead',
@@ -39,8 +38,7 @@ function VisibilityToggle({
   name,
   label,
   defaultChecked,
-  canEdit,
-}: {
+  canEdit}: {
   name: string;
   label: string;
   defaultChecked: boolean;
@@ -65,8 +63,7 @@ export function BrandingSettingsPanel({
   brands,
   company,
   canEdit,
-  initialBrandId,
-}: {
+  initialBrandId}: {
   brands: readonly BrandProfileSettingsView[];
   company: BrandingCompanySummary;
   canEdit: boolean;
@@ -153,8 +150,8 @@ export function BrandingSettingsPanel({
           description={t('emptyBrands.description')}
           action={
             canEdit ? (
-              <form action={createAction} className="flex flex-wrap items-end gap-2">
-                <Field label={t('brands.newName')}>
+              <form action={createAction} className="flex w-full flex-wrap items-end gap-4">
+                <Field label={t('brands.newName')} className={mainAppFieldSpan.lg}>
                   {(props) => (
                     <Input {...props} name="name" defaultValue={t('brands.defaultName')} required />
                   )}
@@ -185,12 +182,12 @@ export function BrandingSettingsPanel({
     showPhone,
     showEmail,
     showWebsite,
-    footerCustomText: footerCustomText || null,
-  };
+    footerCustomText: footerCustomText || null};
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
       <p className="text-sm text-[var(--pf-text-secondary)]">
         {t.rich('companyLink', {
           link: (chunks) => (
@@ -200,8 +197,7 @@ export function BrandingSettingsPanel({
             >
               {chunks}
             </Link>
-          ),
-        })}
+          )})}
       </p>
 
       {!selected.hasLogoPrimary ? (
@@ -286,7 +282,7 @@ export function BrandingSettingsPanel({
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
-        <form action={saveAction} className="flex min-w-0 flex-col gap-6">
+        <form action={saveAction} className="flex min-w-0 w-full flex-col gap-6">
           <input type="hidden" name="brandProfileId" value={selected.id} />
           <input type="hidden" name="headerLayout" value={headerLayout} />
           <input type="hidden" name="footerStyle" value={footerStyle} />
@@ -309,11 +305,13 @@ export function BrandingSettingsPanel({
 
           <section className="flex flex-col gap-3">
             <h2 className="text-sm font-semibold">{t('sections.identity')}</h2>
-            <Field label={t('fields.brandName')} required>
+            <MainAppFormGrid dense className="gap-4">
+            <Field label={t('fields.brandName')} required className={mainAppFieldSpan.lg}>
               {(props) => (
                 <Input {...props} name="name" defaultValue={selected.name} disabled={!canEdit} required />
               )}
             </Field>
+            </MainAppFormGrid>
           </section>
 
           <section id="brand-logo-primary" className="flex flex-col gap-3">
@@ -354,8 +352,8 @@ export function BrandingSettingsPanel({
           <section className="flex flex-col gap-3">
             <h2 className="text-sm font-semibold">{t('sections.colors')}</h2>
             <p className="text-xs text-[var(--pf-text-muted)]">{t('colors.documentOnly')}</p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label={t('fields.primaryColor')}>
+            <MainAppFormGrid dense className="gap-4">
+              <Field label={t('fields.primaryColor')} className={mainAppFieldSpan.lg}>
                 {(props) => (
                   <div className="flex items-center gap-2">
                     <input
@@ -378,7 +376,7 @@ export function BrandingSettingsPanel({
                   </div>
                 )}
               </Field>
-              <Field label={t('fields.secondaryColor')}>
+              <Field label={t('fields.secondaryColor')} className={mainAppFieldSpan.lg}>
                 {(props) => (
                   <div className="flex items-center gap-2">
                     <input
@@ -401,13 +399,13 @@ export function BrandingSettingsPanel({
                   </div>
                 )}
               </Field>
-            </div>
+            </MainAppFormGrid>
           </section>
 
           <section className="flex flex-col gap-3">
             <h2 className="text-sm font-semibold">{t('sections.layout')}</h2>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label={t('fields.headerLayout')}>
+            <MainAppFormGrid dense className="gap-4">
+              <Field label={t('fields.headerLayout')} className={mainAppFieldSpan.lg}>
                 {(props) => (
                   <Select
                     value={headerLayout}
@@ -427,7 +425,7 @@ export function BrandingSettingsPanel({
                   </Select>
                 )}
               </Field>
-              <Field label={t('fields.footerStyle')}>
+              <Field label={t('fields.footerStyle')} className={mainAppFieldSpan.lg}>
                 {(props) => (
                   <Select
                     value={footerStyle}
@@ -447,7 +445,7 @@ export function BrandingSettingsPanel({
                   </Select>
                 )}
               </Field>
-            </div>
+            </MainAppFormGrid>
           </section>
 
           <section className="flex flex-col gap-3">
@@ -566,7 +564,8 @@ export function BrandingSettingsPanel({
 
           <section className="flex flex-col gap-3">
             <h2 className="text-sm font-semibold">{t('sections.texts')}</h2>
-            <Field label={t('fields.footerCustomText')} optionalLabel={tCommon('labels.optional')}>
+            <MainAppFormGrid dense className="gap-4">
+            <Field label={t('fields.footerCustomText')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
               {(props) => (
                 <Textarea
                   {...props}
@@ -578,13 +577,13 @@ export function BrandingSettingsPanel({
                 />
               )}
             </Field>
-            <p className="text-sm text-[var(--pf-text-secondary)]">
+            <p className={`text-sm text-[var(--pf-text-secondary)] ${mainAppFieldSpan.full}`}>
               {t('quoteTextsMoved')}{' '}
               <Link href="/quotes/settings" className="font-medium text-[var(--pf-action-primary)] underline-offset-2 hover:underline">
                 {t('quoteTextsMovedLink')}
               </Link>
             </p>
-            <Field label={t('fields.reportFooterText')} optionalLabel={tCommon('labels.optional')}>
+            <Field label={t('fields.reportFooterText')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
               {(props) => (
                 <Textarea
                   {...props}
@@ -598,6 +597,7 @@ export function BrandingSettingsPanel({
             <Field
               label={t('fields.paymentInstructionsText')}
               optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.full}
             >
               {(props) => (
                 <Textarea
@@ -609,7 +609,7 @@ export function BrandingSettingsPanel({
                 />
               )}
             </Field>
-            <Field label={t('fields.emailSignatureText')} optionalLabel={tCommon('labels.optional')}>
+            <Field label={t('fields.emailSignatureText')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
               {(props) => (
                 <Textarea
                   {...props}
@@ -620,7 +620,7 @@ export function BrandingSettingsPanel({
                 />
               )}
             </Field>
-            <Field label={t('fields.poTermsText')} optionalLabel={tCommon('labels.optional')}>
+            <Field label={t('fields.poTermsText')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
               {(props) => (
                 <Textarea
                   {...props}
@@ -631,7 +631,7 @@ export function BrandingSettingsPanel({
                 />
               )}
             </Field>
-            <Field label={t('fields.generalDocumentNote')} optionalLabel={tCommon('labels.optional')}>
+            <Field label={t('fields.generalDocumentNote')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
               {(props) => (
                 <Textarea
                   {...props}
@@ -642,7 +642,7 @@ export function BrandingSettingsPanel({
                 />
               )}
             </Field>
-            <Field label={t('fields.serviceReportNote')} optionalLabel={tCommon('labels.optional')}>
+            <Field label={t('fields.serviceReportNote')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
               {(props) => (
                 <Textarea
                   {...props}
@@ -656,6 +656,7 @@ export function BrandingSettingsPanel({
             <Field
               label={t('fields.reportDisclaimerText')}
               optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.full}
             >
               {(props) => (
                 <Textarea
@@ -667,6 +668,7 @@ export function BrandingSettingsPanel({
                 />
               )}
             </Field>
+            </MainAppFormGrid>
           </section>
 
           <section className="flex flex-col gap-3">
@@ -739,6 +741,8 @@ export function BrandingSettingsPanel({
           />
         </aside>
       </div>
+    
+      </MainAppSection>
     </div>
   );
 }

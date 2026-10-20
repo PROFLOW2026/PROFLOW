@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -61,7 +62,8 @@ export function SafetyRecordForm({
       {state.success ? <Alert tone="success">{t('detail.saved')}</Alert> : null}
       {defaults?.fromDailyLogId ? <Alert tone="info">{t('fromDailyLogHint')}</Alert> : null}
 
-      <Field label={t('fields.type')} required>
+      <MainAppFormGrid dense>
+      <Field label={t('fields.type')} required className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="recordType" value={recordType} />
@@ -81,13 +83,13 @@ export function SafetyRecordForm({
         )}
       </Field>
 
-      <Field label={t('fields.title')} required error={state.fieldErrors?.title}>
+      <Field label={t('fields.title')} required error={state.fieldErrors?.title} className={mainAppFieldSpan.full}>
         {(control) => (
           <Input {...control} name="title" required defaultValue={record?.title ?? defaults?.title ?? ''} className="h-11 text-base" />
         )}
       </Field>
 
-      <Field label={t('fields.description')} required error={state.fieldErrors?.description}>
+      <Field label={t('fields.description')} required error={state.fieldErrors?.description} className={mainAppFieldSpan.full}>
         {(control) => (
           <Textarea
             {...control}
@@ -100,7 +102,7 @@ export function SafetyRecordForm({
         )}
       </Field>
 
-      <Field label={t('fields.project')}>
+      <Field label={t('fields.project')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <>
             <input type="hidden" name="projectId" value={projectId === NONE ? '' : projectId} />
@@ -121,7 +123,7 @@ export function SafetyRecordForm({
         )}
       </Field>
 
-      <Field label={t('fields.occurredAt')} required>
+      <Field label={t('fields.occurredAt')} required className={mainAppFieldSpan.lg}>
         {(control) => (
           <Input
             {...control}
@@ -134,7 +136,7 @@ export function SafetyRecordForm({
         )}
       </Field>
 
-      <Field label={t('fields.severity')}>
+      <Field label={t('fields.severity')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <select
             {...control}
@@ -152,7 +154,7 @@ export function SafetyRecordForm({
       </Field>
 
       {mode === 'edit' ? (
-        <Field label={t('fields.status')}>
+        <Field label={t('fields.status')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <select
               {...control}
@@ -169,6 +171,7 @@ export function SafetyRecordForm({
           )}
         </Field>
       ) : null}
+      </MainAppFormGrid>
 
       <details className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]">
         <summary className="min-h-11 cursor-pointer px-4 py-3 text-sm font-medium">

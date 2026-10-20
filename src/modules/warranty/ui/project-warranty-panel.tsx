@@ -1,3 +1,4 @@
+import { MainAppSection } from '@/components/patterns/main-app';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
@@ -88,14 +89,10 @@ export async function ProjectWarrantyPanel({ projectId }: { readonly projectId: 
   });
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
-      <div>
-        <h2 className="text-base font-semibold">{t('title')}</h2>
-        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
-        <div className="mt-2">
-          <PrepareMessageLink entityType="warranty" projectId={projectId} />
-        </div>
-      </div>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection title={t('title')} description={t('description')} className="w-full min-w-0">
+        <PrepareMessageLink entityType="warranty" projectId={projectId} />
+      </MainAppSection>
 
       {data.canUpdate ? (
         <CreateCoverageForm
@@ -112,25 +109,24 @@ export async function ProjectWarrantyPanel({ projectId }: { readonly projectId: 
           const issues = data.issuesByCoverageId[coverage.id] ?? [];
           const docs = data.documentPanels[coverage.id];
           return (
-            <section
+            <MainAppSection
               key={coverage.id}
-              className="flex min-w-0 flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4"
-            >
-              <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <h3 className="font-semibold">{coverage.title}</h3>
-                  <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-                    {t(`coverage.types.${coverage.coverageType}`)}
-                    {coverage.startDate ? ` · ${coverage.startDate}` : ''}
-                    {coverage.endDate ? ` – ${coverage.endDate}` : ''}
-                  </p>
-                </div>
+              title={coverage.title}
+              description={
+                <>
+                  {t(`coverage.types.${coverage.coverageType}`)}
+                  {coverage.startDate ? ` · ${coverage.startDate}` : null}
+                  {coverage.endDate ? ` – ${coverage.endDate}` : null}
+                </>
+              }
+              className="w-full min-w-0 gap-4"
+              actions={
                 <StatusBadge
                   shape={coverageShape(coverage.status)}
                   label={t(`coverage.status.${coverage.status}`)}
                 />
-              </div>
-
+              }
+            >
               {coverage.notes ? (
                 <p className="text-sm text-[var(--pf-text-secondary)]">{coverage.notes}</p>
               ) : null}
@@ -172,7 +168,7 @@ export async function ProjectWarrantyPanel({ projectId }: { readonly projectId: 
                   storageConfigured={docs.storageConfigured}
                 />
               ) : null}
-            </section>
+            </MainAppSection>
           );
         })
       )}

@@ -1,4 +1,5 @@
 'use client';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 
 import { useActionState, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -58,8 +59,9 @@ export function BoqMeasureClient({
   const selected = filtered.find((item) => item.id === selectedId) ?? null;
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
-      <input
+    <MainAppPage>
+      <MainAppSection>
+        <input
         type="search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
@@ -175,6 +177,8 @@ export function BoqMeasureClient({
       ) : null}
 
       <ActionMessage state={progressState} />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

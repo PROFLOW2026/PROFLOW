@@ -1,4 +1,10 @@
 import { notFound } from 'next/navigation';
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { formatMoneyString } from '@/shared/money/format';
@@ -46,6 +52,8 @@ export async function generateMetadata({
     return { title: t('title') };
   }
 }
+
+const EMPTY = '—';
 
 function assetShape(status: AssetStatus): StatusShape {
   switch (status) {
@@ -135,7 +143,7 @@ export default async function AssetDetailPage({
   const vendorNameById = new Map(loaded.vendors.map((v) => [v.id, v.name]));
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={asset.name}
         description={t(`kinds.${asset.assetKind}`)}
@@ -148,214 +156,173 @@ export default async function AssetDetailPage({
           <StatusBadge shape={assetShape(asset.status)} label={tAssetStatus(asset.status)} />
         }
       />
-
-      <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
-        <h2 className="font-semibold">{t('detail.registry')}</h2>
-        <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <dt className="text-[var(--pf-text-secondary)]">{t('detail.identifier')}</dt>
-            <dd>
-              {asset.identifier ? (
-                <span className="pf-ltr-island pf-entity-string" dir="ltr">
-                  {asset.identifier}
-                </span>
-              ) : (
-                '-'
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[var(--pf-text-secondary)]">{t('detail.manufacturer')}</dt>
-            <dd>{asset.manufacturer ?? '-'}</dd>
-          </div>
-          <div>
-            <dt className="text-[var(--pf-text-secondary)]">{t('detail.model')}</dt>
-            <dd>{asset.model ?? '-'}</dd>
-          </div>
-          <div>
-            <dt className="text-[var(--pf-text-secondary)]">{t('detail.serialNumber')}</dt>
-            <dd>
-              {asset.serialNumber ? (
-                <span className="pf-ltr-island pf-entity-string" dir="ltr">
-                  {asset.serialNumber}
-                </span>
-              ) : (
-                '-'
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[var(--pf-text-secondary)]">{t('detail.assignedProject')}</dt>
-            <dd>{assignedProject?.name ?? t('detail.unassigned')}</dd>
-          </div>
-          {asset.notes ? (
-            <div className="sm:col-span-2 lg:col-span-3">
-              <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.notesLabel')}</dt>
-              <dd>{asset.notes}</dd>
-            </div>
-          ) : null}
-        </dl>
-        {loaded.canManage ? (
-          <div className="mt-4">
-            <AssetStatusForm assetId={asset.id} currentStatus={asset.status} />
-          </div>
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('detail.identifier')}>
+            {asset.identifier ? (
+              <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                {asset.identifier}
+              </span>
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('detail.manufacturer')}>
+            {asset.manufacturer?.trim() ? asset.manufacturer : EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('detail.model')}>
+            {asset.model?.trim() ? asset.model : EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('detail.serialNumber')}>
+            {asset.serialNumber ? (
+              <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                {asset.serialNumber}
+              </span>
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('detail.assignedProject')}>
+            {assignedProject?.name ?? t('detail.unassigned')}
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
+        {asset.notes ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">{asset.notes}</p>
         ) : null}
-      </section>
-
-      <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
-        <h2 className="font-semibold">{t('detail.acquisition')}</h2>
-        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('detail.acquisitionHint')}</p>
-        <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.acquisitionAmountLabel')}</dt>
-            <dd>
-              {formatAssetCost(asset.acquisitionAmount, asset.acquisitionCurrency, locale)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.acquiredOnLabel')}</dt>
-            <dd>
-              {asset.acquiredOn ? (
-                <span className="pf-ltr-island" dir="ltr">
-                  {asset.acquiredOn}
-                </span>
-              ) : (
-                '-'
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.sourceExpenseIdLabel')}</dt>
-            <dd>
-              {asset.sourceExpenseId ? (
-                <Link
-                  href={`/expenses/${asset.sourceExpenseId}`}
-                  className={`${textNavLinkMutedClassName} pf-ltr-island pf-entity-string`}
-                  dir="ltr"
-                >
-                  {asset.sourceExpenseId}
-                </Link>
-              ) : (
-                '-'
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.sourceApBillIdLabel')}</dt>
-            <dd>
-              {asset.sourceApBillId ? (
-                <Link
-                  href={`/procurement/ap/${asset.sourceApBillId}`}
-                  className={`${textNavLinkMutedClassName} pf-ltr-island pf-entity-string`}
-                  dir="ltr"
-                >
-                  {asset.sourceApBillId}
-                </Link>
-              ) : (
-                '-'
-              )}
-            </dd>
-          </div>
-        </dl>
         {loaded.canManage ? (
-          <div className="mt-4">
-            <AssetAcquisitionForm
-              assetId={asset.id}
-              acquisitionAmount={asset.acquisitionAmount}
-              acquisitionCurrency={asset.acquisitionCurrency}
-              acquiredOn={asset.acquiredOn}
-              sourceExpenseId={asset.sourceExpenseId}
-              sourceApBillId={asset.sourceApBillId}
-              defaultCurrency={loaded.baseCurrency}
-            />
-          </div>
+          <AssetStatusForm assetId={asset.id} currentStatus={asset.status} />
         ) : null}
-      </section>
+      </MainAppSection>
+
+      <MainAppSection title={t('detail.acquisition')} description={t('detail.acquisitionHint')}>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('createAsset.acquisitionAmountLabel')}>
+            {formatAssetCost(asset.acquisitionAmount, asset.acquisitionCurrency, locale)}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('createAsset.acquiredOnLabel')}>
+            {asset.acquiredOn ? (
+              <span className="pf-ltr-island" dir="ltr">
+                {asset.acquiredOn}
+              </span>
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('createAsset.sourceExpenseIdLabel')}>
+            {asset.sourceExpenseId ? (
+              <Link
+                href={`/expenses/${asset.sourceExpenseId}`}
+                className={`${textNavLinkMutedClassName} pf-ltr-island pf-entity-string`}
+                dir="ltr"
+              >
+                {asset.sourceExpenseId}
+              </Link>
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('createAsset.sourceApBillIdLabel')}>
+            {asset.sourceApBillId ? (
+              <Link
+                href={`/procurement/ap/${asset.sourceApBillId}`}
+                className={`${textNavLinkMutedClassName} pf-ltr-island pf-entity-string`}
+                dir="ltr"
+              >
+                {asset.sourceApBillId}
+              </Link>
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
+        {loaded.canManage ? (
+          <AssetAcquisitionForm
+            assetId={asset.id}
+            acquisitionAmount={asset.acquisitionAmount}
+            acquisitionCurrency={asset.acquisitionCurrency}
+            acquiredOn={asset.acquiredOn}
+            sourceExpenseId={asset.sourceExpenseId}
+            sourceApBillId={asset.sourceApBillId}
+            defaultCurrency={loaded.baseCurrency}
+          />
+        ) : null}
+      </MainAppSection>
 
       {loaded.canManage ? (
-        <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
-          <h2 className="font-semibold">{t('detail.assignment')}</h2>
-          <div className="mt-3">
-            <AssetAssignmentForm
-              assetId={asset.id}
-              assignedProjectId={asset.assignedProjectId}
-              projects={loaded.projects.map((p) => ({ id: p.id, name: p.name }))}
-            />
-          </div>
-        </section>
+        <MainAppSection title={t('detail.assignment')}>
+          <AssetAssignmentForm
+            assetId={asset.id}
+            assignedProjectId={asset.assignedProjectId}
+            projects={loaded.projects.map((p) => ({ id: p.id, name: p.name }))}
+          />
+        </MainAppSection>
       ) : null}
 
-      <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
-        <h2 className="font-semibold">{t('detail.fleet')}</h2>
+      <MainAppSection title={t('detail.fleet')}>
         {fleet ? (
-          <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-3">
-            <div>
-              <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.plateNumberLabel')}</dt>
-              <dd>
-                {fleet.plateNumber ? (
-                  <span className="pf-ltr-island pf-entity-string" dir="ltr">
-                    {fleet.plateNumber}
-                  </span>
-                ) : (
-                  '-'
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.vinLabel')}</dt>
-              <dd>
-                {fleet.vin ? (
-                  <span className="pf-ltr-island pf-entity-string" dir="ltr">
-                    {fleet.vin}
-                  </span>
-                ) : (
-                  '-'
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.odometerLabel')}</dt>
-              <dd>
-                {fleet.odometer ? (
-                  <span className="pf-numeric" dir="ltr">
-                    {fleet.odometer}
-                  </span>
-                ) : (
-                  '-'
-                )}
-              </dd>
-            </div>
-            {fleet.notes ? (
-              <div className="sm:col-span-3">
-                <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.notesLabel')}</dt>
-                <dd>{fleet.notes}</dd>
-              </div>
-            ) : null}
-          </dl>
+          <MainAppSummaryGrid>
+            <MainAppSummaryItem label={t('createAsset.plateNumberLabel')}>
+              {fleet.plateNumber ? (
+                <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                  {fleet.plateNumber}
+                </span>
+              ) : (
+                EMPTY
+              )}
+            </MainAppSummaryItem>
+            <MainAppSummaryItem label={t('createAsset.vinLabel')}>
+              {fleet.vin ? (
+                <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                  {fleet.vin}
+                </span>
+              ) : (
+                EMPTY
+              )}
+            </MainAppSummaryItem>
+            <MainAppSummaryItem label={t('createAsset.odometerLabel')}>
+              {fleet.odometer ? (
+                <span className="pf-numeric" dir="ltr">
+                  {fleet.odometer}
+                </span>
+              ) : (
+                EMPTY
+              )}
+            </MainAppSummaryItem>
+          </MainAppSummaryGrid>
         ) : (
-          <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">{t('detail.noFleet')}</p>
+          <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.noFleet')}</p>
         )}
-      </section>
+        {fleet?.notes ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">{fleet.notes}</p>
+        ) : null}
+      </MainAppSection>
 
-      <DocumentAttachments
-        ownerType={documentsOwnerType}
-        ownerId={asset.id}
-        documents={documentsPanel.documents}
-        linkCandidates={documentsPanel.linkCandidates}
-        canRead={documentsPanel.canRead}
-        canManage={documentsPanel.canManage}
-        storageConfigured={documentsPanel.storageConfigured}
-      />
+      <MainAppSection>
+        <DocumentAttachments
+          ownerType={documentsOwnerType}
+          ownerId={asset.id}
+          documents={documentsPanel.documents}
+          linkCandidates={documentsPanel.linkCandidates}
+          canRead={documentsPanel.canRead}
+          canManage={documentsPanel.canManage}
+          storageConfigured={documentsPanel.storageConfigured}
+        />
+      </MainAppSection>
 
-      <AssetEquipmentUsagePanel assetId={asset.id} />
+      <MainAppSection>
+        <AssetEquipmentUsagePanel assetId={asset.id} />
+      </MainAppSection>
 
-      <section className="flex flex-col gap-4">
-        <div>
-          <h2 className="font-semibold">{t('detail.history')}</h2>
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.historyHint')}</p>
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.maintenanceHint')}</p>
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.createLinkedExpenseHint')}</p>
-        </div>
+      <MainAppSection
+        title={t('detail.history')}
+        description={
+          <>
+            <span className="block">{t('detail.historyHint')}</span>
+            <span className="block">{t('detail.maintenanceHint')}</span>
+            <span className="block">{t('detail.createLinkedExpenseHint')}</span>
+          </>
+        }
+      >
 
         {loaded.maintenance.length === 0 ? (
           <EmptyState size="sm" title={t('detail.emptyMaintenance')} description={t('detail.maintenanceHint')} className="py-6" />
@@ -529,7 +496,7 @@ export default async function AssetDetailPage({
             />
           </div>
         ) : null}
-      </section>
-    </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

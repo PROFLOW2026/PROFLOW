@@ -1,3 +1,4 @@
+﻿import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
@@ -25,7 +26,8 @@ export default async function ConnectDeveloperProjectPage() {
 
   return (
     <WithAppClientMessages extra={['connectedProjects']}>
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4 md:p-6">
+      <MainAppPage>
+        <MainAppSection>
         {loaded.failedMappings.length > 0 ? (
           loaded.failedMappings.map((mapping) => (
             <ProvisioningRetryPanel
@@ -47,7 +49,8 @@ export default async function ConnectDeveloperProjectPage() {
         ) : (
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('errors.forbidden')}</p>
         )}
-      </div>
+        </MainAppSection>
+      </MainAppPage>
     </WithAppClientMessages>
   );
 }

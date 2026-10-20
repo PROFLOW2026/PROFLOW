@@ -1,4 +1,5 @@
-import { getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
 import { ActivityFeed } from '@/modules/collaboration/ui';
@@ -37,10 +38,10 @@ export async function ProjectActivityScreen({ surfaceRoot,
     );
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('activity.pageTitle')} description={t('activity.pageDescription')} />
-
-      <nav className="flex flex-wrap gap-1" aria-label={t('activity.filtersLabel')}>
+      <MainAppSection>
+        <nav className="flex flex-wrap gap-1" aria-label={t('activity.filtersLabel')}>
         <Link href={base} className={tab(!domain)} aria-current={!domain ? 'page' : undefined}>
           {t('activity.filters.all')}
         </Link>
@@ -57,7 +58,9 @@ export async function ProjectActivityScreen({ surfaceRoot,
       </nav>
 
       <ActivityFeed organizationId={orgId} projectId={projectId} viewer="internal" domain={domain} limit={30} surfaceRoot={surfaceRoot} />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

@@ -1,6 +1,7 @@
-import { getLocale, getTranslations } from 'next-intl/server';
+﻿import { getLocale, getTranslations } from 'next-intl/server';
 import { FilePenLine } from 'lucide-react';
 import { MoneyText } from '@/components/patterns/money-text';
+import { LegacyListTableShell, MainAppTableShell } from '@/components/patterns/main-app';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -27,6 +28,7 @@ export interface ChangeRequestListProps {
   projectId?: string;
   canManage: boolean;
   routeBase?: string;
+  listKit?: boolean;
 }
 
 function listDate(item: ChangeRequestListItem): string {
@@ -38,6 +40,7 @@ export async function ChangeRequestList({
   projectId,
   canManage,
   routeBase = '/changes',
+  listKit = true,
 }: ChangeRequestListProps) {
   const t = await getTranslations('changes');
   const locale = await getLocale();
@@ -60,12 +63,14 @@ export async function ChangeRequestList({
     );
   }
 
+  const TableShell = listKit ? MainAppTableShell : LegacyListTableShell;
+
   return (
     <ResponsiveTable
       items={items}
       getRowKey={(item) => item.id}
       desktop={
-        <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+        <TableShell>
           <Table>
             <TableHeader>
               <TableRow>
@@ -114,7 +119,7 @@ export async function ChangeRequestList({
               })}
             </TableBody>
           </Table>
-        </div>
+        </TableShell>
       }
       renderMobileCard={(item) => {
         const raw = item.pricedAmount ?? item.requestedAmount;

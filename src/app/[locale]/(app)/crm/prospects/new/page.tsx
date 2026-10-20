@@ -1,8 +1,9 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { Link } from '@/shared/i18n/navigation';
-import { NewProspectForm } from './new-prospect-form';
+import { CrmNewProspectForm } from '@/modules/crm/ui/crm-new-prospect-form';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
@@ -19,7 +20,7 @@ export default async function NewProspectPage() {
   const t = await getTranslations('crm');
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={t('prospect.new')}
         breadcrumb={
@@ -28,7 +29,10 @@ export default async function NewProspectPage() {
           </Link>
         }
       />
-      <NewProspectForm />
-    </div>
+      <MainAppSection>
+        <CrmNewProspectForm />
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

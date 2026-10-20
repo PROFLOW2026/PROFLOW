@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
@@ -48,13 +49,15 @@ export function ReverseChangeOrderForm({
   }
 
   return (
-    <form action={formAction} className="flex min-w-0 flex-col gap-3">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <input type="hidden" name="changeOrderId" value={changeOrder.id} />
       {changeRequestId ? <input type="hidden" name="changeRequestId" value={changeRequestId} /> : null}
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
-      <Field label={t('reason')} required>
-        {(control) => <Textarea {...control} name="reason" rows={3} required maxLength={5000} />}
-      </Field>
+      <MainAppFormGrid>
+        <Field label={t('reason')} required className={mainAppFieldSpan.full}>
+          {(control) => <Textarea {...control} name="reason" rows={3} required maxLength={5000} />}
+        </Field>
+      </MainAppFormGrid>
       {state.error ? (
         <p className="text-sm text-[var(--pf-status-danger-fg)]" role="alert">
           {state.error}

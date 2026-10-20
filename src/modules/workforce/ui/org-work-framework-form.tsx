@@ -1,4 +1,5 @@
 'use client';
+import { MainAppFormGrid, MainAppPage, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 
 import { useActionState, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -122,7 +123,7 @@ export function OrgWorkFrameworkForm({
     <form
       action={formAction}
       id="org-work-framework"
-      className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4 sm:p-6"
+      className="flex w-full min-w-0 flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4 sm:p-6"
     >
       <div className="text-start">
         <h2 className="text-base font-semibold">{t('workFramework.title')}</h2>
@@ -134,8 +135,8 @@ export function OrgWorkFrameworkForm({
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.ok ? <Alert tone="success">{t('workFramework.saved')}</Alert> : null}
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field label={t('workFramework.hoursPerDay')} required>
+      <MainAppFormGrid dense className="gap-4">
+        <Field label={t('workFramework.hoursPerDay')} required className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               {...control}
@@ -151,6 +152,7 @@ export function OrgWorkFrameworkForm({
         <Field
           label={t('workFramework.daysPerMonth')}
           optionalLabel={t('workFramework.daysPerMonthOptional')}
+          className={mainAppFieldSpan.md}
         >
           {(control) => (
             <Input
@@ -163,7 +165,7 @@ export function OrgWorkFrameworkForm({
             />
           )}
         </Field>
-      </div>
+      </MainAppFormGrid>
 
       {showWorkingDaysAccrualWarn ? (
         <Alert tone="warning">
@@ -176,6 +178,7 @@ export function OrgWorkFrameworkForm({
       <Field
         label={t('workFramework.attendanceProjectTimeApproval')}
         description={t('workFramework.attendanceProjectTimeApprovalHint')}
+        className={mainAppFieldSpan.lg}
       >
         {(control) => (
           <select
@@ -197,8 +200,8 @@ export function OrgWorkFrameworkForm({
         )}
       </Field>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field label={t('workFramework.standardWorkStartTime')}>
+      <MainAppFormGrid dense className="gap-4">
+        <Field label={t('workFramework.standardWorkStartTime')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               {...control}
@@ -207,11 +210,11 @@ export function OrgWorkFrameworkForm({
               value={workStartTime}
               onChange={(event) => setWorkStartTime(event.target.value)}
               dir="ltr"
-              className="min-w-0"
+              className="min-w-0 w-full"
             />
           )}
         </Field>
-        <Field label={t('workFramework.standardWorkEndTime')}>
+        <Field label={t('workFramework.standardWorkEndTime')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               {...control}
@@ -220,13 +223,13 @@ export function OrgWorkFrameworkForm({
               value={workEndTime}
               onChange={(event) => setWorkEndTime(event.target.value)}
               dir="ltr"
-              className="min-w-0"
+              className="min-w-0 w-full"
             />
           )}
         </Field>
-      </div>
+      </MainAppFormGrid>
 
-      <fieldset className="flex flex-col gap-2">
+      <fieldset className={`flex flex-col gap-2 ${mainAppFieldSpan.full}`}>
         <legend className="text-sm font-medium">{t('workFramework.workWeek')}</legend>
         <p className="text-xs text-[var(--pf-text-muted)]">{t('workFramework.workWeekHint')}</p>
         <div className="flex flex-wrap gap-2">
@@ -281,8 +284,9 @@ export function OrgWorkFrameworkForm({
   );
 
   return (
-    <div className="flex flex-col gap-4" data-pf-org-work-framework>
-      {showCollapsedSummary ? (
+    <MainAppPage>
+      <MainAppSection>
+        {showCollapsedSummary ? (
         <div className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-start">
             <p className="text-sm font-semibold">{t('workFramework.title')}</p>
@@ -338,6 +342,8 @@ export function OrgWorkFrameworkForm({
           </form>
         </details>
       ) : null}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

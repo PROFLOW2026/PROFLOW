@@ -1,3 +1,4 @@
+import { MainAppSection } from '@/components/patterns/main-app';
 import { Suspense } from 'react';
 import {
   getEntityDocumentPanelData,
@@ -75,7 +76,7 @@ async function DocumentAttachmentsSection({
   const otherDocuments = hasContract ? otherDocs : projectPanel.documents;
 
   return (
-    <>
+    <div className="flex w-full min-w-0 flex-col gap-4">
       {hasContract ? (
         <CollapsibleDocumentAttachments
           panelTitle={tAttach('contractTitle')}
@@ -102,7 +103,7 @@ async function DocumentAttachmentsSection({
         canManage={projectPanel.canManage}
         storageConfigured={projectPanel.storageConfigured}
       />
-    </>
+    </div>
   );
 }
 
@@ -122,12 +123,14 @@ export async function DocumentsTab({
   }));
 
   return (
-    <div className="flex flex-col gap-6">
-      <ProjectFilesTab
-        projectId={projectId}
-        storageConfigured={storageConfigured}
-        canManage={canManage}
-      />
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection className="w-full">
+        <ProjectFilesTab
+          projectId={projectId}
+          storageConfigured={storageConfigured}
+          canManage={canManage}
+        />
+      </MainAppSection>
       <Suspense fallback={null}>
         <DocumentAttachmentsSection projectId={projectId} primaryContractId={primaryContractId} />
       </Suspense>

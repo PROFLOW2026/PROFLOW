@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { startTransition, useActionState, useState, type FormEvent } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -44,7 +45,7 @@ export function ClientCreateForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-lg flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex w-full min-w-0 flex-col gap-4">
       {showValidationBanner(state) ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('create.walkInHint')}</p>
@@ -55,19 +56,26 @@ export function ClientCreateForm() {
         </legend>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('create.companySectionHint')}</p>
 
-        <Field label={t('create.nameLabel')} required error={state.fieldErrors?.name}>
-          {(control) => (
-            <Input
-              {...control}
-              name="name"
-              placeholder={t('create.namePlaceholder')}
-              autoFocus
-              required
-              maxLength={CLIENT_NAME_MAX}
-              autoComplete="organization"
-            />
-          )}
-        </Field>
+        <MainAppFormGrid dense>
+          <Field
+            label={t('create.nameLabel')}
+            required
+            error={state.fieldErrors?.name}
+            className={mainAppFieldSpan.lg}
+          >
+            {(control) => (
+              <Input
+                {...control}
+                name="name"
+                placeholder={t('create.namePlaceholder')}
+                autoFocus
+                required
+                maxLength={CLIENT_NAME_MAX}
+                autoComplete="organization"
+              />
+            )}
+          </Field>
+        </MainAppFormGrid>
       </fieldset>
 
       <fieldset className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
@@ -76,79 +84,88 @@ export function ClientCreateForm() {
         </legend>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('create.contactSectionHint')}</p>
 
-        <Field
-          label={t('create.contactNameLabel')}
-          required={contactNameRequired}
-          optionalLabel={contactNameRequired ? undefined : tCommon('labels.optional')}
-          error={state.fieldErrors?.primaryContactName}
-        >
-          {(control) => (
-            <Input
-              {...control}
-              name="primaryContactName"
-              placeholder={t('create.contactNamePlaceholder')}
-              autoComplete="name"
-              maxLength={CONTACT_NAME_MAX}
-              value={contactName}
-              onChange={(event) => setContactName(event.target.value)}
-            />
-          )}
-        </Field>
+        <MainAppFormGrid dense>
+          <Field
+            label={t('create.contactNameLabel')}
+            required={contactNameRequired}
+            optionalLabel={contactNameRequired ? undefined : tCommon('labels.optional')}
+            error={state.fieldErrors?.primaryContactName}
+            className={mainAppFieldSpan.lg}
+          >
+            {(control) => (
+              <Input
+                {...control}
+                name="primaryContactName"
+                placeholder={t('create.contactNamePlaceholder')}
+                autoComplete="name"
+                maxLength={CONTACT_NAME_MAX}
+                value={contactName}
+                onChange={(event) => setContactName(event.target.value)}
+              />
+            )}
+          </Field>
 
-        <Field
-          label={t('create.contactPhoneLabel')}
-          required={contactPhoneRequired}
-          optionalLabel={contactPhoneRequired ? undefined : tCommon('labels.optional')}
-          error={state.fieldErrors?.primaryContactPhone}
-        >
-          {(control) => (
-            <Input
-              {...control}
-              name="primaryContactPhone"
-              type="tel"
-              dir="ltr"
-              autoComplete="tel"
-              placeholder={t('create.contactPhonePlaceholder')}
-              value={contactPhone}
-              onChange={(event) => setContactPhone(event.target.value)}
-            />
-          )}
-        </Field>
+          <Field
+            label={t('create.contactPhoneLabel')}
+            required={contactPhoneRequired}
+            optionalLabel={contactPhoneRequired ? undefined : tCommon('labels.optional')}
+            error={state.fieldErrors?.primaryContactPhone}
+            className={mainAppFieldSpan.lg}
+          >
+            {(control) => (
+              <Input
+                {...control}
+                name="primaryContactPhone"
+                type="tel"
+                dir="ltr"
+                autoComplete="tel"
+                placeholder={t('create.contactPhonePlaceholder')}
+                value={contactPhone}
+                onChange={(event) => setContactPhone(event.target.value)}
+              />
+            )}
+          </Field>
 
-        <Field
-          label={t('create.contactEmailLabel')}
-          optionalLabel={tCommon('labels.optional')}
-          error={state.fieldErrors?.primaryContactEmail}
-        >
-          {(control) => (
-            <Input
-              {...control}
-              name="primaryContactEmail"
-              type="email"
-              dir="ltr"
-              autoComplete="email"
-              value={contactEmail}
-              onChange={(event) => setContactEmail(event.target.value)}
-            />
-          )}
-        </Field>
+          <Field
+            label={t('create.contactEmailLabel')}
+            optionalLabel={tCommon('labels.optional')}
+            error={state.fieldErrors?.primaryContactEmail}
+            className={mainAppFieldSpan.lg}
+          >
+            {(control) => (
+              <Input
+                {...control}
+                name="primaryContactEmail"
+                type="email"
+                dir="ltr"
+                autoComplete="email"
+                value={contactEmail}
+                onChange={(event) => setContactEmail(event.target.value)}
+              />
+            )}
+          </Field>
 
-        <Field label={t('create.contactRoleLabel')} optionalLabel={tCommon('labels.optional')}>
-          {(control) => (
-            <Select name="primaryContactRole" defaultValue="primary">
-              <SelectTrigger id={control.id}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CONTACT_ROLES.map((role) => (
-                  <SelectItem key={role} value={role}>
-                    {t(`detail.contactRoles.${role}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </Field>
+          <Field
+            label={t('create.contactRoleLabel')}
+            optionalLabel={tCommon('labels.optional')}
+            className={mainAppFieldSpan.lg}
+          >
+            {(control) => (
+              <Select name="primaryContactRole" defaultValue="primary">
+                <SelectTrigger id={control.id}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CONTACT_ROLES.map((role) => (
+                    <SelectItem key={role} value={role}>
+                      {t(`detail.contactRoles.${role}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+        </MainAppFormGrid>
       </fieldset>
 
       <Button type="button" variant="ghost" className="self-start" onClick={() => setShowMore((open) => !open)}>
@@ -156,28 +173,60 @@ export function ClientCreateForm() {
       </Button>
 
       {showMore ? (
-        <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
-          <Field label={t('create.legalNameLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="legalName" />}
-          </Field>
-          <Field label={t('create.companyEmailLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="email" type="email" dir="ltr" />}
-          </Field>
-          <Field label={t('create.companyPhoneLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="phone" type="tel" dir="ltr" autoComplete="organization-tel" />}
-          </Field>
-          <Field label={t('create.websiteLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="website" type="url" dir="ltr" />}
-          </Field>
-          <Field label={t('create.addressLine1Label')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="addressLine1" />}
-          </Field>
-          <Field label={t('create.cityLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="city" />}
-          </Field>
-          <Field label={t('create.notesLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Textarea {...control} name="notes" rows={2} />}
-          </Field>
+        <div className="border-t border-[var(--pf-border-default)] pt-4">
+          <MainAppFormGrid dense>
+            <Field
+              label={t('create.legalNameLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => <Input {...control} name="legalName" />}
+            </Field>
+            <Field
+              label={t('create.companyEmailLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => <Input {...control} name="email" type="email" dir="ltr" />}
+            </Field>
+            <Field
+              label={t('create.companyPhoneLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => (
+                <Input {...control} name="phone" type="tel" dir="ltr" autoComplete="organization-tel" />
+              )}
+            </Field>
+            <Field
+              label={t('create.websiteLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => <Input {...control} name="website" type="url" dir="ltr" />}
+            </Field>
+            <Field
+              label={t('create.addressLine1Label')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => <Input {...control} name="addressLine1" />}
+            </Field>
+            <Field
+              label={t('create.cityLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => <Input {...control} name="city" />}
+            </Field>
+            <Field
+              label={t('create.notesLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.full}
+            >
+              {(control) => <Textarea {...control} name="notes" rows={2} />}
+            </Field>
+          </MainAppFormGrid>
         </div>
       ) : null}
 

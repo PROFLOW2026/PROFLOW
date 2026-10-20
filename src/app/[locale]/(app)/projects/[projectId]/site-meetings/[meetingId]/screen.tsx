@@ -1,4 +1,5 @@
-import { getFormatter, getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getFormatter, getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,7 +51,7 @@ export async function SiteMeetingDetailScreen({ surfaceRoot,
   const contractorOptions = detail.contractors.filter((c) => !attendeeVendorIds.has(c.vendorId));
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         breadcrumb={
           <Link href={`${surfaceRoot ?? ('/projects/' + projectId)}/site-meetings`} className="text-sm text-[var(--pf-text-brand)] hover:underline">
@@ -71,8 +72,8 @@ export async function SiteMeetingDetailScreen({ surfaceRoot,
           </>
         }
       />
-
-      {detail.canManage ? (
+      <MainAppSection>
+        {detail.canManage ? (
         <div className="flex flex-wrap items-start gap-3">
           {canMarkHeld(details.status) ? (
             <FieldActionForm action={meetingLifecycleAction} hidden={{ ...hidden, intent: 'held' }} submitLabel={t('meetings.markHeld')} />
@@ -461,7 +462,9 @@ export async function SiteMeetingDetailScreen({ surfaceRoot,
         entityId={record.id}
         viewer="internal"
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

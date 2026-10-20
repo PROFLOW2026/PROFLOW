@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
@@ -27,13 +28,16 @@ export default async function PriceChangePage({
   if (!detail || detail.status !== 'draft') notFound();
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('quote.pageTitle')} description={t('quote.pageDescription')} />
-      <QuoteVersionForm
+      <MainAppSection>
+        <QuoteVersionForm
         changeRequestId={changeRequestId}
         action={createQuoteVersionAction}
         currency={detail.currency}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

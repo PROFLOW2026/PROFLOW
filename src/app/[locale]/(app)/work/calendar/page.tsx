@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { MainAppSection } from '@/components/patterns/main-app';
 import { PageHeader } from '@/components/ui/page-header';
 import { listClientsForOrg } from '@/modules/clients';
 import { withOrgContext, getShellContext } from '@/shared/auth/session';
@@ -62,41 +63,41 @@ export default async function WorkCalendarPage({ searchParams }: WorkLensPagePro
     anchorFrom,
     anchorTo,
   } = await withOrgContext(async (context) => {
-      const todayValue = todayInTimeZone(context.organization.timezone);
-      const calendarQuery = resolveWorkLensCalendarQuery(params, todayValue);
-      const lensParams = {
-        ...params,
-        anchorFrom: calendarQuery.anchorFrom,
-        anchorTo: calendarQuery.anchorTo,
-      };
+    const todayValue = todayInTimeZone(context.organization.timezone);
+    const calendarQuery = resolveWorkLensCalendarQuery(params, todayValue);
+    const lensParams = {
+      ...params,
+      anchorFrom: calendarQuery.anchorFrom,
+      anchorTo: calendarQuery.anchorTo,
+    };
 
-      const [pageResult, totalCount, unscheduledPage, clientRows] = await Promise.all([
-        listAccessibleWorkLensTasksPage(context, lensParams, {
-          limit: TASK_LIST_MAX_LIMIT,
-          today: todayValue,
-        }),
-        countAccessibleWorkLensTasks(context, lensParams),
-        listUnscheduledTasksPage(context, params, { offset: 0 }),
-        listClientsForOrg(context, { status: 'active', limit: 500 }).catch(() => []),
-      ]);
-
-      return {
-        tasks: serializeTaskCardsForClient(
-          await mapTasksToCardDataForOrg(context, pageResult.tasks),
-        ),
-        unscheduledTasks: serializeTaskCardsForClient(
-          await mapTasksToCardDataForOrg(context, unscheduledPage.tasks),
-        ),
-        unscheduledHasMore: unscheduledPage.hasMore,
-        hasMore: pageResult.hasMore,
+    const [pageResult, totalCount, unscheduledPage, clientRows] = await Promise.all([
+      listAccessibleWorkLensTasksPage(context, lensParams, {
+        limit: TASK_LIST_MAX_LIMIT,
         today: todayValue,
-        taskCount: totalCount,
-        monthKey: calendarQuery.monthKey,
-        anchorFrom: calendarQuery.anchorFrom,
-        anchorTo: calendarQuery.anchorTo,
-        clients: clientRows.map((row) => ({ id: row.id, name: row.name })),
-      };
-    });
+      }),
+      countAccessibleWorkLensTasks(context, lensParams),
+      listUnscheduledTasksPage(context, params, { offset: 0 }),
+      listClientsForOrg(context, { status: 'active', limit: 500 }).catch(() => []),
+    ]);
+
+    return {
+      tasks: serializeTaskCardsForClient(
+        await mapTasksToCardDataForOrg(context, pageResult.tasks),
+      ),
+      unscheduledTasks: serializeTaskCardsForClient(
+        await mapTasksToCardDataForOrg(context, unscheduledPage.tasks),
+      ),
+      unscheduledHasMore: unscheduledPage.hasMore,
+      hasMore: pageResult.hasMore,
+      today: todayValue,
+      taskCount: totalCount,
+      monthKey: calendarQuery.monthKey,
+      anchorFrom: calendarQuery.anchorFrom,
+      anchorTo: calendarQuery.anchorTo,
+      clients: clientRows.map((row) => ({ id: row.id, name: row.name })),
+    };
+  });
 
   const calendarFilterQuery = {
     ...filterQuery,
@@ -106,33 +107,33 @@ export default async function WorkCalendarPage({ searchParams }: WorkLensPagePro
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader title={t('calendar.pageTitle')} description={t('calendar.pageDescription')} />
-
-      <WorkLensChrome
-        searchParams={params}
-        clients={clients}
-        taskCount={taskCount}
-        exportQuery={filterQuery}
-      />
-
-      <TaskWorkSurfaceClient
-        tasks={tasks}
-        unscheduledTasks={unscheduledTasks}
-        unscheduledHasMore={unscheduledHasMore}
-        today={today}
-        hasMore={hasMore}
-        viewMode="calendar"
-        urlBackedFilters
-        workLensFilterQuery={calendarFilterQuery}
-        calendarMonthKey={monthKey}
-        canScheduleTasks={canUpdate}
-        loadMoreUnscheduled={loadMoreUnscheduledTasksAction}
-        getTaskDetail={getTaskDetailAction}
-        updateTask={updateTaskFieldsAction}
-        canAssign={shell.permissions.has(PERMISSIONS.TASKS_ASSIGN)}
-        canArchive={shell.permissions.has(PERMISSIONS.TASKS_DELETE)}
-      />
-    </div>
+    <>
+      <PageHeader title={t('calendar.pageTitle')} />
+      <MainAppSection>
+        <WorkLensChrome
+          searchParams={params}
+          clients={clients}
+          taskCount={taskCount}
+          exportQuery={filterQuery}
+        />
+        <TaskWorkSurfaceClient
+          tasks={tasks}
+          unscheduledTasks={unscheduledTasks}
+          unscheduledHasMore={unscheduledHasMore}
+          today={today}
+          hasMore={hasMore}
+          viewMode="calendar"
+          urlBackedFilters
+          workLensFilterQuery={calendarFilterQuery}
+          calendarMonthKey={monthKey}
+          canScheduleTasks={canUpdate}
+          loadMoreUnscheduled={loadMoreUnscheduledTasksAction}
+          getTaskDetail={getTaskDetailAction}
+          updateTask={updateTaskFieldsAction}
+          canAssign={shell.permissions.has(PERMISSIONS.TASKS_ASSIGN)}
+          canArchive={shell.permissions.has(PERMISSIONS.TASKS_DELETE)}
+        />
+      </MainAppSection>
+    </>
   );
 }

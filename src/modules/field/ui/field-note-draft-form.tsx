@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -73,35 +74,37 @@ export function FieldNoteDraftForm({
       {error ? <Alert tone="danger">{error}</Alert> : null}
       {saved ? <Alert tone="success">{tOffline('forms.draftSaved')}</Alert> : null}
 
-      <Field label={t('noteProject')}>
-        {(control) => (
-          <Select value={projectId} onValueChange={setProjectId}>
-            <SelectTrigger id={control.id} className="min-h-11">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {projects.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field label={t('noteProject')} className={mainAppFieldSpan.lg}>
+          {(control) => (
+            <Select value={projectId} onValueChange={setProjectId}>
+              <SelectTrigger id={control.id} className="min-h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
 
-      <Field label={t('noteBody')}>
-        {(control) => (
-          <Textarea
-            {...control}
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            rows={3}
-            className="min-h-11"
-            placeholder={t('notePlaceholder')}
-          />
-        )}
-      </Field>
+        <Field label={t('noteBody')} className={mainAppFieldSpan.full}>
+          {(control) => (
+            <Textarea
+              {...control}
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              rows={3}
+              className="min-h-11"
+              placeholder={t('notePlaceholder')}
+            />
+          )}
+        </Field>
+      </MainAppFormGrid>
 
       <Button type="submit" loading={pending} className="min-h-11" block>
         {t('noteSave')}

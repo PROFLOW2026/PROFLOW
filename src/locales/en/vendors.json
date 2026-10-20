@@ -22,7 +22,9 @@
       "type": "Type",
       "category": "Category",
       "projects": "Projects",
-      "status": "Status"
+      "status": "Status",
+      "companyId": "Company no.",
+      "contact": "Contact"
     }
   },
   "catalog": {

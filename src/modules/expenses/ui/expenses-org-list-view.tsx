@@ -1,5 +1,11 @@
 'use client';
 
+import {
+  AdaptiveListBody,
+  AdaptiveListTableShell,
+  MainAppPage,
+  MainAppSection,
+} from '@/components/patterns/main-app';
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { Receipt } from 'lucide-react';
@@ -99,6 +105,7 @@ export interface ExpensesOrgListViewProps {
   today?: string;
   scopeLimited?: boolean;
   scopeEmpty?: boolean;
+  surface?: 'owner' | 'employee';
 }
 
 function buildRouteExpenseDetailHref(
@@ -144,6 +151,7 @@ export function ExpensesOrgListView({
   today,
   scopeLimited = false,
   scopeEmpty = false,
+  surface = 'owner',
 }: ExpensesOrgListViewProps) {
   const t = useTranslations('expenses');
   const tStatus = useTranslations('status');
@@ -263,8 +271,9 @@ export function ExpensesOrgListView({
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
-      {scopeLimited && !scopeEmpty ? (
+    <MainAppPage>
+      <MainAppSection>
+        {scopeLimited && !scopeEmpty ? (
         <div
           role="status"
           className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-subtle)] px-4 py-3 text-sm text-[var(--pf-text-secondary)]"
@@ -273,6 +282,7 @@ export function ExpensesOrgListView({
         </div>
       ) : null}
 
+      <AdaptiveListBody surface={surface}>
       {/* Date range with presets — controlled by the parent's dateFrom/dateTo state */}
       <div className="rounded-lg border border-[var(--pf-border-default)] p-3">
         <p className="mb-2 text-xs text-[var(--pf-text-muted)]">{t('filters.expenseDateHint')}</p>
@@ -466,7 +476,7 @@ export function ExpensesOrgListView({
             items={items}
             getRowKey={(expense) => expense.id}
             desktop={
-              <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+              <AdaptiveListTableShell surface={surface}>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -560,7 +570,7 @@ export function ExpensesOrgListView({
                     })}
                   </TableBody>
                 </Table>
-              </div>
+              </AdaptiveListTableShell>
             }
             renderMobileCard={(expense) => {
               const rowAttention = resolveRowAttention(expense);
@@ -641,7 +651,9 @@ export function ExpensesOrgListView({
           </p>
         </>
       )}
-    </div>
+      </AdaptiveListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

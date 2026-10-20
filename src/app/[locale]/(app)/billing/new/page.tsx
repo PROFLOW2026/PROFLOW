@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { listBusinessCatalog, localizePaymentTermOptions } from '@/modules/business-catalog';
@@ -48,9 +49,10 @@ export default async function NewBillingRecordPage({
     });
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('form.title')} description={t('subtitle')} />
-      <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
+      <MainAppSection>
+        <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
       <BillingRecordForm
         projects={projects}
         contracts={contracts}
@@ -61,6 +63,8 @@ export default async function NewBillingRecordPage({
         defaultIssueDate={defaultIssueDate}
         taxRatePercent={taxRatePercent}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

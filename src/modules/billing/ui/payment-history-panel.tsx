@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useTranslations } from 'next-intl';
 import { MoneyText } from '@/components/patterns/money-text';
+import { LegacyListTableShell, MainAppTableShell } from '@/components/patterns/main-app';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -15,6 +16,7 @@ interface PaymentHistoryTableProps {
   /** When true, hide the project column (project-scoped view). */
   hideProject?: boolean;
   routeBase?: string;
+  listKit?: boolean;
 }
 
 export function PaymentHistoryTable({
@@ -22,6 +24,7 @@ export function PaymentHistoryTable({
   locale,
   hideProject = false,
   routeBase = '/billing',
+  listKit = true,
 }: PaymentHistoryTableProps) {
   const t = useTranslations('billing.paymentHistory');
   const tKind = useTranslations('billing.kinds');
@@ -31,12 +34,14 @@ export function PaymentHistoryTable({
     return null;
   }
 
+  const TableShell = listKit ? MainAppTableShell : LegacyListTableShell;
+
   return (
     <ResponsiveTable
       items={rows}
       getRowKey={(row) => row.id}
       desktop={
-        <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+        <TableShell>
           <Table>
             <TableHeader>
               <TableRow>
@@ -84,7 +89,7 @@ export function PaymentHistoryTable({
               ))}
             </TableBody>
           </Table>
-        </div>
+        </TableShell>
       }
       renderMobileCard={(row) => (
         <Link

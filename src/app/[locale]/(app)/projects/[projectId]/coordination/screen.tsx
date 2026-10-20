@@ -1,4 +1,5 @@
-import { CalendarClock } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { CalendarClock } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { buttonVariants } from '@/components/ui/button';
@@ -61,10 +62,10 @@ export async function ProjectCoordinationScreen({ surfaceRoot,
     );
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('list.pageTitle')} description={t('list.pageDescription')} />
-
-      {data.formOptions ? (
+      <MainAppSection>
+        {data.formOptions ? (
         <WithAppClientMessages extra={['coordination']}>
           <CoordinationCreateForm projectId={projectId} options={data.formOptions} cancelHref={base} />
         </WithAppClientMessages>
@@ -118,7 +119,9 @@ export async function ProjectCoordinationScreen({ surfaceRoot,
           ) : null}
         </>
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

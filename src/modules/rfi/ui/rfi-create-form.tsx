@@ -10,6 +10,7 @@ import { RFI_PRIORITIES } from '../domain/types';
 import { Link, useRouter } from '@/shared/i18n/navigation';
 import { createRfiAction } from '../actions/internal-actions';
 import type { RfiFormOptions } from '../application/form-options';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { FormError, FormRow, selectClassName } from './form-controls';
 
 export function RfiCreateForm({
@@ -67,13 +68,14 @@ export function RfiCreateForm({
       <CardContent>
         <form className="flex flex-col gap-4" onSubmit={onSubmit}>
           <FormError message={error} />
-          <FormRow label={t('fields.subject')} hint={fieldErrors.subject}>
+          <MainAppFormGrid dense>
+          <FormRow label={t('fields.subject')} hint={fieldErrors.subject} className={mainAppFieldSpan.full}>
             <Input name="subject" required maxLength={300} />
           </FormRow>
-          <FormRow label={t('fields.question')} hint={fieldErrors.question}>
+          <FormRow label={t('fields.question')} hint={fieldErrors.question} className={mainAppFieldSpan.full}>
             <Textarea name="question" required rows={5} maxLength={20000} />
           </FormRow>
-          <FormRow label={t('fields.contractor')}>
+          <FormRow label={t('fields.contractor')} className={mainAppFieldSpan.lg}>
             <select name="subcontractAgreementId" className={selectClassName()} defaultValue="">
               <option value="">{t('fields.noContractor')}</option>
               {options.agreements.map((agreement) => (
@@ -83,8 +85,7 @@ export function RfiCreateForm({
               ))}
             </select>
           </FormRow>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormRow label={t('fields.location')}>
+            <FormRow label={t('fields.location')} className={mainAppFieldSpan.lg}>
               <select name="locationId" className={selectClassName()} defaultValue="">
                 <option value="">{t('fields.noLocation')}</option>
                 {options.locations.map((loc) => (
@@ -94,7 +95,7 @@ export function RfiCreateForm({
                 ))}
               </select>
             </FormRow>
-            <FormRow label={t('fields.workPackage')}>
+            <FormRow label={t('fields.workPackage')} className={mainAppFieldSpan.lg}>
               <select name="workPackageId" className={selectClassName()} defaultValue="">
                 <option value="">{t('fields.noWorkPackage')}</option>
                 {options.workPackages.map((wp) => (
@@ -104,12 +105,10 @@ export function RfiCreateForm({
                 ))}
               </select>
             </FormRow>
-          </div>
-          <FormRow label={t('fields.drawingReference')} hint={t('fields.drawingReferenceHint')}>
+          <FormRow label={t('fields.drawingReference')} hint={t('fields.drawingReferenceHint')} className={mainAppFieldSpan.full}>
             <Input name="drawingReference" maxLength={300} />
           </FormRow>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <FormRow label={t('fields.priority')}>
+            <FormRow label={t('fields.priority')} className={mainAppFieldSpan.lg}>
               <select name="priority" className={selectClassName()} defaultValue="normal">
                 {RFI_PRIORITIES.map((p) => (
                   <option key={p} value={p}>
@@ -118,10 +117,10 @@ export function RfiCreateForm({
                 ))}
               </select>
             </FormRow>
-            <FormRow label={t('fields.dueDate')}>
+            <FormRow label={t('fields.dueDate')} className={mainAppFieldSpan.lg}>
               <Input name="dueDate" type="date" />
             </FormRow>
-            <FormRow label={t('fields.assignee')}>
+            <FormRow label={t('fields.assignee')} className={mainAppFieldSpan.lg}>
               <select name="assigneeUserId" className={selectClassName()} defaultValue="">
                 <option value="">{t('fields.unassigned')}</option>
                 {options.assignees.map((a) => (
@@ -142,7 +141,7 @@ export function RfiCreateForm({
                 </p>
               ) : null}
             </FormRow>
-          </div>
+          </MainAppFormGrid>
           <div className="flex flex-wrap gap-2">
             <Button type="submit" name="intent" value="draft" variant="secondary" disabled={pending}>
               {t('create.saveDraft')}

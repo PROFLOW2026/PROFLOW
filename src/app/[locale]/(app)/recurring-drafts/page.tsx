@@ -1,4 +1,10 @@
-import { Plus, Repeat } from 'lucide-react';
+import {
+  MainAppListBody,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+﻿import { Plus, Repeat } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -68,7 +74,7 @@ export default async function RecurringDraftsPage({
 
   if (!shell || readableKinds.length === 0) {
     return (
-      <div className="flex min-w-0 flex-col gap-6">
+      <MainAppPage>
         <PageHeader
           title={t('title')}
           description={t('subtitle')}
@@ -76,13 +82,16 @@ export default async function RecurringDraftsPage({
             <ContextualBackLink href="/expenses">{t('backToExpenses')}</ContextualBackLink>
           }
         />
+      <MainAppSection>
         <EmptyState title={t('notAllowed.title')} description={t('notAllowed.body')} />
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     );
   }
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         description={t('subtitle')}
@@ -100,8 +109,9 @@ export default async function RecurringDraftsPage({
           ) : null
         }
       />
-
-      <p className="text-sm text-[var(--pf-text-secondary)]">
+      <MainAppSection>
+        <MainAppListBody>
+        <p className="text-sm text-[var(--pf-text-secondary)]">
         <Link href="/service/recurring" className="underline underline-offset-2">
           {t('serviceRecurringLink')}
         </Link>
@@ -180,7 +190,7 @@ export default async function RecurringDraftsPage({
           items={drafts}
           getRowKey={(draft) => draft.id}
           desktop={
-            <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+            <MainAppTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -212,7 +222,7 @@ export default async function RecurringDraftsPage({
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </MainAppTableShell>
           }
           renderMobileCard={(draft) => (
             <Link href={`/recurring-drafts/${draft.id}`} className={pressableCardLinkClassName}>
@@ -232,7 +242,10 @@ export default async function RecurringDraftsPage({
           )}
         />
       )}
-    </div>
+
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

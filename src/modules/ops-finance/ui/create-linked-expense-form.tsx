@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -70,8 +71,8 @@ export function CreateLinkedExpenseForm({
       action={formAction}
       className={
         compact
-          ? 'flex flex-col gap-2'
-          : 'flex max-w-lg flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3'
+          ? 'flex w-full min-w-0 flex-col gap-4'
+          : 'flex w-full min-w-0 flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-3'
       }
     >
       <input type="hidden" name="opsRecordKind" value={opsRecordKind} />
@@ -82,8 +83,8 @@ export function CreateLinkedExpenseForm({
       <p className="text-xs text-[var(--pf-text-secondary)]">{t('hint')}</p>
 
       {!compact || !defaultAmount ? (
-        <div className="grid gap-2 sm:grid-cols-2">
-          <div className="flex flex-col gap-1">
+        <MainAppFormGrid dense>
+          <div className={`flex flex-col gap-1 ${mainAppFieldSpan.lg}`}>
             <Label htmlFor={`ops-amount-${opsRecordId}`}>{t('amountLabel')}</Label>
             <Input
               id={`ops-amount-${opsRecordId}`}
@@ -94,7 +95,7 @@ export function CreateLinkedExpenseForm({
               className="min-h-11"
             />
           </div>
-          <div className="flex flex-col gap-1">
+          <div className={`flex flex-col gap-1 ${mainAppFieldSpan.md}`}>
             <Label htmlFor={`ops-currency-${opsRecordId}`}>{t('currencyLabel')}</Label>
             <Input
               id={`ops-currency-${opsRecordId}`}
@@ -106,7 +107,7 @@ export function CreateLinkedExpenseForm({
               dir="ltr"
             />
           </div>
-        </div>
+        </MainAppFormGrid>
       ) : (
         <>
           <input type="hidden" name="amount" value={defaultAmount} />
@@ -114,40 +115,44 @@ export function CreateLinkedExpenseForm({
         </>
       )}
 
-      <div className="flex flex-col gap-1">
-        <Label>{tExpenses('fields.amountTaxMode')}</Label>
-        <ExpenseVatModeSelector value={vatMode} onChange={setVatMode} />
-      </div>
+      <MainAppFormGrid dense>
+        <div className={`flex flex-col gap-1 ${mainAppFieldSpan.full}`}>
+          <Label>{tExpenses('fields.amountTaxMode')}</Label>
+          <ExpenseVatModeSelector value={vatMode} onChange={setVatMode} />
+        </div>
+      </MainAppFormGrid>
 
       {defaultDescription ? (
         <input type="hidden" name="description" value={defaultDescription} />
       ) : null}
 
       {showAllocationFields ? (
-        <fieldset className="grid gap-2 sm:grid-cols-2">
-          <legend className="mb-1 text-sm font-medium">{t('allocationTitle')}</legend>
+        <fieldset className="flex min-w-0 flex-col gap-3">
+          <legend className="text-sm font-medium">{t('allocationTitle')}</legend>
           <input type="hidden" name="costFamily" value="business_overhead" />
-          <div className="flex flex-col gap-1">
-            <Label htmlFor={`ops-alloc-start-${opsRecordId}`}>{t('periodStartLabel')}</Label>
-            <Input
-              id={`ops-alloc-start-${opsRecordId}`}
-              name="allocationPeriodStart"
-              type="date"
-              className="min-h-11"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label htmlFor={`ops-alloc-end-${opsRecordId}`}>{t('periodEndLabel')}</Label>
-            <Input
-              id={`ops-alloc-end-${opsRecordId}`}
-              name="allocationPeriodEnd"
-              type="date"
-              className="min-h-11"
-            />
-          </div>
-          <p className="sm:col-span-2 text-xs text-[var(--pf-text-secondary)]">
-            {t('allocationHint')}
-          </p>
+          <MainAppFormGrid dense>
+            <div className={`flex flex-col gap-1 ${mainAppFieldSpan.md}`}>
+              <Label htmlFor={`ops-alloc-start-${opsRecordId}`}>{t('periodStartLabel')}</Label>
+              <Input
+                id={`ops-alloc-start-${opsRecordId}`}
+                name="allocationPeriodStart"
+                type="date"
+                className="min-h-11"
+              />
+            </div>
+            <div className={`flex flex-col gap-1 ${mainAppFieldSpan.md}`}>
+              <Label htmlFor={`ops-alloc-end-${opsRecordId}`}>{t('periodEndLabel')}</Label>
+              <Input
+                id={`ops-alloc-end-${opsRecordId}`}
+                name="allocationPeriodEnd"
+                type="date"
+                className="min-h-11"
+              />
+            </div>
+            <p className={`${mainAppFieldSpan.full} text-xs text-[var(--pf-text-secondary)]`}>
+              {t('allocationHint')}
+            </p>
+          </MainAppFormGrid>
         </fieldset>
       ) : null}
 

@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useActionState, useMemo, useState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -99,14 +100,15 @@ export function BillingRecordForm({
   const retentionBasis = (taxPreview?.grossAmountRaw ?? amount) || '0';
 
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-xl flex-col gap-5">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       {state.error ? (
         <p className="text-sm text-[var(--pf-status-danger-fg)]">
           {resolveBillingError(state.error, t, tErrors)}
         </p>
       ) : null}
 
-      <Field label={t('form.project')} required>
+      <MainAppFormGrid dense>
+      <Field label={t('form.project')} required className={mainAppFieldSpan.lg}>
         {(controlProps) => (
           <>
             <Select name="projectId" value={projectId} onValueChange={setProjectId} required>
@@ -127,7 +129,7 @@ export function BillingRecordForm({
       </Field>
 
       {contracts.filter((row) => row.projectId === projectId).length > 1 ? (
-        <Field label={t('form.contract')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('form.contract')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
           {(controlProps) => (
             <>
               <Select
@@ -156,7 +158,7 @@ export function BillingRecordForm({
         </Field>
       ) : null}
 
-      <Field label={t('form.amount')} required description={t('form.amountHint')}>
+      <Field label={t('form.amount')} required description={t('form.amountHint')} className={mainAppFieldSpan.lg}>
         {(controlProps) => (
           <>
             <MoneyInput
@@ -174,6 +176,7 @@ export function BillingRecordForm({
       <Field
         label={t('form.amountTaxMode')}
         description={t('form.amountTaxModeHint')}
+        className={mainAppFieldSpan.full}
       >
         {(controlProps) => (
           <ExpenseVatModeSelector
@@ -193,7 +196,7 @@ export function BillingRecordForm({
 
       {taxPreview ? (
         <dl
-          className="grid gap-2 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm sm:grid-cols-3"
+          className={`${mainAppFieldSpan.full} grid gap-2 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm sm:grid-cols-3`}
           aria-live="polite"
         >
           {taxPreview.rateLabel ? (
@@ -224,7 +227,7 @@ export function BillingRecordForm({
 
       <input type="hidden" name="currency" value={currency} />
 
-      <Field label={t('form.issueDate')} required>
+      <Field label={t('form.issueDate')} required className={mainAppFieldSpan.md}>
         {(controlProps) => (
           <Input {...controlProps} name="issueDate" type="date" required defaultValue={defaultIssueDate} dir="ltr" />
         )}
@@ -233,6 +236,7 @@ export function BillingRecordForm({
       <Field
         label={t('form.dueDate')}
         optionalLabel={tCommon('labels.optional')}
+        className={mainAppFieldSpan.md}
         error={
           state.fieldErrors?.dueDate
             ? resolveBillingError(state.fieldErrors.dueDate, t, tErrors)
@@ -247,6 +251,7 @@ export function BillingRecordForm({
           label={t('form.paymentTerm')}
           optionalLabel={tCommon('labels.optional')}
           description={t('form.paymentTermHint')}
+          className={mainAppFieldSpan.lg}
         >
           {(controlProps) => (
             <>
@@ -269,13 +274,14 @@ export function BillingRecordForm({
         </Field>
       ) : null}
 
-      <Field label={t('form.reference')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('form.reference')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
         {(controlProps) => <Input {...controlProps} name="reference" autoComplete="off" />}
       </Field>
 
-      <Field label={t('form.notes')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('form.notes')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
         {(controlProps) => <Textarea {...controlProps} name="notes" rows={3} />}
       </Field>
+      </MainAppFormGrid>
 
       <RetentionCaptureFields
         namespace="billing.retention"

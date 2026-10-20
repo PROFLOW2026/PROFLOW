@@ -1,4 +1,5 @@
-import { redirect } from '@/shared/i18n/navigation';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { redirect } from '@/shared/i18n/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { listProjectsForOrg } from '@/modules/projects';
@@ -41,9 +42,10 @@ export default async function FieldLogChooserPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('fieldLogChooser.title')} description={t('fieldLogChooser.description')} />
-      {choices.length === 0 ? (
+      <MainAppSection>
+        {choices.length === 0 ? (
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('fieldLogChooser.empty')}</p>
       ) : (
         <ul className="flex flex-col gap-2">
@@ -61,6 +63,8 @@ export default async function FieldLogChooserPage() {
           ))}
         </ul>
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

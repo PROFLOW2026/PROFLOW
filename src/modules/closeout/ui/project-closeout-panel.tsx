@@ -1,4 +1,5 @@
-import { getTranslations } from 'next-intl/server';
+﻿import { getTranslations } from 'next-intl/server';
+import { MainAppSection } from '@/components/patterns/main-app';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -186,10 +187,9 @@ export async function ProjectCloseoutPanel({ projectId }: { readonly projectId: 
 
   if (!workspace.closeoutEligible) {
     return (
-      <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
-        <h2 className="text-base font-semibold">{t('title')}</h2>
-        <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">{t('actions.jobsHint')}</p>
-      </section>
+      <MainAppSection title={t('title')} className="w-full min-w-0">
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('actions.jobsHint')}</p>
+      </MainAppSection>
     );
   }
 
@@ -200,40 +200,43 @@ export async function ProjectCloseoutPanel({ projectId }: { readonly projectId: 
   const info = workspace.items.filter((item) => item.severity === 'info');
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
-      <section className="flex min-w-0 flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-base font-semibold">{t('title')}</h2>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection
+        title={t('title')}
+        description={t('description')}
+        className="w-full min-w-0 gap-3"
+        actions={
           <StatusBadge
             shape={lifecycleShape(lifecycle)}
             label={t(`lifecycle.${lifecycle === 'none' ? 'active' : lifecycle}`)}
           />
-        </div>
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
+        }
+      >
         <PrepareMessageLink
           entityType="closeout"
           entityId={workspace.closeout?.id}
           projectId={projectId}
         />
-      </section>
+      </MainAppSection>
 
       {lifecycle === 'none' ? (
         <EmptyState title={t('empty.title')} description={t('empty.body')} />
       ) : null}
 
-      <section className="flex min-w-0 flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
-        <h3 className="text-sm font-semibold">{t('readiness.title')}</h3>
+      <MainAppSection title={t('readiness.title')} className="w-full min-w-0 gap-4">
         {blocked ? <Alert tone="danger">{t('actions.blocked')}</Alert> : null}
         <ReadinessGroup title={t('readiness.hard')} items={hard} empty={t('readiness.empty')} t={t} />
         <ReadinessGroup title={t('readiness.warning')} items={warnings} empty={t('readiness.empty')} t={t} />
         <ReadinessGroup title={t('readiness.info')} items={info} empty={t('readiness.empty')} t={t} />
-      </section>
+      </MainAppSection>
 
       {workspace.templateRequirementKeys.length > 0 ? (
-        <section className="flex min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] p-4">
-          <h3 className="text-sm font-semibold">{t('templateRequirements.title')}</h3>
-          <p className="text-xs text-[var(--pf-text-secondary)]">{t('templateRequirements.hint')}</p>
-          <ul className="mt-1 flex flex-col gap-1">
+        <MainAppSection
+          title={t('templateRequirements.title')}
+          description={t('templateRequirements.hint')}
+          className="w-full min-w-0 gap-3"
+        >
+          <ul className="flex flex-col gap-1">
             {workspace.templateRequirementKeys.map((key) => (
               <li key={key} className="text-sm">
                 {t(`templateRequirements.keys.${key}` as 'templateRequirements.keys.handover_photos', {
@@ -242,18 +245,17 @@ export async function ProjectCloseoutPanel({ projectId }: { readonly projectId: 
               </li>
             ))}
           </ul>
-        </section>
+        </MainAppSection>
       ) : null}
 
       {workspace.snapshot ? (
-        <section className="flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
-          <h3 className="text-sm font-semibold">{t('snapshot.title')}</h3>
+        <MainAppSection title={t('snapshot.title')} className="w-full min-w-0 gap-3">
           <SnapshotGrid
             snapshot={workspace.snapshot}
             canReadProfit={workspace.canReadProfit}
             t={t}
           />
-        </section>
+        </MainAppSection>
       ) : null}
 
       <CloseoutActions
@@ -264,10 +266,8 @@ export async function ProjectCloseoutPanel({ projectId }: { readonly projectId: 
       />
 
       {lifecycle === 'closed' && !workspace.hasWarrantyCoverage ? (
-        <section className="flex min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-info)] bg-[var(--pf-bg-info-subtle)] p-4">
-          <p className="text-sm text-[var(--pf-text-default)]">
-            {t('warranty.setupHint')}
-          </p>
+        <MainAppSection className="w-full min-w-0 gap-2 border-[var(--pf-border-info)] bg-[var(--pf-bg-info-subtle)]">
+          <p className="text-sm text-[var(--pf-text-default)]">{t('warranty.setupHint')}</p>
           <a
             href={
               workspace.projectActualEndDate
@@ -278,11 +278,10 @@ export async function ProjectCloseoutPanel({ projectId }: { readonly projectId: 
           >
             {t('warranty.setupLink')}
           </a>
-        </section>
+        </MainAppSection>
       ) : null}
 
-      <section className="flex min-w-0 flex-col gap-2">
-        <h3 className="text-sm font-semibold">{t('history.title')}</h3>
+      <MainAppSection title={t('history.title')} className="w-full min-w-0 gap-3">
         {workspace.events.length === 0 ? (
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('history.empty')}</p>
         ) : (
@@ -303,7 +302,7 @@ export async function ProjectCloseoutPanel({ projectId }: { readonly projectId: 
             ))}
           </ul>
         )}
-      </section>
+      </MainAppSection>
 
       {workspace.closeout && documentsPanel ? (
         <DocumentAttachments

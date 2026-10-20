@@ -1,4 +1,5 @@
-import { Plus, Wrench } from 'lucide-react';
+import { MainAppListBody, MainAppPage, MainAppSection, MainAppTableShell } from '@/components/patterns/main-app';
+﻿import { Plus, Wrench } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -73,7 +74,7 @@ export default async function AssetsPage() {
   }));
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         description={t('description')}
@@ -88,7 +89,8 @@ export default async function AssetsPage() {
           ) : null
         }
       />
-      <AssetsSectionNav active="assets" />
+      <MainAppSection>
+        <AssetsSectionNav active="assets" />
 
       <section className="flex flex-col gap-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
@@ -163,6 +165,7 @@ export default async function AssetsPage() {
         </div>
       </section>
 
+      <MainAppListBody>
       {items.length === 0 ? (
         <EmptyState
           icon={Wrench}
@@ -181,7 +184,7 @@ export default async function AssetsPage() {
           items={items}
           getRowKey={(item) => item.id}
           desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            <MainAppTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -222,7 +225,7 @@ export default async function AssetsPage() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </MainAppTableShell>
           }
           renderMobileCard={(item) => (
             <Link
@@ -252,6 +255,8 @@ export default async function AssetsPage() {
           )}
         />
       )}
-    </div>
+      </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

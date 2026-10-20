@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MainAppSection } from '@/components/patterns/main-app';
 import { listProjectContracts } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -29,32 +29,27 @@ export async function ProjectContractsPanel({ projectId, currency }: ProjectCont
   if (!view.allowed) return null;
 
   return (
-    <Card className="min-w-0 max-w-full">
-      <CardHeader>
-        <CardTitle>{t('title')}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ProjectContractsClient
-          projectId={projectId}
-          currency={currency}
-          canManage={view.canManage}
-          contracts={view.items.map((item) => ({
-            id: item.contract.id,
-            name: item.contract.name,
-            contractNumber: item.contract.contractNumber,
-            contractType: item.contract.contractType,
-            isPrimary: item.contract.isPrimary,
-            status: item.contract.status,
-            originalValueAmount: item.originalValueAmount,
-            currentValueAmount: item.currentValueAmount,
-            currency: item.currency,
-            startDate: item.contract.startDate,
-            endDate: item.contract.endDate,
-            retentionPercent: item.contract.retentionPercent,
-            notes: item.contract.notes,
-          }))}
-        />
-      </CardContent>
-    </Card>
+    <MainAppSection title={t('title')} className="w-full min-w-0">
+      <ProjectContractsClient
+        projectId={projectId}
+        currency={currency}
+        canManage={view.canManage}
+        contracts={view.items.map((item) => ({
+          id: item.contract.id,
+          name: item.contract.name,
+          contractNumber: item.contract.contractNumber,
+          contractType: item.contract.contractType,
+          isPrimary: item.contract.isPrimary,
+          status: item.contract.status,
+          originalValueAmount: item.originalValueAmount,
+          currentValueAmount: item.currentValueAmount,
+          currency: item.currency,
+          startDate: item.contract.startDate,
+          endDate: item.contract.endDate,
+          retentionPercent: item.contract.retentionPercent,
+          notes: item.contract.notes,
+        }))}
+      />
+    </MainAppSection>
   );
 }

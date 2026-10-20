@@ -1,4 +1,5 @@
-import { getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
 import { getClaimDetail } from '@/modules/subcontract-claims';
@@ -24,13 +25,16 @@ export async function ProjectClaimDetailScreen({ surfaceRoot,
 
   return (
     <WithAppClientMessages extra={['subcontractClaims']}>
-      <div className="flex flex-col gap-4">
+      <MainAppPage>
         <Link href={basePath} className="text-sm text-[var(--pf-text-brand)] hover:underline">
           ← {t('list.pageTitle')}
         </Link>
         <PageHeader title={`CLM-${view.detail.header.claimNumber}`} />
+      <MainAppSection>
         <ClaimDetailPanel projectId={projectId} view={view} basePath={basePath} />
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

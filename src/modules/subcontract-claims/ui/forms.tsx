@@ -1,4 +1,5 @@
 'use client';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
@@ -46,8 +47,9 @@ export function ClaimReviewActions({
   const [reassessState, reassessFormAction, reassessPending] = useActionState(reassessClaimAction, null);
 
   return (
-    <div className="flex flex-col gap-4">
-      {can.review && (detail.header.status === 'submitted' || detail.header.status === 'under_review') ? (
+    <MainAppPage>
+      <MainAppSection>
+        {can.review && (detail.header.status === 'submitted' || detail.header.status === 'under_review') ? (
         <Card>
           <CardHeader>
             <CardTitle>{t('actions.review')}</CardTitle>
@@ -162,6 +164,8 @@ export function ClaimReviewActions({
           </Button>
         </form>
       ) : null}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

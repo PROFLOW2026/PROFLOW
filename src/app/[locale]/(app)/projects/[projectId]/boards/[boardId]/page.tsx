@@ -1,3 +1,4 @@
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -217,36 +218,40 @@ export default async function ProjectBoardPage({
   const { BoardUrlFiltersBar } = await import('@/modules/tasks/ui/board-url-filters-bar');
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-4">
-      <BoardUrlFiltersBar
-        searchParams={urlParams}
-        buckets={buckets.map((b) => ({ id: b.id, name: b.name }))}
-        assignees={boardFilterAssignees}
-        labels={boardFilterLabels}
-      />
-      <BoardSavedViewsChrome searchParams={urlParams} boardId={boardId} projectId={projectId} />
-    <ProjectBoardShell
-      projectId={projectId}
-      workspaceId={workspaceId}
-      boards={boards}
-      activeBoard={activeBoard}
-      buckets={buckets}
-      initialTasks={tasks}
-      actions={{
-        moveTask: moveTaskAction,
-        createTask: createTaskAction,
-        getTaskDetail: getTaskDetailAction,
-        updateTask: updateTaskAction,
-        syncAssignees: syncAssigneesAction,
-      }}
-      assigneeOptions={assigneeOptions}
-      canAssign={canAssign}
-      canArchive={canArchive}
-      canManageBuckets={canManageBuckets}
-      today={today}
-      initialHasMore={hasMore}
-      loadMoreBoardTasks={loadMoreBoardTasksAction}
-    />
-    </div>
+    <MainAppPage className="w-full min-w-0">
+      <MainAppSection className="w-full min-w-0">
+        <div className="flex w-full min-w-0 flex-col gap-4">
+          <BoardUrlFiltersBar
+            searchParams={urlParams}
+            buckets={buckets.map((b) => ({ id: b.id, name: b.name }))}
+            assignees={boardFilterAssignees}
+            labels={boardFilterLabels}
+          />
+          <BoardSavedViewsChrome searchParams={urlParams} boardId={boardId} projectId={projectId} />
+          <ProjectBoardShell
+            projectId={projectId}
+            workspaceId={workspaceId}
+            boards={boards}
+            activeBoard={activeBoard}
+            buckets={buckets}
+            initialTasks={tasks}
+            actions={{
+              moveTask: moveTaskAction,
+              createTask: createTaskAction,
+              getTaskDetail: getTaskDetailAction,
+              updateTask: updateTaskAction,
+              syncAssignees: syncAssigneesAction,
+            }}
+            assigneeOptions={assigneeOptions}
+            canAssign={canAssign}
+            canArchive={canArchive}
+            canManageBuckets={canManageBuckets}
+            today={today}
+            initialHasMore={hasMore}
+            loadMoreBoardTasks={loadMoreBoardTasksAction}
+          />
+        </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

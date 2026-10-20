@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useSoftRouter } from '@/shared/i18n/soft-navigation';
 

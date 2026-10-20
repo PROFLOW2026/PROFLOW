@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -58,7 +59,7 @@ export default async function DispatchPage({ searchParams }: DispatchPageProps) 
   });
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6" data-pf-dispatch="">
+    <MainAppPage>
       <PageHeader
         title={t('dispatch.title')}
         description={t('dispatch.description')}
@@ -70,8 +71,8 @@ export default async function DispatchPage({ searchParams }: DispatchPageProps) 
           ) : null
         }
       />
-
-      <DispatchWindowFilters
+      <MainAppSection>
+        <DispatchWindowFilters
         initialWindow={window}
         initialAssignee={params.assignee ?? ''}
         employees={employees}
@@ -100,6 +101,8 @@ export default async function DispatchPage({ searchParams }: DispatchPageProps) 
           canDispatch={canDispatch && canManageService}
         />
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

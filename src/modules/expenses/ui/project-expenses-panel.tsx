@@ -1,5 +1,6 @@
 import { Receipt } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { MainAppSection, MainAppTableShell } from '@/components/patterns/main-app';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -68,21 +69,20 @@ export async function ProjectExpensesPanel({ projectId, limit = 10 }: ProjectExp
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-3">
-      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-        <h3 className="min-w-0 text-start text-sm font-semibold text-[var(--pf-text-primary)]">
-          {t('projectPanel.title')}
-        </h3>
+    <MainAppSection
+      title={t('projectPanel.title')}
+      className="w-full min-w-0 gap-3"
+      actions={
         <Button asChild variant="secondary" size="sm" className="max-w-full shrink-0">
           <Link href={`/expenses/new?projectId=${projectId}`}>{t('actions.add')}</Link>
         </Button>
-      </div>
-
+      }
+    >
       <ResponsiveTable
         items={items}
         getRowKey={(expense) => expense.id}
         desktop={
-          <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+          <MainAppTableShell>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -157,7 +157,7 @@ export async function ProjectExpensesPanel({ projectId, limit = 10 }: ProjectExp
                 })}
               </TableBody>
             </Table>
-          </div>
+          </MainAppTableShell>
         }
         renderMobileCard={(expense) => {
           const showNet = hasRecoverableTax(expense.taxAmount);
@@ -203,6 +203,6 @@ export async function ProjectExpensesPanel({ projectId, limit = 10 }: ProjectExp
       <Button asChild variant="ghost" size="sm" className="self-start">
         <Link href={`/expenses?projectId=${projectId}`}>{tCommon('actions.viewAll')}</Link>
       </Button>
-    </div>
+    </MainAppSection>
   );
 }

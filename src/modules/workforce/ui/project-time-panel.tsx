@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { MainAppSection } from '@/components/patterns/main-app';
 import { buildTimeEntryDailySummaries } from '@/modules/workforce/application/time-entry-daily-summaries';
 import { formatWorkHoursValue } from '@/modules/workforce/domain/format-work-hours';
 import { listProjectTimeEntries } from '@/modules/workforce';
@@ -85,30 +85,12 @@ export async function ProjectTimePanel({ projectId }: ProjectTimePanelProps) {
   const formattedPending = formatWorkHoursValue(pendingHours);
 
   return (
-    <div className="flex flex-col gap-4" data-pf-project-time-panel>
-      <Card className="flex flex-col gap-4 p-4 sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0 flex-1 text-start">
-            <h2 className="text-lg font-semibold">{t('projectPanel.title')}</h2>
-            <p className="text-sm text-[var(--pf-text-secondary)]">
-              {t('projectPanel.summary', { hours: formattedTotal, count: entries.length })}
-            </p>
-            <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-              {t('projectPanel.approvedSummary', {
-                hours: formattedApproved,
-                days: approvedWorkDays,
-              })}
-            </p>
-            {pendingHours > 0 ? (
-              <p className="mt-1 text-sm text-[var(--pf-status-warning-fg)]">
-                {t('projectPanel.pendingSummary', {
-                  hours: formattedPending,
-                  days: pendingWorkDays,
-                })}
-              </p>
-            ) : null}
-          </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
+    <div className="flex w-full min-w-0 flex-col gap-4" data-pf-project-time-panel>
+      <MainAppSection
+        title={t('projectPanel.title')}
+        description={t('projectPanel.summary', { hours: formattedTotal, count: entries.length })}
+        actions={
+          <>
             {allowApprove && pendingHours > 0 ? (
               <Button asChild size="sm" variant="secondary">
                 <Link href="/workforce/time/approvals">{t('projectPanel.approvePending')}</Link>
@@ -121,7 +103,25 @@ export async function ProjectTimePanel({ projectId }: ProjectTimePanelProps) {
                 </Link>
               </Button>
             ) : null}
-          </div>
+          </>
+        }
+        className="gap-4"
+      >
+        <div className="flex min-w-0 flex-col gap-1 text-start text-sm">
+          <p className="text-[var(--pf-text-secondary)]">
+            {t('projectPanel.approvedSummary', {
+              hours: formattedApproved,
+              days: approvedWorkDays,
+            })}
+          </p>
+          {pendingHours > 0 ? (
+            <p className="text-[var(--pf-status-warning-fg)]">
+              {t('projectPanel.pendingSummary', {
+                hours: formattedPending,
+                days: pendingWorkDays,
+              })}
+            </p>
+          ) : null}
         </div>
 
         <p className="text-start text-sm text-[var(--pf-text-muted)]">
@@ -149,7 +149,7 @@ export async function ProjectTimePanel({ projectId }: ProjectTimePanelProps) {
             <Link href={`/workforce/time?projectId=${projectId}`}>{t('projectPanel.viewAll')}</Link>
           </Button>
         ) : null}
-      </Card>
+      </MainAppSection>
     </div>
   );
 }

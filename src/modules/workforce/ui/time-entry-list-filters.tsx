@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useTranslations } from 'next-intl';
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';

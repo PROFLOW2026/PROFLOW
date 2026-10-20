@@ -1,3 +1,10 @@
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -102,7 +109,7 @@ export default async function RfqDetailPage({
   const { detail, quotes, comparison, vendors, documentsPanel, canManage, defaultCurrency } = data;
   const { rfq, lines } = detail;
   return (
-    <div className="flex min-w-0 flex-col gap-8">
+    <MainAppPage>
       <PageHeader
         title={rfq.title}
         description={t('rfq.detailDescription')}
@@ -132,13 +139,40 @@ export default async function RfqDetailPage({
           </div>
         }
       />
-      <section className="flex min-w-0 flex-col gap-3">
-        <h2 className="text-sm font-semibold">{t('rfq.linesTitle')}</h2>
+
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('rfq.list.columns.status')}>
+            {t(`rfq.statuses.${rfq.status}` as 'rfq.statuses.draft')}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('rfq.dueDate')}>
+            {rfq.dueDate ? (
+              <span dir="ltr" className="pf-ltr-island">
+                {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(rfq.dueDate))}
+              </span>
+            ) : (
+              t('rfq.noDueDate')
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('rfq.linesTitle')}>
+            <span dir="ltr" className="pf-numeric">
+              {lines.length}
+            </span>
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('quote.listTitle')}>
+            <span dir="ltr" className="pf-numeric">
+              {quotes.length}
+            </span>
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
+      </MainAppSection>
+
+      <MainAppSection title={t('rfq.linesTitle')}>
         <ResponsiveTable
           items={lines}
           getRowKey={(line) => line.id}
           desktop={
-            <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+            <MainAppTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -161,7 +195,7 @@ export default async function RfqDetailPage({
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </MainAppTableShell>
           }
           renderMobileCard={(line) => (
             <div className="flex min-w-0 flex-col gap-1 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
@@ -180,20 +214,12 @@ export default async function RfqDetailPage({
             {rfq.workPackageId ? t('rfq.linkedWorkPackage') : null}
           </p>
         )}
-        {rfq.dueDate ? (
-          <p className="text-sm text-[var(--pf-text-secondary)]">
-            {t('rfq.dueDate')}:{' '}
-            <span dir="ltr">
-              {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(rfq.dueDate))}
-            </span>
-          </p>
-        ) : null}
         {rfq.notes ? (
           <p className="break-words text-sm text-[var(--pf-text-secondary)]">{rfq.notes}</p>
         ) : null}
-      </section>
-      <section className="flex min-w-0 flex-col gap-3">
-        <h2 className="text-sm font-semibold">{t('quote.listTitle')}</h2>
+      </MainAppSection>
+
+      <MainAppSection title={t('quote.listTitle')}>
         {quotes.length === 0 ? (
           <EmptyState size="sm" title={t('quote.empty')} className="py-6" />
         ) : (
@@ -201,7 +227,7 @@ export default async function RfqDetailPage({
             items={quotes}
             getRowKey={(quote) => quote.id}
             desktop={
-              <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+              <MainAppTableShell>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -258,7 +284,7 @@ export default async function RfqDetailPage({
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </MainAppTableShell>
             }
             renderMobileCard={(quote) => (
               <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
@@ -295,12 +321,9 @@ export default async function RfqDetailPage({
             )}
           />
         )}
-      </section>
-      <section className="flex min-w-0 flex-col gap-3">
-        <div>
-          <h2 className="text-sm font-semibold">{t('quote.comparisonTitle')}</h2>
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('rfq.comparisonHint')}</p>
-        </div>
+      </MainAppSection>
+
+      <MainAppSection title={t('quote.comparisonTitle')} description={t('rfq.comparisonHint')}>
         {comparison.length === 0 ? (
           <EmptyState size="sm" title={t('quote.emptyComparison')} className="py-4" />
         ) : (
@@ -308,7 +331,7 @@ export default async function RfqDetailPage({
             items={comparison}
             getRowKey={(row) => row.quoteId}
             desktop={
-              <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+              <MainAppTableShell>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -340,7 +363,7 @@ export default async function RfqDetailPage({
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </MainAppTableShell>
             }
             renderMobileCard={(row) => {
               const rank = comparison.findIndex((entry) => entry.quoteId === row.quoteId) + 1;
@@ -365,28 +388,33 @@ export default async function RfqDetailPage({
           />
         )}
         <p className="text-xs text-[var(--pf-text-secondary)]">{t('rfq.poCommittedHint')}</p>
-      </section>
+      </MainAppSection>
+
       {canManage && vendors.length > 0 ? (
-        <QuoteCaptureForm
-          rfqId={rfq.id}
-          defaultCurrency={defaultCurrency}
-          vendors={vendors}
-          seedLines={lines.map((line) => ({
-            description: line.description,
-            quantity: line.quantity,
-          }))}
-        />
+        <MainAppSection>
+          <QuoteCaptureForm
+            rfqId={rfq.id}
+            defaultCurrency={defaultCurrency}
+            vendors={vendors}
+            seedLines={lines.map((line) => ({
+              description: line.description,
+              quantity: line.quantity,
+            }))}
+          />
+        </MainAppSection>
       ) : null}
 
-      <DocumentAttachments
-        ownerType="procurement_rfq"
-        ownerId={rfq.id}
-        documents={documentsPanel.documents}
-        linkCandidates={documentsPanel.linkCandidates}
-        canRead={documentsPanel.canRead}
-        canManage={documentsPanel.canManage}
-        storageConfigured={documentsPanel.storageConfigured}
-      />
-    </div>
+      <MainAppSection>
+        <DocumentAttachments
+          ownerType="procurement_rfq"
+          ownerId={rfq.id}
+          documents={documentsPanel.documents}
+          linkCandidates={documentsPanel.linkCandidates}
+          canRead={documentsPanel.canRead}
+          canManage={documentsPanel.canManage}
+          storageConfigured={documentsPanel.storageConfigured}
+        />
+      </MainAppSection>
+    </MainAppPage>
   );
 }

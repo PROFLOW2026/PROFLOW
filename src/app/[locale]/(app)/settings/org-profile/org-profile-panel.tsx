@@ -1,9 +1,11 @@
-'use client';
+﻿'use client';
 
 import { useActionState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { updateOrgProfileTypeAction, updateTerminologyConfigAction, type OrgProfileActionState } from './actions';
 import {
@@ -23,48 +25,51 @@ function ProfileTypeSelector({
   const [state, action, pending] = useActionState(updateOrgProfileTypeAction, {} as OrgProfileActionState);
 
   return (
-    <form action={action} className="flex flex-col gap-4">
-      <div>
-        <p className="mb-1 text-sm font-medium">{t('profileTypeTitle')}</p>
-        <p className="text-xs text-[var(--pf-text-secondary)]">{t('profileTypeHint')}</p>
-      </div>
-
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {ORG_PROFILE_TYPES.map((type) => {
-          const isSelected = currentType === type;
-          return (
-            <label
-              key={type}
-              className={`flex cursor-pointer flex-col gap-1 rounded-lg border p-3 transition-colors ${
-                isSelected
-                  ? 'border-[var(--pf-brand-primary)] bg-[var(--pf-brand-primary)]/5'
-                  : 'border-[var(--pf-border-default)] hover:border-[var(--pf-border-hover)]'
-              } ${!canEdit ? 'pointer-events-none' : ''}`}
-            >
-              <input
-                type="radio"
-                name="orgProfileType"
-                value={type}
-                defaultChecked={isSelected}
-                className="sr-only"
-                disabled={!canEdit}
-              />
-              <span className="text-sm font-medium">{t(`types.${type}.label`)}</span>
-              <span className="text-xs text-[var(--pf-text-secondary)]">{t(`types.${type}.description`)}</span>
-            </label>
-          );
-        })}
-      </div>
-
-      {canEdit && (
-        <div>
-          <Button type="submit" size="sm" loading={pending}>{t('saveProfileType')}</Button>
+    <MainAppSection title={t('profileTypeTitle')} description={t('profileTypeHint')}>
+      <form action={action} className="flex w-full min-w-0 flex-col gap-4">
+        <div className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {ORG_PROFILE_TYPES.map((type) => {
+            const isSelected = currentType === type;
+            return (
+              <label
+                key={type}
+                className={`flex cursor-pointer flex-col gap-1 rounded-lg border p-3 transition-colors ${
+                  isSelected
+                    ? 'border-[var(--pf-brand-primary)] bg-[var(--pf-brand-primary)]/5'
+                    : 'border-[var(--pf-border-default)] hover:border-[var(--pf-border-hover)]'
+                } ${!canEdit ? 'pointer-events-none' : ''}`}
+              >
+                <input
+                  type="radio"
+                  name="orgProfileType"
+                  value={type}
+                  defaultChecked={isSelected}
+                  className="sr-only"
+                  disabled={!canEdit}
+                />
+                <span className="text-sm font-medium">{t(`types.${type}.label`)}</span>
+                <span className="text-xs text-[var(--pf-text-secondary)]">{t(`types.${type}.description`)}</span>
+              </label>
+            );
+          })}
         </div>
-      )}
 
-      {state.error && <Alert tone="danger">{state.error}</Alert>}
-      {state.ok && <Alert tone="success" role="status">{state.message}</Alert>}
-    </form>
+        {canEdit && (
+          <div>
+            <Button type="submit" size="sm" loading={pending}>
+              {t('saveProfileType')}
+            </Button>
+          </div>
+        )}
+
+        {state.error && <Alert tone="danger">{state.error}</Alert>}
+        {state.ok && (
+          <Alert tone="success" role="status">
+            {state.message}
+          </Alert>
+        )}
+      </form>
+    </MainAppSection>
   );
 }
 
@@ -95,38 +100,46 @@ function TerminologyForm({
   );
 
   return (
-    <form action={action} className="flex flex-col gap-4">
-      <div>
-        <p className="mb-1 text-sm font-medium">{t('terminologyTitle')}</p>
-        <p className="text-xs text-[var(--pf-text-secondary)]">{t('terminologyHint')}</p>
-      </div>
+    <MainAppSection title={t('terminologyTitle')} description={t('terminologyHint')}>
+      <form action={action} className="flex w-full min-w-0 flex-col gap-4">
+        <MainAppFormGrid dense className="gap-4">
+          {fields.map(({ key, label, defaultValue }) => (
+            <Field key={key} label={label} className={mainAppFieldSpan.md}>
+              {(control) => (
+                <>
+                  <Input
+                    id={control.id}
+                    name={key}
+                    defaultValue={overrides[key] ?? ''}
+                    placeholder={defaultValue}
+                    disabled={!canEdit}
+                    aria-describedby={control['aria-describedby']}
+                  />
+                  <span className="text-xs text-[var(--pf-text-muted)]">
+                    {t('defaultLabel', { value: defaultValue })}
+                  </span>
+                </>
+              )}
+            </Field>
+          ))}
+        </MainAppFormGrid>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {fields.map(({ key, label, defaultValue }) => (
-          <div key={key} className="flex flex-col gap-1">
-            <label className="text-sm text-[var(--pf-text-secondary)]">{label}</label>
-            <Input
-              name={key}
-              defaultValue={overrides[key] ?? ''}
-              placeholder={defaultValue}
-              disabled={!canEdit}
-            />
-            <span className="text-xs text-[var(--pf-text-muted)]">
-              {t('defaultLabel', { value: defaultValue })}
-            </span>
+        {canEdit && (
+          <div>
+            <Button type="submit" size="sm" loading={pending}>
+              {t('saveTerminology')}
+            </Button>
           </div>
-        ))}
-      </div>
+        )}
 
-      {canEdit && (
-        <div>
-          <Button type="submit" size="sm" loading={pending}>{t('saveTerminology')}</Button>
-        </div>
-      )}
-
-      {state.error && <Alert tone="danger">{state.error}</Alert>}
-      {state.ok && <Alert tone="success" role="status">{state.message}</Alert>}
-    </form>
+        {state.error && <Alert tone="danger">{state.error}</Alert>}
+        {state.ok && (
+          <Alert tone="success" role="status">
+            {state.message}
+          </Alert>
+        )}
+      </form>
+    </MainAppSection>
   );
 }
 
@@ -145,17 +158,15 @@ function TerminologyPreview({ overrides }: { overrides: TerminologyOverrides }) 
   ];
 
   return (
-    <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-surface-secondary)] p-4">
-      <p className="mb-2 text-xs font-medium text-[var(--pf-text-muted)]">{t('terminologyPreview')}</p>
+    <MainAppSection title={t('terminologyPreview')}>
       <div className="flex flex-wrap gap-3 text-sm">
         {previewItems.map(({ label, value }) => (
           <span key={label}>
-            <span className="text-[var(--pf-text-muted)]">{label}</span>{' '}
-            <strong>{value}</strong>
+            <span className="text-[var(--pf-text-muted)]">{label}</span> <strong>{value}</strong>
           </span>
         ))}
       </div>
-    </div>
+    </MainAppSection>
   );
 }
 
@@ -169,9 +180,8 @@ export function OrgProfilePanel({
   canEdit: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex w-full min-w-0 flex-col gap-4">
       <ProfileTypeSelector currentType={currentProfileType} canEdit={canEdit} />
-      <hr className="border-[var(--pf-border-default)]" />
       <TerminologyForm overrides={terminologyOverrides} canEdit={canEdit} />
       <TerminologyPreview overrides={terminologyOverrides} />
     </div>

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useId, useState, useTransition } from 'react';
 import { EVENT_KINDS } from '../domain/constants';
 import type { CoordinationEventKind } from '../domain/types';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -114,9 +115,9 @@ export function CoordinationCreateForm({
         <CardDescription>{t('create.description')}</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
-          <div className="grid gap-4 md:grid-cols-2">
-            <FormRow label={t('fields.title')} htmlFor={`${id}-title`} error={fieldErrors.title} className="md:col-span-2">
+        <form onSubmit={submit} className="flex w-full min-w-0 flex-col gap-4" noValidate>
+          <MainAppFormGrid dense>
+            <FormRow label={t('fields.title')} htmlFor={`${id}-title`} error={fieldErrors.title} className={mainAppFieldSpan.full}>
               <Input id={`${id}-title`} value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} />
             </FormRow>
             <FormRow label={t('fields.kind')} htmlFor={`${id}-kind`}>
@@ -193,18 +194,18 @@ export function CoordinationCreateForm({
                 ))}
               </select>
             </FormRow>
-            <FormRow label={t('fields.description')} htmlFor={`${id}-desc`} className="md:col-span-2">
+            <FormRow label={t('fields.description')} htmlFor={`${id}-desc`} className={mainAppFieldSpan.full}>
               <Textarea id={`${id}-desc`} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={4000} />
             </FormRow>
             <FormRow
               label={t('fields.requiredAcknowledgements')}
               htmlFor={`${id}-acks`}
               hint={t('fields.acknowledgementsHint')}
-              className="md:col-span-2"
+              className={mainAppFieldSpan.full}
             >
               <Textarea id={`${id}-acks`} value={acknowledgements} onChange={(e) => setAcknowledgements(e.target.value)} rows={3} />
             </FormRow>
-          </div>
+          </MainAppFormGrid>
 
           <fieldset className="flex flex-col gap-3">
             <legend className="mb-1 text-sm font-semibold text-[var(--pf-text-primary)]">{t('fields.contractors')}</legend>

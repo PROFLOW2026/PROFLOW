@@ -1,4 +1,5 @@
-import { ClipboardCheck } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { ClipboardCheck } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -26,8 +27,9 @@ export async function ContractorCloseoutScreen({
 
   return (
     <WithAppClientMessages extra={['handover']}>
-      <div className="flex flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={t('closeout.title')} description={t('closeout.description')} />
+      <MainAppSection>
         {visible.length === 0 ? (
           <EmptyState icon={ClipboardCheck} title={t('closeout.empty.title')} description={t('closeout.empty.description')} />
         ) : (
@@ -43,7 +45,9 @@ export async function ContractorCloseoutScreen({
             ))}
           </ul>
         )}
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

@@ -1,4 +1,5 @@
-import { getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getTranslations } from 'next-intl/server';
 
 import { notFound } from 'next/navigation';
 
@@ -90,7 +91,7 @@ export async function ProjectDefectDetailScreen({ surfaceRoot,
 
     <WithAppClientMessages extra={['defects', 'inspections', 'collaboration']}>
 
-      <div className="flex flex-col gap-4">
+      <MainAppPage>
 
         <PageHeader
 
@@ -123,9 +124,7 @@ export async function ProjectDefectDetailScreen({ surfaceRoot,
           }
 
         />
-
-
-
+      <MainAppSection>
         <Card>
 
           <CardHeader>
@@ -301,7 +300,9 @@ export async function ProjectDefectDetailScreen({ surfaceRoot,
 
         />
 
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
 
     </WithAppClientMessages>
 

@@ -1,4 +1,5 @@
-import { Truck } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { Truck } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { buttonVariants } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -49,7 +50,7 @@ export async function ProjectDeliveriesScreen({ surfaceRoot,
 
   return (
     <WithAppClientMessages extra={['deliveries']}>
-      <div className="flex flex-col gap-4">
+      <MainAppPage>
         <PageHeader
           title={t('title')}
           description={t('description')}
@@ -61,7 +62,7 @@ export async function ProjectDeliveriesScreen({ surfaceRoot,
             ) : undefined
           }
         />
-
+      <MainAppSection>
         {wantsCreate && board.canManage ? <DeliveryCreateForm projectId={projectId} cancelHref={base} /> : null}
 
         <nav className="flex gap-1" aria-label={t('title')}>
@@ -98,7 +99,9 @@ export async function ProjectDeliveriesScreen({ surfaceRoot,
             ))}
           </ul>
         )}
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

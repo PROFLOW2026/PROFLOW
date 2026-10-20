@@ -1,5 +1,11 @@
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import { notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import { PageHeader } from '@/components/ui/page-header';
 import { listBillingRecords } from '@/modules/billing';
@@ -18,6 +24,11 @@ import {
   allocateEmployeePaymentAction,
   allocatePaymentAction,
 } from '@/modules/billing/ui/actions';
+import { Link } from '@/shared/i18n/navigation';
+import { formatBusinessDate } from '@/shared/dates/format';
+import { textNavLinkMutedClassName } from '@/components/ui/pressable';
+
+const EMPTY = '—';
 
 interface BillingOrgAllocateViewProps {
   readonly paymentId: string;
@@ -27,10 +38,10 @@ interface BillingOrgAllocateViewProps {
 
 export async function BillingOrgAllocateView({
   paymentId,
-  routeBase: _routeBase,
+  routeBase,
   surface = 'owner',
 }: BillingOrgAllocateViewProps) {
-  const t = await getTranslations('billing');
+  const [t, locale] = await Promise.all([getTranslations('billing'), getLocale()]);
 
   let payment;
   let records;
@@ -62,33 +73,81 @@ export async function BillingOrgAllocateView({
   const allocateAction =
     surface === 'employee' ? allocateEmployeePaymentAction : allocatePaymentAction;
 
+  const hasUnallocated = isPositiveMoney(payment.unallocatedAmount);
+
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
-        title={t('paymentForm.allocateTitle')}
+        title={payment.reference?.trim() ? payment.reference : t('paymentForm.allocateTitle')}
         description={
-          isPositiveMoney(payment.unallocatedAmount)
-            ? t('paymentForm.allocateHint')
-            : t('paymentForm.fullyAllocatedHint')
+          hasUnallocated ? t('paymentForm.allocateHint') : t('paymentForm.fullyAllocatedHint')
+        }
+        breadcrumb={
+          <Link href={routeBase} className={textNavLinkMutedClassName}>
+            {t('title')}
+          </Link>
+        }
+        meta={
+          payment.clientName ? (
+            <span className="text-sm text-[var(--pf-text-secondary)]">{payment.clientName}</span>
+          ) : null
         }
       />
-      {isPositiveMoney(payment.unallocatedAmount) ? (
-        <AllocatePaymentForm
-          payment={payment}
-          billingRecords={records}
-          allocateAction={allocateAction.bind(null, paymentId)}
-        />
-      ) : (
-        <div className="rounded-lg border border-[var(--pf-border-default)] p-4 text-sm">
-          <p>
-            {t('paymentForm.cashReceivedPreview')}: <MoneyText value={payment.amount} />
+
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('paymentForm.client')}>
+            {payment.clientName ?? EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('paymentForm.paymentDate')}>
+            <span dir="ltr">{formatBusinessDate(payment.paymentDate, locale)}</span>
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('paymentForm.method')}>
+            {payment.method?.trim() ? payment.method : EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('paymentForm.reference')}>
+            {payment.reference?.trim() ? (
+              <span className="pf-ltr-island" dir="ltr">
+                {payment.reference}
+              </span>
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('paymentForm.cashReceivedPreview')}>
+            <MoneyText value={payment.amount} className="font-semibold" />
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('paymentForm.allocatedPreview')}>
+            <MoneyText value={payment.appliedAmount} className="font-semibold" />
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('paymentForm.unallocatedPreview')}>
+            <MoneyText
+              value={payment.unallocatedAmount}
+              className="font-semibold"
+              colorizeNegative
+            />
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
+        {payment.notes?.trim() ? (
+          <p className="mt-3 whitespace-pre-wrap text-start text-sm text-[var(--pf-text-secondary)]">
+            {payment.notes}
           </p>
-          <p className="mt-1">
-            {t('paymentForm.allocatedPreview')}: <MoneyText value={payment.appliedAmount} />
+        ) : null}
+      </MainAppSection>
+
+      <MainAppSection title={hasUnallocated ? t('paymentForm.allocations') : undefined}>
+        {hasUnallocated ? (
+          <AllocatePaymentForm
+            payment={payment}
+            billingRecords={records}
+            allocateAction={allocateAction.bind(null, paymentId)}
+          />
+        ) : (
+          <p className="text-sm text-[var(--pf-text-secondary)]">
+            {t('paymentForm.fullyAllocatedHint')}
           </p>
-          <p className="mt-1">{t('paymentForm.fullyAllocatedHint')}</p>
-        </div>
-      )}
-    </div>
+        )}
+      </MainAppSection>
+    </MainAppPage>
   );
 }

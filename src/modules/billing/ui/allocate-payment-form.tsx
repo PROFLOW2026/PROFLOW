@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useActionState, useMemo, useState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Button } from '@/components/ui/button';
@@ -85,7 +86,7 @@ export function AllocatePaymentForm({
   const hasAllocation = payableRecords.some((record) => allocations[record.id]?.trim());
 
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-xl flex-col gap-5">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       {state.error ? (
         <p className="text-sm text-[var(--pf-status-danger-fg)]">{t('errors.paymentOverApplied')}</p>
       ) : null}
@@ -114,6 +115,7 @@ export function AllocatePaymentForm({
       ) : (
         <fieldset className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
           <legend className="px-1 text-sm font-medium">{t('paymentForm.allocations')}</legend>
+          <MainAppFormGrid dense>
           {payableRecords.map((record) => {
             const allocatedRaw = allocations[record.id]?.trim();
             let remainingAfter: ReturnType<typeof money> | null = null;
@@ -130,6 +132,7 @@ export function AllocatePaymentForm({
             return (
               <Field
                 key={record.id}
+                className={mainAppFieldSpan.lg}
                 label={`${record.projectName ?? t('list.unknownProject')} · ${record.reference ?? record.id.slice(0, 8)}`}
                 description={`${t('paymentForm.invoiceBalanceBefore')}: ${formatMoneyString(record.outstandingAmount.amount, record.outstandingAmount.currency, locale)}`}
               >
@@ -161,6 +164,7 @@ export function AllocatePaymentForm({
               </Field>
             );
           })}
+          </MainAppFormGrid>
           {unapplied ? (
             <p
               className={

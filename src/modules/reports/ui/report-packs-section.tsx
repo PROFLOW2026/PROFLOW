@@ -1,8 +1,8 @@
 'use client';
 
+import { MainAppListToolbar, MainAppSection } from '@/components/patterns/main-app';
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field } from '@/components/ui/field';
 import {
   Select,
@@ -58,24 +58,63 @@ function KindRows({
 }) {
   const t = useTranslations('reports');
   return (
-    <>
+    <ul className="flex w-full min-w-0 list-none flex-col divide-y divide-[var(--pf-border-default)] overflow-hidden rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-0">
       {kinds.map((kind) => (
-        <div
+        <li
           key={kind}
-          className="flex min-w-0 max-w-full flex-col gap-2 border-t border-[var(--pf-border-default)] pt-3 sm:flex-row sm:items-start sm:justify-between"
+          data-pf-reports-kind-row=""
+          className="flex w-full min-w-0 flex-col gap-2 p-3 lg:grid lg:grid-cols-[minmax(10rem,22%)_minmax(0,1fr)_auto] lg:items-center lg:gap-4"
         >
-          <div className="min-w-0 max-w-full flex-1">
-            <p className="break-words font-medium">{t(`kinds.${kind}`)}</p>
-            <p className="break-words text-sm text-[var(--pf-text-secondary)]">
-              {t(`kindHints.${kind}`)}
-            </p>
-          </div>
-          <div className="min-w-0 w-full max-w-full shrink-0 sm:w-auto sm:max-w-[min(100%,20rem)]">
+          <p className="min-w-0 text-sm font-medium leading-snug text-[var(--pf-text-primary)]">
+            {t(`kinds.${kind}`)}
+          </p>
+          <p
+            className="min-w-0 text-xs leading-snug text-[var(--pf-text-secondary)] sm:line-clamp-2 lg:line-clamp-1"
+            title={t(`kindHints.${kind}`)}
+          >
+            {t(`kindHints.${kind}`)}
+          </p>
+          <div className="flex min-w-0 flex-wrap items-center gap-2 sm:justify-end">
             <ReportDownloadButtons kind={kind} id={entityId} compact />
           </div>
-        </div>
+        </li>
       ))}
-    </>
+    </ul>
+  );
+}
+
+function PackEntitySelect({
+  label,
+  value,
+  onValueChange,
+  options,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onValueChange: (value: string) => void;
+  options: readonly ReportPackOption[];
+  placeholder?: string;
+}) {
+  return (
+    <MainAppListToolbar className="w-full sm:items-end">
+      <Field label={label} className="min-w-0 w-full max-w-none flex-1">
+        {(control) => (
+          <Select value={value} onValueChange={onValueChange}>
+            <SelectTrigger id={control.id} className="h-9 w-full min-w-0">
+              <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.id} value={option.id}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </Field>
+    </MainAppListToolbar>
   );
 }
 
@@ -143,164 +182,107 @@ export function ReportPacksSection({
   );
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('csvStillHere')}</p>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('packsHeading')}</CardTitle>
-          <CardDescription>{t('description')}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          {projects.length === 0 ? (
-            <p className="text-sm text-[var(--pf-text-secondary)]">{t('noProjects')}</p>
-          ) : (
-            <>
-              <Field label={t('selectProject')}>
-                {(control) => (
-                  <>
-                    <Select value={projectId} onValueChange={setProjectId}>
-                      <SelectTrigger id={control.id}>
-                        <SelectValue placeholder={t('chooseProject')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {projects.map((project) => (
-                          <SelectItem key={project.id} value={project.id}>
-                            {project.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </>
-                )}
-              </Field>
-              {projectId ? (
-                showSplit ? (
-                  <>
-                    <div>
-                      <h3 className="text-sm font-semibold text-[var(--pf-text-primary)]">
-                        {t('recommendedPacks')}
-                      </h3>
-                      <KindRows kinds={recommendedProjectKinds} entityId={projectId} />
-                    </div>
-                    <div>
-                      <h3 className="mt-2 text-sm font-semibold text-[var(--pf-text-primary)]">
-                        {t('allPacks')}
-                      </h3>
-                      <KindRows
-                        kinds={[...recommendedProjectKinds, ...remainingProjectKinds]}
-                        entityId={projectId}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <KindRows
-                    kinds={
-                      recommendedProjectKinds.length > 0
-                        ? recommendedProjectKinds
-                        : allProjectKinds
-                    }
-                    entityId={projectId}
-                  />
-                )
-              ) : null}
-            </>
-          )}
-        </CardContent>
-      </Card>
+    <div data-pf-reports-catalog="" className="flex min-w-0 w-full flex-col gap-4">
+      <MainAppSection
+        className="w-full"
+        title={t('packsHeading')}
+        actions={
+          <p className="text-end text-xs leading-snug text-[var(--pf-text-secondary)]">
+            {t('csvStillHere')}
+          </p>
+        }
+      >
+        {projects.length === 0 ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">{t('noProjects')}</p>
+        ) : (
+          <div className="flex min-w-0 flex-col gap-4">
+            <PackEntitySelect
+              label={t('selectProject')}
+              value={projectId}
+              onValueChange={setProjectId}
+              options={projects}
+              placeholder={t('chooseProject')}
+            />
+            {projectId ? (
+              showSplit ? (
+                <>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-semibold text-[var(--pf-text-primary)]">
+                      {t('recommendedPacks')}
+                    </h3>
+                    <KindRows kinds={recommendedProjectKinds} entityId={projectId} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="mt-2 text-sm font-semibold text-[var(--pf-text-primary)]">
+                      {t('allPacks')}
+                    </h3>
+                    <KindRows
+                      kinds={[...recommendedProjectKinds, ...remainingProjectKinds]}
+                      entityId={projectId}
+                    />
+                  </div>
+                </>
+              ) : (
+                <KindRows
+                  kinds={
+                    recommendedProjectKinds.length > 0
+                      ? recommendedProjectKinds
+                      : allProjectKinds
+                  }
+                  entityId={projectId}
+                />
+              )
+            ) : null}
+          </div>
+        )}
+      </MainAppSection>
 
       {enabled.has('quote_estimate') && quotes.length > 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('quotePacksHeading')}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <Field label={t('selectQuote')}>
-              {(control) => (
-                <>
-                  <Select value={quoteId} onValueChange={setQuoteId}>
-                    <SelectTrigger id={control.id}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {quotes.map((quote) => (
-                        <SelectItem key={quote.id} value={quote.id}>
-                          {quote.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-            </Field>
+        <MainAppSection className="w-full" title={t('quotePacksHeading')}>
+          <div className="flex min-w-0 flex-col gap-4">
+            <PackEntitySelect
+              label={t('selectQuote')}
+              value={quoteId}
+              onValueChange={setQuoteId}
+              options={quotes}
+            />
             {quoteId ? <ReportDownloadButtons kind="quote_estimate" id={quoteId} /> : null}
-          </CardContent>
-        </Card>
+          </div>
+        </MainAppSection>
       ) : null}
 
       {clientKinds.length > 0 && clients.length > 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('kinds.client_360')}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <Field label={t('identity.client')}>
-              {(control) => (
-                <Select value={clientId} onValueChange={setClientId}>
-                  <SelectTrigger id={control.id}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </Field>
+        <MainAppSection className="w-full" title={t('kinds.client_360')}>
+          <div className="flex min-w-0 flex-col gap-4">
+            <PackEntitySelect
+              label={t('identity.client')}
+              value={clientId}
+              onValueChange={setClientId}
+              options={clients}
+            />
             {clientId ? <KindRows kinds={clientKinds} entityId={clientId} /> : null}
-          </CardContent>
-        </Card>
+          </div>
+        </MainAppSection>
       ) : null}
 
       {vendorKinds.length > 0 && vendors.length > 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('kinds.vendor_360')}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <Field label={t('fields.vendor')}>
-              {(control) => (
-                <Select value={vendorId} onValueChange={setVendorId}>
-                  <SelectTrigger id={control.id}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {vendors.map((vendor) => (
-                      <SelectItem key={vendor.id} value={vendor.id}>
-                        {vendor.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </Field>
+        <MainAppSection className="w-full" title={t('kinds.vendor_360')}>
+          <div className="flex min-w-0 flex-col gap-4">
+            <PackEntitySelect
+              label={t('fields.vendor')}
+              value={vendorId}
+              onValueChange={setVendorId}
+              options={vendors}
+            />
             {vendorId ? <KindRows kinds={vendorKinds} entityId={vendorId} /> : null}
-          </CardContent>
-        </Card>
+          </div>
+        </MainAppSection>
       ) : null}
 
       {orgKinds.length > 0 && organizationId ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('allPacks')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <KindRows kinds={orgKinds} entityId={organizationId} />
-          </CardContent>
-        </Card>
+        <MainAppSection className="w-full" title={t('allPacks')}>
+          <KindRows kinds={orgKinds} entityId={organizationId} />
+        </MainAppSection>
       ) : null}
     </div>
   );

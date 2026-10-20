@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState, useMemo, useState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -191,8 +192,8 @@ export function AttendanceManualEntryForm({
       }}
       className={
         emphasize
-          ? 'flex max-w-xl flex-col gap-4 rounded-lg border-2 border-[var(--pf-border-strong)] bg-[var(--pf-bg-muted)] p-4 sm:p-6'
-          : 'flex max-w-xl flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4'
+          ? 'flex w-full min-w-0 flex-col gap-4 rounded-lg border-2 border-[var(--pf-border-strong)] bg-[var(--pf-bg-muted)] p-4 sm:p-6'
+          : 'flex w-full min-w-0 flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4'
       }
       data-pf-attendance-update
       data-pf-confirm-stage={confirmStage}
@@ -260,7 +261,8 @@ export function AttendanceManualEntryForm({
         </fieldset>
       ) : null}
 
-      <Field label={t('manual.employee')} required>
+      <MainAppFormGrid dense className="gap-4">
+      <Field label={t('manual.employee')} required className={mainAppFieldSpan.lg}>
         {(control) =>
           fieldsLocked ? (
             <>
@@ -299,7 +301,7 @@ export function AttendanceManualEntryForm({
       </Field>
 
       {entryMode === 'single' ? (
-        <Field label={t('manual.workDate')} required>
+        <Field label={t('manual.workDate')} required className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               {...control}
@@ -316,8 +318,7 @@ export function AttendanceManualEntryForm({
         </Field>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('manual.fromDate')} required>
+            <Field label={t('manual.fromDate')} required className={mainAppFieldSpan.md}>
               {(control) => (
                 <Input
                   {...control}
@@ -333,7 +334,7 @@ export function AttendanceManualEntryForm({
                 />
               )}
             </Field>
-            <Field label={t('manual.toDate')} required>
+            <Field label={t('manual.toDate')} required className={mainAppFieldSpan.md}>
               {(control) => (
                 <Input
                   {...control}
@@ -349,7 +350,6 @@ export function AttendanceManualEntryForm({
                 />
               )}
             </Field>
-          </div>
 
           {confirmStage === 0 ? (
             <fieldset className="flex flex-col gap-2">
@@ -383,8 +383,7 @@ export function AttendanceManualEntryForm({
         </>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label={t('manual.clockInTime')} required>
+        <Field label={t('manual.clockInTime')} required className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               {...control}
@@ -400,7 +399,7 @@ export function AttendanceManualEntryForm({
             />
           )}
         </Field>
-        <Field label={t('manual.clockOutTime')} required>
+        <Field label={t('manual.clockOutTime')} required className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               {...control}
@@ -416,10 +415,9 @@ export function AttendanceManualEntryForm({
             />
           )}
         </Field>
-      </div>
 
       {confirmStage === 0 ? (
-        <fieldset className="flex flex-col gap-2">
+        <fieldset className={`flex flex-col gap-2 ${mainAppFieldSpan.full}`}>
           <legend className="text-sm font-medium">{t('manual.workScopeLabel')}</legend>
           <div className="flex flex-wrap gap-2">
             <button
@@ -460,7 +458,7 @@ export function AttendanceManualEntryForm({
       )}
 
       {workScope === 'project' || summary?.workScope === 'project' ? (
-        <Field label={t('manual.project')} required={confirmStage === 0}>
+        <Field label={t('manual.project')} required={confirmStage === 0} className={mainAppFieldSpan.lg}>
           {(control) =>
             projects.length === 0 && confirmStage === 0 ? (
               <Alert tone="info">{t('manual.noProjects')}</Alert>
@@ -499,6 +497,7 @@ export function AttendanceManualEntryForm({
           }
         </Field>
       ) : null}
+      </MainAppFormGrid>
 
       {confirmStage === 0 && dayCount > 0 ? (
         <p className="text-sm text-[var(--pf-text-secondary)]">
@@ -572,18 +571,20 @@ export function AttendanceManualEntryForm({
       ) : null}
 
       {confirmStage === 0 || confirmStage === 2 ? (
-        <Field label={t('manual.notes')} optionalLabel={tCommon('labels.optional')}>
-          {(control) => (
-            <Textarea
-              {...control}
-              name="notes"
-              rows={2}
-              value={notes}
-              onChange={(event) => setNotes(event.target.value)}
-              readOnly={confirmStage === 2}
-            />
-          )}
-        </Field>
+        <MainAppFormGrid dense className="gap-4">
+          <Field label={t('manual.notes')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
+            {(control) => (
+              <Textarea
+                {...control}
+                name="notes"
+                rows={2}
+                value={notes}
+                onChange={(event) => setNotes(event.target.value)}
+                readOnly={confirmStage === 2}
+              />
+            )}
+          </Field>
+        </MainAppFormGrid>
       ) : (
         <input type="hidden" name="notes" value={notes} />
       )}

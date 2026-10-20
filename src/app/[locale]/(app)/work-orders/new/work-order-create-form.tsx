@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { startTransition, useActionState, useState, type FormEvent } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -61,13 +62,15 @@ export function WorkOrderCreateForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-lg flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex w-full min-w-0 flex-col gap-4">
       {showValidationBanner(state) ? <Alert tone="danger">{state.error}</Alert> : null}
 
+      <MainAppFormGrid dense>
       <Field
         label={t('create.customerLabel')}
         required
         error={state.fieldErrors?.clientId ?? state.fieldErrors?.clientName}
+        className={mainAppFieldSpan.lg}
       >
         {(control) => (
           <>
@@ -88,7 +91,7 @@ export function WorkOrderCreateForm({
       </Field>
 
       {clientMode === 'new' ? (
-        <Field label={t('create.customerNew')} required error={state.fieldErrors?.clientName}>
+        <Field label={t('create.customerNew')} required error={state.fieldErrors?.clientName} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Input
               {...control}
@@ -101,7 +104,7 @@ export function WorkOrderCreateForm({
           )}
         </Field>
       ) : (
-        <Field label={t('create.customerSelect')} required error={state.fieldErrors?.clientId}>
+        <Field label={t('create.customerSelect')} required error={state.fieldErrors?.clientId} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Select name="clientId" required>
               <SelectTrigger id={control.id} aria-invalid={control['aria-invalid']}>
@@ -119,7 +122,7 @@ export function WorkOrderCreateForm({
         </Field>
       )}
 
-      <Field label={t('create.nameLabel')} required error={state.fieldErrors?.name}>
+      <Field label={t('create.nameLabel')} required error={state.fieldErrors?.name} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Input
             {...control}
@@ -136,15 +139,16 @@ export function WorkOrderCreateForm({
         label={t('create.siteLabel')}
         optionalLabel={tCommon('labels.optional')}
         error={state.fieldErrors?.siteAddress}
+        className={mainAppFieldSpan.lg}
       >
         {(control) => <Input {...control} name="siteAddress" />}
       </Field>
 
-      <div className="grid gap-4 sm:grid-cols-2">
         <Field
           label={t('create.contactNameLabel')}
           optionalLabel={tCommon('labels.optional')}
           error={state.fieldErrors?.contactName}
+          className={mainAppFieldSpan.lg}
         >
           {(control) => <Input {...control} name="contactName" />}
         </Field>
@@ -152,20 +156,20 @@ export function WorkOrderCreateForm({
           label={t('create.contactPhoneLabel')}
           optionalLabel={tCommon('labels.optional')}
           error={state.fieldErrors?.contactPhone}
+          className={mainAppFieldSpan.md}
         >
           {(control) => <Input {...control} name="contactPhone" dir="ltr" />}
         </Field>
-      </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
         <Field
           label={t('create.categoryLabel')}
           optionalLabel={tCommon('labels.optional')}
           error={state.fieldErrors?.category}
+          className={mainAppFieldSpan.lg}
         >
           {(control) => <Input {...control} name="category" />}
         </Field>
-        <Field label={t('create.priorityLabel')} error={state.fieldErrors?.priority}>
+        <Field label={t('create.priorityLabel')} error={state.fieldErrors?.priority} className={mainAppFieldSpan.md}>
           {(control) => (
             <Select name="priority" defaultValue="normal">
               <SelectTrigger id={control.id}>
@@ -181,9 +185,8 @@ export function WorkOrderCreateForm({
             </Select>
           )}
         </Field>
-      </div>
 
-      <Field label={t('create.pricingModeLabel')} required>
+      <Field label={t('create.pricingModeLabel')} required className={mainAppFieldSpan.md}>
         {(control) => (
           <>
             <input type="hidden" name="pricingMode" value={pricingMode} />
@@ -201,6 +204,7 @@ export function WorkOrderCreateForm({
       </Field>
 
       {pricingMode === 'fixed' ? (
+        <div className={mainAppFieldSpan.full}>
         <ContractAmountFields
           baseCurrency={baseCurrency}
           currencySymbol={currencySymbol}
@@ -214,14 +218,16 @@ export function WorkOrderCreateForm({
           amountPlaceholder={t('pricing.pricePlaceholder')}
           taxModeDescription={t('pricing.taxModeHint')}
         />
+        </div>
       ) : (
-        <Alert tone="info">{t('pricing.priceNotSet')}</Alert>
+        <Alert tone="info" className={mainAppFieldSpan.full}>{t('pricing.priceNotSet')}</Alert>
       )}
 
       <Field
         label={t('create.requestedDateLabel')}
         optionalLabel={tCommon('labels.optional')}
         error={state.fieldErrors?.requestedDate}
+        className={mainAppFieldSpan.md}
       >
         {(control) => (
           <Input
@@ -234,11 +240,11 @@ export function WorkOrderCreateForm({
         )}
       </Field>
 
-      <div className="grid gap-4 sm:grid-cols-2">
         <Field
           label={t('create.windowStartLabel')}
           optionalLabel={tCommon('labels.optional')}
           error={state.fieldErrors?.scheduledStartAt}
+          className={mainAppFieldSpan.lg}
         >
           {(control) => <Input {...control} name="scheduledStartAt" type="datetime-local" dir="ltr" />}
         </Field>
@@ -246,10 +252,10 @@ export function WorkOrderCreateForm({
           label={t('create.windowEndLabel')}
           optionalLabel={tCommon('labels.optional')}
           error={state.fieldErrors?.scheduledEndAt}
+          className={mainAppFieldSpan.lg}
         >
           {(control) => <Input {...control} name="scheduledEndAt" type="datetime-local" dir="ltr" />}
         </Field>
-      </div>
 
       {employees.length > 0 ? (
         <Field
@@ -257,6 +263,7 @@ export function WorkOrderCreateForm({
           optionalLabel={tCommon('labels.optional')}
           error={state.fieldErrors?.assigneeEmployeeId}
           description={t('create.assigneeHint')}
+          className={mainAppFieldSpan.lg}
         >
           {(control) => (
             <Select name="assigneeEmployeeId">
@@ -275,15 +282,18 @@ export function WorkOrderCreateForm({
         </Field>
       ) : null}
 
-      <WorkOrderChecklistField
-        templates={checklistTemplates}
-        error={state.fieldErrors?.checklistTemplateId}
-      />
+      <div className={mainAppFieldSpan.full}>
+        <WorkOrderChecklistField
+          templates={checklistTemplates}
+          error={state.fieldErrors?.checklistTemplateId}
+        />
+      </div>
 
       <Field
         label={tCommon('labels.description')}
         optionalLabel={tCommon('labels.optional')}
         error={state.fieldErrors?.description}
+        className={mainAppFieldSpan.full}
       >
         {(control) => <Textarea {...control} name="description" rows={2} />}
       </Field>
@@ -292,9 +302,11 @@ export function WorkOrderCreateForm({
         label={t('create.notesLabel')}
         optionalLabel={tCommon('labels.optional')}
         error={state.fieldErrors?.serviceNotes}
+        className={mainAppFieldSpan.full}
       >
         {(control) => <Textarea {...control} name="serviceNotes" rows={2} />}
       </Field>
+      </MainAppFormGrid>
 
       <Button type="submit" loading={pending} block>
         {t('create.submit')}

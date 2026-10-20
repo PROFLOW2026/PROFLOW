@@ -1,7 +1,13 @@
-'use client';
+﻿'use client';
 
 import { useActionState, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import {
+  MainAppFormGrid,
+  MainAppSection,
+  MainAppTableShell,
+  mainAppFieldSpan,
+} from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
@@ -91,21 +97,17 @@ export function PeopleSettingsPanel({
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <section>
-        <h2 className="text-base font-semibold">{t('members.title')}</h2>
-        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('members.subtitle')}</p>
-
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection title={t('members.title')} description={t('members.subtitle')}>
         {members.length === 0 ? (
-          <EmptyState title={t('members.empty')} description={t('members.emptyHint')} className="mt-4" />
+          <EmptyState title={t('members.empty')} description={t('members.emptyHint')} />
         ) : (
-          <div className="mt-4">
-            <ResponsiveTable
-              items={members}
-              getRowKey={(member) => member.membershipId}
-              desktop={
-                <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
-                  <Table>
+          <ResponsiveTable
+            items={members}
+            getRowKey={(member) => member.membershipId}
+            desktop={
+              <MainAppTableShell>
+                <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>{t('members.columnName')}</TableHead>
@@ -157,9 +159,9 @@ export function PeopleSettingsPanel({
                       ))}
                     </TableBody>
                   </Table>
-                </div>
-              }
-              renderMobileCard={(member) => (
+              </MainAppTableShell>
+            }
+            renderMobileCard={(member) => (
                 <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
                   <p className="text-sm font-medium">
                     {member.displayName ?? memberContactLabel(member.email)}
@@ -196,18 +198,15 @@ export function PeopleSettingsPanel({
                     </div>
                   ) : null}
                 </div>
-              )}
-            />
-          </div>
+            )}
+          />
         )}
-      </section>
+      </MainAppSection>
 
       {canInvite ? (
-        <section>
-          <h2 className="text-base font-semibold">{t('invitations.title')}</h2>
-
+        <MainAppSection title={t('invitations.title')}>
           {pendingInvitations.length > 0 ? (
-            <ul className="mt-3 flex flex-col gap-2">
+            <ul className="flex flex-col gap-2">
               {pendingInvitations.map((invitation) => {
                 const role = roleIdToKey[invitation.roleId] as RoleTemplateKey | undefined;
                 return (
@@ -228,7 +227,7 @@ export function PeopleSettingsPanel({
             </ul>
           ) : null}
 
-          <form action={inviteAction} className="mt-4 flex w-full max-w-md flex-col gap-3">
+          <form action={inviteAction} className="flex w-full min-w-0 flex-col gap-4">
             {inviteState.error ? <Alert tone="danger">{inviteState.error}</Alert> : null}
             {inviteState.ok && !inviteState.invitationLink ? (
               <Alert tone="success" role="status" aria-live="polite">
@@ -236,33 +235,37 @@ export function PeopleSettingsPanel({
               </Alert>
             ) : null}
 
-            <Field label={t('invitations.email')} required>
-              {(props) => <Input {...props} name="email" type="email" dir="ltr" required />}
-            </Field>
+            <MainAppFormGrid dense className="gap-4">
+              <Field label={t('invitations.email')} required className={mainAppFieldSpan.lg}>
+                {(props) => <Input {...props} name="email" type="email" dir="ltr" required />}
+              </Field>
 
-            <Field label={t('invitations.role')} required>
-              {(props) => (
-                <>
-                  <input type="hidden" name="roleKey" value={roleKey} />
-                  <Select value={roleKey} onValueChange={(value) => setRoleKey(value as RoleTemplateKey)}>
-                    <SelectTrigger id={props.id} aria-describedby={props['aria-describedby']}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {inviteRoleOptions.map((key) => (
-                        <SelectItem key={key} value={key}>
-                          {t(`roles.${key}.name`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-            </Field>
+              <Field label={t('invitations.role')} required className={mainAppFieldSpan.lg}>
+                {(props) => (
+                  <>
+                    <input type="hidden" name="roleKey" value={roleKey} />
+                    <Select value={roleKey} onValueChange={(value) => setRoleKey(value as RoleTemplateKey)}>
+                      <SelectTrigger id={props.id} aria-describedby={props['aria-describedby']}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {inviteRoleOptions.map((key) => (
+                          <SelectItem key={key} value={key}>
+                            {t(`roles.${key}.name`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
+              </Field>
 
-            <Button type="submit" loading={invitePending}>
-              {t('invitations.send')}
-            </Button>
+              <div className={mainAppFieldSpan.full}>
+                <Button type="submit" loading={invitePending}>
+                  {t('invitations.send')}
+                </Button>
+              </div>
+            </MainAppFormGrid>
           </form>
 
           {inviteState.invitationLink ? (
@@ -294,7 +297,7 @@ export function PeopleSettingsPanel({
               </div>
             </div>
           ) : null}
-        </section>
+        </MainAppSection>
       ) : null}
     </div>
   );

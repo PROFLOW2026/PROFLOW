@@ -1,3 +1,4 @@
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
@@ -45,7 +46,7 @@ export default async function MaterialMarketTradePage({
   });
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t(`trades.${trade}`)}
         description={t('description')}
@@ -55,18 +56,26 @@ export default async function MaterialMarketTradePage({
           </Link>
         }
       />
-      <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-        {t('disclaimer')}
-      </p>
+
+      <MainAppSection>
+        <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          {t('disclaimer')}
+        </p>
+      </MainAppSection>
+
       {detail ? (
-        <TradeDetailPanel detail={detail} />
+        <MainAppSection>
+          <TradeDetailPanel detail={detail} />
+        </MainAppSection>
       ) : (
-        <TradePendingPanel
-          tradeLabel={t(`trades.${trade}`)}
-          pendingTitle={t('pendingScore')}
-          pendingDescription={t('pendingDescription')}
-        />
+        <MainAppSection>
+          <TradePendingPanel
+            tradeLabel={t(`trades.${trade}`)}
+            pendingTitle={t('pendingScore')}
+            pendingDescription={t('pendingDescription')}
+          />
+        </MainAppSection>
       )}
-    </div>
+    </MainAppPage>
   );
 }

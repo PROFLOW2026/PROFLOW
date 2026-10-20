@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { MainAppSection, MainAppSummaryGrid } from '@/components/patterns/main-app';
 import { MoneyText } from '@/components/patterns/money-text';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { Link } from '@/shared/i18n/navigation';
@@ -48,7 +49,7 @@ function MetricCard({
   readonly children: ReactNode;
 }) {
   return (
-    <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 text-start">
+    <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2.5 text-start sm:p-3">
       <p className="break-words text-xs text-[var(--pf-text-secondary)]">{label}</p>
       <div className="mt-1 min-w-0">{children}</div>
     </div>
@@ -86,29 +87,24 @@ export function ManagementAnalyticsView({
 
   if (!hasAny) {
     return (
-      <div className="flex min-w-0 flex-col gap-3">
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold">{copy.title}</h2>
-          <p className="break-words text-xs text-[var(--pf-text-secondary)]">{copy.hint}</p>
-        </div>
+      <MainAppSection title={copy.title} description={copy.hint}>
         <p className="text-sm text-[var(--pf-text-secondary)]">{copy.empty}</p>
-      </div>
+      </MainAppSection>
     );
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
-      <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold">{copy.title}</h2>
-          <p className="break-words text-xs text-[var(--pf-text-secondary)]">{copy.hint}</p>
-        </div>
+    <MainAppSection
+      title={copy.title}
+      description={copy.hint}
+      actions={
         <Link href="/cash-flow" className={textNavLinkClassName}>
           {copy.cashFlowLink}
         </Link>
-      </div>
-
-      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      }
+    >
+      <div className="flex min-w-0 flex-col gap-3">
+      <MainAppSummaryGrid className="min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {management.activeProjectValue ? (
           <MetricCard label={copy.labels.activeProjectValue}>
             <MoneyText value={management.activeProjectValue} />
@@ -217,7 +213,7 @@ export function ManagementAnalyticsView({
             </p>
           </MetricCard>
         ) : null}
-      </div>
+      </MainAppSummaryGrid>
 
       {management.projectsAtRisk && management.projectsAtRisk.length > 0 ? (
         <div className="min-w-0">
@@ -260,7 +256,8 @@ export function ManagementAnalyticsView({
           }))}
         />
       ) : null}
-    </div>
+      </div>
+    </MainAppSection>
   );
 }
 

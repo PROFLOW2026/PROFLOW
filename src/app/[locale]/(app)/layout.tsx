@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import './owner-density.css';
+import './main-app-list.css';
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },

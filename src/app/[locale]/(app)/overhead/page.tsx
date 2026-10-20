@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -25,17 +26,23 @@ export default async function OverheadPage() {
 
   if (!allowed) {
     return (
-      <div className="flex min-w-0 flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={t('title')} description={t('description')} />
+      <MainAppSection>
         <EmptyState title={t('notAllowed.title')} description={t('notAllowed.body')} />
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     );
   }
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('title')} description={t('description')} />
-      <OverheadNavigationHub />
-    </div>
+      <MainAppSection>
+        <OverheadNavigationHub />
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

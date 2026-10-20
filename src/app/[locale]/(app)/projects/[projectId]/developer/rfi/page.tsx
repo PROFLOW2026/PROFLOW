@@ -1,3 +1,4 @@
+﻿import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { MessageCircleQuestion } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -45,34 +46,38 @@ export default async function ConnectedDeveloperRfiPage({
 
   return (
     <WithPortalClientMessages extra={['rfi', 'common']}>
-      <div className="flex flex-col gap-4 pb-6">
+      <MainAppPage className="w-full min-w-0">
         <PageHeader title={t('portal.title')} description={t('portal.description')} />
-        <div className="flex flex-wrap gap-2 text-sm">
-          <BadgeStat label={t('summary.awaitingAnswer')} value={summary.awaitingAnswer} />
-          <BadgeStat label={t('summary.overdue')} value={summary.overdue} />
-          <BadgeStat label={t('summary.drafts')} value={summary.drafts} />
-        </div>
-        {canRaise ? (
-          wantsCreate ? (
-            <ContractorRfiCreateForm
-              organizationId={organizationId}
-              projectId={developerProjectId}
-              basePath={base}
-              locations={locations}
-              workPackages={workPackages}
-            />
-          ) : (
-            <Link href={`${base}?new=1`} className={buttonVariants({ variant: 'primary' })}>
-              {t('portal.newTitle')}
-            </Link>
-          )
-        ) : null}
-        {items.length === 0 ? (
-          <EmptyState icon={MessageCircleQuestion} title={t('portal.empty')} size="sm" />
-        ) : (
-          <RfiList items={items} basePath={portalRfiBase} locale={locale} />
-        )}
-      </div>
+        <MainAppSection className="w-full min-w-0">
+          <div className="flex w-full min-w-0 flex-col gap-4">
+            <div className="flex flex-wrap gap-2 text-sm">
+              <BadgeStat label={t('summary.awaitingAnswer')} value={summary.awaitingAnswer} />
+              <BadgeStat label={t('summary.overdue')} value={summary.overdue} />
+              <BadgeStat label={t('summary.drafts')} value={summary.drafts} />
+            </div>
+            {canRaise ? (
+              wantsCreate ? (
+                <ContractorRfiCreateForm
+                  organizationId={organizationId}
+                  projectId={developerProjectId}
+                  basePath={base}
+                  locations={locations}
+                  workPackages={workPackages}
+                />
+              ) : (
+                <Link href={`${base}?new=1`} className={buttonVariants({ variant: 'primary' })}>
+                  {t('portal.newTitle')}
+                </Link>
+              )
+            ) : null}
+            {items.length === 0 ? (
+              <EmptyState icon={MessageCircleQuestion} title={t('portal.empty')} size="sm" />
+            ) : (
+              <RfiList items={items} basePath={portalRfiBase} locale={locale} />
+            )}
+          </div>
+        </MainAppSection>
+      </MainAppPage>
     </WithPortalClientMessages>
   );
 }

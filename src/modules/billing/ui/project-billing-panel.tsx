@@ -4,7 +4,7 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MainAppSection, MainAppTableShell } from '@/components/patterns/main-app';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
@@ -42,7 +42,7 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
   const billedVat = subtractMoney(position.invoiced, position.netInvoiced);
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
+    <div className="flex w-full min-w-0 flex-col gap-4">
       <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
       {contracts.length > 1 ? (
         <nav className="flex min-w-0 flex-wrap gap-2" aria-label={t('list.contract')}>
@@ -77,11 +77,8 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
           })}
         </nav>
       ) : null}
-      <Card className="min-w-0">
-        <CardHeader>
-          <CardTitle className="text-start">{t('panel.positionTitle')}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <MainAppSection title={t('panel.positionTitle')} className="w-full min-w-0">
+        <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('invoiced')}</p>
             <BillingNetPrimaryDisplay
@@ -122,15 +119,11 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
           <p className="sm:col-span-2 lg:col-span-3 text-start text-xs text-[var(--pf-text-secondary)]">
             {t('panel.integrityHint')}
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </MainAppSection>
 
       {unbilledChanges.length > 0 ? (
-        <Card className="min-w-0">
-          <CardHeader>
-            <CardTitle className="text-start">{t('panel.unbilledChangesTitle')}</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <MainAppSection title={t('panel.unbilledChangesTitle')} className="w-full min-w-0">
             <ul className="flex flex-col gap-2 text-sm">
               {unbilledChanges.map((change) => (
                 <li
@@ -144,8 +137,7 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
                 </li>
               ))}
             </ul>
-          </CardContent>
-        </Card>
+        </MainAppSection>
       ) : null}
 
       {records.length === 0 ? (
@@ -162,21 +154,22 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
           }
         />
       ) : (
-        <Card className="min-w-0">
-          <CardHeader className="flex-row flex-wrap items-center justify-between gap-2">
-            <CardTitle className="text-start">{t('panel.recordsTitle')}</CardTitle>
-            {canManage ? (
+        <MainAppSection
+          title={t('panel.recordsTitle')}
+          className="w-full min-w-0 gap-3"
+          actions={
+            canManage ? (
               <Button asChild size="sm" variant="secondary" className="min-h-11 max-w-full md:min-h-8">
                 <Link href={newBillingHref}>{t('panel.addBilling')}</Link>
               </Button>
-            ) : null}
-          </CardHeader>
-          <CardContent className="min-w-0 px-0 pb-0 sm:px-0">
+            ) : undefined
+          }
+        >
             <ResponsiveTable
               items={records}
               getRowKey={(record) => record.id}
               desktop={
-                <div className="min-w-0">
+                <MainAppTableShell>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -225,7 +218,7 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
                       ))}
                     </TableBody>
                   </Table>
-                </div>
+                </MainAppTableShell>
               }
               renderMobileCard={(record) => (
                 <Link
@@ -264,24 +257,19 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
                   </div>
                 </Link>
               )}
-              mobileListClassName="px-4 pb-4"
+              mobileListClassName="px-3 pb-3 sm:px-4 sm:pb-4"
             />
-          </CardContent>
-        </Card>
+        </MainAppSection>
       )}
 
       {payments.length > 0 ? (
-        <Card className="min-w-0">
-          <CardHeader>
-            <CardTitle className="text-start">{t('paymentHistory.title')}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex min-w-0 flex-col gap-2 px-0 pb-0 sm:px-0">
-            <p className="px-6 text-start text-xs text-[var(--pf-text-secondary)]">
-              {t('paymentHistory.subtitle')}
-            </p>
-            <PaymentHistoryTable rows={payments} locale={locale} hideProject />
-          </CardContent>
-        </Card>
+        <MainAppSection
+          title={t('paymentHistory.title')}
+          description={t('paymentHistory.subtitle')}
+          className="w-full min-w-0 gap-3"
+        >
+          <PaymentHistoryTable rows={payments} locale={locale} hideProject />
+        </MainAppSection>
       ) : null}
     </div>
   );

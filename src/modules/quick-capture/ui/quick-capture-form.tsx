@@ -3,6 +3,7 @@
 import { Camera, FileText, Film, ImagePlus, Video, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -257,7 +258,7 @@ export function QuickCaptureForm({
   }));
 
   return (
-    <div className="flex max-w-lg flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       {!canManageDocuments ? <Alert tone="info">{tForm('manageRequired')}</Alert> : null}
       {canManageDocuments && !storageConfigured ? (
         <Alert tone="info">
@@ -427,7 +428,8 @@ export function QuickCaptureForm({
         </div>
       ) : null}
 
-      <Field label={tForm('note')}>
+      <MainAppFormGrid dense className="gap-4">
+      <Field label={tForm('note')} className={mainAppFieldSpan.full}>
         {(control) => (
           <Textarea
             id={control.id}
@@ -439,12 +441,15 @@ export function QuickCaptureForm({
         )}
       </Field>
 
+      <div className={mainAppFieldSpan.lg}>
       <QuickCaptureProjectSelect
         projects={projects}
         value={projectId}
         onValueChange={setProjectId}
         disabled={pending}
       />
+      </div>
+      </MainAppFormGrid>
 
       <Button
         type="button"

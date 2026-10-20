@@ -1,3 +1,9 @@
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
@@ -17,6 +23,8 @@ import { ArchiveArtifactButton } from '../archive-artifact-button';
 import { ArtifactForm } from '../artifact-form';
 import { ComplianceDocumentAttachments } from './compliance-document-attachments';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
+
+const EMPTY = '—';
 
 export async function generateMetadata({
   params,
@@ -73,7 +81,7 @@ export default async function ComplianceArtifactPage({
     loaded;
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={artifact.name}
         description={t('detail.title')}
@@ -84,10 +92,7 @@ export default async function ComplianceArtifactPage({
               label={tStatus(artifact.status)}
             />
             {isMissingEvidence(artifact) ? (
-              <StatusBadge
-                shape={missingEvidenceShape()}
-                label={t('list.evidenceMissing')}
-              />
+              <StatusBadge shape={missingEvidenceShape()} label={t('list.evidenceMissing')} />
             ) : null}
             <span className="text-sm text-[var(--pf-text-secondary)]">
               {t(`kinds.${artifact.artifactKind}`)}
@@ -103,87 +108,80 @@ export default async function ComplianceArtifactPage({
       />
 
       {isMissingEvidence(artifact) ? (
-        <Alert tone="warning">{t('detail.missingEvidence')}</Alert>
+        <MainAppSection>
+          <Alert tone="warning">{t('detail.missingEvidence')}</Alert>
+        </MainAppSection>
       ) : null}
+
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('form.kindLabel')}>
+            {t(`kinds.${artifact.artifactKind}`)}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('form.subjectTypeLabel')}>
+            {t(`subjects.${artifact.subjectType}`)}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('form.referenceLabel')}>
+            {artifact.referenceNumber?.trim() ? (
+              <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                {artifact.referenceNumber}
+              </span>
+            ) : (
+              EMPTY
+            )}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('form.issuerLabel')}>
+            {artifact.issuer?.trim() ? artifact.issuer : EMPTY}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('form.expiresOnLabel')}>
+            {artifact.expiresOn ? (
+              <span className="pf-ltr-island" dir="ltr">
+                {artifact.expiresOn}
+              </span>
+            ) : (
+              t('list.noExpiry')
+            )}
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
+        {artifact.notes?.trim() ? (
+          <p className="mt-3 text-start text-sm text-[var(--pf-text-secondary)]">{artifact.notes}</p>
+        ) : null}
+      </MainAppSection>
 
       {canManage ? (
-        <ArtifactForm mode="edit" artifact={artifact} />
-      ) : (
-        <dl className="grid max-w-lg gap-3 text-sm">
-          <div>
-            <dt className="text-[var(--pf-text-secondary)]">{t('form.kindLabel')}</dt>
-            <dd>{t(`kinds.${artifact.artifactKind}`)}</dd>
-          </div>
-          <div>
-            <dt className="text-[var(--pf-text-secondary)]">{t('form.subjectTypeLabel')}</dt>
-            <dd>{t(`subjects.${artifact.subjectType}`)}</dd>
-          </div>
-          {artifact.referenceNumber ? (
-            <div>
-              <dt className="text-[var(--pf-text-secondary)]">{t('form.referenceLabel')}</dt>
-              <dd>
-                <span className="pf-ltr-island pf-entity-string" dir="ltr">
-                  {artifact.referenceNumber}
-                </span>
-              </dd>
-            </div>
-          ) : null}
-          {artifact.issuer ? (
-            <div>
-              <dt className="text-[var(--pf-text-secondary)]">{t('form.issuerLabel')}</dt>
-              <dd>{artifact.issuer}</dd>
-            </div>
-          ) : null}
-          <div>
-            <dt className="text-[var(--pf-text-secondary)]">{t('form.expiresOnLabel')}</dt>
-            <dd>
-              {artifact.expiresOn ? (
-                <span className="pf-ltr-island" dir="ltr">
-                  {artifact.expiresOn}
-                </span>
-              ) : (
-                t('list.noExpiry')
-              )}
-            </dd>
-          </div>
-          {artifact.notes ? (
-            <div>
-              <dt className="text-[var(--pf-text-secondary)]">{t('form.notesLabel')}</dt>
-              <dd>{artifact.notes}</dd>
-            </div>
-          ) : null}
-        </dl>
-      )}
-
-      {(canCreateExpense || linkedExpenseId) && !artifact.archivedAt ? (
-        <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
-          <h2 className="font-semibold">{t('detail.financeSection')}</h2>
-          <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('detail.financeHint')}</p>
-          <div className="mt-3">
-            <CreateLinkedExpenseForm
-              namespace="compliance"
-              opsRecordKind="compliance_artifact"
-              opsRecordId={artifact.id}
-              defaultCurrency={baseCurrency}
-              defaultDescription={artifact.name}
-              showAllocationFields={artifact.artifactKind === 'insurance'}
-              existingExpenseId={linkedExpenseId}
-              revalidatePath={`/compliance/${artifact.id}`}
-            />
-          </div>
-        </section>
+        <MainAppSection title={t('detail.title')}>
+          <ArtifactForm mode="edit" artifact={artifact} />
+        </MainAppSection>
       ) : null}
 
-      <ComplianceDocumentAttachments
-        artifactId={artifact.id}
-        ownerType="compliance_artifact"
-        ownerId={artifact.id}
-        documents={documentsPanel.documents}
-        linkCandidates={documentsPanel.linkCandidates}
-        canRead={documentsPanel.canRead}
-        canManage={documentsPanel.canManage && canManage}
-        storageConfigured={documentsPanel.storageConfigured}
-      />
-    </div>
+      {(canCreateExpense || linkedExpenseId) && !artifact.archivedAt ? (
+        <MainAppSection title={t('detail.financeSection')}>
+          <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.financeHint')}</p>
+          <CreateLinkedExpenseForm
+            namespace="compliance"
+            opsRecordKind="compliance_artifact"
+            opsRecordId={artifact.id}
+            defaultCurrency={baseCurrency}
+            defaultDescription={artifact.name}
+            showAllocationFields={artifact.artifactKind === 'insurance'}
+            existingExpenseId={linkedExpenseId}
+            revalidatePath={`/compliance/${artifact.id}`}
+          />
+        </MainAppSection>
+      ) : null}
+
+      <MainAppSection title={t('list.columns.evidence')}>
+        <ComplianceDocumentAttachments
+          artifactId={artifact.id}
+          ownerType="compliance_artifact"
+          ownerId={artifact.id}
+          documents={documentsPanel.documents}
+          linkCandidates={documentsPanel.linkCandidates}
+          canRead={documentsPanel.canRead}
+          canManage={documentsPanel.canManage && canManage}
+          storageConfigured={documentsPanel.storageConfigured}
+        />
+      </MainAppSection>
+    </MainAppPage>
   );
 }

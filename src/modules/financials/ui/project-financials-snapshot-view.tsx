@@ -1,3 +1,8 @@
+import {
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import { CoverageDisclosure } from '@/components/patterns/coverage-disclosure';
 import { MoneyText } from '@/components/patterns/money-text';
 import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
@@ -12,7 +17,7 @@ export interface ProjectFinancialsSnapshotViewProps {
   readonly t: (key: string) => string;
 }
 
-function SnapshotMoneyRow({
+function SnapshotMoneyItem({
   label,
   value,
   availability = 'value',
@@ -26,19 +31,18 @@ function SnapshotMoneyRow({
   partialLabel: string;
 }) {
   return (
-    <div className="flex justify-between gap-2">
-      <span className="text-[var(--pf-text-secondary)]">{label}</span>
+    <MainAppSummaryItem label={label}>
       {availability === 'unavailable' ? (
         <span className="text-[var(--pf-text-muted)]">{unavailableLabel}</span>
       ) : availability === 'partial' ? (
-        <span className="flex flex-col items-end gap-0.5">
+        <span className="flex flex-col items-start gap-0.5">
           <MoneyText value={value} />
           <span className="text-xs text-[var(--pf-text-muted)]">{partialLabel}</span>
         </span>
       ) : (
         <MoneyText value={value} />
       )}
-    </div>
+    </MainAppSummaryItem>
   );
 }
 
@@ -61,107 +65,111 @@ export function ProjectFinancialsSnapshotView({
   const openingReduction = financials.commercial?.openingReductionValue ?? null;
 
   return (
-    <>
-      {displayOriginal ? (
-        <div className="flex justify-between gap-2" data-testid="display-original-snapshot">
-          <span className="text-[var(--pf-text-muted)]">{t('displayOriginalContractValue')}</span>
-          <MoneyText value={displayOriginal} className="text-[var(--pf-text-muted)]" />
-        </div>
-      ) : null}
-      {openingReduction ? (
-        <div className="flex justify-between gap-2" data-testid="opening-reduction-snapshot">
-          <span className="text-[var(--pf-text-muted)]">{t('openingReductionValue')}</span>
-          <MoneyText value={openingReduction} className="text-[var(--pf-text-muted)]" />
-        </div>
-      ) : null}
-      {kpis.currentContract ? (
-        <div className="flex justify-between gap-2">
-          <span className="text-[var(--pf-text-secondary)]">{t('kpis.currentContract')}</span>
-          <MoneyText value={kpis.currentContract} />
-        </div>
-      ) : null}
-      <SnapshotMoneyRow
-        label={t('kpis.actualCost')}
-        value={kpis.actualCost}
-        availability={kpi?.actualCost}
-        unavailableLabel={unavailableLabel}
-        partialLabel={partialLabel}
-      />
-      <SnapshotMoneyRow
-        label={t('kpis.forecast')}
-        value={kpis.forecastCost}
-        availability={kpi?.forecastCost}
-        unavailableLabel={unavailableLabel}
-        partialLabel={partialLabel}
-      />
-      <SnapshotMoneyRow
-        label={t('kpis.committed')}
-        value={kpis.committed}
-        availability={kpi?.committed}
-        unavailableLabel={unavailableLabel}
-        partialLabel={partialLabel}
-      />
-      {financials.billing.hasBillingData ? (
-        <>
-          <div className="flex justify-between gap-2">
-            <span className="text-[var(--pf-text-secondary)]">{t('kpis.billed')}</span>
-            <BillingNetPrimaryDisplay
-              netAmount={kpis.billed}
-              grossAmount={kpis.billedGross}
-              netLabel={t('basis.billingNet')}
-              grossLabel={t('kpis.includingVat')}
-              className="items-end text-end"
-            />
+    <MainAppSection className="text-start">
+      <MainAppSummaryGrid className="min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {displayOriginal ? (
+          <div data-testid="display-original-snapshot">
+            <MainAppSummaryItem label={t('displayOriginalContractValue')}>
+              <MoneyText value={displayOriginal} className="text-[var(--pf-text-muted)]" />
+            </MainAppSummaryItem>
           </div>
-          <div className="flex justify-between gap-2">
-            <span className="text-[var(--pf-text-secondary)]">{t('kpis.paid')}</span>
-            <MoneyText value={kpis.paid} />
+        ) : null}
+        {openingReduction ? (
+          <div data-testid="opening-reduction-snapshot">
+            <MainAppSummaryItem label={t('openingReductionValue')}>
+              <MoneyText value={openingReduction} className="text-[var(--pf-text-muted)]" />
+            </MainAppSummaryItem>
           </div>
-          <div className="flex justify-between gap-2">
-            <span className="text-[var(--pf-text-secondary)]">{t('kpis.outstanding')}</span>
-            <MoneyText value={kpis.outstanding} />
+        ) : null}
+        {kpis.currentContract ? (
+          <MainAppSummaryItem label={t('kpis.currentContract')}>
+            <MoneyText value={kpis.currentContract} />
+          </MainAppSummaryItem>
+        ) : null}
+        <SnapshotMoneyItem
+          label={t('kpis.actualCost')}
+          value={kpis.actualCost}
+          availability={kpi?.actualCost}
+          unavailableLabel={unavailableLabel}
+          partialLabel={partialLabel}
+        />
+        <SnapshotMoneyItem
+          label={t('kpis.forecast')}
+          value={kpis.forecastCost}
+          availability={kpi?.forecastCost}
+          unavailableLabel={unavailableLabel}
+          partialLabel={partialLabel}
+        />
+        <SnapshotMoneyItem
+          label={t('kpis.committed')}
+          value={kpis.committed}
+          availability={kpi?.committed}
+          unavailableLabel={unavailableLabel}
+          partialLabel={partialLabel}
+        />
+        {financials.billing.hasBillingData ? (
+          <>
+            <MainAppSummaryItem label={t('kpis.billed')}>
+              <BillingNetPrimaryDisplay
+                netAmount={kpis.billed}
+                grossAmount={kpis.billedGross}
+                netLabel={t('basis.billingNet')}
+                grossLabel={t('kpis.includingVat')}
+                className="items-start text-start"
+              />
+            </MainAppSummaryItem>
+            <MainAppSummaryItem label={t('kpis.paid')}>
+              <MoneyText value={kpis.paid} />
+            </MainAppSummaryItem>
+            <MainAppSummaryItem label={t('kpis.outstanding')}>
+              <MoneyText value={kpis.outstanding} />
+            </MainAppSummaryItem>
+          </>
+        ) : null}
+        {canReadProfit && kpis.priceNotSet ? (
+          <div className="min-w-0 sm:col-span-2 lg:col-span-3" data-testid="price-not-set-snapshot">
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('kpis.priceNotSet')}</p>
           </div>
-        </>
-      ) : kpi?.billing === 'unavailable' ? null : (
-        <p className="text-xs text-[var(--pf-text-muted)]" data-testid="billing-not-setup">
+        ) : null}
+        {canReadProfit &&
+        !kpis.priceNotSet &&
+        kpi?.actualProfit !== 'unavailable' &&
+        kpis.actualMargin ? (
+          <SnapshotMoneyItem
+            label={t('kpis.actualMargin')}
+            value={kpis.actualMargin}
+            availability={kpi?.actualProfit}
+            unavailableLabel={unavailableLabel}
+            partialLabel={partialLabel}
+          />
+        ) : canReadProfit && !kpis.priceNotSet && kpi?.actualProfit === 'unavailable' ? (
+          <MainAppSummaryItem label={t('kpis.actualMargin')}>
+            <span className="text-[var(--pf-text-muted)]">{unavailableLabel}</span>
+          </MainAppSummaryItem>
+        ) : null}
+        {canReadProfit &&
+        !kpis.priceNotSet &&
+        kpi?.forecastProfit !== 'unavailable' &&
+        kpis.forecastMargin ? (
+          <SnapshotMoneyItem
+            label={t('kpis.forecastMargin')}
+            value={kpis.forecastMargin}
+            availability={kpi?.forecastProfit}
+            unavailableLabel={unavailableLabel}
+            partialLabel={partialLabel}
+          />
+        ) : null}
+      </MainAppSummaryGrid>
+      {!financials.billing.hasBillingData && kpi?.billing !== 'unavailable' ? (
+        <p className="mt-3 text-xs text-[var(--pf-text-muted)]" data-testid="billing-not-setup">
           {t('kpis.billingNotSetup')}
         </p>
-      )}
-      {canReadProfit && kpis.priceNotSet ? (
-        <p className="text-[var(--pf-text-secondary)]" data-testid="price-not-set-snapshot">
-          {t('kpis.priceNotSet')}
-        </p>
       ) : null}
-      {canReadProfit &&
-      !kpis.priceNotSet &&
-      kpi?.actualProfit !== 'unavailable' &&
-      kpis.actualMargin ? (
-        <SnapshotMoneyRow
-          label={t('kpis.actualMargin')}
-          value={kpis.actualMargin}
-          availability={kpi?.actualProfit}
-          unavailableLabel={unavailableLabel}
-          partialLabel={partialLabel}
-        />
-      ) : canReadProfit && !kpis.priceNotSet && kpi?.actualProfit === 'unavailable' ? (
-        <div className="flex justify-between gap-2">
-          <span className="text-[var(--pf-text-secondary)]">{t('kpis.actualMargin')}</span>
-          <span className="text-[var(--pf-text-muted)]">{unavailableLabel}</span>
+      {showCoverage ? (
+        <div className="mt-3">
+          <CoverageDisclosure sources={coverageSources} />
         </div>
       ) : null}
-      {canReadProfit &&
-      !kpis.priceNotSet &&
-      kpi?.forecastProfit !== 'unavailable' &&
-      kpis.forecastMargin ? (
-        <SnapshotMoneyRow
-          label={t('kpis.forecastMargin')}
-          value={kpis.forecastMargin}
-          availability={kpi?.forecastProfit}
-          unavailableLabel={unavailableLabel}
-          partialLabel={partialLabel}
-        />
-      ) : null}
-      {showCoverage ? <CoverageDisclosure sources={coverageSources} /> : null}
-    </>
+    </MainAppSection>
   );
 }

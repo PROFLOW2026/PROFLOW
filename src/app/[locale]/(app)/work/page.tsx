@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -95,10 +96,10 @@ export default async function MyWorkPage({ searchParams }: MyWorkPageProps) {
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <>
       <PageHeader title={t('myWork.pageTitle')} description={t('myWork.pageDescription')} />
-
-      <WorkLensChrome searchParams={params} clients={clients} taskCount={taskCount} />
+      <MainAppSection className="w-full min-w-0">
+        <WorkLensChrome searchParams={params} clients={clients} taskCount={taskCount} />
 
       <PlanningVsTasksHint />
 
@@ -126,6 +127,8 @@ export default async function MyWorkPage({ searchParams }: MyWorkPageProps) {
           />
         </Suspense>
       ) : null}
-    </div>
+    
+      </MainAppSection>
+    </>
   );
 }

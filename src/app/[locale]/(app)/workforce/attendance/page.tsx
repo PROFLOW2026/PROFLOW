@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -244,7 +245,7 @@ export default async function AttendancePage({
   const attendanceSearch = attendanceSearchParams.toString();
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('attendance.title')}
         description={t('attendance.description')}
@@ -261,8 +262,8 @@ export default async function AttendancePage({
           ) : undefined
         }
       />
-
-      <WorkforceSubNav active="attendance" />
+      <MainAppSection>
+        <WorkforceSubNav active="attendance" />
 
       {data.allowManage ? (
         <nav className="flex flex-wrap gap-2 text-sm" aria-label={t('attendance.viewsLabel')}>
@@ -459,6 +460,8 @@ export default async function AttendancePage({
           <AttendanceDaysTable days={data.days} />
         </section>
       </div>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { useState, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
@@ -25,8 +26,9 @@ export function EmployeeSalarySections({
   useEmployeeDetailUnsaved('employee-salary', salaryDirty);
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-4">
-      {showSalaryUpdate ? (
+    <MainAppPage>
+      <MainAppSection>
+        {showSalaryUpdate ? (
         <CollapsibleSection
           id="salary-update"
           className="scroll-mt-24"
@@ -57,6 +59,8 @@ export function EmployeeSalarySections({
       >
         <div className="min-w-0 max-w-full overflow-x-auto">{rateHistory}</div>
       </CollapsibleSection>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

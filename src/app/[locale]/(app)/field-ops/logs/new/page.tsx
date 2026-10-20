@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -76,8 +77,9 @@ export default async function NewDailyLogPage({
 
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={t('createLog.title')} />
+      <MainAppSection>
         <EmptyState
           title={t('empty.projectsRequired.title')}
           description={t('empty.projectsRequired.body')}
@@ -87,12 +89,14 @@ export default async function NewDailyLogPage({
             </Button>
           }
         />
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('createLog.title')}
         description={t('createLog.description')}
@@ -102,7 +106,8 @@ export default async function NewDailyLogPage({
           </Link>
         }
       />
-      <DailyLogCreateForm
+      <MainAppSection>
+        <DailyLogCreateForm
         projects={projects.map((p) => ({ id: p.id, name: p.name }))}
         workPackages={workPackages}
         vendors={vendors}
@@ -113,6 +118,8 @@ export default async function NewDailyLogPage({
         canManageDocuments={canManageDocuments}
         storageConfigured={storageConfigured}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

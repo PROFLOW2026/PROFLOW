@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { ContextualBackLink } from '@/components/ui/contextual-back-link';
@@ -102,7 +103,7 @@ export default async function NewExpensePage({
   const defaultCurrency = shell?.organization.baseCurrency ?? 'ILS';
 
   return (
-    <div className="mx-auto flex min-w-0 w-full max-w-lg flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('capture.title')}
         description={t('capture.subtitle')}
@@ -115,8 +116,8 @@ export default async function NewExpensePage({
           </Button>
         }
       />
-
-      <ExpenseCaptureForm
+      <MainAppSection>
+        <ExpenseCaptureForm
         defaultCurrency={defaultCurrency}
         projects={projects}
         categories={categories}
@@ -135,6 +136,8 @@ export default async function NewExpensePage({
         paymentInstruments={paymentInstruments}
         defaultToday={defaultToday}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

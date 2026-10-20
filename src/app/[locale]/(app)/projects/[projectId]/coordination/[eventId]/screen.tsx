@@ -1,4 +1,5 @@
-import { CalendarClock, ChevronLeft, ClipboardList, MapPin, Timer } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { CalendarClock, ChevronLeft, ClipboardList, MapPin, Timer } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
@@ -61,7 +62,7 @@ export async function CoordinationEventScreen({ surfaceRoot,
   const isOpen = detail.status === 'scheduled';
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         breadcrumb={
           <Link
@@ -86,8 +87,8 @@ export async function CoordinationEventScreen({ surfaceRoot,
           </div>
         }
       />
-
-      <WithAppClientMessages extra={['coordination']}>
+      <MainAppSection>
+        <WithAppClientMessages extra={['coordination']}>
         <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
           <div className="flex min-w-0 flex-col gap-6">
             <Card>
@@ -322,7 +323,9 @@ export async function CoordinationEventScreen({ surfaceRoot,
           </aside>
         </div>
       </WithAppClientMessages>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

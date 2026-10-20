@@ -1,4 +1,5 @@
-import { Map } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { Map } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -27,9 +28,10 @@ export async function ProjectPlansScreen({ surfaceRoot,
   const t = await getTranslations('projectPlans.register');
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('pageTitle')} description={t('pageDescription')} />
-      {query.new === '1' && register.canManage ? (
+      <MainAppSection>
+        {query.new === '1' && register.canManage ? (
         <WithAppClientMessages extra={['projectPlans']}>
           <DrawingCreateForm projectId={projectId} basePath={base} />
         </WithAppClientMessages>
@@ -39,7 +41,9 @@ export async function ProjectPlansScreen({ surfaceRoot,
       ) : (
         <DrawingsRegister projectId={projectId} drawings={register.drawings} basePath={base} />
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

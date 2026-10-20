@@ -1,3 +1,4 @@
+﻿import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { resolveDocumentBrand } from '@/modules/branding';
@@ -74,6 +75,8 @@ export default async function BillingCyclePrintPage({ params }: PrintPageProps) 
     : '';
 
   return (
+    <MainAppPage>
+      <MainAppSection>
     <div dir={dir} className="bg-white text-black">
       <style dangerouslySetInnerHTML={{ __html: styles }} />
       <div className="toolbar">
@@ -160,6 +163,8 @@ export default async function BillingCyclePrintPage({ params }: PrintPageProps) 
         <p className="note">{t('print.integrityNote')}</p>
       </article>
     </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

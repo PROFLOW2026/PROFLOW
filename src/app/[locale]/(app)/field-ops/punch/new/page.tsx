@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -51,8 +52,9 @@ export default async function NewPunchPage({
 
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={t('createPunch.title')} />
+      <MainAppSection>
         <EmptyState
           title={t('empty.projectsRequired.title')}
           description={t('empty.projectsRequired.body')}
@@ -62,12 +64,14 @@ export default async function NewPunchPage({
             </Button>
           }
         />
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('createPunch.title')}
         description={t('createPunch.description')}
@@ -77,7 +81,8 @@ export default async function NewPunchPage({
           </Link>
         }
       />
-      <PunchCreateForm
+      <MainAppSection>
+        <PunchCreateForm
         projects={projects.map((p) => ({ id: p.id, name: p.name }))}
         workPackages={workPackages}
         defaultProjectId={projectId}
@@ -85,6 +90,8 @@ export default async function NewPunchPage({
         storageConfigured={storageConfigured}
         employees={employees}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

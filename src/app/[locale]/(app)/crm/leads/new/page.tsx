@@ -1,8 +1,9 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { Link } from '@/shared/i18n/navigation';
-import { NewLeadForm } from './new-lead-form';
+import { CrmNewLeadForm } from '@/modules/crm/ui/crm-new-lead-form';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
@@ -19,7 +20,7 @@ export default async function NewLeadPage() {
   const t = await getTranslations('crm');
 
   return (
-    <div className="flex flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={t('lead.new')}
         breadcrumb={
@@ -28,7 +29,10 @@ export default async function NewLeadPage() {
           </Link>
         }
       />
-      <NewLeadForm />
-    </div>
+      <MainAppSection>
+        <CrmNewLeadForm />
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

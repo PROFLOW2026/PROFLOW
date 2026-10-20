@@ -1,4 +1,5 @@
-import { HardHat } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { HardHat } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
@@ -38,9 +39,9 @@ export async function ProjectSiteSafetyScreen({ surfaceRoot: _surfaceRoot, param
 
   return (
     <WithAppClientMessages extra={['contractorCompliance']}>
-      <div className="flex flex-col gap-4">
+      <MainAppPage>
         <PageHeader title={t('safety.title')} description={t('safety.description')} />
-
+      <MainAppSection>
         {defaultVendor ? (
           <SafetyReportForm mode="internal" projectId={projectId} vendorId={defaultVendor} />
         ) : null}
@@ -61,7 +62,9 @@ export async function ProjectSiteSafetyScreen({ surfaceRoot: _surfaceRoot, param
             ))}
           </ul>
         )}
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

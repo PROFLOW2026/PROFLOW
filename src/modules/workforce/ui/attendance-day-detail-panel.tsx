@@ -1,4 +1,4 @@
-import { getLocale, getTranslations } from 'next-intl/server';
+﻿import { getLocale, getTranslations } from 'next-intl/server';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';

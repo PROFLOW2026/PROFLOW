@@ -3,11 +3,11 @@
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/shared/i18n/navigation';
 import { useState, useTransition, type FocusEvent } from 'react';
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
   connectSumitTestAction,
@@ -43,15 +43,16 @@ export function SumitIntegrationPanel({
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
-        <CardTitle className="text-base">{t('settings.sumitTitle')}</CardTitle>
+    <MainAppSection
+      title={t('settings.sumitTitle')}
+      actions={
         <StatusBadge
           shape={connected ? 'active' : 'void'}
           label={connected ? t('status.providerConnected') : t('status.connectionRequired')}
         />
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3 text-sm">
+      }
+    >
+      <div className="flex w-full min-w-0 flex-col gap-4 text-sm">
         <p className="text-[var(--pf-text-secondary)]">{t('settings.sumitDescription')}</p>
         <details className="text-xs text-[var(--pf-text-muted)]">
           <summary className="cursor-pointer font-medium text-[var(--pf-text-secondary)]">
@@ -68,7 +69,7 @@ export function SumitIntegrationPanel({
         {error ? <Alert tone="danger">{error}</Alert> : null}
         {canManage && !connected ? (
           <form
-            className="flex flex-col gap-3"
+            className="flex w-full min-w-0 flex-col gap-4"
             autoComplete="off"
             onSubmit={(event) => {
               event.preventDefault();
@@ -94,58 +95,66 @@ export function SumitIntegrationPanel({
               });
             }}
           >
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="pf-sumit-company-id">{t('settings.companyId')}</Label>
-              <Input
-                id="pf-sumit-company-id"
-                name="pf-sumit-company-id"
-                numeric
-                inputMode="numeric"
-                pattern="[0-9]+"
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck={false}
-                data-1p-ignore
-                data-lpignore="true"
-                data-form-type="other"
-                readOnly
-                onFocus={unlockAutofillGuard}
-                value={companyIdInput}
-                onChange={(event) => {
-                  const next = event.target.value.replace(/\D/g, '');
-                  setCompanyIdInput(next);
-                }}
-                required
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="pf-sumit-api-key">{t('settings.apiKey')}</Label>
-              <Input
-                id="pf-sumit-api-key"
-                name="pf-sumit-api-key"
-                type="password"
-                autoComplete="new-password"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck={false}
-                data-1p-ignore
-                data-lpignore="true"
-                data-form-type="other"
-                readOnly
-                onFocus={unlockAutofillGuard}
-                value={apiKeyInput}
-                onChange={(event) => setApiKeyInput(event.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" disabled={pending}>
-              {t('settings.connect')}
-            </Button>
+            <MainAppFormGrid dense className="gap-4">
+              <Field label={t('settings.companyId')} className={mainAppFieldSpan.lg}>
+                {(control) => (
+                  <Input
+                    id="pf-sumit-company-id"
+                    name="pf-sumit-company-id"
+                    numeric
+                    inputMode="numeric"
+                    pattern="[0-9]+"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                    data-1p-ignore
+                    data-lpignore="true"
+                    data-form-type="other"
+                    readOnly
+                    onFocus={unlockAutofillGuard}
+                    value={companyIdInput}
+                    onChange={(event) => {
+                      const next = event.target.value.replace(/\D/g, '');
+                      setCompanyIdInput(next);
+                    }}
+                    required
+                    aria-describedby={control['aria-describedby']}
+                  />
+                )}
+              </Field>
+              <Field label={t('settings.apiKey')} className={mainAppFieldSpan.lg}>
+                {(control) => (
+                  <Input
+                    id="pf-sumit-api-key"
+                    name="pf-sumit-api-key"
+                    type="password"
+                    autoComplete="new-password"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                    data-1p-ignore
+                    data-lpignore="true"
+                    data-form-type="other"
+                    readOnly
+                    onFocus={unlockAutofillGuard}
+                    value={apiKeyInput}
+                    onChange={(event) => setApiKeyInput(event.target.value)}
+                    required
+                    aria-describedby={control['aria-describedby']}
+                  />
+                )}
+              </Field>
+              <div className={mainAppFieldSpan.full}>
+                <Button type="submit" disabled={pending}>
+                  {t('settings.connect')}
+                </Button>
+              </div>
+            </MainAppFormGrid>
           </form>
         ) : null}
         {connected ? (
-          <div className="flex flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3">
+          <div className="flex flex-col gap-4 rounded-md border border-[var(--pf-border-default)] p-3">
             <p className="font-medium">{t('settings.expenseIngestionTitle')}</p>
             <p className="text-[var(--pf-text-secondary)]">
               {t('settings.expenseIngestionDescription')}
@@ -223,7 +232,7 @@ export function SumitIntegrationPanel({
             {t('settings.disconnect')}
           </Button>
         ) : null}
-      </CardContent>
-    </Card>
+      </div>
+    </MainAppSection>
   );
 }

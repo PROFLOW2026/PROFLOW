@@ -1,3 +1,9 @@
+import {
+  MainAppListBody,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
 import { FileQuestion, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -52,10 +58,9 @@ export default async function RfqsPage() {
   }));
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('rfq.title')}
-        description={t('rfq.description')}
         actions={
           canManage ? (
             <Button asChild className="max-w-full">
@@ -67,101 +72,104 @@ export default async function RfqsPage() {
           ) : null
         }
       />
+      <MainAppSection>
+        <ProcurementSectionNav active="rfqs" />
 
-      <ProcurementSectionNav active="rfqs" />
-
-      {rfqs.length === 0 ? (
-        <EmptyState
-          icon={FileQuestion}
-          title={t('empty.rfqs.title')}
-          description={t('empty.rfqs.body')}
-          action={
-            canManage ? (
-              <Button asChild>
-                <Link href="/procurement/rfqs/new">{t('empty.rfqs.action')}</Link>
-              </Button>
-            ) : undefined
-          }
-        />
-      ) : (
-        <ResponsiveTable
-          items={rfqs}
-          getRowKey={(rfq) => rfq.id}
-          desktop={
-            <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('rfq.list.columns.title')}</TableHead>
-                    <TableHead>{t('rfq.list.columns.status')}</TableHead>
-                    <TableHead>{t('rfq.list.columns.dueDate')}</TableHead>
-                    <TableHead>{t('rfq.list.columns.created')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rfqs.map((rfq) => (
-                    <TableRow key={rfq.id}>
-                      <TableCell className="max-w-[16rem] truncate font-medium">
-                        <Link
-                          href={`/procurement/rfqs/${rfq.id}`}
-                          className={cn(textNavLinkClassName, 'rounded-sm')}
-                        >
-                          {rfq.title}
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge
-                          shape={rfqStatusShape(rfq.status)}
-                          label={t(`rfq.statuses.${rfq.status}` as 'rfq.statuses.draft')}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {rfq.dueDate ? (
-                          <span dir="ltr">
-                            {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
-                              new Date(rfq.dueDate),
+        <MainAppListBody>
+          {rfqs.length === 0 ? (
+            <EmptyState
+              icon={FileQuestion}
+              title={t('empty.rfqs.title')}
+              description={t('empty.rfqs.body')}
+              action={
+                canManage ? (
+                  <Button asChild>
+                    <Link href="/procurement/rfqs/new">{t('empty.rfqs.action')}</Link>
+                  </Button>
+                ) : undefined
+              }
+            />
+          ) : (
+            <ResponsiveTable
+              items={rfqs}
+              getRowKey={(rfq) => rfq.id}
+              desktop={
+                <MainAppTableShell>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('rfq.list.columns.title')}</TableHead>
+                        <TableHead>{t('rfq.list.columns.status')}</TableHead>
+                        <TableHead>{t('rfq.list.columns.dueDate')}</TableHead>
+                        <TableHead>{t('rfq.list.columns.created')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {rfqs.map((rfq) => (
+                        <TableRow key={rfq.id}>
+                          <TableCell className="max-w-[16rem] truncate font-medium">
+                            <Link
+                              href={`/procurement/rfqs/${rfq.id}`}
+                              className={cn(textNavLinkClassName, 'rounded-sm')}
+                            >
+                              {rfq.title}
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            <StatusBadge
+                              shape={rfqStatusShape(rfq.status)}
+                              label={t(`rfq.statuses.${rfq.status}` as 'rfq.statuses.draft')}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {rfq.dueDate ? (
+                              <span dir="ltr">
+                                {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                                  new Date(rfq.dueDate),
+                                )}
+                              </span>
+                            ) : (
+                              '-'
                             )}
-                          </span>
-                        ) : (
-                          '-'
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span dir="ltr">
-                          {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
-                            rfq.createdAt,
-                          )}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          }
-          renderMobileCard={(rfq) => (
-            <Link
-              href={`/procurement/rfqs/${rfq.id}`}
-              className="flex min-h-11 min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-            >
-              <div className="flex min-w-0 items-start justify-between gap-2">
-                <span className="min-w-0 break-words font-semibold">{rfq.title}</span>
-                <StatusBadge
-                  shape={rfqStatusShape(rfq.status)}
-                  label={t(`rfq.statuses.${rfq.status}` as 'rfq.statuses.draft')}
-                />
-              </div>
-              <p className="text-sm text-[var(--pf-text-secondary)]" dir={rfq.dueDate ? 'ltr' : undefined}>
-                {rfq.dueDate
-                  ? intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
-                      new Date(rfq.dueDate),
-                    )
-                  : t('rfq.noDueDate')}
-              </p>
-            </Link>
+                          </TableCell>
+                          <TableCell>
+                            <span dir="ltr">
+                              {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                                rfq.createdAt,
+                              )}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </MainAppTableShell>
+              }
+              renderMobileCard={(rfq) => (
+                <Link
+                  href={`/procurement/rfqs/${rfq.id}`}
+                  className="flex min-h-11 min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                >
+                  <div className="flex min-w-0 items-start justify-between gap-2">
+                    <span className="min-w-0 break-words font-semibold">{rfq.title}</span>
+                    <StatusBadge
+                      shape={rfqStatusShape(rfq.status)}
+                      label={t(`rfq.statuses.${rfq.status}` as 'rfq.statuses.draft')}
+                    />
+                  </div>
+                  <p className="text-sm text-[var(--pf-text-secondary)]" dir={rfq.dueDate ? 'ltr' : undefined}>
+                    {rfq.dueDate
+                      ? intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                          new Date(rfq.dueDate),
+                        )
+                      : t('rfq.noDueDate')}
+                  </p>
+                </Link>
+              )}
+            />
           )}
-        />
-      )}
-    </div>
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

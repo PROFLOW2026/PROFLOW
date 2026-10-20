@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,7 +39,7 @@ export default async function CommunicationsPage() {
   });
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         description={t('description')}
@@ -50,7 +51,8 @@ export default async function CommunicationsPage() {
           ) : null
         }
       />
-      <p className="text-sm text-[var(--pf-text-secondary)]">
+      <MainAppSection>
+        <p className="text-sm text-[var(--pf-text-secondary)]">
         {configured ? t('provider.configured') : t('provider.notConfigured')}
       </p>
       {rows.length === 0 ? (
@@ -72,6 +74,8 @@ export default async function CommunicationsPage() {
           ))}
         </ul>
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

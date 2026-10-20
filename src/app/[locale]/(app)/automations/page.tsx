@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getTranslations } from 'next-intl/server';
 import { Workflow } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,9 +39,10 @@ export default async function AutomationsPage() {
   });
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('title')} description={t('description')} />
-      <Alert tone="info">{t('safeNote')}</Alert>
+      <MainAppSection>
+        <Alert tone="info">{t('safeNote')}</Alert>
       {data.presets.filter((p) => p.available).length === 0 ? (
         <EmptyState icon={Workflow} title={t('empty.title')} description={t('empty.body')} />
       ) : (
@@ -93,6 +95,8 @@ export default async function AutomationsPage() {
           </ul>
         )}
       </section>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

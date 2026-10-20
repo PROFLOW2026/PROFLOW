@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState, useMemo, useState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -60,7 +61,7 @@ export function ProjectTemplateApplyForm({
   return (
     <form
       action={formAction}
-      className="flex flex-col gap-3 rounded-lg border border-dashed border-[var(--pf-border-default)] p-4"
+      className="flex w-full min-w-0 flex-col gap-4 rounded-lg border border-dashed border-[var(--pf-border-default)] p-4"
     >
       <input type="hidden" name="projectId" value={projectId} />
       {mode === 'system' ? (
@@ -78,8 +79,9 @@ export function ProjectTemplateApplyForm({
       {state.warning ? <Alert tone="warning">{state.warning}</Alert> : null}
       {state.success ? <Alert tone="success">{t('applied')}</Alert> : null}
 
+      <MainAppFormGrid dense>
       {orgTemplates.length > 0 ? (
-        <Field label={t('source')}>
+        <Field label={t('source')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Select value={mode} onValueChange={(value) => setMode(value as SourceMode)}>
               <SelectTrigger id={control.id}>
@@ -95,7 +97,7 @@ export function ProjectTemplateApplyForm({
       ) : null}
 
       {mode === 'system' ? (
-        <Field label={t('choose')}>
+        <Field label={t('choose')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Select
               value={templateKey}
@@ -115,7 +117,7 @@ export function ProjectTemplateApplyForm({
           )}
         </Field>
       ) : (
-        <Field label={t('choose')}>
+        <Field label={t('choose')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Select value={orgTemplateId} onValueChange={setOrgTemplateId}>
               <SelectTrigger id={control.id}>
@@ -134,7 +136,7 @@ export function ProjectTemplateApplyForm({
       )}
 
       {mode === 'system' && systemPreview ? (
-        <div className="text-sm text-[var(--pf-text-secondary)]">
+        <div className={`${mainAppFieldSpan.full} text-sm text-[var(--pf-text-secondary)]`}>
           <p>{systemPreview.description}</p>
           <p className="mt-2">
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewPackages')}: </span>
@@ -156,7 +158,7 @@ export function ProjectTemplateApplyForm({
         ) : null}
 
       {mode === 'org' && orgPreview ? (
-        <div className="text-sm text-[var(--pf-text-secondary)]">
+        <div className={`${mainAppFieldSpan.full} text-sm text-[var(--pf-text-secondary)]`}>
           {orgPreview.description ? <p>{orgPreview.description}</p> : null}
           <p className="mt-2">
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewPackages')}: </span>
@@ -171,11 +173,12 @@ export function ProjectTemplateApplyForm({
         </div>
       ) : null}
 
-      <div>
+      <div className={mainAppFieldSpan.full}>
         <Button type="submit" variant="secondary" loading={pending}>
           {t('apply')}
         </Button>
       </div>
+      </MainAppFormGrid>
     </form>
   );
 }

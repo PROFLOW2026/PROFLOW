@@ -5,6 +5,7 @@ import { useActionState, useCallback, useState, useTransition } from 'react';
 import { useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -241,33 +242,35 @@ export function QuoteSettingsPanel({
             <DialogTitle>{draft?.blockId ? t('editBlock') : t('addBlock')}</DialogTitle>
           </DialogHeader>
           {draft ? (
-            <form action={saveAction} className="flex flex-col gap-3">
+            <form action={saveAction} className="flex flex-col gap-4">
               {draft.blockId ? <input type="hidden" name="blockId" value={draft.blockId} /> : null}
               <input type="hidden" name="sortOrder" value={draft.sortOrder} />
-              <Field label={t('blockTitle')} required>
-                {(control) => (
-                  <Input
-                    {...control}
-                    name="title"
-                    required
-                    value={draft.title}
-                    onChange={(event) => setDraft({ ...draft, title: event.target.value })}
-                  />
-                )}
-              </Field>
-              <Field label={t('blockBody')} required>
-                {(control) => (
-                  <Textarea
-                    {...control}
-                    name="body"
-                    required
-                    rows={10}
-                    className="min-h-[12rem] w-full max-w-full"
-                    value={draft.body}
-                    onChange={(event) => setDraft({ ...draft, body: event.target.value })}
-                  />
-                )}
-              </Field>
+              <MainAppFormGrid dense>
+                <Field label={t('blockTitle')} required className={mainAppFieldSpan.lg}>
+                  {(control) => (
+                    <Input
+                      {...control}
+                      name="title"
+                      required
+                      value={draft.title}
+                      onChange={(event) => setDraft({ ...draft, title: event.target.value })}
+                    />
+                  )}
+                </Field>
+                <Field label={t('blockBody')} required className={mainAppFieldSpan.full}>
+                  {(control) => (
+                    <Textarea
+                      {...control}
+                      name="body"
+                      required
+                      rows={10}
+                      className="min-h-[12rem] w-full max-w-full"
+                      value={draft.body}
+                      onChange={(event) => setDraft({ ...draft, body: event.target.value })}
+                    />
+                  )}
+                </Field>
+              </MainAppFormGrid>
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"

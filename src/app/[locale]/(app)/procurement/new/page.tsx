@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -54,7 +55,7 @@ export default async function NewPurchaseOrderPage() {
   );
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('create.title')}
         description={t('create.description')}
@@ -74,8 +75,8 @@ export default async function NewPurchaseOrderPage() {
           </div>
         }
       />
-
-      {!canManage ? null : vendors.length === 0 ? (
+      <MainAppSection>
+        {!canManage ? null : vendors.length === 0 ? (
         <EmptyState
           title={t('empty.vendorsRequired.title')}
           description={t('empty.vendorsRequired.body')}
@@ -93,6 +94,8 @@ export default async function NewPurchaseOrderPage() {
           materials={materials}
         />
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

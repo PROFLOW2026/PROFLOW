@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { ContextualBackLink } from '@/components/ui/contextual-back-link';
@@ -74,7 +75,7 @@ export default async function NewRecurringDraftPage({
   const initialKind = writableKinds.find((kind) => kind === preferredKind) ?? writableKinds[0];
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={initialKind === 'expense' ? t('create.fixedExpenseTitle') : t('create.title')}
         description={
@@ -94,7 +95,8 @@ export default async function NewRecurringDraftPage({
           </Link>
         }
       />
-      <RecurringDraftForm
+      <MainAppSection>
+        <RecurringDraftForm
         mode="create"
         action={createRecurringDraftAction}
         defaultCurrency={defaultCurrency}
@@ -118,6 +120,8 @@ export default async function NewRecurringDraftPage({
             : undefined
         }
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

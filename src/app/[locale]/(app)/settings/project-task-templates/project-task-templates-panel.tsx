@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppSection, MainAppTableShell } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,8 +12,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  DialogTitle} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { TaskAssigneePicker, type TaskAssigneePickerOption } from '@/modules/tasks/ui/task-assignee-picker';
@@ -21,8 +21,7 @@ import {
   createProjectTaskTemplateAction,
   toggleProjectTaskTemplateEnabledAction,
   updateProjectTaskTemplateAction,
-  type ProjectTaskTemplateActionState,
-} from './actions';
+  type ProjectTaskTemplateActionState} from './actions';
 
 interface EmployeeOption {
   id: string;
@@ -49,16 +48,14 @@ interface ProjectTaskTemplateRow {
 function employeeOptionsFromList(employees: EmployeeOption[]): TaskAssigneePickerOption[] {
   return employees.map((employee) => ({
     key: `e:${employee.id}`,
-    displayName: employee.name,
-  }));
+    displayName: employee.name}));
 }
 
 function TemplateAssigneeMultiSelect({
   employees,
   selectedEmployeeIds,
   onChange,
-  inputName = 'defaultAssigneeEmployeeIds',
-}: {
+  inputName = 'defaultAssigneeEmployeeIds'}: {
   employees: EmployeeOption[];
   selectedEmployeeIds: string[];
   onChange: (ids: string[]) => void;
@@ -88,8 +85,7 @@ function assigneeSetsEqual(a: readonly string[], b: readonly string[]): boolean 
 function TemplateRow({
   template,
   employees,
-  canEdit,
-}: {
+  canEdit}: {
   template: ProjectTaskTemplateRow;
   employees: EmployeeOption[];
   canEdit: boolean;
@@ -288,8 +284,7 @@ function TemplateRow({
 
 function CreateTemplateForm({
   employees,
-  canEdit,
-}: {
+  canEdit}: {
   employees: EmployeeOption[];
   canEdit: boolean;
 }) {
@@ -335,8 +330,7 @@ export function ProjectTaskTemplatesPanel({
   templates,
   employees,
   canEdit,
-  showArchived,
-}: {
+  showArchived}: {
   templates: ProjectTaskTemplateRow[];
   employees: EmployeeOption[];
   canEdit: boolean;
@@ -346,23 +340,31 @@ export function ProjectTaskTemplatesPanel({
   const visible = showArchived ? templates : templates.filter((tpl) => !tpl.isArchived);
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
+      </MainAppSection>
 
-      {visible.length === 0 ? (
-        <p className="text-sm text-[var(--pf-text-muted)]">{t('empty')}</p>
-      ) : (
-        visible.map((template) => (
-          <TemplateRow
-            key={template.id}
-            template={template}
-            employees={employees}
-            canEdit={canEdit}
-          />
-        ))
-      )}
+      <MainAppSection className="w-full min-w-0">
+        {visible.length === 0 ? (
+          <p className="text-sm text-[var(--pf-text-muted)]">{t('empty')}</p>
+        ) : (
+          <MainAppTableShell className="w-full min-w-0 p-4">
+            {visible.map((template) => (
+              <TemplateRow
+                key={template.id}
+                template={template}
+                employees={employees}
+                canEdit={canEdit}
+              />
+            ))}
+          </MainAppTableShell>
+        )}
+      </MainAppSection>
 
-      <CreateTemplateForm employees={employees} canEdit={canEdit} />
+      <MainAppSection className="w-full min-w-0">
+        <CreateTemplateForm employees={employees} canEdit={canEdit} />
+      </MainAppSection>
     </div>
   );
 }

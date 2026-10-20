@@ -2,8 +2,10 @@
 
 import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { useRouter } from '@/shared/i18n/navigation';
 import { createProjectDeliveryAction } from '../actions/internal-actions';
@@ -23,14 +25,28 @@ export function DeliveryCreateForm({ projectId, cancelHref }: { projectId: strin
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         {error ? <p className="text-sm text-[var(--pf-danger)]">{error}</p> : null}
-        <label className="flex flex-col gap-1 text-sm">
-          <span>{t('fields.itemName')}</span>
-          <Input value={itemName} onChange={(e) => setItemName(e.target.value)} required />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          <span>{t('fields.expectedDate')}</span>
-          <Input type="date" value={expectedDate} onChange={(e) => setExpectedDate(e.target.value)} />
-        </label>
+        <MainAppFormGrid dense>
+          <Field label={t('fields.itemName')} required className={mainAppFieldSpan.lg}>
+            {(control) => (
+              <Input
+                {...control}
+                value={itemName}
+                onChange={(e) => setItemName(e.target.value)}
+                required
+              />
+            )}
+          </Field>
+          <Field label={t('fields.expectedDate')} className={mainAppFieldSpan.lg}>
+            {(control) => (
+              <Input
+                {...control}
+                type="date"
+                value={expectedDate}
+                onChange={(e) => setExpectedDate(e.target.value)}
+              />
+            )}
+          </Field>
+        </MainAppFormGrid>
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"

@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
@@ -23,7 +24,7 @@ export default async function QuickCaptureInboxPage() {
   const inbox = await listQuickCaptureInboxAction();
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('inbox.title')}
         actions={
@@ -35,8 +36,10 @@ export default async function QuickCaptureInboxPage() {
           </Link>
         }
       />
-
-      {!inbox.ok ? <Alert tone="warning">{inbox.error}</Alert> : <QuickCaptureInboxList items={inbox.data} />}
-    </div>
+      <MainAppSection>
+        {!inbox.ok ? <Alert tone="warning">{inbox.error}</Alert> : <QuickCaptureInboxList items={inbox.data} />}
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

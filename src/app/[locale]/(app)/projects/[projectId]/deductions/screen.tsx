@@ -1,4 +1,5 @@
-import { getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
@@ -26,8 +27,9 @@ export async function ProjectDeductionsScreen({ surfaceRoot: _surfaceRoot, param
 
   return (
     <WithAppClientMessages extra={['subcontractClaims']}>
-      <div className="flex flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={t('deductions.pageTitle')} description={t('deductions.pageDescription')} />
+      <MainAppSection>
         {access.has('deductions.manage') && data.agreements.length > 0 ? (
           <Card>
             <CardHeader>
@@ -39,7 +41,9 @@ export async function ProjectDeductionsScreen({ surfaceRoot: _surfaceRoot, param
           </Card>
         ) : null}
         <DeductionsList items={data.items} />
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

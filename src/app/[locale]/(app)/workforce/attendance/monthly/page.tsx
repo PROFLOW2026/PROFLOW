@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import {
@@ -75,7 +76,7 @@ export default async function AttendanceMonthlyPage({
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('attendance.monthlyGrid.title')}
         description={t('attendance.monthlyGrid.description')}
@@ -88,8 +89,8 @@ export default async function AttendanceMonthlyPage({
           </Link>
         }
       />
-
-      <WorkforceSubNav active="attendance" />
+      <MainAppSection>
+        <WorkforceSubNav active="attendance" />
 
       <nav className="flex flex-wrap gap-2 text-sm" aria-label={t('attendance.viewsLabel')}>
         <Link
@@ -118,6 +119,8 @@ export default async function AttendanceMonthlyPage({
       />
 
       {data.detail ? <AttendanceDayDetailPanel detail={data.detail} canManage /> : null}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

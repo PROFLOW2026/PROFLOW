@@ -1,3 +1,4 @@
+﻿import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,7 +51,7 @@ export async function ExecutionHubFrame({
   const t = await getTranslations('projectWorkspace');
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       {compact ? null : (
         <PageHeader
           title={t(`execution.hubs.${hub}` as never)}
@@ -60,6 +61,7 @@ export async function ExecutionHubFrame({
         />
       )}
 
+      <MainAppSection>
       {hub === 'payments' ? (
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('execution.financialHint')}</p>
       ) : null}
@@ -122,6 +124,7 @@ export async function ExecutionHubFrame({
           </CardContent>
         </Card>
       ) : null}
-    </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

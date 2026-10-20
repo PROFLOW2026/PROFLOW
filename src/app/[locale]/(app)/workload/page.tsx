@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -37,13 +38,16 @@ export default async function WorkloadPage({ searchParams }: WorkloadPageProps) 
 
   if (!canRead) {
     return (
-      <div className="flex min-w-0 max-w-full flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={t('workload.pageTitle')} />
+      <MainAppSection>
         <EmptyState
           title={t('workload.accessDenied.title')}
           description={t('workload.accessDenied.description')}
         />
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     );
   }
 
@@ -57,16 +61,19 @@ export default async function WorkloadPage({ searchParams }: WorkloadPageProps) 
 
   if (rows.length === 0) {
     return (
-      <div className="flex min-w-0 max-w-full flex-col gap-6">
+      <MainAppPage>
         <PageHeader
           title={t('workload.pageTitle')}
           description={t('workload.description.noEmployees')}
         />
+      <MainAppSection>
         <EmptyState
           title={t('workload.emptyState.title')}
           description={t('workload.emptyState.description')}
         />
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     );
   }
 
@@ -74,7 +81,7 @@ export default async function WorkloadPage({ searchParams }: WorkloadPageProps) 
   const totalOverdue = rows.reduce((s, r) => s + r.overdueTasks, 0);
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('workload.pageTitle')}
         description={t('workload.description.summary', {
@@ -83,8 +90,8 @@ export default async function WorkloadPage({ searchParams }: WorkloadPageProps) 
           overdueCount: totalOverdue,
         })}
       />
-
-      <div className="flex flex-wrap gap-3">
+      <MainAppSection>
+        <div className="flex flex-wrap gap-3">
         <StatChip label={t('workload.stats.activeEmployees')} value={rows.length} />
         <StatChip label={t('workload.stats.openTasks')} value={totalOpen} />
         <StatChip
@@ -114,7 +121,9 @@ export default async function WorkloadPage({ searchParams }: WorkloadPageProps) 
       {!showEstimatedEffort && (
         <p className="text-xs text-[var(--pf-text-muted)]">{t('workload.effortHidden')}</p>
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

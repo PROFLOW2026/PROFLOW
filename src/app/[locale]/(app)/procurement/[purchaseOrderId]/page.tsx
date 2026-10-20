@@ -1,4 +1,10 @@
-import type { Metadata } from 'next';
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -137,7 +143,7 @@ export default async function PurchaseOrderDetailPage({
   const showReceive = canManage && isPurchaseOrderReceivable(status) && !fullyReceived;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={order.reference?.trim() || t('list.noReference')}
         description={t('detail.description')}
@@ -167,39 +173,46 @@ export default async function PurchaseOrderDetailPage({
           </div>
         }
       />
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('list.columns.committed')}>
+            <MoneyText value={money(order.committedAmount, order.currency)} />
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('detail.linesTitle')}>
+            <span dir="ltr" className="pf-numeric">
+              {lines.length}
+            </span>
+          </MainAppSummaryItem>
+          {order.vendorId ? (
+            <MainAppSummaryItem label={t('detail.openVendor')}>
+              <Link href={`/vendors/${order.vendorId}`} className={textNavLinkClassName}>
+                {t('detail.openVendor')}
+              </Link>
+            </MainAppSummaryItem>
+          ) : null}
+        </MainAppSummaryGrid>
+      </MainAppSection>
 
-      {fullyReceived && isPurchaseOrderReceivable(status) ? (
-        <Alert tone="info">{t('receive.fullyReceivedHint')}</Alert>
-      ) : null}
+      <MainAppSection title={t('detail.linesTitle')}>
+        {fullyReceived && isPurchaseOrderReceivable(status) ? (
+          <Alert tone="info">{t('receive.fullyReceivedHint')}</Alert>
+        ) : null}
 
-      <div className="grid min-w-0 gap-3 text-sm sm:grid-cols-2">
-        <div className="min-w-0">
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('list.columns.committed')}</p>
-          <MoneyText value={money(order.committedAmount, order.currency)} />
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('list.columns.actions')}</p>
-          <p dir="ltr">{lines.length}</p>
-        </div>
-      </div>
+        {showCancel || showClose ? (
+          <div className="flex flex-wrap gap-2">
+            {showClose ? <ClosePurchaseOrderButton purchaseOrderId={order.id} /> : null}
+            {showCancel ? <CancelPurchaseOrderButton purchaseOrderId={order.id} /> : null}
+          </div>
+        ) : null}
 
-      {showCancel || showClose ? (
-        <div className="flex flex-wrap gap-2">
-          {showClose ? <ClosePurchaseOrderButton purchaseOrderId={order.id} /> : null}
-          {showCancel ? <CancelPurchaseOrderButton purchaseOrderId={order.id} /> : null}
-        </div>
-      ) : null}
+        {canReadAp && status !== 'draft' && status !== 'cancelled' ? (
+          <p className="text-sm">
+            <Link href={`/procurement/ap/new?purchaseOrderId=${order.id}`} className={textNavLinkClassName}>
+              {t('detail.createVendorBill')}
+            </Link>
+          </p>
+        ) : null}
 
-      {canReadAp && status !== 'draft' && status !== 'cancelled' ? (
-        <p className="text-sm">
-          <Link href={`/procurement/ap/new?purchaseOrderId=${order.id}`} className={textNavLinkClassName}>
-            {t('detail.createVendorBill')}
-          </Link>
-        </p>
-      ) : null}
-
-      <section className="flex min-w-0 flex-col gap-3">
-        <h2 className="text-base font-semibold text-[var(--pf-text-primary)]">{t('detail.linesTitle')}</h2>
         {lines.map((line) => (
           <div
             key={line.id}
@@ -244,18 +257,17 @@ export default async function PurchaseOrderDetailPage({
             ))}
           </div>
         ))}
-      </section>
 
-      {showReceive ? (
-        <PurchaseOrderReceiveForm
-          purchaseOrderId={order.id}
-          defaultReceivedOn={defaultReceivedOn}
-          lines={lines}
-        />
-      ) : null}
+        {showReceive ? (
+          <PurchaseOrderReceiveForm
+            purchaseOrderId={order.id}
+            defaultReceivedOn={defaultReceivedOn}
+            lines={lines}
+          />
+        ) : null}
+      </MainAppSection>
 
-      <section className="flex min-w-0 flex-col gap-3">
-        <h2 className="text-base font-semibold text-[var(--pf-text-primary)]">{t('receive.receiptsTitle')}</h2>
+      <MainAppSection title={t('receive.receiptsTitle')}>
         {receipts.length === 0 ? (
           <p className="text-sm text-[var(--pf-text-muted)]">{t('receive.emptyReceipts')}</p>
         ) : (
@@ -294,17 +306,19 @@ export default async function PurchaseOrderDetailPage({
             </div>
           ))
         )}
-      </section>
+      </MainAppSection>
 
-      <DocumentAttachments
-        ownerType="purchase_order"
-        ownerId={order.id}
-        documents={documentsPanel.documents}
-        linkCandidates={documentsPanel.linkCandidates}
-        canRead={documentsPanel.canRead}
-        canManage={documentsPanel.canManage}
-        storageConfigured={documentsPanel.storageConfigured}
-      />
-    </div>
+      <MainAppSection>
+        <DocumentAttachments
+          ownerType="purchase_order"
+          ownerId={order.id}
+          documents={documentsPanel.documents}
+          linkCandidates={documentsPanel.linkCandidates}
+          canRead={documentsPanel.canRead}
+          canManage={documentsPanel.canManage}
+          storageConfigured={documentsPanel.storageConfigured}
+        />
+      </MainAppSection>
+    </MainAppPage>
   );
 }

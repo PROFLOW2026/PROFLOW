@@ -1,3 +1,4 @@
+import { MainAppSection, MainAppSummaryGrid } from '@/components/patterns/main-app';
 import { MetricDrilldown } from './metric-drilldown';
 import { MoneyText } from '@/components/patterns/money-text';
 import { formatPercentDisplay } from '@/shared/number/display';
@@ -270,17 +271,20 @@ export function ProjectFinancialsKpiPanel({
     : null;
 
   return (
-    <div className="flex flex-col gap-3 text-sm">
-      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-[var(--pf-text-muted)]">{t('confidence.title')}</p>
+    <MainAppSection
+      title={t('confidence.title')}
+      className="text-start text-sm"
+      actions={
         <DataConfidenceBadge
           level={confidence.level as DataConfidenceLevel}
           label={confidenceLabel(t, confidence.level as DataConfidenceLevel)}
           title={confidenceTitle(t, confidence.reasons)}
         />
-      </div>
-
+      }
+    >
+      <MainAppSummaryGrid className="min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {canReadCommercial && financials.commercial && kpis.currentContract ? (
+        <div className="min-w-0 sm:col-span-2 xl:col-span-3">
         <MetricDrilldown
           label={t('kpis.currentContract')}
           value={kpis.currentContract}
@@ -317,8 +321,10 @@ export function ProjectFinancialsKpiPanel({
             contractDrill?.links ?? [{ href: changesTab, label: t('drillLinks.viewChanges') }]
           }
         />
+        </div>
       ) : null}
 
+      <div className="min-w-0">
       <MetricDrilldown
         label={t('kpis.actualCost')}
         value={kpis.actualCost}
@@ -411,8 +417,10 @@ export function ProjectFinancialsKpiPanel({
           ]
         }
       />
+      </div>
 
       {showAllocatedGeneral && allocatedGeneral ? (
+        <div className="min-w-0">
         <MetricDrilldown
           label={t('kpis.allocatedOverhead')}
           value={allocatedGeneral}
@@ -434,9 +442,11 @@ export function ProjectFinancialsKpiPanel({
             },
           ]}
         />
+        </div>
       ) : null}
 
       {showDirectProjectOverhead ? (
+        <div className="min-w-0">
         <MetricDrilldown
           label={t('overheadActual')}
           value={directProjectOverhead}
@@ -462,8 +472,10 @@ export function ProjectFinancialsKpiPanel({
             { href: '/expenses?status=finalized', label: t('drillLinks.viewAllExpenses') },
           ]}
         />
+        </div>
       ) : null}
 
+      <div className="min-w-0">
       <MetricDrilldown
         label={t('kpis.committed')}
         value={kpis.committed}
@@ -493,7 +505,9 @@ export function ProjectFinancialsKpiPanel({
             : []),
         ]}
       />
+      </div>
 
+      <div className="min-w-0">
       <MetricDrilldown
         label={t('kpis.forecast')}
         value={kpis.forecastCost}
@@ -532,9 +546,11 @@ export function ProjectFinancialsKpiPanel({
           ]
         }
       />
+      </div>
 
       {canReadBilling ? (
         <>
+          <div className="min-w-0">
           <MetricDrilldown
             label={t('kpis.billed')}
             value={kpis.billed}
@@ -564,6 +580,8 @@ export function ProjectFinancialsKpiPanel({
               { href: billingAllHref, label: t('drillLinks.viewBilling') },
             ]}
           />
+          </div>
+          <div className="min-w-0">
           <MetricDrilldown
             label={t('kpis.paid')}
             value={kpis.paid}
@@ -577,6 +595,8 @@ export function ProjectFinancialsKpiPanel({
               { href: billingPaidHref, label: t('drillLinks.viewPaidBilling') },
             ]}
           />
+          </div>
+          <div className="min-w-0">
           <MetricDrilldown
             label={t('kpis.outstanding')}
             value={kpis.outstanding}
@@ -597,10 +617,12 @@ export function ProjectFinancialsKpiPanel({
               ]
             }
           />
+          </div>
         </>
       ) : null}
 
       {canReadAp && outstandingApDrill ? (
+        <div className="min-w-0">
         <MetricDrilldown
           label={t('openApPayable')}
           value={financials.cost.openApPayable}
@@ -612,11 +634,12 @@ export function ProjectFinancialsKpiPanel({
           lines={outstandingApDrill.lines}
           links={outstandingApDrill.links}
         />
+        </div>
       ) : null}
 
       {canReadProfit && kpis.priceNotSet ? (
         <div
-          className="rounded-md border border-border/60 bg-muted/30 px-3 py-2 text-sm"
+          className="min-w-0 rounded-md border border-border/60 bg-muted/30 px-3 py-2 text-sm sm:col-span-2 xl:col-span-3"
           data-testid="price-not-set-banner"
         >
           <p className="font-medium">{t('kpis.priceNotSet')}</p>
@@ -625,6 +648,7 @@ export function ProjectFinancialsKpiPanel({
       ) : null}
 
       {canReadProfit && !kpis.priceNotSet && kpis.actualMargin ? (
+        <div className="min-w-0">
         <MetricDrilldown
           label={
             kpis.showBothProfits ? t('kpis.directProfit') : t('kpis.actualMargin')
@@ -659,9 +683,11 @@ export function ProjectFinancialsKpiPanel({
             ]
           }
         />
+        </div>
       ) : null}
 
       {canReadProfit && !kpis.priceNotSet && kpis.showBothProfits && kpis.afterGeneralProfit ? (
+        <div className="min-w-0">
         <MetricDrilldown
           label={t('kpis.afterGeneralProfit')}
           value={kpis.afterGeneralProfit}
@@ -687,9 +713,11 @@ export function ProjectFinancialsKpiPanel({
               : []),
           ]}
         />
+        </div>
       ) : null}
 
       {canReadProfit && !kpis.priceNotSet && kpis.forecastMargin ? (
+        <div className="min-w-0">
         <MetricDrilldown
           label={t('kpis.forecastMargin')}
           value={kpis.forecastMargin}
@@ -719,7 +747,9 @@ export function ProjectFinancialsKpiPanel({
             ]
           }
         />
+        </div>
       ) : null}
-    </div>
+      </MainAppSummaryGrid>
+    </MainAppSection>
   );
 }

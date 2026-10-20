@@ -1,9 +1,10 @@
-import { getLocale, getTranslations } from 'next-intl/server';
+﻿import { getLocale, getTranslations } from 'next-intl/server';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { Clock } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { pressableCardLinkClassName } from '@/components/ui/pressable';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { MainAppTableShell } from '@/components/patterns/main-app';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { AttendanceDayListItem } from '@/modules/workforce';
@@ -50,7 +51,7 @@ export async function AttendanceDaysTable({ days }: AttendanceDaysTableProps) {
       items={days}
       getRowKey={(day) => day.id}
       desktop={
-        <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+        <MainAppTableShell>
           <Table>
             <TableHeader>
               <TableRow>
@@ -93,7 +94,7 @@ export async function AttendanceDaysTable({ days }: AttendanceDaysTableProps) {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </MainAppTableShell>
       }
       renderMobileCard={(day) => (
         <div className={cn(pressableCardLinkClassName, 'flex flex-col gap-2')}>

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -34,12 +35,13 @@ export function AttendeeForm({
   const [contactId, setContactId] = useState(NONE);
 
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <input type="hidden" name="meetingId" value={meetingId} />
       <input type="hidden" name="attendeeType" value={attendeeType} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
-      <Field label={t('meetings.form.attendeeType')} required>
+      <MainAppFormGrid dense>
+      <Field label={t('meetings.form.attendeeType')} required className={mainAppFieldSpan.lg}>
         {(control) => (
           <select
             {...control}
@@ -58,7 +60,7 @@ export function AttendeeForm({
       </Field>
 
       {attendeeType === 'member' ? (
-        <Field label={t('meetings.form.attendeeMember')} required error={state.fieldErrors?.attendee}>
+        <Field label={t('meetings.form.attendeeMember')} required error={state.fieldErrors?.attendee} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input type="hidden" name="orgMemberId" value={orgMemberId === NONE ? '' : orgMemberId} />
@@ -84,7 +86,7 @@ export function AttendeeForm({
       ) : null}
 
       {attendeeType === 'employee' ? (
-        <Field label={t('meetings.form.attendeeEmployee')} required error={state.fieldErrors?.attendee}>
+        <Field label={t('meetings.form.attendeeEmployee')} required error={state.fieldErrors?.attendee} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input type="hidden" name="employeeId" value={employeeId === NONE ? '' : employeeId} />
@@ -110,7 +112,7 @@ export function AttendeeForm({
       ) : null}
 
       {attendeeType === 'contact' ? (
-        <Field label={t('meetings.form.attendeeContact')} required error={state.fieldErrors?.attendee}>
+        <Field label={t('meetings.form.attendeeContact')} required error={state.fieldErrors?.attendee} className={mainAppFieldSpan.lg}>
           {(control) => (
             <>
               <input type="hidden" name="contactId" value={contactId === NONE ? '' : contactId} />
@@ -136,7 +138,7 @@ export function AttendeeForm({
       ) : null}
 
       {attendeeType === 'external' ? (
-        <Field label={t('meetings.form.displayName')} required error={state.fieldErrors?.attendee}>
+        <Field label={t('meetings.form.displayName')} required error={state.fieldErrors?.attendee} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Input
               {...control}
@@ -148,6 +150,7 @@ export function AttendeeForm({
           )}
         </Field>
       ) : null}
+      </MainAppFormGrid>
 
       <Button type="submit" loading={pending} block>
         {t('meetings.form.submitAddAttendee')}

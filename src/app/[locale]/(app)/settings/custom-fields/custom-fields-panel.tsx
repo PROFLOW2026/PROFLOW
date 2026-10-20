@@ -1,5 +1,6 @@
 'use client';
 
+import { MainAppFormGrid, MainAppSection, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { useActionState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
@@ -13,18 +14,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import {
   CUSTOM_FIELD_ENTITY_TYPES,
   CUSTOM_FIELD_TYPES,
-  type CustomFieldDefinitionRecord,
-} from '@/modules/custom-fields/domain/types';
+  type CustomFieldDefinitionRecord} from '@/modules/custom-fields/domain/types';
 import {
   archiveDefinitionAction,
   createDefinitionAction,
-  type CustomFieldsActionState,
-} from './actions';
+  type CustomFieldsActionState} from './actions';
 
 export function CustomFieldsPanel({
   definitions,
-  canEdit,
-}: {
+  canEdit}: {
   definitions: CustomFieldDefinitionRecord[];
   canEdit: boolean;
 }) {
@@ -39,8 +37,9 @@ export function CustomFieldsPanel({
   );
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6">
-      <div>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      <MainAppSection>
+        <div>
         <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
         <Alert tone="info" className="mt-3">
           {t('reportingNote')}
@@ -50,7 +49,7 @@ export function CustomFieldsPanel({
       {canEdit ? (
         <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
           <h2 className="text-start font-medium">{t('addDefinition')}</h2>
-          <form action={createAction} className="mt-3 flex w-full max-w-lg flex-col gap-3">
+          <form action={createAction} className="mt-3 flex w-full flex-col gap-4">
             {createState.error ? <Alert tone="danger">{createState.error}</Alert> : null}
             {createState.ok ? (
               <Alert tone="success" role="status">
@@ -58,7 +57,8 @@ export function CustomFieldsPanel({
               </Alert>
             ) : null}
 
-            <Field label={t('fields.entityType')} required>
+            <MainAppFormGrid dense className="gap-4">
+            <Field label={t('fields.entityType')} required className={mainAppFieldSpan.lg}>
               {(props) => (
                 <Select name="entityType" defaultValue="client">
                   <SelectTrigger id={props.id}>
@@ -75,7 +75,7 @@ export function CustomFieldsPanel({
               )}
             </Field>
 
-            <Field label={t('fields.key')} required>
+            <Field label={t('fields.key')} required className={mainAppFieldSpan.lg}>
               {(props) => (
                 <Input
                   {...props}
@@ -89,11 +89,11 @@ export function CustomFieldsPanel({
               )}
             </Field>
 
-            <Field label={t('fields.label')} required>
+            <Field label={t('fields.label')} required className={mainAppFieldSpan.lg}>
               {(props) => <Input {...props} name="label" required />}
             </Field>
 
-            <Field label={t('fields.fieldType')} required>
+            <Field label={t('fields.fieldType')} required className={mainAppFieldSpan.lg}>
               {(props) => (
                 <Select name="fieldType" defaultValue="text">
                   <SelectTrigger id={props.id}>
@@ -110,7 +110,7 @@ export function CustomFieldsPanel({
               )}
             </Field>
 
-            <Field label={t('fields.options')} optionalLabel={t('fields.optionsOptional')}>
+            <Field label={t('fields.options')} optionalLabel={t('fields.optionsOptional')} className={mainAppFieldSpan.full}>
               {(props) => (
                 <Input
                   {...props}
@@ -119,9 +119,9 @@ export function CustomFieldsPanel({
                 />
               )}
             </Field>
-            <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('fields.optionsHint')}</p>
+            <p className={`text-start text-xs text-[var(--pf-text-muted)] ${mainAppFieldSpan.full}`}>{t('fields.optionsHint')}</p>
 
-            <label className="flex min-h-11 items-center gap-3 text-start text-sm">
+            <label className={`flex min-h-11 items-center gap-3 text-start text-sm ${mainAppFieldSpan.full}`}>
               <input
                 type="checkbox"
                 name="required"
@@ -131,9 +131,12 @@ export function CustomFieldsPanel({
               {t('fields.required')}
             </label>
 
+            <div className={mainAppFieldSpan.full}>
             <Button type="submit" loading={createPending}>
               {t('addDefinition')}
             </Button>
+            </div>
+            </MainAppFormGrid>
           </form>
         </section>
       ) : null}
@@ -227,6 +230,8 @@ export function CustomFieldsPanel({
           </div>
         )}
       </section>
+    
+      </MainAppSection>
     </div>
   );
 }

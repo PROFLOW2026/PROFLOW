@@ -1,0 +1,202 @@
+/* Suppliers list — pixel-conscious kit (route /vendors only). */
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] {
+  gap: 0.75rem;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner][data-pf-ma-page] {
+  gap: 0.75rem;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-page-header] {
+  gap: 0.25rem;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-page-header] > div {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-page-header] [data-pf-page-actions] {
+  width: auto;
+  max-width: none;
+  flex-shrink: 0;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-page-header] h1 {
+  font-size: 1.125rem;
+  line-height: 1.3;
+}
+
+@media (min-width: 640px) {
+  [data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-page-header] h1 {
+    font-size: 1.375rem;
+  }
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-list-toolbar-mobile {
+  gap: 0.5rem;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-list-toolbar-desktop {
+  align-items: center;
+  min-width: 0;
+}
+
+/* MainAppSection wraps list block in one inner div — stack toolbar / table / pagination with rhythm */
+[data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-ma-section] > div {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  [data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-search-field-owner {
+    flex: 1 1 12rem;
+    min-width: 0;
+  }
+
+  [data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-search-field-owner input {
+    width: 100%;
+  }
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-list-toolbar .flex.flex-col.gap-0 {
+  gap: 0;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-list-toolbar input:not([type='checkbox']):not([type='radio']),
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-list-toolbar button[role='combobox'],
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-list-toolbar button:not([role='combobox']) {
+  height: 38px;
+  min-height: 38px;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-list-toolbar .pf-vendors-search-field-owner {
+  flex: none;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-owner-filter-field > div:first-child {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-ma-table-shell] thead th {
+  height: 40px;
+  padding-top: 0;
+  padding-bottom: 0;
+  vertical-align: middle;
+  font-size: 0.8125rem;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-ma-table-shell] tbody td {
+  height: 46px;
+  padding-top: 0;
+  padding-bottom: 0;
+  vertical-align: middle;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-ma-table-shell] tbody tr:hover {
+  background: var(--pf-bg-subtle);
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-supplier-cell .size-7 {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-mobile-row {
+  display: block;
+  min-width: 0;
+  border-radius: var(--pf-ma-radius, 0.5rem);
+  border: 1px solid var(--pf-border-default);
+  background: var(--pf-bg-surface);
+  padding: 0.625rem 0.75rem;
+  text-align: start;
+  transition: background-color 0.15s ease;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-mobile-row:hover {
+  background: var(--pf-bg-subtle);
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-mobile-list {
+  gap: 0.5rem;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-list-pagination-wrap {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-table-shell {
+  overflow-x: auto;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-col-name {
+  min-width: 9rem;
+  max-width: 14rem;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-col-type {
+  width: 6.5rem;
+  white-space: nowrap;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-col-category {
+  max-width: 9rem;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-col-id {
+  width: 7.5rem;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-col-contact {
+  max-width: 8.5rem;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-col-phone {
+  width: 6.75rem;
+  white-space: nowrap;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] th.pf-vendors-col-projects {
+  min-width: 6.75rem;
+  width: 6.75rem;
+  white-space: nowrap;
+  text-align: center;
+  padding-inline: 0.5rem;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] td.pf-vendors-col-projects {
+  min-width: 6.75rem;
+  width: 6.75rem;
+  text-align: center;
+  padding-inline: 0.5rem;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-mobile-search-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  direction: rtl;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-mobile-filter-slot,
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-mobile-search-row input {
+  min-width: 0;
+  width: 100%;
+}
+
+[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-col-status {
+  width: 5rem;
+  white-space: nowrap;
+}

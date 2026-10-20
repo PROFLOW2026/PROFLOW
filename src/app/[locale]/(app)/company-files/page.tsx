@@ -1,4 +1,5 @@
-import { PageHeader } from '@/components/ui/page-header';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { PageHeader } from '@/components/ui/page-header';
 import { isOrganizationStorageConfigured } from '@/modules/external-storage/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -28,13 +29,16 @@ export default async function CompanyFilesPage({
   }));
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('title')} description={t('description')} />
-      <CompanyFilesHub
+      <MainAppSection>
+        <CompanyFilesHub
         storageConfigured={storageConfigured}
         canManage={canManage}
         initialTab={tab}
       />
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

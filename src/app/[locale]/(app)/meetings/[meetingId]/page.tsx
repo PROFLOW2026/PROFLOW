@@ -1,4 +1,10 @@
 import type { Metadata } from 'next';
+import {
+  MainAppPage,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+} from '@/components/patterns/main-app';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { notFound } from 'next/navigation';
@@ -57,33 +63,33 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
   }
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1 text-sm text-[var(--pf-text-secondary)]">
+      <nav className="flex min-w-0 items-center gap-1 text-sm text-[var(--pf-text-secondary)]">
         <Link href="/meetings" className="flex items-center gap-1 hover:text-[var(--pf-text-primary)]">
           <ChevronLeft className="h-3 w-3" aria-hidden />
           {t('meetings.pageTitle')}
         </Link>
         <span>/</span>
-        <span className="text-[var(--pf-text-primary)]">{detail.title}</span>
+        <span className="min-w-0 truncate text-[var(--pf-text-primary)]">{detail.title}</span>
       </nav>
 
       <PageHeader
         title={detail.title}
         description={
-          <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--pf-text-secondary)]">
+          <div className="flex min-w-0 flex-wrap items-center gap-3 text-sm text-[var(--pf-text-secondary)]">
             <span className="flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5" aria-hidden />
+              <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden />
               {formatFullDate(detail.scheduledAt, locale)}
             </span>
             {detail.location && (
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" aria-hidden />
+              <span className="flex min-w-0 items-center gap-1">
+                <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 {detail.location}
               </span>
             )}
             {(detail.projectName || detail.workspaceName) && (
-              <span>
+              <span className="min-w-0">
                 {detail.projectName ? (
                   <Link href={`/projects/${detail.projectId}`} className="hover:underline">
                     {detail.projectName}
@@ -106,29 +112,48 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
         }
       />
 
-      {/* ── Notes ── */}
-      {detail.notes && (
-        <section className="rounded-lg border border-[var(--pf-border)] p-4">
-          <h2 className="mb-2 text-sm font-semibold">{t('meetings.fields.notes')}</h2>
-          <p className="whitespace-pre-wrap text-sm text-[var(--pf-text-secondary)]">{detail.notes}</p>
-        </section>
-      )}
+      <MainAppSection>
+        <MainAppSummaryGrid>
+          <MainAppSummaryItem label={t('meetings.fields.attendees')}>
+            {detail.attendees.length}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('meetings.fields.decisions')}>
+            {detail.decisions.length}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('meetings.fields.actionItems')}>
+            {detail.actionItems.length}
+          </MainAppSummaryItem>
+          <MainAppSummaryItem label={t('meetings.fields.date')}>
+            <span className="pf-ltr-island" dir="ltr">
+              {formatFullDate(detail.scheduledAt, locale)}
+            </span>
+          </MainAppSummaryItem>
+        </MainAppSummaryGrid>
+      </MainAppSection>
 
-      {/* ── Attendees ── */}
-      <section className="rounded-lg border border-[var(--pf-border)] p-4">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <h2 className="flex items-center gap-2 text-sm font-semibold">
-            <Users className="h-4 w-4 text-[var(--pf-text-secondary)]" aria-hidden />
+      {detail.notes ? (
+        <MainAppSection title={t('meetings.fields.notes')}>
+          <p className="whitespace-pre-wrap text-sm text-[var(--pf-text-secondary)]">{detail.notes}</p>
+        </MainAppSection>
+      ) : null}
+
+      <MainAppSection
+        title={
+          <span className="inline-flex min-w-0 flex-wrap items-center gap-2">
+            <Users className="h-4 w-4 shrink-0 text-[var(--pf-text-secondary)]" aria-hidden />
             {t('meetings.fields.attendees')} ({detail.attendees.length})
-          </h2>
-          {canManage && (
+          </span>
+        }
+        actions={
+          canManage ? (
             <Button asChild size="sm" variant="ghost">
               <Link href={`/meetings/${meetingId}/attendees/add`} prefetch={false}>
                 {t('meetings.detail.addAttendee')}
               </Link>
             </Button>
-          )}
-        </div>
+          ) : undefined
+        }
+      >
         {detail.attendees.length === 0 ? (
           <p className="text-sm text-[var(--pf-text-muted)]">{t('meetings.detail.noAttendees')}</p>
         ) : (
@@ -136,7 +161,7 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
             {detail.attendees.map((attendee) => (
               <span
                 key={attendee.id}
-                className="inline-flex items-center rounded-full bg-[var(--pf-badge-bg)] px-3 py-1 text-sm"
+                className="inline-flex max-w-full items-center rounded-full bg-[var(--pf-badge-bg)] px-3 py-1 text-sm"
               >
                 {attendee.resolvedName ?? attendee.displayName ?? t('meetings.attendee.unknown')}
                 {attendee.orgMemberId && (
@@ -152,35 +177,33 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
             ))}
           </div>
         )}
-      </section>
+      </MainAppSection>
 
-      {/* ── Decisions ─────────────────────────────────────────────────────────
-           IMPORTANT: Decisions are canonical records, NOT tasks.
-           Action items under a decision may optionally create/link tasks.
-      ── */}
-      <section className="rounded-lg border border-[var(--pf-border)] p-4">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <h2 className="flex items-center gap-2 text-sm font-semibold">
-              <CheckSquare className="h-4 w-4 text-[var(--pf-text-secondary)]" aria-hidden />
-              {t('meetings.detail.decisionsHeading', { count: detail.decisions.length })}
-            </h2>
+      {/* Decisions are canonical records, NOT tasks. Action items may optionally create/link tasks. */}
+      <MainAppSection
+        title={
+          <span className="inline-flex min-w-0 flex-wrap items-center gap-2">
+            <CheckSquare className="h-4 w-4 shrink-0 text-[var(--pf-text-secondary)]" aria-hidden />
+            {t('meetings.detail.decisionsHeading', { count: detail.decisions.length })}
             <span className="rounded bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
               {t('meetings.detail.canonicalBadge')}
             </span>
-          </div>
-          {canManage && (
+          </span>
+        }
+        actions={
+          canManage ? (
             <Button asChild size="sm" variant="ghost">
               <Link href={`/meetings/${meetingId}/decisions/new`} prefetch={false}>
                 {t('meetings.detail.addDecision')}
               </Link>
             </Button>
-          )}
-        </div>
+          ) : undefined
+        }
+      >
         {detail.decisions.length === 0 ? (
           <p className="text-sm text-[var(--pf-text-muted)]">{t('meetings.detail.noDecisionsYet')}</p>
         ) : (
-          <ul className="space-y-3">
+          <ul className="min-w-0 space-y-3">
             {detail.decisions.map((decision) => (
               <DecisionItem
                 key={decision.id}
@@ -194,27 +217,29 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
             ))}
           </ul>
         )}
-      </section>
+      </MainAppSection>
 
-      {/* ── Action Items ── */}
-      <section className="rounded-lg border border-[var(--pf-border)] p-4">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <h2 className="flex items-center gap-2 text-sm font-semibold">
-            <ClipboardList className="h-4 w-4 text-[var(--pf-text-secondary)]" aria-hidden />
+      <MainAppSection
+        title={
+          <span className="inline-flex min-w-0 flex-wrap items-center gap-2">
+            <ClipboardList className="h-4 w-4 shrink-0 text-[var(--pf-text-secondary)]" aria-hidden />
             {t('meetings.detail.actionItemsHeading', { count: detail.actionItems.length })}
-          </h2>
-          {canManage && (
+          </span>
+        }
+        actions={
+          canManage ? (
             <Button asChild size="sm" variant="ghost">
               <Link href={`/meetings/${meetingId}/action-items/new`} prefetch={false}>
                 {t('meetings.detail.addActionItem')}
               </Link>
             </Button>
-          )}
-        </div>
+          ) : undefined
+        }
+      >
         {detail.actionItems.length === 0 ? (
           <p className="text-sm text-[var(--pf-text-muted)]">{t('meetings.detail.noActionItemsYet')}</p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="min-w-0 space-y-2">
             {detail.actionItems.map((item) => (
               <ActionItemRow
                 key={item.id}
@@ -228,8 +253,8 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
             ))}
           </ul>
         )}
-      </section>
-    </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 
@@ -251,10 +276,10 @@ function DecisionItem({
   decidedAtLabel: (date: string) => string;
 }) {
   return (
-    <li className="rounded-md border border-[var(--pf-border)] p-3">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="font-medium text-sm">{decision.title}</p>
+    <li className="min-w-0 rounded-md border border-[var(--pf-border)] p-3">
+      <div className="flex min-w-0 items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium">{decision.title}</p>
           {decision.body && (
             <p className="mt-1 whitespace-pre-wrap text-sm text-[var(--pf-text-secondary)]">
               {decision.body}
@@ -267,7 +292,7 @@ function DecisionItem({
           )}
         </div>
         {canManage && (
-          <Button asChild size="sm" variant="ghost">
+          <Button asChild size="sm" variant="ghost" className="shrink-0">
             <Link href={`/meetings/${meetingId}/decisions/${decision.id}/edit`} prefetch={false}>
               {editLabel}
             </Link>
@@ -300,8 +325,7 @@ function ActionItemRow({
   };
 
   return (
-    <li className="flex items-start gap-3 rounded-md border border-[var(--pf-border)] p-3">
-      {/* Status toggle form — real toggle needs a server action or client component */}
+    <li className="flex min-w-0 items-start gap-3 rounded-md border border-[var(--pf-border)] p-3">
       <span
         className={`mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-xs font-medium capitalize ${statusColors[item.status] ?? statusColors.open}`}
       >
@@ -318,7 +342,6 @@ function ActionItemRow({
           </p>
         )}
 
-        {/* Linked task */}
         {item.taskId && (
           <Link
             href={`/tasks/${item.taskId}`}
@@ -330,8 +353,7 @@ function ActionItemRow({
         )}
       </div>
 
-      <div className="flex shrink-0 gap-1">
-        {/* Create task button — only when no task linked yet */}
+      <div className="flex shrink-0 flex-wrap gap-1">
         {canManage && canCreateTasks && !item.taskId && item.status === 'open' && (
           <Button asChild size="sm" variant="ghost">
             <Link
@@ -357,8 +379,6 @@ function ActionItemRow({
     </li>
   );
 }
-
-// ─── Date helpers ─────────────────────────────────────────────────────────────
 
 function formatFullDate(date: Date, locale: string): string {
   return intlDateTimeFormat(locale, {

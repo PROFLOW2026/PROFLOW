@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
@@ -31,9 +32,12 @@ export default async function ApproveChangePage({
   const canApprove = shell?.permissions.has(PERMISSIONS.CHANGES_APPROVE) ?? false;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('approve.pageTitle')} description={t('approve.pageDescription')} />
-      <ApproveChangeForm detail={detail} action={approveChangeAction} canApprove={canApprove} />
-    </div>
+      <MainAppSection>
+        <ApproveChangeForm detail={detail} action={approveChangeAction} canApprove={canApprove} />
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

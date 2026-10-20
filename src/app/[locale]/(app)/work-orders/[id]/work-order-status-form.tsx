@@ -31,7 +31,7 @@ export function WorkOrderStatusForm({
   return (
     <form
       action={formAction}
-      className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4 sm:flex-row sm:items-end"
+      className="flex w-full min-w-0 max-w-3xl flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4 sm:flex-row sm:flex-wrap sm:items-end"
     >
       <input type="hidden" name="workOrderId" value={workOrderId} />
       <Field label={t('create.quickStatusLabel')} className="min-w-0 flex-1">

@@ -3,6 +3,7 @@
 import { CalendarSync, Copy, Loader2, RefreshCw, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppSection } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -79,15 +80,16 @@ export function CalendarFeedPanel({ appOrigin }: { appOrigin: string }) {
   };
 
   return (
-    <section className="flex flex-col gap-3 border-t border-[var(--pf-border-subtle)] pt-5">
-      <div className="flex items-start gap-2">
-        <CalendarSync className="mt-0.5 size-5 shrink-0 text-[var(--pf-text-muted)]" aria-hidden />
-        <div className="min-w-0 flex-1">
-          <h2 className="text-base font-semibold">{t('title')}</h2>
-          <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
-        </div>
-      </div>
-
+    <MainAppSection
+      title={
+        <span className="inline-flex items-start gap-2">
+          <CalendarSync className="mt-0.5 size-5 shrink-0 text-[var(--pf-text-muted)]" aria-hidden />
+          <span>{t('title')}</span>
+        </span>
+      }
+      description={t('description')}
+      className="w-full min-w-0"
+    >
       {loadError ? (
         <Alert tone="warning">{loadError}</Alert>
       ) : null}
@@ -135,6 +137,6 @@ export function CalendarFeedPanel({ appOrigin }: { appOrigin: string }) {
           <p className="text-xs text-[var(--pf-text-muted)]">{t('urlHint')}</p>
         </div>
       ) : null}
-    </section>
+    </MainAppSection>
   );
 }

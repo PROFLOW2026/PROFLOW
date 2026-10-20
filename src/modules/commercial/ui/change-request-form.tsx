@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState, useMemo, useState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -95,7 +96,7 @@ export function ChangeRequestForm({
     : fallbackContractId;
 
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-xl flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       {resolvedProjectId ? (
         <input type="hidden" name="projectId" value={resolvedProjectId} />
       ) : null}
@@ -111,8 +112,9 @@ export function ChangeRequestForm({
         </Alert>
       ) : null}
 
+      <MainAppFormGrid dense>
       {!projectId ? (
-        <Field label={t('project')} required description={t('projectHint')}>
+        <Field label={t('project')} required description={t('projectHint')} className={mainAppFieldSpan.lg}>
           {(control) => (
             <Select
               value={selectedProjectId}
@@ -144,7 +146,7 @@ export function ChangeRequestForm({
       {showContractPicker ? (
         <>
           <input type="hidden" name="contractId" value={resolvedContractId} />
-          <Field label={t('contract')} required description={t('contractHint')}>
+          <Field label={t('contract')} required description={t('contractHint')} className={mainAppFieldSpan.lg}>
             {(control) => (
               <Select value={resolvedContractId} onValueChange={setSelectedContractId} required>
                 <SelectTrigger
@@ -168,13 +170,13 @@ export function ChangeRequestForm({
         </>
       ) : null}
 
-      <Field label={t('title')} required>
+      <Field label={t('title')} required className={mainAppFieldSpan.lg}>
         {(control) => (
           <Input {...control} name="title" required defaultValue={initial?.title ?? ''} />
         )}
       </Field>
 
-      <Field label={t('description')}>
+      <Field label={t('description')} className={mainAppFieldSpan.full}>
         {(control) => (
           <Textarea
             {...control}
@@ -185,7 +187,7 @@ export function ChangeRequestForm({
         )}
       </Field>
 
-      <Field label={t('direction')} required>
+      <Field label={t('direction')} required className={mainAppFieldSpan.md}>
         {(control) => (
           <Select value={direction} onValueChange={(value) => setDirection(value as 'addition' | 'reduction')}>
             <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
@@ -199,7 +201,7 @@ export function ChangeRequestForm({
         )}
       </Field>
 
-      <Field label={t('requestedAmount')} description={t('requestedAmountHint')}>
+      <Field label={t('requestedAmount')} description={t('requestedAmountHint')} className={mainAppFieldSpan.md}>
         {(control) => (
           <Input
             {...control}
@@ -211,7 +213,7 @@ export function ChangeRequestForm({
         )}
       </Field>
 
-      <Field label={t('billingCondition')} description={t('billingConditionHint')}>
+      <Field label={t('billingCondition')} description={t('billingConditionHint')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Select
             name="billingCondition"
@@ -230,6 +232,7 @@ export function ChangeRequestForm({
           </Select>
         )}
       </Field>
+      </MainAppFormGrid>
 
       {state.error ? (
         <p className="text-sm text-[var(--pf-status-danger-fg)]" role="alert">

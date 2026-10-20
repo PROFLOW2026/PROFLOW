@@ -1,3 +1,9 @@
+﻿import {
+  AdaptiveListBody,
+  AdaptiveListTableShell,
+  MainAppPage,
+  MainAppSection,
+} from '@/components/patterns/main-app';
 import { ClipboardList, Plus } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -89,22 +95,24 @@ export async function ProcurementOrdersOrgListView({
     const tEmployee =
       surface === 'employee' ? await getTranslations('employeeApp.procurement') : null;
     return (
-      <div className="flex min-w-0 flex-col gap-6">
+      <MainAppPage>
         {isOwner ? <PageHeader title={t('title')} description={t('description')} /> : null}
         {isOwner ? <ProcurementSectionNav active="orders" /> : null}
+        <MainAppSection>
         <EmptyState
           icon={ClipboardList}
           title={tEmployee?.('noAccess.title') ?? t('empty.orders.title')}
           description={tEmployee?.('noAccess.description') ?? t('empty.orders.body')}
         />
-      </div>
+        </MainAppSection>
+      </MainAppPage>
     );
   }
 
   const showManageActions = isOwner && canManage;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       {isOwner ? (
         <PageHeader
           title={t('title')}
@@ -124,6 +132,8 @@ export async function ProcurementOrdersOrgListView({
 
       {isOwner ? <ProcurementSectionNav active="orders" /> : null}
 
+      <MainAppSection>
+        <AdaptiveListBody surface={surface}>
       {/* Market pressure context — indication only, not a forecast */}
       {marketSnapshots.length > 0 && canRead ? (
         <MarketPressureContextBanner
@@ -162,7 +172,7 @@ export async function ProcurementOrdersOrgListView({
           items={orders}
           getRowKey={(order) => order.id}
           desktop={
-            <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+            <AdaptiveListTableShell surface={surface}>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -252,7 +262,7 @@ export async function ProcurementOrdersOrgListView({
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </AdaptiveListTableShell>
           }
           renderMobileCard={(order) => (
             <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
@@ -290,6 +300,8 @@ export async function ProcurementOrdersOrgListView({
           )}
         />
       )}
-    </div>
+        </AdaptiveListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

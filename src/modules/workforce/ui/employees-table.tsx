@@ -1,9 +1,10 @@
-import { getTranslations } from 'next-intl/server';
+﻿import { getTranslations } from 'next-intl/server';
 import { Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { MainAppTableShell } from '@/components/patterns/main-app';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -61,7 +62,7 @@ export async function EmployeesTable({
       items={employees}
       getRowKey={(employee) => employee.id}
       desktop={
-        <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+        <MainAppTableShell>
           <Table>
             <TableHeader>
               <TableRow>
@@ -157,7 +158,7 @@ export async function EmployeesTable({
               ))}
             </TableBody>
           </Table>
-        </div>
+        </MainAppTableShell>
       }
       renderMobileCard={(employee) => (
         <Link

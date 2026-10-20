@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -56,7 +57,7 @@ export default async function NewVendorCreditPage() {
   );
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('credits.createPage.title')}
         description={t('credits.createPage.description')}
@@ -66,8 +67,8 @@ export default async function NewVendorCreditPage() {
           </Link>
         }
       />
-
-      {!canManage ? (
+      <MainAppSection>
+        {!canManage ? (
         <EmptyState title={t('empty.noAccess.title')} description={t('empty.noAccess.body')} />
       ) : vendors.length === 0 ? (
         <EmptyState
@@ -88,6 +89,8 @@ export default async function NewVendorCreditPage() {
           bills={bills}
         />
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

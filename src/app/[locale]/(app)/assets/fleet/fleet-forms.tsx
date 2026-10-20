@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -34,50 +35,52 @@ export function FleetVehicleCreateForm({
   const [assetId, setAssetId] = useState('__none__');
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
-      <Field label={t('assetLabel')}>
-        {(control) => (
-          <>
-            <input type="hidden" name="assetId" value={assetId} />
-            <Select value={assetId} onValueChange={setAssetId}>
-              <SelectTrigger id={control.id}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">{t('assetNone')}</SelectItem>
-                {linkableAssets.map((asset) => (
-                  <SelectItem key={asset.id} value={asset.id}>
-                    {asset.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        )}
-      </Field>
-
-      {assetId === '__none__' ? (
-        <Field label={t('nameLabel')} required error={state.fieldErrors?.name}>
-          {(control) => <Input {...control} name="name" required />}
+      <MainAppFormGrid dense>
+        <Field label={t('assetLabel')} className={mainAppFieldSpan.lg}>
+          {(control) => (
+            <>
+              <input type="hidden" name="assetId" value={assetId} />
+              <Select value={assetId} onValueChange={setAssetId}>
+                <SelectTrigger id={control.id}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">{t('assetNone')}</SelectItem>
+                  {linkableAssets.map((asset) => (
+                    <SelectItem key={asset.id} value={asset.id}>
+                      {asset.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
         </Field>
-      ) : null}
 
-      <Field label={t('plateNumberLabel')}>
-        {(control) => <Input {...control} name="plateNumber" dir="ltr" />}
-      </Field>
-      <Field label={t('vinLabel')}>
-        {(control) => <Input {...control} name="vin" dir="ltr" />}
-      </Field>
-      <Field label={t('odometerLabel')}>
-        {(control) => <Input {...control} name="odometer" inputMode="decimal" numeric />}
-      </Field>
-      <Field label={t('notesLabel')}>
-        {(control) => <Textarea {...control} name="notes" rows={2} />}
-      </Field>
+        {assetId === '__none__' ? (
+          <Field label={t('nameLabel')} required error={state.fieldErrors?.name} className={mainAppFieldSpan.lg}>
+            {(control) => <Input {...control} name="name" required />}
+          </Field>
+        ) : null}
 
-      <Button type="submit" className="h-11 w-full sm:w-auto" loading={pending}>
+        <Field label={t('plateNumberLabel')} className={mainAppFieldSpan.md}>
+          {(control) => <Input {...control} name="plateNumber" dir="ltr" />}
+        </Field>
+        <Field label={t('vinLabel')} className={mainAppFieldSpan.lg}>
+          {(control) => <Input {...control} name="vin" dir="ltr" />}
+        </Field>
+        <Field label={t('odometerLabel')} className={mainAppFieldSpan.md}>
+          {(control) => <Input {...control} name="odometer" inputMode="decimal" numeric />}
+        </Field>
+        <Field label={t('notesLabel')} className={mainAppFieldSpan.full}>
+          {(control) => <Textarea {...control} name="notes" rows={2} />}
+        </Field>
+      </MainAppFormGrid>
+
+      <Button type="submit" className="self-start" loading={pending}>
         {pending ? tCommon('states.saving') : t('submit')}
       </Button>
     </form>
@@ -105,20 +108,20 @@ export function FleetVehicleEditForm({
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <input type="hidden" name="fleetVehicleId" value={fleetVehicleId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{tCommon('states.saved')}</Alert> : null}
-      <div className="grid gap-3 md:grid-cols-3">
-        <Field label={t('plateNumberLabel')}>
+      <MainAppFormGrid dense>
+        <Field label={t('plateNumberLabel')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input {...control} name="plateNumber" defaultValue={plateNumber ?? ''} dir="ltr" />
           )}
         </Field>
-        <Field label={t('vinLabel')}>
+        <Field label={t('vinLabel')} className={mainAppFieldSpan.lg}>
           {(control) => <Input {...control} name="vin" defaultValue={vin ?? ''} dir="ltr" />}
         </Field>
-        <Field label={t('odometerLabel')}>
+        <Field label={t('odometerLabel')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               {...control}
@@ -129,11 +132,11 @@ export function FleetVehicleEditForm({
             />
           )}
         </Field>
-      </div>
-      <Field label={t('notesLabel')}>
-        {(control) => <Input {...control} name="notes" defaultValue={notes ?? ''} />}
-      </Field>
-      <Button type="submit" size="sm" loading={pending} className="min-h-11 self-start md:min-h-8">
+        <Field label={t('notesLabel')} className={mainAppFieldSpan.full}>
+          {(control) => <Input {...control} name="notes" defaultValue={notes ?? ''} />}
+        </Field>
+      </MainAppFormGrid>
+      <Button type="submit" size="sm" loading={pending} className="self-start">
         {pending ? tCommon('states.saving') : t('updateSubmit')}
       </Button>
     </form>

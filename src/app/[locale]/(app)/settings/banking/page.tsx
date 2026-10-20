@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { Card } from '@/components/ui/card';
+import { MainAppSection } from '@/components/patterns/main-app';
 import {
   areBankingPersistenceAvailable,
   listBankAccounts,
@@ -49,26 +49,28 @@ export default async function BankingSettingsPage() {
   if (!data.allowed) {
     return (
       <SettingsPageShell title={title} description={description}>
-        <Card className="p-5 text-sm text-[var(--pf-text-secondary)]">
-          Not allowed
-        </Card>
+        <MainAppSection>
+          <p className="text-sm text-[var(--pf-text-secondary)]">Not allowed</p>
+        </MainAppSection>
       </SettingsPageShell>
     );
   }
 
   return (
     <SettingsPageShell title={title} description={description}>
-      <Card className="p-5">
-        {!data.persistenceReady ? (
-          <p className="mb-4 text-sm text-[var(--pf-text-secondary)]">{t('errors.schemaPending')}</p>
-        ) : null}
-        <BankingReconciliationPanelLazy
-          initialAccounts={data.accounts}
-          initialTransactions={data.transactions}
-          defaultCurrency={data.defaultCurrency}
-          canManage={data.canManage && data.persistenceReady}
-        />
-      </Card>
+      <MainAppSection>
+        <div className="flex w-full min-w-0 flex-col gap-4">
+          {!data.persistenceReady ? (
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('errors.schemaPending')}</p>
+          ) : null}
+          <BankingReconciliationPanelLazy
+            initialAccounts={data.accounts}
+            initialTransactions={data.transactions}
+            defaultCurrency={data.defaultCurrency}
+            canManage={data.canManage && data.persistenceReady}
+          />
+        </div>
+      </MainAppSection>
     </SettingsPageShell>
   );
 }

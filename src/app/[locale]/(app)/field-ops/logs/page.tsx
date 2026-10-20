@@ -1,4 +1,11 @@
-import { HardHat, Plus } from 'lucide-react';
+import {
+  MainAppListBody,
+  MainAppListSearchToolbar,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+﻿import { HardHat, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -34,7 +41,6 @@ export default async function FieldOpsLogsPage({
   searchParams: Promise<{ projectId?: string; status?: string }>;
 }) {
   const t = await getTranslations('fieldOps');
-  const tCommon = await getTranslations('common');
   const locale = await getLocale();
   const { projectId, status: statusRaw } = await searchParams;
   const status =
@@ -57,7 +63,7 @@ export default async function FieldOpsLogsPage({
   const projectName = new Map(projects.map((p) => [p.id, p.name]));
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('nav.logs')}
         description={t('description')}
@@ -76,29 +82,33 @@ export default async function FieldOpsLogsPage({
           ) : null
         }
       />
-      <FieldOpsSectionNav active="logs" />
+      <MainAppSection>
+        <MainAppListBody>
+        <FieldOpsSectionNav active="logs" />
 
-      <form method="get" className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        {projectId ? <input type="hidden" name="projectId" value={projectId} /> : null}
-        <label className="flex flex-col gap-1 text-sm sm:w-44">
-          <span className="text-[var(--pf-text-secondary)]">{t('filters.status')}</span>
-          <select
-            name="status"
-            defaultValue={status ?? 'all'}
-            className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm focus:border-[var(--pf-border-focus)] focus:outline-2 focus:outline-offset-0 focus:outline-[var(--pf-focus-ring)]"
-          >
-            <option value="all">{t('filters.all')}</option>
-            {DAILY_LOG_STATUSES.map((value) => (
-              <option key={value} value={value}>
-                {t(`logStatus.${value}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <Button type="submit" variant="secondary" className="min-h-11 w-full sm:w-auto">
-          {tCommon('actions.filter')}
-        </Button>
-      </form>
+      <MainAppListSearchToolbar
+        showSearch={false}
+        initialQuery=""
+        searchPlaceholder=""
+        hiddenFields={projectId ? <input type="hidden" name="projectId" value={projectId} /> : null}
+        filterFields={
+          <label className="flex w-full min-w-0 flex-col gap-1 text-sm sm:w-44">
+            <span className="text-[var(--pf-text-secondary)]">{t('filters.status')}</span>
+            <select
+              name="status"
+              defaultValue={status ?? 'all'}
+              className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm focus:border-[var(--pf-border-focus)] focus:outline-2 focus:outline-offset-0 focus:outline-[var(--pf-focus-ring)]"
+            >
+              <option value="all">{t('filters.all')}</option>
+              {DAILY_LOG_STATUSES.map((value) => (
+                <option key={value} value={value}>
+                  {t(`logStatus.${value}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+        }
+      />
 
       {logs.length === 0 ? (
         <EmptyState
@@ -118,7 +128,7 @@ export default async function FieldOpsLogsPage({
           items={logs}
           getRowKey={(log) => log.id}
           desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            <MainAppTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -172,7 +182,7 @@ export default async function FieldOpsLogsPage({
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </MainAppTableShell>
           }
           renderMobileCard={(log) => (
             <Link
@@ -214,6 +224,9 @@ export default async function FieldOpsLogsPage({
           )}
         />
       )}
-    </div>
+
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

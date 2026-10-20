@@ -1,9 +1,11 @@
-import { Skeleton } from '@/components/ui/skeleton';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SettingsLoading() {
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6" aria-busy="true" aria-live="polite">
-      <div className="flex flex-col gap-2">
+    <MainAppPage>
+      <MainAppSection>
+        <div className="flex flex-col gap-2">
         <Skeleton className="h-8 w-40 max-w-full" />
         <Skeleton className="h-4 w-72 max-w-full" />
       </div>
@@ -21,6 +23,8 @@ export default function SettingsLoading() {
           <Skeleton className="h-64 w-full max-w-full rounded-lg" />
         </div>
       </div>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

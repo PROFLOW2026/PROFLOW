@@ -1,4 +1,10 @@
-import { Handshake } from 'lucide-react';
+import {
+  MainAppListBody,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+﻿import { Handshake } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -114,9 +120,10 @@ export default async function SubcontractsPage({
 
   return (
     <WithAppClientMessages extra={['vendors']}>
-      <div className="flex flex-col gap-4">
+      <MainAppPage>
         <PageHeader title={t('title')} description={t('description')} />
-
+      <MainAppSection>
+        <MainAppListBody>
         <SubcontractsListFilters
           initialVendorId={params.vendorId ?? ''}
           initialProjectId={params.projectId ?? ''}
@@ -134,7 +141,7 @@ export default async function SubcontractsPage({
             items={items}
             getRowKey={(item) => item.id}
             desktop={
-              <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+              <MainAppTableShell>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -187,7 +194,7 @@ export default async function SubcontractsPage({
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </MainAppTableShell>
             }
             renderMobileCard={(item) => (
               <Link href={`/vendors/${item.vendorId}`} className={pressableCardLinkClassName}>
@@ -208,7 +215,10 @@ export default async function SubcontractsPage({
             )}
           />
         )}
-      </div>
+
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

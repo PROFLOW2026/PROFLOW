@@ -1,4 +1,5 @@
-import { HardHat, KeyRound } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { HardHat, KeyRound } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -46,12 +47,12 @@ export async function ProjectContractorsScreen({
 
   return (
     <WithAppClientMessages extra={['projectWorkspace', 'subcontracts']}>
-      <div className="flex flex-col gap-4">
+      <MainAppPage>
         <PageHeader
           title={t('contractors.pageTitle')}
           description={t('contractors.pageDescription')}
         />
-
+      <MainAppSection>
         <div className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-subtle)] bg-[var(--pf-surface-muted)] p-4 text-sm text-[var(--pf-text-secondary)]">
           <p>{t('contractors.createHint')}</p>
           {data.items.length > 0 ? (
@@ -169,7 +170,9 @@ export async function ProjectContractorsScreen({
             ))}
           </ul>
         )}
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

@@ -1,4 +1,5 @@
 'use client';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 
 import { useActionState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -22,8 +23,9 @@ export function AssistantChat({
   const [state, action, pending] = useActionState<AssistantFormState, FormData>(askAssistantAction, {});
 
   return (
-    <div className="flex flex-col gap-4">
-      {!providerConfigured ? <Alert tone="info">{t('unconfigured')}</Alert> : null}
+    <MainAppPage>
+      <MainAppSection>
+        {!providerConfigured ? <Alert tone="info">{t('unconfigured')}</Alert> : null}
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('disclaimer')}</p>
       <div className="flex min-h-40 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
         {messages.length === 0 && !state.content ? (
@@ -53,7 +55,9 @@ export function AssistantChat({
           {t('send')}
         </Button>
       </form>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

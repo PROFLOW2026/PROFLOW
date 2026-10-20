@@ -1,4 +1,11 @@
-import type { Metadata } from 'next';
+import {
+  MainAppListBody,
+  MainAppListPagination,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -18,9 +25,17 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { textNavLinkClassName } from '@/components/ui/pressable';
-import { PortfolioPagination } from './portfolio-pagination';
 import { PortfolioFiltersBar } from './portfolio-filters-bar';
-import { uwmListPanelClass } from '@/shared/ui/uwm-surface-styles';
+import {
+  MAIN_APP_DEFAULT_LIST_PAGE_SIZE,
+  parseMainAppListPageSize,
+} from '@/shared/db/main-app-list-page-size';
+import {
+  orgListOffset,
+  orgListPageCount,
+  parseOrgListPage,
+  resolveOrgListPage,
+} from '@/shared/db/org-list-pagination';
 
 export async function generateMetadata({
   params,
@@ -47,17 +62,9 @@ interface PortfolioPageProps {
     employeeId?: string;
     labelId?: string;
     page?: string;
+    pageSize?: string;
     per_page?: string;
   }>;
-}
-
-const PER_PAGE_OPTIONS = [25, 50, 100] as const;
-type PerPageOption = (typeof PER_PAGE_OPTIONS)[number];
-
-function resolvePerPage(raw: string | undefined): PerPageOption {
-  const n = parseInt(raw ?? '25', 10);
-  if ((PER_PAGE_OPTIONS as readonly number[]).includes(n)) return n as PerPageOption;
-  return 25;
 }
 
 function resolveStatusBadgeTone(status: string) {
@@ -101,35 +108,58 @@ function portfolioWorkKindKey(workKind: string): `portfolio.filters.workKindOpti
 // ---------------------------------------------------------------------------
 
 export default async function PortfolioPage({ searchParams }: PortfolioPageProps) {
-  const [params, shell, t] = await Promise.all([
+  const [params, shell, t, tCommon] = await Promise.all([
     searchParams,
     getShellContext(),
     getTranslations('tasks'),
+    getTranslations('common'),
   ]);
 
   const canRead = shell?.permissions.has(PERMISSIONS.PORTFOLIO_READ) ?? false;
 
-  const perPage = resolvePerPage(params.per_page);
-  const page = Math.max(1, parseInt(params.page ?? '1', 10));
-  const offset = (page - 1) * perPage;
+  const pageSize = parseMainAppListPageSize(
+    params.pageSize ??
+      (params.per_page === '50' ? '50' : params.per_page === '10' ? '10' : undefined),
+    MAIN_APP_DEFAULT_LIST_PAGE_SIZE,
+  );
+  const requestedPage = parseOrgListPage(params.page);
 
-  const { rows, totalCount } = await withOrgContext(async (context) => {
-    if (!canRead) return { rows: [], totalCount: 0 };
-    return getPortfolio(context, {
-      clientId: params.clientId || null,
-      stageId: params.stageId || null,
-      workKind: params.workKind || null,
-      status: params.status || null,
-      hasOverdue: params.has_overdue === 'true',
-      stale: params.stale === 'true',
-      employeeId: params.employeeId || null,
-      labelId: params.labelId || null,
-      limit: perPage,
-      offset,
+  const portfolioFilters = {
+    clientId: params.clientId || null,
+    stageId: params.stageId || null,
+    workKind: params.workKind || null,
+    status: params.status || null,
+    hasOverdue: params.has_overdue === 'true',
+    stale: params.stale === 'true',
+    employeeId: params.employeeId || null,
+    labelId: params.labelId || null,
+  };
+
+  const { rows, totalCount, currentPage, totalPages } = await withOrgContext(async (context) => {
+    if (!canRead) {
+      return { rows: [], totalCount: 0, currentPage: 1, totalPages: 0 };
+    }
+    const first = await getPortfolio(context, {
+      ...portfolioFilters,
+      limit: pageSize,
+      offset: orgListOffset(requestedPage, pageSize),
     });
+    const page = resolveOrgListPage(first.totalCount, requestedPage, pageSize);
+    const result =
+      page !== requestedPage && first.totalCount > 0
+        ? await getPortfolio(context, {
+            ...portfolioFilters,
+            limit: pageSize,
+            offset: orgListOffset(page, pageSize),
+          })
+        : first;
+    return {
+      rows: result.rows,
+      totalCount: result.totalCount,
+      currentPage: page,
+      totalPages: orgListPageCount(result.totalCount, pageSize),
+    };
   });
-
-  const totalPages = Math.ceil(totalCount / perPage);
   const hasFilters = Boolean(
     params.clientId ||
       params.stageId ||
@@ -143,24 +173,27 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
 
   if (!canRead) {
     return (
-      <div className="flex min-w-0 max-w-full flex-col gap-4">
+      <MainAppPage>
         <PageHeader title={t('portfolio.pageTitle')} />
+      <MainAppSection>
         <EmptyState
           title={t('portfolio.accessDenied.title')}
           description={t('portfolio.accessDenied.description')}
         />
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     );
   }
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-4">
+    <MainAppPage>
       <PageHeader
         title={t('portfolio.pageTitle')}
         description={t('portfolio.description.projectCount', { count: totalCount })}
       />
-
-      {/* Filter bar */}
+      <MainAppSection>
+        <MainAppListBody>
       <PortfolioFiltersBar currentParams={params} totalCount={totalCount} />
 
       {rows.length === 0 ? (
@@ -185,8 +218,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
         )
       ) : (
         <>
-          {/* Portfolio table */}
-          <div className={cn(uwmListPanelClass, 'overflow-x-auto')}>
+          <MainAppTableShell>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -296,44 +328,38 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </MainAppTableShell>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <PortfolioPagination
-              currentPage={page}
-              totalPages={totalPages}
-              perPage={perPage}
-              totalCount={totalCount}
-              currentParams={params}
-            />
-          )}
-
-          {/* Per-page selector */}
-          <div className="flex items-center justify-end gap-2 text-sm text-[var(--pf-text-secondary)]">
-            <span>{t('portfolio.pagination.rowsPerPage')}</span>
-            {PER_PAGE_OPTIONS.map((opt) => {
-              const qs = new URLSearchParams();
-              for (const [k, v] of Object.entries(params)) {
-                if (v && k !== 'per_page' && k !== 'page') qs.set(k, v);
-              }
-              qs.set('per_page', String(opt));
-              return (
-                <Link
-                  key={opt}
-                  href={`/portfolio?${qs.toString()}`}
-                  className={cn(
-                    'rounded px-2 py-1 hover:bg-[var(--pf-bg-secondary)]',
-                    perPage === opt && 'bg-[var(--pf-bg-accent)] font-semibold',
-                  )}
-                >
-                  {opt}
-                </Link>
-              );
+          <MainAppListPagination
+            basePath="/portfolio"
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={pageSize}
+            currentParams={{
+              clientId: params.clientId,
+              stageId: params.stageId,
+              workKind: params.workKind,
+              status: params.status,
+              has_overdue: params.has_overdue,
+              stale: params.stale,
+              employeeId: params.employeeId,
+              labelId: params.labelId,
+            }}
+            previousLabel={tCommon('actions.previous')}
+            nextLabel={tCommon('actions.next')}
+            pageOfLabel={tCommon('pagination.pageOf', {
+              page: currentPage,
+              pageCount: totalPages,
             })}
-          </div>
+            navLabel={tCommon('pagination.navLabel')}
+            rowsPerPageLabel={tCommon('pagination.rowsPerPage')}
+          />
         </>
       )}
-    </div>
+
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

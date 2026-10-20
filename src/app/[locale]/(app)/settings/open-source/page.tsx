@@ -1,3 +1,4 @@
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { readFileSync } from 'node:fs';
@@ -15,8 +16,9 @@ export default async function OpenSourceNoticesPage({
   const body = readFileSync(noticesPath, 'utf8');
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4 p-6">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+    <MainAppPage>
+      <MainAppSection>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href={`/${locale}/settings`}>{tCommon('appName')}</Link>
         <span>/</span>
         <span>{tSettings('openSourceCad.breadcrumb')}</span>
@@ -25,6 +27,8 @@ export default async function OpenSourceNoticesPage({
       <pre className="whitespace-pre-wrap rounded-lg border bg-muted/30 p-4 text-xs leading-relaxed">
         {body}
       </pre>
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

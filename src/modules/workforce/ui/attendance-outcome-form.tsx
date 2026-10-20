@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState, useMemo, useState } from 'react';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -65,7 +66,7 @@ export function AttendanceOutcomeForm({
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
       <div>
         <p className="font-medium">{t('title')}</p>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
@@ -75,9 +76,10 @@ export function AttendanceOutcomeForm({
       <input type="hidden" name="entryMode" value={entryMode} />
       <input type="hidden" name="outcome" value={outcome} />
 
-      <Field label={t('employee')}>
+      <MainAppFormGrid dense className="gap-4">
+      <Field label={t('employee')} className={mainAppFieldSpan.full}>
         {(control) => (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-2">
             {employees.length > 1 ? (
               <Button
                 type="button"
@@ -130,7 +132,7 @@ export function AttendanceOutcomeForm({
         )}
       </Field>
 
-      <Field label={t('entryMode')}>
+      <Field label={t('entryMode')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Select value={entryMode} onValueChange={(value) => setEntryMode(value as EntryMode)}>
             <SelectTrigger id={control.id}>
@@ -145,7 +147,7 @@ export function AttendanceOutcomeForm({
       </Field>
 
       {entryMode === 'single' ? (
-        <Field label={t('workDate')}>
+        <Field label={t('workDate')} className={mainAppFieldSpan.md}>
           {(control) => (
             <Input
               id={control.id}
@@ -157,8 +159,8 @@ export function AttendanceOutcomeForm({
           )}
         </Field>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label={t('fromDate')}>
+        <>
+          <Field label={t('fromDate')} className={mainAppFieldSpan.md}>
             {(control) => (
               <Input
                 id={control.id}
@@ -169,7 +171,7 @@ export function AttendanceOutcomeForm({
               />
             )}
           </Field>
-          <Field label={t('toDate')}>
+          <Field label={t('toDate')} className={mainAppFieldSpan.md}>
             {(control) => (
               <Input
                 id={control.id}
@@ -180,10 +182,10 @@ export function AttendanceOutcomeForm({
               />
             )}
           </Field>
-        </div>
+        </>
       )}
 
-      <Field label={t('dayStatus')}>
+      <Field label={t('dayStatus')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Select
             value={outcome}
@@ -202,7 +204,7 @@ export function AttendanceOutcomeForm({
 
       {outcome === 'not_worked' ? (
         <>
-          <Field label={t('absenceReason')}>
+          <Field label={t('absenceReason')} className={mainAppFieldSpan.lg}>
             {(control) => (
               <>
                 <Select
@@ -228,7 +230,7 @@ export function AttendanceOutcomeForm({
               </>
             )}
           </Field>
-          <Field label={t('absenceCompensation')}>
+          <Field label={t('absenceCompensation')} className={mainAppFieldSpan.lg}>
             {(control) => (
               <>
                 <Select
@@ -250,7 +252,7 @@ export function AttendanceOutcomeForm({
         </>
       ) : null}
 
-      <Field label={t('notes')}>
+      <Field label={t('notes')} className={mainAppFieldSpan.full}>
         {(control) => (
           <Textarea
             id={control.id}
@@ -261,6 +263,7 @@ export function AttendanceOutcomeForm({
           />
         )}
       </Field>
+      </MainAppFormGrid>
 
       <Button type="submit" loading={pending} className="self-start">
         {tCommon('actions.save')}

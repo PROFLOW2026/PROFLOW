@@ -1,3 +1,4 @@
+﻿import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Plus, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -167,7 +168,7 @@ export async function ExpensesOrgListPage({
   const pageCount = expenseListPageCount(listResult.total, EXPENSE_LIST_PAGE_SIZE);
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
+    <MainAppPage>
       {isOwnerSurface ? (
         <PageHeader
           title={t('title')}
@@ -207,6 +208,7 @@ export async function ExpensesOrgListPage({
         />
       )}
 
+      <MainAppSection>
       {showUnallocatedFilter ? (
         <div
           role="status"
@@ -218,6 +220,7 @@ export async function ExpensesOrgListPage({
 
       <ExpensesOrgListView
         routeBase={routeBase}
+        surface={surface}
         items={listResult.items}
         total={listResult.total}
         currentPage={currentPage}
@@ -235,6 +238,7 @@ export async function ExpensesOrgListPage({
           statusFilter,
         }}
       />
-    </div>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

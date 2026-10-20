@@ -1,3 +1,4 @@
+import { MainAppPage } from '@/components/patterns/main-app';
 import { notFound } from 'next/navigation';
 import { getShellContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -10,9 +11,9 @@ export default async function WorkLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <MainAppPage>
       <WorkHubNav />
       {children}
-    </div>
+    </MainAppPage>
   );
 }

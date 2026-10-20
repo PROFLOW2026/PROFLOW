@@ -1,5 +1,12 @@
 'use client';
 
+import {
+  MainAppFormGrid,
+  MainAppSection,
+  MainAppSummaryGrid,
+  MainAppSummaryItem,
+  mainAppFieldSpan,
+} from '@/components/patterns/main-app';
 import type { ReactNode } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { localizeCode } from '@/shared/i18n/code-display';
@@ -11,7 +18,6 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   CONTACT_ROLES,
   IDENTIFIER_TYPES,
@@ -39,6 +45,8 @@ import {
   upsertIdentifierAction,
   type ClientFormState,
 } from '../actions';
+
+const EMPTY = '—';
 
 export interface ClientLinkedProject {
   readonly id: string;
@@ -110,140 +118,222 @@ export function ClientDetailView({
   const showProjects = tab === 'all' || tab === 'projects';
   const showSales = tab === 'all' || tab === 'sales';
   const showActivity = tab === 'all' || tab === 'activity';
+  const clientTypeName =
+    clientTypes.find((type) => type.id === client.clientTypeId)?.name ?? EMPTY;
+  const paymentTermName =
+    paymentTerms.find((term) => term.id === client.defaultPaymentTermId)?.name ?? EMPTY;
 
   return (
-    <div className="flex flex-col gap-6">
+    <>
+      {showDetails && !canManage ? (
+        <MainAppSection>
+          <MainAppSummaryGrid>
+            <MainAppSummaryItem label={t('companyEmailLabel')}>
+              {client.email?.trim() ? (
+                <span dir="ltr" className="pf-ltr-island">
+                  {client.email}
+                </span>
+              ) : (
+                EMPTY
+              )}
+            </MainAppSummaryItem>
+            <MainAppSummaryItem label={t('companyPhoneLabel')}>
+              {client.phone?.trim() ? (
+                <span dir="ltr" className="pf-ltr-island">
+                  {client.phone}
+                </span>
+              ) : (
+                EMPTY
+              )}
+            </MainAppSummaryItem>
+            <MainAppSummaryItem label={t('clientTypeLabel')}>{clientTypeName}</MainAppSummaryItem>
+            <MainAppSummaryItem label={t('paymentTermLabel')}>{paymentTermName}</MainAppSummaryItem>
+          </MainAppSummaryGrid>
+        </MainAppSection>
+      ) : null}
+
       {showDetails && canManage ? (
-        <form action={formAction} className="mx-auto flex w-full max-w-xl flex-col gap-4">
+        <MainAppSection>
+        <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
           <input type="hidden" name="clientId" value={client.id} />
           {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
           {state.ok && !state.error ? <Alert tone="success">{t('saved')}</Alert> : null}
 
-          <Field label={tCommon('labels.name')} required>
-            {(control) => <Input {...control} name="name" defaultValue={client.name} required />}
-          </Field>
-          <Field label={tClients('create.legalNameLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => (
-              <Input {...control} name="legalName" defaultValue={client.legalName ?? ''} />
-            )}
-          </Field>
-          <Field label={t('companyEmailLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => (
-              <Input
-                {...control}
-                name="email"
-                type="email"
-                defaultValue={client.email ?? ''}
-                dir="ltr"
-              />
-            )}
-          </Field>
-          <Field label={t('companyPhoneLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => (
-              <Input {...control} name="phone" defaultValue={client.phone ?? ''} dir="ltr" />
-            )}
-          </Field>
-          <Field label={tClients('create.websiteLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => (
-              <Input {...control} name="website" defaultValue={client.website ?? ''} dir="ltr" />
-            )}
-          </Field>
+          <MainAppFormGrid dense>
+            <Field label={tCommon('labels.name')} required className={mainAppFieldSpan.lg}>
+              {(control) => <Input {...control} name="name" defaultValue={client.name} required />}
+            </Field>
+            <Field
+              label={tClients('create.legalNameLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => (
+                <Input {...control} name="legalName" defaultValue={client.legalName ?? ''} />
+              )}
+            </Field>
+            <Field
+              label={t('companyEmailLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  name="email"
+                  type="email"
+                  defaultValue={client.email ?? ''}
+                  dir="ltr"
+                />
+              )}
+            </Field>
+            <Field
+              label={t('companyPhoneLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => (
+                <Input {...control} name="phone" defaultValue={client.phone ?? ''} dir="ltr" />
+              )}
+            </Field>
+            <Field
+              label={tClients('create.websiteLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => (
+                <Input {...control} name="website" defaultValue={client.website ?? ''} dir="ltr" />
+              )}
+            </Field>
 
-          <Field
-            label={tClients('create.addressLine1Label')}
-            optionalLabel={tCommon('labels.optional')}
-          >
-            {(control) => (
-              <Input {...control} name="addressLine1" defaultValue={client.addressLine1 ?? ''} />
-            )}
-          </Field>
-          <Field
-            label={tClients('create.addressLine2Label')}
-            optionalLabel={tCommon('labels.optional')}
-          >
-            {(control) => (
-              <Input {...control} name="addressLine2" defaultValue={client.addressLine2 ?? ''} />
-            )}
-          </Field>
-          <Field label={tClients('create.cityLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="city" defaultValue={client.city ?? ''} />}
-          </Field>
-          <Field label={tClients('create.regionLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="region" defaultValue={client.region ?? ''} />}
-          </Field>
-          <Field
-            label={tClients('create.postalCodeLabel')}
-            optionalLabel={tCommon('labels.optional')}
-          >
-            {(control) => (
-              <Input {...control} name="postalCode" defaultValue={client.postalCode ?? ''} dir="ltr" />
-            )}
-          </Field>
-          <Field label={tClients('create.countryLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => (
-              <Input
-                {...control}
-                name="countryCode"
-                defaultValue={client.countryCode ?? ''}
-                maxLength={2}
-                dir="ltr"
-              />
-            )}
-          </Field>
+            <Field
+              label={tClients('create.addressLine1Label')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => (
+                <Input {...control} name="addressLine1" defaultValue={client.addressLine1 ?? ''} />
+              )}
+            </Field>
+            <Field
+              label={tClients('create.addressLine2Label')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => (
+                <Input {...control} name="addressLine2" defaultValue={client.addressLine2 ?? ''} />
+              )}
+            </Field>
+            <Field
+              label={tClients('create.cityLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => <Input {...control} name="city" defaultValue={client.city ?? ''} />}
+            </Field>
+            <Field
+              label={tClients('create.regionLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => <Input {...control} name="region" defaultValue={client.region ?? ''} />}
+            </Field>
+            <Field
+              label={tClients('create.postalCodeLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.md}
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  name="postalCode"
+                  defaultValue={client.postalCode ?? ''}
+                  dir="ltr"
+                />
+              )}
+            </Field>
+            <Field
+              label={tClients('create.countryLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.sm}
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  name="countryCode"
+                  defaultValue={client.countryCode ?? ''}
+                  maxLength={2}
+                  dir="ltr"
+                />
+              )}
+            </Field>
 
-          <Field label={t('clientTypeLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => (
-              <>
-                <input type="hidden" name="clientTypeId" value={clientTypeId} />
-                <Select
-                  value={clientTypeId || '__none__'}
-                  onValueChange={(value) => setClientTypeId(value === '__none__' ? '' : value)}
-                >
-                  <SelectTrigger id={control.id}>
-                    <SelectValue placeholder={t('clientTypeNone')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">{t('clientTypeNone')}</SelectItem>
-                    {clientTypes.map((type) => (
-                      <SelectItem key={type.id} value={type.id}>
-                        {type.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </>
-            )}
-          </Field>
+            <Field
+              label={t('clientTypeLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => (
+                <>
+                  <input type="hidden" name="clientTypeId" value={clientTypeId} />
+                  <Select
+                    value={clientTypeId || '__none__'}
+                    onValueChange={(value) => setClientTypeId(value === '__none__' ? '' : value)}
+                  >
+                    <SelectTrigger id={control.id}>
+                      <SelectValue placeholder={t('clientTypeNone')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">{t('clientTypeNone')}</SelectItem>
+                      {clientTypes.map((type) => (
+                        <SelectItem key={type.id} value={type.id}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+            </Field>
 
-          <Field label={t('paymentTermLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => (
-              <>
-                <input type="hidden" name="defaultPaymentTermId" value={paymentTermId} />
-                <Select
-                  value={paymentTermId || '__none__'}
-                  onValueChange={(value) => setPaymentTermId(value === '__none__' ? '' : value)}
-                >
-                  <SelectTrigger id={control.id}>
-                    <SelectValue placeholder={t('paymentTermNone')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">{t('paymentTermNone')}</SelectItem>
-                    {paymentTerms.map((term) => (
-                      <SelectItem key={term.id} value={term.id}>
-                        {term.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </>
-            )}
-          </Field>
+            <Field
+              label={t('paymentTermLabel')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.lg}
+            >
+              {(control) => (
+                <>
+                  <input type="hidden" name="defaultPaymentTermId" value={paymentTermId} />
+                  <Select
+                    value={paymentTermId || '__none__'}
+                    onValueChange={(value) => setPaymentTermId(value === '__none__' ? '' : value)}
+                  >
+                    <SelectTrigger id={control.id}>
+                      <SelectValue placeholder={t('paymentTermNone')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">{t('paymentTermNone')}</SelectItem>
+                      {paymentTerms.map((term) => (
+                        <SelectItem key={term.id} value={term.id}>
+                          {term.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+            </Field>
 
-          <Field label={tCommon('labels.notes')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => (
-              <Textarea {...control} name="notes" rows={2} defaultValue={client.notes ?? ''} />
-            )}
-          </Field>
+            <Field
+              label={tCommon('labels.notes')}
+              optionalLabel={tCommon('labels.optional')}
+              className={mainAppFieldSpan.full}
+            >
+              {(control) => (
+                <Textarea {...control} name="notes" rows={2} defaultValue={client.notes ?? ''} />
+              )}
+            </Field>
+          </MainAppFormGrid>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Button type="submit" loading={pending} size="lg" block className="sm:w-auto sm:min-w-32">
@@ -281,6 +371,7 @@ export function ClientDetailView({
           </div>
           <p className="text-xs text-[var(--pf-text-muted)]">{t('archiveVsInactiveHint')}</p>
         </form>
+        </MainAppSection>
       ) : null}
 
       {showDetails ? (
@@ -297,14 +388,11 @@ export function ClientDetailView({
       ) : null}
 
       {showDetails ? (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('contactsSection')}</CardTitle>
-          {client.contacts.length === 0 ? (
-            <CardDescription>{t('contactsEmpty')}</CardDescription>
-          ) : null}
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+      <MainAppSection
+        title={t('contactsSection')}
+        description={client.contacts.length === 0 ? t('contactsEmpty') : undefined}
+      >
+        <div className="flex flex-col gap-4">
           {client.contacts.map((contact) => (
             <ContactRow
               key={contact.id}
@@ -314,17 +402,13 @@ export function ClientDetailView({
             />
           ))}
           {canManage ? <AddContactForm clientId={client.id} /> : null}
-        </CardContent>
-      </Card>
+        </div>
+      </MainAppSection>
       ) : null}
 
       {showDetails && canManage ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('identifiersSection')}</CardTitle>
-            <CardDescription>{t('identifiersHint')}</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
+        <MainAppSection title={t('identifiersSection')} description={t('identifiersHint')}>
+          <div className="flex flex-col gap-4">
             {client.identifiers.map((identifier) => (
               <div
                 key={identifier.id}
@@ -370,16 +454,12 @@ export function ClientDetailView({
               </div>
             ))}
             <AddIdentifierForm clientId={client.id} />
-          </CardContent>
-        </Card>
+          </div>
+        </MainAppSection>
       ) : null}
 
       {showProjects ? (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('projectsSection')}</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <MainAppSection title={t('projectsSection')}>
           {linkedProjects.length === 0 ? (
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('noProjects')}</p>
           ) : (
@@ -408,19 +488,13 @@ export function ClientDetailView({
               {t('projectsCount', { count: client.projectCount })}
             </p>
           ) : null}
-        </CardContent>
-      </Card>
+      </MainAppSection>
       ) : null}
 
       {showProjects ? afterProjects : null}
 
       {showSales ? (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('salesSection')}</CardTitle>
-          <CardDescription>{t('salesHintShort')}</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <MainAppSection title={t('salesSection')} description={t('salesHintShort')}>
           {quotes.length === 0 ? (
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('salesEmpty')}</p>
           ) : (
@@ -445,18 +519,14 @@ export function ClientDetailView({
               ))}
             </ul>
           )}
-        </CardContent>
-      </Card>
+      </MainAppSection>
       ) : null}
 
       {showSales ? afterSales : null}
 
       {showDetails && surface === 'owner' ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('relatedSection')}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2 text-sm">
+        <MainAppSection title={t('relatedSection')}>
+          <div className="flex flex-col gap-2 text-sm">
             <Link
               href={`/communications?clientId=${client.id}`}
               className="font-medium text-[var(--pf-text-primary)] underline-offset-2 hover:underline"
@@ -469,10 +539,10 @@ export function ClientDetailView({
             >
               {t('warrantyHistory')}
             </Link>
-          </CardContent>
-        </Card>
+          </div>
+        </MainAppSection>
       ) : null}
-    </div>
+    </>
   );
 }
 
@@ -521,57 +591,67 @@ function ContactRow({
 
   if (editing) {
     return (
-      <form action={formAction} className="flex flex-col gap-3 border-b pb-3 last:border-0">
+      <form action={formAction} className="flex flex-col gap-4 border-b pb-3 last:border-0">
         <input type="hidden" name="clientId" value={clientId} />
         <input type="hidden" name="contactId" value={contact.id} />
         {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
         {state.ok ? <Alert tone="success">{t('saveContact')}</Alert> : null}
-        <Field label={tCommon('labels.name')} required>
-          {(control) => (
-            <Input {...control} name="name" defaultValue={contact.name} required />
-          )}
-        </Field>
-        <Field label={tClients('create.contactRoleLabel')}>
-          {(control) => (
-            <>
-              <input type="hidden" name="role" value={role} />
-              <Select value={role} onValueChange={(value) => setRole(value as typeof role)}>
-                <SelectTrigger id={control.id}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONTACT_ROLES.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {t(`contactRoles.${value}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
-          )}
-        </Field>
-        <Field label={tCommon('labels.phone')} optionalLabel={tCommon('labels.optional')}>
-          {(control) => (
-            <Input
-              {...control}
-              name="phone"
-              type="tel"
-              defaultValue={contact.phone ?? ''}
-              dir="ltr"
-            />
-          )}
-        </Field>
-        <Field label={tCommon('labels.email')} optionalLabel={tCommon('labels.optional')}>
-          {(control) => (
-            <Input
-              {...control}
-              name="email"
-              type="email"
-              defaultValue={contact.email ?? ''}
-              dir="ltr"
-            />
-          )}
-        </Field>
+        <MainAppFormGrid dense>
+          <Field label={tCommon('labels.name')} required className={mainAppFieldSpan.lg}>
+            {(control) => (
+              <Input {...control} name="name" defaultValue={contact.name} required />
+            )}
+          </Field>
+          <Field label={tClients('create.contactRoleLabel')} className={mainAppFieldSpan.lg}>
+            {(control) => (
+              <>
+                <input type="hidden" name="role" value={role} />
+                <Select value={role} onValueChange={(value) => setRole(value as typeof role)}>
+                  <SelectTrigger id={control.id}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CONTACT_ROLES.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {t(`contactRoles.${value}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+          </Field>
+          <Field
+            label={tCommon('labels.phone')}
+            optionalLabel={tCommon('labels.optional')}
+            className={mainAppFieldSpan.lg}
+          >
+            {(control) => (
+              <Input
+                {...control}
+                name="phone"
+                type="tel"
+                defaultValue={contact.phone ?? ''}
+                dir="ltr"
+              />
+            )}
+          </Field>
+          <Field
+            label={tCommon('labels.email')}
+            optionalLabel={tCommon('labels.optional')}
+            className={mainAppFieldSpan.lg}
+          >
+            {(control) => (
+              <Input
+                {...control}
+                name="email"
+                type="email"
+                defaultValue={contact.email ?? ''}
+                dir="ltr"
+              />
+            )}
+          </Field>
+        </MainAppFormGrid>
         <div className="flex flex-wrap gap-2">
           <Button type="submit" loading={pending} size="sm">
             {t('saveContact')}
@@ -661,18 +741,28 @@ function AddContactForm({ clientId }: { clientId: string }) {
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-3 border-t pt-4">
+    <form action={formAction} className="flex flex-col gap-4 border-t pt-4">
       <input type="hidden" name="clientId" value={clientId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <Field label={tCommon('labels.name')} required>
-        {(control) => <Input {...control} name="name" required />}
-      </Field>
-      <Field label={tCommon('labels.phone')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Input {...control} name="phone" type="tel" dir="ltr" />}
-      </Field>
-      <Field label={tCommon('labels.email')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Input {...control} name="email" type="email" dir="ltr" />}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field label={tCommon('labels.name')} required className={mainAppFieldSpan.lg}>
+          {(control) => <Input {...control} name="name" required />}
+        </Field>
+        <Field
+          label={tCommon('labels.phone')}
+          optionalLabel={tCommon('labels.optional')}
+          className={mainAppFieldSpan.lg}
+        >
+          {(control) => <Input {...control} name="phone" type="tel" dir="ltr" />}
+        </Field>
+        <Field
+          label={tCommon('labels.email')}
+          optionalLabel={tCommon('labels.optional')}
+          className={mainAppFieldSpan.lg}
+        >
+          {(control) => <Input {...control} name="email" type="email" dir="ltr" />}
+        </Field>
+      </MainAppFormGrid>
       <Button type="submit" loading={pending} variant="secondary" size="sm">
         {t('addContact')}
       </Button>
@@ -688,28 +778,30 @@ function AddIdentifierForm({ clientId }: { clientId: string }) {
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-3 border-t pt-4">
+    <form action={formAction} className="flex flex-col gap-4 border-t pt-4">
       <input type="hidden" name="clientId" value={clientId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <Field label={t('addIdentifier')}>
-        {(control) => (
-          <Select name="type" defaultValue="tax_id">
-            <SelectTrigger id={control.id}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {IDENTIFIER_TYPES.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {t(`identifierTypes.${type}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </Field>
-      <Field label={t('addIdentifier')} required>
-        {(control) => <Input {...control} name="value" required />}
-      </Field>
+      <MainAppFormGrid dense>
+        <Field label={t('addIdentifier')} className={mainAppFieldSpan.lg}>
+          {(control) => (
+            <Select name="type" defaultValue="tax_id">
+              <SelectTrigger id={control.id}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {IDENTIFIER_TYPES.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {t(`identifierTypes.${type}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+        <Field label={t('addIdentifier')} required className={mainAppFieldSpan.lg}>
+          {(control) => <Input {...control} name="value" required />}
+        </Field>
+      </MainAppFormGrid>
       <Button type="submit" loading={pending} variant="secondary" size="sm">
         {t('addIdentifier')}
       </Button>

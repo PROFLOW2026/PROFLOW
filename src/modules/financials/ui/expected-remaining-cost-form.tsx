@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { MoneyInput } from '@/components/patterns/money-input';
@@ -24,7 +25,7 @@ export function ExpectedRemainingCostForm({
 
   return (
     <form
-      className="flex min-w-0 flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3"
+      className="flex w-full min-w-0 flex-col gap-4 rounded-md border border-[var(--pf-border-default)] p-3"
       onSubmit={(event) => {
         event.preventDefault();
         startTransition(async () => {
@@ -33,17 +34,21 @@ export function ExpectedRemainingCostForm({
         });
       }}
     >
-      <Field label={t('kpis.expectedRemaining')}>
-        {(controlProps) => (
-          <MoneyInput
-            {...controlProps}
-            value={amount}
-            onValueChange={setAmount}
-            currencySymbol={currency}
-          />
-        )}
-      </Field>
-      <p className="text-xs text-[var(--pf-text-muted)]">{t('kpis.expectedRemainingHint')}</p>
+      <MainAppFormGrid dense>
+        <Field label={t('kpis.expectedRemaining')} className={mainAppFieldSpan.lg}>
+          {(controlProps) => (
+            <MoneyInput
+              {...controlProps}
+              value={amount}
+              onValueChange={setAmount}
+              currencySymbol={currency}
+            />
+          )}
+        </Field>
+        <p className={`${mainAppFieldSpan.full} text-xs text-[var(--pf-text-muted)]`}>
+          {t('kpis.expectedRemainingHint')}
+        </p>
+      </MainAppFormGrid>
       <Button type="submit" size="sm" loading={pending} className="self-start">
         {pending ? tCommon('states.saving') : tCommon('actions.save')}
       </Button>

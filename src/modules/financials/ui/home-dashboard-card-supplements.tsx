@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+﻿import { getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import { textNavLinkClassName } from '@/components/ui/pressable';

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 /**
  * MyWorkView — Aggregated My Work hub with tab/segment navigation.

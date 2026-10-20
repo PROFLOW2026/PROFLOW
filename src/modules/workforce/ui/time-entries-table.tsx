@@ -1,5 +1,6 @@
-import { getLocale, getTranslations } from 'next-intl/server';
+﻿import { getLocale, getTranslations } from 'next-intl/server';
 import { Clock } from 'lucide-react';
+import { MainAppTableShell } from '@/components/patterns/main-app';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -81,7 +82,7 @@ export async function TimeEntriesTable({
         items={entries}
         getRowKey={(entry) => entry.id}
         desktop={
-          <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+          <MainAppTableShell>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -193,7 +194,7 @@ export async function TimeEntriesTable({
                 })}
               </TableBody>
             </Table>
-          </div>
+          </MainAppTableShell>
         }
         renderMobileCard={() => null}
         mobileListClassName="hidden"

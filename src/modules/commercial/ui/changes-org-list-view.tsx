@@ -1,3 +1,4 @@
+﻿import { AdaptiveListBody, MainAppPage, MainAppSection, mainAppListKitEnabled } from '@/components/patterns/main-app';
 import { Plus } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
@@ -22,6 +23,7 @@ export interface ChangesOrgListViewProps {
 export async function ChangesOrgListView({ routeBase, surface }: ChangesOrgListViewProps) {
   const t = await getTranslations('changes');
   const isOwner = surface === 'owner';
+  const listKit = mainAppListKitEnabled(surface);
 
   const { items, canManage, canRead } = await withOrgContext(async (context) => {
     const allowed = orgListHasPermission(context, PERMISSIONS.CHANGES_READ, surface);
@@ -42,21 +44,22 @@ export async function ChangesOrgListView({ routeBase, surface }: ChangesOrgListV
 
   if (!canRead) {
     return (
-      <div className="flex min-w-0 flex-col gap-6">
+      <MainAppPage>
         {isOwner ? (
           <PageHeader title={t('pageTitle')} description={t('pageDescription')} />
         ) : null}
-        <EmptyState title={t('empty.title')} description={t('empty.description')} />
-      </div>
+        <MainAppSection>
+          <EmptyState title={t('empty.title')} description={t('empty.description')} />
+        </MainAppSection>
+      </MainAppPage>
     );
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       {isOwner ? (
         <PageHeader
           title={t('pageTitle')}
-          description={t('pageDescription')}
           actions={
             canManage ? (
               <Button asChild className="max-w-full">
@@ -70,13 +73,18 @@ export async function ChangesOrgListView({ routeBase, surface }: ChangesOrgListV
         />
       ) : null}
 
+      <MainAppSection>
       {isOwner ? <CommercialDocsHub current="changes" /> : null}
 
+      <AdaptiveListBody surface={surface}>
       <ChangeRequestList
         items={items}
         canManage={isOwner && canManage}
         routeBase={routeBase}
+        listKit={listKit}
       />
-    </div>
+      </AdaptiveListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

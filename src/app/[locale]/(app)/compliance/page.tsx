@@ -1,4 +1,11 @@
-import { Plus, ShieldCheck } from 'lucide-react';
+import {
+  MainAppListBody,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+import { mainAppCardClass } from '@/shared/ui/main-app-surface-styles';
+﻿import { Plus, ShieldCheck } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -118,7 +125,7 @@ export default async function CompliancePage({
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         description={t('description')}
@@ -133,8 +140,9 @@ export default async function CompliancePage({
           ) : null
         }
       />
-
-      <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4" aria-label={t('title')}>
+      <MainAppSection>
+        <MainAppListBody>
+        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4" aria-label={t('title')}>
         {(
           [
             { key: 'valid', href: '/compliance?status=valid&evidence=present', count: summary.valid },
@@ -150,7 +158,10 @@ export default async function CompliancePage({
           <li key={item.key}>
             <Link
               href={item.href}
-              className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-4 py-3 text-sm hover:bg-[var(--pf-bg-muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+              className={cn(
+                mainAppCardClass,
+                'flex min-h-11 items-center justify-between gap-2 px-4 py-3 text-sm transition-colors hover:bg-[var(--pf-bg-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
+              )}
             >
               <span>{t(`summary.${item.key}`)}</span>
               <span className="font-semibold tabular-nums" dir="ltr">
@@ -199,7 +210,7 @@ export default async function CompliancePage({
           items={artifacts}
           getRowKey={(artifact) => artifact.id}
           desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            <MainAppTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -255,7 +266,7 @@ export default async function CompliancePage({
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </MainAppTableShell>
           }
           renderMobileCard={(artifact) => (
             <Link
@@ -292,6 +303,9 @@ export default async function CompliancePage({
           )}
         />
       )}
-    </div>
+
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

@@ -1,4 +1,10 @@
-import { ClipboardCheck, Plus } from 'lucide-react';
+import {
+  MainAppListBody,
+  MainAppPage,
+  MainAppSection,
+  MainAppTableShell,
+} from '@/components/patterns/main-app';
+﻿import { ClipboardCheck, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -82,7 +88,7 @@ export default async function FieldOpsInspectionsPage({
   const projectName = new Map(projects.map((p) => [p.id, p.name]));
 
   return (
-    <div className="flex flex-col gap-6">
+    <MainAppPage>
       <PageHeader
         title={t('nav.inspections')}
         description={t('description')}
@@ -103,7 +109,9 @@ export default async function FieldOpsInspectionsPage({
           ) : null
         }
       />
-      <FieldOpsSectionNav active="inspections" />
+      <MainAppSection>
+        <MainAppListBody>
+        <FieldOpsSectionNav active="inspections" />
       <InspectionListFilters projectId={projectId} initialStatus={statusParam ?? 'all'} />
 
       {items.length === 0 ? (
@@ -124,7 +132,7 @@ export default async function FieldOpsInspectionsPage({
           items={items}
           getRowKey={(item) => item.id}
           desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            <MainAppTableShell>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -180,7 +188,7 @@ export default async function FieldOpsInspectionsPage({
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </MainAppTableShell>
           }
           renderMobileCard={(item) => (
             <div className="flex min-h-11 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
@@ -220,6 +228,9 @@ export default async function FieldOpsInspectionsPage({
           )}
         />
       )}
-    </div>
+
+        </MainAppListBody>
+      </MainAppSection>
+    </MainAppPage>
   );
 }

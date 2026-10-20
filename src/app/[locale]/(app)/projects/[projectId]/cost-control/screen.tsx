@@ -1,4 +1,5 @@
-import { getLocale, getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getLocale, getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,9 +55,9 @@ export async function ProjectCostControlScreen({
 
   return (
     <WithAppClientMessages extra={['projectWorkspace', 'subcontracts']}>
-      <div className="flex flex-col gap-6">
+      <MainAppPage>
         <PageHeader title={t('execution.costControl')} description={t('costControl.pageDescription')} />
-
+      <MainAppSection>
         {data.rows.length === 0 ? (
           <EmptyState icon={LineChart} title={t('costControl.emptyTitle')} description={t('costControl.emptyDescription')} />
         ) : (
@@ -125,7 +126,9 @@ export async function ProjectCostControlScreen({
             </section>
           </>
         )}
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
     </WithAppClientMessages>
   );
 }

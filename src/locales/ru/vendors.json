@@ -22,7 +22,9 @@
       "type": "Тип",
       "category": "Категория",
       "projects": "Проекты",
-      "status": "Статус"
+      "status": "Статус",
+      "companyId": "№ компании",
+      "contact": "Контакт"
     }
   },
   "catalog": {

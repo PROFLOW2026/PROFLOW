@@ -1,4 +1,5 @@
-import type { Metadata } from 'next';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { CalendarRange } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -120,7 +121,7 @@ export default async function SchedulingPage({ searchParams }: SchedulingPagePro
   }
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6" data-pf-scheduling="">
+    <MainAppPage>
       <PageHeader
         title={t('title')}
         description={t('description')}
@@ -144,8 +145,8 @@ export default async function SchedulingPage({ searchParams }: SchedulingPagePro
           </div>
         }
       />
-
-      {canManage ? (
+      <MainAppSection>
+        {canManage ? (
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <CreateBookingForm employees={employees} projects={projects} />
           <CreateUnavailabilityForm employees={employees} />
@@ -161,6 +162,8 @@ export default async function SchedulingPage({ searchParams }: SchedulingPagePro
       ) : (
         <SchedulingBoardView board={board} />
       )}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }

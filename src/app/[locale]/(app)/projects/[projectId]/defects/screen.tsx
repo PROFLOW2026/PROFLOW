@@ -1,4 +1,5 @@
-import { Wrench } from 'lucide-react';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { Wrench } from 'lucide-react';
 
 import { getTranslations } from 'next-intl/server';
 
@@ -126,7 +127,7 @@ export async function ProjectDefectsScreen({ surfaceRoot,
 
     <WithAppClientMessages extra={['defects', 'inspections']}>
 
-      <div className="flex flex-col gap-4">
+      <MainAppPage>
 
         <PageHeader
 
@@ -149,9 +150,7 @@ export async function ProjectDefectsScreen({ surfaceRoot,
           }
 
         />
-
-
-
+      <MainAppSection>
         {data.formData ? (
           <DefectCreateForm projectId={projectId} formData={data.formData} cancelHref={base} returnBase={base} />
         ) : null}
@@ -280,7 +279,9 @@ export async function ProjectDefectsScreen({ surfaceRoot,
 
         )}
 
-      </div>
+      
+      </MainAppSection>
+    </MainAppPage>
 
     </WithAppClientMessages>
 

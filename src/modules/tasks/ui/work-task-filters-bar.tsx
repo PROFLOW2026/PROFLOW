@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import { usePathname, useRouter } from '@/shared/i18n/navigation';

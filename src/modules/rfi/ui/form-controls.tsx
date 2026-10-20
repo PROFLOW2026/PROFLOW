@@ -1,10 +1,22 @@
+import { cn } from '@/shared/ui/cn';
+
 export function selectClassName() {
   return 'mt-1 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-primary)] px-3 py-2 text-sm';
 }
 
-export function FormRow({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
+export function FormRow({
+  label,
+  children,
+  hint,
+  className,
+}: {
+  label: string;
+  children: React.ReactNode;
+  hint?: string;
+  className?: string;
+}) {
   return (
-    <label className="flex flex-col gap-1 text-sm text-[var(--pf-text-primary)]">
+    <label className={cn('flex flex-col gap-1 text-sm text-[var(--pf-text-primary)]', className)}>
       <span className="font-medium">{label}</span>
       {children}
       {hint ? <span className="text-xs text-[var(--pf-text-secondary)]">{hint}</span> : null}

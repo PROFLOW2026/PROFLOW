@@ -1,4 +1,5 @@
-import { getFormatter, getTranslations } from 'next-intl/server';
+import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
+﻿import { getFormatter, getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -35,10 +36,10 @@ export async function SiteMeetingsScreen({ surfaceRoot,
   const basePath = `${surfaceRoot ?? ('/projects/' + projectId)}/site-meetings`;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <MainAppPage>
       <PageHeader title={t('meetings.title')} description={t('meetings.description')} />
-
-      {data.canManage ? (
+      <MainAppSection>
+        {data.canManage ? (
         <CollapsibleSection title={t('meetings.schedule')} summary={t('meetings.scheduleHint')} defaultOpen={query.create === '1'}>
           <div className="p-4">
             <FieldActionForm action={createSiteMeetingAction} hidden={{ projectId, returnBase: basePath }} submitLabel={t('meetings.scheduleSubmit')}>
@@ -118,7 +119,9 @@ export async function SiteMeetingsScreen({ surfaceRoot,
           ) : null}
         </nav>
       ) : null}
-    </div>
+    
+      </MainAppSection>
+    </MainAppPage>
   );
 }
 

@@ -10,6 +10,7 @@ import { SUBMITTAL_TYPES } from '../domain/types';
 import { useRouter } from '@/shared/i18n/navigation';
 import { createSubmittalAction } from '../actions/internal-actions';
 import type { SubmittalFormOptions } from '../application/form-options';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { FormError, FormRow, selectClassName } from './form-controls';
 
 export function SubmittalCreateForm({
@@ -64,7 +65,8 @@ export function SubmittalCreateForm({
       <CardContent>
         <form className="flex flex-col gap-4" onSubmit={onSubmit}>
           <FormError message={error} />
-          <FormRow label={t('fields.contractor')}>
+          <MainAppFormGrid dense>
+          <FormRow label={t('fields.contractor')} className={mainAppFieldSpan.lg}>
             <select name="subcontractAgreementId" required className={selectClassName()} defaultValue="">
               <option value="" disabled>
                 —
@@ -76,7 +78,7 @@ export function SubmittalCreateForm({
               ))}
             </select>
           </FormRow>
-          <FormRow label={t('fields.type')}>
+          <FormRow label={t('fields.type')} className={mainAppFieldSpan.lg}>
             <select name="type" className={selectClassName()} defaultValue="product">
               {SUBMITTAL_TYPES.map((type) => (
                 <option key={type} value={type}>
@@ -85,20 +87,19 @@ export function SubmittalCreateForm({
               ))}
             </select>
           </FormRow>
-          <FormRow label={t('fields.title')}>
+          <FormRow label={t('fields.title')} className={mainAppFieldSpan.full}>
             <Input name="title" required maxLength={300} />
           </FormRow>
-          <FormRow label={t('fields.description')}>
+          <FormRow label={t('fields.description')} className={mainAppFieldSpan.full}>
             <Textarea name="description" rows={3} />
           </FormRow>
-          <FormRow label={t('fields.specSection')}>
+          <FormRow label={t('fields.specSection')} className={mainAppFieldSpan.lg}>
             <Input name="specSection" maxLength={120} />
           </FormRow>
-          <FormRow label={t('fields.notes')} hint={t('fields.notesHint')}>
+          <FormRow label={t('fields.notes')} hint={t('fields.notesHint')} className={mainAppFieldSpan.full}>
             <Textarea name="notes" rows={3} />
           </FormRow>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormRow label={t('fields.location')}>
+            <FormRow label={t('fields.location')} className={mainAppFieldSpan.lg}>
               <select name="locationId" className={selectClassName()} defaultValue="">
                 <option value="">{t('fields.noLocation')}</option>
                 {options.locations.map((loc) => (
@@ -108,7 +109,7 @@ export function SubmittalCreateForm({
                 ))}
               </select>
             </FormRow>
-            <FormRow label={t('fields.workPackage')}>
+            <FormRow label={t('fields.workPackage')} className={mainAppFieldSpan.lg}>
               <select name="workPackageId" className={selectClassName()} defaultValue="">
                 <option value="">{t('fields.noWorkPackage')}</option>
                 {options.workPackages.map((wp) => (
@@ -118,15 +119,13 @@ export function SubmittalCreateForm({
                 ))}
               </select>
             </FormRow>
-          </div>
-          <FormRow label={t('fields.drawingReference')} hint={t('fields.drawingReferenceHint')}>
+          <FormRow label={t('fields.drawingReference')} hint={t('fields.drawingReferenceHint')} className={mainAppFieldSpan.full}>
             <Input name="drawingReference" maxLength={300} />
           </FormRow>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormRow label={t('fields.dueDate')}>
+            <FormRow label={t('fields.dueDate')} className={mainAppFieldSpan.lg}>
               <Input name="dueDate" type="date" />
             </FormRow>
-            <FormRow label={t('fields.reviewer')}>
+            <FormRow label={t('fields.reviewer')} className={mainAppFieldSpan.lg}>
               <select name="reviewerUserId" className={selectClassName()} defaultValue="">
                 <option value="">{t('fields.unassigned')}</option>
                 {options.reviewers.map((r) => (
@@ -136,7 +135,7 @@ export function SubmittalCreateForm({
                 ))}
               </select>
             </FormRow>
-          </div>
+          </MainAppFormGrid>
           <div className="flex flex-wrap gap-2">
             <Button type="submit" variant="primary" disabled={pending}>
               {t('create.save')}

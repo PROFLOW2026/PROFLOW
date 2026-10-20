@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input';
 
 import { Textarea } from '@/components/ui/textarea';
 
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
+import { cn } from '@/shared/ui/cn';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';
 
@@ -56,14 +58,16 @@ export function DefectCreateForm({
 
   return (
 
-    <form action={formAction} className="flex max-w-xl flex-col gap-4 rounded-lg border border-[var(--pf-border-subtle)] p-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4 rounded-lg border border-[var(--pf-border-subtle)] p-4">
       {returnBase ? <input type="hidden" name="returnBase" value={returnBase} /> : null}
 
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
       {state.success ? <Alert tone="success">{state.success}</Alert> : null}
 
-      <label className="text-sm">
+      <MainAppFormGrid dense>
+
+      <label className={cn('flex flex-col gap-1 text-sm', mainAppFieldSpan.full)}>
 
         {t('fields.title')}
 
@@ -71,7 +75,7 @@ export function DefectCreateForm({
 
       </label>
 
-      <label className="text-sm">
+      <label className={cn('flex flex-col gap-1 text-sm', mainAppFieldSpan.full)}>
 
         {t('fields.description')}
 
@@ -79,7 +83,7 @@ export function DefectCreateForm({
 
       </label>
 
-      <label className="text-sm">
+      <label className={cn('flex flex-col gap-1 text-sm', mainAppFieldSpan.lg)}>
 
         {t('fields.severity')}
 
@@ -99,7 +103,7 @@ export function DefectCreateForm({
 
       </label>
 
-      <label className="text-sm">
+      <label className={cn('flex flex-col gap-1 text-sm', mainAppFieldSpan.lg)}>
 
         {t('fields.dueDate')}
 
@@ -107,7 +111,7 @@ export function DefectCreateForm({
 
       </label>
 
-      <label className="text-sm">
+      <label className={cn('flex flex-col gap-1 text-sm', mainAppFieldSpan.lg)}>
 
         {t('fields.location')}
 
@@ -115,7 +119,7 @@ export function DefectCreateForm({
 
       </label>
 
-      <label className="text-sm">
+      <label className={cn('flex flex-col gap-1 text-sm', mainAppFieldSpan.lg)}>
 
         {t('fields.contractor')}
 
@@ -133,7 +137,7 @@ export function DefectCreateForm({
 
       </label>
 
-      <label className="text-sm">
+      <label className={cn('flex flex-col gap-1 text-sm', mainAppFieldSpan.lg)}>
 
         {t('fields.workLine')}
 
@@ -151,7 +155,7 @@ export function DefectCreateForm({
 
       </label>
 
-      <label className="text-sm">
+      <label className={cn('flex flex-col gap-1 text-sm', mainAppFieldSpan.lg)}>
 
         {t('fields.inspector')}
 
@@ -159,7 +163,7 @@ export function DefectCreateForm({
 
       </label>
 
-      <label className="text-sm">
+      <label className={cn('flex flex-col gap-1 text-sm', mainAppFieldSpan.lg)}>
 
         {t('fields.mode')}
 
@@ -179,13 +183,15 @@ export function DefectCreateForm({
 
       </label>
 
-      <label className="flex items-center gap-2 text-sm">
+      <label className={cn('flex items-center gap-2 text-sm', mainAppFieldSpan.full)}>
 
         <input type="checkbox" name="contractorVisible" defaultChecked className="size-4" />
 
         {t('fields.contractorVisible')}
 
       </label>
+
+      </MainAppFormGrid>
 
       <div className="flex flex-wrap gap-2">
 

@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -57,7 +58,7 @@ export function CloneProjectStructureForm({
   return (
     <form
       action={formAction}
-      className="flex flex-col gap-3 rounded-lg border border-dashed border-[var(--pf-border-default)] p-4"
+      className="flex w-full min-w-0 flex-col gap-4 rounded-lg border border-dashed border-[var(--pf-border-default)] p-4"
     >
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="sourceProjectId" value={sourceId} />
@@ -71,7 +72,8 @@ export function CloneProjectStructureForm({
       {state.success ? <Alert tone="success">{t('applied')}</Alert> : null}
       {previewError ? <Alert tone="danger">{previewError}</Alert> : null}
 
-      <Field label={t('source')}>
+      <MainAppFormGrid dense>
+      <Field label={t('source')} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Select
             value={sourceId}
@@ -96,7 +98,7 @@ export function CloneProjectStructureForm({
       ) : null}
 
       {preview ? (
-        <div className="text-sm text-[var(--pf-text-secondary)]">
+        <div className={`${mainAppFieldSpan.full} text-sm text-[var(--pf-text-secondary)]`}>
           <p className="font-medium text-[var(--pf-text-primary)]">{t('previewTitle')}</p>
           <p className="mt-1">
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewPackages')}: </span>
@@ -111,7 +113,7 @@ export function CloneProjectStructureForm({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-2">
+      <div className={`${mainAppFieldSpan.full} flex flex-wrap gap-2`}>
         {!preview && sourceId ? (
           <Button
             type="button"
@@ -127,6 +129,7 @@ export function CloneProjectStructureForm({
           {t('apply')}
         </Button>
       </div>
+      </MainAppFormGrid>
     </form>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { useTranslations } from 'next-intl';
+import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -35,14 +36,15 @@ export function DecisionForm({
   const [state, formAction, pending] = useActionState<MeetingFormState, FormData>(action, {});
 
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       <input type="hidden" name="meetingId" value={meetingId} />
       {decision ? <input type="hidden" name="decisionId" value={decision.id} /> : null}
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <Alert tone="info">{t('meetings.form.decisionNote')}</Alert>
 
-      <Field label={t('meetings.fields.title')} required error={state.fieldErrors?.title}>
+      <MainAppFormGrid dense>
+      <Field label={t('meetings.fields.title')} required error={state.fieldErrors?.title} className={mainAppFieldSpan.lg}>
         {(control) => (
           <Input
             {...control}
@@ -54,7 +56,7 @@ export function DecisionForm({
         )}
       </Field>
 
-      <Field label={t('meetings.form.body')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('meetings.form.body')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
         {(control) => (
           <Textarea
             {...control}
@@ -66,7 +68,7 @@ export function DecisionForm({
         )}
       </Field>
 
-      <Field label={t('meetings.form.decidedAt')} optionalLabel={tCommon('labels.optional')}>
+      <Field label={t('meetings.form.decidedAt')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.md}>
         {(control) => (
           <Input
             {...control}
@@ -77,6 +79,7 @@ export function DecisionForm({
           />
         )}
       </Field>
+      </MainAppFormGrid>
 
       <Button type="submit" loading={pending} block>
         {mode === 'create' ? t('meetings.decision.add') : tCommon('actions.save')}
