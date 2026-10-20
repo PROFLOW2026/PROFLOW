@@ -7,9 +7,9 @@ import {
 
 /** Browser/PWA chrome — aligned with semantic page/surface tokens. */
 export const PWA_THEME_COLOR_LIGHT = '#0f766e';
-export const PWA_THEME_COLOR_DARK = '#151d2b';
+export const PWA_THEME_COLOR_DARK = '#202735';
 export const PWA_BACKGROUND_LIGHT = '#f4f6f8';
-export const PWA_BACKGROUND_DARK = '#0b1018';
+export const PWA_BACKGROUND_DARK = '#141922';
 
 export type PwaThemeColors = {
   readonly themeColor: string;

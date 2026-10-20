@@ -193,35 +193,35 @@
   .dark {
     color-scheme: dark;
 
-    --pf-bg-page: #0b1018;
-    --pf-bg-surface: #151d2b;
-    --pf-bg-elevated: #1c2638;
-    --pf-bg-muted: #1a2230;
-    --pf-bg-subtle: #121821;
+    --pf-bg-page: #141922;
+    --pf-bg-surface: #202735;
+    --pf-bg-elevated: #29364a;
+    --pf-bg-muted: #252f40;
+    --pf-bg-subtle: #1a212d;
     --pf-bg-inverse: var(--pf-neutral-50);
 
-    --pf-border-default: #2a3548;
-    --pf-border-strong: #3d4d66;
-    --pf-border-focus: var(--pf-teal-400);
+    --pf-border-default: #354154;
+    --pf-border-strong: #455268;
+    --pf-border-focus: #2a9a92;
 
-    --pf-text-primary: #eef2f7;
-    --pf-text-secondary: #b8c2d0;
-    --pf-text-muted: #8b97a8;
-    --pf-text-disabled: #6b7585;
+    --pf-text-primary: #e7edf5;
+    --pf-text-secondary: #aab6c7;
+    --pf-text-muted: #8190a3;
+    --pf-text-disabled: #5a6475;
     --pf-text-inverse: var(--pf-neutral-900);
-    --pf-text-brand: var(--pf-teal-300);
+    --pf-text-brand: #6ec4bc;
 
-    --pf-action-primary: var(--pf-teal-600);
-    --pf-action-primary-hover: var(--pf-teal-500);
-    --pf-action-primary-active: var(--pf-teal-400);
-    --pf-action-primary-fg: var(--pf-neutral-0);
-    --pf-action-secondary: #1c2638;
-    --pf-action-secondary-hover: #243044;
-    --pf-action-secondary-active: #2a3548;
-    --pf-action-subtle-hover: rgb(20 184 166 / 0.12);
-    --pf-action-subtle-active: rgb(20 184 166 / 0.2);
+    --pf-action-primary: #228f88;
+    --pf-action-primary-hover: #269786;
+    --pf-action-primary-active: #2a9a92;
+    --pf-action-primary-fg: #ffffff;
+    --pf-action-secondary: #29364a;
+    --pf-action-secondary-hover: #303f54;
+    --pf-action-secondary-active: #354154;
+    --pf-action-subtle-hover: rgb(34 143 136 / 0.12);
+    --pf-action-subtle-active: rgb(34 143 136 / 0.2);
 
-    --pf-focus-ring: var(--pf-teal-400);
+    --pf-focus-ring: #2a9a92;
 
     --pf-status-success-fg: #86efac;
     --pf-status-success-bg: rgb(22 163 74 / 0.18);
@@ -240,38 +240,42 @@
     --pf-status-info-border: rgb(37 99 235 / 0.35);
 
     --pf-status-pending-fg: #93c5fd;
-    --pf-status-pending-bg: #1a2230;
+    --pf-status-pending-bg: #252f40;
     --pf-status-pending-border: rgb(37 99 235 / 0.35);
 
     --pf-status-neutral-fg: #c9d0d8;
-    --pf-status-neutral-bg: #1a2230;
-    --pf-status-neutral-border: #2a3548;
+    --pf-status-neutral-bg: #252f40;
+    --pf-status-neutral-border: #354154;
 
     --pf-status-disabled-fg: #6b7585;
-    --pf-status-disabled-bg: #151d2b;
-    --pf-status-disabled-border: #2a3548;
+    --pf-status-disabled-bg: #202735;
+    --pf-status-disabled-border: #354154;
 
     --pf-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.35), 0 1px 3px 0 rgb(0 0 0 / 0.4);
     --pf-shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.45), 0 2px 6px -2px rgb(0 0 0 / 0.35);
     --pf-shadow-lg: 0 12px 32px -8px rgb(0 0 0 / 0.55);
 
-    --pf-accent-soft: rgb(20 184 166 / 0.14);
-    --pf-bg-accent: rgb(20 184 166 / 0.12);
+    --pf-accent-soft: rgb(34 143 136 / 0.12);
+    --pf-bg-accent: rgb(34 143 136 / 0.12);
 
     --pf-overlay-scrim: rgb(0 0 0 / 0.62);
 
     /*
      * Teal/neutral primitives stay light in :root; components often reference them
-     * directly for nav, chips, and badges. Remap under .dark only (Navy palette unchanged).
+     * directly for nav, chips, and badges. Remap under .dark only (B Improved slate navy).
      */
-    --pf-teal-50: rgb(20 184 166 / 0.14);
-    --pf-teal-100: rgb(20 184 166 / 0.22);
-    --pf-teal-200: rgb(20 184 166 / 0.32);
-    --pf-teal-700: var(--pf-teal-300);
+    --pf-teal-50: rgb(34 143 136 / 0.12);
+    --pf-teal-100: rgb(34 143 136 / 0.18);
+    --pf-teal-200: rgb(34 143 136 / 0.28);
+    --pf-teal-300: #6ec4bc;
+    --pf-teal-400: #2a9a92;
+    --pf-teal-500: #269786;
+    --pf-teal-600: #228f88;
+    --pf-teal-700: #6ec4bc;
     --pf-teal-800: var(--pf-teal-200);
     --pf-teal-900: var(--pf-teal-100);
 
-    --pf-neutral-300: #3d4d66;
+    --pf-neutral-300: #455268;
   }
 
   .dark ::selection {
