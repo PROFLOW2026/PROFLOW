@@ -10,35 +10,36 @@ import {
 } from './pwa-theme-colors';
 import { useThemePreference } from './theme-context';
 
-const META_THEME = 'theme-color';
 const META_APPLE_STATUS = 'apple-mobile-web-app-status-bar-style';
+/** Managed tag only — never remove Next.js viewport `theme-color` metas (breaks App Router head sync). */
+const MANAGED_THEME_META_ID = 'pf-managed-theme-color';
 
-function upsertMeta(name: string, content: string, media?: string): void {
-  const selector = media
-    ? `meta[name="${name}"][media="${media}"]`
-    : `meta[name="${name}"]:not([media])`;
-  let el = document.head.querySelector<HTMLMetaElement>(selector);
+function upsertManagedThemeColor(content: string): void {
+  let el = document.getElementById(MANAGED_THEME_META_ID) as HTMLMetaElement | null;
   if (!el) {
     el = document.createElement('meta');
-    el.name = name;
-    if (media) el.media = media;
+    el.id = MANAGED_THEME_META_ID;
+    el.name = 'theme-color';
     document.head.appendChild(el);
   }
   el.content = content;
 }
 
-function removeMeta(name: string, media?: string): void {
-  const selector = media
-    ? `meta[name="${name}"][media="${media}"]`
-    : `meta[name="${name}"]:not([media])`;
-  document.head.querySelector(selector)?.remove();
+function removeManagedThemeColor(): void {
+  document.getElementById(MANAGED_THEME_META_ID)?.remove();
 }
 
-function clearThemeColorMetas(): void {
-  document.head.querySelectorAll(`meta[name="${META_THEME}"]`).forEach((node) => node.remove());
+function upsertMeta(name: string, content: string): void {
+  let el = document.head.querySelector<HTMLMetaElement>(`meta[name="${name}"]:not([id="${MANAGED_THEME_META_ID}"])`);
+  if (!el) {
+    el = document.createElement('meta');
+    el.name = name;
+    document.head.appendChild(el);
+  }
+  el.content = content;
 }
 
-/** Keeps `theme-color` and iOS status bar in sync with resolved UI theme. */
+/** Keeps PWA chrome in sync without tearing down Next.js head tags during client navigations. */
 export function ThemeColorSync() {
   const { preference } = useThemePreference();
 
@@ -47,9 +48,7 @@ export function ThemeColorSync() {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
       if (preference === 'system') {
-        clearThemeColorMetas();
-        upsertMeta(META_THEME, PWA_THEME_COLOR_LIGHT, '(prefers-color-scheme: light)');
-        upsertMeta(META_THEME, PWA_THEME_COLOR_DARK, '(prefers-color-scheme: dark)');
+        removeManagedThemeColor();
         upsertMeta(META_APPLE_STATUS, 'default');
         document.documentElement.style.setProperty(
           '--pf-pwa-background',
@@ -58,30 +57,20 @@ export function ThemeColorSync() {
         return;
       }
 
-      removeMeta(META_THEME, '(prefers-color-scheme: light)');
-      removeMeta(META_THEME, '(prefers-color-scheme: dark)');
       const { themeColor, backgroundColor } = pwaColorsForPreference(preference, prefersDark);
-      upsertMeta(META_THEME, themeColor);
+      upsertManagedThemeColor(themeColor);
       upsertMeta(META_APPLE_STATUS, preference === 'dark' ? 'black-translucent' : 'default');
       document.documentElement.style.setProperty('--pf-pwa-background', backgroundColor);
     };
 
     sync();
 
+    if (preference !== 'system') return undefined;
+
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const onMedia = () => sync();
     media.addEventListener('change', onMedia);
-
-    const observer = new MutationObserver(sync);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class', 'data-pf-resolved-theme'],
-    });
-
-    return () => {
-      media.removeEventListener('change', onMedia);
-      observer.disconnect();
-    };
+    return () => media.removeEventListener('change', onMedia);
   }, [preference]);
 
   return null;

@@ -1,7 +1,6 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
-import { useLinkStatus } from 'next/link';
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { pressableChromeClassName } from '@/components/ui/pressable';
@@ -30,9 +29,9 @@ export interface ShellNavLinkProps {
 /**
  * Main-nav link with same-interaction pending feedback.
  *
- * Local click state gives an immediate pressed look and blocks duplicate clicks
- * to the same href. Next.js `useLinkStatus` covers the brief pre-history window.
- * Route `loading.tsx` files handle the rest of the transition.
+ * Pending state clears when the pathname updates or the route becomes active.
+ * Avoid setState during render and avoid disabling the anchor during click —
+ * both can interrupt App Router client transitions.
  */
 export function ShellNavLink({
   href,
@@ -48,23 +47,21 @@ export function ShellNavLink({
   const pathname = usePathname();
   const t = useTranslations('common');
   const [pendingHref, setPendingHref] = React.useState<string | null>(null);
-  const [seenPathname, setSeenPathname] = React.useState(pathname);
 
-  if (pathname !== seenPathname) {
-    setSeenPathname(pathname);
-    if (pendingHref !== null) {
-      setPendingHref(null);
-    }
-  }
+  React.useEffect(() => {
+    setPendingHref(null);
+  }, [pathname]);
 
-  // Soft-nav can fail without a pathname change; clear stuck busy chrome.
+  React.useEffect(() => {
+    if (active) setPendingHref(null);
+  }, [active]);
+
   React.useEffect(() => {
     if (pendingHref === null) return;
     const timer = window.setTimeout(() => setPendingHref(null), 10_000);
     return () => window.clearTimeout(timer);
   }, [pendingHref]);
 
-  // Pending until navigation completes (or pathname changes via another path).
   const busy = !active && pendingHref === href;
 
   return (
@@ -73,7 +70,6 @@ export function ShellNavLink({
       prefetch={prefetch}
       aria-current={active ? 'page' : undefined}
       aria-busy={busy || undefined}
-      aria-disabled={busy || undefined}
       data-pending={busy ? '' : undefined}
       onClick={(event) => {
         if (active) {
@@ -84,7 +80,7 @@ export function ShellNavLink({
           event.preventDefault();
           return;
         }
-        setPendingHref(href);
+        React.startTransition(() => setPendingHref(href));
         onNavigate?.();
       }}
       className={cn(
@@ -104,7 +100,7 @@ export function ShellNavLink({
                 ? 'text-[var(--pf-text-brand)]'
                 : 'text-[var(--pf-text-secondary)] active:bg-[var(--pf-action-subtle-active)] active:text-[var(--pf-text-primary)]',
             ),
-        busy && 'pointer-events-none opacity-90',
+        busy && 'opacity-90',
         className,
       )}
     >
@@ -112,7 +108,7 @@ export function ShellNavLink({
         label={label}
         iconKey={iconKey}
         variant={variant}
-        forcePending={busy}
+        pending={busy}
         pendingLabel={t('a11y.navigating')}
         muteIcon={muteIcon && !active && !busy}
       />
@@ -124,19 +120,17 @@ function ShellNavLinkBody({
   label,
   iconKey,
   variant,
-  forcePending,
+  pending,
   pendingLabel,
   muteIcon,
 }: {
   label: string;
   iconKey: NavIconKey;
   variant: 'sidebar' | 'mobile';
-  forcePending: boolean;
+  pending: boolean;
   pendingLabel: string;
   muteIcon: boolean;
 }) {
-  const { pending: linkPending } = useLinkStatus();
-  const pending = forcePending || linkPending;
   const iconClass = variant === 'sidebar' ? 'size-4.5 shrink-0' : 'size-5 shrink-0';
   const slotClass = variant === 'sidebar' ? 'size-4.5' : 'size-5';
 
