@@ -47,7 +47,7 @@ export function EmployeeTaskAttentionBlock({
                   className={cn(
                     'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
                     item.kind === 'overdue'
-                      ? 'bg-red-50 text-red-700'
+                      ? 'bg-[var(--pf-status-danger-bg)] text-[var(--pf-status-danger-fg)]'
                       : item.kind === 'dueToday'
                         ? 'bg-[var(--pf-accent-soft)] text-[var(--pf-accent)]'
                         : 'bg-[var(--pf-bg-muted)] text-[var(--pf-text-secondary)]',

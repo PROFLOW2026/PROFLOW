@@ -17,6 +17,9 @@ import { writeClientLocaleCookie } from '@/shared/i18n/auth-locale';
 import { LOCALES, LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
 import { Link, usePathname, useRouter } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
+import { ThemeHeaderToggle, ThemeMenuSection } from '@/components/shell/theme-switcher';
+import { clearThemeClientState } from '@/shared/theme/theme-provider';
+import { resetThemeCookieForSignOutAction } from '@/shared/theme/persist-theme-preference';
 import {
   contractorPortalSignOutAction,
   persistExternalPrincipalLocaleAction,
@@ -184,12 +187,14 @@ function NotificationBellLink({ href, unread }: { href: string; unread: number |
 }
 
 function UserMenu({
+  authUserId,
   principalName,
   avatarUrl,
   vendor,
   organization,
   accountHref,
 }: {
+  authUserId: string;
   principalName: string | null;
   avatarUrl: string | null;
   vendor: string | null;
@@ -270,12 +275,16 @@ function UserMenu({
           </DropdownMenuItem>
         ))}
 
+        <ThemeMenuSection />
+
         <DropdownMenuSeparator />
         <DropdownMenuItem
           destructive
           disabled={pending}
           onSelect={() => {
             startTransition(async () => {
+              clearThemeClientState(authUserId);
+              await resetThemeCookieForSignOutAction();
               await contractorPortalSignOutAction();
             });
           }}
@@ -467,7 +476,9 @@ export function ContractorPortalShell({ shell, children }: { shell: PortalShellD
           <div className="min-w-0 flex-1" />
           <ProjectSwitcher projects={shell.projects} active={active} className="max-w-52 lg:hidden" />
           {notificationsHref ? <NotificationBellLink href={notificationsHref} unread={shell.unreadNotifications} /> : null}
+          <ThemeHeaderToggle />
           <UserMenu
+            authUserId={shell.authUserId}
             principalName={shell.principalName}
             avatarUrl={shell.avatarUrl}
             vendor={company.vendor}

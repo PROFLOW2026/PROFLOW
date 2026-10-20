@@ -1,4 +1,5 @@
 import { OrgShellMark } from '@/components/shell/org-shell-mark';
+import { ThemeHeaderToggle } from '@/components/shell/theme-switcher';
 import { EmployeeUserMenu } from './employee-user-menu';
 
 export interface EmployeeTopBarProps {
@@ -6,6 +7,7 @@ export interface EmployeeTopBarProps {
   readonly email: string;
   readonly organizationName: string;
   readonly avatarUrl?: string | null;
+  readonly userId: string;
 }
 
 export function EmployeeTopBar({
@@ -13,6 +15,7 @@ export function EmployeeTopBar({
   email,
   organizationName,
   avatarUrl = null,
+  userId,
 }: EmployeeTopBarProps) {
   return (
     <header className="sticky top-0 z-40 flex h-[var(--pf-topbar-height)] w-full shrink-0 items-center gap-2 border-b border-[var(--pf-border-default)] bg-[color-mix(in_srgb,var(--pf-bg-surface)_92%,transparent)] px-4 backdrop-blur-md print:hidden sm:gap-3 supports-[backdrop-filter]:bg-[color-mix(in_srgb,var(--pf-bg-surface)_84%,transparent)]">
@@ -25,11 +28,13 @@ export function EmployeeTopBar({
 
       <div className="min-w-0 flex-1" />
 
+      <ThemeHeaderToggle />
       <EmployeeUserMenu
         employeeName={employeeName}
         email={email}
         organizationName={organizationName}
         avatarUrl={avatarUrl}
+        userId={userId}
       />
     </header>
   );

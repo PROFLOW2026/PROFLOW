@@ -9,10 +9,12 @@ import { NotFoundError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 import { createSupabaseServerClient, isSupabaseConfigured } from '@/shared/supabase/server';
 import { PORTAL_BASE_PATH, PORTAL_SIGN_IN_PATH } from '../domain/routes';
+import { resetThemeCookieForSignOutAction } from '@/shared/theme/persist-theme-preference';
 import { PORTAL_NOTIFICATION_SOURCE } from './registry';
 
 /** Contractor sign-out - always lands on the contractor sign-in, never the org app. */
 export async function contractorPortalSignOutAction(): Promise<void> {
+  await resetThemeCookieForSignOutAction();
   if (isSupabaseConfigured()) {
     const supabase = await createSupabaseServerClient();
     await supabase.auth.signOut();

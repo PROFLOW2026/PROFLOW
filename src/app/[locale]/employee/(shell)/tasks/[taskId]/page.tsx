@@ -58,19 +58,19 @@ const TASK_STATUSES = [
 ] as const;
 
 const STATUS_COLORS: Record<string, string> = {
-  todo: 'bg-[var(--pf-surface-2)] text-[var(--pf-text-secondary)]',
-  in_progress: 'bg-blue-100 text-blue-700',
-  in_review: 'bg-purple-100 text-purple-700',
-  done: 'bg-green-100 text-green-700',
-  cancelled: 'bg-[var(--pf-surface-2)] text-[var(--pf-text-muted)]',
-  blocked: 'bg-red-100 text-red-700',
+  todo: 'bg-[var(--pf-status-neutral-bg)] text-[var(--pf-status-neutral-fg)]',
+  in_progress: 'bg-[var(--pf-status-info-bg)] text-[var(--pf-status-info-fg)]',
+  in_review: 'bg-[var(--pf-status-pending-bg)] text-[var(--pf-status-pending-fg)]',
+  done: 'bg-[var(--pf-status-success-bg)] text-[var(--pf-status-success-fg)]',
+  cancelled: 'bg-[var(--pf-status-neutral-bg)] text-[var(--pf-text-muted)]',
+  blocked: 'bg-[var(--pf-status-danger-bg)] text-[var(--pf-status-danger-fg)]',
 };
 
 const PRIORITY_BADGES: Record<string, string> = {
-  low: 'bg-slate-100 text-slate-600',
-  medium: 'bg-yellow-100 text-yellow-700',
-  high: 'bg-orange-100 text-orange-700',
-  urgent: 'bg-red-100 text-red-700',
+  low: 'bg-[var(--pf-status-neutral-bg)] text-[var(--pf-status-neutral-fg)]',
+  medium: 'bg-[var(--pf-status-warning-bg)] text-[var(--pf-status-warning-fg)]',
+  high: 'bg-[var(--pf-status-warning-bg)] text-[var(--pf-status-warning-fg)]',
+  urgent: 'bg-[var(--pf-status-danger-bg)] text-[var(--pf-status-danger-fg)]',
 };
 
 interface PageProps {

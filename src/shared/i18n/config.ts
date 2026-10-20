@@ -47,6 +47,7 @@ export function isRtl(locale: string): boolean {
  */
 export const MESSAGE_NAMESPACES = [
   'common',
+  'appearance',
   'nav',
   'auth',
   'errors',
@@ -150,6 +151,7 @@ export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];
  */
 export const ROOT_CLIENT_MESSAGE_NAMESPACES = [
   'common',
+  'appearance',
   'errors',
   'offline',
 ] as const satisfies readonly MessageNamespace[];
@@ -196,6 +198,7 @@ export const ONBOARDING_CLIENT_MESSAGE_NAMESPACES = [
 
 export const APP_CLIENT_MESSAGE_NAMESPACES = [
   'common',
+  'appearance',
   'nav',
   'errors',
   'validation',
@@ -262,6 +265,7 @@ export const PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES = [
 
 export const CONTRACTOR_PORTAL_CLIENT_MESSAGE_NAMESPACES = [
   'common',
+  'appearance',
   'errors',
   'offline',
   'validation',

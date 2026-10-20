@@ -17,12 +17,16 @@ import { LOCALES, LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
 import { persistLocalePreferenceAction } from '@/shared/i18n/persist-locale-preference';
 import { usePathname, useRouter } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
+import { ThemeMenuSection } from '@/components/shell/theme-switcher';
+import { clearThemeClientState } from '@/shared/theme/theme-provider';
+import { resetThemeCookieForSignOutAction } from '@/shared/theme/persist-theme-preference';
 
 export interface EmployeeUserMenuProps {
   readonly employeeName: string;
   readonly email: string;
   readonly organizationName: string;
   readonly avatarUrl?: string | null;
+  readonly userId: string;
 }
 
 /** Employee App user menu — mirrors Owner UserMenu chrome without Owner-only actions. */
@@ -31,6 +35,7 @@ export function EmployeeUserMenu({
   email,
   organizationName,
   avatarUrl = null,
+  userId,
 }: EmployeeUserMenuProps) {
   const t = useTranslations('employeeApp');
   const tCommon = useTranslations('common');
@@ -101,12 +106,16 @@ export function EmployeeUserMenu({
           </DropdownMenuItem>
         ))}
 
+        <ThemeMenuSection />
+
         <DropdownMenuSeparator />
         <DropdownMenuItem
           destructive
           disabled={pending}
           onSelect={() => {
             startTransition(async () => {
+              clearThemeClientState(userId);
+              await resetThemeCookieForSignOutAction();
               await employeeSignOutAction();
             });
           }}

@@ -17,13 +17,17 @@ import { LOCALES, LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
 import { persistLocalePreferenceAction } from '@/shared/i18n/persist-locale-preference';
 import { Link, usePathname, useRouter } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
+import { ThemeMenuSection } from './theme-switcher';
+import { clearThemeClientState } from '@/shared/theme/theme-provider';
+import { resetThemeCookieForSignOutAction } from '@/shared/theme/persist-theme-preference';
 
 export interface UserMenuProps {
   displayName: string | null;
   email: string;
+  userId?: string | null;
 }
 
-export function UserMenu({ displayName, email }: UserMenuProps) {
+export function UserMenu({ displayName, email, userId = null }: UserMenuProps) {
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
   const locale = useLocale() as Locale;
@@ -90,12 +94,16 @@ export function UserMenu({ displayName, email }: UserMenuProps) {
           </DropdownMenuItem>
         ))}
 
+        <ThemeMenuSection />
+
         <DropdownMenuSeparator />
         <DropdownMenuItem
           destructive
           disabled={pending}
           onSelect={() => {
             startTransition(async () => {
+              clearThemeClientState(userId);
+              await resetThemeCookieForSignOutAction();
               await signOutAction();
             });
           }}

@@ -26,7 +26,7 @@ const MobileNavMore = dynamic(
         role="status"
         aria-live="polite"
         data-pf-mobile-nav-more-loading=""
-        className="fixed inset-0 z-modal flex items-end justify-center bg-[rgb(27_36_48/0.45)] sm:items-center"
+        className="fixed inset-0 z-modal flex items-end justify-center bg-[var(--pf-overlay-scrim)] sm:items-center"
       >
         <div className="flex w-full max-w-lg items-center justify-center gap-2 rounded-t-xl bg-[var(--pf-bg-elevated)] px-5 py-8 shadow-[var(--pf-shadow-lg)] sm:rounded-lg">
           <Spinner className="size-5" />

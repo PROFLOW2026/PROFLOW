@@ -6,6 +6,7 @@ import { LOCALE_COOKIE_NAME } from '@/shared/i18n/auth-locale';
 import { documentLocale } from '@/shared/i18n/bare-path';
 import { LOCALE_METADATA } from '@/shared/i18n/config';
 import { cn } from '@/shared/ui/cn';
+import { ThemeBootScript } from '@/shared/theme/theme-boot-script';
 import './globals.css';
 
 /* Body 400 + heading 600 only — fewer next/font files at build on the 8 GB builder.
@@ -49,6 +50,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         dir={metadata.dir}
         suppressHydrationWarning
       >
+        <ThemeBootScript />
         {children}
       </body>
     </html>

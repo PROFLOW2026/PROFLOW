@@ -15,6 +15,7 @@ import {
 } from '@/modules/employee-app';
 import { isRedirectError } from '@/modules/workforce/application/map-workforce-action-error';
 import { DomainRuleError } from '@/shared/errors';
+import { resetThemeCookieForSignOutAction } from '@/shared/theme/persist-theme-preference';
 
 export interface EmployeeAuthFormState {
   error?: string;
@@ -50,6 +51,7 @@ export async function employeeLoginAction(
 
 /** Employee App sign-out — redirects to employee login, not Owner sign-in. */
 export async function employeeSignOutAction(): Promise<void> {
+  await resetThemeCookieForSignOutAction();
   if (isSupabaseConfigured()) {
     const supabase = await createSupabaseServerClient();
     await supabase.auth.signOut();

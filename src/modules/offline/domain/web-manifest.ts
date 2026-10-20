@@ -3,6 +3,11 @@ import enOffline from '@/locales/en/offline.json';
 import heOffline from '@/locales/he-IL/offline.json';
 import ruOffline from '@/locales/ru/offline.json';
 import { DEFAULT_LOCALE, isLocale, LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
+import {
+  DEFAULT_THEME_PREFERENCE,
+  type ThemePreference,
+} from '@/shared/theme/config';
+import { pwaManifestColors } from '@/shared/theme/pwa-theme-colors';
 
 const MANIFEST_DESCRIPTIONS: Record<Locale, string> = {
   'he-IL': heOffline.manifest.description,
@@ -24,8 +29,8 @@ export interface ProjectFlowWebManifest {
   readonly scope: '/';
   readonly display: 'standalone';
   readonly orientation: 'any';
-  readonly background_color: '#f8fafc';
-  readonly theme_color: '#0f766e';
+  readonly background_color: string;
+  readonly theme_color: string;
   readonly lang: 'he' | 'en' | 'ar' | 'ru';
   readonly dir: 'rtl' | 'ltr' | 'auto';
   readonly icons: readonly {
@@ -65,8 +70,12 @@ function manifestLang(locale: Locale): ProjectFlowWebManifest['lang'] {
   return LOCALE_METADATA[locale].htmlLang as ProjectFlowWebManifest['lang'];
 }
 
-export function buildWebManifest(locale: Locale): ProjectFlowWebManifest {
+export function buildWebManifest(
+  locale: Locale,
+  themePreference: ThemePreference = DEFAULT_THEME_PREFERENCE,
+): ProjectFlowWebManifest {
   const meta = LOCALE_METADATA[locale];
+  const pwa = pwaManifestColors(themePreference);
   return {
     id: '/',
     name: 'ProjectFlow',
@@ -76,8 +85,8 @@ export function buildWebManifest(locale: Locale): ProjectFlowWebManifest {
     scope: '/',
     display: 'standalone',
     orientation: 'any',
-    background_color: '#f8fafc',
-    theme_color: '#0f766e',
+    background_color: pwa.backgroundColor,
+    theme_color: pwa.themeColor,
     lang: manifestLang(locale),
     dir: meta.dir,
     icons: MANIFEST_ICONS,

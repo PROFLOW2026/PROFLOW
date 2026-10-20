@@ -92,7 +92,11 @@ export async function AppShell({
             }
             quickCreate={<QuickCreateDeferred shellCore={shell} />}
             userMenu={
-              <UserMenu displayName={shell.user.displayName} email={shell.user.email} />
+              <UserMenu
+                displayName={shell.user.displayName}
+                email={shell.user.email}
+                userId={shell.user.id}
+              />
             }
           />
 

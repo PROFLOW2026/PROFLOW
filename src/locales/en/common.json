@@ -75,6 +75,13 @@
     "language": "Language",
     "timezone": "Time zone"
   },
+  "theme": {
+    "label": "Appearance",
+    "switcher": "Choose appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
   "states": {
     "loading": "Loading…",
     "saving": "Saving…",

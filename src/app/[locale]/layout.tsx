@@ -11,13 +11,21 @@ import { ROOT_CLIENT_MESSAGE_NAMESPACES } from '@/shared/i18n/config';
 import { pickClientMessages } from '@/shared/i18n/pick-client-messages';
 import { LocaleDocumentAttributes } from '@/shared/i18n/locale-document-attributes';
 import { routing } from '@/shared/i18n/routing';
+import { getThemeBootstrap } from '@/shared/theme/get-theme-bootstrap';
+import { ThemeProvider } from '@/shared/theme/theme-provider';
+import { ThemeColorSync } from '@/shared/theme/theme-color-sync';
+import { PWA_THEME_COLOR_DARK, PWA_THEME_COLOR_LIGHT } from '@/shared/theme/pwa-theme-colors';
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   // The mobile surface is a first-class product, not a zoomed page (doc 62).
   viewportFit: 'cover',
-  themeColor: '#0f766e',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: PWA_THEME_COLOR_LIGHT },
+    { media: '(prefers-color-scheme: dark)', color: PWA_THEME_COLOR_DARK },
+  ],
+  colorScheme: 'light dark',
 };
 
 export function generateStaticParams() {
@@ -64,15 +72,21 @@ export default async function LocaleLayout({
 
   // Server Components still see full catalogs via getRequestConfig.
   // Client flights carry only universal shell namespaces; app/auth/marketing scopes nest below.
-  const clientMessages = pickClientMessages(await getMessages(), ROOT_CLIENT_MESSAGE_NAMESPACES);
+  const [clientMessages, themeBootstrap] = await Promise.all([
+    pickClientMessages(await getMessages(), ROOT_CLIENT_MESSAGE_NAMESPACES),
+    getThemeBootstrap(),
+  ]);
 
   return (
     <IntlClientProvider locale={locale} messages={clientMessages}>
-      <LocaleDocumentAttributes />
-      <PwaBootstrap />
-      <TooltipProvider delayDuration={200}>
-        <ToastProvider>{children}</ToastProvider>
-      </TooltipProvider>
+      <ThemeProvider preference={themeBootstrap.preference} userId={themeBootstrap.userId}>
+        <ThemeColorSync />
+        <LocaleDocumentAttributes />
+        <PwaBootstrap />
+        <TooltipProvider delayDuration={200}>
+          <ToastProvider>{children}</ToastProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </IntlClientProvider>
   );
 }

@@ -5,8 +5,10 @@ import { getLocale } from 'next-intl/server';
 import { redirect } from '@/shared/i18n/navigation';
 import { createSupabaseServerClient, isSupabaseConfigured } from '@/shared/supabase/server';
 import { setActiveOrganization } from './session';
+import { resetThemeCookieForSignOutAction } from '@/shared/theme/persist-theme-preference';
 
 export async function signOutAction(): Promise<void> {
+  await resetThemeCookieForSignOutAction();
   if (isSupabaseConfigured()) {
     const supabase = await createSupabaseServerClient();
     await supabase.auth.signOut();

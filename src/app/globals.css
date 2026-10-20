@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600&display=swap');
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
  * ProjectFlow design tokens — Direction B, Deep Teal (docs 56, 57, 59).
  *
@@ -181,6 +183,87 @@
     --pf-ring: var(--pf-focus-ring);
     --pf-bg-secondary: var(--pf-bg-muted);
     --pf-bg-accent: var(--pf-teal-50);
+
+    --pf-overlay-scrim: rgb(27 36 48 / 0.45);
+  }
+
+  /*
+   * Navy dark — semantic swap only; primitives and status hues stay recognizable.
+   */
+  .dark {
+    color-scheme: dark;
+
+    --pf-bg-page: #0b1018;
+    --pf-bg-surface: #151d2b;
+    --pf-bg-elevated: #1c2638;
+    --pf-bg-muted: #1a2230;
+    --pf-bg-subtle: #121821;
+    --pf-bg-inverse: var(--pf-neutral-50);
+
+    --pf-border-default: #2a3548;
+    --pf-border-strong: #3d4d66;
+    --pf-border-focus: var(--pf-teal-400);
+
+    --pf-text-primary: #eef2f7;
+    --pf-text-secondary: #b8c2d0;
+    --pf-text-muted: #8b97a8;
+    --pf-text-disabled: #6b7585;
+    --pf-text-inverse: var(--pf-neutral-900);
+    --pf-text-brand: var(--pf-teal-300);
+
+    --pf-action-primary: var(--pf-teal-600);
+    --pf-action-primary-hover: var(--pf-teal-500);
+    --pf-action-primary-active: var(--pf-teal-400);
+    --pf-action-primary-fg: var(--pf-neutral-0);
+    --pf-action-secondary: #1c2638;
+    --pf-action-secondary-hover: #243044;
+    --pf-action-secondary-active: #2a3548;
+    --pf-action-subtle-hover: rgb(20 184 166 / 0.12);
+    --pf-action-subtle-active: rgb(20 184 166 / 0.2);
+
+    --pf-focus-ring: var(--pf-teal-400);
+
+    --pf-status-success-fg: #86efac;
+    --pf-status-success-bg: rgb(22 163 74 / 0.18);
+    --pf-status-success-border: rgb(22 163 74 / 0.35);
+
+    --pf-status-warning-fg: #fcd34d;
+    --pf-status-warning-bg: rgb(217 119 6 / 0.18);
+    --pf-status-warning-border: rgb(217 119 6 / 0.35);
+
+    --pf-status-danger-fg: #fca5a5;
+    --pf-status-danger-bg: rgb(220 38 38 / 0.18);
+    --pf-status-danger-border: rgb(220 38 38 / 0.35);
+
+    --pf-status-info-fg: #93c5fd;
+    --pf-status-info-bg: rgb(37 99 235 / 0.18);
+    --pf-status-info-border: rgb(37 99 235 / 0.35);
+
+    --pf-status-pending-fg: #93c5fd;
+    --pf-status-pending-bg: #1a2230;
+    --pf-status-pending-border: rgb(37 99 235 / 0.35);
+
+    --pf-status-neutral-fg: #c9d0d8;
+    --pf-status-neutral-bg: #1a2230;
+    --pf-status-neutral-border: #2a3548;
+
+    --pf-status-disabled-fg: #6b7585;
+    --pf-status-disabled-bg: #151d2b;
+    --pf-status-disabled-border: #2a3548;
+
+    --pf-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.35), 0 1px 3px 0 rgb(0 0 0 / 0.4);
+    --pf-shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.45), 0 2px 6px -2px rgb(0 0 0 / 0.35);
+    --pf-shadow-lg: 0 12px 32px -8px rgb(0 0 0 / 0.55);
+
+    --pf-accent-soft: rgb(20 184 166 / 0.14);
+    --pf-bg-accent: rgb(20 184 166 / 0.12);
+
+    --pf-overlay-scrim: rgb(0 0 0 / 0.62);
+  }
+
+  .dark ::selection {
+    background-color: var(--pf-teal-900);
+    color: var(--pf-teal-100);
   }
 }
 
@@ -500,6 +583,63 @@
 
     [data-pf-responsive-table] tbody > tr > td :where(.whitespace-nowrap) {
       white-space: normal;
+    }
+  }
+
+  /*
+   * Documents and report preview: always render on a light canvas for print/PDF.
+   */
+  @media print {
+    html {
+      color-scheme: light !important;
+    }
+
+    html.dark {
+      --pf-bg-page: var(--pf-neutral-50);
+      --pf-bg-surface: var(--pf-neutral-0);
+      --pf-bg-elevated: var(--pf-neutral-0);
+      --pf-bg-muted: var(--pf-neutral-100);
+      --pf-bg-subtle: var(--pf-neutral-25);
+      --pf-bg-inverse: var(--pf-neutral-900);
+      --pf-border-default: var(--pf-neutral-200);
+      --pf-border-strong: var(--pf-neutral-300);
+      --pf-border-focus: var(--pf-teal-600);
+      --pf-text-primary: var(--pf-neutral-900);
+      --pf-text-secondary: var(--pf-neutral-600);
+      --pf-text-muted: var(--pf-neutral-500);
+      --pf-text-disabled: var(--pf-neutral-400);
+      --pf-text-inverse: var(--pf-neutral-0);
+      --pf-text-brand: var(--pf-teal-700);
+      --pf-action-primary: var(--pf-teal-700);
+      --pf-action-primary-hover: var(--pf-teal-800);
+      --pf-action-primary-active: var(--pf-teal-900);
+      --pf-action-primary-fg: var(--pf-neutral-0);
+      --pf-action-secondary: var(--pf-neutral-0);
+      --pf-action-secondary-hover: var(--pf-neutral-100);
+      --pf-action-secondary-active: var(--pf-neutral-200);
+      --pf-status-success-fg: var(--pf-green-800);
+      --pf-status-success-bg: var(--pf-green-50);
+      --pf-status-success-border: var(--pf-green-100);
+      --pf-status-warning-fg: var(--pf-amber-800);
+      --pf-status-warning-bg: var(--pf-amber-50);
+      --pf-status-warning-border: var(--pf-amber-100);
+      --pf-status-danger-fg: var(--pf-red-800);
+      --pf-status-danger-bg: var(--pf-red-50);
+      --pf-status-danger-border: var(--pf-red-100);
+      --pf-status-info-fg: var(--pf-blue-700);
+      --pf-status-info-bg: var(--pf-blue-50);
+      --pf-status-info-border: var(--pf-blue-100);
+      --pf-status-pending-fg: var(--pf-blue-700);
+      --pf-status-pending-bg: var(--pf-neutral-100);
+      --pf-status-pending-border: var(--pf-blue-100);
+      --pf-status-neutral-fg: var(--pf-neutral-700);
+      --pf-status-neutral-bg: var(--pf-neutral-100);
+      --pf-status-neutral-border: var(--pf-neutral-200);
+      --pf-accent-soft: var(--pf-teal-50);
+      --pf-bg-accent: var(--pf-teal-50);
+      --pf-shadow-sm: 0 1px 2px 0 rgb(27 36 48 / 0.06);
+      --pf-shadow-md: 0 4px 12px -2px rgb(27 36 48 / 0.1);
+      --pf-shadow-lg: 0 12px 32px -8px rgb(27 36 48 / 0.16);
     }
   }
 }

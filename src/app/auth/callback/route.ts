@@ -11,6 +11,8 @@ import {
 } from '@/shared/i18n/auth-locale';
 import { localeCookieSecure } from '@/shared/proxy/locale-cookie';
 import type { Locale } from '@/shared/i18n/config';
+import { resolveThemePreference, themeFromAuthMetadata } from '@/shared/theme/auth-theme';
+import { themeCookieOptions, THEME_COOKIE_NAME } from '@/shared/theme/theme-cookie';
 
 /**
  * Exchanges the one-time code from a confirmation or reset email for a session.
@@ -25,7 +27,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code');
   const next = safeAppPath(searchParams.get('next')) ?? '/';
 
-  const redirectInLocale = (locale: Locale, pathWithQuery: string) => {
+  const redirectInLocale = (locale: Locale, pathWithQuery: string, themePreference?: string) => {
     const response = NextResponse.redirect(joinLocalizedPath(origin, locale, pathWithQuery));
     // Mirror next-intl's cookie so subsequent bare redirects stay in this locale.
     response.cookies.set(LOCALE_COOKIE_NAME, locale, {
@@ -34,6 +36,13 @@ export async function GET(request: NextRequest) {
       maxAge: 60 * 60 * 24 * 365,
       secure: localeCookieSecure(request.nextUrl.protocol),
     });
+    if (themePreference) {
+      response.cookies.set(
+        THEME_COOKIE_NAME,
+        themePreference,
+        themeCookieOptions(localeCookieSecure(request.nextUrl.protocol)),
+      );
+    }
     return response;
   };
 
@@ -70,5 +79,10 @@ export async function GET(request: NextRequest) {
     localeFromAuthMetadata(data.session?.user?.user_metadata),
   ]);
 
-  return redirectInLocale(locale, next);
+  const themePreference = resolveThemePreference([
+    themeFromAuthMetadata(data.session?.user?.user_metadata as Record<string, unknown> | undefined),
+    request.cookies.get(THEME_COOKIE_NAME)?.value,
+  ]);
+
+  return redirectInLocale(locale, next, themePreference);
 }

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { ConnectivityIndicator } from '@/modules/offline/ui/connectivity-banner';
 import { GlobalSearchLazy } from '@/modules/search/ui/global-search-lazy';
 import { OrgShellMark } from './org-shell-mark';
+import { ThemeHeaderToggle } from './theme-switcher';
 
 export function TopBar({
   organizationName,
@@ -27,6 +28,7 @@ export function TopBar({
 
       <div className="flex min-w-0 shrink-0 items-center gap-1 sm:gap-2">
         <GlobalSearchLazy />
+        <ThemeHeaderToggle />
         {notifications}
         <ConnectivityIndicator className="hidden sm:inline-flex" />
         {quickCreate}

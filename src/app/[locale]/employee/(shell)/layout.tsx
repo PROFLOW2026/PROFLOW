@@ -52,6 +52,7 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
             email={session.user.email}
             organizationName={shell.organizationName}
             avatarUrl={shell.avatarUrl}
+            userId={session.user.id}
           />
           <main
             id="main"

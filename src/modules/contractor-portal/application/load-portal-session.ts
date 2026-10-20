@@ -57,6 +57,7 @@ export interface PortalShellProject {
 }
 
 export interface PortalShellData {
+  readonly authUserId: string;
   readonly principalName: string | null;
   readonly avatarUrl: string | null;
   readonly primaryNav: readonly PortalNavItem[];
@@ -84,6 +85,7 @@ export async function loadPortalShellData(session: PortalSession): Promise<Porta
   }
 
   return {
+    authUserId: session.context.authUserId,
     principalName: session.context.displayName,
     avatarUrl,
     primaryNav: buildPortalPrimaryNav(),
