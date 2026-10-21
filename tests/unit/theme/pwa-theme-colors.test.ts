@@ -8,7 +8,7 @@ import {
 describe('pwa theme colors', () => {
   it('maps resolved light and dark', () => {
     expect(pwaColorsForResolved('light').themeColor).toBe('#0f766e');
-    expect(pwaColorsForResolved('dark').themeColor).toBe('#202735');
+    expect(pwaColorsForResolved('dark').themeColor).toBe('#252d3d');
   });
 
   it('manifest uses light splash for system preference', () => {
@@ -16,7 +16,7 @@ describe('pwa theme colors', () => {
   });
 
   it('follows explicit preference for runtime chrome', () => {
-    expect(pwaColorsForPreference('dark', false).themeColor).toBe('#202735');
+    expect(pwaColorsForPreference('dark', false).themeColor).toBe('#252d3d');
     expect(pwaColorsForPreference('light', true).themeColor).toBe('#0f766e');
   });
 });

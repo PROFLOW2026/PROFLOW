@@ -116,11 +116,23 @@ export async function AttendanceMonthlyGrid({
             <ChevronRight className={rtlFlipClassName('size-4')} />
           </Link>
         </div>
-        <div className="flex flex-wrap gap-3 text-xs text-[var(--pf-text-muted)]">
-          <Legend color="bg-green-100 dark:bg-green-900/30" label={t('legend.approved')} />
-          <Legend color="bg-amber-100 dark:bg-amber-900/30" label={t('legend.pending')} />
-          <Legend color="bg-red-100 dark:bg-red-900/40" label={t('legend.missing')} />
-          <Legend color="bg-gray-100 dark:bg-gray-800/50" label={t('legend.dayOff')} />
+        <div className="flex flex-wrap gap-3 text-xs text-[var(--pf-text-secondary)]">
+          <Legend
+            color="border-[var(--pf-status-success-border)] bg-[var(--pf-status-success-bg)]"
+            label={t('legend.approved')}
+          />
+          <Legend
+            color="border-[var(--pf-status-pending-border)] bg-[var(--pf-status-pending-bg)]"
+            label={t('legend.pending')}
+          />
+          <Legend
+            color="border-[var(--pf-status-danger-border)] bg-[var(--pf-status-danger-bg)]"
+            label={t('legend.missing')}
+          />
+          <Legend
+            color="border-[var(--pf-status-disabled-border)] bg-[var(--pf-status-disabled-bg)]"
+            label={t('legend.dayOff')}
+          />
         </div>
       </div>
 
@@ -147,7 +159,7 @@ export async function AttendanceMonthlyGrid({
                   <td className="sticky start-0 z-10 bg-[var(--pf-bg-surface)] whitespace-nowrap px-2 py-1 font-medium">
                     <div>{row.employeeName}</div>
                     {row.missingCount > 0 ? (
-                      <div className="text-[10px] text-red-600 dark:text-red-400">
+                      <div className="text-[10px] font-medium text-[var(--pf-status-danger-fg)]">
                         {t('missingCount', { count: row.missingCount })}
                       </div>
                     ) : null}

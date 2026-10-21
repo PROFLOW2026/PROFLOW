@@ -220,13 +220,34 @@ export async function AttendanceMonthCalendar({
       </div>
 
       <div className="mb-3 flex flex-wrap gap-x-3 gap-y-2 text-xs">
-        <LegendItem color="bg-[var(--pf-status-success-bg)]" label={t('worked')} />
-        <LegendItem color="bg-[var(--pf-status-info-bg)]" label={t('absencePaid')} />
-        <LegendItem color="bg-[var(--pf-status-warning-bg)]" label={t('absenceUnpaid')} />
-        <LegendItem color="bg-[var(--pf-status-success-bg)]" label={t('approved')} />
-        <LegendItem color="bg-[var(--pf-status-pending-bg)]" label={t('pending')} />
-        <LegendItem color="bg-[var(--pf-status-danger-bg)]" label={t('missing')} />
-        <LegendItem color="bg-[var(--pf-bg-muted)]" label={t('notApplicable')} />
+        <LegendItem
+          color="border-[var(--pf-status-success-border)] bg-[var(--pf-status-success-bg)]"
+          label={t('worked')}
+        />
+        <LegendItem
+          color="border-[var(--pf-status-info-border)] bg-[var(--pf-status-info-bg)]"
+          label={t('absencePaid')}
+        />
+        <LegendItem
+          color="border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)]"
+          label={t('absenceUnpaid')}
+        />
+        <LegendItem
+          color="border-[var(--pf-status-success-border)] bg-[var(--pf-status-success-bg)]"
+          label={t('approved')}
+        />
+        <LegendItem
+          color="border-[var(--pf-status-pending-border)] bg-[var(--pf-status-pending-bg)]"
+          label={t('pending')}
+        />
+        <LegendItem
+          color="border-[var(--pf-status-danger-border)] bg-[var(--pf-status-danger-bg)]"
+          label={t('missing')}
+        />
+        <LegendItem
+          color="border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)]"
+          label={t('notApplicable')}
+        />
       </div>
 
       <div className="grid grid-cols-7 gap-1">
@@ -295,7 +316,7 @@ export async function AttendanceMonthCalendar({
 
 function LegendItem({ color, label }: { color: string; label: string }) {
   return (
-    <span className="flex items-center gap-1 text-[var(--pf-text-muted)]">
+    <span className="flex items-center gap-1 text-[var(--pf-text-secondary)]">
       <span className={cn('inline-block h-3 w-3 rounded-sm border', color)} />
       {label}
     </span>
