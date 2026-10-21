@@ -6,13 +6,6 @@ import { cn } from '@/shared/ui/cn';
 import type { MonthlyAttendanceGrid, MonthlyCellKind } from '../application/attendance-owner-views';
 import { AttendanceMonthlyGridFilter } from './attendance-monthly-grid-filter';
 import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
-import {
-  pfStatusCellDanger,
-  pfStatusCellDisabled,
-  pfStatusCellInfo,
-  pfStatusCellPending,
-  pfStatusCellSuccess,
-} from '@/shared/ui/status-cell-styles';
 
 interface AttendanceMonthlyGridProps {
   readonly grid: MonthlyAttendanceGrid;
@@ -23,15 +16,22 @@ interface AttendanceMonthlyGridProps {
 }
 
 const CELL_STYLES: Record<MonthlyCellKind, string> = {
-  approved: pfStatusCellSuccess,
-  pending: pfStatusCellPending,
-  worked: pfStatusCellSuccess,
-  absence: pfStatusCellInfo,
-  missing: `${pfStatusCellDanger} font-semibold`,
-  exempt: 'border border-[var(--pf-border-default)] bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)]',
-  dayOff: pfStatusCellDisabled,
-  future: 'border border-[var(--pf-border-default)] bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)]',
-  void: `${pfStatusCellDisabled} line-through`,
+  approved:
+    'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800',
+  pending:
+    'bg-amber-100 text-amber-900 border-amber-200 dark:bg-amber-900/30 dark:text-amber-200 dark:border-amber-700',
+  worked:
+    'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800',
+  absence:
+    'bg-sky-100 text-sky-900 border-sky-200 dark:bg-sky-900/30 dark:text-sky-200 dark:border-sky-700',
+  missing:
+    'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/40 dark:text-red-200 dark:border-red-700 font-semibold',
+  exempt:
+    'bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)] border-[var(--pf-border-default)]',
+  dayOff:
+    'bg-gray-100 text-gray-400 border-gray-200 dark:bg-gray-800/50 dark:text-gray-500 dark:border-gray-700',
+  future: 'bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)] border-[var(--pf-border-default)]',
+  void: 'bg-gray-100 text-gray-400 border-gray-200 line-through dark:bg-gray-800/50 dark:text-gray-500',
 };
 
 function prevMonthStr(yearMonth: string): string {
@@ -116,23 +116,11 @@ export async function AttendanceMonthlyGrid({
             <ChevronRight className={rtlFlipClassName('size-4')} />
           </Link>
         </div>
-        <div className="flex flex-wrap gap-3 text-xs text-[var(--pf-text-secondary)]">
-          <Legend
-            color="border-[var(--pf-status-success-border)] bg-[var(--pf-status-success-bg)]"
-            label={t('legend.approved')}
-          />
-          <Legend
-            color="border-[var(--pf-status-pending-border)] bg-[var(--pf-status-pending-bg)]"
-            label={t('legend.pending')}
-          />
-          <Legend
-            color="border-[var(--pf-status-danger-border)] bg-[var(--pf-status-danger-bg)]"
-            label={t('legend.missing')}
-          />
-          <Legend
-            color="border-[var(--pf-status-disabled-border)] bg-[var(--pf-status-disabled-bg)]"
-            label={t('legend.dayOff')}
-          />
+        <div className="flex flex-wrap gap-3 text-xs text-[var(--pf-text-muted)]">
+          <Legend color="bg-green-100 dark:bg-green-900/30" label={t('legend.approved')} />
+          <Legend color="bg-amber-100 dark:bg-amber-900/30" label={t('legend.pending')} />
+          <Legend color="bg-red-100 dark:bg-red-900/40" label={t('legend.missing')} />
+          <Legend color="bg-gray-100 dark:bg-gray-800/50" label={t('legend.dayOff')} />
         </div>
       </div>
 
@@ -159,7 +147,7 @@ export async function AttendanceMonthlyGrid({
                   <td className="sticky start-0 z-10 bg-[var(--pf-bg-surface)] whitespace-nowrap px-2 py-1 font-medium">
                     <div>{row.employeeName}</div>
                     {row.missingCount > 0 ? (
-                      <div className="text-[10px] font-medium text-[var(--pf-status-danger-fg)]">
+                      <div className="text-[10px] text-red-600 dark:text-red-400">
                         {t('missingCount', { count: row.missingCount })}
                       </div>
                     ) : null}

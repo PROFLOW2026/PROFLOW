@@ -9,14 +9,6 @@ import type { BusinessDate } from '@/shared/dates';
 import type { EmploymentRange } from '@/modules/workforce/domain/employment-active-range';
 import { isWithinEmploymentRange } from '@/modules/workforce/domain/employment-active-range';
 import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
-import {
-  pfStatusCellDanger,
-  pfStatusCellDisabled,
-  pfStatusCellInfo,
-  pfStatusCellPending,
-  pfStatusCellSuccess,
-  pfStatusCellWarning,
-} from '@/shared/ui/status-cell-styles';
 
 interface AttendanceMonthCalendarProps {
   readonly employeeId: string;
@@ -108,18 +100,25 @@ function getDayStatus(
 }
 
 const DAY_CELL_STYLES: Record<DayStatus, string> = {
-  outcome_worked: pfStatusCellSuccess,
-  outcome_absence_paid: pfStatusCellInfo,
-  outcome_absence_unpaid: pfStatusCellWarning,
-  complete: pfStatusCellSuccess,
-  open: pfStatusCellPending,
-  void: `${pfStatusCellDisabled} line-through`,
-  missing: pfStatusCellDanger,
-  exempt: 'border border-[var(--pf-border-default)] bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)]',
-  future: 'border border-[var(--pf-border-default)] bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)]',
-  nonWorkday: 'border border-transparent bg-transparent text-[var(--pf-text-muted)] opacity-40',
+  outcome_worked:
+    'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800',
+  outcome_absence_paid:
+    'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300 border-sky-200 dark:border-sky-800',
+  outcome_absence_unpaid:
+    'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border-orange-200 dark:border-orange-800',
+  complete:
+    'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+  open:
+    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700',
+  void:
+    'bg-gray-100 text-gray-400 dark:bg-gray-800/50 dark:text-gray-500 border-gray-200 dark:border-gray-700 line-through',
+  missing:
+    'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800',
+  exempt: 'bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)] border-[var(--pf-border-default)]',
+  future: 'bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)] border-[var(--pf-border-default)]',
+  nonWorkday: 'bg-transparent text-[var(--pf-text-muted)] border-transparent opacity-40',
   not_applicable:
-    'border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] text-[var(--pf-text-muted)] opacity-60',
+    'bg-[var(--pf-bg-muted)] text-[var(--pf-text-muted)] border-[var(--pf-border-default)] opacity-60',
 };
 
 const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
@@ -220,34 +219,13 @@ export async function AttendanceMonthCalendar({
       </div>
 
       <div className="mb-3 flex flex-wrap gap-x-3 gap-y-2 text-xs">
-        <LegendItem
-          color="border-[var(--pf-status-success-border)] bg-[var(--pf-status-success-bg)]"
-          label={t('worked')}
-        />
-        <LegendItem
-          color="border-[var(--pf-status-info-border)] bg-[var(--pf-status-info-bg)]"
-          label={t('absencePaid')}
-        />
-        <LegendItem
-          color="border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)]"
-          label={t('absenceUnpaid')}
-        />
-        <LegendItem
-          color="border-[var(--pf-status-success-border)] bg-[var(--pf-status-success-bg)]"
-          label={t('approved')}
-        />
-        <LegendItem
-          color="border-[var(--pf-status-pending-border)] bg-[var(--pf-status-pending-bg)]"
-          label={t('pending')}
-        />
-        <LegendItem
-          color="border-[var(--pf-status-danger-border)] bg-[var(--pf-status-danger-bg)]"
-          label={t('missing')}
-        />
-        <LegendItem
-          color="border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)]"
-          label={t('notApplicable')}
-        />
+        <LegendItem color="bg-green-100 dark:bg-green-900/30" label={t('worked')} />
+        <LegendItem color="bg-sky-100 dark:bg-sky-900/30" label={t('absencePaid')} />
+        <LegendItem color="bg-orange-100 dark:bg-orange-900/30" label={t('absenceUnpaid')} />
+        <LegendItem color="bg-emerald-100 dark:bg-emerald-900/30" label={t('approved')} />
+        <LegendItem color="bg-yellow-100 dark:bg-yellow-900/30" label={t('pending')} />
+        <LegendItem color="bg-red-50 dark:bg-red-900/20" label={t('missing')} />
+        <LegendItem color="bg-[var(--pf-bg-muted)]" label={t('notApplicable')} />
       </div>
 
       <div className="grid grid-cols-7 gap-1">
@@ -316,7 +294,7 @@ export async function AttendanceMonthCalendar({
 
 function LegendItem({ color, label }: { color: string; label: string }) {
   return (
-    <span className="flex items-center gap-1 text-[var(--pf-text-secondary)]">
+    <span className="flex items-center gap-1 text-[var(--pf-text-muted)]">
       <span className={cn('inline-block h-3 w-3 rounded-sm border', color)} />
       {label}
     </span>
