@@ -50,7 +50,7 @@ function assertSurfaceCoversFiles(
 
 describe('client message scoping', () => {
   it('root layout ships only universal namespaces', () => {
-    expect(ROOT_CLIENT_MESSAGE_NAMESPACES).toEqual(['common', 'errors', 'offline']);
+    expect(ROOT_CLIENT_MESSAGE_NAMESPACES).toEqual(['common', 'appearance', 'errors', 'offline']);
     expect(ROOT_CLIENT_MESSAGE_NAMESPACES.length).toBeLessThan(5);
   });
 

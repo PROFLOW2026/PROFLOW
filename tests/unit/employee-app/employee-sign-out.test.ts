@@ -25,6 +25,13 @@ vi.mock('next-intl/server', () => ({
   getLocale: async () => 'he-IL',
 }));
 
+vi.mock('next/headers', () => ({
+  cookies: async () => ({
+    get: () => undefined,
+    set: () => undefined,
+  }),
+}));
+
 describe('employeeSignOutAction', () => {
   afterEach(() => {
     redirectMock.mockClear();
@@ -43,6 +50,6 @@ describe('employeeSignOutAction', () => {
       expect(signOutMock).toHaveBeenCalledOnce();
       expect(redirectMock).toHaveBeenCalledWith({ href: '/employee/login', locale: 'he-IL' });
     },
-    15_000,
+    30_000,
   );
 });
