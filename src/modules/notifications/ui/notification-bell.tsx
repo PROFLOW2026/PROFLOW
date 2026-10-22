@@ -41,7 +41,9 @@ export function NotificationBell({
   const badgeFlightRef = React.useRef(false);
   const lastBadgeAtRef = React.useRef(0);
   const openRef = React.useRef(false);
-  openRef.current = open;
+  React.useEffect(() => {
+    openRef.current = open;
+  }, [open]);
 
   const serverUnread = initialInbox?.unreadCount;
   React.useEffect(() => {

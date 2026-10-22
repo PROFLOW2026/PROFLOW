@@ -46,23 +46,15 @@ export function ShellNavLink({
 }: ShellNavLinkProps) {
   const pathname = usePathname();
   const t = useTranslations('common');
-  const [pendingHref, setPendingHref] = React.useState<string | null>(null);
+  const [pending, setPending] = React.useState<{ href: string; path: string } | null>(null);
 
   React.useEffect(() => {
-    setPendingHref(null);
-  }, [pathname]);
-
-  React.useEffect(() => {
-    if (active) setPendingHref(null);
-  }, [active]);
-
-  React.useEffect(() => {
-    if (pendingHref === null) return;
-    const timer = window.setTimeout(() => setPendingHref(null), 10_000);
+    if (pending === null) return;
+    const timer = window.setTimeout(() => setPending(null), 10_000);
     return () => window.clearTimeout(timer);
-  }, [pendingHref]);
+  }, [pending]);
 
-  const busy = !active && pendingHref === href;
+  const busy = !active && pending?.href === href && pending.path === pathname;
 
   return (
     <Link
@@ -80,7 +72,7 @@ export function ShellNavLink({
           event.preventDefault();
           return;
         }
-        React.startTransition(() => setPendingHref(href));
+        React.startTransition(() => setPending({ href, path: pathname }));
         onNavigate?.();
       }}
       className={cn(

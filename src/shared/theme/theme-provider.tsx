@@ -22,10 +22,12 @@ export function ThemeProvider({
 }) {
   const [preference, setPreferenceState] = React.useState<ThemePreference>(serverPreference);
   const [pending, startTransition] = React.useTransition();
-
-  React.useEffect(() => {
+  const [seenServerPreference, setSeenServerPreference] =
+    React.useState<ThemePreference>(serverPreference);
+  if (serverPreference !== seenServerPreference) {
+    setSeenServerPreference(serverPreference);
     setPreferenceState(serverPreference);
-  }, [serverPreference]);
+  }
 
   const applyLive = React.useCallback((next: ThemePreference) => {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
