@@ -4,8 +4,6 @@ import * as React from 'react';
 import {
   PWA_BACKGROUND_DARK,
   PWA_BACKGROUND_LIGHT,
-  PWA_THEME_COLOR_DARK,
-  PWA_THEME_COLOR_LIGHT,
   pwaColorsForPreference,
 } from './pwa-theme-colors';
 import { useThemePreference } from './theme-context';

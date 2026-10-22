@@ -23,7 +23,6 @@ import {
   addMoney,
   compareMoney,
   isPositiveMoney,
-  isZeroMoney,
   money,
   subtractMoney,
   zeroMoney,
