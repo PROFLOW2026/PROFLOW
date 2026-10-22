@@ -10,6 +10,13 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  BILLING_PAYMENT_METHOD_KEYS,
+  displayStringForStoredNet,
+  fillOutstandingDisplay,
+  netStringForPaymentEntry,
+  type PaymentVatEntry,
+} from '@/modules/billing/domain/payment-entry';
 import type { BillingRecordSummary } from '@/modules/billing/domain/types';
 import { BillingVatBreakdown } from '@/modules/billing/ui/billing-vat-breakdown';
 import {
@@ -39,6 +46,8 @@ interface PaymentFormProps {
 
 type EntryMode = 'invoice' | 'unallocated';
 
+const METHOD_UNSET = '__unset__';
+
 function currencyGlyph(currency: string | undefined): string {
   if (!currency) return '';
   try {
@@ -67,6 +76,8 @@ export function PaymentForm({
     defaultBillingRecordId ? 'invoice' : 'invoice',
   );
   const [amount, setAmount] = useState('');
+  const [vatBasis, setVatBasis] = useState<PaymentVatEntry>('gross');
+  const [method, setMethod] = useState(METHOD_UNSET);
   const [billingRecordId, setBillingRecordId] = useState(defaultBillingRecordId ?? '');
   const [clientId, setClientId] = useState('');
   const [currency, setCurrency] = useState(defaultCurrency);
@@ -97,82 +108,161 @@ export function PaymentForm({
       ? currency
       : (selected?.totalAmount.currency ?? sameClientRecords[0]?.totalAmount.currency ?? currency);
   const symbol = currencyGlyph(activeCurrency);
+  const showVatBasis = entryMode === 'invoice' && Boolean(selected);
 
-  const grossPreview = useMemo(() => {
-    if (entryMode !== 'invoice' || !selected || !activeCurrency || !amount.trim()) return null;
-    const sub = selected.subtotalAmount ?? selected.totalAmount;
-    const tax = selected.taxAmount;
-    if (!tax || isZeroMoney(tax) || isZeroMoney(sub)) return null;
+  const submittedNet = useMemo(() => {
+    if (!amount.trim()) return '';
+    if (!showVatBasis || !selected || !activeCurrency) return amount.trim();
+    return (
+      netStringForPaymentEntry({
+        entered: amount,
+        basis: vatBasis,
+        currency: activeCurrency,
+        invoice: selected,
+      }) ?? ''
+    );
+  }, [amount, showVatBasis, selected, activeCurrency, vatBasis]);
+
+  const basisPreview = useMemo(() => {
+    if (!showVatBasis || !selected || !activeCurrency || !submittedNet) return null;
+    const other = displayStringForStoredNet({
+      netAmount: submittedNet,
+      currency: activeCurrency,
+      basis: vatBasis === 'gross' ? 'net' : 'gross',
+      invoice: selected,
+    });
+    if (!other) return null;
     try {
-      const net = money(amount, activeCurrency);
-      if (!isPositiveMoney(net)) return null;
-      const rate = Number(tax.amount) / Number(sub.amount);
-      const gross = Number(net.amount) * (1 + rate);
-      return money(gross.toFixed(2), activeCurrency);
+      return money(other, activeCurrency);
     } catch {
       return null;
     }
-  }, [entryMode, selected, activeCurrency, amount]);
+  }, [showVatBasis, selected, activeCurrency, submittedNet, vatBasis]);
+
+  function applyVatBasis(next: PaymentVatEntry) {
+    if (next === vatBasis) return;
+    if (showVatBasis && selected && activeCurrency && submittedNet) {
+      const shown = displayStringForStoredNet({
+        netAmount: submittedNet,
+        currency: activeCurrency,
+        basis: next,
+        invoice: selected,
+      });
+      if (shown) setAmount(shown);
+      if (splitMode) {
+        setAllocations((current) => {
+          const updated = { ...current };
+          for (const record of sameClientRecords) {
+            const raw = current[record.id]?.trim();
+            if (!raw) continue;
+            const net = netStringForPaymentEntry({
+              entered: raw,
+              basis: vatBasis,
+              currency: activeCurrency,
+              invoice: record,
+            });
+            if (!net) continue;
+            const display = displayStringForStoredNet({
+              netAmount: net,
+              currency: activeCurrency,
+              basis: next,
+              invoice: record,
+            });
+            if (display) updated[record.id] = display;
+          }
+          return updated;
+        });
+      }
+    }
+    setVatBasis(next);
+  }
+
+  function fillOutstanding() {
+    if (!selected) return;
+    const filled = fillOutstandingDisplay(selected, vatBasis);
+    setAmount(filled);
+    if (splitMode) {
+      setAllocations((current) => ({ ...current, [selected.id]: filled }));
+    }
+  }
 
   const singlePreview = useMemo(() => {
-    if (entryMode !== 'invoice' || splitMode || !selected || !activeCurrency || !amount.trim()) {
+    if (entryMode !== 'invoice' || splitMode || !selected || !activeCurrency || !submittedNet) {
       return null;
     }
     try {
       const received = money(amount, activeCurrency);
       if (!isPositiveMoney(received)) return null;
-      const before = selected.outstandingAmount;
+      const before =
+        vatBasis === 'gross'
+          ? (selected.outstandingGrossAmount ?? selected.outstandingAmount)
+          : selected.outstandingAmount;
       const after = subtractMoney(before, received);
-      return { received, before, after, held: selected.retentionHeldRemaining };
+      const netReceived = money(submittedNet, activeCurrency);
+      const netOver = compareMoney(netReceived, selected.outstandingAmount) > 0;
+      return { received, before, after, netOver };
     } catch {
       return null;
     }
-  }, [entryMode, splitMode, selected, activeCurrency, amount]);
+  }, [entryMode, splitMode, selected, activeCurrency, amount, submittedNet, vatBasis]);
 
   const unallocatedPreview = useMemo(() => {
-    if (entryMode !== 'unallocated' || !activeCurrency || !amount.trim()) return null;
+    if (entryMode !== 'unallocated' || !activeCurrency || !submittedNet) return null;
     try {
-      const received = money(amount, activeCurrency);
+      const received = money(submittedNet, activeCurrency);
       if (!isPositiveMoney(received)) return null;
       return { received, unallocated: received };
     } catch {
       return null;
     }
-  }, [entryMode, activeCurrency, amount]);
+  }, [entryMode, activeCurrency, submittedNet]);
 
   const unapplied = useMemo(() => {
-    if (entryMode !== 'invoice' || !splitMode || !activeCurrency || !amount) return null;
+    if (entryMode !== 'invoice' || !splitMode || !activeCurrency || !amount.trim()) return null;
     try {
-      const paymentAmount = money(amount, activeCurrency);
       let applied = zeroMoney(activeCurrency);
       for (const record of sameClientRecords) {
         const value = allocations[record.id]?.trim();
         if (!value) continue;
         applied = addMoney(applied, money(value, activeCurrency));
       }
-      return subtractMoney(paymentAmount, applied);
+      const display = subtractMoney(money(amount, activeCurrency), applied);
+      const paymentNet = submittedNet ? money(submittedNet, activeCurrency) : zeroMoney(activeCurrency);
+      let appliedNet = zeroMoney(activeCurrency);
+      for (const record of sameClientRecords) {
+        const value = allocations[record.id]?.trim();
+        if (!value) continue;
+        const net = netStringForPaymentEntry({
+          entered: value,
+          basis: vatBasis,
+          currency: activeCurrency,
+          invoice: record,
+        });
+        if (!net) continue;
+        appliedNet = addMoney(appliedNet, money(net, activeCurrency));
+      }
+      const netRemainder = subtractMoney(paymentNet, appliedNet);
+      return {
+        display,
+        netOver: compareMoney(netRemainder, zeroMoney(activeCurrency)) < 0,
+      };
     } catch {
       return null;
     }
-  }, [entryMode, splitMode, activeCurrency, amount, allocations, sameClientRecords]);
+  }, [entryMode, splitMode, activeCurrency, amount, submittedNet, allocations, sameClientRecords, vatBasis]);
 
-  const splitOverApplied = unapplied
-    ? compareMoney(unapplied, zeroMoney(unapplied.currency)) < 0
-    : false;
+  const splitOverApplied = unapplied?.netOver ?? false;
   const hasSplitAllocation = sameClientRecords.some((record) => allocations[record.id]?.trim());
 
   const invoiceSubmitDisabled =
     entryMode === 'invoice' &&
-    (!amount ||
+    (!submittedNet ||
       !billingRecordId ||
       (splitMode && (!hasSplitAllocation || splitOverApplied)) ||
-      Boolean(
-        singlePreview &&
-          compareMoney(singlePreview.after, zeroMoney(singlePreview.after.currency)) < 0,
-      ));
+      Boolean(singlePreview?.netOver));
 
   const unallocatedSubmitDisabled =
-    entryMode === 'unallocated' && (!amount || !clientId || !activeCurrency);
+    entryMode === 'unallocated' && (!submittedNet || !clientId || !activeCurrency);
 
   return (
     <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
@@ -315,7 +405,13 @@ export function PaymentForm({
           />
           <p>
             {t('paymentForm.invoiceBalanceBefore')}:{' '}
-            <MoneyText value={selected.outstandingAmount} />
+            <MoneyText
+              value={
+                vatBasis === 'gross'
+                  ? (selected.outstandingGrossAmount ?? selected.outstandingAmount)
+                  : selected.outstandingAmount
+              }
+            />
           </p>
           {selected.retentionHeldRemaining &&
           isPositiveMoney(selected.retentionHeldRemaining) ? (
@@ -334,32 +430,71 @@ export function PaymentForm({
         </>
       ) : null}
 
+      {showVatBasis ? (
+        <fieldset className="flex min-w-0 flex-col gap-2">
+          <legend className="text-sm font-medium">{t('paymentForm.vatBasis')}</legend>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant={vatBasis === 'gross' ? 'primary' : 'secondary'}
+              onClick={() => applyVatBasis('gross')}
+            >
+              {t('paymentForm.vatGross')}
+            </Button>
+            <Button
+              type="button"
+              variant={vatBasis === 'net' ? 'primary' : 'secondary'}
+              onClick={() => applyVatBasis('net')}
+            >
+              {t('paymentForm.vatNet')}
+            </Button>
+          </div>
+        </fieldset>
+      ) : null}
+
       <MainAppFormGrid dense>
       <Field
-        label={t('paymentForm.amount')}
+        label={t('paymentForm.amountEntry')}
         required
         className={mainAppFieldSpan.lg}
         description={
           entryMode === 'unallocated'
             ? t('paymentForm.unallocatedAmountDescription')
-            : t('paymentForm.amountDescription')
+            : vatBasis === 'gross'
+              ? t('paymentForm.amountEntryDescriptionGross')
+              : t('paymentForm.amountEntryDescriptionNet')
         }
       >
         {(controlProps) => (
           <>
-            <MoneyInput
-              {...controlProps}
-              required
-              value={amount}
-              onValueChange={setAmount}
-              currency={activeCurrency}
-              currencySymbol={symbol || undefined}
-            />
-            <input type="hidden" name="amount" value={amount} />
-            {grossPreview ? (
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="min-w-0 flex-1">
+                <MoneyInput
+                  {...controlProps}
+                  required
+                  value={amount}
+                  onValueChange={setAmount}
+                  currency={activeCurrency}
+                  currencySymbol={symbol || undefined}
+                />
+              </div>
+              {showVatBasis ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="w-full shrink-0 sm:w-auto"
+                  onClick={fillOutstanding}
+                >
+                  {t('paymentForm.fillOutstanding')}
+                </Button>
+              ) : null}
+            </div>
+            <input type="hidden" name="amount" value={submittedNet} />
+            {basisPreview ? (
               <p className="mt-1 text-xs text-[var(--pf-text-secondary)] tabular-nums">
-                ({t('paymentForm.grossPreview')}:{' '}
-                <MoneyText value={grossPreview} className="inline font-medium" />)
+                (
+                {vatBasis === 'gross' ? t('paymentForm.vatNet') : t('paymentForm.grossPreview')}
+                : <MoneyText value={basisPreview} className="inline font-medium" />)
               </p>
             ) : null}
           </>
@@ -378,7 +513,7 @@ export function PaymentForm({
           <p className="mt-1">
             {t('paymentForm.invoiceBalanceAfter')}: <MoneyText value={singlePreview.after} />
           </p>
-          {compareMoney(singlePreview.after, zeroMoney(singlePreview.after.currency)) < 0 ? (
+          {singlePreview.netOver ? (
             <p className="mt-1 text-sm text-[var(--pf-status-danger-fg)]">
               {t('errors.paymentOverApplied')}
             </p>
@@ -432,12 +567,21 @@ export function PaymentForm({
           <MainAppFormGrid dense>
           {sameClientRecords.map((record) => {
             const allocatedRaw = allocations[record.id]?.trim();
+            const allocatedNet =
+              activeCurrency && allocatedRaw
+                ? netStringForPaymentEntry({
+                    entered: allocatedRaw,
+                    basis: vatBasis,
+                    currency: activeCurrency,
+                    invoice: record,
+                  })
+                : '';
             let remainingAfter: ReturnType<typeof money> | null = null;
-            if (activeCurrency && allocatedRaw) {
+            if (activeCurrency && allocatedNet) {
               try {
                 remainingAfter = subtractMoney(
                   record.outstandingAmount,
-                  money(allocatedRaw, activeCurrency),
+                  money(allocatedNet, activeCurrency),
                 );
               } catch {
                 remainingAfter = null;
@@ -462,11 +606,7 @@ export function PaymentForm({
                       currencySymbol={symbol || undefined}
                     />
                     <input type="hidden" name="applicationBillingRecordId" value={record.id} />
-                    <input
-                      type="hidden"
-                      name="applicationAmount"
-                      value={allocations[record.id] ?? ''}
-                    />
+                    <input type="hidden" name="applicationAmount" value={allocatedNet ?? ''} />
                     {remainingAfter ? (
                       <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">
                         {t('paymentForm.invoiceBalanceAfter')}:{' '}
@@ -487,10 +627,10 @@ export function PaymentForm({
                   : 'text-sm text-[var(--pf-text-secondary)]'
               }
             >
-              {t('paymentForm.unappliedRemainder')}: <MoneyText value={unapplied} />
+              {t('paymentForm.unappliedRemainder')}: <MoneyText value={unapplied.display} />
             </p>
           ) : null}
-          {unapplied && !splitOverApplied && isPositiveMoney(unapplied) ? (
+          {unapplied && !splitOverApplied && isPositiveMoney(unapplied.display) ? (
             <p className="text-xs text-[var(--pf-text-secondary)]">
               {t('paymentForm.unappliedCashHint')}
             </p>
@@ -513,7 +653,24 @@ export function PaymentForm({
       </Field>
 
       <Field label={t('paymentForm.method')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
-        {(controlProps) => <Input {...controlProps} name="method" autoComplete="off" />}
+        {(controlProps) => (
+          <>
+            <Select value={method} onValueChange={setMethod}>
+              <SelectTrigger {...controlProps}>
+                <SelectValue placeholder={t('paymentForm.methodUnset')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={METHOD_UNSET}>{t('paymentForm.methodUnset')}</SelectItem>
+                {BILLING_PAYMENT_METHOD_KEYS.map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {t(`paymentForm.methods.${key}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <input type="hidden" name="method" value={method === METHOD_UNSET ? '' : method} />
+          </>
+        )}
       </Field>
 
       <Field label={t('paymentForm.reference')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>

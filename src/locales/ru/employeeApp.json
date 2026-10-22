@@ -683,6 +683,14 @@
       "amount": "Сумма ({currency})",
       "paymentDate": "Дата оплаты",
       "method": "Способ оплаты",
+      "methodUnset": "Не указано",
+      "methods": {
+        "cash": "Наличные",
+        "check": "Чек",
+        "bank_transfer": "Банковский перевод",
+        "credit_card": "Кредитная карта",
+        "other": "Другое"
+      },
       "reference": "Ссылка",
       "submit": "Записать оплату"
     }

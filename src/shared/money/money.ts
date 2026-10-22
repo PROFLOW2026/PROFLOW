@@ -182,6 +182,14 @@ export function isPositiveMoney(value: MoneyValue): boolean {
   return toDecimalValue(value).greaterThan(0);
 }
 
+/**
+ * Positive after rounding to the currency's display scale (2 decimals for ILS).
+ * Sub-cent residues stay in the ledger but are not a collectible balance.
+ */
+export function isMaterialPositiveMoney(value: MoneyValue): boolean {
+  return isPositiveMoney(roundMoney(value));
+}
+
 export function maxMoney(left: MoneyValue, right: MoneyValue): MoneyValue {
   return compareMoney(left, right) >= 0 ? left : right;
 }

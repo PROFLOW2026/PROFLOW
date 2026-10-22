@@ -683,6 +683,14 @@
       "amount": "المبلغ ({currency})",
       "paymentDate": "تاريخ الدفع",
       "method": "طريقة الدفع",
+      "methodUnset": "بدون",
+      "methods": {
+        "cash": "نقدًا",
+        "check": "شيك",
+        "bank_transfer": "تحويل بنكي",
+        "credit_card": "بطاقة ائتمان",
+        "other": "أخرى"
+      },
       "reference": "المرجع",
       "submit": "تسجيل الدفعة"
     }

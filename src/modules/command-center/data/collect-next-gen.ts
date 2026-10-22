@@ -21,7 +21,7 @@ import {
 } from '@drizzle/schema';
 import { getOrganizationCashFlowOutlook } from '@/modules/financials/application/get-organization-cash-flow';
 import { addDays, businessDate, daysBetween } from '@/shared/dates';
-import { isPositiveMoney, isZeroMoney, zeroMoney } from '@/shared/money';
+import { isMaterialPositiveMoney, zeroMoney, type MoneyValue } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withItemDefaults } from '../domain/ranking';
@@ -169,6 +169,11 @@ export async function collectWarrantyExpiring(ctx: CollectContext): Promise<Comm
   return items;
 }
 
+/** A cash-flow leg that still rounds to a non-zero display amount. */
+export function cashFlowRiskLegOpen(amount: MoneyValue): boolean {
+  return isMaterialPositiveMoney(amount);
+}
+
 export async function collectCashFlowRisk(ctx: CollectContext): Promise<CommandCenterItem[]> {
   if (!hasPermission(ctx.context, PERMISSIONS.PROJECT_FINANCIALS_READ)) return [];
   if (!hasPermission(ctx.context, PERMISSIONS.BILLING_READ)) return [];
@@ -193,8 +198,8 @@ export async function collectCashFlowRisk(ctx: CollectContext): Promise<CommandC
       ? overdueOut.expectedOut
       : zeroMoney(outlook.currency);
 
-  const hasIn = isPositiveMoney(inAmount) && !isZeroMoney(inAmount);
-  const hasOut = isPositiveMoney(outAmount) && !isZeroMoney(outAmount);
+  const hasIn = cashFlowRiskLegOpen(inAmount);
+  const hasOut = cashFlowRiskLegOpen(outAmount);
   if (!hasIn && !hasOut) return [];
 
   const copy = cashFlowRiskCopy(ctx.copyScope, {

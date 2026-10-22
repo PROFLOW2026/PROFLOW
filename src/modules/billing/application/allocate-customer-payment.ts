@@ -17,6 +17,7 @@ import {
 } from '../data/payments.repository';
 import { assertAdditionalCustomerPaymentApplicationsValid } from '../domain/payment-applications';
 import { scheduleStatutoryForAllocations } from './schedule-statutory-for-allocations';
+import { settleCollectionAlerts } from './settle-collection-alerts';
 import {
   allocateCustomerPaymentSchema,
   type AllocateCustomerPaymentInput,
@@ -166,5 +167,6 @@ export async function allocateCustomerPayment(
 
   scheduleStatutoryForAllocations(context, result.paymentId, result.applications);
 
+  await settleCollectionAlerts(context, billingRecords);
   return { paymentId: result.paymentId, billingRecords };
 }

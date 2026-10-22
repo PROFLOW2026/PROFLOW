@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { pressableChromeClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import {
+  getShellNotificationBadgeCountAction,
   listNotificationsAction,
   markAllNotificationsReadAction,
   markNotificationReadAction,
@@ -18,6 +19,9 @@ import { NotificationPanel } from './notification-panel';
 function inboxOrEmpty(value: NotificationInboxDto | null | undefined): NotificationInboxDto {
   return value ?? { items: [], unreadCount: 0 };
 }
+
+/** While the tab is visible, at most one cheap badge read per interval. Hidden tabs do not poll. */
+const BADGE_REFRESH_MS = 90_000;
 
 export function NotificationBell({
   initialInbox,
@@ -34,6 +38,52 @@ export function NotificationBell({
   const [inbox, setInbox] = React.useState<NotificationInboxDto>(inboxOrEmpty(initialInbox));
   const [scanning, setScanning] = React.useState(false);
   const inFlightRef = React.useRef(false);
+  const badgeFlightRef = React.useRef(false);
+  const lastBadgeAtRef = React.useRef(0);
+  const openRef = React.useRef(false);
+  openRef.current = open;
+
+  const serverUnread = initialInbox?.unreadCount;
+  React.useEffect(() => {
+    if (typeof serverUnread !== 'number') return;
+    lastBadgeAtRef.current = Date.now();
+    if (openRef.current) return;
+    setInbox((prev) => (prev.unreadCount === serverUnread ? prev : { ...prev, unreadCount: serverUnread }));
+  }, [serverUnread]);
+
+  const refreshBadgeCount = React.useCallback(async () => {
+    if (badgeFlightRef.current || openRef.current || inFlightRef.current) return;
+    const now = Date.now();
+    if (now - lastBadgeAtRef.current < BADGE_REFRESH_MS) return;
+    badgeFlightRef.current = true;
+    lastBadgeAtRef.current = now;
+    try {
+      const count = await getShellNotificationBadgeCountAction();
+      if (openRef.current) return;
+      setInbox((prev) => (prev.unreadCount === count ? prev : { ...prev, unreadCount: count }));
+    } catch {
+      lastBadgeAtRef.current = 0;
+    } finally {
+      badgeFlightRef.current = false;
+    }
+  }, []);
+
+  React.useEffect(() => {
+    lastBadgeAtRef.current = Date.now();
+    const tick = () => {
+      if (document.visibilityState !== 'visible') return;
+      void refreshBadgeCount();
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void refreshBadgeCount();
+    };
+    const id = window.setInterval(tick, BADGE_REFRESH_MS);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [refreshBadgeCount]);
 
   const fetchInbox = React.useCallback(async () => {
     if (inFlightRef.current) return;

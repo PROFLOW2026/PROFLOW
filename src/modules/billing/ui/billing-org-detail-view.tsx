@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getBillingRecord } from '@/modules/billing';
+import { labelForStoredPaymentMethod } from '@/modules/billing/domain/payment-entry';
 import { loadLinkedContractCurrentAmount } from '@/modules/billing/application/load-linked-contract-current';
 import { statutoryStatusBlocksDraftEdit } from '@/modules/billing/domain/draft-rules';
 import { BillingDetailActions } from '@/modules/billing/ui/billing-detail-actions';
@@ -93,6 +94,14 @@ export async function BillingOrgDetailView({
 }: BillingOrgDetailViewProps) {
   const paymentId = query.paymentId ?? null;
   const t = await getTranslations('billing');
+  const tMethods = await getTranslations('billing.paymentForm.methods');
+  const methodLabels = {
+    cash: tMethods('cash'),
+    check: tMethods('check'),
+    bank_transfer: tMethods('bank_transfer'),
+    credit_card: tMethods('credit_card'),
+    other: tMethods('other'),
+  };
   const tKind = await getTranslations('billing.kinds');
   const tPayment = await getTranslations('status.payment');
 
@@ -424,7 +433,9 @@ export async function BillingOrgDetailView({
                         <TableCell numeric>
                           <MoneyText value={payment.amount} />
                         </TableCell>
-                        <TableCell className="max-w-[8rem] truncate">{payment.method ?? '-'}</TableCell>
+                        <TableCell className="max-w-[8rem] truncate">
+                          {labelForStoredPaymentMethod(payment.method, methodLabels) ?? '-'}
+                        </TableCell>
                         <TableCell className="max-w-[8rem] truncate">{payment.reference ?? '-'}</TableCell>
                         <TableCell>
                           <span className="text-sm text-[var(--pf-text-secondary)]">
@@ -451,7 +462,7 @@ export async function BillingOrgDetailView({
                   <MoneyText value={payment.amount} />
                 </p>
                 <p className="mt-1 truncate text-sm text-[var(--pf-text-secondary)]">
-                  {payment.method ?? '-'}
+                  {labelForStoredPaymentMethod(payment.method, methodLabels) ?? '-'}
                   {payment.reference ? ` · ${payment.reference}` : null}
                 </p>
               </div>

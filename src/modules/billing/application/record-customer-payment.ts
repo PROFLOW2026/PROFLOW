@@ -22,6 +22,7 @@ import {
 } from '../data/payments.repository';
 import { assertCustomerPaymentApplicationsValid } from '../domain/payment-applications';
 import { scheduleStatutoryForAllocations } from './schedule-statutory-for-allocations';
+import { settleCollectionAlerts } from './settle-collection-alerts';
 import {
   recordCustomerPaymentSchema,
   type RecordCustomerPaymentInput,
@@ -193,5 +194,6 @@ export async function recordCustomerPayment(
     })),
   );
 
+  await settleCollectionAlerts(context, billingRecords);
   return { paymentId, billingRecords };
 }

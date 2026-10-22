@@ -10,6 +10,7 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { PageHeader } from '@/components/ui/page-header';
 import { listBillingRecords } from '@/modules/billing';
 import { getPaymentAllocationView } from '@/modules/billing/application/get-payment-allocation-view';
+import { labelForStoredPaymentMethod } from '@/modules/billing/domain/payment-entry';
 import { AllocatePaymentForm } from '@/modules/billing/ui/allocate-payment-form';
 import {
   orgListHasPermission,
@@ -41,7 +42,18 @@ export async function BillingOrgAllocateView({
   routeBase,
   surface = 'owner',
 }: BillingOrgAllocateViewProps) {
-  const [t, locale] = await Promise.all([getTranslations('billing'), getLocale()]);
+  const [t, tMethods, locale] = await Promise.all([
+    getTranslations('billing'),
+    getTranslations('billing.paymentForm.methods'),
+    getLocale(),
+  ]);
+  const methodLabels = {
+    cash: tMethods('cash'),
+    check: tMethods('check'),
+    bank_transfer: tMethods('bank_transfer'),
+    credit_card: tMethods('credit_card'),
+    other: tMethods('other'),
+  };
 
   let payment;
   let records;
@@ -103,7 +115,7 @@ export async function BillingOrgAllocateView({
             <span dir="ltr">{formatBusinessDate(payment.paymentDate, locale)}</span>
           </MainAppSummaryItem>
           <MainAppSummaryItem label={t('paymentForm.method')}>
-            {payment.method?.trim() ? payment.method : EMPTY}
+            {labelForStoredPaymentMethod(payment.method, methodLabels) ?? EMPTY}
           </MainAppSummaryItem>
           <MainAppSummaryItem label={t('paymentForm.reference')}>
             {payment.reference?.trim() ? (

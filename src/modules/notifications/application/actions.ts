@@ -7,6 +7,7 @@ import { localizeNotificationInbox } from './localize-notifications';
 import { isActionableNotificationId, listMergedNotificationInbox } from './actionable-inbox';
 import { markNotificationRead } from './mark-read';
 import { markAllNotificationsRead } from './mark-all-read';
+import { getShellNotificationBadgeCount } from './attention-badge';
 import { runNotificationScan } from './scan-conditions';
 import { toNotificationInboxDto } from './serialize';
 import type { NotificationInboxDto } from './serialize';
@@ -14,6 +15,11 @@ import type { NotificationScanResult } from '../domain/types';
 
 export type { NotificationInboxDto } from './serialize';
 export type { NotificationListItemDto } from './serialize';
+
+/** Cheap badge read. Same query as the shell; does not run Command Center collectors. */
+export async function getShellNotificationBadgeCountAction(): Promise<number> {
+  return withOrgContext((context) => getShellNotificationBadgeCount(context));
+}
 
 /** Merged inbox (persisted + Command Center). Use on bell open and /notifications — not app shell. */
 export async function listNotificationsAction(): Promise<NotificationInboxDto> {

@@ -12,6 +12,7 @@ import {
   projects,
 } from '@drizzle/schema';
 import { listBillingRecords } from '@/modules/billing';
+import { displayedCollectibleOutstanding } from '@/modules/billing/domain/payment-entry';
 import { listComplianceArtifactsForOrg } from '@/modules/compliance';
 import { getOrganizationApPayables } from '@/modules/ap';
 import { listMaintenanceScheduleForOrg } from '@/modules/assets';
@@ -133,15 +134,17 @@ export async function collectOverdueAr(ctx: CollectContext): Promise<CommandCent
     limit: PER_SOURCE_CAP,
   });
 
-  return records.map((record) => {
+  return records.flatMap((record) => {
+    const shown = displayedCollectibleOutstanding(record);
+    if (!shown) return [];
     const days = record.dueDate ? daysBetween(record.dueDate, ctx.today) : 0;
     const copy = overdueArCopy(ctx.copyScope, {
       reference: record.reference,
       dueDate: record.dueDate,
-      outstanding: record.outstandingAmount.amount,
-      currency: record.outstandingAmount.currency,
+      outstanding: shown.amount,
+      currency: shown.currency,
     });
-    return withItemDefaults({
+    return [withItemDefaults({
       sourceType: 'overdue_ar',
       sourceId: record.id,
       what: copy.what,
@@ -156,10 +159,10 @@ export async function collectOverdueAr(ctx: CollectContext): Promise<CommandCent
       urgencyBump: Math.min(99, Math.max(0, days)),
       meta: {
         dueDate: record.dueDate,
-        outstanding: record.outstandingAmount.amount,
+        outstanding: shown.amount,
         dedupeHref: `/billing/${record.id}`,
       },
-    });
+    })];
   });
 }
 

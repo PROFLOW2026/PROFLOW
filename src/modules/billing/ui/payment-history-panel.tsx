@@ -8,6 +8,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Link } from '@/shared/i18n/navigation';
 import { formatBusinessDate } from '@/shared/dates/format';
+import { labelForStoredPaymentMethod } from '@/modules/billing/domain/payment-entry';
 import type { PaymentApplicationRow } from '@/modules/billing/domain/types';
 
 interface PaymentHistoryTableProps {
@@ -27,6 +28,14 @@ export function PaymentHistoryTable({
   listKit = true,
 }: PaymentHistoryTableProps) {
   const t = useTranslations('billing.paymentHistory');
+  const tMethods = useTranslations('billing.paymentForm.methods');
+  const methodLabels = {
+    cash: tMethods('cash'),
+    check: tMethods('check'),
+    bank_transfer: tMethods('bank_transfer'),
+    credit_card: tMethods('credit_card'),
+    other: tMethods('other'),
+  };
   const tKind = useTranslations('billing.kinds');
   const tPayment = useTranslations('status.payment');
 
@@ -78,7 +87,9 @@ export function PaymentHistoryTable({
                   <TableCell numeric>
                     <MoneyText value={row.amount} />
                   </TableCell>
-                  <TableCell className="max-w-[8rem] truncate">{row.method ?? '-'}</TableCell>
+                  <TableCell className="max-w-[8rem] truncate">
+                    {labelForStoredPaymentMethod(row.method, methodLabels) ?? '-'}
+                  </TableCell>
                   <TableCell>
                     <StatusBadge
                       shape={row.status === 'void' ? 'void' : 'approved'}

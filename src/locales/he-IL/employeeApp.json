@@ -250,6 +250,14 @@
       "amount": "סכום ({currency})",
       "paymentDate": "תאריך תשלום",
       "method": "אמצעי תשלום",
+      "methodUnset": "ללא",
+      "methods": {
+        "cash": "מזומן",
+        "check": "צ׳ק",
+        "bank_transfer": "העברה בנקאית",
+        "credit_card": "כרטיס אשראי",
+        "other": "אחר"
+      },
       "reference": "אסמכתא",
       "submit": "רישום תשלום"
     }

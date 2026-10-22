@@ -250,6 +250,14 @@
       "amount": "Amount ({currency})",
       "paymentDate": "Payment date",
       "method": "Method",
+      "methodUnset": "None",
+      "methods": {
+        "cash": "Cash",
+        "check": "Check",
+        "bank_transfer": "Bank transfer",
+        "credit_card": "Credit card",
+        "other": "Other"
+      },
       "reference": "Reference",
       "submit": "Record payment"
     }

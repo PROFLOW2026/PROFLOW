@@ -3,7 +3,7 @@ import {
   addMoney,
   compareMoney,
   isNegativeMoney,
-  isPositiveMoney,
+  isMaterialPositiveMoney,
   isZeroMoney,
   money,
   multiplyMoney,
@@ -263,8 +263,11 @@ export function deriveCollectionStatusFromOpen(
   recordStatus: BillingRecordStatus,
 ): CollectionStatus | null {
   if (recordStatus === 'draft' || recordStatus === 'void') return null;
-  if (!isPositiveMoney(open.net) && !isPositiveMoney(open.gross)) return 'paid';
-  if (isPositiveMoney(open.net) && dueDate && isBefore(dueDate, today)) return 'overdue';
+  const netOpen = isMaterialPositiveMoney(open.net);
+  const grossOpen = isMaterialPositiveMoney(open.gross);
+  // Display-scale only. Stored revenue triplets are unchanged.
+  if (!netOpen && !grossOpen) return 'paid';
+  if ((netOpen || grossOpen) && dueDate && isBefore(dueDate, today)) return 'overdue';
   if (isZeroMoney(paid.net) && isZeroMoney(paid.gross)) return 'open';
   return 'partial';
 }

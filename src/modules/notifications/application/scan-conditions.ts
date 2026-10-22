@@ -11,6 +11,7 @@
 import { listPendingApprovals } from '@/modules/approvals';
 import { getOrganizationApPayables } from '@/modules/ap';
 import { listBillingRecords } from '@/modules/billing';
+import { displayedCollectibleOutstanding } from '@/modules/billing/domain/payment-entry';
 import {
   listDraftCyclesAwaitingIssue,
   listMilestoneLinesDue,
@@ -217,18 +218,19 @@ async function scanBillingOverdue(ctx: ScannerContext): Promise<{ emitted: numbe
     filter: 'overdue',
     limit: ctx.cap,
   });
-  const entities: ScanEntity[] = records
-    .filter((record) => record.status === 'finalized')
-    .map((record) => ({
-      id: record.id,
-      reference: record.reference,
-      extra: formatMoneyString(
-        record.outstandingAmount.amount,
-        record.outstandingAmount.currency,
-        ctx.locale,
-      ),
-      deepLink: `/billing/${record.id}`,
-    }));
+  const entities: ScanEntity[] = records.flatMap((record) => {
+    if (record.status !== 'finalized') return [];
+    const shown = displayedCollectibleOutstanding(record);
+    if (!shown) return [];
+    return [
+      {
+        id: record.id,
+        reference: record.reference,
+        extra: formatMoneyString(shown.amount, shown.currency, ctx.locale),
+        deepLink: `/billing/${record.id}`,
+      },
+    ];
+  });
   const emitted = await emitLive(
     ctx,
     'billing_overdue',

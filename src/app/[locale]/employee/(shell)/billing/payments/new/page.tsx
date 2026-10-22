@@ -123,11 +123,19 @@ export default async function EmployeeRecordPaymentPage() {
           <label htmlFor="method" className="text-sm font-medium">
             {t('method')}
           </label>
-          <input
+          <select
             id="method"
             name="method"
-            className="w-full rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] px-3 py-2 text-sm"
-          />
+            defaultValue=""
+            className="w-full max-w-full rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] px-3 py-2 text-sm"
+          >
+            <option value="">{t('methodUnset')}</option>
+            <option value="cash">{t('methods.cash')}</option>
+            <option value="check">{t('methods.check')}</option>
+            <option value="bank_transfer">{t('methods.bank_transfer')}</option>
+            <option value="credit_card">{t('methods.credit_card')}</option>
+            <option value="other">{t('methods.other')}</option>
+          </select>
         </div>
 
         <div className="space-y-2">
