@@ -4,6 +4,7 @@ import { money } from '@/shared/money';
 import { countOverdueFromBillingRows } from '@/modules/financials/data/billing.repository';
 import { composeHomeMonthlyLedger } from '@/modules/financials/domain/home-monthly-ledger';
 import { zeroTriplet } from '@/modules/billing/domain/revenue-position';
+import { projectBillingRecord } from './project-billing-record';
 
 const ils = (amount: string) => money(amount, 'ILS');
 const day = (value: string) => businessDate(value);
@@ -14,7 +15,7 @@ describe('countOverdueFromBillingRows', () => {
       {
         currency: 'ILS',
         records: [
-          {
+          projectBillingRecord({
             id: 'bill-1',
             dueDate: day('2026-01-10'),
             kind: 'invoice',
@@ -23,7 +24,7 @@ describe('countOverdueFromBillingRows', () => {
             subtotalAmount: ils('100.00'),
             taxAmount: ils('18.00'),
             payments: [{ amount: ils('118.001'), amountBasis: 'gross', status: 'recorded' }],
-          },
+          }),
         ],
       },
       day('2026-10-23'),
@@ -36,7 +37,7 @@ describe('countOverdueFromBillingRows', () => {
       {
         currency: 'ILS',
         records: [
-          {
+          projectBillingRecord({
             id: 'bill-2',
             dueDate: day('2026-01-10'),
             kind: 'invoice',
@@ -45,7 +46,7 @@ describe('countOverdueFromBillingRows', () => {
             subtotalAmount: ils('100.00'),
             taxAmount: ils('18.00'),
             payments: [{ amount: ils('50.00'), amountBasis: 'gross', status: 'recorded' }],
-          },
+          }),
         ],
       },
       day('2026-10-23'),

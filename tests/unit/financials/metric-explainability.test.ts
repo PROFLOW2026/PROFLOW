@@ -8,6 +8,7 @@ import {
 } from '@/modules/financials/domain/cost-aggregation';
 import { money, zeroMoney } from '@/shared/money';
 import { businessDate } from '@/shared/dates';
+import { projectBillingRecord } from './project-billing-record';
 
 const ILS = 'ILS';
 
@@ -33,7 +34,7 @@ describe('buildProjectFinancialExplainability', () => {
       billingRows: {
         currency: ILS,
         records: [
-          {
+          projectBillingRecord({
             id: 'b1',
             kind: 'invoice',
             status: 'finalized',
@@ -41,7 +42,7 @@ describe('buildProjectFinancialExplainability', () => {
             subtotalAmount: money('400.00', ILS),
             dueDate: businessDate('2026-04-01'),
             payments: [{ amount: money('100.00', ILS), status: 'recorded' }],
-          },
+          }),
         ],
       },
       expenseContributions: [
@@ -332,7 +333,7 @@ describe('buildProjectFinancialExplainability', () => {
       billingRows: {
         currency: ILS,
         records: [
-          {
+          projectBillingRecord({
             id: 'b1',
             kind: 'invoice',
             status: 'finalized',
@@ -340,7 +341,7 @@ describe('buildProjectFinancialExplainability', () => {
             subtotalAmount: money('400.00', ILS),
             dueDate: businessDate('2026-04-01'),
             payments: [],
-          },
+          }),
         ],
       },
       expenseContributions: [],
