@@ -12,6 +12,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { yearMonthFromBusinessDate } from '@/modules/month-close/domain/year-month';
+import {
+  isolateYearMonthForDisplay,
+  readBusinessChangeAcknowledged,
+  setBusinessChangeAcknowledged,
+} from '@/shared/business-change/form-ack';
 import type { BusinessChangeFieldDiff, BusinessChangeImpactLine } from '@/shared/business-change/types';
 import { businessDate } from '@/shared/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
@@ -156,8 +161,8 @@ export function FinalizedBillingEditForm({
       lines.push({
         label: t('retroactiveEdit.invoicedMonthImpact'),
         detail: t('retroactiveEdit.invoicedMonthShift', {
-          from: yearMonthFromBusinessDate(initialIssueDate),
-          to: yearMonthFromBusinessDate(issueDate),
+          from: isolateYearMonthForDisplay(yearMonthFromBusinessDate(initialIssueDate)),
+          to: isolateYearMonthForDisplay(yearMonthFromBusinessDate(issueDate)),
         }),
       });
     }
@@ -203,6 +208,9 @@ export function FinalizedBillingEditForm({
   }
 
   function handleSaveClick(event: FormEvent<HTMLFormElement>) {
+    if (readBusinessChangeAcknowledged(event.currentTarget)) {
+      return;
+    }
     event.preventDefault();
     if (!hasChanges) return;
     void loadSimilarAndProceed();
@@ -213,9 +221,9 @@ export function FinalizedBillingEditForm({
       | HTMLFormElement
       | null;
     if (!form) return;
-    const ack = form.querySelector<HTMLInputElement>('input[name="changeAcknowledged"]');
-    if (ack) ack.value = 'true';
+    setBusinessChangeAcknowledged(form);
     setConfirmOpen(false);
+    setDuplicateOpen(false);
     form.requestSubmit();
   }
 

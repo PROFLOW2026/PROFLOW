@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import { useTranslations } from 'next-intl';
 import { BusinessChangeFormDialogs } from '@/components/patterns/business-change-form-dialogs';
 import { MoneyInput } from '@/components/patterns/money-input';
+import { isolateYearMonthForDisplay } from '@/shared/business-change/form-ack';
 import { useBusinessChangeFormSubmit } from '@/shared/business-change/use-business-change-form-submit';
 import { businessDate } from '@/shared/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
@@ -64,8 +65,8 @@ export function CustomerPaymentCorrectionPanel({
         {
           label: t('paymentCorrection.collectionsMonthImpact'),
           detail: t('paymentCorrection.collectionsMonthShift', {
-            from: yearMonthFromBusinessDate(initialPaymentDate),
-            to: yearMonthFromBusinessDate(paymentDate),
+            from: isolateYearMonthForDisplay(yearMonthFromBusinessDate(initialPaymentDate)),
+            to: isolateYearMonthForDisplay(yearMonthFromBusinessDate(paymentDate)),
           }),
         },
       ];

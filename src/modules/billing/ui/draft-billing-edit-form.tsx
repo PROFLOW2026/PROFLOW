@@ -11,6 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { draftAmountExceedsContractCurrent } from '@/modules/billing/domain/draft-rules';
+import {
+  readBusinessChangeAcknowledged,
+  setBusinessChangeAcknowledged,
+} from '@/shared/business-change/form-ack';
 import type { BusinessChangeFieldDiff } from '@/shared/business-change/types';
 import { businessDate } from '@/shared/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
@@ -97,6 +101,9 @@ export function DraftBillingEditForm({
   const hasChanges = changeDiffs.length > 0;
 
   function handleSaveClick(event: FormEvent<HTMLFormElement>) {
+    if (readBusinessChangeAcknowledged(event.currentTarget)) {
+      return;
+    }
     event.preventDefault();
     if (!hasChanges) return;
     setConfirmOpen(true);
@@ -105,8 +112,7 @@ export function DraftBillingEditForm({
   function submitConfirmed() {
     const form = document.getElementById(`draft-billing-edit-${billingRecordId}`) as HTMLFormElement | null;
     if (!form) return;
-    const ack = form.querySelector<HTMLInputElement>('input[name="changeAcknowledged"]');
-    if (ack) ack.value = 'true';
+    setBusinessChangeAcknowledged(form);
     setConfirmOpen(false);
     form.requestSubmit();
   }

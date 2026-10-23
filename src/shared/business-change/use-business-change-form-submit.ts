@@ -6,6 +6,10 @@ import type {
   BusinessChangeImpactLine,
 } from '@/shared/business-change/types';
 import type { DuplicateRecordWarningItem } from '@/components/patterns/duplicate-record-warning-dialog';
+import {
+  readBusinessChangeAcknowledged,
+  setBusinessChangeAcknowledged,
+} from '@/shared/business-change/form-ack';
 
 export interface UseBusinessChangeFormSubmitOptions {
   readonly enabled: boolean;
@@ -37,14 +41,16 @@ export function useBusinessChangeFormSubmit({
   const submitConfirmed = useCallback(() => {
     const form = document.getElementById(formId) as HTMLFormElement | null;
     if (!form) return;
-    const ack = form.querySelector<HTMLInputElement>('input[name="changeAcknowledged"]');
-    if (ack) ack.value = 'true';
+    setBusinessChangeAcknowledged(form);
     setConfirmOpen(false);
     form.requestSubmit();
   }, [formId]);
 
   const handleFormSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
+      if (readBusinessChangeAcknowledged(event.currentTarget)) {
+        return;
+      }
       if (!enabled || (!alwaysConfirm && !hasChanges)) return;
       event.preventDefault();
       setSimilarLoading(true);
