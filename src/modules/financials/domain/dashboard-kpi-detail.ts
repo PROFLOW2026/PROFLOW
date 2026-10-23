@@ -25,6 +25,7 @@ export interface DashboardKpiDetailContent {
   readonly breakdown: readonly DashboardKpiDetailLine[];
   readonly fullScreenHref?: string;
   readonly fullScreenLabel?: string;
+  readonly actions?: readonly { readonly href: string; readonly label: string }[];
 }
 
 /** Card-face notes move into the detail dialog. Exact text already there is not repeated. */

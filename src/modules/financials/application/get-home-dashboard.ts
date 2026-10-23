@@ -9,6 +9,7 @@ import {
 import { getOrganizationApPayables } from '@/modules/ap';
 import { getMonthCashFlow } from './get-month-cash-flow';
 import { loadHomeMonthlyLedger } from './get-home-monthly-ledger';
+import type { HomeMonthlyLedger } from '../domain/home-monthly-ledger';
 import type { MonthCashFlow } from '../domain/month-cash-flow';
 import { zeroTriplet, type RevenueTriplet } from '@/modules/billing/domain/revenue-position';
 import {
@@ -289,7 +290,7 @@ export interface HomeDashboardData {
    */
   readonly cashForecast: HomeCashForecast | null;
   /** One row per month from January 2026 through the current month. */
-  readonly monthlyLedger: import('../domain/home-monthly-ledger').HomeMonthlyLedger | null;
+  readonly monthlyLedger: HomeMonthlyLedger | null;
 }
 
 export interface HomeDashboardOptions {

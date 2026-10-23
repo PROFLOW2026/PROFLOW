@@ -103,7 +103,7 @@ function Lines({
   );
 }
 
-function LedgerNotes({ ledger }: { readonly ledger: HomeMonthlyLedger }) {
+function LedgerNotes() {
   const t = useTranslations('dashboard.monthlyLedger');
   const [open, setOpen] = useState(false);
   return (
@@ -119,18 +119,6 @@ function LedgerNotes({ ledger }: { readonly ledger: HomeMonthlyLedger }) {
         </DialogHeader>
         <DialogBody className="flex flex-col gap-3 text-sm text-[var(--pf-text-secondary)]">
           <p>{t('hint')}</p>
-          {ledger.collectedGapNet ? (
-            <p>
-              {t('collected')}. {t('gapDetail')}{' '}
-              <MoneyText value={ledger.collectedGapNet} colorizeResult />
-            </p>
-          ) : null}
-          {ledger.cashOutGapNet ? (
-            <p>
-              {t('cashOut')}. {t('gapDetail')}{' '}
-              <MoneyText value={ledger.cashOutGapNet} colorizeResult />
-            </p>
-          ) : null}
         </DialogBody>
       </DialogContent>
     </Dialog>
@@ -166,12 +154,12 @@ function MonthDetail({
           <Lines title={t('receivablesEnd')} rows={month.receivables} />
           <Lines title={t('recognizedCost')} rows={month.costParts} />
           <Lines title={t('otherCashOut')} rows={month.otherCashOut} />
-          <p className="text-sm">
+          <div className="text-sm">
             {t('monthDifference')}: <Amount value={month.monthDifference} result />
-          </p>
-          <p className="text-sm">
+          </div>
+          <div className="text-sm">
             {t('cumulativeDifference')}: <Amount value={month.cumulativeDifference} result />
-          </p>
+          </div>
         </DialogBody>
       </DialogContent>
     </Dialog>
@@ -213,7 +201,7 @@ export function HomeDashboardMonthlyLedger({
     <section className="flex min-w-0 max-w-full flex-col gap-3">
       <div className="flex min-w-0 items-center justify-between gap-2">
         <h2 className="text-sm font-semibold">{t('title')}</h2>
-        <LedgerNotes ledger={ledger} />
+        <LedgerNotes />
       </div>
       <div className="flex min-w-0 flex-col gap-3">
         {ledger.months.map((month) => {

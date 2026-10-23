@@ -128,16 +128,16 @@ export function aggregateExpenseCashBySource(
           )
         : outstandingGross;
 
-    if (isPositiveMoney(paid)) {
-      bucket.paid = addMoney(bucket.paid, paid);
-      bucket.paidNet = addMoney(bucket.paidNet, paidNet);
-    }
-    if (isPositiveMoney(outstandingGross)) {
-      bucket.outstanding = addMoney(bucket.outstanding, outstandingGross);
-      bucket.outstandingNet = addMoney(bucket.outstandingNet, outstandingNet);
-    }
-
-    buckets[source] = bucket;
+    buckets[source] = {
+      paid: isPositiveMoney(paid) ? addMoney(bucket.paid, paid) : bucket.paid,
+      paidNet: isPositiveMoney(paid) ? addMoney(bucket.paidNet, paidNet) : bucket.paidNet,
+      outstanding: isPositiveMoney(outstandingGross)
+        ? addMoney(bucket.outstanding, outstandingGross)
+        : bucket.outstanding,
+      outstandingNet: isPositiveMoney(outstandingGross)
+        ? addMoney(bucket.outstandingNet, outstandingNet)
+        : bucket.outstandingNet,
+    };
   }
 
   const sources: Partial<Record<BusinessCashSourceKey, BusinessCashSourceTotals>> = {};

@@ -410,6 +410,7 @@ export function buildCommitmentsDetail(
   committed: MoneyValue,
   title: string,
   copy: DashboardKpiDetailCopy,
+  actions?: DashboardKpiDetailContent['actions'],
 ): DashboardKpiDetailContent {
   return {
     title,
@@ -417,8 +418,7 @@ export function buildCommitmentsDetail(
     whatIs: copy.commitmentsWhat,
     formula: copy.commitmentsFormula,
     breakdown: lines({ label: title, money: committed }),
-    fullScreenHref: '/procurement/purchase-orders',
-    fullScreenLabel: copy.reportsLink,
+    actions,
   };
 }
 

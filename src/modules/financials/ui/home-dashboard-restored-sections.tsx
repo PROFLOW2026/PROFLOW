@@ -191,20 +191,20 @@ export async function HomeDashboardRestoredSections({
                     forecast.totalRemainingCommitments,
                     tFinancial('kpis.committed'),
                     detailCopy,
+                    [
+                      {
+                        href: '/procurement',
+                        label: tFinancial('drillLinks.viewPurchaseOrders'),
+                      },
+                      {
+                        href: '/subcontracts',
+                        label: tFinancial('drillLinks.viewSubcontractAgreements'),
+                      },
+                    ],
                   )
                 : undefined
             }
             detailCopy={triggerCopy}
-            footer={
-              <p className="flex flex-wrap gap-3 text-xs">
-                <Link href="/procurement" className={textNavLinkClassName}>
-                  {tFinancial('drillLinks.viewPurchaseOrders')}
-                </Link>
-                <Link href="/subcontracts" className={textNavLinkClassName}>
-                  {tFinancial('drillLinks.viewSubcontractAgreements')}
-                </Link>
-              </p>
-            }
           />
         </div>
       ) : null}

@@ -84,6 +84,19 @@ export function resolveMonthlyAccrualDenominator(input: {
 }
 
 /**
+ * Past and completed calendar months recognize the full defined pool.
+ * An open month accrues elapsed workdays for every compensation class, including the owner.
+ */
+export function shouldRecognizeFullEmployerMonth(input: {
+  readonly yearMonth: string;
+  readonly currentYearMonth: string;
+  readonly today: string;
+  readonly monthEnd: string;
+}): boolean {
+  return input.yearMonth < input.currentYearMonth || input.today >= input.monthEnd;
+}
+
+/**
  * Accrued recognized pool for an open month: min(accruedWorkDays, W) × (P / W),
  * conserved so Σ day units = recognized pool. Full month → exact full pool.
  * `workingDaysPerMonth` is the accrual denominator (prefer calendar eligible count).

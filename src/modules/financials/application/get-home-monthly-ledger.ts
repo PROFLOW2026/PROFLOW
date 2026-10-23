@@ -3,7 +3,7 @@ import { apBills, apPaymentApplications, apPayments, vendors } from '@drizzle/sc
 import { listBillingRecords, listPaymentApplications } from '@/modules/billing';
 import type { BillingRecordSummary, PaymentApplicationRow } from '@/modules/billing/domain/types';
 import type { OrgContext } from '@/shared/auth/context';
-import { businessDate, todayInTimeZone, type BusinessDate } from '@/shared/dates';
+import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { fromNumericString, money, zeroMoney, type MoneyValue } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';

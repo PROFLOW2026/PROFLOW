@@ -9,13 +9,18 @@ import {
 import { deriveKnownEmployerCost } from '@/modules/workforce/domain/monthly-allocation';
 import {
   describeMonthlyEmployerCostRecognition,
+  listConfiguredWorkDatesInRange,
+  monthDateBounds,
+  recognizeMonthlyEmployerPoolByCalendar,
   recognizeMonthlyEmployerPoolToDate,
+  shouldRecognizeFullEmployerMonth,
 } from '@/modules/workforce/domain/monthly-accrual';
 import {
   calculateMonthlyEmployerCostPoolForMonth,
   calculateUnitEmployerCostPool,
 } from '@/modules/workforce/domain/employer-cost-pool';
 import { toNumericString } from '@/shared/money';
+import { CANONICAL_WORK_WEEKDAYS } from '@/modules/tenancy/domain/labor-cost-defaults';
 
 describe('OD-36 owner/manager employer cost invariants', () => {
   it('fixes base 18,000 + 50% burden → 27,000.000000 full month pool', () => {
@@ -126,6 +131,69 @@ describe('OD-36 owner/manager employer cost invariants', () => {
         recognizeFullMonth: false,
       }),
     ).toContain('accrued to date 11000.000000');
+  });
+
+  it('accrues an open owner month by elapsed workdays, the same way as employees', () => {
+    expect(
+      shouldRecognizeFullEmployerMonth({
+        yearMonth: '2026-10',
+        currentYearMonth: '2026-10',
+        today: '2026-10-23',
+        monthEnd: '2026-10-31',
+      }),
+    ).toBe(false);
+    expect(
+      shouldRecognizeFullEmployerMonth({
+        yearMonth: '2026-09',
+        currentYearMonth: '2026-10',
+        today: '2026-10-23',
+        monthEnd: '2026-09-30',
+      }),
+    ).toBe(true);
+
+    const october = calculateMonthlyEmployerCostPoolForMonth({
+      yearMonth: '2026-10',
+      currency: 'ILS',
+      versions: [
+        {
+          id: 'from-august',
+          validFrom: '2026-08-01',
+          validTo: null,
+          baseRate: '22000',
+          currency: 'ILS',
+          rateUnit: 'monthly',
+          burdenPercent: '50',
+          components: [],
+        },
+      ],
+    });
+    const bounds = monthDateBounds('2026-10');
+    const hasCoverage = () => true;
+    const eligible = listConfiguredWorkDatesInRange({
+      fromDate: bounds.fromDate,
+      toDate: bounds.toDate,
+      workWeekdays: CANONICAL_WORK_WEEKDAYS,
+      hasCoverage,
+    });
+    const accrued = listConfiguredWorkDatesInRange({
+      fromDate: bounds.fromDate,
+      toDate: '2026-10-23',
+      workWeekdays: CANONICAL_WORK_WEEKDAYS,
+      hasCoverage,
+    });
+    const recognition = recognizeMonthlyEmployerPoolByCalendar({
+      fullMonthlyEmployerCost: october!.pool,
+      totalEligibleWorkdaysInMonth: eligible.length,
+      accruedWorkDayCount: accrued.length,
+      recognizeFullMonth: false,
+      fallbackWorkingDaysPerMonth: '22',
+    });
+    expect(toNumericString(october!.pool)).toBe('33000.000000');
+    expect(eligible).toHaveLength(21);
+    expect(accrued).toHaveLength(16);
+    expect(recognition?.workingDaysPerMonth).toBe('21');
+    expect(recognition?.recognizedWorkDayCount).toBe(16);
+    expect(toNumericString(recognition!.recognizedPool)).toBe('25142.860000');
   });
 
   it('keeps known quality estimated when actual is empty (no auto promote)', () => {

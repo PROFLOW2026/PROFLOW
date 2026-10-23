@@ -463,12 +463,6 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         />
       ) : null}
 
-      {data.monthlyLedger && data.monthlyLedger.months.length > 0 ? (
-        <WithAppClientMessages extra={['dashboard']}>
-          <HomeDashboardMonthlyLedger ledger={data.monthlyLedger} />
-        </WithAppClientMessages>
-      ) : null}
-
       {data.apOutstanding &&
       !data.businessCashPosition?.outstandingPayable &&
       showDashboardUi(data, 'owner.apOutstanding') ? (
@@ -485,6 +479,12 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
 
       {showDashboardUi(data, 'owner.restoredSections') ? (
         <HomeDashboardRestoredSections data={data} />
+      ) : null}
+
+      {data.monthlyLedger && data.monthlyLedger.months.length > 0 ? (
+        <WithAppClientMessages extra={['dashboard']}>
+          <HomeDashboardMonthlyLedger ledger={data.monthlyLedger} />
+        </WithAppClientMessages>
       ) : null}
 
       {showDashboardUi(data, 'owner.recentProjects') ? (

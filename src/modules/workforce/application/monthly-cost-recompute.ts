@@ -61,6 +61,7 @@ import {
   monthDateBounds,
   pickWorkingDaysPerMonthForMonth,
   recognizeMonthlyEmployerPoolByCalendar,
+  shouldRecognizeFullEmployerMonth,
 } from '../domain/monthly-accrual';
 import type { EmployeeRecord, LaborCostComponentRecord, RateVersionRecord, TimeEntryRecord } from '../domain/types';
 
@@ -228,11 +229,12 @@ export async function computeMonthlyEmployeeLaborAllocationDraft(
   if (yearMonth > currentYearMonth) {
     return skip('future_month');
   }
-  const ownerCompanyOnlyDefinedCost =
-    employee.compensationClass === 'owner_manager' &&
-    employee.defaultLaborAllocationIntent === 'company_only';
-  const recognizeFullMonth =
-    ownerCompanyOnlyDefinedCost || yearMonth < currentYearMonth || today >= monthEnd;
+  const recognizeFullMonth = shouldRecognizeFullEmployerMonth({
+    yearMonth,
+    currentYearMonth,
+    today,
+    monthEnd,
+  });
   const asOfDate = recognizeFullMonth ? monthEnd : today;
 
   const coverageStart =

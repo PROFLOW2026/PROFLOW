@@ -140,6 +140,21 @@ export function DashboardKpiDetailTrigger({
               </dl>
             </section>
           ) : null}
+          {detail.actions && detail.actions.length > 0 ? (
+            <div className="flex flex-wrap gap-3 text-sm">
+              {detail.actions.map((action) => (
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  className={textNavLinkClassName}
+                  prefetch={false}
+                  onClick={() => setOpen(false)}
+                >
+                  {action.label}
+                </Link>
+              ))}
+            </div>
+          ) : null}
           {detail.fullScreenHref ? (
             <p>
               <Link
