@@ -125,7 +125,7 @@ export default async function LocaleRootPage({
   // without waiting for org financial rollup — PWA splash dismisses on shell paint.
   const tCommon = await getTranslations('common');
   return (
-    <WithAppClientMessages>
+    <WithAppClientMessages extra={['dashboard']}>
       <AppShell>
         <Suspense
           fallback={<DashboardSkeleton showTitle label={tCommon('states.loading')} />}
