@@ -1,8 +1,10 @@
 /**
  * Migration 0071 — internal financial editability (open periods).
  */
+import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { organizationMemberships } from '@drizzle/schema';
 import { sql } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -21,10 +23,12 @@ import {
   ensureMonthClosePeriod,
   markMonthCloseReady,
 } from '@/modules/month-close';
+import { assignRole, findRoleByKey } from '@/modules/rbac';
 import { resolveOrgContext } from '@/modules/tenancy';
 import { createProject } from '@/modules/projects';
 import { createVendor } from '@/modules/vendors';
 import { createTestDatabase, resultRows, type TestDatabase } from '@tests/setup/database';
+import { createTestUser } from '@tests/setup/fixtures';
 import { provisionTwoTenants } from '../billing/setup';
 import type { OrgContext } from '@/shared/auth/context';
 
@@ -124,7 +128,16 @@ describe('0071 internal financial editability', () => {
           locale: 'en',
         });
 
-        undefined
+        await updateFinalizedExpense(context, {
+          expenseId,
+          projectId: projectB,
+          costCategoryId: categoryB,
+          costFamily: 'direct_project',
+          amount: '1500',
+          currency: ILS,
+          expenseDate: '2026-08-20',
+          description: 'Corrected',
+        });
 
         const row = resultRows<{ net_amount: string; project_id: string; cost_category_id: string }>(
           await tx.execute(sql`
@@ -213,7 +226,30 @@ describe('0071 internal financial editability', () => {
         const detail = await getApBillDetail(context, billId);
         const lines = detail!.lines;
 
-        undefined
+        await editRecognizedApBill(context, {
+          billId,
+          vendorId,
+          projectId: projectB,
+          currency: ILS,
+          totalAmount: '200',
+          netAmount: '200',
+          taxAmount: '0',
+          billDate: '2026-08-05',
+          lines: [
+            {
+              lineId: lines[0]!.id,
+              description: 'Line corrected',
+              quantity: '1',
+              unitAmount: '200',
+              lineTotal: '200',
+              currency: ILS,
+              costCategoryId: serviceId,
+              costFamily: 'direct_project',
+              economicTargetType: 'project',
+              projectId: projectB,
+            },
+          ],
+        });
 
         const bill = resultRows<{
           net_amount: string;
@@ -325,8 +361,9 @@ describe('0071 internal financial editability', () => {
       });
     });
 
-    it('blocks finalized expense edit in closed month', async () => {
+    it('blocks non-owner finalized expense edit in closed month', async () => {
       const { orgA, userA } = await provisionTwoTenants(database);
+      const manager = await createTestUser(database, `0071-mgr-${randomUUID().slice(0, 8)}@example.test`);
 
       const expenseId = await database.asUser(userA.id, async (tx) => {
         const context = await resolveOrgContext(tx, {
@@ -351,12 +388,29 @@ describe('0071 internal financial editability', () => {
         });
         await finalizeExpense(context, draft.id);
         await closeMonth(context, '2026-08');
+
+        const managerRole = await findRoleByKey(tx, orgA.organization.id, 'manager');
+        if (!managerRole) throw new Error('manager role missing');
+        const membershipId = randomUUID();
+        await tx.insert(organizationMemberships).values({
+          id: membershipId,
+          organizationId: orgA.organization.id,
+          userId: manager.id,
+          status: 'active',
+        });
+        await assignRole(tx, {
+          organizationId: orgA.organization.id,
+          membershipId,
+          userId: manager.id,
+          roleId: managerRole.id,
+        });
+
         return draft.id;
       });
 
-      await database.asUser(userA.id, async (tx) => {
+      await database.asUser(manager.id, async (tx) => {
         const context = await resolveOrgContext(tx, {
-          userId: userA.id,
+          userId: manager.id,
           organizationId: orgA.organization.id,
           locale: 'en',
         });
@@ -369,7 +423,15 @@ describe('0071 internal financial editability', () => {
         );
         const categoryId = categoryRows[0]!.id;
         try {
-          undefined
+          await updateFinalizedExpense(context, {
+            expenseId,
+            projectId: null,
+            costCategoryId: categoryId,
+            costFamily: 'direct_project',
+            amount: '600',
+            currency: ILS,
+            expenseDate: '2026-08-01',
+          });
         } catch (error) {
           message = errorBlob(error);
         }

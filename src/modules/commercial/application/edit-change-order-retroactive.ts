@@ -11,7 +11,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   findContractValueEventByChangeOrderId,
   updateContractValueEventAmount,
-} from '@/modules/projects/data/contracts.repository';
+} from '@/modules/projects';
 import { changeOrderEventAmount } from '../domain/contract-value';
 import {
   findChangeOrderById,

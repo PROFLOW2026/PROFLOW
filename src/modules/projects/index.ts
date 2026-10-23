@@ -302,11 +302,13 @@ export {
 } from './data/projects.repository';
 export {
   findContractById,
+  findContractValueEventByChangeOrderId,
   findPrimaryContractByProject,
   listContractsByProject,
   listContractsForProjects,
   listContractValueEvents,
   mapContractRow,
+  updateContractValueEventAmount,
 } from './data/contracts.repository';
 export {
   listOrgContracts,
