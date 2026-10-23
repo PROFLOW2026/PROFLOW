@@ -177,6 +177,9 @@ export async function loadProjectBillingRecordsBundle(
     currency,
     records: rows.map((record) => ({
       id: record.id,
+      projectId: record.projectId,
+      reference: record.reference,
+      customerName: null,
       dueDate: record.dueDate ? businessDate(record.dueDate) : null,
       kind: record.kind,
       status: record.status,

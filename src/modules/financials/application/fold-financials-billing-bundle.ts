@@ -27,6 +27,9 @@ export function foldBillingRowsFromBundle(bundle: FinancialsBillingBundle): Proj
 
   const records = bundle.records.map((record) => ({
     id: record.id,
+    projectId: null,
+    reference: null,
+    customerName: null,
     dueDate: record.dueDate ? businessDate(record.dueDate) : null,
     kind: record.kind as BillingKind,
     status: record.status as BillingRecordStatus,

@@ -54,8 +54,10 @@ function vatGross(
  */
 export async function HomeDashboardRestoredSections({
   data,
+  hideOpenReceivable = false,
 }: {
   data: HomeDashboardData;
+  hideOpenReceivable?: boolean;
 }) {
   const [t, tFinancial, locale] = await Promise.all([
     getTranslations('dashboard'),
@@ -343,6 +345,7 @@ export async function HomeDashboardRestoredSections({
                 detailNotes={billingNotes.length > 0 ? billingNotes : undefined}
               />
             </div>
+            {hideOpenReceivable ? null : (
             <div data-pf-dashboard-metric="open-receivable">
               <DashboardKpiCard
                 title={tFinancial('kpis.outstandingNet')}
@@ -361,6 +364,7 @@ export async function HomeDashboardRestoredSections({
                 detailCopy={triggerCopy}
               />
             </div>
+            )}
           </div>
         </section>
       ) : null}

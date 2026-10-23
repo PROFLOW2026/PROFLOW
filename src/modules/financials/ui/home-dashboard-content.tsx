@@ -480,12 +480,6 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                     data.businessCashPosition,
                     t('ownerHeadline.cashPaid'),
                     detailCopy,
-                    data.monthlyLedger?.cashOutGapNet
-                      ? {
-                          label: t('monthlyLedger.gapDetail'),
-                          amount: data.monthlyLedger.cashOutGapNet,
-                        }
-                      : null,
                   )}
                   detailCopy={triggerCopy}
                 />

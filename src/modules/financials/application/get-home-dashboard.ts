@@ -10,6 +10,7 @@ import { getOrganizationApPayables } from '@/modules/ap';
 import { getMonthCashFlow } from './get-month-cash-flow';
 import { loadHomeMonthlyLedger } from './get-home-monthly-ledger';
 import type { HomeMonthlyLedger } from '../domain/home-monthly-ledger';
+import { listOpenCustomerBills, type OpenCustomerBill } from '../domain/open-customer-bills';
 import type { MonthCashFlow } from '../domain/month-cash-flow';
 import { zeroTriplet, type RevenueTriplet } from '@/modules/billing/domain/revenue-position';
 import {
@@ -93,6 +94,8 @@ import {
   loadActiveProjectClientNames,
   type ActiveProjectSummary,
 } from '../data/projects.repository';
+import { loadProjectPaidCashFacts } from '../data/project-paid-cash.repository';
+import { composeProjectPaidCash, type ProjectPaidCash } from '../domain/project-paid-cash';
 import { getOrganizationProjectRollup } from './get-organization-project-rollup';
 import {
   sumOrganizationGeneralPoolTotals,
@@ -212,6 +215,8 @@ export interface HomeDashboardData {
     readonly netPaid: MoneyValue;
     readonly outstanding: MoneyValue;
     readonly netOutstanding: MoneyValue;
+    /** Final bills that still have a balance. Same position as netOutstanding. */
+    readonly openBills: readonly OpenCustomerBill[];
   } | null;
   readonly billingCoverage: FinancialCoverage | null;
   readonly organizationSummary: {
@@ -262,6 +267,8 @@ export interface HomeDashboardData {
   readonly apOutstanding: MoneyValue | null;
   /** Organization cash paid / outstanding payables (canonical payment sources). */
   readonly businessCashPosition: BusinessCashPosition | null;
+  /** Cash paid and attributed to projects. Null when nothing was paid to a project. */
+  readonly projectPaidCash: ProjectPaidCash | null;
   /**
    * The effective month being shown as "YYYY-MM".
    * Defaults to the current month; can be overridden via the `selectedMonth` option.
@@ -545,6 +552,7 @@ export async function getHomeDashboard(
       showQuotes,
       apOutstanding: null,
       businessCashPosition: null,
+      projectPaidCash: null,
       selectedMonth: effectiveSelectedMonth,
       workKindFilter: options.workKindFilter ?? null,
       kpiBreakdown: null,
@@ -649,10 +657,16 @@ export async function getHomeDashboard(
       ? money(apPayablesSummary.outstanding, apPayablesSummary.currency)
       : null;
 
-  const businessCashPosition =
+  const [businessCashPosition, projectPaidCash] = await Promise.all([
     canReadFinancials || canReadAp
-      ? await getBusinessCashPosition(context, { apPayables: apPayablesSummary })
-      : null;
+      ? getBusinessCashPosition(context, { apPayables: apPayablesSummary })
+      : Promise.resolve(null),
+    canReadFinancials
+      ? loadProjectPaidCashFacts(context.db, context.organizationId, currency).then((facts) =>
+          composeProjectPaidCash(facts, currency),
+        )
+      : Promise.resolve(null),
+  ]);
 
   const monthCash =
     parsedWorkKindFilter === 'all' && (canReadFinancials || canReadAp)
@@ -830,6 +844,7 @@ export async function getHomeDashboard(
       netPaid: position.netPaid,
       outstanding: position.outstanding,
       netOutstanding: position.netOutstanding,
+      openBills: listOpenCustomerBills(billingRows.records, currency),
     };
     if (position.excludedForeignCurrencyRecordCount > 0) {
       billingCoverage = buildFinancialCoverage([], new Date(), [
@@ -966,6 +981,16 @@ export async function getHomeDashboard(
 
   if (rollup && canReadFinancials) {
     const clientNames = await loadActiveProjectClientNames(context.db, context.organizationId);
+    if (billing) {
+      billing = {
+        ...billing,
+        openBills: billing.openBills.map((bill) =>
+          bill.clientName || !bill.projectId
+            ? bill
+            : { ...bill, clientName: clientNames.get(bill.projectId) ?? null },
+        ),
+      };
+    }
     projectTableRows = rollup.rows.map((row) => ({
       projectId: row.projectId,
       name: row.name,
@@ -1033,6 +1058,7 @@ export async function getHomeDashboard(
     showQuotes,
     apOutstanding,
     businessCashPosition,
+    projectPaidCash,
     selectedMonth: effectiveSelectedMonth,
     workKindFilter: options.workKindFilter ?? null,
     contractSummary,

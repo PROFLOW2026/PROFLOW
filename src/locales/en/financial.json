@@ -273,7 +273,8 @@
       "recurring_draft": "Next recurring (forecast only)",
       "retention_release_out": "Retention release (out)",
       "operating_expense": "Operating expense (cash)",
-      "payroll_obligation": "Payroll obligation (cash)"
+      "payroll_obligation": "Payroll obligation (cash)",
+      "certified_subcontract_receipt": "Certified receipt"
     },
     "openingTitle": "Current cash balance",
     "openingHint": "Opening balance the running position starts from. Stored in organization settings.",

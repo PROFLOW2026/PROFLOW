@@ -6,6 +6,7 @@ import { matchesWorkKindFilter } from '@/modules/financials/domain/work-pricing'
 import { mergeDashboardDetailNotes } from '@/modules/financials/domain/dashboard-kpi-detail';
 import {
   billingCollectedMonthHref,
+  buildActualCostDetail,
   buildBillingOutstandingDetail,
   buildBusinessCashPaidDetail,
   buildCompanyActualDetail,
@@ -267,6 +268,7 @@ describe('dashboard cleanup — detail modals', () => {
         directProjectActual: money('700', ILS),
         laborActual: money('300', ILS),
         vendorActual: money('250', ILS),
+        overheadAllocated: null,
         allocatedGeneralToProjects: money('150', ILS),
         unallocatableGeneral: money('50', ILS),
       },
@@ -376,7 +378,7 @@ describe('dashboard cleanup — detail modals', () => {
     expect(detail?.formula).toBe('Sum of payments.');
   });
 
-  it('shows the net split gap in the paid detail without changing the total', () => {
+  it('does not show a minor-unit gap note on the paid detail', () => {
     const paid = money('854283.90', ILS);
     const detail = buildBusinessCashPaidDetail(
       {
@@ -389,12 +391,25 @@ describe('dashboard cleanup — detail modals', () => {
       },
       'Paid',
       detailCopy,
-      { label: 'Net split gap', amount: money('0.05', ILS) },
     );
     expect(detail.value).toEqual(paid);
-    expect(detail.breakdown.some((line) => line.label === 'Net split gap')).toBe(true);
-    expect(detail.breakdown.find((line) => line.label === 'Net split gap')?.money).toEqual(
-      money('0.05', ILS),
-    );
+    expect(detail.breakdown.some((line) => line.money?.amount === '0.05')).toBe(false);
+  });
+
+  it('project recognized cost lines include the expenses that are not labor or vendor bills', () => {
+    const total = money('662461.87', ILS);
+    const detail = buildActualCostDetail(total, 'Project cost', detailCopy, {
+      laborActual: money('183592.88', ILS),
+      vendorActual: money('344259.66', ILS),
+      overheadAllocated: null,
+    });
+    const parts = detail.breakdown.filter((line) => line.label !== 'Project cost');
+    const sum = parts.reduce((acc, line) => acc + Number(line.money?.amount ?? 0), 0);
+    expect(sum).toBeCloseTo(662461.87, 2);
+    expect(parts.map((line) => Number(line.money?.amount))).toEqual([
+      183592.88,
+      344259.66,
+      134609.33,
+    ]);
   });
 });

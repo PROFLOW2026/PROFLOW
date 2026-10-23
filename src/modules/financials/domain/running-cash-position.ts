@@ -9,13 +9,19 @@
 import type { BusinessDate } from '@/shared/dates';
 import {
   addMoney,
+  isZeroMoney,
   minMoney,
+  roundMoney,
   subtractMoney,
   zeroMoney,
   type MoneyValue,
 } from '@/shared/money';
 import type { CashFlowBucketKey } from './cash-flow';
-import { bucketForForecastItem, type CashFlowForecastItem } from './cash-flow-forecast';
+import {
+  bucketForForecastItem,
+  type CashFlowForecastItem,
+  type CashFlowSourceType,
+} from './cash-flow-forecast';
 
 export const RUNNING_CASH_WALK_BUCKETS = [
   'overdue',
@@ -34,8 +40,33 @@ export interface RunningCashStep {
   readonly running: MoneyValue;
 }
 
+export interface CashForecastSourceSlice {
+  readonly sourceType: CashFlowSourceType;
+  readonly net: MoneyValue;
+  readonly gross: MoneyValue;
+}
+
+const FORECAST_SOURCE_ORDER = [
+  'client_outstanding',
+  'issued_billing',
+  'expected_progress_billing',
+  'retention_release_in',
+  'certified_subcontract_receipt',
+  'vendor_bill',
+  'commitment',
+  'subcontractor_liability',
+  'recurring_draft',
+  'retention_release_out',
+  'operating_expense',
+  'payroll_obligation',
+] as const satisfies readonly CashFlowSourceType[];
+
 export interface CashRunningPosition {
   readonly opening: MoneyValue;
+  /** Walk-horizon inflows by source. Lines sum to expectedIn. */
+  readonly inflowSources: readonly CashForecastSourceSlice[];
+  /** Walk-horizon outflows by source. Net lines sum to expectedOutNet. */
+  readonly outflowSources: readonly CashForecastSourceSlice[];
   readonly expectedIn: MoneyValue;
   /** Gross of walk inflows when items carry grossAmount. Equals expectedIn when they do not. */
   readonly expectedInGross: MoneyValue;
@@ -56,7 +87,9 @@ export interface CashRunningPosition {
 type ForecastCashItem = Pick<
   CashFlowForecastItem,
   'amount' | 'dueDate' | 'direction' | 'grossAmount' | 'netAmount'
->;
+> & {
+  readonly sourceType?: CashFlowSourceType;
+};
 
 interface BucketTotals {
   inflow: MoneyValue;
@@ -64,6 +97,22 @@ interface BucketTotals {
   outflow: MoneyValue;
   outflowNet: MoneyValue;
   count: number;
+}
+
+function sourceSlices(
+  bySource: ReadonlyMap<CashFlowSourceType, { net: MoneyValue; gross: MoneyValue }>,
+): CashForecastSourceSlice[] {
+  const slices: CashForecastSourceSlice[] = [];
+  for (const sourceType of FORECAST_SOURCE_ORDER) {
+    const row = bySource.get(sourceType);
+    if (!row || (isZeroMoney(row.net) && isZeroMoney(row.gross))) continue;
+    slices.push({
+      sourceType,
+      net: roundMoney(row.net),
+      gross: roundMoney(row.gross),
+    });
+  }
+  return slices;
 }
 
 function emptyBucket(currency: string): BucketTotals {
@@ -86,6 +135,9 @@ export function buildRunningCashPosition(input: {
   readonly items: readonly ForecastCashItem[];
 }): CashRunningPosition {
   const currency = input.opening.currency;
+  const walkBuckets = new Set<CashFlowBucketKey>(RUNNING_CASH_WALK_BUCKETS);
+  const inflowBySource = new Map<CashFlowSourceType, { net: MoneyValue; gross: MoneyValue }>();
+  const outflowBySource = new Map<CashFlowSourceType, { net: MoneyValue; gross: MoneyValue }>();
   const totals = new Map<CashFlowBucketKey, BucketTotals>();
   for (const key of [
     ...RUNNING_CASH_WALK_BUCKETS,
@@ -106,6 +158,20 @@ export function buildRunningCashPosition(input: {
     } else {
       bucket.outflow = addMoney(bucket.outflow, item.amount);
       bucket.outflowNet = addMoney(bucket.outflowNet, item.netAmount ?? item.amount);
+    }
+    if (item.sourceType && walkBuckets.has(key)) {
+      const target = item.direction === 'in' ? inflowBySource : outflowBySource;
+      const current = target.get(item.sourceType) ?? {
+        net: zeroMoney(currency),
+        gross: zeroMoney(currency),
+      };
+      target.set(item.sourceType, {
+        net: addMoney(current.net, item.direction === 'in' ? item.amount : (item.netAmount ?? item.amount)),
+        gross: addMoney(
+          current.gross,
+          item.direction === 'in' ? (item.grossAmount ?? item.amount) : item.amount,
+        ),
+      });
     }
     bucket.count += 1;
   }
@@ -139,6 +205,8 @@ export function buildRunningCashPosition(input: {
 
   return {
     opening: input.opening,
+    inflowSources: sourceSlices(inflowBySource),
+    outflowSources: sourceSlices(outflowBySource),
     expectedIn,
     expectedInGross,
     expectedOut,

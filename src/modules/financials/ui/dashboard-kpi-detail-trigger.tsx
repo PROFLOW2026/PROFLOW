@@ -98,7 +98,7 @@ export function DashboardKpiDetailTrigger({
               <dl className="space-y-2">
                 {detail.breakdown.map((line, index) => (
                   <div key={`${line.label}-${index}`} className="flex items-start justify-between gap-3">
-                    <dt className="text-[var(--pf-text-secondary)]">
+                    <dt className="min-w-0 break-words text-[var(--pf-text-secondary)]">
                       {line.href ? (
                         <Link
                           href={line.href}
@@ -111,6 +111,11 @@ export function DashboardKpiDetailTrigger({
                       ) : (
                         line.label
                       )}
+                      {line.text && line.money ? (
+                        <span className="mt-0.5 block text-xs font-normal text-[var(--pf-text-muted)]">
+                          {line.text}
+                        </span>
+                      ) : null}
                     </dt>
                     <dd className="text-end font-medium">
                       {line.gross ? (

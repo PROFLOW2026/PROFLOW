@@ -5,7 +5,9 @@ import { textNavLinkClassName } from '@/components/ui/pressable';
 import { Link } from '@/shared/i18n/navigation';
 import { compareMoney, subtractMoney, type MoneyValue } from '@/shared/money';
 import type { HomeCashForecast } from '../application/get-home-dashboard';
-import type { DashboardKpiDetailContent } from '../domain/dashboard-kpi-detail';
+import type { CashFlowSourceType } from '../domain/cash-flow-forecast';
+import type { DashboardKpiDetailContent, DashboardKpiDetailLine } from '../domain/dashboard-kpi-detail';
+import type { CashForecastSourceSlice } from '../domain/running-cash-position';
 import { DashboardKpiDetailTrigger } from './dashboard-kpi-detail-trigger';
 import type { DashboardKpiDetailTriggerCopy } from './dashboard-kpi-detail-trigger';
 
@@ -25,9 +27,14 @@ export function HomeDashboardCashForecast({
     readonly hint: string;
     readonly expectedIn: string;
     readonly expectedInHint: string;
+    readonly expectedInFormula: string;
     readonly expectedOut: string;
+    readonly expectedOutHint: string;
+    readonly expectedOutFormula: string;
     readonly expectedDifference: string;
     readonly expectedDifferenceHint: string;
+    readonly expectedDifferenceFormula: string;
+    readonly sources: Record<CashFlowSourceType, string>;
     readonly includingVat: string;
     readonly excluded: string;
     readonly openPage: string;
@@ -42,29 +49,63 @@ export function HomeDashboardCashForecast({
   const expectedOutGross = position.expectedOut;
   const differenceNet = subtractMoney(expectedInNet, expectedOutNet);
   const differenceGross = subtractMoney(expectedInGross, expectedOutGross);
+  const inGrossShown = grossWhenVatExists(expectedInNet, expectedInGross);
+  const outGrossShown = grossWhenVatExists(expectedOutNet, expectedOutGross);
   const tiles = [
     {
       key: 'in',
       title: copy.expectedIn,
       money: expectedInNet,
-      gross: grossWhenVatExists(expectedInNet, expectedInGross),
-      detail: noteDetail(copy.expectedIn, [
-        cashForecast.showInflows ? copy.expectedInHint : copy.inHidden,
-      ]),
+      gross: inGrossShown,
+      detail: flowDetail({
+        title: copy.expectedIn,
+        value: expectedInNet,
+        gross: inGrossShown,
+        grossLabel: copy.includingVat,
+        whatIs: cashForecast.showInflows ? copy.expectedInHint : copy.inHidden,
+        formula: copy.expectedInFormula,
+        sources: position.inflowSources,
+        sourceLabels: copy.sources,
+        fullScreenLabel: copy.openPage,
+      }),
     },
     {
       key: 'out',
       title: copy.expectedOut,
       money: expectedOutNet,
-      gross: grossWhenVatExists(expectedOutNet, expectedOutGross),
-      detail: null,
+      gross: outGrossShown,
+      detail: flowDetail({
+        title: copy.expectedOut,
+        value: expectedOutNet,
+        gross: outGrossShown,
+        grossLabel: copy.includingVat,
+        whatIs: copy.expectedOutHint,
+        formula: copy.expectedOutFormula,
+        sources: position.outflowSources,
+        sourceLabels: copy.sources,
+        fullScreenLabel: copy.openPage,
+      }),
     },
     {
       key: 'diff',
       title: copy.expectedDifference,
       money: differenceNet,
       gross: grossWhenVatExists(differenceNet, differenceGross),
-      detail: noteDetail(copy.expectedDifference, [copy.expectedDifferenceHint]),
+      detail: {
+        title: copy.expectedDifference,
+        value: differenceNet,
+        grossValue: grossWhenVatExists(differenceNet, differenceGross),
+        grossLabel: copy.includingVat,
+        whatIs: copy.expectedDifferenceHint,
+        formula: copy.expectedDifferenceFormula,
+        breakdown: [
+          moneyLine(copy.expectedIn, expectedInNet, inGrossShown, copy.includingVat),
+          moneyLine(copy.expectedOut, expectedOutNet, outGrossShown, copy.includingVat),
+          moneyLine(copy.expectedDifference, differenceNet, grossWhenVatExists(differenceNet, differenceGross), copy.includingVat),
+        ],
+        fullScreenHref: '/cash-flow',
+        fullScreenLabel: copy.openPage,
+      },
     },
   ];
   const sectionNotes = [
@@ -117,6 +158,52 @@ export function HomeDashboardCashForecast({
       </div>
     </section>
   );
+}
+
+function flowDetail(input: {
+  readonly title: string;
+  readonly value: MoneyValue;
+  readonly gross: MoneyValue | undefined;
+  readonly grossLabel: string;
+  readonly whatIs: string;
+  readonly formula: string;
+  readonly sources: readonly CashForecastSourceSlice[];
+  readonly sourceLabels: Record<CashFlowSourceType, string>;
+  readonly fullScreenLabel: string;
+}): DashboardKpiDetailContent {
+  const sourceLines = input.sources.map((slice) =>
+    moneyLine(
+      input.sourceLabels[slice.sourceType],
+      slice.net,
+      grossWhenVatExists(slice.net, slice.gross),
+      input.grossLabel,
+    ),
+  );
+  return {
+    title: input.title,
+    value: input.value,
+    grossValue: input.gross,
+    grossLabel: input.grossLabel,
+    whatIs: input.whatIs,
+    formula: input.formula,
+    breakdown: [...sourceLines, moneyLine(input.title, input.value, input.gross, input.grossLabel)],
+    fullScreenHref: '/cash-flow',
+    fullScreenLabel: input.fullScreenLabel,
+  };
+}
+
+function moneyLine(
+  label: string,
+  money: MoneyValue,
+  gross: MoneyValue | undefined,
+  grossLabel: string,
+): DashboardKpiDetailLine {
+  return {
+    label,
+    money,
+    gross,
+    grossLabel: gross ? grossLabel : undefined,
+  };
 }
 
 function noteDetail(title: string, notes: readonly string[]): DashboardKpiDetailContent {

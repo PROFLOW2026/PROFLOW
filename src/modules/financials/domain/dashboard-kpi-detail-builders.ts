@@ -2,8 +2,11 @@ import type { OrgContractSummary } from './dashboard-contract-summary';
 import type { DashboardKpiDetailContent, DashboardKpiDetailLine } from './dashboard-kpi-detail';
 import type { BusinessCashPosition, BusinessCashSourceKey } from './business-cash-position';
 import type { HomeDashboardKpiBreakdown } from './home-dashboard-kpi-breakdown';
+import type { ProjectPaidCash } from './project-paid-cash';
+import type { OpenCustomerBill } from './open-customer-bills';
+import { lifetimeCashDifference } from './lifetime-cash-difference';
 import { endOfMonth, type BusinessDate } from '@/shared/dates';
-import { compareMoney, isZeroMoney, subtractMoney, zeroMoney, type MoneyValue } from '@/shared/money';
+import { compareMoney, formatMoney, isZeroMoney, subtractMoney, zeroMoney, type MoneyValue } from '@/shared/money';
 
 /** First and last calendar day of `YYYY-MM`, matching dashboard month KPIs. */
 export function dashboardMonthBounds(
@@ -92,6 +95,14 @@ export interface DashboardKpiDetailCopy {
   readonly cashDifferenceFormula: string;
   readonly labelCashReceived: string;
   readonly labelCashPaid: string;
+  readonly labelCashDifferenceNet: string;
+  readonly labelCashDifferenceGross: string;
+  readonly customerReceivableWhat: string;
+  readonly customerReceivableFormula: string;
+  readonly unknownClient: string;
+  readonly missingReference: string;
+  readonly openBillBilled: string;
+  readonly openBillCollected: string;
   readonly labelSubcontractAdvances: string;
   readonly expensesLink: string;
   readonly expectedRemainingWhat: string;
@@ -247,6 +258,48 @@ export function buildContractRemainingDetail(
   };
 }
 
+export function buildCustomerReceivableDetail(
+  bills: readonly OpenCustomerBill[],
+  netOutstanding: MoneyValue,
+  grossOutstanding: MoneyValue,
+  title: string,
+  copy: DashboardKpiDetailCopy,
+  locale: string,
+): DashboardKpiDetailContent {
+  const grossDiffers = compareMoney(netOutstanding, grossOutstanding) !== 0;
+  return {
+    title,
+    value: netOutstanding,
+    grossValue: grossDiffers ? grossOutstanding : undefined,
+    grossLabel: grossDiffers ? copy.includingVat : undefined,
+    whatIs: copy.customerReceivableWhat,
+    formula: copy.customerReceivableFormula,
+    breakdown: bills.map((bill) => {
+      const balanceDiffers = compareMoney(bill.balanceNet, bill.balanceGross) !== 0;
+      return {
+        label: `${bill.clientName?.trim() || copy.unknownClient} · ${bill.reference?.trim() || copy.missingReference}`,
+        text: `${copy.openBillBilled} ${moneyWithStoredVat(bill.billedNet, bill.billedGross, copy.includingVat, locale)} · ${copy.openBillCollected} ${moneyWithStoredVat(bill.collectedNet, bill.collectedGross, copy.includingVat, locale)}`,
+        money: bill.balanceNet,
+        gross: balanceDiffers ? bill.balanceGross : undefined,
+        grossLabel: balanceDiffers ? copy.includingVat : undefined,
+      };
+    }),
+    fullScreenHref: '/billing?filter=open',
+    fullScreenLabel: copy.billingLink,
+  };
+}
+
+function moneyWithStoredVat(
+  net: MoneyValue,
+  gross: MoneyValue,
+  includingVat: string,
+  locale: string,
+): string {
+  const netLabel = formatMoney(net, locale);
+  if (compareMoney(net, gross) === 0) return netLabel;
+  return `${netLabel} (${includingVat} ${formatMoney(gross, locale)})`;
+}
+
 export function buildBillingOutstandingDetail(
   netOutstanding: MoneyValue,
   grossOutstanding: MoneyValue,
@@ -364,6 +417,14 @@ export function buildActualCostDetail(
         moneyLine(copy.labelLabor, operands.laborActual),
         moneyLine(copy.labelVendors, operands.vendorActual),
         moneyLine(copy.labelOverhead, operands.overheadAllocated),
+        moneyLine(
+          copy.labelOtherProjectDirect,
+          projectCostRemainder(actualCost, [
+            operands.laborActual,
+            operands.vendorActual,
+            operands.overheadAllocated,
+          ]),
+        ),
       ])
     : [];
   return {
@@ -378,6 +439,19 @@ export function buildActualCostDetail(
     fullScreenHref: '/reports?section=cost',
     fullScreenLabel: copy.reportsLink,
   };
+}
+
+/** Project cost not already shown as labor, recognized vendor bills, or allocated overhead. */
+function projectCostRemainder(
+  total: MoneyValue,
+  parts: readonly (MoneyValue | null | undefined)[],
+): MoneyValue | null {
+  let rest = total;
+  for (const part of parts) {
+    if (!part || part.currency !== total.currency) continue;
+    rest = subtractMoney(rest, part);
+  }
+  return isZeroMoney(rest) ? null : rest;
 }
 
 export function buildForecastCostDetail(
@@ -492,7 +566,6 @@ export function buildBusinessCashPaidDetail(
   position: BusinessCashPosition,
   title: string,
   copy: DashboardKpiDetailCopy,
-  gap?: { readonly label: string; readonly amount: MoneyValue } | null,
 ): DashboardKpiDetailContent {
   const value = position.actualPaidNet ?? position.actualPaid;
   if (!value) {
@@ -516,11 +589,7 @@ export function buildBusinessCashPaidDetail(
         ? position.actualPaid
         : undefined,
     grossLabel: copy.includingVat,
-    breakdown: businessCashBreakdownLines(position, copy, 'paid').concat(
-      gap && !isZeroMoney(gap.amount)
-        ? [{ label: gap.label, money: gap.amount }]
-        : [],
-    ),
+    breakdown: businessCashBreakdownLines(position, copy, 'paid'),
   };
 }
 
@@ -563,8 +632,12 @@ export function buildCashDifferenceDetail(
   title: string,
   copy: DashboardKpiDetailCopy,
 ): DashboardKpiDetailContent {
-  const net = subtractMoney(receivedNet, paidNet);
-  const gross = subtractMoney(receivedGross, paidGross);
+  const { net, gross } = lifetimeCashDifference({
+    receivedNet,
+    receivedGross,
+    paidNet,
+    paidGross,
+  });
   const receivedDiffers = compareMoney(receivedNet, receivedGross) !== 0;
   const paidDiffers = compareMoney(paidNet, paidGross) !== 0;
   const totalDiffers = compareMoney(net, gross) !== 0;
@@ -589,11 +662,17 @@ export function buildCashDifferenceDetail(
         grossLabel: paidDiffers ? copy.includingVat : undefined,
       },
       {
-        label: title,
+        label: copy.labelCashDifferenceNet,
         money: net,
-        gross: totalDiffers ? gross : undefined,
-        grossLabel: totalDiffers ? copy.includingVat : undefined,
       },
+      ...(totalDiffers
+        ? [
+            {
+              label: copy.labelCashDifferenceGross,
+              money: gross,
+            },
+          ]
+        : []),
     ],
   };
 }
@@ -661,6 +740,7 @@ export function buildCompanyActualDetail(
     | 'directProjectActual'
     | 'laborActual'
     | 'vendorActual'
+    | 'overheadAllocated'
     | 'allocatedGeneralToProjects'
     | 'unallocatableGeneral'
     | 'ownerCompanyLabor'
@@ -669,12 +749,19 @@ export function buildCompanyActualDetail(
   copy: DashboardKpiDetailCopy,
 ): DashboardKpiDetailContent {
   const currency = companyActual.currency;
+  const overhead =
+    operands.overheadAllocated && Number(operands.overheadAllocated.amount) > 0
+      ? operands.overheadAllocated
+      : null;
   let otherProjectDirect: MoneyValue | null = null;
   if (operands.directProjectActual && operands.laborActual && operands.vendorActual) {
-    const remainder = subtractMoney(
+    let remainder = subtractMoney(
       subtractMoney(operands.directProjectActual, operands.laborActual),
       operands.vendorActual,
     );
+    if (overhead && overhead.currency === remainder.currency) {
+      remainder = subtractMoney(remainder, overhead);
+    }
     otherProjectDirect = Number(remainder.amount) > 0 ? remainder : zeroMoney(currency);
   }
 
@@ -691,6 +778,7 @@ export function buildCompanyActualDetail(
   const breakdown = moneyLines([
     moneyLine(copy.labelLabor, operands.laborActual),
     moneyLine(copy.labelVendors, operands.vendorActual),
+    moneyLine(copy.labelOverhead, overhead),
     moneyLine(copy.labelOtherProjectDirect, otherProjectDirect),
     moneyLine(copy.labelOverhead, operands.allocatedGeneralToProjects),
     moneyLine(copy.labelOwnerCompanyLabor, ownerLabor),
@@ -861,5 +949,54 @@ export function buildCostsThisMonthDetail(
       : lines({ label: title, money: costsThisMonth }),
     fullScreenHref: dashboardRecognizedCostMonthHref(selectedMonth),
     fullScreenLabel,
+  };
+}
+
+export function buildProjectPaidCashDetail(
+  position: ProjectPaidCash,
+  title: string,
+  copy: {
+    readonly whatIs: string;
+    readonly formula: string;
+    readonly suppliers: string;
+    readonly contractors: string;
+    readonly other: string;
+    readonly labor: string;
+    readonly includingVat: string;
+  },
+): DashboardKpiDetailContent {
+  const differs = compareMoney(position.net, position.gross) !== 0;
+  const part = (label: string, money: ProjectPaidCash['suppliers']) => {
+    const showGross = compareMoney(money.net, money.gross) !== 0;
+    return {
+      label,
+      money: money.net,
+      gross: showGross ? money.gross : undefined,
+      grossLabel: showGross ? copy.includingVat : undefined,
+    };
+  };
+  return {
+    title,
+    value: position.net,
+    grossValue: differs ? position.gross : undefined,
+    grossLabel: copy.includingVat,
+    whatIs: copy.whatIs,
+    formula: copy.formula,
+    breakdown: [
+      part(copy.suppliers, position.suppliers),
+      part(copy.contractors, position.contractors),
+      part(copy.other, position.other),
+      part(copy.labor, position.labor),
+      ...position.projects.map((project) => {
+        const showGross = compareMoney(project.net, project.gross) !== 0;
+        return {
+          label: project.projectName,
+          money: project.net,
+          gross: showGross ? project.gross : undefined,
+          grossLabel: showGross ? copy.includingVat : undefined,
+        };
+      }),
+      { label: title, money: position.net, gross: differs ? position.gross : undefined, grossLabel: differs ? copy.includingVat : undefined },
+    ],
   };
 }

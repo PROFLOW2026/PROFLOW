@@ -273,7 +273,8 @@
       "recurring_draft": "التكرار التالي (توقع فقط)",
       "retention_release_out": "إفراج حجز (صادر)",
       "operating_expense": "مصروف تشغيلي (نقد)",
-      "payroll_obligation": "التزام رواتب (نقد)"
+      "payroll_obligation": "التزام رواتب (نقد)",
+      "certified_subcontract_receipt": "قبض معتمد"
     },
     "openingTitle": "رصيد النقد الحالي",
     "openingHint": "رصيد الافتتاح الذي يبدأ منه الرصيد الجاري. يُحفظ في إعدادات المنظمة.",

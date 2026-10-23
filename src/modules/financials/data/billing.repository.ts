@@ -21,9 +21,18 @@ import type { DbExecutor } from '@/shared/db/types';
 import { CASH_FLOW_HORIZON_DAYS } from '../domain/cash-flow';
 import { sqlFirstRow, sqlRows } from './sql-rows';
 
+function customerSnapshotName(value: unknown): string | null {
+  if (!value || typeof value !== 'object') return null;
+  const name = (value as { name?: unknown }).name;
+  return typeof name === 'string' && name.trim().length > 0 ? name.trim() : null;
+}
+
 export interface ProjectBillingRows {
   readonly records: readonly (BillingAmountInput & {
     readonly id: string;
+    readonly projectId: string | null;
+    readonly reference: string | null;
+    readonly customerName: string | null;
     readonly dueDate: BusinessDate | null;
     readonly payments: readonly PaymentAmountInput[];
     readonly retentionHeldRemaining?: MoneyValue;
@@ -58,6 +67,9 @@ async function mapBillingRecords(
 
   const mapped = records.map((record) => ({
     id: record.id,
+    projectId: record.projectId,
+    reference: record.reference,
+    customerName: customerSnapshotName(record.customerSnapshot),
     dueDate: record.dueDate ? businessDate(record.dueDate) : null,
     kind: record.kind,
     status: record.status,
@@ -168,6 +180,9 @@ export async function loadBillingRowsGroupedByProject(
       currency,
       records: projectRecords.map((record) => ({
         id: record.id,
+        projectId: record.projectId,
+        reference: record.reference,
+        customerName: customerSnapshotName(record.customerSnapshot),
         dueDate: record.dueDate ? businessDate(record.dueDate) : null,
         kind: record.kind,
         status: record.status,

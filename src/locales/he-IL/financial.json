@@ -273,7 +273,8 @@
       "recurring_draft": "החוזר הבא (תחזית בלבד)",
       "retention_release_out": "שחרור עיכבון (יוצא)",
       "operating_expense": "הוצאה תפעולית (מזומן)",
-      "payroll_obligation": "התחייבות שכר (מזומן)"
+      "payroll_obligation": "התחייבות שכר (מזומן)",
+      "certified_subcontract_receipt": "תקבול מאושר"
     },
     "openingTitle": "יתרת מזומן נוכחית",
     "openingHint": "יתרת הפתיחה שממנה מתחילה היתרה הרצה. נשמרת בהגדרות הארגון.",

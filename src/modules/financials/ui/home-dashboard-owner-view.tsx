@@ -13,7 +13,8 @@ import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { cn } from '@/shared/ui/cn';
-import { compareMoney, subtractMoney, type MoneyValue } from '@/shared/money';
+import { compareMoney, type MoneyValue } from '@/shared/money';
+import { lifetimeCashDifference } from '../domain/lifetime-cash-difference';
 import { ProjectStatusBadge } from '@/app/[locale]/(app)/projects/project-status-badge';
 import type { ProjectStatus } from '@/modules/projects';
 import type { HomeDashboardData } from '../application/get-home-dashboard';
@@ -28,7 +29,9 @@ import {
   buildCompanyActualDetail,
   buildContractValueDetail,
   buildCurrentProfitDetail,
+  buildCustomerReceivableDetail,
   buildProfitabilityRateDetail,
+  buildProjectPaidCashDetail,
 } from '../domain/dashboard-kpi-detail-builders';
 import { mergeDashboardDetailNotes, type DashboardKpiDetailContent } from '../domain/dashboard-kpi-detail';
 import { DashboardMissingDataTrigger } from './dashboard-missing-data-trigger';
@@ -201,8 +204,22 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
     missingDataItemsView.length > 0 || attentionItemsView.length > 0;
 
   const kpiColumnClass = showContractHeadline
-    ? 'grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4'
-    : 'grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3';
+    ? 'grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5'
+    : 'grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4';
+
+  const paidNet =
+    data.businessCashPosition?.actualPaidNet ?? data.businessCashPosition?.actualPaid ?? null;
+  const paidGross =
+    data.businessCashPosition?.actualPaid ?? data.businessCashPosition?.actualPaidNet ?? null;
+  const cashDifference =
+    data.billing?.netPaid && paidNet && paidGross
+      ? lifetimeCashDifference({
+          receivedNet: data.billing.netPaid,
+          receivedGross: data.billing.paid,
+          paidNet,
+          paidGross,
+        })
+      : null;
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-4">
@@ -281,41 +298,25 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
                   data.businessCashPosition,
                   t('ownerHeadline.cashPaid'),
                   detailCopy,
-                  data.monthlyLedger?.cashOutGapNet
-                    ? {
-                        label: t('monthlyLedger.gapDetail'),
-                        amount: data.monthlyLedger.cashOutGapNet,
-                      }
-                    : null,
                 )}
                 detailCopy={triggerCopy}
               />
             </div>
           ) : null}
-          {data.billing?.netPaid &&
-          (data.businessCashPosition?.actualPaidNet || data.businessCashPosition?.actualPaid) ? (
+          {cashDifference && paidNet && paidGross ? (
             <div data-pf-dashboard-metric="cash-difference-lifetime">
               <KpiTile
                 title={t('ownerHeadline.cashDifference')}
-                money={subtractMoney(
-                  data.billing.netPaid,
-                  data.businessCashPosition.actualPaidNet ?? data.businessCashPosition.actualPaid!,
-                )}
-                grossMoney={grossWhenVatExists(
-                  subtractMoney(
-                    data.billing.netPaid,
-                    data.businessCashPosition.actualPaidNet ?? data.businessCashPosition.actualPaid!,
-                  ),
-                  subtractMoney(data.billing.paid, data.businessCashPosition.actualPaid ?? data.billing.paid),
-                )}
+                money={cashDifference.net}
+                grossMoney={grossWhenVatExists(cashDifference.net, cashDifference.gross)}
                 grossLabel={tFinancial('kpis.includingVat')}
                 hint={t('ownerHeadline.cashDifferenceHint')}
                 colorizeResult
                 detail={buildCashDifferenceDetail(
-                  data.billing.netPaid,
-                  data.billing.paid,
-                  data.businessCashPosition.actualPaidNet ?? data.businessCashPosition.actualPaid!,
-                  data.businessCashPosition.actualPaid ?? data.billing.paid,
+                  data.billing!.netPaid,
+                  data.billing!.paid,
+                  paidNet,
+                  paidGross,
                   t('ownerHeadline.cashDifference'),
                   detailCopy,
                 )}
@@ -362,6 +363,29 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
           detail={actualCostDetail}
           detailCopy={triggerCopy}
         />
+        {data.projectPaidCash ? (
+          <KpiTile
+            title={t('ownerHeadline.projectPaidCash')}
+            money={data.projectPaidCash.net}
+            grossMoney={grossWhenVatExists(data.projectPaidCash.net, data.projectPaidCash.gross)}
+            grossLabel={tFinancial('kpis.includingVat')}
+            hint={t('ownerHeadline.projectPaidCashHint')}
+            detail={buildProjectPaidCashDetail(
+              data.projectPaidCash,
+              t('ownerHeadline.projectPaidCash'),
+              {
+                whatIs: t('kpiDetail.projectPaidWhat'),
+                formula: t('kpiDetail.projectPaidFormula'),
+                suppliers: t('kpiDetail.labelProjectSuppliers'),
+                contractors: t('kpiDetail.labelProjectContractors'),
+                other: t('kpiDetail.labelProjectOtherPaid'),
+                labor: t('kpiDetail.labelProjectLaborPaid'),
+                includingVat: tFinancial('kpis.includingVat'),
+              },
+            )}
+            detailCopy={triggerCopy}
+          />
+        ) : null}
         <KpiTile
           title={t('ownerHeadline.actualProfit')}
           money={data.actualProfitTotal ?? undefined}
@@ -394,7 +418,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
       </section>
       ) : null}
 
-      {data.forecast?.companyActual != null || data.businessCashPosition ? (
+      {data.forecast?.companyActual != null || data.businessCashPosition || data.billing ? (
         <section className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {data.forecast?.companyActual != null ? (
             <KpiTile
@@ -437,6 +461,26 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
               detailCopy={triggerCopy}
             />
           ) : null}
+          {data.billing ? (
+            <div data-pf-dashboard-metric="customer-receivable">
+              <KpiTile
+                title={t('ownerHeadline.customerReceivable')}
+                money={data.billing.netOutstanding}
+                grossMoney={grossWhenVatExists(data.billing.netOutstanding, data.billing.outstanding)}
+                grossLabel={tFinancial('kpis.includingVat')}
+                hint={t('ownerHeadline.customerReceivableHint')}
+                detail={buildCustomerReceivableDetail(
+                  data.billing.openBills,
+                  data.billing.netOutstanding,
+                  data.billing.outstanding,
+                  t('ownerHeadline.customerReceivable'),
+                  detailCopy,
+                  locale,
+                )}
+                detailCopy={triggerCopy}
+              />
+            </div>
+          ) : null}
         </section>
       ) : null}
 
@@ -448,9 +492,27 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
             hint: t('cashForecast.hint'),
             expectedIn: t('cashForecast.expectedIn'),
             expectedInHint: t('cashForecast.unbilledNotReceipt'),
+            expectedInFormula: t('cashForecast.expectedInFormula'),
             expectedOut: t('cashForecast.expectedOut'),
+            expectedOutHint: t('cashForecast.expectedOutHint'),
+            expectedOutFormula: t('cashForecast.expectedOutFormula'),
             expectedDifference: t('cashForecast.expectedDifference'),
             expectedDifferenceHint: t('cashForecast.expectedDifferenceHint'),
+            expectedDifferenceFormula: t('cashForecast.expectedDifferenceFormula'),
+            sources: {
+              client_outstanding: tFinancial('cashFlowForecast.sources.client_outstanding'),
+              issued_billing: tFinancial('cashFlowForecast.sources.issued_billing'),
+              expected_progress_billing: tFinancial('cashFlowForecast.sources.expected_progress_billing'),
+              retention_release_in: tFinancial('cashFlowForecast.sources.retention_release_in'),
+              certified_subcontract_receipt: tFinancial('cashFlowForecast.sources.certified_subcontract_receipt'),
+              vendor_bill: tFinancial('cashFlowForecast.sources.vendor_bill'),
+              commitment: tFinancial('cashFlowForecast.sources.commitment'),
+              subcontractor_liability: tFinancial('cashFlowForecast.sources.subcontractor_liability'),
+              recurring_draft: tFinancial('cashFlowForecast.sources.recurring_draft'),
+              retention_release_out: tFinancial('cashFlowForecast.sources.retention_release_out'),
+              operating_expense: tFinancial('cashFlowForecast.sources.operating_expense'),
+              payroll_obligation: tFinancial('cashFlowForecast.sources.payroll_obligation'),
+            },
             includingVat: tFinancial('kpis.includingVat'),
             excluded: t('cashForecast.excluded', {
               later: data.cashForecast.position.excludedLaterCount,
@@ -478,7 +540,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
       ) : null}
 
       {showDashboardUi(data, 'owner.restoredSections') ? (
-        <HomeDashboardRestoredSections data={data} />
+        <HomeDashboardRestoredSections data={data} hideOpenReceivable />
       ) : null}
 
       {data.monthlyLedger && data.monthlyLedger.months.length > 0 ? (
