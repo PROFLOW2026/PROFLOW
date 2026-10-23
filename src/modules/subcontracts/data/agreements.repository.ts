@@ -37,6 +37,7 @@ const operationalColumns = {
   vendorName,
   subcontractNumber: subcontractAgreements.subcontractNumber,
   title: subcontractAgreements.title,
+  notes: subcontractAgreements.notes,
   status: subcontractAgreements.status,
   parentContractId: subcontractAgreements.parentContractId,
   startDate: subcontractAgreements.startDate,

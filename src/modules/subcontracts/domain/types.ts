@@ -77,6 +77,7 @@ export interface AgreementOperationalView {
   readonly vendorName: string | null;
   readonly subcontractNumber: string | null;
   readonly title: string;
+  readonly notes: string | null;
   readonly status: AgreementLifecycleStatus;
   readonly parentContractId: string | null;
   readonly startDate: string | null;

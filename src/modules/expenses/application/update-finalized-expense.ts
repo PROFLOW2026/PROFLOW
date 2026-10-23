@@ -1,5 +1,6 @@
 import { recordAuditEvent } from '@/shared/audit';
 import { assertBusinessChangeAcknowledged } from '@/shared/business-change/assert-change-acknowledged';
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
@@ -9,6 +10,7 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   assertMonthOpenForRewrite,
+  isMonthClosed,
   rethrowClosedPeriodRewrite,
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
@@ -40,13 +42,13 @@ export async function updateFinalizedExpense(context: OrgContext, input: UpdateE
     );
   }
 
-  assertBusinessChangeAcknowledged(input.changeAcknowledged, 'expenses.errors.confirmRequired');
+  const expenseMonth = yearMonthFromBusinessDate(existing.expenseDate);
+  if (isOrganizationOwner(context) && (await isMonthClosed(context, expenseMonth))) {
+    assertBusinessChangeAcknowledged(input.changeAcknowledged, 'expenses.errors.confirmRequired');
+  }
 
   try {
-    await assertMonthOpenForRewrite(
-      context,
-      yearMonthFromBusinessDate(existing.expenseDate),
-    );
+    await assertMonthOpenForRewrite(context, expenseMonth);
 
     const payload = await buildExpensePayload(context, input);
     assertCashScheduleEditPreservesPaid({

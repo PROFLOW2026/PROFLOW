@@ -204,7 +204,7 @@ export const editRecognizedApBillSchema = z.object({
   taxAmount: moneyString.optional().nullable(),
   notes: z.string().trim().max(2000).optional().nullable(),
   lines: z.array(apBillLineEditSchema).min(1),
-  changeAcknowledged: z.literal(true),
+  changeAcknowledged: z.literal(true).optional(),
 });
 
 export type EditRecognizedApBillInput = z.input<typeof editRecognizedApBillSchema>;

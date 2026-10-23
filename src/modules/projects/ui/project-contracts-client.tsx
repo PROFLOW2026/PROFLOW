@@ -1,7 +1,10 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'next-intl';
+import { BusinessChangeFormDialogs } from '@/components/patterns/business-change-form-dialogs';
+import type { DuplicateRecordWarningItem } from '@/components/patterns/duplicate-record-warning-dialog';
+import type { BusinessChangeFieldDiff } from '@/shared/business-change/types';
 import { formatPercentDisplay } from '@/shared/number/display';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Button } from '@/components/ui/button';
@@ -14,6 +17,7 @@ import { fromNumericString } from '@/shared/money';
 import { cn } from '@/shared/ui/cn';
 import {
   createAdditionalContractAction,
+  previewSimilarContractsAction,
   setPrimaryContractAction,
   updateContractAction,
   type ContractFormState,
@@ -40,6 +44,7 @@ interface ProjectContractsClientProps {
   readonly currency: string;
   readonly contracts: readonly ProjectContractCard[];
   readonly canManage: boolean;
+  readonly isOwner: boolean;
 }
 
 function statusShape(status: string): 'draft' | 'active' | 'completed' | 'cancelled' | 'archived' {
@@ -57,6 +62,7 @@ function ContractEditForm({
   error,
   action,
   onCancel,
+  needsRetroConfirm,
 }: {
   projectId: string;
   contract: ProjectContractCard;
@@ -64,17 +70,104 @@ function ContractEditForm({
   error?: string;
   action: (formData: FormData) => void;
   onCancel: () => void;
+  needsRetroConfirm: boolean;
 }) {
   const t = useTranslations('projects.contracts');
+  const tRetro = useTranslations('projects.contracts.retroactiveEdit');
   const tCommon = useTranslations('common');
+  const formRef = useRef<HTMLFormElement>(null);
+  const skipConfirmRef = useRef(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [duplicateOpen, setDuplicateOpen] = useState(false);
+  const [similarMatches, setSimilarMatches] = useState<readonly DuplicateRecordWarningItem[]>([]);
+  const [similarLoading, setSimilarLoading] = useState(false);
+  const [snapshot, setSnapshot] = useState<Record<string, string> | null>(null);
+
+  function readFormSnapshot(): Record<string, string> {
+    const form = formRef.current;
+    if (!form) return {};
+    const data = new FormData(form);
+    const read = (name: string) => String(data.get(name) ?? '').trim();
+    return {
+      name: read('name'),
+      contractNumber: read('contractNumber'),
+      contractType: read('contractType'),
+      startDate: read('startDate'),
+      endDate: read('endDate'),
+      retentionPercent: read('retentionPercent'),
+      notes: read('notes'),
+    };
+  }
+
+  const changeDiffs = useMemo((): BusinessChangeFieldDiff[] => {
+    if (!snapshot) return [];
+    const rows: BusinessChangeFieldDiff[] = [];
+    const push = (fieldLabel: string, before: string | null, after: string) => {
+      const b = (before ?? '').trim() || '—';
+      const a = after.trim() || '—';
+      if (b !== a) rows.push({ fieldLabel, before: b, after: a });
+    };
+    push(t('name'), contract.name, snapshot.name ?? '');
+    push(t('number'), contract.contractNumber, snapshot.contractNumber ?? '');
+    push(t('startDate'), contract.startDate, snapshot.startDate ?? '');
+    push(t('endDate'), contract.endDate, snapshot.endDate ?? '');
+    push(t('retention'), contract.retentionPercent, snapshot.retentionPercent ?? '');
+    push(t('notes'), contract.notes, snapshot.notes ?? '');
+    return rows;
+  }, [contract, snapshot, t]);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    if (!needsRetroConfirm || skipConfirmRef.current) {
+      skipConfirmRef.current = false;
+      return;
+    }
+    event.preventDefault();
+    const snap = readFormSnapshot();
+    setSnapshot(snap);
+    setSimilarLoading(true);
+    try {
+      const rows = await previewSimilarContractsAction({
+        excludeContractId: contract.id,
+        projectId,
+        contractNumber: snap.contractNumber || null,
+        name: snap.name || null,
+      });
+      const matches: DuplicateRecordWarningItem[] = rows.map((row) => ({
+        id: row.id,
+        href: `/projects/${row.projectId}?tab=details`,
+        title: row.contractNumber ?? row.name ?? row.id,
+        reason: tRetro('duplicateReason'),
+      }));
+      setSimilarMatches(matches);
+      if (matches.length > 0) {
+        setDuplicateOpen(true);
+        return;
+      }
+      setConfirmOpen(true);
+    } finally {
+      setSimilarLoading(false);
+    }
+  }
+
+  function confirmSave() {
+    skipConfirmRef.current = true;
+    setConfirmOpen(false);
+    const ack = formRef.current?.querySelector<HTMLInputElement>('input[name="changeAcknowledged"]');
+    if (ack) ack.value = 'true';
+    formRef.current?.requestSubmit();
+  }
 
   return (
+    <>
     <form
+      ref={formRef}
       action={action}
+      onSubmit={handleSubmit}
       className="mt-3 flex min-w-0 flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-3"
     >
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="contractId" value={contract.id} />
+      <input type="hidden" name="changeAcknowledged" value="false" />
       <Field label={t('name')}>
         {(controlProps) => (
           <Input {...controlProps} name="name" defaultValue={contract.name ?? ''} />
@@ -151,7 +244,7 @@ function ContractEditForm({
         </p>
       ) : null}
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" disabled={pending} loading={pending}>
+        <Button type="submit" disabled={pending || similarLoading} loading={pending || similarLoading}>
           {t('saveEdit')}
         </Button>
         <Button type="button" variant="secondary" onClick={onCancel}>
@@ -159,6 +252,26 @@ function ContractEditForm({
         </Button>
       </div>
     </form>
+    <BusinessChangeFormDialogs
+      confirmOpen={confirmOpen}
+      setConfirmOpen={setConfirmOpen}
+      duplicateOpen={duplicateOpen}
+      setDuplicateOpen={setDuplicateOpen}
+      pending={pending}
+      changes={changeDiffs}
+      similarMatches={similarMatches}
+      confirmTitle={tRetro('confirmTitle')}
+      confirmDescription={tRetro('confirmDescription')}
+      duplicateTitle={tRetro('duplicateTitle')}
+      duplicateDescription={tRetro('duplicateDescription')}
+      onConfirm={confirmSave}
+      onBackToEdit={() => {
+        setConfirmOpen(false);
+        setDuplicateOpen(false);
+      }}
+      onContinuePastDuplicate={() => setConfirmOpen(true)}
+    />
+    </>
   );
 }
 
@@ -167,6 +280,7 @@ export function ProjectContractsClient({
   currency,
   contracts,
   canManage,
+  isOwner,
 }: ProjectContractsClientProps) {
   const t = useTranslations('projects.contracts');
   const tCommon = useTranslations('common');
@@ -247,6 +361,10 @@ export function ProjectContractsClient({
                         error={updateState.error}
                         action={updateAction}
                         onCancel={() => setEditingId(null)}
+                        needsRetroConfirm={
+                          isOwner &&
+                          (contract.status === 'closed' || contract.status === 'cancelled')
+                        }
                       />
                     ) : (
                       <div className="flex flex-wrap gap-2">

@@ -7,7 +7,6 @@ import Decimal from 'decimal.js';
 import { and, eq, sql } from 'drizzle-orm';
 import { inventoryCostLayers } from '@drizzle/schema';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
-import { assertBusinessChangeAcknowledged } from '@/shared/business-change/assert-change-acknowledged';
 import type { OrgContext } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
 import { INTERNAL_FINANCIAL_EDIT_LATCH } from '@/shared/db/financial-latch-kinds';
@@ -113,7 +112,6 @@ export async function editRecognizedApBill(
     );
   }
   const input = parsed.data;
-  assertBusinessChangeAcknowledged(input.changeAcknowledged, 'ap.errors.confirmRequired');
 
   const billPreview = await findApBillById(context.db, context.organizationId, input.billId);
   if (!billPreview || billPreview.archivedAt) throw new NotFoundError('AP bill');
