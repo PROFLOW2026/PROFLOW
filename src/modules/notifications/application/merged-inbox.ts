@@ -73,6 +73,32 @@ export function actionableDeepLinks(items: readonly CommandCenterItem[]): Set<st
   return links;
 }
 
+/** Drop persisted rows only when Command Center already surfaces the same actionable entity. */
+export function actionableReplacesPersistedNotification(
+  persisted: NotificationListItem,
+  actionable: readonly CommandCenterItem[],
+): boolean {
+  if (!persisted.deepLink) return false;
+
+  for (const item of actionable) {
+    const hrefMatches =
+      item.href === persisted.deepLink ||
+      (typeof item.meta?.dedupeHref === 'string' && item.meta.dedupeHref === persisted.deepLink);
+    if (!hrefMatches) continue;
+
+    if (persisted.type === 'billing_overdue' && persisted.entityType === 'billing_record') {
+      if (item.sourceType === 'overdue_ar' && item.sourceId === persisted.entityId) {
+        return true;
+      }
+      continue;
+    }
+
+    if (item.sourceId === persisted.entityId) return true;
+  }
+
+  return false;
+}
+
 export function sortMergedItems(items: readonly NotificationListItem[]): NotificationListItem[] {
   const severityWeight: Record<NotificationSeverity, number> = {
     urgent: 3,
@@ -95,9 +121,8 @@ export function buildMergedNotificationInbox(
   }
 
   const actionableItems = actionable.items.map(commandCenterItemToNotificationItem);
-  const actionableLinks = actionableDeepLinks(actionable.items);
   const filteredPersisted = persisted.items.filter(
-    (item) => !item.deepLink || !actionableLinks.has(item.deepLink),
+    (item) => !actionableReplacesPersistedNotification(item, actionable.items),
   );
   const merged = sortMergedItems([...actionableItems, ...filteredPersisted]);
   const unreadCount = merged.filter((item) => !item.readAt).length;

@@ -12,6 +12,11 @@ import { businessDate, todayInTimeZone, type BusinessDate } from '@/shared/dates
 import type { DbExecutor } from '@/shared/db/types';
 import { addMoney, fromNumericString, type MoneyValue } from '@/shared/money';
 import { isCollectionFollowUpColumnSet } from '../domain/collection-follow-up';
+import {
+  billingListQueryLimit,
+  billingListUsesPostCollectionFilter,
+  finalizeBillingSummariesForListFilter,
+} from '../domain/billing-list-filter';
 import { signedBillingAmount } from '../domain/outstanding';
 import {
   computeRecordRevenuePosition,
@@ -624,6 +629,8 @@ export async function listBillingRecords(
   const today = todayInTimeZone(timezone);
   const limit = filters.limit ?? 100;
   const offset = filters.offset ?? 0;
+  const filter = filters.filter ?? 'all';
+  const queryLimit = billingListQueryLimit(filter, limit);
 
   const rows = await db
     .select({
@@ -670,8 +677,8 @@ export async function listBillingRecords(
       ),
     )
     .orderBy(desc(billingRecords.issueDate), desc(billingRecords.createdAt))
-    .limit(limit)
-    .offset(offset);
+    .limit(queryLimit)
+    .offset(billingListUsesPostCollectionFilter(filter) ? 0 : offset);
 
   const ids = rows.map((row) => row.id);
   if (ids.length === 0) return [];
@@ -698,21 +705,12 @@ export async function listBillingRecords(
     ),
   );
 
-  const filter = filters.filter ?? 'all';
-  if (filter === 'all') return summaries;
-
   if (filter === 'mismatch') {
     const mismatchIds = await getMismatchBillingRecordIds(db, organizationId);
     return summaries.filter((summary) => mismatchIds.has(summary.id));
   }
 
-  return summaries.filter((summary) => {
-    if (filter === 'paid') return summary.collectionStatus === 'paid';
-    if (filter === 'outstanding') {
-      return summary.collectionStatus === 'open' || summary.collectionStatus === 'partial';
-    }
-    return summary.collectionStatus === 'overdue';
-  });
+  return finalizeBillingSummariesForListFilter(summaries, filter, limit);
 }
 
 export async function listBillingRecordsForProject(

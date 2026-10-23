@@ -146,6 +146,20 @@ export function displayedCollectibleOutstanding(record: {
   return null;
 }
 
+/** Collection alerts prefer gross balance (incl. VAT) when material — matches billing cards. */
+export function displayedCollectionAlertAmount(record: {
+  readonly outstandingAmount: MoneyValue;
+  readonly outstandingGrossAmount?: MoneyValue;
+}): MoneyValue | null {
+  if (
+    record.outstandingGrossAmount &&
+    isMaterialPositiveMoney(record.outstandingGrossAmount)
+  ) {
+    return record.outstandingGrossAmount;
+  }
+  return displayedCollectibleOutstanding(record);
+}
+
 export function fillOutstandingDisplay(
   invoice: PaymentEntryInvoice,
   basis: PaymentVatEntry,

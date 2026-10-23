@@ -12,7 +12,7 @@ import {
   projects,
 } from '@drizzle/schema';
 import { listBillingRecords } from '@/modules/billing';
-import { displayedCollectibleOutstanding } from '@/modules/billing/domain/payment-entry';
+import { displayedCollectionAlertAmount } from '@/modules/billing/domain/payment-entry';
 import { listComplianceArtifactsForOrg } from '@/modules/compliance';
 import { getOrganizationApPayables } from '@/modules/ap';
 import { listMaintenanceScheduleForOrg } from '@/modules/assets';
@@ -135,7 +135,7 @@ export async function collectOverdueAr(ctx: CollectContext): Promise<CommandCent
   });
 
   return records.flatMap((record) => {
-    const shown = displayedCollectibleOutstanding(record);
+    const shown = displayedCollectionAlertAmount(record);
     if (!shown) return [];
     const days = record.dueDate ? daysBetween(record.dueDate, ctx.today) : 0;
     const copy = overdueArCopy(ctx.copyScope, {
@@ -157,8 +157,8 @@ export async function collectOverdueAr(ctx: CollectContext): Promise<CommandCent
         outstanding: shown.amount,
         currency: shown.currency,
         reference: record.reference,
-        clientId: record.clientId,
-        projectId: record.projectId,
+        clientId: record.clientId ?? null,
+        projectId: record.projectId ?? null,
       },
     })];
   });

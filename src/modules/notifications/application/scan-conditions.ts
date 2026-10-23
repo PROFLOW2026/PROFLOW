@@ -11,7 +11,7 @@
 import { listPendingApprovals } from '@/modules/approvals';
 import { getOrganizationApPayables } from '@/modules/ap';
 import { listBillingRecords } from '@/modules/billing';
-import { displayedCollectibleOutstanding } from '@/modules/billing/domain/payment-entry';
+import { displayedCollectionAlertAmount } from '@/modules/billing/domain/payment-entry';
 import {
   listDraftCyclesAwaitingIssue,
   listMilestoneLinesDue,
@@ -220,7 +220,7 @@ async function scanBillingOverdue(ctx: ScannerContext): Promise<{ emitted: numbe
   });
   const entities: ScanEntity[] = records.flatMap((record) => {
     if (record.status !== 'finalized') return [];
-    const shown = displayedCollectibleOutstanding(record);
+    const shown = displayedCollectionAlertAmount(record);
     if (!shown) return [];
     return [
       {
