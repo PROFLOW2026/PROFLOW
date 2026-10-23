@@ -660,6 +660,7 @@ export default async function EmployeeDetailPage({
             yearMonth={payrollPayment.yearMonth}
             paymentId={payrollPayment.id}
             expectedAmount={payrollPayment.expectedAmount}
+            paidAmount={payrollPayment.paidAmount}
             currency={payrollPayment.currency}
             dueDate={payrollPayment.dueDate}
             paymentStatus={payrollPayment.paymentStatus}

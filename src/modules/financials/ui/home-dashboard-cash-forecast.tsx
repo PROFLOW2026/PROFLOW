@@ -1,8 +1,15 @@
+import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Card, CardContent } from '@/components/ui/card';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { Link } from '@/shared/i18n/navigation';
+import { compareMoney, subtractMoney, type MoneyValue } from '@/shared/money';
 import type { HomeCashForecast } from '../application/get-home-dashboard';
+
+function grossWhenVatExists(net: MoneyValue, gross: MoneyValue): MoneyValue | undefined {
+  if (net.currency !== gross.currency) return undefined;
+  return compareMoney(net, gross) === 0 ? undefined : gross;
+}
 
 export function HomeDashboardCashForecast({
   cashForecast,
@@ -12,52 +19,47 @@ export function HomeDashboardCashForecast({
   readonly copy: {
     readonly title: string;
     readonly hint: string;
-    readonly opening: string;
-    readonly openingUnset: string;
-    readonly openingAsOf: string;
     readonly expectedIn: string;
+    readonly expectedInHint: string;
     readonly expectedOut: string;
-    readonly endBalance: string;
-    readonly lowest: string;
+    readonly expectedDifference: string;
+    readonly expectedDifferenceHint: string;
+    readonly includingVat: string;
     readonly excluded: string;
     readonly openPage: string;
     readonly inHidden: string;
   };
 }) {
   const { position } = cashForecast;
+  const expectedInNet = position.expectedIn;
+  const expectedInGross = position.expectedInGross ?? position.expectedIn;
+  const expectedOutNet = position.expectedOutNet ?? position.expectedOut;
+  const expectedOutGross = position.expectedOut;
+  const differenceNet = subtractMoney(expectedInNet, expectedOutNet);
+  const differenceGross = subtractMoney(expectedInGross, expectedOutGross);
   const tiles = [
-    {
-      key: 'opening',
-      title: copy.opening,
-      money: position.opening,
-      hint: cashForecast.openingRecorded
-        ? cashForecast.openingAsOf
-          ? copy.openingAsOf
-          : undefined
-        : copy.openingUnset,
-    },
     {
       key: 'in',
       title: copy.expectedIn,
-      money: position.expectedIn,
-      hint: cashForecast.showInflows ? undefined : copy.inHidden,
+      money: expectedInNet,
+      gross: grossWhenVatExists(expectedInNet, expectedInGross),
+      hint: cashForecast.showInflows ? copy.expectedInHint : copy.inHidden,
     },
     {
       key: 'out',
       title: copy.expectedOut,
-      money: position.expectedOut,
+      money: expectedOutNet,
+      gross: grossWhenVatExists(expectedOutNet, expectedOutGross),
+      hint: undefined,
     },
     {
-      key: 'end',
-      title: copy.endBalance,
-      money: position.endBalance,
+      key: 'diff',
+      title: copy.expectedDifference,
+      money: differenceNet,
+      gross: grossWhenVatExists(differenceNet, differenceGross),
+      hint: copy.expectedDifferenceHint,
     },
-    {
-      key: 'low',
-      title: copy.lowest,
-      money: position.lowestBalance,
-    },
-  ] as const;
+  ];
 
   return (
     <section className="flex min-w-0 flex-col gap-2">
@@ -75,9 +77,19 @@ export function HomeDashboardCashForecast({
           <Card key={tile.key} className="min-w-0 max-w-full">
             <CardContent className="flex min-w-0 flex-col gap-1 p-4">
               <p className="text-xs text-[var(--pf-text-muted)]">{tile.title}</p>
-              <p className="min-w-0 max-w-full overflow-x-auto text-lg font-semibold">
-                <MoneyText value={tile.money} colorizeNegative />
-              </p>
+              {tile.gross ? (
+                <BillingNetPrimaryDisplay
+                  netAmount={tile.money}
+                  grossAmount={tile.gross}
+                  grossLabel={copy.includingVat}
+                  netClassName="text-lg"
+                  colorizeNegative
+                />
+              ) : (
+                <p className="min-w-0 max-w-full overflow-x-auto text-lg font-semibold">
+                  <MoneyText value={tile.money} colorizeNegative />
+                </p>
+              )}
               {'hint' in tile && tile.hint ? (
                 <p className="break-words text-xs text-[var(--pf-text-muted)]">{tile.hint}</p>
               ) : null}

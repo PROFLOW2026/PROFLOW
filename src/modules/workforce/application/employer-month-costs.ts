@@ -473,7 +473,11 @@ function emptyToNull(value: string | null | undefined): string | null {
 /** Retro correction: supersede applied/closed month row and open adjustment draft. */
 export async function correctMonthlyEmployerCostActual(
   context: OrgContext,
-  rawInput: SaveMonthlyEmployerCostDraftInput & { readonly correctionNote?: string | null },
+  rawInput: SaveMonthlyEmployerCostDraftInput & {
+    readonly correctionNote?: string | null;
+    /** Opt-in only. A cost correction does not change a recorded payment unless this is set. */
+    readonly syncPaidAmount?: boolean;
+  },
 ): Promise<{ readonly month: EmployeeMonthCostRow; readonly run: LaborAllocationRunRow | null }> {
   assertMonthCostsGate();
   const parsed = saveMonthlyEmployerCostDraftSchema.safeParse(rawInput);
@@ -621,6 +625,17 @@ export async function correctMonthlyEmployerCostActual(
       actualAmount: result.month.actualAmount,
     },
   });
+
+  if (rawInput.syncPaidAmount && derived.actualAmount) {
+    const { reviseConfirmedPayrollAmount } = await import('./payroll-payments');
+    await reviseConfirmedPayrollAmount(context, {
+      employeeId: parsed.data.employeeId,
+      yearMonth: parsed.data.yearMonth,
+      paidAmount: derived.actualAmount,
+      evidenceNote:
+        'Owner chose to align the recorded payment with the corrected monthly employer cost.',
+    });
+  }
 
   const { tryRecomputeOpenGeneralCostMonth } = await import(
     '@/modules/financials/application/recompute-general-cost-month'

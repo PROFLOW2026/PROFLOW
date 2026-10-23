@@ -12,6 +12,7 @@ import { formatBusinessDate } from '@/shared/dates/format';
 import { businessDate } from '@/shared/dates';
 import { money } from '@/shared/money';
 import { confirmPayrollPaymentAction } from '@/app/[locale]/(app)/workforce/employees/actions';
+import { displayedPayrollAmount } from '@/modules/workforce/domain/payroll-obligation';
 
 export interface EmployeePayrollMonthPanelProps {
   readonly employeeId: string;
@@ -19,6 +20,7 @@ export interface EmployeePayrollMonthPanelProps {
   readonly yearMonth: string;
   readonly paymentId: string;
   readonly expectedAmount: string;
+  readonly paidAmount?: string | null;
   readonly currency: string;
   readonly dueDate: string | null;
   readonly paymentStatus: string | null;
@@ -34,6 +36,7 @@ export function EmployeePayrollMonthPanel({
   yearMonth,
   paymentId,
   expectedAmount,
+  paidAmount = null,
   currency,
   dueDate,
   paymentStatus,
@@ -79,7 +82,10 @@ export function EmployeePayrollMonthPanel({
           </span>
           <div>
             <MoneyText
-              value={money(expectedAmount, currency)}
+              value={money(
+                displayedPayrollAmount({ paidAt, paidAmount, expectedAmount }),
+                currency,
+              )}
               className="font-medium"
             />
           </div>

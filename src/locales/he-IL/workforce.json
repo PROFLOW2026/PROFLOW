@@ -527,6 +527,7 @@
     "costConceptOpenMonthAccrual": "חודש פתוח = עלות עבודה מוכרת נצברת לפי ימים שדווחו (מסלול שעות/נוכחות) עד סגירת חודש.",
     "costConceptActualOverride": "עקיפת בפועל כאן = סכום מעסיק ידוע להקצאה (לאחר החלה מחליפה דיווחי שעות).",
     "costConceptCashPayment": "תשלום שכר = מזומן בלבד, נפרד מעלות מוכרת בפרויקט.",
+    "syncPaidAmount": "לעדכן גם את סכום התשלום שכבר סומן כשולם. הסטטוס ותאריך התשלום נשמרים.",
     "knownCostEstimated": "עלות ידועה (הערכה)",
     "knownCostActualOverride": "עלות ידועה (עקיפת בפועל)",
     "knownQuality": {

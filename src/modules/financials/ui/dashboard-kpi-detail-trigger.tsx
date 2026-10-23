@@ -68,8 +68,10 @@ export function DashboardKpiDetailTrigger({
               <MoneyText value={detail.value} />
             </p>
           ) : detail.valuePercent ? (
-            <p className="text-lg font-semibold tabular-nums" dir="ltr">
-              {formatPercentDisplay(detail.valuePercent)}
+            <p className="text-lg font-semibold">
+              <span dir="ltr" className="pf-numeric inline-block max-w-full">
+                {formatPercentDisplay(detail.valuePercent)}
+              </span>
             </p>
           ) : null}
           <section>

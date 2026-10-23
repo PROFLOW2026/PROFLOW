@@ -17,6 +17,7 @@ export async function loadOrganizationExpenseCashRows(
   const result = await db.execute(sql`
     SELECT
       e.gross_amount::text AS gross_amount,
+      e.net_amount::text AS net_amount,
       e.paid_gross_amount::text AS paid_gross_amount,
       e.currency,
       cc.key AS category_key
@@ -52,11 +53,13 @@ export async function loadOrganizationExpenseCashRows(
 
   return sqlRows<{
     gross_amount: string;
+    net_amount: string | null;
     paid_gross_amount: string | null;
     currency: string;
     category_key: string | null;
   }>(result).map((row) => ({
     grossAmount: row.gross_amount,
+    netAmount: row.net_amount,
     paidGrossAmount: row.paid_gross_amount,
     currency: row.currency,
     categoryKey: row.category_key,

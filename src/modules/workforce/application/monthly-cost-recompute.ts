@@ -56,6 +56,7 @@ import {
 import { areEmployeeMonthCostsAvailable } from '../domain/monthly-cost-gates';
 import {
   allocateMonthlyRecognizedPoolByWorkDays,
+  describeMonthlyEmployerCostRecognition,
   listConfiguredWorkDatesInRange,
   monthDateBounds,
   pickWorkingDaysPerMonthForMonth,
@@ -113,6 +114,8 @@ export type MonthlyLaborAllocationDraft = {
   readonly employeeId: string;
   readonly currency: string;
   readonly knownAmount: string;
+  /** Full configured month, before open-month accrual. */
+  readonly definedMonthlyAmount: string;
   readonly allocation: ReturnType<typeof allocateMonthlyRecognizedPoolByWorkDays>;
   readonly workingDaysPerMonth: string;
   readonly recognizedWorkDayCount: number;
@@ -348,6 +351,7 @@ export async function computeMonthlyEmployeeLaborAllocationDraft(
     employeeId,
     currency,
     knownAmount: toNumericString(adjustedRecognizedPool),
+    definedMonthlyAmount: toNumericString(poolResult.pool),
     allocation,
     workingDaysPerMonth,
     recognizedWorkDayCount: recognition.recognizedWorkDayCount,
@@ -401,13 +405,19 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
   const {
     allocation,
     knownAmount: knownAmountStr,
+    definedMonthlyAmount,
     workingDaysPerMonth,
     recognizedWorkDayCount,
     recognizeFullMonth,
     currency,
   } = draft;
-  const fullExpectedStr = toNumericString(allocation.knownAmount);
-  const accrualNotes = `Auto monthly accrual (full month expected ${fullExpectedStr}; ${workingDaysPerMonth} work days/mo; recognized ${recognizedWorkDayCount} day(s))`;
+  const accrualNotes = describeMonthlyEmployerCostRecognition({
+    definedMonthlyAmount,
+    recognizedAmount: knownAmountStr,
+    workingDaysPerMonth,
+    recognizedWorkDayCount,
+    recognizeFullMonth,
+  });
 
   let preservedKnownAmount: string | null = null;
   let skippedClosedEmployeeMonth = false;

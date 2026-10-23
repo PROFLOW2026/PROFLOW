@@ -344,6 +344,7 @@ function mapPayrollCashSnapshotRow(row: {
   readonly id: string;
   readonly employeeId: string;
   readonly employeeName: string | null;
+  readonly compensationClass: string | null;
   readonly yearMonth: string;
   readonly expectedAmount: string;
   readonly paidAmount: string | null;
@@ -356,6 +357,8 @@ function mapPayrollCashSnapshotRow(row: {
     id: row.id,
     employeeId: row.employeeId,
     payrollPeriod: row.yearMonth,
+    compensationClass:
+      row.compensationClass === 'owner_manager' ? 'owner_manager' : 'standard',
     party: cashLineDisplayText(row.employeeName),
     document: row.yearMonth,
     expectedAmount: row.expectedAmount,
@@ -377,6 +380,7 @@ export async function loadAllPayrollCashSnapshots(
       id: employeePayrollPayments.id,
       employeeId: employeePayrollPayments.employeeId,
       employeeName: employees.name,
+      compensationClass: employees.compensationClass,
       yearMonth: employeePayrollPayments.yearMonth,
       expectedAmount: employeePayrollPayments.expectedAmount,
       paidAmount: employeePayrollPayments.paidAmount,
@@ -416,6 +420,7 @@ export async function loadMonthPayrollCashSnapshots(
       id: employeePayrollPayments.id,
       employeeId: employeePayrollPayments.employeeId,
       employeeName: employees.name,
+      compensationClass: employees.compensationClass,
       yearMonth: employeePayrollPayments.yearMonth,
       expectedAmount: employeePayrollPayments.expectedAmount,
       paidAmount: employeePayrollPayments.paidAmount,

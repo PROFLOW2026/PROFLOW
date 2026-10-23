@@ -555,6 +555,7 @@
     "costConceptOpenMonthAccrual": "شهر مفتوح = تكلفة عمل معترف بها تتراكم حسب الأيام المُبلَّغ عنها حتى إغلاق الشهر.",
     "costConceptActualOverride": "التجاوز الفعلي هنا = إجمالي المُشغِّل المعروف للتوزيع (بعد التطبيق يستبدل لقطات الوقت).",
     "costConceptCashPayment": "دفع الرواتب = تدفق نقدي فقط — منفصل عن تكلفة المشروع المعترف بها.",
+    "syncPaidAmount": "Also update the recorded payment amount for this paid month. Status and payment date stay as they are.",
     "knownCostEstimated": "تكلفة معروفة (تقدير)",
     "knownCostActualOverride": "تكلفة معروفة (تجاوز فعلي)",
     "knownQuality": {

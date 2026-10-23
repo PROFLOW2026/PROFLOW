@@ -402,6 +402,7 @@ export async function correctMonthlyEmployerCostActualAction(input: {
   estimatedAmount?: string;
   actualAmount?: string | null;
   correctionNote?: string | null;
+  syncPaidAmount?: boolean;
 }): Promise<MonthlyEmployerCostActionState> {
   const tErrors = await getTranslations('errors');
 
@@ -413,6 +414,7 @@ export async function correctMonthlyEmployerCostActualAction(input: {
         estimatedAmount: input.estimatedAmount ?? null,
         actualAmount: input.actualAmount ?? null,
         correctionNote: input.correctionNote ?? null,
+        syncPaidAmount: input.syncPaidAmount === true,
       }),
     );
     revalidatePath(`/workforce/employees/${input.employeeId}`);

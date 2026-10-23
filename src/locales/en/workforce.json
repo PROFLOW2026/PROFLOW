@@ -555,6 +555,7 @@
     "costConceptOpenMonthAccrual": "Open month = recognized labor accrues by reported days (time/attendance path) until month close.",
     "costConceptActualOverride": "Actual override here = known employer total for allocation (displaces time snapshots after apply).",
     "costConceptCashPayment": "Payroll payment = cash outflow only — separate from recognized project cost.",
+    "syncPaidAmount": "Also update the recorded payment amount for this paid month. Status and payment date stay as they are.",
     "knownCostEstimated": "Known cost (estimate)",
     "knownCostActualOverride": "Known cost (actual override)",
     "knownQuality": {

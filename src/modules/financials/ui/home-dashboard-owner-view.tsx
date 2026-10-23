@@ -2,6 +2,7 @@
 import { Plus, Receipt } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
+import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
 import { MoneyText } from '@/components/patterns/money-text';
 import { formatPercentDisplay } from '@/shared/number/display';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
@@ -11,6 +12,7 @@ import { PrefetchOnIntentLink } from '@/components/ui/prefetch-on-intent-link';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/shared/ui/cn';
+import { compareMoney, subtractMoney, type MoneyValue } from '@/shared/money';
 import { ProjectStatusBadge } from '@/app/[locale]/(app)/projects/project-status-badge';
 import type { ProjectStatus } from '@/modules/projects';
 import type { HomeDashboardData } from '../application/get-home-dashboard';
@@ -18,8 +20,10 @@ import { partitionDashboardCompletenessItems } from '../domain/dashboard-missing
 import {
   buildActualCostDetail,
   buildApOutstandingDetail,
+  buildBillingPaidDetail,
   buildBusinessCashOutstandingDetail,
   buildBusinessCashPaidDetail,
+  buildCashDifferenceDetail,
   buildCompanyActualDetail,
   buildContractValueDetail,
   buildCurrentProfitDetail,
@@ -53,9 +57,19 @@ interface HomeDashboardOwnerViewProps {
   readonly data: HomeDashboardData;
 }
 
+function grossWhenVatExists(
+  net: MoneyValue | null | undefined,
+  gross: MoneyValue | null | undefined,
+): MoneyValue | undefined {
+  if (!net || !gross || net.currency !== gross.currency) return undefined;
+  return compareMoney(net, gross) === 0 ? undefined : gross;
+}
+
 function KpiTile({
   title,
   money,
+  grossMoney,
+  grossLabel,
   percent,
   hint,
   footer,
@@ -65,7 +79,9 @@ function KpiTile({
   unavailableLabel,
 }: {
   title: string;
-  money?: { amount: string; currency: string };
+  money?: MoneyValue;
+  grossMoney?: MoneyValue;
+  grossLabel?: string;
   percent?: string | null;
   hint?: string;
   footer?: React.ReactNode;
@@ -86,12 +102,22 @@ function KpiTile({
         {unavailable ? (
           <p className="text-sm text-[var(--pf-text-secondary)]">{unavailableLabel}</p>
         ) : percent != null ? (
-          <p className="text-lg font-semibold tabular-nums" dir="ltr">
-            {formatPercentDisplay(percent)}
+          <p className="text-lg font-semibold">
+            <span dir="ltr" className="pf-numeric inline-block max-w-full">
+              {formatPercentDisplay(percent)}
+            </span>
           </p>
+        ) : money && grossMoney && grossLabel ? (
+          <BillingNetPrimaryDisplay
+            netAmount={money}
+            grossAmount={grossMoney}
+            grossLabel={grossLabel}
+            netClassName="text-lg"
+            colorizeNegative
+          />
         ) : money ? (
           <p className="min-w-0 max-w-full overflow-x-auto text-lg font-semibold">
-            <MoneyText value={money} />
+            <MoneyText value={money} colorizeNegative />
           </p>
         ) : (
           <p className="text-sm text-[var(--pf-text-secondary)]">—</p>
@@ -125,7 +151,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
   const kpiBreakdown = data.kpiBreakdown;
   const actualCostDetail =
     actualCostMoney && !costUnavailable
-      ? buildActualCostDetail(actualCostMoney, tFinancial('actualCostToDate'), detailCopy, kpiBreakdown)
+      ? buildActualCostDetail(actualCostMoney, t('ownerHeadline.projectRecognizedCost'), detailCopy, kpiBreakdown)
       : undefined;
   const currentProfitDetail =
     data.actualProfitTotal && !profitUnavailable
@@ -201,6 +227,86 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         </div>
       ) : null}
 
+      {data.billing?.netPaid || data.businessCashPosition?.actualPaidNet || data.businessCashPosition?.actualPaid ? (
+        <section
+          className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3"
+          data-pf-dashboard-cash-picture=""
+        >
+          {data.billing?.netPaid ? (
+            <div data-pf-dashboard-metric="collections-lifetime">
+              <KpiTile
+                title={t('ownerHeadline.cashReceived')}
+                money={data.billing.netPaid}
+                grossMoney={grossWhenVatExists(data.billing.netPaid, data.billing.paid)}
+                grossLabel={tFinancial('kpis.includingVat')}
+                hint={t('ownerHeadline.cashReceivedHint')}
+                detail={buildBillingPaidDetail(
+                  data.billing.netPaid,
+                  data.billing.paid,
+                  t('ownerHeadline.cashReceived'),
+                  detailCopy,
+                )}
+                detailCopy={triggerCopy}
+              />
+            </div>
+          ) : null}
+          {data.businessCashPosition?.actualPaidNet || data.businessCashPosition?.actualPaid ? (
+            <div data-pf-dashboard-metric="cash-paid-lifetime">
+              <KpiTile
+                title={t('ownerHeadline.cashPaid')}
+                money={
+                  data.businessCashPosition.actualPaidNet ??
+                  data.businessCashPosition.actualPaid ??
+                  undefined
+                }
+                grossMoney={grossWhenVatExists(
+                  data.businessCashPosition.actualPaidNet,
+                  data.businessCashPosition.actualPaid,
+                )}
+                grossLabel={tFinancial('kpis.includingVat')}
+                hint={t('ownerHeadline.cashPaidHint')}
+                detail={buildBusinessCashPaidDetail(
+                  data.businessCashPosition,
+                  t('ownerHeadline.cashPaid'),
+                  detailCopy,
+                )}
+                detailCopy={triggerCopy}
+              />
+            </div>
+          ) : null}
+          {data.billing?.netPaid &&
+          (data.businessCashPosition?.actualPaidNet || data.businessCashPosition?.actualPaid) ? (
+            <div data-pf-dashboard-metric="cash-difference-lifetime">
+              <KpiTile
+                title={t('ownerHeadline.cashDifference')}
+                money={subtractMoney(
+                  data.billing.netPaid,
+                  data.businessCashPosition.actualPaidNet ?? data.businessCashPosition.actualPaid!,
+                )}
+                grossMoney={grossWhenVatExists(
+                  subtractMoney(
+                    data.billing.netPaid,
+                    data.businessCashPosition.actualPaidNet ?? data.businessCashPosition.actualPaid!,
+                  ),
+                  subtractMoney(data.billing.paid, data.businessCashPosition.actualPaid ?? data.billing.paid),
+                )}
+                grossLabel={tFinancial('kpis.includingVat')}
+                hint={t('ownerHeadline.cashDifferenceHint')}
+                detail={buildCashDifferenceDetail(
+                  data.billing.netPaid,
+                  data.billing.paid,
+                  data.businessCashPosition.actualPaidNet ?? data.businessCashPosition.actualPaid!,
+                  data.businessCashPosition.actualPaid ?? data.billing.paid,
+                  t('ownerHeadline.cashDifference'),
+                  detailCopy,
+                )}
+                detailCopy={triggerCopy}
+              />
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
       {data.contractSummary && showDashboardUi(data, 'owner.contractSummary') ? (
         <DashboardContractSummaryRow
           summary={data.contractSummary}
@@ -229,7 +335,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
           />
         ) : null}
         <KpiTile
-          title={tFinancial('actualCostToDate')}
+          title={t('ownerHeadline.projectRecognizedCost')}
           money={actualCostMoney}
           unavailable={costUnavailable}
           unavailableLabel={t('missingData.kpiUnavailable')}
@@ -271,7 +377,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         <section className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {data.forecast?.companyActual != null ? (
             <KpiTile
-              title={tFinancial('companyActual')}
+              title={t('ownerHeadline.companyRecognizedCosts')}
               money={data.forecast.companyActual}
               hint={tFinancial('companyActualDashboardHint')}
               detail={
@@ -279,7 +385,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
                   ? buildCompanyActualDetail(
                       data.forecast.companyActual,
                       kpiBreakdown,
-                      tFinancial('companyActual'),
+                      t('ownerHeadline.companyRecognizedCosts'),
                       detailCopy,
                     )
                   : undefined
@@ -287,27 +393,24 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
               detailCopy={triggerCopy}
             />
           ) : null}
-          {data.businessCashPosition?.actualPaid ? (
+          {data.businessCashPosition?.outstandingPayableNet ||
+          data.businessCashPosition?.outstandingPayable ? (
             <KpiTile
-              title={tFinancial('businessCashPaid')}
-              money={data.businessCashPosition.actualPaid}
-              hint={tFinancial('businessCashPaidHint')}
-              detail={buildBusinessCashPaidDetail(
-                data.businessCashPosition,
-                tFinancial('businessCashPaid'),
-                detailCopy,
+              title={t('ownerHeadline.payableRemaining')}
+              money={
+                data.businessCashPosition.outstandingPayableNet ??
+                data.businessCashPosition.outstandingPayable ??
+                undefined
+              }
+              grossMoney={grossWhenVatExists(
+                data.businessCashPosition.outstandingPayableNet,
+                data.businessCashPosition.outstandingPayable,
               )}
-              detailCopy={triggerCopy}
-            />
-          ) : null}
-          {data.businessCashPosition?.outstandingPayable ? (
-            <KpiTile
-              title={tFinancial('businessCashOutstanding')}
-              money={data.businessCashPosition.outstandingPayable}
+              grossLabel={tFinancial('kpis.includingVat')}
               hint={tFinancial('businessCashOutstandingHint')}
               detail={buildBusinessCashOutstandingDetail(
                 data.businessCashPosition,
-                tFinancial('businessCashOutstanding'),
+                t('ownerHeadline.payableRemaining'),
                 detailCopy,
               )}
               detailCopy={triggerCopy}
@@ -322,15 +425,12 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
           copy={{
             title: t('cashForecast.title'),
             hint: t('cashForecast.hint'),
-            opening: t('cashForecast.opening'),
-            openingUnset: t('cashForecast.openingUnset'),
-            openingAsOf: data.cashForecast.openingAsOf
-              ? t('cashForecast.openingAsOf', { date: data.cashForecast.openingAsOf })
-              : t('cashForecast.opening'),
             expectedIn: t('cashForecast.expectedIn'),
+            expectedInHint: t('cashForecast.unbilledNotReceipt'),
             expectedOut: t('cashForecast.expectedOut'),
-            endBalance: t('cashForecast.endBalance'),
-            lowest: t('cashForecast.lowest'),
+            expectedDifference: t('cashForecast.expectedDifference'),
+            expectedDifferenceHint: t('cashForecast.expectedDifferenceHint'),
+            includingVat: tFinancial('kpis.includingVat'),
             excluded: t('cashForecast.excluded', {
               later: data.cashForecast.position.excludedLaterCount,
               undated: data.cashForecast.position.excludedUndatedCount,

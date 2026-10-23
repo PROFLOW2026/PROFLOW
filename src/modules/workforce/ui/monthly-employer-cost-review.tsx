@@ -143,6 +143,7 @@ export function MonthlyEmployerCostReview({
   );
   const [estimated, setEstimated] = useState(() => monthRow?.estimatedAmount ?? '');
   const [actual, setActual] = useState(() => monthRow?.actualAmount ?? '');
+  const [syncPaidAmount, setSyncPaidAmount] = useState(false);
   const [allocated, setAllocated] = useState(() => initialReview?.run?.allocatedAmount ?? '');
   const [method, setMethod] = useState<MonthlyAllocationMethod>('hours');
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -263,6 +264,7 @@ export function MonthlyEmployerCostReview({
       return actions.correctMonthlyEmployerCostActualAction({
         ...payload,
         correctionNote: null,
+        syncPaidAmount,
       });
     }
     return actions.saveMonthlyEmployerCostDraftAction({
@@ -683,6 +685,18 @@ export function MonthlyEmployerCostReview({
       >
         {ready ? t('monthReview.saveDraft') : t('monthReview.saveLater')}
       </Button>
+
+      {ready && canManage && hasAppliedMonth ? (
+        <label className="flex items-start gap-2 text-sm text-[var(--pf-text-secondary)]">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={syncPaidAmount}
+            onChange={(event) => setSyncPaidAmount(event.target.checked)}
+          />
+          <span>{t('monthReview.syncPaidAmount')}</span>
+        </label>
+      ) : null}
 
       {ready && canManage ? (
         <Button

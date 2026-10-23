@@ -22,6 +22,21 @@ export function priorCalendarYearMonth(yearMonth: string): string {
  * Payroll obligations may be created for the current or immediately prior work month only.
  * Older months with labor accrual but no row are intentionally not auto-invented.
  */
+/**
+ * A paid month shows the recorded paid amount. An unpaid month shows the expected amount.
+ * The expected figure must not stand in for a payment that was later corrected.
+ */
+export function displayedPayrollAmount(input: {
+  readonly paidAt: string | null;
+  readonly paidAmount: string | null;
+  readonly expectedAmount: string;
+}): string {
+  if (input.paidAt && input.paidAmount != null && input.paidAmount.trim() !== '') {
+    return input.paidAmount;
+  }
+  return input.expectedAmount;
+}
+
 export function isPayrollObligationGenerationEligible(
   yearMonth: string,
   today: BusinessDate,

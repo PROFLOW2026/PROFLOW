@@ -9,6 +9,8 @@ export interface HomeDashboardKpiBreakdown {
   readonly generalPool: MoneyValue | null;
   readonly allocatedGeneralToProjects: MoneyValue | null;
   readonly unallocatableGeneral: MoneyValue | null;
+  /** Owner labor recognized on the company, already inside unallocatable general. */
+  readonly ownerCompanyLabor?: MoneyValue | null;
   readonly committed: MoneyValue | null;
   readonly expectedRemaining: MoneyValue | null;
   readonly estimatedFinal: MoneyValue | null;

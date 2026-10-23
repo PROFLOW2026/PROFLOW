@@ -88,6 +88,23 @@ export function resolveMonthlyAccrualDenominator(input: {
  * conserved so Σ day units = recognized pool. Full month → exact full pool.
  * `workingDaysPerMonth` is the accrual denominator (prefer calendar eligible count).
  */
+/**
+ * Keep the defined monthly employer cost distinct from an open-month accrual.
+ * A full month must never be labeled with the accrued-to-date amount.
+ */
+export function describeMonthlyEmployerCostRecognition(input: {
+  readonly definedMonthlyAmount: string;
+  readonly recognizedAmount: string;
+  readonly workingDaysPerMonth: string;
+  readonly recognizedWorkDayCount: number;
+  readonly recognizeFullMonth: boolean;
+}): string {
+  if (input.recognizeFullMonth) {
+    return `Defined monthly employer cost ${input.definedMonthlyAmount}; recognized full month ${input.recognizedAmount}`;
+  }
+  return `Defined monthly employer cost ${input.definedMonthlyAmount}; accrued to date ${input.recognizedAmount} (${input.recognizedWorkDayCount} of ${input.workingDaysPerMonth} work days)`;
+}
+
 export function recognizeMonthlyEmployerPoolToDate(input: {
   readonly fullMonthlyEmployerCost: MoneyValue;
   readonly workingDaysPerMonth: string;

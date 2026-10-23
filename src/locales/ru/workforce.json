@@ -555,6 +555,7 @@
     "costConceptOpenMonthAccrual": "Открытый месяц = признанная стоимость труда накапливается по отработанным дням до закрытия месяца.",
     "costConceptActualOverride": "Фактическая коррекция здесь = известная сумма работодателя для распределения (после применения заменяет снимки времени).",
     "costConceptCashPayment": "Выплата зарплаты = только денежный поток — отдельно от признанной стоимости проекта.",
+    "syncPaidAmount": "Also update the recorded payment amount for this paid month. Status and payment date stay as they are.",
     "knownCostEstimated": "Известная стоимость (оценка)",
     "knownCostActualOverride": "Известная стоимость (фактическая коррекция)",
     "knownQuality": {

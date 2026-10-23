@@ -92,7 +92,10 @@ import {
   type ActiveProjectSummary,
 } from '../data/projects.repository';
 import { getOrganizationProjectRollup } from './get-organization-project-rollup';
-import { sumOrganizationGeneralPoolTotals } from '../data/general-cost-months.repository';
+import {
+  sumOrganizationGeneralPoolTotals,
+  sumOrganizationOwnerCompanyLabor,
+} from '../data/general-cost-months.repository';
 import {
   composeCompanyActualFromOrgTotals,
   composeCompanyProfit,
@@ -577,6 +580,7 @@ export async function getHomeDashboard(
     recognizedCosts,
     collectionTriplet,
     generalPoolTotals,
+    ownerCompanyLaborRaw,
     apPayablesSummary,
   ] = await Promise.all([
     wantBilling
@@ -620,6 +624,9 @@ export async function getHomeDashboard(
       : Promise.resolve(null),
     canReadFinancials
       ? sumOrganizationGeneralPoolTotals(context.db, context.organizationId, currency)
+      : Promise.resolve(null),
+    canReadFinancials
+      ? sumOrganizationOwnerCompanyLabor(context.db, context.organizationId, currency)
       : Promise.resolve(null),
     canReadAp
       ? getOrganizationApPayables(context, { currency })
@@ -791,6 +798,10 @@ export async function getHomeDashboard(
       generalPool: companyComposition?.generalRecognizedActual ?? null,
       allocatedGeneralToProjects: companyComposition?.allocatedGeneralToProjects ?? null,
       unallocatableGeneral: companyComposition?.unallocatableGeneral ?? null,
+      ownerCompanyLabor:
+        ownerCompanyLaborRaw != null
+          ? (fromNumericString(ownerCompanyLaborRaw, currency) ?? null)
+          : null,
       committed: cost.committed?.value ?? null,
       expectedRemaining: cost.expectedRemaining?.value ?? null,
       estimatedFinal: cost.estimatedFinal?.value ?? null,

@@ -17,7 +17,7 @@ import {
   loadOrganizationExpenseCashRows,
   sumOrganizationSubcontractAdvancesPaid,
 } from '../data/business-cash-position.repository';
-import { sumCanonicalPayrollCashOutstanding, sumCanonicalPayrollCashPaid } from './canonical-payroll-cash';
+import { loadCanonicalPayrollCashSnapshots, splitPayrollCashByClass } from './canonical-payroll-cash';
 
 export type { BusinessCashPosition, BusinessCashSourceKey } from '../domain/business-cash-position';
 
@@ -57,24 +57,14 @@ export async function getBusinessCashPosition(
       : Promise.resolve(null),
   ]);
 
-  const payrollPaidRaw =
+  const payrollSplit =
     policies != null
-      ? (
-          await sumCanonicalPayrollCashPaid(context.db, context.organizationId, currency, {
+      ? splitPayrollCashByClass(
+          await loadCanonicalPayrollCashSnapshots(context.db, context.organizationId, currency, {
             salaryPaymentDay: policies.salaryPaymentDay,
-          })
-        ).amount
-      : null;
-  const payrollOutstandingRaw =
-    policies != null
-      ? (
-          await sumCanonicalPayrollCashOutstanding(
-            context.db,
-            context.organizationId,
-            currency,
-            policies.salaryPaymentDay,
-          )
-        ).amount
+          }),
+          currency,
+        )
       : null;
 
   const expenseSources = canReadCosts
@@ -94,12 +84,10 @@ export async function getBusinessCashPosition(
         ? zeroMoney(currency)
         : null;
 
-  const payrollPaid = payrollPaidRaw
-    ? (fromNumericString(payrollPaidRaw, currency) ?? zeroMoney(currency))
-    : null;
-  const payrollOutstanding = payrollOutstandingRaw
-    ? (fromNumericString(payrollOutstandingRaw, currency) ?? zeroMoney(currency))
-    : null;
+  const payrollPaid = payrollSplit?.employeePaid ?? null;
+  const payrollOutstanding = payrollSplit?.employeeOutstanding ?? null;
+  const payrollOwnerPaid = payrollSplit?.ownerPaid ?? null;
+  const payrollOwnerOutstanding = payrollSplit?.ownerOutstanding ?? null;
   const advancesPaid = advancesPaidRaw
     ? (fromNumericString(advancesPaidRaw, currency) ?? zeroMoney(currency))
     : null;
@@ -111,6 +99,8 @@ export async function getBusinessCashPosition(
     apOutstanding,
     payrollPaid,
     payrollOutstanding,
+    payrollOwnerPaid,
+    payrollOwnerOutstanding,
     subcontractAdvancesPaid: advancesPaid,
   });
 

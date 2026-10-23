@@ -244,6 +244,70 @@ export async function confirmPayrollPaid(
   });
 }
 
+/**
+ * Chosen retroactive correction of a payment that is already marked paid.
+ * Keeps paid status and the payment date. Does not run unless the caller opts in.
+ */
+export async function reviseConfirmedPayrollAmount(
+  context: OrgContext,
+  input: {
+    readonly employeeId: string;
+    readonly yearMonth: string;
+    readonly paidAmount: string;
+    readonly evidenceNote: string;
+  },
+): Promise<'updated' | 'unchanged' | 'not_paid'> {
+  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+
+  const [row] = await context.db
+    .select()
+    .from(employeePayrollPayments)
+    .where(
+      and(
+        eq(employeePayrollPayments.organizationId, context.organizationId),
+        eq(employeePayrollPayments.employeeId, input.employeeId),
+        eq(employeePayrollPayments.yearMonth, input.yearMonth),
+        isNull(employeePayrollPayments.voidedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!row?.paidAt || row.paymentStatus !== 'paid') return 'not_paid';
+
+  const nextAmount = fromNumericString(input.paidAmount, row.currency);
+  const currentAmount = fromNumericString(row.paidAmount ?? '0', row.currency);
+  if (!nextAmount || !isPositiveMoney(nextAmount)) {
+    throw new DomainRuleError('Paid amount must be positive', 'workforce.errors.payrollInvalidAmount');
+  }
+  if (currentAmount && currentAmount.amount === nextAmount.amount) return 'unchanged';
+
+  await context.db
+    .update(employeePayrollPayments)
+    .set({ paidAmount: input.paidAmount })
+    .where(eq(employeePayrollPayments.id, row.id));
+
+  await recordAuditEvent(context, {
+    action: PAYROLL_CONFIRMED,
+    entityType: 'employee_payroll_payment',
+    entityId: row.id,
+    before: {
+      paidAmount: row.paidAmount,
+      paidAt: row.paidAt,
+      paymentStatus: row.paymentStatus,
+    },
+    after: {
+      paidAmount: input.paidAmount,
+      paidAt: row.paidAt,
+      paymentStatus: row.paymentStatus,
+      source: 'manual',
+      repair: 'revise_paid_amount',
+      evidence: input.evidenceNote,
+    },
+  });
+
+  return 'updated';
+}
+
 async function assertNoActivePayrollObligation(
   context: OrgContext,
   employeeId: string,
@@ -604,6 +668,7 @@ export async function getPayrollPayment(
       employeeId: employeePayrollPayments.employeeId,
       yearMonth: employeePayrollPayments.yearMonth,
       expectedAmount: employeePayrollPayments.expectedAmount,
+      paidAmount: employeePayrollPayments.paidAmount,
       currency: employeePayrollPayments.currency,
       dueDate: employeePayrollPayments.dueDate,
       paymentStatus: employeePayrollPayments.paymentStatus,

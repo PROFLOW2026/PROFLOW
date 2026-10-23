@@ -1149,6 +1149,33 @@ export async function sumOrganizationGeneralPoolTotals(
 
 
 
+/** Owner labor recognized on the company (already inside the unallocatable pool). */
+export async function sumOrganizationOwnerCompanyLabor(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+): Promise<string> {
+  const [row] = await db
+    .select({
+      total: sql<string>`coalesce(sum(${generalCostMonthSources.amount}), 0)::text`,
+    })
+    .from(generalCostMonthSources)
+    .innerJoin(
+      generalCostMonths,
+      eq(generalCostMonths.id, generalCostMonthSources.generalCostMonthId),
+    )
+    .where(
+      and(
+        eq(generalCostMonthSources.organizationId, organizationId),
+        eq(generalCostMonthSources.sourceKind, 'labor_company_only'),
+        eq(generalCostMonths.organizationId, organizationId),
+        sql`upper(${generalCostMonths.currency}) = upper(${currency})`,
+        inArray(generalCostMonths.status, ['open', 'frozen']),
+      ),
+    );
+  return row?.total ?? '0';
+}
+
 /** Open (non-frozen) general-cost year months for an org/currency, ascending. */
 export async function listOpenGeneralCostYearMonths(
   db: DbExecutor,

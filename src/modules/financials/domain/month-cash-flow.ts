@@ -107,6 +107,8 @@ export interface MonthPayrollCashSnapshot {
   readonly id: string;
   readonly employeeId?: string;
   readonly payrollPeriod?: string;
+  /** standard | owner_manager. Missing means employee payroll, not owner cash. */
+  readonly compensationClass?: 'standard' | 'owner_manager' | null;
   readonly party: string;
   readonly document: string;
   readonly expectedAmount: string;

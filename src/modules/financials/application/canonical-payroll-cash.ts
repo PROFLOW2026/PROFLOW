@@ -1,6 +1,6 @@
 /**
- * Canonical payroll cash — owner-entered employee_month_costs actual_amount
- * takes precedence over employee_payroll_payments for the same employee-month.
+ * Canonical payroll cash — recorded employee_payroll_payments only.
+ * Verified employee_month_costs stay in recognized cost and are not cash.
  */
 
 import type { DbExecutor } from '@/shared/db/types';
@@ -14,13 +14,10 @@ import {
   type MoneyValue,
 } from '@/shared/money';
 import {
-  loadAllOwnerActualEmployeePayrollCash,
   loadAllPayrollCashSnapshots,
-  loadMonthOwnerActualEmployeePayrollCash,
   loadMonthPayrollCashSnapshots,
 } from '../data/month-cash-flow.repository';
 import type { MonthPayrollCashSnapshot } from '../domain/month-cash-flow';
-import { mergePayrollCashSources } from './merge-payroll-cash-sources';
 
 export async function loadCanonicalPayrollCashSnapshots(
   db: DbExecutor,
@@ -32,28 +29,33 @@ export async function loadCanonicalPayrollCashSnapshots(
     readonly to?: BusinessDate;
   },
 ): Promise<readonly MonthPayrollCashSnapshot[]> {
-  const [ownerActual, paymentConfirmed] = await Promise.all([
-    input.from != null && input.to != null
-      ? loadMonthOwnerActualEmployeePayrollCash(
-          db,
-          organizationId,
-          currency,
-          input.from,
-          input.to,
-          input.salaryPaymentDay,
-        )
-      : loadAllOwnerActualEmployeePayrollCash(
-          db,
-          organizationId,
-          currency,
-          input.salaryPaymentDay,
-        ),
-    input.from != null && input.to != null
-      ? loadMonthPayrollCashSnapshots(db, organizationId, currency, input.from, input.to)
-      : loadAllPayrollCashSnapshots(db, organizationId, currency),
-  ]);
+  void input.salaryPaymentDay;
+  if (input.from != null && input.to != null) {
+    return loadMonthPayrollCashSnapshots(db, organizationId, currency, input.from, input.to);
+  }
+  return loadAllPayrollCashSnapshots(db, organizationId, currency);
+}
 
-  return mergePayrollCashSources({ ownerActual, paymentConfirmed });
+export interface PayrollCashByClass {
+  readonly employeePaid: MoneyValue;
+  readonly employeeOutstanding: MoneyValue;
+  readonly ownerPaid: MoneyValue;
+  readonly ownerOutstanding: MoneyValue;
+}
+
+/** Owner-manager compensation is cash to the owner. Everyone else is employee payroll. */
+export function splitPayrollCashByClass(
+  snapshots: readonly MonthPayrollCashSnapshot[],
+  currency: string,
+): PayrollCashByClass {
+  const owner = snapshots.filter((row) => row.compensationClass === 'owner_manager');
+  const employees = snapshots.filter((row) => row.compensationClass !== 'owner_manager');
+  return {
+    employeePaid: sumPayrollSnapshotsPaid(employees, currency),
+    employeeOutstanding: sumPayrollSnapshotsOutstanding(employees, currency),
+    ownerPaid: sumPayrollSnapshotsPaid(owner, currency),
+    ownerOutstanding: sumPayrollSnapshotsOutstanding(owner, currency),
+  };
 }
 
 export function sumPayrollSnapshotsPaid(

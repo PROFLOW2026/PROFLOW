@@ -7,8 +7,14 @@ import {
   resolveOwnerManagerCreateCompensationDefaults,
 } from '@/modules/workforce/domain/owner-manager-employer-cost';
 import { deriveKnownEmployerCost } from '@/modules/workforce/domain/monthly-allocation';
-import { recognizeMonthlyEmployerPoolToDate } from '@/modules/workforce/domain/monthly-accrual';
-import { calculateUnitEmployerCostPool } from '@/modules/workforce/domain/employer-cost-pool';
+import {
+  describeMonthlyEmployerCostRecognition,
+  recognizeMonthlyEmployerPoolToDate,
+} from '@/modules/workforce/domain/monthly-accrual';
+import {
+  calculateMonthlyEmployerCostPoolForMonth,
+  calculateUnitEmployerCostPool,
+} from '@/modules/workforce/domain/employer-cost-pool';
 import { toNumericString } from '@/shared/money';
 
 describe('OD-36 owner/manager employer cost invariants', () => {
@@ -49,6 +55,77 @@ describe('OD-36 owner/manager employer cost invariants', () => {
       expect(yearMonth).toMatch(/^2026-/);
       expect(toNumericString(full.recognizedPool)).toBe('27000.000000');
     }
+  });
+
+  it('keeps owner October at the defined 33,000 and does not substitute the 7/21 accrual', () => {
+    const versions = [
+      {
+        id: 'before-august',
+        validFrom: '2026-01-01',
+        validTo: '2026-07-31',
+        baseRate: '18000',
+        currency: 'ILS',
+        rateUnit: 'monthly' as const,
+        burdenPercent: '50',
+        components: [],
+      },
+      {
+        id: 'from-august',
+        validFrom: '2026-08-01',
+        validTo: null,
+        baseRate: '22000',
+        currency: 'ILS',
+        rateUnit: 'monthly' as const,
+        burdenPercent: '50',
+        components: [],
+      },
+    ];
+    const july = calculateMonthlyEmployerCostPoolForMonth({
+      yearMonth: '2026-07',
+      currency: 'ILS',
+      versions,
+    });
+    const october = calculateMonthlyEmployerCostPoolForMonth({
+      yearMonth: '2026-10',
+      currency: 'ILS',
+      versions,
+    });
+    expect(toNumericString(july!.pool)).toBe('27000.000000');
+    expect(toNumericString(october!.pool)).toBe('33000.000000');
+
+    const accruedOn11October = recognizeMonthlyEmployerPoolToDate({
+      fullMonthlyEmployerCost: october!.pool,
+      workingDaysPerMonth: '21',
+      accruedWorkDayCount: 7,
+      recognizeFullMonth: false,
+    });
+    expect(toNumericString(accruedOn11October.recognizedPool)).toBe('11000.000000');
+
+    const definedOctober = recognizeMonthlyEmployerPoolToDate({
+      fullMonthlyEmployerCost: october!.pool,
+      workingDaysPerMonth: '21',
+      accruedWorkDayCount: 7,
+      recognizeFullMonth: true,
+    });
+    expect(toNumericString(definedOctober.recognizedPool)).toBe('33000.000000');
+    expect(
+      describeMonthlyEmployerCostRecognition({
+        definedMonthlyAmount: '33000.000000',
+        recognizedAmount: '33000.000000',
+        workingDaysPerMonth: '21',
+        recognizedWorkDayCount: 7,
+        recognizeFullMonth: true,
+      }),
+    ).toContain('Defined monthly employer cost 33000.000000');
+    expect(
+      describeMonthlyEmployerCostRecognition({
+        definedMonthlyAmount: '33000.000000',
+        recognizedAmount: '11000.000000',
+        workingDaysPerMonth: '21',
+        recognizedWorkDayCount: 7,
+        recognizeFullMonth: false,
+      }),
+    ).toContain('accrued to date 11000.000000');
   });
 
   it('keeps known quality estimated when actual is empty (no auto promote)', () => {

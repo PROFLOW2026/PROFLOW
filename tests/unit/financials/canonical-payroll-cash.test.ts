@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { businessDate } from '@/shared/dates';
 import {
+  splitPayrollCashByClass,
   sumPayrollSnapshotsOutstanding,
   sumPayrollSnapshotsPaid,
 } from '@/modules/financials/application/canonical-payroll-cash';
@@ -80,5 +81,36 @@ describe('canonical payroll cash sums', () => {
       ILS,
     );
     expect(Number(total.amount)).toBe(5000);
+  });
+
+  it('splits owner payments from employee payments without using verified month cost', () => {
+    const split = splitPayrollCashByClass(
+      [
+        snapshot({
+          id: 'owner-pay',
+          compensationClass: 'owner_manager',
+          paidAmount: '33000',
+          paidAt: businessDate('2026-10-11'),
+        }),
+        snapshot({
+          id: 'employee-pay',
+          compensationClass: 'standard',
+          paidAmount: '7150',
+          paidAt: businessDate('2026-10-11'),
+        }),
+        snapshot({
+          id: 'employee-open',
+          compensationClass: 'standard',
+          paidAmount: null,
+          paidAt: null,
+          expectedAmount: '8205',
+        }),
+      ],
+      ILS,
+    );
+    expect(Number(split.ownerPaid.amount)).toBe(33000);
+    expect(Number(split.employeePaid.amount)).toBe(7150);
+    expect(Number(split.employeeOutstanding.amount)).toBe(8205);
+    expect(Number(split.ownerOutstanding.amount)).toBe(0);
   });
 });

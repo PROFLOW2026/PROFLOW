@@ -464,27 +464,55 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   detailCopy={triggerCopy}
                 />
               ) : null}
-              {data.businessCashPosition?.actualPaid ? (
+              {data.businessCashPosition?.actualPaidNet || data.businessCashPosition?.actualPaid ? (
                 <DashboardKpiCard
-                  title={tFinancial('businessCashPaid')}
-                  money={data.businessCashPosition.actualPaid}
-                  hint={tFinancial('businessCashPaidHint')}
+                  title={t('ownerHeadline.cashPaid')}
+                  money={
+                    data.businessCashPosition.actualPaidNet ??
+                    data.businessCashPosition.actualPaid ??
+                    undefined
+                  }
+                  grossMoney={
+                    data.businessCashPosition.actualPaidNet &&
+                    data.businessCashPosition.actualPaid &&
+                    data.businessCashPosition.actualPaidNet.amount !==
+                      data.businessCashPosition.actualPaid.amount
+                      ? data.businessCashPosition.actualPaid
+                      : undefined
+                  }
+                  grossLabel={tFinancial('kpis.includingVat')}
+                  hint={t('ownerHeadline.cashPaidHint')}
                   detail={buildBusinessCashPaidDetail(
                     data.businessCashPosition,
-                    tFinancial('businessCashPaid'),
+                    t('ownerHeadline.cashPaid'),
                     detailCopy,
                   )}
                   detailCopy={triggerCopy}
                 />
               ) : null}
-              {data.businessCashPosition?.outstandingPayable && !cardSet.has('collections') ? (
+              {(data.businessCashPosition?.outstandingPayableNet ||
+                data.businessCashPosition?.outstandingPayable) &&
+              !cardSet.has('collections') ? (
                 <DashboardKpiCard
-                  title={tFinancial('businessCashOutstanding')}
-                  money={data.businessCashPosition.outstandingPayable}
+                  title={t('ownerHeadline.payableRemaining')}
+                  money={
+                    data.businessCashPosition.outstandingPayableNet ??
+                    data.businessCashPosition.outstandingPayable ??
+                    undefined
+                  }
+                  grossMoney={
+                    data.businessCashPosition.outstandingPayableNet &&
+                    data.businessCashPosition.outstandingPayable &&
+                    data.businessCashPosition.outstandingPayableNet.amount !==
+                      data.businessCashPosition.outstandingPayable.amount
+                      ? data.businessCashPosition.outstandingPayable
+                      : undefined
+                  }
+                  grossLabel={tFinancial('kpis.includingVat')}
                   hint={tFinancial('businessCashOutstandingHint')}
                   detail={buildBusinessCashOutstandingDetail(
                     data.businessCashPosition,
-                    tFinancial('businessCashOutstanding'),
+                    t('ownerHeadline.payableRemaining'),
                     detailCopy,
                   )}
                   detailCopy={triggerCopy}
@@ -649,7 +677,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   hint={tFinancial('businessCashOutstandingHint')}
                   detail={buildBusinessCashOutstandingDetail(
                     data.businessCashPosition,
-                    tFinancial('businessCashOutstanding'),
+                    t('ownerHeadline.payableRemaining'),
                     detailCopy,
                   )}
                   detailCopy={triggerCopy}

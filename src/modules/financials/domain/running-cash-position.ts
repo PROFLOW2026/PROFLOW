@@ -37,7 +37,11 @@ export interface RunningCashStep {
 export interface CashRunningPosition {
   readonly opening: MoneyValue;
   readonly expectedIn: MoneyValue;
+  /** Gross of walk inflows when items carry grossAmount. Equals expectedIn when they do not. */
+  readonly expectedInGross: MoneyValue;
   readonly expectedOut: MoneyValue;
+  /** Ex-VAT walk outflows when items carry netAmount. Equals expectedOut when they do not. */
+  readonly expectedOutNet: MoneyValue;
   readonly endBalance: MoneyValue;
   readonly lowestBalance: MoneyValue;
   readonly steps: readonly RunningCashStep[];
@@ -49,16 +53,27 @@ export interface CashRunningPosition {
   readonly excludedUndatedCount: number;
 }
 
-type ForecastCashItem = Pick<CashFlowForecastItem, 'amount' | 'dueDate' | 'direction'>;
+type ForecastCashItem = Pick<
+  CashFlowForecastItem,
+  'amount' | 'dueDate' | 'direction' | 'grossAmount' | 'netAmount'
+>;
 
 interface BucketTotals {
   inflow: MoneyValue;
+  inflowGross: MoneyValue;
   outflow: MoneyValue;
+  outflowNet: MoneyValue;
   count: number;
 }
 
 function emptyBucket(currency: string): BucketTotals {
-  return { inflow: zeroMoney(currency), outflow: zeroMoney(currency), count: 0 };
+  return {
+    inflow: zeroMoney(currency),
+    inflowGross: zeroMoney(currency),
+    outflow: zeroMoney(currency),
+    outflowNet: zeroMoney(currency),
+    count: 0,
+  };
 }
 
 /**
@@ -87,8 +102,10 @@ export function buildRunningCashPosition(input: {
     if (!bucket) continue;
     if (item.direction === 'in') {
       bucket.inflow = addMoney(bucket.inflow, item.amount);
+      bucket.inflowGross = addMoney(bucket.inflowGross, item.grossAmount ?? item.amount);
     } else {
       bucket.outflow = addMoney(bucket.outflow, item.amount);
+      bucket.outflowNet = addMoney(bucket.outflowNet, item.netAmount ?? item.amount);
     }
     bucket.count += 1;
   }
@@ -96,7 +113,9 @@ export function buildRunningCashPosition(input: {
   let running = input.opening;
   let lowest = input.opening;
   let expectedIn = zeroMoney(currency);
+  let expectedInGross = zeroMoney(currency);
   let expectedOut = zeroMoney(currency);
+  let expectedOutNet = zeroMoney(currency);
   const steps: RunningCashStep[] = [];
 
   for (const key of RUNNING_CASH_WALK_BUCKETS) {
@@ -104,7 +123,9 @@ export function buildRunningCashPosition(input: {
     running = subtractMoney(addMoney(running, bucket.inflow), bucket.outflow);
     lowest = minMoney(lowest, running);
     expectedIn = addMoney(expectedIn, bucket.inflow);
+    expectedInGross = addMoney(expectedInGross, bucket.inflowGross);
     expectedOut = addMoney(expectedOut, bucket.outflow);
+    expectedOutNet = addMoney(expectedOutNet, bucket.outflowNet);
     steps.push({
       key,
       inflow: bucket.inflow,
@@ -119,7 +140,9 @@ export function buildRunningCashPosition(input: {
   return {
     opening: input.opening,
     expectedIn,
+    expectedInGross,
     expectedOut,
+    expectedOutNet,
     endBalance: running,
     lowestBalance: lowest,
     steps,

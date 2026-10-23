@@ -44,6 +44,8 @@ export interface CashFlowForecastItem {
   readonly amount: MoneyValue;
   /** GROSS cash for client inflows — shown in parentheses when present. */
   readonly grossAmount?: MoneyValue;
+  /** Ex-VAT portion of an outflow when the source stores net and tax. Payroll equals amount. */
+  readonly netAmount?: MoneyValue;
   readonly dueDate: BusinessDate | null;
   readonly certainty: CashFlowCertainty;
   readonly direction: CashFlowDirection;

@@ -4,7 +4,8 @@
  */
 
 import type { BusinessDate } from '@/shared/dates';
-import { isPositiveMoney, isZeroMoney, money, type MoneyValue } from '@/shared/money';
+import { fromNumericString, isPositiveMoney, isZeroMoney, money, type MoneyValue } from '@/shared/money';
+import { recordedNetPortion } from './business-cash-position';
 import { resolveExpensePaymentObligation } from '@/modules/expenses/domain/resolve-expense-payment-obligation';
 import {
   expenseGrossAfterApMatches,
@@ -64,6 +65,17 @@ function sameCurrency(amount: MoneyValue, currency: string): boolean {
   return amount.currency.toUpperCase() === currency.toUpperCase();
 }
 
+function expenseOutflowNet(
+  row: Pick<OperatingExpenseCashRow, 'netAmount' | 'grossAmount' | 'currency'>,
+  payable: MoneyValue,
+): MoneyValue {
+  if (row.netAmount == null || row.netAmount === '') return payable;
+  const net = fromNumericString(row.netAmount, payable.currency);
+  const gross = fromNumericString(row.grossAmount, payable.currency);
+  if (!net || !gross) return payable;
+  return recordedNetPortion(net, gross, payable);
+}
+
 /** Remaining cash installments. Managerial NET spread is not included. */
 export function operatingExpenseCashItems(
   rows: readonly OperatingExpenseCashRow[],
@@ -118,6 +130,7 @@ export function operatingExpenseCashItems(
         href: `/expenses/${row.id}`,
         label,
         amount: obligation.payableAmount,
+        netAmount: expenseOutflowNet(row, obligation.payableAmount),
         dueDate: obligation.effectiveDueDate,
         certainty: certaintyForDatedSource({
           dueDate: obligation.effectiveDueDate,
@@ -141,6 +154,7 @@ export function operatingExpenseCashItems(
         href: `/expenses/${row.id}`,
         label,
         amount,
+        netAmount: expenseOutflowNet(row, amount),
         dueDate: line.dueDate,
         certainty: certaintyForDatedSource({ dueDate: line.dueDate, recorded: true }),
         direction: 'out',
@@ -173,6 +187,7 @@ export function payrollObligationCashItems(
       href: `/workforce/employees/${row.employeeId}`,
       label: `${who} · ${row.yearMonth}`,
       amount,
+      netAmount: amount,
       dueDate: row.dueDate,
       certainty: certaintyForDatedSource({ dueDate: row.dueDate, recorded: true }),
       direction: 'out',

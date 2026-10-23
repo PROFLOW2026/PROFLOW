@@ -2,9 +2,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
 import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
+import { MoneyText } from '@/components/patterns/money-text';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
-import { isZeroMoney, subtractMoney } from '@/shared/money';
+import { compareMoney, isZeroMoney, subtractMoney, type MoneyValue } from '@/shared/money';
 import type { RevenueTriplet } from '@/modules/billing/domain/revenue-position';
 import type { HomeDashboardData } from '../application/get-home-dashboard';
 import type { DashboardKpiKey } from '../domain/dashboard-missing-data';
@@ -14,7 +15,6 @@ import {
   buildAllocatedOverheadDetail,
   buildBillingInvoicedDetail,
   buildBillingOutstandingDetail,
-  buildBillingPaidDetail,
   buildCommitmentsDetail,
   buildCompanyProfitDetail,
   buildCostsThisMonthDetail,
@@ -39,6 +39,14 @@ import {
 import { DashboardKpiCard } from './dashboard-kpi-card';
 import { MonthCashMonthPicker } from './month-cash-month-picker';
 import { standalonePartialNotes } from './map-coverage-sources';
+
+function vatGross(
+  net: MoneyValue | null | undefined,
+  gross: MoneyValue | null | undefined,
+): MoneyValue | undefined {
+  if (!net || !gross || net.currency !== gross.currency) return undefined;
+  return compareMoney(net, gross) === 0 ? undefined : gross;
+}
 
 /**
  * Functional dashboard windows omitted when the owner view replaced the full
@@ -69,9 +77,27 @@ export async function HomeDashboardRestoredSections({
   }
 
   const forecast = data.forecast;
+  const forecastCostDuplicatesActual =
+    forecast?.totalForecastFinalCost != null &&
+    forecast.totalActualProjectCost != null &&
+    forecast.totalForecastFinalCost.currency === forecast.totalActualProjectCost.currency &&
+    compareMoney(forecast.totalForecastFinalCost, forecast.totalActualProjectCost) === 0 &&
+    (forecast.totalRemainingCommitments == null || isZeroMoney(forecast.totalRemainingCommitments)) &&
+    (forecast.totalExpectedRemaining == null || isZeroMoney(forecast.totalExpectedRemaining));
+  const hideExpectedRemaining =
+    !unavailable('forecastCost') &&
+    (forecast?.totalExpectedRemaining == null || isZeroMoney(forecast.totalExpectedRemaining));
+  const hideForecastProfit =
+    forecastCostDuplicatesActual &&
+    forecast?.totalForecastMargin != null &&
+    data.actualProfitTotal != null &&
+    forecast.totalForecastMargin.currency === data.actualProfitTotal.currency &&
+    compareMoney(forecast.totalForecastMargin, data.actualProfitTotal) === 0;
+
   const forecastCards = forecast ? (
     <>
-      {forecast.totalForecastFinalCost || unavailable('forecastCost') ? (
+      {(forecast.totalForecastFinalCost || unavailable('forecastCost')) &&
+      !forecastCostDuplicatesActual ? (
         <div data-pf-dashboard-metric="forecast-cost">
           <DashboardKpiCard
             title={tFinancial('kpis.forecast')}
@@ -99,7 +125,7 @@ export async function HomeDashboardRestoredSections({
           />
         </div>
       ) : null}
-      {forecast.totalExpectedRemaining || unavailable('forecastCost') ? (
+      {(forecast.totalExpectedRemaining || unavailable('forecastCost')) && !hideExpectedRemaining ? (
         <div data-pf-dashboard-metric="expected-remaining">
           <DashboardKpiCard
             title={tFinancial('kpis.expectedRemaining')}
@@ -182,7 +208,9 @@ export async function HomeDashboardRestoredSections({
           />
         </div>
       ) : null}
-      {data.showProfit && (forecast.totalForecastMargin || unavailable('forecastMargin')) ? (
+      {data.showProfit &&
+      (forecast.totalForecastMargin || unavailable('forecastMargin')) &&
+      !hideForecastProfit ? (
         <div data-pf-dashboard-metric="forecast-profit">
           <DashboardKpiCard
             title={t('kpiLabels.expectedProfit')}
@@ -302,7 +330,7 @@ export async function HomeDashboardRestoredSections({
               <DashboardKpiCard
                 title={tFinancial('kpis.billed')}
                 money={billing.netInvoiced}
-                grossMoney={billing.invoiced}
+                grossMoney={vatGross(billing.netInvoiced, billing.invoiced)}
                 grossLabel={tFinancial('kpis.includingVat')}
                 hint={tFinancial('kpis.billedHint')}
                 detail={buildBillingInvoicedDetail(
@@ -323,27 +351,11 @@ export async function HomeDashboardRestoredSections({
                 }
               />
             </div>
-            <div data-pf-dashboard-metric="collections-received">
-              <DashboardKpiCard
-                title={tFinancial('kpis.paid')}
-                money={billing.netPaid}
-                grossMoney={billing.paid}
-                grossLabel={tFinancial('kpis.includingVat')}
-                hint={tFinancial('kpis.paidHint')}
-                detail={buildBillingPaidDetail(
-                  billing.netPaid,
-                  billing.paid,
-                  tFinancial('kpis.paid'),
-                  detailCopy,
-                )}
-                detailCopy={triggerCopy}
-              />
-            </div>
             <div data-pf-dashboard-metric="open-receivable">
               <DashboardKpiCard
                 title={tFinancial('kpis.outstandingNet')}
                 money={billing.netOutstanding}
-                grossMoney={billing.outstanding}
+                grossMoney={vatGross(billing.netOutstanding, billing.outstanding)}
                 grossLabel={tFinancial('kpis.includingVat')}
                 hint={tFinancial('basis.outstandingNet')}
                 detail={buildBillingOutstandingDetail(
@@ -385,7 +397,10 @@ export async function HomeDashboardRestoredSections({
                   <DashboardKpiCard
                     title={t('businessSummary.collectionsActual')}
                     money={summary.monthCash.display.collections.net}
-                    grossMoney={summary.monthCash.display.collections.gross}
+                    grossMoney={vatGross(
+                      summary.monthCash.display.collections.net,
+                      summary.monthCash.display.collections.gross,
+                    )}
                     grossLabel={vatLabels.incVat}
                     hint={t('businessSummary.collectionsActualHint')}
                     detail={monthCashTripletDetail(
@@ -405,7 +420,10 @@ export async function HomeDashboardRestoredSections({
                 <DashboardKpiCard
                   title={t('businessSummary.paidActual')}
                   money={summary.monthCash.display.paid.net}
-                  grossMoney={summary.monthCash.display.paid.gross}
+                  grossMoney={vatGross(
+                    summary.monthCash.display.paid.net,
+                    summary.monthCash.display.paid.gross,
+                  )}
                   grossLabel={vatLabels.incVat}
                   hint={t('businessSummary.paidActualHint')}
                   detail={monthCashPaidDetail(
@@ -427,7 +445,10 @@ export async function HomeDashboardRestoredSections({
                 <DashboardKpiCard
                   title={t('businessSummary.expectedOutgoing')}
                   money={summary.monthCash.display.expected.net}
-                  grossMoney={summary.monthCash.display.expected.gross}
+                  grossMoney={vatGross(
+                    summary.monthCash.display.expected.net,
+                    summary.monthCash.display.expected.gross,
+                  )}
                   grossLabel={vatLabels.incVat}
                   hint={t('businessSummary.expectedOutgoingHint')}
                   detail={monthCashExpectedDetail(
@@ -452,7 +473,10 @@ export async function HomeDashboardRestoredSections({
                 <DashboardKpiCard
                   title={t('businessSummary.netCash')}
                   money={summary.monthCash.display.netCash.net}
-                  grossMoney={summary.monthCash.display.netCash.gross}
+                  grossMoney={vatGross(
+                    summary.monthCash.display.netCash.net,
+                    summary.monthCash.display.netCash.gross,
+                  )}
                   grossLabel={vatLabels.incVat}
                   hint={t('businessSummary.netCashHint')}
                   detail={monthCashTripletDetail(
@@ -468,13 +492,21 @@ export async function HomeDashboardRestoredSections({
             </div>
             <div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-2 text-sm text-[var(--pf-text-secondary)]">
               <span>{t('businessSummary.forecastAfterRemaining')}</span>
-              <BillingNetPrimaryDisplay
-                netAmount={summary.monthCash.display.forecast.net}
-                grossAmount={summary.monthCash.display.forecast.gross}
-                grossLabel={vatLabels.incVat}
-                netClassName="text-sm"
-                colorizeNegative
-              />
+              {vatGross(summary.monthCash.display.forecast.net, summary.monthCash.display.forecast.gross) ? (
+                <BillingNetPrimaryDisplay
+                  netAmount={summary.monthCash.display.forecast.net}
+                  grossAmount={summary.monthCash.display.forecast.gross}
+                  grossLabel={vatLabels.incVat}
+                  netClassName="text-sm"
+                  colorizeNegative
+                />
+              ) : (
+                <MoneyText
+                  value={summary.monthCash.display.forecast.net}
+                  className="text-sm font-semibold"
+                  colorizeNegative
+                />
+              )}
             </div>
             <h3 className="mt-4 mb-2 text-sm font-semibold text-[var(--pf-text-secondary)]">
               {t('businessSummary.profitabilityTitle')}
@@ -485,7 +517,7 @@ export async function HomeDashboardRestoredSections({
                   <DashboardKpiCard
                     title={t('businessSummary.invoicedThisMonth')}
                     money={summary.invoicedThisMonth}
-                    grossMoney={summary.grossInvoicedThisMonth}
+                    grossMoney={vatGross(summary.invoicedThisMonth, summary.grossInvoicedThisMonth)}
                     grossLabel={vatLabels.incVat}
                     hint={detailCopy.invoicedThisMonthWhat}
                     detail={buildInvoicedThisMonthDetail(
@@ -505,7 +537,7 @@ export async function HomeDashboardRestoredSections({
                 <DashboardKpiCard
                   title={t('businessSummary.costsThisMonth')}
                   money={summary.costsThisMonth}
-                  grossMoney={summary.grossCostsThisMonth}
+                  grossMoney={vatGross(summary.costsThisMonth, summary.grossCostsThisMonth)}
                   grossLabel={vatLabels.incVat}
                   hint={detailCopy.costsThisMonthWhat}
                   detail={buildCostsThisMonthDetail(

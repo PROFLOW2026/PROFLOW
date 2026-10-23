@@ -22,7 +22,7 @@ function snapshot(
 }
 
 describe('mergePayrollCashSources', () => {
-  it('prefers owner actual over payment confirmation for the same employee-month', () => {
+  it('keeps the recorded payment and does not replace it with a verified month cost', () => {
     const ownerActual = [
       snapshot({
         id: 'owner-actual:emc-1',
@@ -33,7 +33,7 @@ describe('mergePayrollCashSources', () => {
     ];
     const paymentConfirmed = [
       snapshot({
-        id: 'pay-voided',
+        id: 'pay-recorded',
         employeeId: 'emp-mohammad',
         payrollPeriod: '2026-01',
         paidAmount: '8250',
@@ -42,8 +42,8 @@ describe('mergePayrollCashSources', () => {
 
     const merged = mergePayrollCashSources({ ownerActual, paymentConfirmed });
     expect(merged).toHaveLength(1);
-    expect(merged[0]?.id).toBe('owner-actual:emc-1');
-    expect(merged[0]?.paidAmount).toBe('8205');
+    expect(merged[0]?.id).toBe('pay-recorded');
+    expect(merged[0]?.paidAmount).toBe('8250');
   });
 
   it('keeps payment confirmation when no owner actual exists', () => {
