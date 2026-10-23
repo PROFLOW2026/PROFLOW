@@ -44,7 +44,7 @@ import { collectDgSources } from './collect-dg';
 import {
   attendanceEmployeeDateAlertHref,
   missingAttendanceTodayAlertHref,
-  paymentReminderDraftHref,
+  billingRecordAlertHref,
 } from '../domain/alert-deep-links';
 import { fromNumericString, isPositiveMoney, isZeroMoney } from '@/shared/money';
 import type { OrgContext } from '@/shared/auth/context';
@@ -150,17 +150,15 @@ export async function collectOverdueAr(ctx: CollectContext): Promise<CommandCent
       what: copy.what,
       why: copy.why,
       where: record.projectName ?? fallbackWhere(ctx.copyScope, 'billing'),
-      href: paymentReminderDraftHref({
-        billingRecordId: record.id,
-        projectId: record.projectId,
-        clientId: record.clientId,
-        subject: record.reference,
-      }),
+      href: billingRecordAlertHref(record.id),
       urgencyBump: Math.min(99, Math.max(0, days)),
       meta: {
         dueDate: record.dueDate,
         outstanding: shown.amount,
-        dedupeHref: `/billing/${record.id}`,
+        currency: shown.currency,
+        reference: record.reference,
+        clientId: record.clientId,
+        projectId: record.projectId,
       },
     })];
   });

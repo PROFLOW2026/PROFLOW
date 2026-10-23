@@ -174,6 +174,15 @@ export function cashFlowRiskLegOpen(amount: MoneyValue): boolean {
   return isMaterialPositiveMoney(amount);
 }
 
+/** Incoming overdue AR is surfaced per billing record (`overdue_ar`); org rollup is for outgoing risk only. */
+export function shouldSurfaceCashFlowRiskAlert(
+  hasIncomingOverdue: boolean,
+  hasOutgoingOverdue: boolean,
+): boolean {
+  void hasIncomingOverdue;
+  return hasOutgoingOverdue;
+}
+
 export async function collectCashFlowRisk(ctx: CollectContext): Promise<CommandCenterItem[]> {
   if (!hasPermission(ctx.context, PERMISSIONS.PROJECT_FINANCIALS_READ)) return [];
   if (!hasPermission(ctx.context, PERMISSIONS.BILLING_READ)) return [];
@@ -200,7 +209,7 @@ export async function collectCashFlowRisk(ctx: CollectContext): Promise<CommandC
 
   const hasIn = cashFlowRiskLegOpen(inAmount);
   const hasOut = cashFlowRiskLegOpen(outAmount);
-  if (!hasIn && !hasOut) return [];
+  if (!shouldSurfaceCashFlowRiskAlert(hasIn, hasOut)) return [];
 
   const copy = cashFlowRiskCopy(ctx.copyScope, {
     overdueIn: inAmount.amount,

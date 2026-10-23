@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   attendanceEmployeeDateAlertHref,
+  billingRecordAlertHref,
   employeeLaborAllocationAlertHref,
   expenseAllocationAlertHref,
   expensePaymentAlertHref,
   missingAttendanceTodayAlertHref,
+  paymentReminderDraftHref,
   payrollAlertHref,
 } from '@/modules/command-center/domain/alert-deep-links';
 import { commandCenterItemToNotificationItem } from '@/modules/notifications/application/actionable-inbox';
@@ -13,6 +15,22 @@ import { commandCenterCopyTranslator } from '@/shared/i18n/sync-namespace-transl
 import { withItemDefaults } from '@/modules/command-center/domain/ranking';
 
 describe('alert deep links', () => {
+  it('builds billing record alert href for overdue collection items', () => {
+    expect(billingRecordAlertHref('br-0016')).toBe('/billing/br-0016');
+  });
+
+  it('keeps payment reminder composer separate from billing alert target', () => {
+    expect(
+      paymentReminderDraftHref({
+        billingRecordId: 'br-0016',
+        projectId: 'proj-1',
+        clientId: 'client-1',
+        subject: '0016',
+      }),
+    ).toContain('/communications/new?');
+    expect(paymentReminderDraftHref({ billingRecordId: 'br-0016' })).not.toBe('/billing/br-0016');
+  });
+
   it('builds expense payment resolution href', () => {
     expect(expensePaymentAlertHref('exp-1')).toBe('/expenses/exp-1?focus=payment');
   });

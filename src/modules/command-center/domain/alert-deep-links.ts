@@ -53,6 +53,11 @@ export function missingAttendanceTodayAlertHref(input: {
   return attendanceEmployeeDateAlertHref(input);
 }
 
+/** Canonical billing record detail for collection / overdue alerts. */
+export function billingRecordAlertHref(billingRecordId: string): string {
+  return `/billing/${billingRecordId}`;
+}
+
 /** Existing communications composer for a payment reminder on a billing record. */
 export function paymentReminderDraftHref(input: {
   readonly billingRecordId: string;
