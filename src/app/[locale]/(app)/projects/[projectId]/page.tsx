@@ -16,6 +16,8 @@ import {
   titleWithDocumentNumber,
 } from '@/modules/tenancy';
 import { withOrgContext } from '@/shared/auth/session';
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
+import { ProjectContractsPanel } from '@/modules/projects/ui/project-contracts-panel';
 import { getModuleVisibility } from '@/modules/tenancy';
 import { loadProjectDetailInContext, loadProjectDetail } from './load-project-detail';
 import {
@@ -171,6 +173,7 @@ async function ProjectStructuredTabPanel({
 
     const uiLocale = locale === 'he-IL' ? 'he-IL' : 'en';
     const canManageContract = can(PERMISSIONS.CONTRACTS_MANAGE);
+    const isOwner = isOrganizationOwner(context);
     const baseCurrency =
       detail.contract?.currency ?? detail.project.currency ?? context.organization.baseCurrency ?? 'ILS';
     const sample = formatMoney(zeroMoney(baseCurrency), locale, {
@@ -271,6 +274,7 @@ async function ProjectStructuredTabPanel({
               baseCurrency={baseCurrency}
               currencySymbol={currencySymbol}
               canManageContract={canManageContract}
+              isOwner={isOwner}
               customFields={customFields}
               taxRatePercent={detail.contract?.taxSnapshot?.ratePercent ?? null}
               coverPreviewUrl={coverPreviewUrl}
@@ -278,6 +282,11 @@ async function ProjectStructuredTabPanel({
               coverStorageConfigured={coverAvailability?.storageConfigured ?? false}
               canEditCover={canEditProjects}
             />
+            {canManageContract ? (
+              <div className="mt-4">
+                <ProjectContractsPanel projectId={projectId} currency={baseCurrency} />
+              </div>
+            ) : null}
           </div>
         ) : null}
 

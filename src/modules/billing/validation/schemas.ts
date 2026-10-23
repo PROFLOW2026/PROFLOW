@@ -191,3 +191,66 @@ export const updateCollectionFollowUpSchema = z
   });
 
 export type UpdateCollectionFollowUpInput = z.infer<typeof updateCollectionFollowUpSchema>;
+
+export const editFinalizedBillingRecordSchema = z
+  .object({
+    billingRecordId: z.string().uuid(),
+    issueDate: businessDateSchema.optional(),
+    dueDate: businessDateSchema.nullable().optional(),
+    reference: z.string().trim().max(120).optional().nullable(),
+    notes: z.string().trim().max(4000).optional().nullable(),
+    amount: moneyAmountSchema.optional(),
+    netAmount: moneyAmountSchema.optional().nullable(),
+    taxAmount: moneyAmountSchema.optional().nullable(),
+    vatMode: z.enum(['inclusive', 'exclusive', 'zero']).optional().nullable(),
+    changeAcknowledged: z.literal(true),
+  })
+  .refine(
+    (value) =>
+      value.issueDate !== undefined ||
+      value.dueDate !== undefined ||
+      value.reference !== undefined ||
+      value.notes !== undefined ||
+      value.amount !== undefined ||
+      value.netAmount !== undefined ||
+      value.taxAmount !== undefined ||
+      value.vatMode !== undefined,
+    { message: 'At least one field must be updated' },
+  );
+
+export type EditFinalizedBillingRecordInput = z.infer<typeof editFinalizedBillingRecordSchema>;
+
+export const previewSimilarBillingSchema = z.object({
+  billingRecordId: z.string().uuid(),
+  issueDate: businessDateSchema,
+  subtotalAmount: moneyAmountSchema,
+  projectId: z.string().uuid().nullable().optional(),
+  clientId: z.string().uuid().nullable().optional(),
+});
+
+export type PreviewSimilarBillingInput = z.infer<typeof previewSimilarBillingSchema>;
+
+export const updateRecordedCustomerPaymentDateSchema = z.object({
+  paymentId: z.string().uuid(),
+  paymentDate: businessDateSchema,
+  changeAcknowledged: z.literal(true),
+});
+
+export type UpdateRecordedCustomerPaymentDateInput = z.infer<
+  typeof updateRecordedCustomerPaymentDateSchema
+>;
+
+export const correctRecordedCustomerPaymentSchema = z
+  .object({
+    paymentId: z.string().uuid(),
+    paymentDate: businessDateSchema.optional(),
+    amount: moneyAmountSchema.optional(),
+    changeAcknowledged: z.literal(true),
+  })
+  .refine((value) => value.paymentDate !== undefined || value.amount !== undefined, {
+    message: 'At least payment date or amount must be updated',
+  });
+
+export type CorrectRecordedCustomerPaymentInput = z.infer<
+  typeof correctRecordedCustomerPaymentSchema
+>;

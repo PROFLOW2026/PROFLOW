@@ -122,6 +122,21 @@
     "to": "إلى",
     "apply": "تطبيق"
   },
+  "businessChange": {
+    "historyNote": "سيُحفظ التغيير في سجل النشاط مع القيم قبل وبعد.",
+    "fieldColumn": "الحقل",
+    "beforeColumn": "قبل",
+    "afterColumn": "بعد",
+    "backToEdit": "العودة للتحرير",
+    "confirmSave": "تأكيد وحفظ",
+    "confirmPending": "جاري الحفظ…"
+  },
+  "duplicateWarning": {
+    "notBlocking": "هذا تحذير فقط — تابع إذا كان الإجراء مشروعاً.",
+    "openRecord": "فتح السجل",
+    "backToEdit": "العودة للتحرير",
+    "continueAnyway": "المتابعة على أي حال"
+  },
   "a11y": {
     "skipToContent": "انتقل إلى المحتوى الرئيسي",
     "mainNavigation": "التنقل الرئيسي",

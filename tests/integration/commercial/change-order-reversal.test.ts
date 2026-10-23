@@ -89,6 +89,7 @@ describe('change order commercial reversal', () => {
         changeOrderId: seeded.changeOrderId,
         reason: 'Client cancelled the extra work',
         effectiveDate: '2026-08-14',
+        changeAcknowledged: true,
       });
       const summary = await getProjectCommercialSummary(context, seeded.projectId);
       const detail = await getChangeRequestDetail(context, seeded.changeRequestId);
@@ -162,6 +163,7 @@ describe('change order commercial reversal', () => {
       const reversal = await reverseChangeOrder(context, {
         changeOrderId: seeded.changeOrderId,
         reason: 'Scope removed after allocation',
+        changeAcknowledged: true,
       });
 
       const allocations = await listChangeAllocationsForChangeOrder(
@@ -195,11 +197,13 @@ describe('change order commercial reversal', () => {
       const reversal = await reverseChangeOrder(context, {
         changeOrderId: seeded.changeOrderId,
         reason: 'First reversal',
+        changeAcknowledged: true,
       });
       await expect(
         reverseChangeOrder(context, {
           changeOrderId: reversal.reversalChangeOrderId,
           reason: 'Second reversal',
+          changeAcknowledged: true,
         }),
       ).rejects.toBeInstanceOf(DomainRuleError);
     });
@@ -218,11 +222,13 @@ describe('change order commercial reversal', () => {
       await reverseChangeOrder(context, {
         changeOrderId: seeded.changeOrderId,
         reason: 'First reversal',
+        changeAcknowledged: true,
       });
       await expect(
         reverseChangeOrder(context, {
           changeOrderId: seeded.changeOrderId,
           reason: 'Second reversal',
+          changeAcknowledged: true,
         }),
       ).rejects.toBeInstanceOf(ConflictError);
     });
@@ -370,6 +376,7 @@ describe('change order commercial reversal', () => {
       await reverseChangeOrder(context, {
         changeOrderId: seeded.changeOrderId,
         reason: 'Canonical commercial reversal',
+        changeAcknowledged: true,
       });
       const allocations = await listChangeAllocationsForChangeOrder(
         tx,

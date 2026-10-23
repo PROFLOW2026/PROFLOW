@@ -13,6 +13,7 @@ import { businessDate } from '@/shared/dates';
 import { money } from '@/shared/money';
 import { confirmPayrollPaymentAction } from '@/app/[locale]/(app)/workforce/employees/actions';
 import { displayedPayrollAmount } from '@/modules/workforce/domain/payroll-obligation';
+import { EmployeePayrollRetroactiveEdit } from '@/modules/workforce/ui/employee-payroll-retroactive-edit';
 
 export interface EmployeePayrollMonthPanelProps {
   readonly employeeId: string;
@@ -27,6 +28,7 @@ export interface EmployeePayrollMonthPanelProps {
   readonly paidAt: string | null;
   readonly locale: string;
   readonly canManage: boolean;
+  readonly isOwner?: boolean;
   readonly defaultPaymentDate: string;
 }
 
@@ -43,6 +45,7 @@ export function EmployeePayrollMonthPanel({
   paidAt,
   locale,
   canManage,
+  isOwner = false,
   defaultPaymentDate,
 }: EmployeePayrollMonthPanelProps) {
   const t = useTranslations('workforce.payrollPayment');
@@ -118,6 +121,17 @@ export function EmployeePayrollMonthPanel({
 
         {!canManage && !paidAt ? (
           <Alert tone="info">{t('readOnlyHint')}</Alert>
+        ) : null}
+
+        {paidAt && canManage && isOwner ? (
+          <EmployeePayrollRetroactiveEdit
+            employeeId={employeeId}
+            yearMonth={yearMonth}
+            initialPaidAt={paidAt}
+            initialPaidAmount={paidAmount ?? expectedAmount}
+            currency={currency}
+            locale={locale}
+          />
         ) : null}
       </CardContent>
     </Card>

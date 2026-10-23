@@ -13,6 +13,7 @@ import {
   voidBillingRecordAction,
   voidPaymentAction,
 } from './actions';
+import { VoidBillingWithPaymentsButton } from './void-billing-with-payments-button';
 import {
   employeeFinalizeBillingRecordAction,
   employeeVoidBillingRecordAction,
@@ -34,6 +35,8 @@ interface BillingDetailActionsProps {
   recordReference: string | null;
   paymentActions?: readonly PaymentAction[];
   surface?: OrgListSurface;
+  /** Owner retroactive void of finalized billing (cascades void to recorded payments). */
+  canRetroactiveVoid?: boolean;
 }
 
 function FormattedDate({ date, locale }: { date: BusinessDate; locale: string }) {
@@ -69,6 +72,7 @@ export function BillingDetailActions({
   recordReference,
   paymentActions = [],
   surface = 'owner',
+  canRetroactiveVoid = false,
 }: BillingDetailActionsProps) {
   const finalizeAction =
     surface === 'employee' ? employeeFinalizeBillingRecordAction : finalizeBillingRecordAction;
@@ -119,33 +123,44 @@ export function BillingDetailActions({
       ) : null}
 
       {status === 'draft' || status === 'finalized' ? (
-        <ConfirmAction
-          title={status === 'draft' ? t('confirm.voidDraftTitle') : t('confirm.voidRecordTitle')}
-          description={
-            <>
-              <p>
-                {status === 'draft'
-                  ? t('confirm.voidDraftQuestion', { reference: referenceLabel })
-                  : t('confirm.voidRecordQuestion', { reference: referenceLabel })}
-              </p>
-              <p>
-                {status === 'draft'
-                  ? t('confirm.voidDraftConsequence')
-                  : t('confirm.voidRecordConsequence')}
-              </p>
-            </>
-          }
-          confirmLabel={status === 'draft' ? t('draft.void') : t('detail.void')}
-          successMessage={
-            status === 'draft' ? t('confirm.voidDraftSuccess') : t('confirm.voidRecordSuccess')
-          }
-          onConfirm={() => runBillingAction(() => voidRecordAction(billingRecordId))}
-          trigger={
-            <Button type="button" variant="secondary">
-              {status === 'draft' ? t('draft.void') : t('detail.void')}
-            </Button>
-          }
-        />
+        status === 'finalized' &&
+        canRetroactiveVoid &&
+        paymentActions.some((payment) => payment.status === 'recorded') ? (
+          <VoidBillingWithPaymentsButton
+            billingRecordId={billingRecordId}
+            recordReference={recordReference}
+            locale={locale}
+            recordedPayments={paymentActions.filter((payment) => payment.status === 'recorded')}
+          />
+        ) : (
+          <ConfirmAction
+            title={status === 'draft' ? t('confirm.voidDraftTitle') : t('confirm.voidRecordTitle')}
+            description={
+              <>
+                <p>
+                  {status === 'draft'
+                    ? t('confirm.voidDraftQuestion', { reference: referenceLabel })
+                    : t('confirm.voidRecordQuestion', { reference: referenceLabel })}
+                </p>
+                <p>
+                  {status === 'draft'
+                    ? t('confirm.voidDraftConsequence')
+                    : t('confirm.voidRecordConsequence')}
+                </p>
+              </>
+            }
+            confirmLabel={status === 'draft' ? t('draft.void') : t('detail.void')}
+            successMessage={
+              status === 'draft' ? t('confirm.voidDraftSuccess') : t('confirm.voidRecordSuccess')
+            }
+            onConfirm={() => runBillingAction(() => voidRecordAction(billingRecordId))}
+            trigger={
+              <Button type="button" variant="secondary">
+                {status === 'draft' ? t('draft.void') : t('detail.void')}
+              </Button>
+            }
+          />
+        )
       ) : null}
 
       {paymentActions

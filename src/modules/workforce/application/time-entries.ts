@@ -758,6 +758,10 @@ export async function correctTimeEntry(
   }
 
   const input = parsed.data;
+  const { assertBusinessChangeAcknowledged } = await import(
+    '@/shared/business-change/assert-change-acknowledged'
+  );
+  assertBusinessChangeAcknowledged(input.changeAcknowledged, 'errors.confirmRequired');
   const original = await findTimeEntryById(
     context.db,
     context.organizationId,

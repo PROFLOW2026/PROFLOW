@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNull } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm';
 import { contractValueEvents, contracts, profiles } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type {
@@ -539,4 +539,70 @@ export async function unsetContractPrimary(
     .returning();
 
   return row ? mapContract(row) : null;
+}
+
+export async function findContractValueEventByChangeOrderId(
+  db: DbExecutor,
+  organizationId: string,
+  changeOrderId: string,
+): Promise<ContractValueEventRecord | null> {
+  const [row] = await db
+    .select()
+    .from(contractValueEvents)
+    .where(
+      and(
+        eq(contractValueEvents.organizationId, organizationId),
+        eq(contractValueEvents.changeOrderId, changeOrderId),
+        eq(contractValueEvents.kind, 'change_order'),
+      ),
+    )
+    .limit(1);
+
+  return row ? mapValueEvent(row) : null;
+}
+
+export interface SimilarContractRow {
+  readonly id: string;
+  readonly projectId: string;
+  readonly name: string | null;
+  readonly contractNumber: string | null;
+}
+
+export async function findSimilarContracts(
+  db: DbExecutor,
+  organizationId: string,
+  input: {
+    readonly excludeContractId: string;
+    readonly projectId: string;
+    readonly contractNumber: string | null;
+    readonly name: string | null;
+  },
+): Promise<SimilarContractRow[]> {
+  const number = input.contractNumber?.trim();
+  const name = input.name?.trim();
+  if (!number && !name) return [];
+
+  const filters = [
+    eq(contracts.organizationId, organizationId),
+    ne(contracts.id, input.excludeContractId),
+    eq(contracts.projectId, input.projectId),
+    isNull(contracts.archivedAt),
+  ];
+
+  if (number) {
+    filters.push(eq(contracts.contractNumber, number));
+  } else if (name) {
+    filters.push(sql`lower(trim(${contracts.name})) = lower(trim(${name}))`);
+  }
+
+  return db
+    .select({
+      id: contracts.id,
+      projectId: contracts.projectId,
+      name: contracts.name,
+      contractNumber: contracts.contractNumber,
+    })
+    .from(contracts)
+    .where(and(...filters))
+    .limit(8);
 }

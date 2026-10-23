@@ -122,6 +122,21 @@
     "to": "To",
     "apply": "Apply"
   },
+  "businessChange": {
+    "historyNote": "The change will be stored in activity history with before and after values.",
+    "fieldColumn": "Field",
+    "beforeColumn": "Before",
+    "afterColumn": "After",
+    "backToEdit": "Back to editing",
+    "confirmSave": "Confirm and save",
+    "confirmPending": "Saving…"
+  },
+  "duplicateWarning": {
+    "notBlocking": "This is a warning only — continue if the action is legitimate.",
+    "openRecord": "Open record",
+    "backToEdit": "Back to editing",
+    "continueAnyway": "Continue anyway"
+  },
   "a11y": {
     "skipToContent": "Skip to main content",
     "mainNavigation": "Main navigation",

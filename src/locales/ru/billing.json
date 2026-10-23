@@ -277,6 +277,35 @@
     "whatsapp": "WhatsApp",
     "whatsappMessage": "Напоминание об оплате по {reference}. Остаток: {amount}."
   },
+  "retroactiveVoid": {
+    "confirmTitle": "Аннулировать запись выставления {reference}?",
+    "confirmDescription": "Сначала аннулируются зафиксированные платежи по счёту, затем запись выставления. Всё сохраняется в истории; распределения остаются как аннулированные строки.",
+    "billingStatus": "Статус выставления",
+    "statusFinalized": "Финализирован",
+    "statusVoid": "Аннулирован",
+    "paymentLine": "Платёж {index}",
+    "paymentVoided": "Аннулирован (в истории)",
+    "impactHistory": "История",
+    "impactHistoryDetail": "Платежи и счёт остаются в учёте как аннулированные строки.",
+    "impactAllocations": "Распределения",
+    "impactAllocationsDetail": "Связи платежей сохраняются; суммы больше не входят в дебиторку."
+  },
+  "retroactiveEdit": {
+    "title": "Исправление выставления (владелец)",
+    "description": "Исправление дат, сумм и внутренних данных. Платежи клиента исправляются отдельно. Все изменения в истории.",
+    "save": "Сохранить исправление",
+    "confirmTitle": "Подтвердить исправление?",
+    "confirmDescription": "Проверьте изменение перед сохранением.",
+    "duplicateTitle": "Найдена похожая запись",
+    "duplicateDescription": "Возможен дубликат — или два обоснованных действия.",
+    "duplicateReason": "Та же дата выставления и сумма нетто ({date}, {amount}).",
+    "invoicedMonthImpact": "Месяц выставления (выручка по дате счёта)",
+    "invoicedMonthShift": "С {from} на {to}. Поступления по дате платежа не меняются.",
+    "statutoryImpact": "Внешний документ",
+    "statutoryUnchanged": "Выпущенный SUMIT/учётный документ не меняется; исправляются только внутренние данные.",
+    "amountImpact": "Сумма выставления",
+    "amountImpactDetail": "Зафиксированные платежи должны соответствовать исправленной сумме."
+  },
   "creditNote": {
     "title": "Кредит-нота",
     "description": "Выпускает новую кредит-ноту через существующую корректировку. Исходный счёт не меняется и не удаляется.",
@@ -313,7 +342,11 @@
     "collectionFollowUpNotEligible": "Контроль оплаты доступен только для финализированного счёта с остатком или просрочкой.",
     "collectionDateInvalid": "Введите дату в формате YYYY-MM-DD.",
     "collectionNoteTooLong": "Заметка по оплате не длиннее 500 символов.",
-    "collectionFollowUpUnavailable": "Контроль оплаты нельзя сохранить, пока не применено обновление базы данных."
+    "collectionFollowUpUnavailable": "Контроль оплаты нельзя сохранить, пока не применено обновление базы данных.",
+    "ownerOnlyRetroactiveEdit": "Only the organization owner may correct closed or finalized records.",
+    "confirmRequired": "Confirm the change before saving.",
+    "statutoryDateOnlyCorrection": "When an external document was issued, only billing dates may be corrected.",
+    "paymentNotEditable": "This payment cannot be edited in its current state."
   },
   "notAllowed": {
     "title": "Недоступно",

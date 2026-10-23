@@ -6,7 +6,9 @@ import { noteModuleUsage, resolveAllocatedReference, titleWithDocumentNumber } f
 import { recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone } from '@/shared/dates';
-import { NotFoundError, ValidationError } from '@/shared/errors';
+import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
+import { assertBusinessChangeAcknowledged } from '@/shared/business-change/assert-change-acknowledged';
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { recordQuoteClientActivity } from './timeline-events';
@@ -22,6 +24,8 @@ import {
 } from '../data/quotes.repository';
 import {
   createQuoteSchema,
+  editQuoteRetroactiveSchema,
+  type EditQuoteRetroactiveInput,
   updateQuoteSchema,
   type CreateQuoteInput,
   type UpdateQuoteInput,
@@ -362,6 +366,71 @@ export async function updateQuote(
       status: updated.status,
       subtotalAmount: updated.subtotalAmount,
       totalAmount: updated.totalAmount,
+    },
+  });
+
+  return updated;
+}
+
+/** Owner correction of header fields on sent or accepted quotes (no line edits). */
+export async function editQuoteRetroactive(
+  context: OrgContext,
+  rawInput: EditQuoteRetroactiveInput,
+): Promise<QuoteRecord> {
+  assertPermission(context, PERMISSIONS.QUOTES_MANAGE);
+  if (!isOrganizationOwner(context)) {
+    throw new DomainRuleError(
+      'Only the organization owner may correct sent or accepted quotes',
+      'quotes.errors.ownerOnlyRetroactiveEdit',
+    );
+  }
+
+  const parsed = editQuoteRetroactiveSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const input = parsed.data;
+  assertBusinessChangeAcknowledged(input.changeAcknowledged, 'errors.confirmRequired');
+  const existing = await findQuoteById(context.db, context.organizationId, input.quoteId);
+  if (!existing) throw new NotFoundError('Quote');
+  if (existing.status !== 'sent' && existing.status !== 'accepted') {
+    throw new DomainRuleError(
+      'Only sent or accepted quotes can be corrected through this path',
+      'quotes.errors.notEditable',
+      { status: existing.status },
+    );
+  }
+
+  const updated = await updateQuoteById(context.db, context.organizationId, existing.id, {
+    title: input.title,
+    description: input.description === undefined ? undefined : input.description,
+    validityDate: input.validityDate === undefined ? undefined : input.validityDate,
+    notes: input.notes === undefined ? undefined : input.notes,
+  });
+  if (!updated) throw new NotFoundError('Quote');
+
+  await recordAuditEvent(context, {
+    action: QUOTES_AUDIT_ACTIONS.UPDATED,
+    entityType: 'estimate_quote',
+    entityId: updated.id,
+    before: {
+      correctionKind: 'owner_retroactive',
+      title: existing.title,
+      description: existing.description,
+      validityDate: existing.validityDate,
+      notes: existing.notes,
+      status: existing.status,
+    },
+    after: {
+      correctionKind: 'owner_retroactive',
+      title: updated.title,
+      description: updated.description,
+      validityDate: updated.validityDate,
+      notes: updated.notes,
+      status: updated.status,
     },
   });
 

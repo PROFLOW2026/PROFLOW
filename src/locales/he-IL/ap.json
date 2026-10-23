@@ -361,6 +361,16 @@
     "notesLabel": "הערות",
     "noProject": "כללי"
   },
+  "retroactiveEdit": {
+    "confirmTitle": "לאשר את תיקון החשבון?",
+    "confirmDescription": "בדקו את השינוי לפני שמירה סופית. התיקון יירשם בהיסטוריה.",
+    "duplicateTitle": "נמצא חשבון דומה",
+    "duplicateDescription": "ייתכן שמדובר בכפילות — אך ייתכנו גם שתי פעולות עסקיות לגיטימיות.",
+    "duplicateReason": "אותו תאריך וסכום ({date}, {amount}).",
+    "correctPaymentDate": "תיקון תאריך תשלום",
+    "correctPaymentDateHint": "בעלים בלבד. דוחות מזומן לפי תאריך תשלום — ההכרה בחשבון לא משתנה.",
+    "savePaymentDate": "שמירת תאריך תשלום"
+  },
   "aging": {
     "title": "חובות לספקים לפי מועד תשלום",
     "navLink": "חובות לספקים",
@@ -443,6 +453,9 @@
     "paymentOverApplied": "התשלום יחרוג מיתרת החשבון לתשלום.",
     "paymentApplicationMismatch": "סכום התשלום חייב להיות שווה לסכום ההקצאות.",
     "paymentNotVoidable": "ניתן לבטל רק תשלומים רשומים.",
+    "paymentNotEditable": "ניתן לתקן כאן רק תשלומים במצב רשום.",
+    "confirmRequired": "יש לאשר את השינוי לפני שמירה.",
+    "ownerOnlyRetroactiveEdit": "רק בעל הארגון רשאי לבצע תיקון זה.",
     "paymentVendorMismatch": "כל ההקצאות חייבות להיות לאותו ספק.",
     "paymentAffectsActual": "תשלום ספק אינו רשאי להכיר בעלות מוכרת.",
     "voidPaymentsFirst": "בטלו תשלומים רשומים לפני ביטול חשבונית הספק.",

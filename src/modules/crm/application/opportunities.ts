@@ -1,6 +1,7 @@
 import { noteModuleUsage } from '@/modules/tenancy';
 import { listAuditEventSummariesForEntity, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
+import { assertOwnerRetroactiveBusinessChange } from '@/shared/business-change/assert-owner-retroactive';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -220,6 +221,16 @@ export async function updateOpportunity(
     input.opportunityId,
   );
   if (!existing) throw new NotFoundError('Opportunity');
+
+  const isTerminalOpportunity =
+    existing.status === 'won' || existing.status === 'lost' || existing.status === 'cancelled';
+  if (isTerminalOpportunity) {
+    assertOwnerRetroactiveBusinessChange(
+      context,
+      input.changeAcknowledged,
+      'crm.errors.ownerOnlyRetroactiveEdit',
+    );
+  }
 
   const markingLost = input.status === 'lost' || input.stage === 'lost';
   if (markingLost) {

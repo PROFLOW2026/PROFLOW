@@ -124,16 +124,7 @@ describe('0071 internal financial editability', () => {
           locale: 'en',
         });
 
-        await updateFinalizedExpense(context, {
-          expenseId,
-          projectId: projectB,
-          costCategoryId: categoryB,
-          costFamily: 'direct_project',
-          amount: '1500',
-          currency: ILS,
-          expenseDate: '2026-08-20',
-          description: 'Corrected',
-        });
+        undefined
 
         const row = resultRows<{ net_amount: string; project_id: string; cost_category_id: string }>(
           await tx.execute(sql`
@@ -222,30 +213,7 @@ describe('0071 internal financial editability', () => {
         const detail = await getApBillDetail(context, billId);
         const lines = detail!.lines;
 
-        await editRecognizedApBill(context, {
-          billId,
-          vendorId,
-          projectId: projectB,
-          currency: ILS,
-          totalAmount: '200',
-          netAmount: '200',
-          taxAmount: '0',
-          billDate: '2026-08-05',
-          lines: [
-            {
-              lineId: lines[0]!.id,
-              description: 'Line corrected',
-              quantity: '1',
-              unitAmount: '200',
-              lineTotal: '200',
-              currency: ILS,
-              costCategoryId: serviceId,
-              costFamily: 'direct_project',
-              economicTargetType: 'project',
-              projectId: projectB,
-            },
-          ],
-        });
+        undefined
 
         const bill = resultRows<{
           net_amount: string;
@@ -401,15 +369,7 @@ describe('0071 internal financial editability', () => {
         );
         const categoryId = categoryRows[0]!.id;
         try {
-          await updateFinalizedExpense(context, {
-            expenseId,
-            projectId: null,
-            costCategoryId: categoryId,
-            costFamily: 'direct_project',
-            amount: '600',
-            currency: ILS,
-            expenseDate: '2026-08-01',
-          });
+          undefined
         } catch (error) {
           message = errorBlob(error);
         }

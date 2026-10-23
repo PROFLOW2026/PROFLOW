@@ -1,4 +1,5 @@
 import { recordAuditEvent } from '@/shared/audit';
+import { assertBusinessChangeAcknowledged } from '@/shared/business-change/assert-change-acknowledged';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
@@ -33,11 +34,13 @@ export async function updateFinalizedExpense(context: OrgContext, input: UpdateE
   if (!existing) throw new NotFoundError('Expense');
   if (existing.status !== 'finalized' || existing.voidsExpenseId) {
     throw new DomainRuleError(
-      'Only finalized expenses in an open month can be edited directly',
+      'Only finalized expenses can be corrected through this path',
       'expenses.errors.notEditable',
       { status: existing.status },
     );
   }
+
+  assertBusinessChangeAcknowledged(input.changeAcknowledged, 'expenses.errors.confirmRequired');
 
   try {
     await assertMonthOpenForRewrite(
@@ -163,16 +166,22 @@ export async function updateFinalizedExpense(context: OrgContext, input: UpdateE
         entityType: 'expense',
         entityId: input.expenseId,
         before: {
+          correctionKind: 'owner_retroactive',
+          grossAmount: existing.grossAmount.amount,
           netAmount: existing.netAmount.amount,
           projectId: existing.projectId,
           costCategoryId: existing.costCategoryId,
           expenseDate: existing.expenseDate,
+          paidAt: existing.paidAt,
         },
         after: {
+          correctionKind: 'owner_retroactive',
+          grossAmount: updated.grossAmount.amount,
           netAmount: updated.netAmount.amount,
           projectId: updated.projectId,
           costCategoryId: updated.costCategoryId,
           expenseDate: updated.expenseDate,
+          paidAt: updated.paidAt,
         },
       });
     });

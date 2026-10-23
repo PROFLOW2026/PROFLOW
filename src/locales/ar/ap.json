@@ -361,6 +361,16 @@
     "notesLabel": "ملاحظات",
     "noProject": "عام"
   },
+  "retroactiveEdit": {
+    "confirmTitle": "تأكيد تصحيح الحساب؟",
+    "confirmDescription": "راجعوا التغيير قبل الحفظ النهائي. يُسجَّل التصحيح في السجل.",
+    "duplicateTitle": "وُجد حساب مشابه",
+    "duplicateDescription": "قد يكون تكراراً — أو عمليتان تجاريتان مشروعتان.",
+    "duplicateReason": "نفس التاريخ والمبلغ ({date}, {amount}).",
+    "correctPaymentDate": "تصحيح تاريخ الدفع",
+    "correctPaymentDateHint": "للمالك فقط. تقارير النقد حسب تاريخ الدفع — الاعتراف بالحساب لا يتغير.",
+    "savePaymentDate": "حفظ تاريخ الدفع"
+  },
   "aging": {
     "title": "أعمار الذمم الدائنة",
     "navLink": "الأعمار",
@@ -443,6 +453,9 @@
     "paymentOverApplied": "الدفعة ستتجاوز مستحق الحساب.",
     "paymentApplicationMismatch": "مبلغ الدفعة يجب أن يساوي مجموع التطبيقات.",
     "paymentNotVoidable": "يمكن إلغاء الدفعات المسجّلة فقط.",
+    "paymentNotEditable": "ניתן לתקן כאן רק תשלומים במצב רשום.",
+    "confirmRequired": "יש לאשר את השינוי לפני שמירה.",
+    "ownerOnlyRetroactiveEdit": "فقط مالك المنظمة يمكنه تنفيذ هذا التصحيح.",
     "paymentVendorMismatch": "جميع تطبيقات الحساب يجب أن تشترك في نفس المورد.",
     "paymentAffectsActual": "دفعة المورد يجب ألا تعترف تكلفة فعلية أبداً.",
     "voidPaymentsFirst": "ألغِ الدفعات المسجّلة قبل إلغاء حساب المورد.",

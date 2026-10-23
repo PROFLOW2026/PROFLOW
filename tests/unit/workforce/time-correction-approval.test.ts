@@ -299,6 +299,7 @@ const correctionInput = {
   kind: 'project' as const,
   projectId: PROJECT_ID,
   description: 'Fixed hours',
+  changeAcknowledged: true as const,
 };
 
 function stubHappyPathLookups() {

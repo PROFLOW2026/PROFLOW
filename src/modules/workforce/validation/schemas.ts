@@ -258,6 +258,7 @@ export type CreateBulkTimeEntriesInput = z.infer<typeof createBulkTimeEntriesSch
 export const correctTimeEntrySchema = createTimeEntrySchema.and(
   z.object({
     correctsEntryId: z.string().uuid(),
+    changeAcknowledged: z.literal(true),
   }),
 );
 
@@ -629,3 +630,23 @@ export const attendanceFiltersSchema = z.object({
 });
 
 export type AttendanceFiltersInput = z.infer<typeof attendanceFiltersSchema>;
+
+export const reviseConfirmedPayrollPaidAtSchema = z.object({
+  employeeId: z.string().uuid(),
+  yearMonth: yearMonthSchema,
+  paidAt: businessDateSchema,
+  evidenceNote: z.string().trim().min(1).max(2000),
+  changeAcknowledged: z.literal(true),
+});
+
+export type ReviseConfirmedPayrollPaidAtInput = z.infer<typeof reviseConfirmedPayrollPaidAtSchema>;
+
+export const reviseConfirmedPayrollAmountSchema = z.object({
+  employeeId: z.string().uuid(),
+  yearMonth: yearMonthSchema,
+  paidAmount: moneyAmountSchema,
+  evidenceNote: z.string().trim().min(1).max(2000),
+  changeAcknowledged: z.literal(true),
+});
+
+export type ReviseConfirmedPayrollAmountInput = z.infer<typeof reviseConfirmedPayrollAmountSchema>;

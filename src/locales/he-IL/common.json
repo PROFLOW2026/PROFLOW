@@ -122,6 +122,21 @@
     "to": "עד",
     "apply": "החל"
   },
+  "businessChange": {
+    "historyNote": "השינוי יישמר בהיסטוריית הפעילות עם הערכים לפני ואחרי.",
+    "fieldColumn": "שדה",
+    "beforeColumn": "לפני",
+    "afterColumn": "אחרי",
+    "backToEdit": "חזרה לעריכה",
+    "confirmSave": "אשר ושמור",
+    "confirmPending": "שומר…"
+  },
+  "duplicateWarning": {
+    "notBlocking": "זו אזהרה בלבד — אפשר להמשיך אם הפעולה עסקית לגיטימית.",
+    "openRecord": "פתיחת הרשומה",
+    "backToEdit": "חזרה לעריכה",
+    "continueAnyway": "המשך בכל זאת"
+  },
   "a11y": {
     "skipToContent": "דילוג לתוכן הראשי",
     "mainNavigation": "ניווט ראשי",

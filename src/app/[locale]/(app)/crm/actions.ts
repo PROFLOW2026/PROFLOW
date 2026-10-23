@@ -15,7 +15,12 @@ import {
   issueSalesQuoteVersion,
   updateLead,
   updateOpportunity,
+  updateProspect,
 } from '@/modules/crm';
+import {
+  listSimilarOpportunities,
+  listSimilarProspects,
+} from '@/modules/crm/application/find-similar-crm-records';
 import { withOrgContext } from '@/shared/auth/session';
 import { mapServerActionError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
@@ -335,10 +340,13 @@ export async function updateOpportunityAction(
         expectedValueAmount: formValue(formData, 'expectedValueAmount'),
         currency: formValue(formData, 'currency'),
         expectedStartDate: formValue(formData, 'expectedStartDate'),
+        referralSource: formValue(formData, 'referralSource'),
         lostReason: formValue(formData, 'lostReason'),
         notes: formValue(formData, 'notes'),
         nextActionAt: formValueOrNull(formData, 'nextActionAt'),
         nextActionText: formValueOrNull(formData, 'nextActionText'),
+        changeAcknowledged:
+          formData.get('changeAcknowledged') === 'true' ? (true as const) : undefined,
       }),
     );
     revalidateCrmOpportunityPaths(opportunityId);
@@ -352,6 +360,49 @@ export async function updateOpportunityAction(
  * Task 1: Convert a CRM sales quote to a draft product quote.
  * Redirects to the new product quote for review and editing.
  */
+export async function previewSimilarOpportunitiesAction(input: {
+  excludeOpportunityId: string;
+  name: string;
+  expectedStartDate: string | null;
+}) {
+  return withOrgContext((context) => listSimilarOpportunities(context, input));
+}
+
+export async function previewSimilarProspectsAction(input: {
+  excludeProspectId: string;
+  name: string;
+  email: string | null;
+}) {
+  return withOrgContext((context) => listSimilarProspects(context, input));
+}
+
+export async function updateProspectAction(
+  _prev: CrmFormState,
+  formData: FormData,
+): Promise<CrmFormState> {
+  const tErrors = await getTranslations('errors');
+  try {
+    const prospectId = formValue(formData, 'prospectId') ?? '';
+    await withOrgContext((context) =>
+      updateProspect(context, {
+        prospectId,
+        name: formValue(formData, 'name'),
+        companyName: formValue(formData, 'companyName'),
+        email: formValue(formData, 'email'),
+        phone: formValue(formData, 'phone'),
+        notes: formValue(formData, 'notes'),
+        changeAcknowledged:
+          formData.get('changeAcknowledged') === 'true' ? (true as const) : undefined,
+      }),
+    );
+    revalidatePath(`/crm/prospects/${prospectId}`);
+    revalidatePath('/crm/prospects');
+    return {};
+  } catch (error) {
+    return mapError(error, tErrors);
+  }
+}
+
 export async function convertCrmQuoteToProductQuoteAction(
   _prev: CrmFormState,
   formData: FormData,

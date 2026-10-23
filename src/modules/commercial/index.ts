@@ -21,6 +21,8 @@ export type { ApproveChangeRequestResult } from './application/quotes-and-approv
 export { reverseChangeOrder } from './application/reverse-change-order';
 export type { ReverseChangeOrderResult } from './application/reverse-change-order';
 
+export { editChangeOrderRetroactive } from './application/edit-change-order-retroactive';
+
 export {
   listProjectChangeRequests,
   listAllChangeRequests,

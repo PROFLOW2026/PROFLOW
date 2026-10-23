@@ -50,6 +50,16 @@
     "emptyColumn": "None in this stage",
     "wonConvertHint": "Won deals convert on Quotes — accept a product quote there, then create the project or job. CRM does not replace the quotes book."
   },
+  "retroactiveEdit": {
+    "description": "Owner correction for a won, lost, or cancelled opportunity. Stage and win conversion are unchanged.",
+    "save": "Save correction",
+    "confirmTitle": "Confirm opportunity correction",
+    "confirmDescription": "Review changes before saving. Audit history is kept.",
+    "referralSourceLabel": "Referral source",
+    "duplicateTitle": "Similar record found",
+    "duplicateDescription": "Another CRM record may match — continue only if both are legitimate.",
+    "duplicateReason": "Matching name or email."
+  },
   "followUp": {
     "title": "Next action / follow-up",
     "description": "Set the next follow-up and due time. Opportunity notes stay on the record; the log below is a separate note history. No email is sent.",
@@ -240,6 +250,7 @@
     "quoteFinalized": "Cannot add versions to a finalized sales quote",
     "quoteAlreadyConverted": "This CRM quote was already converted. Open the product quote to continue.",
     "cannotIssueVersion": "Only draft sales quote versions can be issued",
-    "cannotAcceptVersion": "Only draft or issued sales quote versions can be accepted"
+    "cannotAcceptVersion": "Only draft or issued sales quote versions can be accepted",
+    "ownerOnlyRetroactiveEdit": "Only the organization owner may correct closed CRM records."
   }
 }

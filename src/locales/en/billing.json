@@ -226,7 +226,9 @@
     "notTaxInvoice": "A draft is not a tax invoice. It stays out of receivables and profit.",
     "save": "Save draft",
     "overContract": "This draft amount is higher than the current contract value. You can still save and finalize.",
-    "void": "Void draft"
+    "void": "Void draft",
+    "confirmTitle": "Confirm draft changes?",
+    "confirmDescription": "Review business fields before saving the draft."
   },
   "detail": {
     "title": "Billing record",
@@ -289,6 +291,51 @@
     "whatsapp": "WhatsApp",
     "whatsappMessage": "Payment reminder for {reference}. Outstanding: {amount}."
   },
+  "paymentCorrection": {
+    "title": "Correct receipt (owner)",
+    "save": "Save receipt correction",
+    "confirmTitle": "Confirm receipt correction?",
+    "confirmDescription": "Collections use payment date; amounts are gross. The change is stored in history."
+  },
+  "retroactiveVoid": {
+    "confirmTitle": "Void billing record {reference}?",
+    "confirmDescription": "Recorded payments on this invoice will be voided first, then the billing record. All changes stay in history; allocations are preserved as voided rows.",
+    "billingStatus": "Billing status",
+    "statusFinalized": "Finalized",
+    "statusVoid": "Void",
+    "paymentLine": "Payment {index}",
+    "paymentVoided": "Void (history kept)",
+    "impactHistory": "History",
+    "impactHistoryDetail": "Payments and the invoice remain in the ledger as voided rows.",
+    "impactAllocations": "Allocations",
+    "impactAllocationsDetail": "Payment applications stay linked; amounts no longer count toward outstanding."
+  },
+  "retroactiveEdit": {
+    "title": "Correct billing (owner)",
+    "description": "Fix dates, amounts, and internal details. Customer payments are corrected separately below. All changes are stored in history.",
+    "save": "Save correction",
+    "confirmTitle": "Confirm this correction?",
+    "confirmDescription": "Review the change before saving.",
+    "duplicateTitle": "Similar record found",
+    "duplicateDescription": "This may be a duplicate — or two legitimate business entries.",
+    "duplicateReason": "Same issue date and net amount ({date}, {amount}).",
+    "invoicedMonthImpact": "Invoiced month (revenue by issue date)",
+    "invoicedMonthShift": "From {from} to {to}. Collections by payment date are unchanged.",
+    "statutoryImpact": "External document",
+    "statutoryUnchanged": "An issued SUMIT/accounting document will not change; only internal data is corrected.",
+    "statutoryInternalAmountDate": "The issued external document will not change. Only internal issue date and amounts are corrected.",
+    "amountImpact": "Billing amount",
+    "amountImpactDetail": "Recorded payments must still fit the corrected total. Collections by payment date are unchanged."
+  },
+  "paymentCorrection": {
+    "title": "Correct payment (owner)",
+    "description": "Fix payment date and amount. The change is stored in history and affects collection reporting by payment date.",
+    "save": "Save payment correction",
+    "confirmTitle": "Confirm payment correction?",
+    "confirmDescription": "Review the change before saving.",
+    "collectionsMonthImpact": "Collections month (cash by payment date)",
+    "collectionsMonthShift": "From {from} to {to}. Invoiced revenue by issue date is unchanged."
+  },
   "creditNote": {
     "title": "Credit note",
     "description": "Issues a new credit note through the existing adjustment. The original invoice is not changed or deleted.",
@@ -325,7 +372,13 @@
     "collectionFollowUpNotEligible": "Collection follow-up is only available on a finalized invoice that is still outstanding or overdue.",
     "collectionDateInvalid": "Enter a date as YYYY-MM-DD.",
     "collectionNoteTooLong": "The collection note must be 500 characters or fewer.",
-    "collectionFollowUpUnavailable": "Collection follow-up cannot be saved until the database update is applied."
+    "collectionFollowUpUnavailable": "Collection follow-up cannot be saved until the database update is applied.",
+    "ownerOnlyRetroactiveEdit": "Only the organization owner may correct closed or finalized records.",
+    "confirmRequired": "Confirm the change before saving.",
+    "statutoryDateOnlyCorrection": "When an external document was issued, only billing dates and amounts may be corrected internally.",
+    "paymentNotEditable": "This payment cannot be edited in its current state.",
+    "paidExceedsNewTotal": "Recorded payments exceed the corrected billing total. Reduce payments or use a credit note.",
+    "paymentCorrectionMultiApply": "This payment is split across multiple invoices. Void and re-record instead of correcting the amount here."
   },
   "notAllowed": {
     "title": "Not allowed",

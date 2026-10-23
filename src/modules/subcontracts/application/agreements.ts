@@ -3,6 +3,7 @@ import { contracts, entityLinks } from '@drizzle/schema';
 import { internalActor } from '@/shared/actor';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
 import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { withTransaction } from '@/shared/db';
 import type { DbExecutor } from '@/shared/db/types';
@@ -228,8 +229,96 @@ export async function updateAgreement(context: OrgContext, rawInput: UpdateAgree
   const input = parseOrThrow(updateAgreementSchema.safeParse(rawInput));
   const { agreement, access } = await loadAgreementWithAccess(context, input.agreementId);
   requireAccess(access, 'canManageContract');
-  if (agreement.status === 'closed' || agreement.status === 'cancelled') {
-    throw new DomainRuleError('Closed or cancelled agreements cannot be edited', 'subcontracts.errors.notEditable');
+  const isTerminal = agreement.status === 'closed' || agreement.status === 'cancelled';
+  if (isTerminal) {
+    if (!isOrganizationOwner(context)) {
+      throw new DomainRuleError(
+        'Closed or cancelled agreements cannot be edited',
+        'subcontracts.errors.notEditable',
+      );
+    }
+    const { assertBusinessChangeAcknowledged } = await import(
+      '@/shared/business-change/assert-change-acknowledged'
+    );
+    assertBusinessChangeAcknowledged(input.changeAcknowledged, 'errors.confirmRequired');
+
+    const touchesAny =
+      input.title !== undefined ||
+      input.notes !== undefined ||
+      input.trade !== undefined ||
+      input.scopeSummary !== undefined ||
+      input.workPackageId !== undefined ||
+      input.subcontractNumber !== undefined ||
+      input.startDate !== undefined ||
+      input.endDate !== undefined;
+    if (!touchesAny) {
+      throw new ValidationError([{ path: 'agreementId', message: 'No business fields changed' }]);
+    }
+
+    await assertWorkPackage(context.db, context.organizationId, agreement.projectId, input.workPackageId);
+
+    await withTransaction(context.db, async (tx) => {
+      const txContext = { ...context, db: tx };
+      try {
+        await updateAgreementRow(tx, context.organizationId, agreement.id, {
+          title: input.title,
+          notes: input.notes === undefined ? undefined : input.notes,
+          subcontractNumber:
+            input.subcontractNumber === undefined ? undefined : input.subcontractNumber,
+          startDate: input.startDate === undefined ? undefined : input.startDate,
+          endDate: input.endDate === undefined ? undefined : input.endDate,
+        });
+      } catch (error) {
+        if (isUniqueViolation(error)) {
+          throw new ConflictError('Subcontract number already exists', 'subcontracts.errors.numberTaken');
+        }
+        throw error;
+      }
+      await upsertAgreementProfile(tx, {
+        agreementId: agreement.id,
+        organizationId: context.organizationId,
+        projectId: agreement.projectId,
+        vendorId: agreement.vendorId,
+        trade: input.trade === undefined ? agreement.trade : input.trade,
+        scopeSummary:
+          input.scopeSummary === undefined ? agreement.scopeSummary : input.scopeSummary,
+        workPackageId:
+          input.workPackageId === undefined ? agreement.workPackageId : input.workPackageId,
+      });
+      await recordAuditEvent(txContext, {
+        action: AUDIT_ACTIONS.DG_SUBCONTRACT_AGREEMENT_UPDATED,
+        entityType: 'subcontract_agreement',
+        entityId: agreement.id,
+        before: {
+          correctionKind: 'owner_retroactive',
+          title: agreement.title,
+          trade: agreement.trade,
+          scopeSummary: agreement.scopeSummary,
+          workPackageId: agreement.workPackageId,
+          subcontractNumber: agreement.subcontractNumber,
+          startDate: agreement.startDate,
+          endDate: agreement.endDate,
+          notes: agreement.notes,
+        },
+        after: {
+          correctionKind: 'owner_retroactive',
+          title: input.title ?? agreement.title,
+          trade: input.trade === undefined ? agreement.trade : input.trade,
+          scopeSummary:
+            input.scopeSummary === undefined ? agreement.scopeSummary : input.scopeSummary,
+          workPackageId:
+            input.workPackageId === undefined ? agreement.workPackageId : input.workPackageId,
+          subcontractNumber:
+            input.subcontractNumber === undefined
+              ? agreement.subcontractNumber
+              : input.subcontractNumber,
+          startDate: input.startDate === undefined ? agreement.startDate : input.startDate,
+          endDate: input.endDate === undefined ? agreement.endDate : input.endDate,
+          notes: input.notes === undefined ? agreement.notes : input.notes,
+        },
+      });
+    });
+    return;
   }
   const draft = isBaselineEditable(agreement.status);
   const touchesBaseline =

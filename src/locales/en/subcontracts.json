@@ -253,6 +253,14 @@
     "counterSubmit": "Send counter-offer",
     "countered": "Counter-offer sent"
   },
+  "retroactiveEdit": {
+    "title": "Owner correction (closed/cancelled)",
+    "description": "Correct agreement header fields on a closed or cancelled subcontract. Changes are audited; commercial change orders still use the Changes tab.",
+    "save": "Save correction",
+    "saved": "Correction saved.",
+    "confirmTitle": "Confirm subcontract correction",
+    "confirmDescription": "Review changes before saving. External documents already issued are not changed."
+  },
   "errors": {
     "lifecycleTransition": "This status change is not allowed for the contract's current status.",
     "baselineLocked": "The contract is active. Change scope, quantity or price through an approved change.",

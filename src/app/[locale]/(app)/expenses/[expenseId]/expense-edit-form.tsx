@@ -1,7 +1,12 @@
 'use client';
 
-import { useActionState, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useActionState, useMemo, useState, type FormEvent } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { BusinessChangeFormDialogs } from '@/components/patterns/business-change-form-dialogs';
+import { useBusinessChangeFormSubmit } from '@/shared/business-change/use-business-change-form-submit';
+import type { BusinessChangeFieldDiff } from '@/shared/business-change/types';
+import { businessDate } from '@/shared/dates';
+import { formatBusinessDate } from '@/shared/dates/format';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ExpenseForm, type ExpenseFormValues } from '@/modules/expenses/ui/expense-form';
@@ -22,7 +27,11 @@ import type { AllocationDraft } from '@/modules/expenses/ui/allocation-editor';
 import { expensePayloadFromFormData } from '@/modules/offline/domain/payloads';
 import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-aware-form-action';
 import { Link } from '@/shared/i18n/navigation';
-import { updateExpenseAction, type ExpenseActionState } from '../actions';
+import {
+  previewSimilarExpensesAction,
+  updateExpenseAction,
+  type ExpenseActionState,
+} from '../actions';
 
 export interface ExpenseEditFormProps {
   readonly expense: ExpenseDetail;
@@ -56,6 +65,7 @@ export function ExpenseEditForm({
   savedConfirmation = false,
 }: ExpenseEditFormProps) {
   const t = useTranslations('expenses');
+  const locale = useLocale();
   const tCommon = useTranslations('common');
   const tOffline = useTranslations('offline');
   const serverUpdatedAt = toServerUpdatedAt(expense.updatedAt);
@@ -166,9 +176,72 @@ export function ExpenseEditForm({
     ? `preserved-${JSON.stringify(state.formValues)}`
     : expense.id;
 
+  const formId = `expense-edit-${expense.id}`;
+  const isFinalizedEdit = expense.status === 'finalized';
+  const [draftAmount, setDraftAmount] = useState(taxMode.amount);
+  const [draftDate, setDraftDate] = useState<string>(expense.expenseDate);
+
+  const businessChange = useBusinessChangeFormSubmit({
+    enabled: isFinalizedEdit,
+    alwaysConfirm: true,
+    formId,
+    buildChanges: (): BusinessChangeFieldDiff[] => {
+      const rows: BusinessChangeFieldDiff[] = [];
+      if (draftDate !== expense.expenseDate) {
+        rows.push({
+          fieldLabel: t('fields.date'),
+          before: formatBusinessDate(businessDate(expense.expenseDate), locale),
+          after: formatBusinessDate(businessDate(draftDate), locale),
+        });
+      }
+      if (draftAmount.trim() && draftAmount !== taxMode.amount) {
+        rows.push({
+          fieldLabel: t('fields.amount'),
+          before: expense.grossAmount.amount,
+          after: draftAmount,
+        });
+      }
+      return rows;
+    },
+    findSimilar: isFinalizedEdit
+      ? async () => {
+          const form = document.getElementById(formId) as HTMLFormElement | null;
+          const vendorField = form?.querySelector<HTMLInputElement>('input[name="vendorId"]');
+          const vendorIdRaw = vendorField?.value?.trim() || expense.vendorId;
+          const matches = await previewSimilarExpensesAction({
+            expenseId: expense.id,
+            expenseDate: draftDate,
+            grossAmount: draftAmount || expense.grossAmount.amount,
+            vendorId: vendorIdRaw || null,
+          });
+          return matches.map((match) => ({
+            id: match.id,
+            href: `/expenses/${match.id}`,
+            title: match.description?.trim() || t('detail.title'),
+            reason: t('retroactiveEdit.duplicateReason', {
+              date: match.expenseDate,
+              amount: match.grossAmount,
+            }),
+          }));
+        }
+      : undefined,
+  });
+
+  function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
+    if (!isFinalizedEdit) return;
+    businessChange.handleFormSubmit(event);
+  }
+
   return (
-    <form action={formAction} className="flex flex-col gap-6">
+    <>
+    <form
+      id={formId}
+      action={formAction}
+      onSubmit={handleFormSubmit}
+      className="flex flex-col gap-6"
+    >
       <input type="hidden" name="expenseId" value={expense.id} />
+      {isFinalizedEdit ? <input type="hidden" name="changeAcknowledged" value="false" /> : null}
 
       {savedConfirmation ? (
         <Alert tone="success" role="status">
@@ -203,6 +276,8 @@ export function ExpenseEditForm({
         initialValues={formInitialValues}
         error={state.error ?? null}
         fieldErrors={state.fieldErrors}
+        onAmountChange={isFinalizedEdit ? setDraftAmount : undefined}
+        onExpenseDateChange={isFinalizedEdit ? (date) => setDraftDate(date) : undefined}
       />
 
       {expense.status === 'draft' ? (
@@ -233,5 +308,24 @@ export function ExpenseEditForm({
         </Button>
       )}
     </form>
+    {isFinalizedEdit ? (
+      <BusinessChangeFormDialogs
+        confirmOpen={businessChange.confirmOpen}
+        setConfirmOpen={businessChange.setConfirmOpen}
+        duplicateOpen={businessChange.duplicateOpen}
+        setDuplicateOpen={businessChange.setDuplicateOpen}
+        pending={pending || businessChange.similarLoading}
+        changes={businessChange.changes}
+        similarMatches={businessChange.similarMatches}
+        confirmTitle={t('retroactiveEdit.confirmTitle')}
+        confirmDescription={t('retroactiveEdit.confirmDescription')}
+        duplicateTitle={t('retroactiveEdit.duplicateTitle')}
+        duplicateDescription={t('retroactiveEdit.duplicateDescription')}
+        onConfirm={businessChange.submitConfirmed}
+        onBackToEdit={() => businessChange.setConfirmOpen(false)}
+        onContinuePastDuplicate={businessChange.continuePastDuplicate}
+      />
+    ) : null}
+    </>
   );
 }

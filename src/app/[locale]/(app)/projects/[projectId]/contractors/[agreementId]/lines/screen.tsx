@@ -17,6 +17,8 @@ import { AgreementFacts, AgreementValueCard, WorkLinesPanel } from '@/modules/su
 import { loadOrNotFound } from '@/modules/subcontracts/ui/page-guard';
 import { AgreementStatusBadge } from '@/modules/subcontracts/ui/status';
 import { withOrgContext } from '@/shared/auth/session';
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
+import { AgreementRetroactiveEditForm } from '@/modules/subcontracts/ui/agreement-retroactive-edit-form';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function AgreementLinesScreen({ surfaceRoot,
@@ -28,8 +30,11 @@ export async function AgreementLinesScreen({ surfaceRoot,
 }) {
   const { projectId, agreementId } = await params;
   const t = await getTranslations('subcontracts');
-  const workspace = await loadOrNotFound(() =>
-    withOrgContext((context) => getAgreementWorkspace(context, agreementId)),
+  const { workspace, isOwner } = await loadOrNotFound(() =>
+    withOrgContext(async (context) => ({
+      workspace: await getAgreementWorkspace(context, agreementId),
+      isOwner: isOrganizationOwner(context),
+    })),
   );
   if (workspace.agreement.projectId !== projectId) notFound();
 
@@ -149,6 +154,34 @@ export async function AgreementLinesScreen({ surfaceRoot,
                   />
                 </div>
               ) : null}
+            </CardContent>
+          </Card>
+        ) : null}
+
+        {isOwner &&
+        access.canManageContract &&
+        (agreement.status === 'closed' || agreement.status === 'cancelled') ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('retroactiveEdit.title')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-sm text-[var(--pf-text-secondary)]">{t('retroactiveEdit.description')}</p>
+              <AgreementRetroactiveEditForm
+                projectId={projectId}
+                agreement={{
+                  id: agreement.id,
+                  title: agreement.title,
+                  trade: agreement.trade,
+                  scopeSummary: agreement.scopeSummary,
+                  workPackageId: agreement.workPackageId,
+                  subcontractNumber: agreement.subcontractNumber,
+                  startDate: agreement.startDate,
+                  endDate: agreement.endDate,
+                  notes: agreement.notes,
+                }}
+                workPackages={workspace.workPackages}
+              />
             </CardContent>
           </Card>
         ) : null}

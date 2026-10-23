@@ -219,6 +219,8 @@ export interface ExpenseFormProps {
   readonly paymentInstruments?: readonly PaymentInstrumentRow[];
   /** Org-local today for default paid date. */
   readonly defaultToday?: string;
+  readonly onAmountChange?: (amount: string) => void;
+  readonly onExpenseDateChange?: (expenseDate: string) => void;
 }
 
 export function ExpenseForm({
@@ -241,6 +243,8 @@ export function ExpenseForm({
   supplierBillReferences,
   paymentInstruments = [],
   defaultToday = '',
+  onAmountChange,
+  onExpenseDateChange,
 }: ExpenseFormProps) {
   const t = useTranslations('expenses');
   const tCommon = useTranslations('common');
@@ -738,7 +742,10 @@ export function ExpenseForm({
             <MoneyInput
               {...controlProps}
               value={amount}
-              onValueChange={setAmount}
+              onValueChange={(value) => {
+                setAmount(value);
+                onAmountChange?.(value);
+              }}
               currency={currency}
               disabled={readOnly}
               autoFocus={mode === 'create'}
@@ -1011,7 +1018,10 @@ export function ExpenseForm({
               type="date"
               name="expenseDate"
               value={expenseDate}
-              onChange={(event) => setExpenseDate(event.target.value)}
+              onChange={(event) => {
+                setExpenseDate(event.target.value);
+                onExpenseDateChange?.(event.target.value);
+              }}
               disabled={readOnly}
               dir="ltr"
             />

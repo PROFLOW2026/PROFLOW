@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, ilike, inArray, isNull, lt, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, inArray, isNull, lt, ne, or, sql } from 'drizzle-orm';
 import { clients, contracts, projects } from '@drizzle/schema';
 import { existsSearchableCustomFieldValueSql } from '@/modules/custom-fields';
 import {
@@ -476,4 +476,38 @@ export async function countProjectsByClientId(
     );
 
   return row?.count ?? 0;
+}
+
+export interface SimilarProjectRow {
+  readonly id: string;
+  readonly name: string;
+}
+
+export async function findSimilarProjects(
+  db: DbExecutor,
+  organizationId: string,
+  input: {
+    readonly excludeProjectId: string;
+    readonly name: string;
+    readonly clientId: string | null;
+  },
+): Promise<SimilarProjectRow[]> {
+  const trimmed = input.name.trim();
+  if (!trimmed) return [];
+
+  const filters = [
+    eq(projects.organizationId, organizationId),
+    ne(projects.id, input.excludeProjectId),
+    isNull(projects.archivedAt),
+    sql`lower(trim(${projects.name})) = lower(trim(${trimmed}))`,
+  ];
+  if (input.clientId) {
+    filters.push(eq(projects.clientId, input.clientId));
+  }
+
+  return db
+    .select({ id: projects.id, name: projects.name })
+    .from(projects)
+    .where(and(...filters))
+    .limit(8);
 }

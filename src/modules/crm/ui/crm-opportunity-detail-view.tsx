@@ -24,6 +24,7 @@ import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { withOrgContext } from '@/shared/auth/session';
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
 import { formatBusinessDate, formatInstant } from '@/shared/dates/format';
 import { formatMoneyString } from '@/shared/money/format';
 import { isBusinessDate } from '@/shared/dates/dates';
@@ -41,6 +42,7 @@ import {
   OpportunityFollowUpForm,
   OpportunityNoteForm,
   OpportunityQuoteForm,
+  OpportunityRetroactiveEditForm,
 } from '@/modules/crm/ui/opportunity-detail-actions';
 
 function translateAuditAction(
@@ -72,6 +74,7 @@ export async function CrmOpportunityDetailView({
 
   let detail;
   let canManage = false;
+  let isOwner = false;
   let defaultCurrency = 'ILS';
   let timezone = 'Asia/Jerusalem';
   let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
@@ -94,10 +97,12 @@ export async function CrmOpportunityDetailView({
         customFields: await listCustomFieldValuesForEntity(context, 'opportunity', opportunityId).catch(
           () => [],
         ),
+        isOwner: isOrganizationOwner(context),
       };
     });
     detail = result.detail;
     canManage = result.canManage;
+    isOwner = result.isOwner;
     defaultCurrency = result.defaultCurrency;
     timezone = result.timezone;
     customFields = result.customFields;
@@ -209,6 +214,14 @@ export async function CrmOpportunityDetailView({
               expectedStartDate={detail.expectedStartDate}
               nextActionAt={detail.nextActionAt}
               nextActionText={detail.nextActionText}
+            />
+          ) : canManage && isOwner && detail.status !== 'open' ? (
+            <OpportunityRetroactiveEditForm
+              opportunityId={detail.id}
+              opportunityName={detail.name}
+              notes={detail.opportunityNotes}
+              expectedStartDate={detail.expectedStartDate}
+              referralSource={detail.referralSource}
             />
           ) : detail.opportunityNotes ||
             detail.expectedStartDate ||

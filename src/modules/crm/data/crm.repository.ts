@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, desc, eq, ilike, inArray, isNull, ne, or, sql } from 'drizzle-orm';
 import {
   crmEstimates,
   crmLeads,
@@ -1004,4 +1004,75 @@ export async function findAcceptedVersionForOpportunity(
     }
   }
   return null;
+}
+
+export interface SimilarOpportunityRow {
+  readonly id: string;
+  readonly name: string;
+}
+
+export async function findSimilarOpportunities(
+  db: DbExecutor,
+  organizationId: string,
+  input: {
+    readonly excludeOpportunityId: string;
+    readonly name: string;
+    readonly expectedStartDate: string | null;
+  },
+): Promise<SimilarOpportunityRow[]> {
+  const trimmed = input.name.trim();
+  if (!trimmed) return [];
+
+  const filters = [
+    eq(crmOpportunities.organizationId, organizationId),
+    ne(crmOpportunities.id, input.excludeOpportunityId),
+    isNull(crmOpportunities.archivedAt),
+    sql`lower(trim(${crmOpportunities.name})) = lower(trim(${trimmed}))`,
+  ];
+  const start = input.expectedStartDate?.trim();
+  if (start) {
+    filters.push(eq(crmOpportunities.expectedStartDate, start));
+  }
+
+  return db
+    .select({ id: crmOpportunities.id, name: crmOpportunities.name })
+    .from(crmOpportunities)
+    .where(and(...filters))
+    .limit(8);
+}
+
+export interface SimilarProspectRow {
+  readonly id: string;
+  readonly name: string;
+}
+
+export async function findSimilarProspects(
+  db: DbExecutor,
+  organizationId: string,
+  input: {
+    readonly excludeProspectId: string;
+    readonly name: string;
+    readonly email: string | null;
+  },
+): Promise<SimilarProspectRow[]> {
+  const trimmed = input.name.trim();
+  const email = input.email?.trim();
+  if (!trimmed && !email) return [];
+
+  const filters = [
+    eq(crmProspects.organizationId, organizationId),
+    ne(crmProspects.id, input.excludeProspectId),
+    isNull(crmProspects.archivedAt),
+  ];
+  if (email) {
+    filters.push(sql`lower(trim(${crmProspects.email})) = lower(trim(${email}))`);
+  } else if (trimmed) {
+    filters.push(sql`lower(trim(${crmProspects.name})) = lower(trim(${trimmed}))`);
+  }
+
+  return db
+    .select({ id: crmProspects.id, name: crmProspects.name })
+    .from(crmProspects)
+    .where(and(...filters))
+    .limit(8);
 }

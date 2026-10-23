@@ -19,6 +19,7 @@ import {
   voidApBill,
   restoreApBill,
   editRecognizedApBill,
+  updateRecordedVendorPaymentDate,
   voidVendorCredit,
   voidVendorPayment,
 } from '@/modules/ap';
@@ -451,6 +452,36 @@ export async function restoreApBillAction(
   }
 }
 
+export async function updateRecordedVendorPaymentDateAction(
+  _prev: ApFormState,
+  formData: FormData,
+): Promise<ApFormState> {
+  const paymentId = requiredFormValue(formData, 'paymentId');
+  const paymentDate = requiredFormValue(formData, 'paymentDate');
+  const apBillId = formValue(formData, 'apBillId');
+
+  if (formData.get('changeAcknowledged') !== 'true') {
+    const t = await getTranslations('ap');
+    return { error: t('errors.confirmRequired') };
+  }
+
+  try {
+    await withOrgContext((context) =>
+      updateRecordedVendorPaymentDate(context, {
+        paymentId,
+        paymentDate,
+        changeAcknowledged: true,
+      }),
+    );
+    if (apBillId) revalidatePath(`/procurement/ap/${apBillId}`);
+    revalidatePath('/procurement/ap');
+    revalidatePath('/procurement/ap/aging');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
 export async function editRecognizedApBillAction(
   _prev: ApFormState,
   formData: FormData,
@@ -464,6 +495,9 @@ export async function editRecognizedApBillAction(
 
   if (!vendorId) return { error: t('errors.vendorRequired') };
   if (parsedLines.length === 0) return { error: t('errors.linesRequired') };
+  if (formData.get('changeAcknowledged') !== 'true') {
+    return { error: t('errors.confirmRequired') };
+  }
 
   try {
     await withOrgContext((context) =>
@@ -487,6 +521,7 @@ export async function editRecognizedApBillAction(
           costCategoryId: line.costCategoryId!,
           costFamily: line.costFamily,
         })),
+        changeAcknowledged: true,
       }),
     );
     revalidatePath(`/procurement/ap/${billId}`);

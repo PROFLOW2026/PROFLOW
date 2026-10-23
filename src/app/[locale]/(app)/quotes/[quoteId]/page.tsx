@@ -26,6 +26,8 @@ import { QuoteDetailActions } from './quote-detail-actions';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
 import { ReportDownloadButtons } from '@/modules/reports/ui';
 import { QuoteEditorForm } from '@/modules/quotes/ui/quote-editor-form';
+import { QuoteRetroactiveEditForm } from '@/modules/quotes/ui/quote-retroactive-edit-form';
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
 import { QuoteLinkedTasksSection } from '@/modules/quotes/ui/quote-linked-tasks-section';
 import { listClientsForOrg } from '@/modules/clients';
 import { Suspense } from 'react';
@@ -70,7 +72,7 @@ export default async function QuoteDetailPage({
   const tStatus = await getTranslations('status.estimateQuote');
   const tTax = await getTranslations('quotes.taxModes');
 
-  const { quote, canManage, clients, convertedWorkKind } = await withOrgContext(async (context) => {
+  const { quote, canManage, isOwner, clients, convertedWorkKind } = await withOrgContext(async (context) => {
     try {
       const detail = await getQuoteById(context, quoteId);
       const listed = hasPermission(context, PERMISSIONS.CLIENTS_READ)
@@ -88,11 +90,12 @@ export default async function QuoteDetailPage({
       return {
         quote: detail,
         canManage: hasPermission(context, PERMISSIONS.QUOTES_MANAGE),
+        isOwner: isOrganizationOwner(context),
         clients: listed,
         convertedWorkKind,
       };
     } catch {
-      return { quote: null, canManage: false, clients: [], convertedWorkKind: null };
+      return { quote: null, canManage: false, isOwner: false, clients: [], convertedWorkKind: null };
     }
   });
 
@@ -360,6 +363,19 @@ export default async function QuoteDetailPage({
               {t('detail.openWork')}
             </Link>
           </p>
+        </MainAppSection>
+      ) : null}
+
+      {isOwner && (quote.status === 'sent' || quote.status === 'accepted') ? (
+        <MainAppSection className="print:hidden">
+          <QuoteRetroactiveEditForm
+            quoteId={quote.id}
+            initialTitle={quote.title}
+            initialDescription={quote.description}
+            initialValidityDate={quote.validityDate}
+            initialNotes={quote.notes}
+            locale={locale}
+          />
         </MainAppSection>
       ) : null}
 

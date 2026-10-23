@@ -4,12 +4,24 @@ import type { OrgContext } from '@/shared/auth/context';
 import { businessDate, todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import { recordAuditEvent } from '@/shared/audit';
 import { AUDIT_ACTIONS } from '@/shared/audit/actions';
-import { DomainRuleError, NotFoundError } from '@/shared/errors';
+import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { fromNumericString, isPositiveMoney } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import {
+  assertMonthOpenForRewrite,
+  rethrowClosedPeriodRewrite,
+  yearMonthFromBusinessDate,
+} from '@/modules/month-close';
 import { getOrgFinancialPolicies } from '@/modules/tenancy/application/org-financial-policies';
 import { salaryDueDateForPeriod } from '@/modules/tenancy/domain/org-financial-policies';
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
+import {
+  reviseConfirmedPayrollAmountSchema,
+  reviseConfirmedPayrollPaidAtSchema,
+  type ReviseConfirmedPayrollAmountInput,
+  type ReviseConfirmedPayrollPaidAtInput,
+} from '../validation/schemas';
 import {
   isPayrollObligationGenerationEligible,
   type PayrollObligationSource,
@@ -244,20 +256,115 @@ export async function confirmPayrollPaid(
   });
 }
 
+function assertOwnerRetroactivePayrollCorrection(context: OrgContext): void {
+  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+  if (!isOrganizationOwner(context)) {
+    throw new DomainRuleError(
+      'Only the organization owner may correct confirmed payroll payments',
+      'workforce.errors.ownerOnlyRetroactiveEdit',
+    );
+  }
+}
+
+/**
+ * Owner retroactive correction of the paid date on a confirmed payroll payment.
+ */
+export async function reviseConfirmedPayrollPaidAt(
+  context: OrgContext,
+  rawInput: ReviseConfirmedPayrollPaidAtInput,
+): Promise<'updated' | 'unchanged' | 'not_paid'> {
+  assertOwnerRetroactivePayrollCorrection(context);
+
+  const parsed = reviseConfirmedPayrollPaidAtSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+  const input = parsed.data;
+
+  const [row] = await context.db
+    .select()
+    .from(employeePayrollPayments)
+    .where(
+      and(
+        eq(employeePayrollPayments.organizationId, context.organizationId),
+        eq(employeePayrollPayments.employeeId, input.employeeId),
+        eq(employeePayrollPayments.yearMonth, input.yearMonth),
+        isNull(employeePayrollPayments.voidedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!row?.paidAt || row.paymentStatus !== 'paid') return 'not_paid';
+
+  const nextPaidAt = businessDate(input.paidAt);
+  if (nextPaidAt === row.paidAt) return 'unchanged';
+
+  const oldMonth = yearMonthFromBusinessDate(row.paidAt);
+  const newMonth = yearMonthFromBusinessDate(nextPaidAt);
+
+  try {
+    await assertMonthOpenForRewrite(context, oldMonth);
+    if (newMonth !== oldMonth) {
+      await assertMonthOpenForRewrite(context, newMonth);
+    }
+
+    await context.db
+      .update(employeePayrollPayments)
+      .set({ paidAt: nextPaidAt })
+      .where(eq(employeePayrollPayments.id, row.id));
+  } catch (error) {
+    rethrowClosedPeriodRewrite(error);
+  }
+
+  await recordAuditEvent(context, {
+    action: PAYROLL_CONFIRMED,
+    entityType: 'employee_payroll_payment',
+    entityId: row.id,
+    before: {
+      correctionKind: 'owner_retroactive',
+      paidAt: row.paidAt,
+      paidAmount: row.paidAmount,
+      paymentStatus: row.paymentStatus,
+    },
+    after: {
+      correctionKind: 'owner_retroactive',
+      paidAt: nextPaidAt,
+      paidAmount: row.paidAmount,
+      paymentStatus: row.paymentStatus,
+      source: 'manual',
+      repair: 'revise_paid_date',
+      evidence: input.evidenceNote,
+    },
+  });
+
+  return 'updated';
+}
+
 /**
  * Chosen retroactive correction of a payment that is already marked paid.
  * Keeps paid status and the payment date. Does not run unless the caller opts in.
  */
 export async function reviseConfirmedPayrollAmount(
   context: OrgContext,
-  input: {
-    readonly employeeId: string;
-    readonly yearMonth: string;
-    readonly paidAmount: string;
-    readonly evidenceNote: string;
-  },
+  rawInput: ReviseConfirmedPayrollAmountInput,
 ): Promise<'updated' | 'unchanged' | 'not_paid'> {
-  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+  assertOwnerRetroactivePayrollCorrection(context);
+
+  const parsed = reviseConfirmedPayrollAmountSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+  const input = parsed.data;
+
+  try {
+    await assertMonthOpenForRewrite(context, input.yearMonth);
+  } catch (error) {
+    rethrowClosedPeriodRewrite(error);
+  }
 
   const [row] = await context.db
     .select()
@@ -291,11 +398,13 @@ export async function reviseConfirmedPayrollAmount(
     entityType: 'employee_payroll_payment',
     entityId: row.id,
     before: {
+      correctionKind: 'owner_retroactive',
       paidAmount: row.paidAmount,
       paidAt: row.paidAt,
       paymentStatus: row.paymentStatus,
     },
     after: {
+      correctionKind: 'owner_retroactive',
       paidAmount: input.paidAmount,
       paidAt: row.paidAt,
       paymentStatus: row.paymentStatus,

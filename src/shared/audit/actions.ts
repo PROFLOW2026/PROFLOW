@@ -131,6 +131,8 @@ export const AUDIT_ACTIONS = {
   PAYMENT_RECORDED: 'payment.recorded',
   PAYMENT_ALLOCATED: 'payment.allocated',
   PAYMENT_VOIDED: 'payment.voided',
+  PAYMENT_DATE_CORRECTED: 'payment.date_corrected',
+  PAYMENT_CORRECTED: 'payment.corrected',
 
   BILLING_PLAN_CREATED: 'billing_plan.created',
   BILLING_PLAN_UPDATED: 'billing_plan.updated',

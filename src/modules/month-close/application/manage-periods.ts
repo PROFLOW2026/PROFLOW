@@ -14,6 +14,7 @@ import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
 import { money, toNumericString } from '@/shared/money';
 import { noteModuleUsage } from '@/modules/tenancy/application/module-visibility';
 import {
@@ -594,6 +595,7 @@ export async function assertMonthOpenForRewrite(
   context: OrgContext,
   yearMonth: string,
 ): Promise<void> {
+  if (isOrganizationOwner(context)) return;
   if (await isMonthClosed(context, yearMonth)) {
     throw closedPeriodSourceRewriteError();
   }

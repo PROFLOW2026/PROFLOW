@@ -1,5 +1,6 @@
 import { recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
+import { assertOwnerRetroactiveBusinessChange } from '@/shared/business-change/assert-owner-retroactive';
 import { NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -94,6 +95,16 @@ export async function updateProspect(
   const input = parsed.data;
   const existing = await findProspectById(context.db, context.organizationId, input.prospectId);
   if (!existing) throw new NotFoundError('Prospect');
+
+  const isTerminalProspect =
+    existing.status === 'converted' || existing.status === 'inactive';
+  if (isTerminalProspect) {
+    assertOwnerRetroactiveBusinessChange(
+      context,
+      input.changeAcknowledged,
+      'crm.errors.ownerOnlyRetroactiveEdit',
+    );
+  }
 
   const updated = await updateProspectById(context.db, context.organizationId, input.prospectId, {
     name: input.name,

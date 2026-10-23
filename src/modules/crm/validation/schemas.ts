@@ -64,6 +64,7 @@ export const updateProspectSchema = z.object({
   phone: optionalText,
   companyName: optionalText,
   notes: optionalText,
+  changeAcknowledged: z.literal(true).optional(),
 });
 export type UpdateProspectInput = z.input<typeof updateProspectSchema>;
 
@@ -127,6 +128,7 @@ export const updateOpportunitySchema = z.object({
   notes: optionalText,
   nextActionAt: optionalInstant,
   nextActionText: optionalNextActionText,
+  changeAcknowledged: z.literal(true).optional(),
 });
 export type UpdateOpportunityInput = z.input<typeof updateOpportunitySchema>;
 

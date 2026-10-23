@@ -3,8 +3,11 @@
 import {
   createBillingRecord,
   createBillingAdjustment,
+  correctRecordedCustomerPayment,
+  editFinalizedBillingRecord,
   finalizeBillingRecord,
   allocateCustomerPayment,
+  listSimilarBillingRecords,
   recordCustomerPayment,
   recordPayment,
   updateBillingCollectionFollowUp,
@@ -12,6 +15,10 @@ import {
   voidBillingRecord,
   voidPayment,
 } from '@/modules/billing';
+import type {
+  CorrectRecordedCustomerPaymentInput,
+  PreviewSimilarBillingInput,
+} from '@/modules/billing/validation/schemas';
 import { releaseBillingRecordRetention } from '@/modules/retention';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, ValidationError, serializeError } from '@/shared/errors';
@@ -123,6 +130,69 @@ export async function updateBillingRecordAction(
   return {};
 }
 
+export async function previewSimilarBillingRecordsAction(input: PreviewSimilarBillingInput) {
+  return withOrgContext((context) => listSimilarBillingRecords(context, input));
+}
+
+export async function correctRecordedCustomerPaymentAction(
+  input: CorrectRecordedCustomerPaymentInput,
+): Promise<BillingFormState> {
+  const tErrors = await getTranslations('errors');
+  try {
+    await withOrgContext((context) => correctRecordedCustomerPayment(context, input));
+    revalidatePath('/billing');
+    revalidatePath('/financials');
+    return { saved: true };
+  } catch (error) {
+    if (error instanceof ValidationError) return billingValidationFormState(error);
+    if (error instanceof AppError) return mapError(error, tErrors('validationFailed'));
+    throw error;
+  }
+}
+
+export async function editFinalizedBillingRecordAction(
+  billingRecordId: string,
+  _prev: BillingFormState,
+  formData: FormData,
+): Promise<BillingFormState> {
+  const tErrors = await getTranslations('errors');
+  const locale = await getLocale();
+
+  if (formData.get('changeAcknowledged') !== 'true') {
+    return { error: 'billing.errors.confirmRequired' };
+  }
+
+  try {
+    await withOrgContext((context) =>
+      editFinalizedBillingRecord(context, {
+        billingRecordId,
+        issueDate: formData.get('issueDate') ? String(formData.get('issueDate')) : undefined,
+        dueDate: formData.has('dueDate')
+          ? formData.get('dueDate')
+            ? String(formData.get('dueDate'))
+            : null
+          : undefined,
+        reference: formData.has('reference')
+          ? String(formData.get('reference') ?? '')
+          : undefined,
+        notes: formData.has('notes') ? String(formData.get('notes') ?? '') : undefined,
+        amount: formData.get('amount') ? String(formData.get('amount')) : undefined,
+        changeAcknowledged: true,
+      }),
+    );
+    revalidatePath(`/billing/${billingRecordId}`);
+    revalidatePath('/billing');
+    revalidatePath('/financials');
+    redirect({ href: `/billing/${billingRecordId}`, locale });
+  } catch (error) {
+    if (error instanceof ValidationError) return billingValidationFormState(error);
+    if (error instanceof AppError) return mapError(error, tErrors('validationFailed'));
+    throw error;
+  }
+
+  return {};
+}
+
 export async function finalizeBillingRecordAction(billingRecordId: string): Promise<BillingFormState> {
   const tErrors = await getTranslations('errors');
 
@@ -139,11 +209,18 @@ export async function finalizeBillingRecordAction(billingRecordId: string): Prom
   return {};
 }
 
-export async function voidBillingRecordAction(billingRecordId: string): Promise<BillingFormState> {
+export async function voidBillingRecordAction(
+  billingRecordId: string,
+  options?: { readonly changeAcknowledged?: true },
+): Promise<BillingFormState> {
   const tErrors = await getTranslations('errors');
 
   try {
-    await withOrgContext((context) => voidBillingRecord(context, billingRecordId));
+    await withOrgContext((context) =>
+      voidBillingRecord(context, billingRecordId, {
+        changeAcknowledged: options?.changeAcknowledged,
+      }),
+    );
     revalidatePath(`/billing/${billingRecordId}`);
     revalidatePath('/billing');
   } catch (error) {

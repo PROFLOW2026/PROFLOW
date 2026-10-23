@@ -497,7 +497,15 @@
     "sumHintEnterAmount": "Enter an expense amount to see the required allocation total.",
     "unallocatedCallout": "No projects selected yet - these general business costs will not land on project Actual Cost."
   },
+  "retroactiveEdit": {
+    "confirmTitle": "Confirm this expense correction?",
+    "confirmDescription": "Review the change before saving. The correction is stored in history.",
+    "duplicateTitle": "Similar expense found",
+    "duplicateDescription": "This may be a duplicate — or two legitimate business entries.",
+    "duplicateReason": "Same date and gross amount ({date}, {amount})."
+  },
   "errors": {
+    "confirmRequired": "Confirm the change before saving.",
     "inclusiveTaxRateRequired": "An applicable percentage tax rule is required when the amount includes VAT.",
     "workPackageRequiresProject": "A work area requires a project.",
     "directFamilyRequiresProject": "Direct project cost requires a project.",

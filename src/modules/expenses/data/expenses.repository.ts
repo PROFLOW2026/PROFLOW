@@ -981,6 +981,46 @@ export async function hasOverheadExpenses(db: DbExecutor, organizationId: string
   return Boolean(row);
 }
 
+export interface SimilarExpenseRow {
+  readonly id: string;
+  readonly description: string | null;
+  readonly expenseDate: string;
+  readonly grossAmount: string;
+}
+
+export async function findSimilarExpenses(
+  db: DbExecutor,
+  organizationId: string,
+  input: {
+    readonly excludeExpenseId: string;
+    readonly expenseDate: BusinessDate;
+    readonly grossAmount: string;
+    readonly vendorId: string | null;
+  },
+): Promise<SimilarExpenseRow[]> {
+  const filters = [
+    eq(expenses.organizationId, organizationId),
+    not(eq(expenses.id, input.excludeExpenseId)),
+    eq(expenses.expenseDate, input.expenseDate),
+    eq(expenses.grossAmount, input.grossAmount),
+    eq(expenses.status, 'finalized'),
+  ];
+  if (input.vendorId) {
+    filters.push(eq(expenses.vendorId, input.vendorId));
+  }
+
+  return db
+    .select({
+      id: expenses.id,
+      description: expenses.description,
+      expenseDate: expenses.expenseDate,
+      grossAmount: expenses.grossAmount,
+    })
+    .from(expenses)
+    .where(and(...filters))
+    .limit(8);
+}
+
 export async function listCostCategories(
   db: DbExecutor,
   organizationId: string,

@@ -7,6 +7,8 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { getProspectById } from '@/modules/crm';
 import { withOrgContext } from '@/shared/auth/session';
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
+import { ProspectRetroactiveEditForm } from '@/modules/crm/ui/prospect-retroactive-edit-form';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -39,13 +41,16 @@ export default async function ProspectDetailPage({
 
   let prospect;
   let canManage = false;
+  let isOwner = false;
   try {
     const result = await withOrgContext(async (context) => ({
       prospect: await getProspectById(context, prospectId),
       canManage: hasPermission(context, PERMISSIONS.CRM_MANAGE),
+      isOwner: isOrganizationOwner(context),
     }));
     prospect = result.prospect;
     canManage = result.canManage;
+    isOwner = result.isOwner;
   } catch {
     notFound();
   }
@@ -70,7 +75,22 @@ export default async function ProspectDetailPage({
         }
       />
       <MainAppSection>
-        {(prospect.companyName || prospect.email || prospect.phone || prospect.notes) && (
+        {canManage &&
+        isOwner &&
+        (prospect.status === 'converted' || prospect.status === 'inactive') ? (
+          <ProspectRetroactiveEditForm
+            prospect={{
+              id: prospect.id,
+              name: prospect.name,
+              companyName: prospect.companyName,
+              email: prospect.email,
+              phone: prospect.phone,
+              notes: prospect.notes,
+            }}
+          />
+        ) : null}
+        {(prospect.companyName || prospect.email || prospect.phone || prospect.notes) &&
+        !(canManage && isOwner && (prospect.status === 'converted' || prospect.status === 'inactive')) ? (
         <Card>
           <CardContent className="flex flex-col gap-1 pt-6 text-sm">
             {prospect.companyName ? <p className="text-start">{prospect.companyName}</p> : null}
@@ -97,7 +117,7 @@ export default async function ProspectDetailPage({
             ) : null}
           </CardContent>
         </Card>
-      )}
+        ) : null}
 
       <Card>
         <CardHeader>

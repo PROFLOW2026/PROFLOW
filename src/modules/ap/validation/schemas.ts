@@ -204,9 +204,20 @@ export const editRecognizedApBillSchema = z.object({
   taxAmount: moneyString.optional().nullable(),
   notes: z.string().trim().max(2000).optional().nullable(),
   lines: z.array(apBillLineEditSchema).min(1),
+  changeAcknowledged: z.literal(true),
 });
 
 export type EditRecognizedApBillInput = z.input<typeof editRecognizedApBillSchema>;
+
+export const updateRecordedVendorPaymentDateSchema = z.object({
+  paymentId: z.string().uuid(),
+  paymentDate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
+  changeAcknowledged: z.literal(true),
+});
+
+export type UpdateRecordedVendorPaymentDateInput = z.infer<
+  typeof updateRecordedVendorPaymentDateSchema
+>;
 
 export const createVendorCreditSchema = z.object({
   vendorId: z.string().uuid(),

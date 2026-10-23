@@ -160,6 +160,9 @@ export async function updateAgreementAction(_prev: SubcontractFormState, formDat
         subcontractNumber: editable(formData, 'subcontractNumber'),
         startDate: editable(formData, 'startDate'),
         endDate: editable(formData, 'endDate'),
+        notes: editable(formData, 'notes'),
+        changeAcknowledged:
+          formData.get('changeAcknowledged') === 'true' ? true : undefined,
       }),
     ),
   );

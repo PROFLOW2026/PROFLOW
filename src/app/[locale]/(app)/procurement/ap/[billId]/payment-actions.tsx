@@ -2,8 +2,9 @@
 
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, type FormEvent } from 'react';
 import { useTranslations } from 'next-intl';
+import { BusinessChangeFormDialogs } from '@/components/patterns/business-change-form-dialogs';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
@@ -15,11 +16,114 @@ import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { ApPayableStatus, ApPaymentStatus } from '@/modules/ap';
 import { money } from '@/shared/money/money';
+import { useBusinessChangeFormSubmit } from '@/shared/business-change/use-business-change-form-submit';
+import type { BusinessChangeFieldDiff } from '@/shared/business-change/types';
+import { businessDate } from '@/shared/dates';
+import { formatBusinessDate } from '@/shared/dates/format';
 import {
   recordVendorPaymentAction,
+  updateRecordedVendorPaymentDateAction,
   voidVendorPaymentAction,
   type ApFormState,
 } from '../actions';
+
+function RecordedVendorPaymentDateCorrection({
+  paymentId,
+  billId,
+  initialDate,
+  locale,
+}: {
+  readonly paymentId: string;
+  readonly billId: string;
+  readonly initialDate: string;
+  readonly locale: string;
+}) {
+  const t = useTranslations('ap.retroactiveEdit');
+  const tCommon = useTranslations('common');
+  const [open, setOpen] = useState(false);
+  const [paymentDate, setPaymentDate] = useState(initialDate);
+  const [state, formAction, pending] = useActionState<ApFormState, FormData>(
+    updateRecordedVendorPaymentDateAction,
+    {},
+  );
+  const formId = `vendor-payment-date-${paymentId}`;
+  const businessChange = useBusinessChangeFormSubmit({
+    enabled: open,
+    alwaysConfirm: true,
+    formId,
+    buildChanges: (): BusinessChangeFieldDiff[] => {
+      if (paymentDate === initialDate) return [];
+      return [
+        {
+          fieldLabel: t('correctPaymentDate'),
+          before: formatBusinessDate(businessDate(initialDate), locale),
+          after: formatBusinessDate(businessDate(paymentDate), locale),
+        },
+      ];
+    },
+  });
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    businessChange.handleFormSubmit(event);
+  }
+
+  if (!open) {
+    return (
+      <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(true)}>
+        {t('correctPaymentDate')}
+      </Button>
+    );
+  }
+
+  return (
+    <>
+      <form id={formId} action={formAction} onSubmit={handleSubmit} className="flex flex-col gap-2">
+        <input type="hidden" name="paymentId" value={paymentId} />
+        <input type="hidden" name="apBillId" value={billId} />
+        <input type="hidden" name="changeAcknowledged" value="false" />
+        <Input
+          name="paymentDate"
+          type="date"
+          value={paymentDate}
+          onChange={(event) => setPaymentDate(event.target.value)}
+          dir="ltr"
+          className="max-w-[11rem]"
+        />
+        <div className="flex flex-wrap gap-2">
+          <Button type="submit" size="sm" loading={pending || businessChange.similarLoading}>
+            {t('savePaymentDate')}
+          </Button>
+          <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(false)}>
+            {tCommon('actions.cancel')}
+          </Button>
+        </div>
+        {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+        {state.success ? (
+          <Alert tone="success" role="status">
+            {t('savePaymentDate')}
+          </Alert>
+        ) : null}
+        <p className="text-xs text-[var(--pf-text-muted)]">{t('correctPaymentDateHint')}</p>
+      </form>
+      <BusinessChangeFormDialogs
+        confirmOpen={businessChange.confirmOpen}
+        setConfirmOpen={businessChange.setConfirmOpen}
+        duplicateOpen={businessChange.duplicateOpen}
+        setDuplicateOpen={businessChange.setDuplicateOpen}
+        pending={pending || businessChange.similarLoading}
+        changes={businessChange.changes}
+        similarMatches={businessChange.similarMatches}
+        confirmTitle={t('confirmTitle')}
+        confirmDescription={t('confirmDescription')}
+        duplicateTitle={t('duplicateTitle')}
+        duplicateDescription={t('duplicateDescription')}
+        onConfirm={businessChange.submitConfirmed}
+        onBackToEdit={() => businessChange.setConfirmOpen(false)}
+        onContinuePastDuplicate={businessChange.continuePastDuplicate}
+      />
+    </>
+  );
+}
 
 function payableShape(status: ApPayableStatus | null): StatusShape {
   switch (status) {
@@ -53,6 +157,7 @@ export function VendorPaymentPanel({
   payableStatus,
   paymentsAvailable,
   canManage,
+  canCorrectPaymentDate = false,
   defaultPaymentDate,
   payments,
   locale,
@@ -64,6 +169,7 @@ export function VendorPaymentPanel({
   payableStatus: ApPayableStatus | null;
   paymentsAvailable: boolean;
   canManage: boolean;
+  canCorrectPaymentDate?: boolean;
   defaultPaymentDate: string;
   payments: readonly VendorPaymentHistoryRow[];
   locale: string;
@@ -139,13 +245,23 @@ export function VendorPaymentPanel({
                   <TableCell>{t(`statuses.${payment.status}`)}</TableCell>
                   <TableCell>
                     {canManage && paymentsAvailable && payment.status === 'recorded' ? (
-                      <form action={voidAction}>
-                        <input type="hidden" name="paymentId" value={payment.id} />
-                        <input type="hidden" name="apBillId" value={billId} />
-                        <Button type="submit" variant="ghost" size="sm" disabled={voidPending}>
-                          {t('void')}
-                        </Button>
-                      </form>
+                      <div className="flex flex-col items-start gap-1">
+                        {canCorrectPaymentDate ? (
+                          <RecordedVendorPaymentDateCorrection
+                            paymentId={payment.id}
+                            billId={billId}
+                            initialDate={payment.paymentDate}
+                            locale={locale}
+                          />
+                        ) : null}
+                        <form action={voidAction}>
+                          <input type="hidden" name="paymentId" value={payment.id} />
+                          <input type="hidden" name="apBillId" value={billId} />
+                          <Button type="submit" variant="ghost" size="sm" disabled={voidPending}>
+                            {t('void')}
+                          </Button>
+                        </form>
+                      </div>
                     ) : (
                       '-'
                     )}

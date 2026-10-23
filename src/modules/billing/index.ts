@@ -2,6 +2,10 @@
 export { createBillingRecord } from './application/create-billing-record';
 export { createBillingRecordWithPermission } from './application/create-billing-record';
 export { updateBillingRecord } from './application/update-billing-record';
+export { editFinalizedBillingRecord } from './application/edit-finalized-billing-record';
+export { listSimilarBillingRecords } from './application/find-similar-billing-records';
+export { updateRecordedCustomerPaymentDate } from './application/update-recorded-customer-payment-date';
+export { correctRecordedCustomerPayment } from './application/correct-recorded-customer-payment';
 export { updateBillingCollectionFollowUp } from './application/update-collection-follow-up';
 export {
   finalizeBillingRecord,

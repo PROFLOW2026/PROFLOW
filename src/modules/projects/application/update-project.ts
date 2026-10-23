@@ -5,6 +5,7 @@ import { money } from '@/shared/money';
 import { assertPermission, assertSameOrganization } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
+import { assertOwnerRetroactiveBusinessChange } from '@/shared/business-change/assert-owner-retroactive';
 import { projectDomains } from '@drizzle/schema';
 import type { ProjectRecord } from '../domain/types';
 import {
@@ -54,6 +55,18 @@ export async function updateProject(
     existingStatus: existing.status,
     nextStatus: input.status,
   });
+
+  const isTerminalProject =
+    existing.status === 'completed' ||
+    existing.status === 'cancelled' ||
+    existing.status === 'archived';
+  if (isTerminalProject) {
+    assertOwnerRetroactiveBusinessChange(
+      context,
+      input.changeAcknowledged,
+      'projects.details.errors.ownerOnlyRetroactiveEdit',
+    );
+  }
 
   const nextClientId = input.clientId !== undefined ? input.clientId : existing.clientId;
 
@@ -174,8 +187,8 @@ export async function updateProject(
     action: 'project.updated',
     entityType: 'project',
     entityId: updated.id,
-    before: existing,
-    after: updated,
+    before: isTerminalProject ? { ...existing, correctionKind: 'owner_retroactive' } : existing,
+    after: isTerminalProject ? { ...updated, correctionKind: 'owner_retroactive' } : updated,
   });
 
   if (

@@ -1,3 +1,4 @@
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { money } from '@/shared/money';
 import { withTransaction } from '@/shared/db';
@@ -12,6 +13,7 @@ import {
   listEmployeeMonthCostsForEmployee,
   supersedeEmployeeMonthCost,
   updateEmployeeMonthCostDraft,
+  updateEmployeeMonthCostNotes,
   type EmployeeMonthCostRow,
 } from '../data/employee-month-costs.repository';
 import {
@@ -477,6 +479,7 @@ export async function correctMonthlyEmployerCostActual(
     readonly correctionNote?: string | null;
     /** Opt-in only. A cost correction does not change a recorded payment unless this is set. */
     readonly syncPaidAmount?: boolean;
+    readonly changeAcknowledged?: true;
   },
 ): Promise<{ readonly month: EmployeeMonthCostRow; readonly run: LaborAllocationRunRow | null }> {
   assertMonthCostsGate();
@@ -499,6 +502,18 @@ export async function correctMonthlyEmployerCostActual(
   }
   if (existing.status === 'draft') {
     return saveMonthlyEmployerCostDraft(context, parsed.data);
+  }
+
+  if (existing.status === 'applied' || existing.status === 'closed') {
+    if (!isOrganizationOwner(context)) {
+      throw new DomainRuleError(
+        'Only the organization owner may correct applied month costs',
+        'workforce.errors.ownerOnlyRetroactiveEdit',
+      );
+    }
+    if (rawInput.changeAcknowledged !== true) {
+      throw new ValidationError([{ path: 'changeAcknowledged', message: 'Acknowledgment required' }]);
+    }
   }
 
   const currency = context.organization.baseCurrency.toUpperCase();
@@ -634,6 +649,7 @@ export async function correctMonthlyEmployerCostActual(
       paidAmount: derived.actualAmount,
       evidenceNote:
         'Owner chose to align the recorded payment with the corrected monthly employer cost.',
+      changeAcknowledged: true,
     });
   }
 
@@ -643,6 +659,78 @@ export async function correctMonthlyEmployerCostActual(
   await tryRecomputeOpenGeneralCostMonth(context, { yearMonth: parsed.data.yearMonth });
 
   return result;
+}
+
+/** Owner-only notes correction on applied/closed employer month cost rows. */
+export async function updateAppliedEmployerMonthCostNotes(
+  context: OrgContext,
+  input: {
+    readonly employeeId: string;
+    readonly yearMonth: string;
+    readonly notes: string | null;
+    readonly changeAcknowledged: true;
+  },
+): Promise<EmployeeMonthCostRow> {
+  assertMonthCostsGate();
+  const { assertMonthOpenForRewrite } = await import('@/modules/month-close');
+  const { assertPermission } = await import('@/shared/permissions/assert');
+  const { PERMISSIONS } = await import('@/shared/permissions/catalog');
+
+  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+  if (!isOrganizationOwner(context)) {
+    throw new DomainRuleError(
+      'Only the organization owner may correct applied month cost notes',
+      'workforce.errors.ownerOnlyRetroactiveEdit',
+    );
+  }
+  if (input.changeAcknowledged !== true) {
+    throw new ValidationError([{ path: 'changeAcknowledged', message: 'Acknowledgment required' }]);
+  }
+
+  await assertMonthOpenForRewrite(context, input.yearMonth);
+
+  const existing = await findEmployeeMonthCostByEmployeeMonth(
+    context.db,
+    context.organizationId,
+    input.employeeId,
+    input.yearMonth,
+  );
+  if (!existing) throw new NotFoundError('Employee month cost');
+  if (existing.status !== 'applied' && existing.status !== 'closed') {
+    throw new DomainRuleError(
+      'Only applied or closed month costs support notes-only correction',
+      'workforce.errors.monthCostImmutable',
+    );
+  }
+
+  const nextNotes = emptyToNull(input.notes);
+  if ((existing.notes ?? null) === nextNotes) {
+    throw new ValidationError([{ path: 'notes', message: 'Notes unchanged' }]);
+  }
+
+  const updated = await updateEmployeeMonthCostNotes(
+    context.db,
+    context.organizationId,
+    existing.id,
+    nextNotes,
+  );
+  if (!updated) throw new NotFoundError('Employee month cost');
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.EMPLOYEE_MONTH_COST_ACTUAL_CORRECTED,
+    entityType: 'employee_month_cost',
+    entityId: updated.id,
+    before: {
+      correctionKind: 'owner_retroactive',
+      notes: existing.notes,
+    },
+    after: {
+      correctionKind: 'owner_retroactive',
+      notes: updated.notes,
+    },
+  });
+
+  return updated;
 }
 
 /** Explicit audited return to estimate-only effective cost. */

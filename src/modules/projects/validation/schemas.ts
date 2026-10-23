@@ -290,6 +290,7 @@ export const updateProjectSchema = z
     contractValueCurrency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
     amountIncludesTax: amountIncludesTaxSchema.optional(),
     openingReductionAmount: optionalMoneyAmount,
+    changeAcknowledged: z.literal(true).optional(),
   })
   .superRefine((value, ctx) => {
     refineDateOrder(value, ctx, 'startDate', 'targetEndDate');
@@ -515,6 +516,7 @@ export const updateContractSchema = z
     notes: optionalText,
     status: z.enum(CONTRACT_STATUSES).optional(),
     isPrimary: z.boolean().optional(),
+    changeAcknowledged: z.literal(true).optional(),
   })
   .superRefine((value, ctx) => {
     refineDateOrder(value, ctx, 'startDate', 'endDate');

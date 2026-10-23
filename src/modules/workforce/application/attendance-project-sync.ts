@@ -158,6 +158,7 @@ async function reconcileApprovedTimeForAttendanceOverwrite(
       kind: 'project',
       projectId: input.projectId,
       description: input.notes ?? row.description ?? undefined,
+      changeAcknowledged: true,
     });
     if (corrected.mode !== 'void_replace') continue;
 

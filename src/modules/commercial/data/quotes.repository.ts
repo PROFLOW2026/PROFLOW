@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ne, sql } from 'drizzle-orm';
 import {
   approvals,
   billingLines,
@@ -430,6 +430,33 @@ export async function findChangeOrderById(
   return row ? mapChangeOrder(row) : null;
 }
 
+export async function updateChangeOrderRetroactiveFields(
+  db: DbExecutor,
+  organizationId: string,
+  changeOrderId: string,
+  patch: {
+    readonly reference?: string | null;
+    readonly effectiveDate?: string;
+    readonly notes?: string | null;
+    readonly billingCondition?: ChangeOrderRecord['billingCondition'];
+    readonly amount?: string;
+  },
+): Promise<ChangeOrderRecord | null> {
+  const [row] = await db
+    .update(changeOrders)
+    .set({
+      reference: patch.reference === undefined ? undefined : patch.reference,
+      effectiveDate: patch.effectiveDate === undefined ? undefined : patch.effectiveDate,
+      notes: patch.notes === undefined ? undefined : patch.notes,
+      billingCondition: patch.billingCondition === undefined ? undefined : patch.billingCondition,
+      amount: patch.amount === undefined ? undefined : patch.amount,
+    })
+    .where(and(eq(changeOrders.id, changeOrderId), eq(changeOrders.organizationId, organizationId)))
+    .returning();
+
+  return row ? mapChangeOrder(row) : null;
+}
+
 export async function findReversalOfChangeOrder(
   db: DbExecutor,
   organizationId: string,
@@ -590,4 +617,40 @@ export async function insertChangeOrder(
     .returning();
 
   return mapChangeOrder(row!);
+}
+
+export interface SimilarChangeOrderRow {
+  readonly id: string;
+  readonly changeRequestId: string | null;
+  readonly reference: string | null;
+}
+
+export async function findSimilarChangeOrders(
+  db: DbExecutor,
+  organizationId: string,
+  input: {
+    readonly excludeChangeOrderId: string;
+    readonly projectId: string;
+    readonly reference: string | null;
+  },
+): Promise<SimilarChangeOrderRow[]> {
+  const reference = input.reference?.trim();
+  if (!reference) return [];
+
+  return db
+    .select({
+      id: changeOrders.id,
+      changeRequestId: changeOrders.changeRequestId,
+      reference: changeOrders.reference,
+    })
+    .from(changeOrders)
+    .where(
+      and(
+        eq(changeOrders.organizationId, organizationId),
+        eq(changeOrders.projectId, input.projectId),
+        sql`lower(trim(${changeOrders.reference})) = lower(trim(${reference}))`,
+        ne(changeOrders.id, input.excludeChangeOrderId),
+      ),
+    )
+    .limit(8);
 }

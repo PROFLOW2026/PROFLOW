@@ -151,9 +151,24 @@
     "noTasksAvailable": "No linkable tasks",
     "linkButton": "Link task"
   },
+  "retroactiveEdit": {
+    "title": "Owner correction (header only)",
+    "description": "Correct title, description, validity, or notes on a sent or accepted quote. Line prices and status are unchanged.",
+    "save": "Save correction",
+    "saved": "Correction saved.",
+    "confirmTitle": "Confirm quote correction",
+    "confirmDescription": "This updates the commercial quote record. Billing and converted work are not changed automatically.",
+    "fields": {
+      "title": "Title",
+      "description": "Description",
+      "validityDate": "Valid until",
+      "notes": "Notes"
+    }
+  },
   "errors": {
     "invalidTransition": "This status change is not allowed",
     "notEditable": "Only draft or ready estimates can be edited",
+    "ownerOnlyRetroactiveEdit": "Only the organization owner may correct sent or accepted estimates",
     "useConvert": "Use Convert to create a project, job, or work order",
     "alreadyConverted": "This estimate was already converted",
     "notAccepted": "Only an accepted estimate can be converted",

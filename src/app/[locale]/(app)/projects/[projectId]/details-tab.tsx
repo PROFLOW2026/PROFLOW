@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
-import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
+import { useActionState, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import {
   MainAppFormGrid,
   MainAppSection,
@@ -24,10 +24,12 @@ import { type CustomFieldValueView } from '@/modules/custom-fields/domain/types'
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { Link } from '@/shared/i18n/navigation';
 import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
-import { updateProjectAction, type ProjectFormState } from '../actions';
+import { previewSimilarProjectsAction, updateProjectAction, type ProjectFormState } from '../actions';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import { ProjectCoverImageControl } from '@/modules/projects/ui/project-cover-image-control';
+import { BusinessChangeFormDialogs } from '@/components/patterns/business-change-form-dialogs';
+import type { DuplicateRecordWarningItem } from '@/components/patterns/duplicate-record-warning-dialog';
 
 type ContactMode = 'none' | 'existing' | 'new';
 
@@ -41,6 +43,7 @@ interface DetailsTabProps {
   baseCurrency: string;
   currencySymbol: string;
   canManageContract: boolean;
+  isOwner?: boolean;
   customFields?: CustomFieldValueView[];
   taxRatePercent?: string | null;
   showOpeningReduction?: boolean;
@@ -84,6 +87,7 @@ export function DetailsTab({
   baseCurrency,
   currencySymbol,
   canManageContract,
+  isOwner = false,
   customFields = [],
   taxRatePercent = null,
   showOpeningReduction = true,
@@ -136,6 +140,65 @@ export function DetailsTab({
   const tasksProgress = progressSource === 'tasks';
   const searchParams = useSearchParams();
   const contractAnchorRef = useRef<HTMLDivElement>(null);
+  const detailsFormRef = useRef<HTMLFormElement>(null);
+  const skipRetroConfirmRef = useRef(false);
+  const [retroConfirmOpen, setRetroConfirmOpen] = useState(false);
+  const [duplicateOpen, setDuplicateOpen] = useState(false);
+  const [similarMatches, setSimilarMatches] = useState<readonly DuplicateRecordWarningItem[]>([]);
+  const [similarLoading, setSimilarLoading] = useState(false);
+  const needsRetroConfirm =
+    isOwner &&
+    (project.status === 'completed' ||
+      project.status === 'cancelled' ||
+      project.status === 'archived');
+
+  async function handleDetailsSubmit(event: FormEvent<HTMLFormElement>) {
+    if (!needsRetroConfirm || skipRetroConfirmRef.current) {
+      skipRetroConfirmRef.current = false;
+      return;
+    }
+    event.preventDefault();
+    setSimilarLoading(true);
+    try {
+      const form = event.currentTarget;
+      const data = new FormData(form);
+      const name = String(data.get('name') ?? '').trim();
+      const rawClientId = data.get('clientId');
+      const clientId =
+        rawClientId === null || rawClientId === '' || rawClientId === 'none'
+          ? null
+          : String(rawClientId);
+      const rows = await previewSimilarProjectsAction({
+        excludeProjectId: project.id,
+        name,
+        clientId,
+      });
+      const matches: DuplicateRecordWarningItem[] = rows.map((row) => ({
+        id: row.id,
+        href: `/projects/${row.id}?tab=details`,
+        title: row.name,
+        reason: t('retroactiveEdit.duplicateReason'),
+      }));
+      setSimilarMatches(matches);
+      if (matches.length > 0) {
+        setDuplicateOpen(true);
+        return;
+      }
+      setRetroConfirmOpen(true);
+    } finally {
+      setSimilarLoading(false);
+    }
+  }
+
+  function confirmDetailsSave() {
+    skipRetroConfirmRef.current = true;
+    setRetroConfirmOpen(false);
+    const ack = detailsFormRef.current?.querySelector<HTMLInputElement>(
+      'input[name="changeAcknowledged"]',
+    );
+    if (ack) ack.value = 'true';
+    detailsFormRef.current?.requestSubmit();
+  }
 
   useEffect(() => {
     if (searchParams.get('tab') === 'contracts') {
@@ -157,10 +220,13 @@ export function DetailsTab({
       </MainAppSection>
       <MainAppSection title={tCreate('sections.details')}>
       <form
+        ref={detailsFormRef}
         action={formAction}
+        onSubmit={handleDetailsSubmit}
         className="flex w-full min-w-0 flex-col gap-4"
       >
         <input type="hidden" name="projectId" value={project.id} />
+        <input type="hidden" name="changeAcknowledged" value="false" />
         {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
         <MainAppFormGrid dense>
@@ -500,10 +566,29 @@ export function DetailsTab({
         </Field>
         </MainAppFormGrid>
 
-        <Button type="submit" loading={pending}>
+        <Button type="submit" loading={pending || similarLoading}>
           {t('save')}
         </Button>
       </form>
+      <BusinessChangeFormDialogs
+        confirmOpen={retroConfirmOpen}
+        setConfirmOpen={setRetroConfirmOpen}
+        duplicateOpen={duplicateOpen}
+        setDuplicateOpen={setDuplicateOpen}
+        pending={pending}
+        changes={[]}
+        similarMatches={similarMatches}
+        confirmTitle={t('retroactiveEdit.confirmTitle')}
+        confirmDescription={t('retroactiveEdit.confirmDescription')}
+        duplicateTitle={t('retroactiveEdit.duplicateTitle')}
+        duplicateDescription={t('retroactiveEdit.duplicateDescription')}
+        onConfirm={confirmDetailsSave}
+        onBackToEdit={() => {
+          setRetroConfirmOpen(false);
+          setDuplicateOpen(false);
+        }}
+        onContinuePastDuplicate={() => setRetroConfirmOpen(true)}
+      />
       </MainAppSection>
 
       <div className="mt-4 w-full min-w-0">

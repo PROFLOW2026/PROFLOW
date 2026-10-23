@@ -33,7 +33,7 @@
     "draftBanner": "ההוצאה נשמרה כטיוטה ואינה נכללת עדיין בעלויות הפרויקט.",
     "editSaved": "השינויים נשמרו.",
     "finalizedBanner": "ההוצאה נרשמה בעלויות הפרויקט.",
-    "finalizedEditableBanner": "ניתן לערוך ולשמור שינויים כל עוד החודש פתוח.",
+    "finalizedEditableBanner": "ניתן לערוך ולשמור שינויים; בעלים יכול לתקן גם בחודש סגור, עם אישור והיסטוריה.",
     "reversalOf": "ביטול של הוצאה {id}",
     "adjustmentOf": "תיקון מחליף להוצאה {id}",
     "viewVendor": "פתיחת ספק מקושר",
@@ -497,7 +497,15 @@
     "sumHintEnterAmount": "הזינו סכום הוצאה כדי לראות את סכום ההקצאות הנדרש.",
     "unallocatedCallout": "עדיין לא נבחרו פרויקטים - ההוצאות הכלליות לא ייכנסו לעלות מוכרת של פרויקט."
   },
+  "retroactiveEdit": {
+    "confirmTitle": "לאשר את תיקון ההוצאה?",
+    "confirmDescription": "בדקו את השינוי לפני שמירה סופית. התיקון יירשם בהיסטוריה.",
+    "duplicateTitle": "נמצאה הוצאה דומה",
+    "duplicateDescription": "ייתכן שמדובר בכפילות — אך ייתכנו גם שתי פעולות עסקיות לגיטימיות.",
+    "duplicateReason": "אותו תאריך וסכום ({date}, {amount})."
+  },
   "errors": {
+    "confirmRequired": "יש לאשר את השינוי לפני שמירה.",
     "inclusiveTaxRateRequired": "כדי להזין סכום כולל מע״מ נדרש כלל מס באחוזים פעיל בארגון.",
     "workPackageRequiresProject": "תחום עבודה דורש פרויקט.",
     "directFamilyRequiresProject": "עלות ישירה לפרויקט דורשת פרויקט.",

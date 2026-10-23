@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { MainAppSection } from '@/components/patterns/main-app';
 import { listProjectContracts } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ProjectContractsClient } from './project-contracts-client';
@@ -23,6 +24,7 @@ export async function ProjectContractsPanel({ projectId, currency }: ProjectCont
       allowed: true as const,
       items,
       canManage: hasPermission(context, PERMISSIONS.CONTRACTS_MANAGE),
+      isOwner: isOrganizationOwner(context),
     };
   });
 
@@ -34,6 +36,7 @@ export async function ProjectContractsPanel({ projectId, currency }: ProjectCont
         projectId={projectId}
         currency={currency}
         canManage={view.canManage}
+        isOwner={view.isOwner}
         contracts={view.items.map((item) => ({
           id: item.contract.id,
           name: item.contract.name,

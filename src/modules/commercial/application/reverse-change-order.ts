@@ -6,6 +6,7 @@ import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission, assertSameOrganization } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { assertBusinessChangeAcknowledged } from '@/shared/business-change/assert-change-acknowledged';
 import { reverseChangeOrderBlockReason } from '../domain/change-order-reversal';
 import { COMMERCIAL_AUDIT_ACTIONS } from '../domain/types';
 import {
@@ -46,6 +47,7 @@ export async function reverseChangeOrder(
   }
 
   const input = parsed.data;
+  assertBusinessChangeAcknowledged(input.changeAcknowledged);
 
   return withTransaction(context.db, async (tx) => {
     const txContext = { ...context, db: tx };

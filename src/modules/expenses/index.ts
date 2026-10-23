@@ -1,6 +1,7 @@
 export { createExpense } from './application/create-expense';
 export { updateExpense } from './application/update-expense';
 export { updateFinalizedExpense } from './application/update-finalized-expense';
+export { listSimilarExpenses } from './application/find-similar-expenses';
 export { finalizeExpense } from './application/finalize-expense';
 export { voidExpense } from './application/void-expense';
 export { restoreVoidedExpense } from './application/restore-voided-expense';

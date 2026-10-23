@@ -2,6 +2,7 @@
 
 export {
   createQuote,
+  editQuoteRetroactive,
   updateQuote,
   getQuoteDetail,
 } from './application/manage-quotes';

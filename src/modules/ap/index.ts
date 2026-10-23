@@ -18,6 +18,7 @@ export {
   updateDraftApBillRetention,
 } from './application/bills';
 export { editRecognizedApBill } from './application/edit-recognized-ap-bill';
+export { updateRecordedVendorPaymentDate } from './application/update-recorded-vendor-payment-date';
 
 export {
   voidApBill,

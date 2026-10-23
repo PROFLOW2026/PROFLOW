@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import {
   convertQuote,
   createQuote,
+  editQuoteRetroactive,
   transitionQuoteStatus,
   updateQuote,
   type QuoteStatus,
@@ -175,6 +176,34 @@ export async function transitionQuoteAction(
     );
     revalidatePath('/quotes');
     revalidatePath(`/quotes/${quoteId}`);
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function editQuoteRetroactiveAction(
+  quoteId: string,
+  _prev: QuotesFormState,
+  formData: FormData,
+): Promise<QuotesFormState> {
+  if (formData.get('changeAcknowledged') !== 'true') {
+    const tErrors = await getTranslations('errors');
+    return { error: tErrors('confirmRequired') };
+  }
+  try {
+    await withOrgContext((context) =>
+      editQuoteRetroactive(context, {
+        quoteId,
+        title: formValue(formData, 'title'),
+        description: formValue(formData, 'description'),
+        validityDate: formValue(formData, 'validityDate'),
+        notes: formValue(formData, 'notes'),
+        changeAcknowledged: true,
+      }),
+    );
+    revalidatePath(`/quotes/${quoteId}`);
+    revalidatePath('/quotes');
     return { success: true };
   } catch (error) {
     return mapAppError(error);

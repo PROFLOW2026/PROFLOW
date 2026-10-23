@@ -1,7 +1,11 @@
 ﻿'use client';
 
-import { useTranslations } from 'next-intl';
-import { useActionState, useEffect, useMemo, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { useActionState, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { BusinessChangeConfirmDialog } from '@/components/patterns/business-change-confirm-dialog';
+import type { BusinessChangeFieldDiff } from '@/shared/business-change/types';
+import { formatBusinessDate } from '@/shared/dates/format';
+import { businessDate } from '@/shared/dates';
 import { listTasksForTimeLogAction } from '@/app/[locale]/(app)/workforce/time/actions';
 import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
@@ -84,6 +88,7 @@ export function TimeEntryForm({
   defaultTaskId = null,
 }: TimeEntryFormProps) {
   const t = useTranslations('workforce');
+  const locale = useLocale();
   const tCommon = useTranslations('common');
   const tOffline = useTranslations('offline');
   const [employeeId, setEmployeeId] = useState(defaultEmployeeId ?? employees[0]?.id ?? '');
@@ -111,6 +116,9 @@ export function TimeEntryForm({
   );
   const [confirmDailyExcess, setConfirmDailyExcess] = useState(false);
   const [approveOnCreate, setApproveOnCreate] = useState(false);
+  const [correctionConfirmOpen, setCorrectionConfirmOpen] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const skipCorrectionConfirmRef = useRef(false);
 
   function formatHoursDisplay(value: string): string {
     const num = Number(value);
@@ -228,12 +236,60 @@ export function TimeEntryForm({
     );
   }
 
+  const correctionDiffs = useMemo((): BusinessChangeFieldDiff[] => {
+    if (!correctsEntryId) return [];
+    const rows: BusinessChangeFieldDiff[] = [];
+    if (workDate !== defaultDate) {
+      rows.push({
+        fieldLabel: t('time.form.date'),
+        before: formatBusinessDate(businessDate(defaultDate), locale),
+        after: formatBusinessDate(businessDate(workDate), locale),
+      });
+    }
+    if (hours.trim() !== initialHours.trim()) {
+      rows.push({
+        fieldLabel: t('time.form.hours'),
+        before: initialHours.trim() || '—',
+        after: hours.trim() || '—',
+      });
+    }
+    return rows;
+  }, [correctsEntryId, defaultDate, hours, initialHours, locale, t, workDate]);
+
+  function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
+    if (!correctsEntryId) return;
+    if (skipCorrectionConfirmRef.current) {
+      skipCorrectionConfirmRef.current = false;
+      return;
+    }
+    if (dailyExcess && !confirmDailyExcess && !canApproveOnCreate) {
+      event.preventDefault();
+      return;
+    }
+    event.preventDefault();
+    setCorrectionConfirmOpen(true);
+  }
+
+  function submitCorrectionConfirmed() {
+    setCorrectionConfirmOpen(false);
+    const ack = formRef.current?.querySelector<HTMLInputElement>('input[name="changeAcknowledged"]');
+    if (ack) ack.value = 'true';
+    skipCorrectionConfirmRef.current = true;
+    formRef.current?.requestSubmit();
+  }
+
   if (employees.length === 0) {
     return <Alert tone="info">{t('time.form.noEmployees')}</Alert>;
   }
 
   return (
-    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
+    <>
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={handleFormSubmit}
+      className="flex w-full min-w-0 flex-col gap-4"
+    >
       {state.ok && state.error ? (
         <Alert tone="info" role="status">
           {state.error}
@@ -289,7 +345,12 @@ export function TimeEntryForm({
 
       <input type="hidden" name="kind" value={kind} />
       <input type="hidden" name="entryMode" value={entryMode} />
-      {correctsEntryId ? <input type="hidden" name="correctsEntryId" value={correctsEntryId} /> : null}
+      {correctsEntryId ? (
+        <>
+          <input type="hidden" name="correctsEntryId" value={correctsEntryId} />
+          <input type="hidden" name="changeAcknowledged" value="false" />
+        </>
+      ) : null}
       {returnPath ? <input type="hidden" name="returnPath" value={returnPath} /> : null}
       {clientRequestId ? (
         <input type="hidden" name="clientRequestId" value={clientRequestId} />
@@ -660,5 +721,18 @@ export function TimeEntryForm({
         ) : null}
       </div>
     </form>
+    {correctsEntryId ? (
+      <BusinessChangeConfirmDialog
+        open={correctionConfirmOpen}
+        onOpenChange={setCorrectionConfirmOpen}
+        title={t('retroactiveEdit.timeCorrectionConfirmTitle')}
+        description={t('retroactiveEdit.timeCorrectionConfirmDescription')}
+        changes={correctionDiffs}
+        pending={pending}
+        onConfirm={submitCorrectionConfirmed}
+        onBackToEdit={() => setCorrectionConfirmOpen(false)}
+      />
+    ) : null}
+    </>
   );
 }

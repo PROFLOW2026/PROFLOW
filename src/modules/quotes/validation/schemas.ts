@@ -113,6 +113,26 @@ export const updateQuoteSchema = z.object({
 
 export type UpdateQuoteInput = z.input<typeof updateQuoteSchema>;
 
+export const editQuoteRetroactiveSchema = z
+  .object({
+    quoteId: z.string().uuid(),
+    title: z.string().trim().min(1).max(200).optional(),
+    description: optionalText,
+    validityDate: optionalDate,
+    notes: optionalText,
+    changeAcknowledged: z.literal(true),
+  })
+  .refine(
+    (value) =>
+      value.title !== undefined ||
+      value.description !== undefined ||
+      value.validityDate !== undefined ||
+      value.notes !== undefined,
+    { message: 'At least one field must be updated' },
+  );
+
+export type EditQuoteRetroactiveInput = z.infer<typeof editQuoteRetroactiveSchema>;
+
 export const transitionQuoteSchema = z.object({
   quoteId: z.string().uuid(),
   toStatus: z.enum(QUOTE_STATUSES),

@@ -499,6 +499,29 @@
     "laborPoolEquation": "הוקצה {allocated} + ממתין {unallocated} = {total} מאגר עבודה",
     "unallocatedHoursBanner": "{hours} שעות ממתינות לאישור ועדיין לא נספרות בעלות עבודה מוכרת בפרויקט."
   },
+  "retroactiveEdit": {
+    "title": "תיקון תשלום שכר מאושר",
+    "payrollDescription": "שינוי תאריך או סכום התשלום שכבר סומן כשולם לחודש זה. נדרש אישור בעלים והפעולה מתועדת במלואה.",
+    "evidenceNote": "סיבת התיקון",
+    "save": "סקירת תיקון",
+    "savePending": "שומר…",
+    "confirmTitle": "אישור תיקון תשלום שכר",
+    "confirmDescription": "הפעולה מעדכנת דיווח מזומן שכר גם בחודשים סגורים. מסמכים חשבונאיים לא משתנים.",
+    "cashMonthImpact": "חודש דיווח מזומן",
+    "cashMonthShift": "התשלום עובר מ-{from} ל-{to}",
+    "timeCorrectionConfirmTitle": "אישור תיקון שעות",
+    "timeCorrectionConfirmDescription": "הרשומה המאושרת המקורית תבוטל ותוחלף. Labor Actual מתעדכן לפי כללי האישור.",
+    "monthCostConfirmTitle": "אישור תיקון עלות מעסיק לחודש",
+    "monthCostConfirmDescription": "עלות שהוחלה מוחלפת בשורת התאמה חדשה. הקצאת עבודה ורווחיות מתעדכנות.",
+    "monthCostSyncOff": "לא לשנות תשלום שכר",
+    "monthCostSyncOn": "ליישר תשלום שכר רשום עם העלות המתוקנת",
+    "monthCostNotesTitle": "תיקון הערות עלות חודש (בעלים)",
+    "monthCostNotesDescription": "תיקון הערות בלבד בשורת עלות שהוחלה או נסגרה.",
+    "monthCostNotesSave": "שמירת תיקון הערות",
+    "monthCostNotesSaved": "ההערות עודכנו.",
+    "monthCostNotesConfirmTitle": "אישור תיקון הערות",
+    "monthCostNotesConfirmDescription": "מתעדכנות הערות פנימיות בלבד; סכומים לא משתנים."
+  },
   "payrollPayment": {
     "title": "תשלום שכר · {yearMonth}",
     "dueDate": "מועד תשלום",
@@ -922,7 +945,9 @@
     "allocationWeightsRequired": "משקלי ההקצאה חייבים להיות גדולים מאפס.",
     "allocationOverKnown": "סכום ההקצאה חורג מעלות המעסיק לחודש.",
     "allocationAmountPositive": "סכום ההקצאה חייב להיות חיובי.",
-    "allocationRunNotDraft": "ניתן להחיל רק טיוטת הקצאה."
+    "allocationRunNotDraft": "ניתן להחיל רק טיוטת הקצאה.",
+    "ownerOnlyRetroactiveEdit": "רק בעל הארגון רשאי לתקן רשומות כוח אדם סגורות או מסוכמות.",
+    "payrollInvalidAmount": "סכום התשלום חייב להיות חיובי."
   },
   "timesheets": {
     "title": "גיליונות שעות",

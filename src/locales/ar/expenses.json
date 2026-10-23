@@ -464,6 +464,13 @@
       "automatic_installment_policy": "مؤكّد تلقائياً حسب جدول أقساط"
     }
   },
+  "retroactiveEdit": {
+    "confirmTitle": "تأكيد تصحيح المصروف؟",
+    "confirmDescription": "راجعوا التغيير قبل الحفظ النهائي. يُسجَّل التصحيح في السجل.",
+    "duplicateTitle": "وُجد مصروف مشابه",
+    "duplicateDescription": "قد يكون تكراراً — أو عمليتان تجاريتان مشروعتان.",
+    "duplicateReason": "نفس التاريخ والمبلغ ({date}, {amount})."
+  },
   "allocation": {
     "title": "توزيع على مشاريع",
     "subtitle": "بدون بنود توزيع، المصاريف العامة أو المشتركة تبقى خارج تكلفة كل مشروع.",
@@ -513,6 +520,7 @@
     "allocationProjectRequired": "بنود توزيع المشروع تتطلب مشروعاً.",
     "allocationOverheadNoProject": "بنود المصاريف العامة لا يمكن أن تشير لمشروع.",
     "customRecurrenceRequired": "صف التكرار المخصّص.",
+    "confirmRequired": "יש לאשר את השינוי לפני שמירה.",
     "notEditable": "فقط مسودات المصروف يمكن تعديلها.",
     "notFinalizable": "فقط مسودات المصروف يمكن اعتمادها.",
     "notVoidable": "فقط المصروفات النهائية يمكن إلغاؤها.",

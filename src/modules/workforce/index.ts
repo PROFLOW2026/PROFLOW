@@ -30,6 +30,7 @@ export {
   loadMonthlyEmployerCostReview,
   returnMonthlyEmployerCostToEstimate,
   saveMonthlyEmployerCostDraft,
+  updateAppliedEmployerMonthCostNotes,
 } from './application/employer-month-costs';
 export type { MonthlyEmployerCostReview } from './application/employer-month-costs';
 export {

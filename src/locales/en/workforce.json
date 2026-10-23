@@ -527,6 +527,29 @@
     "laborPoolEquation": "Allocated {allocated} + pending {unallocated} = {total} labor pool",
     "unallocatedHoursBanner": "{hours} hours are pending approval and are not yet in project labor Actual."
   },
+  "retroactiveEdit": {
+    "title": "Correct confirmed payroll",
+    "payrollDescription": "Change the recorded payment date or amount for this paid month. Requires owner acknowledgment and is fully audited.",
+    "evidenceNote": "Reason for correction",
+    "save": "Review correction",
+    "savePending": "Saving…",
+    "confirmTitle": "Confirm payroll correction",
+    "confirmDescription": "This updates cash payroll reporting for closed months if needed. Statutory documents are not changed.",
+    "cashMonthImpact": "Cash reporting month",
+    "cashMonthShift": "Payment moves from {from} to {to}",
+    "timeCorrectionConfirmTitle": "Confirm time correction",
+    "timeCorrectionConfirmDescription": "The original approved entry will be voided and replaced. Labor Actual updates after approval rules allow.",
+    "monthCostConfirmTitle": "Confirm employer month cost correction",
+    "monthCostConfirmDescription": "Applied month costs are superseded with a new adjustment row. Labor allocation and profitability recompute.",
+    "monthCostSyncOff": "Do not change payroll payment",
+    "monthCostSyncOn": "Align recorded payroll payment with corrected cost",
+    "monthCostNotesTitle": "Correct month cost notes (owner)",
+    "monthCostNotesDescription": "Notes-only correction on an applied or closed month cost row.",
+    "monthCostNotesSave": "Save notes correction",
+    "monthCostNotesSaved": "Notes updated.",
+    "monthCostNotesConfirmTitle": "Confirm notes correction",
+    "monthCostNotesConfirmDescription": "This updates internal notes only; amounts are unchanged."
+  },
   "payrollPayment": {
     "title": "Payroll payment · {yearMonth}",
     "dueDate": "Due date",
@@ -950,7 +973,9 @@
     "allocationWeightsRequired": "Allocation weights must be greater than zero.",
     "allocationOverKnown": "Allocated amount exceeds the employer cost for this month.",
     "allocationAmountPositive": "Allocation amount must be positive.",
-    "allocationRunNotDraft": "Only a draft allocation can be applied."
+    "allocationRunNotDraft": "Only a draft allocation can be applied.",
+    "ownerOnlyRetroactiveEdit": "Only the organization owner may correct closed or finalized workforce records.",
+    "payrollInvalidAmount": "Paid amount must be positive."
   },
   "employerCostOverview": {
     "title": "Employer cost",

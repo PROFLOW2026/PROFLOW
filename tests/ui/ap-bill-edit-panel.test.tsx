@@ -32,6 +32,7 @@ const baseProps = {
   costCategories: [
     { id: 'cat-1', key: 'materials', name: 'חומרים', family: 'direct_project' },
   ],
+  locale: 'he-IL',
 };
 
 function renderPanel(canEdit: boolean) {

@@ -437,6 +437,25 @@ export function getVendorPaymentsRepository(): VendorPaymentsRepository {
   return activeRepository;
 }
 
+/** Owner retroactive correction — payment date only, recorded payments. */
+export async function updateVendorPaymentBusinessDate(
+  db: DbExecutor,
+  organizationId: string,
+  paymentId: string,
+  paymentDate: BusinessDate,
+): Promise<void> {
+  await db
+    .update(apPayments)
+    .set({ paymentDate, updatedAt: new Date() })
+    .where(
+      and(
+        eq(apPayments.id, paymentId),
+        eq(apPayments.organizationId, organizationId),
+        eq(apPayments.status, 'recorded'),
+      ),
+    );
+}
+
 export async function listRecordedPaymentsForVendor(
   db: DbExecutor,
   organizationId: string,

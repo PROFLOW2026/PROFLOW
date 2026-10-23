@@ -89,6 +89,7 @@ export const updateAgreementSchema = z
     startDate: optionalDate,
     endDate: optionalDate,
     notes: optionalText(4000),
+    changeAcknowledged: z.literal(true).optional(),
   })
   .refine((value) => !value.startDate || !value.endDate || value.endDate >= value.startDate, {
     path: ['endDate'],

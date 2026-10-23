@@ -6,6 +6,7 @@ import {
   applyMonthlyEmployerCostAllocation,
   archiveEmployee,
   correctMonthlyEmployerCostActual,
+  updateAppliedEmployerMonthCostNotes,
   createEmployee,
   createEmployeeSchema,
   createRateVersion,
@@ -396,6 +397,33 @@ export async function applyMonthlyEmployerCostAllocationAction(input: {
   }
 }
 
+export async function updateAppliedEmployerMonthCostNotesAction(input: {
+  employeeId: string;
+  yearMonth: string;
+  notes: string | null;
+  changeAcknowledged: true;
+}): Promise<MonthlyEmployerCostActionState> {
+  const tErrors = await getTranslations('errors');
+  if (input.changeAcknowledged !== true) {
+    return { error: tErrors('confirmRequired') };
+  }
+  try {
+    await withOrgContext((context) =>
+      updateAppliedEmployerMonthCostNotes(context, {
+        employeeId: input.employeeId,
+        yearMonth: input.yearMonth,
+        notes: input.notes,
+        changeAcknowledged: true,
+      }),
+    );
+    revalidatePath(`/workforce/employees/${input.employeeId}`);
+    revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    return mapEmployeeActionError(error, tErrors('unexpected'));
+  }
+}
+
 export async function correctMonthlyEmployerCostActualAction(input: {
   employeeId: string;
   yearMonth: string;
@@ -403,6 +431,7 @@ export async function correctMonthlyEmployerCostActualAction(input: {
   actualAmount?: string | null;
   correctionNote?: string | null;
   syncPaidAmount?: boolean;
+  changeAcknowledged?: true;
 }): Promise<MonthlyEmployerCostActionState> {
   const tErrors = await getTranslations('errors');
 
@@ -415,6 +444,7 @@ export async function correctMonthlyEmployerCostActualAction(input: {
         actualAmount: input.actualAmount ?? null,
         correctionNote: input.correctionNote ?? null,
         syncPaidAmount: input.syncPaidAmount === true,
+        changeAcknowledged: input.changeAcknowledged,
       }),
     );
     revalidatePath(`/workforce/employees/${input.employeeId}`);
@@ -442,6 +472,59 @@ export async function returnMonthlyEmployerCostToEstimateAction(input: {
     );
     revalidatePath(`/workforce/employees/${input.employeeId}`);
     revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    return mapEmployeeActionError(error, tErrors('unexpected'));
+  }
+}
+
+export async function reviseConfirmedPayrollRetroactiveAction(input: {
+  readonly employeeId: string;
+  readonly yearMonth: string;
+  readonly paidAt?: string;
+  readonly paidAmount?: string;
+  readonly evidenceNote: string;
+  readonly changeAcknowledged: true;
+}): Promise<WorkforceFormState> {
+  const tErrors = await getTranslations('errors');
+
+  if (input.changeAcknowledged !== true) {
+    return { error: tErrors('validationFailed') };
+  }
+  if (!input.paidAt && !input.paidAmount) {
+    return { error: tErrors('validationFailed') };
+  }
+
+  try {
+    await withOrgContext(async (context) => {
+      const { businessDate } = await import('@/shared/dates');
+      const { reviseConfirmedPayrollAmount, reviseConfirmedPayrollPaidAt } = await import(
+        '@/modules/workforce/application/payroll-payments'
+      );
+
+      if (input.paidAt) {
+        await reviseConfirmedPayrollPaidAt(context, {
+          employeeId: input.employeeId,
+          yearMonth: input.yearMonth,
+          paidAt: businessDate(input.paidAt),
+          evidenceNote: input.evidenceNote,
+          changeAcknowledged: true,
+        });
+      }
+      if (input.paidAmount) {
+        await reviseConfirmedPayrollAmount(context, {
+          employeeId: input.employeeId,
+          yearMonth: input.yearMonth,
+          paidAmount: input.paidAmount,
+          evidenceNote: input.evidenceNote,
+          changeAcknowledged: true,
+        });
+      }
+    });
+    revalidatePath(`/workforce/employees/${input.employeeId}`);
+    revalidatePath('/today');
+    revalidatePath('/notifications');
+    revalidatePath('/', 'layout');
     return { ok: true };
   } catch (error) {
     return mapEmployeeActionError(error, tErrors('unexpected'));

@@ -464,7 +464,17 @@
     "save": "Save changes",
     "saved": "Details saved",
     "originalAmountLockedTitle": "Original contract amount is locked",
-    "originalAmountLocked": "The original contract amount and VAT mode cannot be changed after an approved contract change. Make further value changes through Change Orders."
+    "originalAmountLocked": "The original contract amount and VAT mode cannot be changed after an approved contract change. Make further value changes through Change Orders.",
+    "retroactiveEdit": {
+      "confirmTitle": "Confirm project correction",
+      "confirmDescription": "This project is completed, cancelled, or archived. Review changes before saving; audit history is kept.",
+      "duplicateTitle": "Similar project found",
+      "duplicateDescription": "Another project may match this name (and client) — continue only if both are legitimate.",
+      "duplicateReason": "Same project name for this client."
+    },
+    "errors": {
+      "ownerOnlyRetroactiveEdit": "Only the organization owner may correct a closed or archived project."
+    }
   },
   "contracts": {
     "title": "Contracts",
@@ -506,9 +516,17 @@
       "closed": "Closed",
       "cancelled": "Cancelled"
     },
+    "retroactiveEdit": {
+      "confirmTitle": "Confirm contract correction",
+      "confirmDescription": "This contract is closed or cancelled. Review metadata changes before saving; amounts stay locked.",
+      "duplicateTitle": "Similar contract found",
+      "duplicateDescription": "Another contract on this project may match — continue only if both are legitimate.",
+      "duplicateReason": "Same contract number or name on this project."
+    },
     "errors": {
       "saveFailed": "Could not save the contract.",
-      "invalidStatus": "That status change is not allowed for this contract."
+      "invalidStatus": "That status change is not allowed for this contract.",
+      "ownerOnlyRetroactiveEdit": "Only the organization owner may correct a closed or cancelled contract."
     }
   },
   "workPackages": {

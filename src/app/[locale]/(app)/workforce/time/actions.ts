@@ -142,6 +142,7 @@ export async function createTimeEntryAction(
       timeCodeId: formData.get('timeCodeId') || null,
       taskId: formData.get('taskId') || null,
       description: formData.get('description') || null,
+      changeAcknowledged: formData.get('changeAcknowledged') === 'true' ? true : undefined,
     });
     if (!parsed.success) return { error: tErrors('validationFailed') };
     try {

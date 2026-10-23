@@ -2,6 +2,7 @@ import { clients } from '@drizzle/schema';
 import { and, eq } from 'drizzle-orm';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
+import { assertOwnerRetroactiveBusinessChange } from '@/shared/business-change/assert-owner-retroactive';
 import { todayInTimeZone, toIsoInstant } from '@/shared/dates';
 import { withTransaction } from '@/shared/db';
 import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
@@ -366,6 +367,22 @@ export async function updateContract(
   assertPermission(scoped, PERMISSIONS.CONTRACTS_MANAGE);
   await assertClientInOrg(scoped, input.clientId);
 
+  const isTerminalContract =
+    existing.status === 'closed' || existing.status === 'cancelled';
+  if (isTerminalContract) {
+    assertOwnerRetroactiveBusinessChange(
+      scoped,
+      input.changeAcknowledged,
+      'projects.contracts.errors.ownerOnlyRetroactiveEdit',
+    );
+    if (input.status && input.status !== existing.status) {
+      throw new DomainRuleError(
+        'Closed or cancelled contracts cannot change status via correction',
+        'projects.contracts.errors.invalidStatus',
+      );
+    }
+  }
+
   if (input.contractNumber) {
     const numbered = await findContractByNumber(
       context.db,
@@ -416,11 +433,27 @@ export async function updateContract(
     action: AUDIT_ACTIONS.CONTRACT_UPDATED,
     entityType: 'contract',
     entityId: updated.id,
+    before: isTerminalContract
+      ? {
+          correctionKind: 'owner_retroactive',
+          name: existing.name,
+          contractNumber: existing.contractNumber,
+          startDate: existing.startDate,
+          endDate: existing.endDate,
+          retentionPercent: existing.retentionPercent,
+          notes: existing.notes,
+        }
+      : undefined,
     after: {
+      ...(isTerminalContract ? { correctionKind: 'owner_retroactive' } : {}),
       name: updated.name,
       contractType: updated.contractType,
       isPrimary: updated.isPrimary,
       contractNumber: updated.contractNumber,
+      startDate: updated.startDate,
+      endDate: updated.endDate,
+      retentionPercent: updated.retentionPercent,
+      notes: updated.notes,
     },
   });
 

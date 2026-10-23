@@ -196,6 +196,7 @@ export const createExpenseSchema = expenseFieldsSchema.superRefine(refineInvento
 export const updateExpenseSchema = expenseFieldsSchema
   .extend({
     expenseId: z.string().uuid(),
+    changeAcknowledged: z.literal(true).optional(),
   })
   .superRefine(refineInventoryStockPurchase);
 
@@ -253,6 +254,17 @@ export const runAllocationSchema = z.object({
 export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;
 export type CreateExpenseAdjustmentInput = z.infer<typeof createExpenseAdjustmentSchema>;
 export type UpdateExpenseInput = z.infer<typeof updateExpenseSchema>;
+
+export const previewSimilarExpenseSchema = z.object({
+  expenseId: z.string().uuid(),
+  expenseDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/),
+  grossAmount: z.string().trim().min(1),
+  vendorId: z.string().uuid().nullable().optional(),
+});
+
+export type PreviewSimilarExpenseInput = z.infer<typeof previewSimilarExpenseSchema>;
 export type ListExpensesInput = z.infer<typeof listExpensesSchema>;
 export type RunAllocationInput = z.infer<typeof runAllocationSchema>;
 

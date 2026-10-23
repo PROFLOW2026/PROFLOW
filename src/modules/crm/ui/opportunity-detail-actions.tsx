@@ -1,7 +1,9 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useActionState } from 'react';
+import { useActionState, useState, type FormEvent } from 'react';
+import { BusinessChangeFormDialogs } from '@/components/patterns/business-change-form-dialogs';
+import type { DuplicateRecordWarningItem } from '@/components/patterns/duplicate-record-warning-dialog';
 import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -13,6 +15,7 @@ import {
   createOpportunityNoteAction,
   convertCrmQuoteToProductQuoteAction,
   markOpportunityLostAction,
+  previewSimilarOpportunitiesAction,
   updateOpportunityAction,
   type CrmFormState,
 } from '@/app/[locale]/(app)/crm/actions';
@@ -146,6 +149,131 @@ export function OpportunityFollowUpForm({
         {t('save')}
       </Button>
     </form>
+  );
+}
+
+export function OpportunityRetroactiveEditForm({
+  opportunityId,
+  opportunityName,
+  notes,
+  expectedStartDate,
+  referralSource,
+}: {
+  opportunityId: string;
+  opportunityName: string;
+  notes: string | null;
+  expectedStartDate: string | null;
+  referralSource: string | null;
+}) {
+  const t = useTranslations('crm.followUp');
+  const tRetro = useTranslations('crm.retroactiveEdit');
+  const tCommon = useTranslations('common');
+  const formId = `crm-opp-retro-${opportunityId}`;
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [duplicateOpen, setDuplicateOpen] = useState(false);
+  const [similarMatches, setSimilarMatches] = useState<readonly DuplicateRecordWarningItem[]>([]);
+  const [similarLoading, setSimilarLoading] = useState(false);
+  const [state, formAction, pending] = useActionState<CrmFormState, FormData>(
+    updateOpportunityAction,
+    {},
+  );
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSimilarLoading(true);
+    try {
+      const form = event.currentTarget;
+      const data = new FormData(form);
+      const startRaw = String(data.get('expectedStartDate') ?? '').trim();
+      const rows = await previewSimilarOpportunitiesAction({
+        excludeOpportunityId: opportunityId,
+        name: opportunityName,
+        expectedStartDate: startRaw || null,
+      });
+      const matches: DuplicateRecordWarningItem[] = rows.map((row) => ({
+        id: row.id,
+        href: `/crm/opportunities/${row.id}`,
+        title: row.name,
+        reason: tRetro('duplicateReason'),
+      }));
+      setSimilarMatches(matches);
+      if (matches.length > 0) {
+        setDuplicateOpen(true);
+        return;
+      }
+      setConfirmOpen(true);
+    } finally {
+      setSimilarLoading(false);
+    }
+  }
+
+  function confirmSave() {
+    setConfirmOpen(false);
+    const form = document.getElementById(formId) as HTMLFormElement | null;
+    const ack = form?.querySelector<HTMLInputElement>('input[name="changeAcknowledged"]');
+    if (ack) ack.value = 'true';
+    form?.requestSubmit();
+  }
+
+  return (
+    <>
+      <form
+        id={formId}
+        action={formAction}
+        onSubmit={handleSubmit}
+        className="flex w-full min-w-0 flex-col gap-4"
+      >
+        <input type="hidden" name="opportunityId" value={opportunityId} />
+        <input type="hidden" name="changeAcknowledged" value="false" />
+        {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+        <p className="text-sm text-[var(--pf-text-secondary)]">{tRetro('description')}</p>
+        <MainAppFormGrid dense>
+          <Field label={t('notesLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.full}>
+            {(control) => (
+              <Textarea {...control} name="notes" rows={3} defaultValue={notes ?? ''} />
+            )}
+          </Field>
+          <Field label={t('expectedStartLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+            {(control) => (
+              <Input
+                {...control}
+                name="expectedStartDate"
+                type="date"
+                dir="ltr"
+                defaultValue={expectedStartDate ?? ''}
+              />
+            )}
+          </Field>
+          <Field label={tRetro('referralSourceLabel')} optionalLabel={tCommon('labels.optional')} className={mainAppFieldSpan.lg}>
+            {(control) => (
+              <Input {...control} name="referralSource" defaultValue={referralSource ?? ''} />
+            )}
+          </Field>
+        </MainAppFormGrid>
+        <Button type="submit" loading={pending || similarLoading} className="self-start">
+          {tRetro('save')}
+        </Button>
+      </form>
+      <BusinessChangeFormDialogs
+        confirmOpen={confirmOpen}
+        setConfirmOpen={setConfirmOpen}
+        duplicateOpen={duplicateOpen}
+        setDuplicateOpen={setDuplicateOpen}
+        pending={pending}
+        changes={[]}
+        similarMatches={similarMatches}
+        confirmTitle={tRetro('confirmTitle')}
+        confirmDescription={tRetro('confirmDescription')}
+        duplicateTitle={tRetro('duplicateTitle')}
+        duplicateDescription={tRetro('duplicateDescription')}
+        onConfirm={confirmSave}
+        onBackToEdit={() => {
+          setConfirmOpen(false);
+          setDuplicateOpen(false);
+        }}
+        onContinuePastDuplicate={() => setConfirmOpen(true)}
+      />
+    </>
   );
 }
 

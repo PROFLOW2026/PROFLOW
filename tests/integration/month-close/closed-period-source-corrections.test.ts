@@ -242,6 +242,7 @@ describe('closed-period source corrections (coherence)', () => {
         hours: '6',
         kind: 'project',
         projectId,
+        changeAcknowledged: true,
       });
       expect(openCorrection.mode).toBe('void_replace');
       if (openCorrection.mode !== 'void_replace') throw new Error('expected void_replace');
@@ -284,6 +285,7 @@ describe('closed-period source corrections (coherence)', () => {
         hours: '6',
         kind: 'project',
         projectId,
+        changeAcknowledged: true,
       });
       expect(closedCorrection.mode).toBe('closed_period_adjustment');
       if (closedCorrection.mode !== 'closed_period_adjustment') {
@@ -353,6 +355,7 @@ describe('closed-period source corrections (coherence)', () => {
           hours: '2',
           kind: 'non_project',
           timeCodeId,
+          changeAcknowledged: true,
         }),
       ).rejects.toBeInstanceOf(ConflictError);
     });

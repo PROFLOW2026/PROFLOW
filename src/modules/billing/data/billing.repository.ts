@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, isNull, lte, notInArray, or, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lte, ne, notInArray, or, sql } from 'drizzle-orm';
 import {
   billingLines,
   billingRecords,
@@ -990,4 +990,53 @@ export async function billingRecordHasIssuedStatutoryDocument(
     )
     .limit(1);
   return rows.length > 0;
+}
+
+export interface SimilarBillingRecordRow {
+  readonly id: string;
+  readonly reference: string | null;
+  readonly issueDate: string;
+  readonly subtotalAmount: string;
+  readonly projectId: string | null;
+  readonly clientId: string | null;
+}
+
+/** Heuristic duplicate warning — same issue date, net subtotal, and client/project when present. */
+export async function findSimilarBillingRecords(
+  db: DbExecutor,
+  organizationId: string,
+  input: {
+    readonly excludeBillingRecordId: string;
+    readonly issueDate: BusinessDate;
+    readonly subtotalAmount: string;
+    readonly projectId: string | null;
+    readonly clientId: string | null;
+  },
+): Promise<SimilarBillingRecordRow[]> {
+  const filters = [
+    eq(billingRecords.organizationId, organizationId),
+    ne(billingRecords.id, input.excludeBillingRecordId),
+    eq(billingRecords.issueDate, input.issueDate),
+    eq(billingRecords.subtotalAmount, input.subtotalAmount),
+    notInArray(billingRecords.status, ['void']),
+  ];
+  if (input.projectId) {
+    filters.push(eq(billingRecords.projectId, input.projectId));
+  }
+  if (input.clientId) {
+    filters.push(eq(billingRecords.clientId, input.clientId));
+  }
+
+  return db
+    .select({
+      id: billingRecords.id,
+      reference: billingRecords.reference,
+      issueDate: billingRecords.issueDate,
+      subtotalAmount: billingRecords.subtotalAmount,
+      projectId: billingRecords.projectId,
+      clientId: billingRecords.clientId,
+    })
+    .from(billingRecords)
+    .where(and(...filters))
+    .limit(8);
 }

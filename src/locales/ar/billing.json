@@ -277,6 +277,35 @@
     "whatsapp": "WhatsApp",
     "whatsappMessage": "تذكير دفع بخصوص {reference}. المبلغ المستحق: {amount}."
   },
+  "retroactiveVoid": {
+    "confirmTitle": "إلغاء سجل الفوترة {reference}؟",
+    "confirmDescription": "تُلغى المدفوعات المسجّلة على الفاتورة أولاً، ثم سجل الفوترة. تبقى كل التغييرات في السجل؛ تُحفظ التخصيصات كصفوف ملغاة.",
+    "billingStatus": "حالة الفوترة",
+    "statusFinalized": "مُنهى",
+    "statusVoid": "ملغى",
+    "paymentLine": "دفعة {index}",
+    "paymentVoided": "ملغى (محفوظ في السجل)",
+    "impactHistory": "السجل",
+    "impactHistoryDetail": "تبقى المدفوعات والفاتورة في الدفاتر كصفوف ملغاة.",
+    "impactAllocations": "التخصيصات",
+    "impactAllocationsDetail": "تبقى روابط الدفع؛ المبالغ لا تُحسب في الذمم المستحقة."
+  },
+  "retroactiveEdit": {
+    "title": "تصحيح الفوترة (المالك)",
+    "description": "تصحيح التواريخ والمبالغ والتفاصيل الداخلية. تُصحَّح مدفوعات العملاء بشكل منفصل. يُسجّل كل تغيير في السجل.",
+    "save": "حفظ التصحيح",
+    "confirmTitle": "تأكيد التصحيح؟",
+    "confirmDescription": "راجع التغيير قبل الحفظ النهائي.",
+    "duplicateTitle": "وُجد سجل مشابه",
+    "duplicateDescription": "قد يكون تكراراً — أو إدخالين تجاريين مشروعين.",
+    "duplicateReason": "نفس تاريخ الإصدار والمبلغ الصافي ({date}, {amount}).",
+    "invoicedMonthImpact": "شهر الفوترة (إيراد حسب تاريخ الإصدار)",
+    "invoicedMonthShift": "من {from} إلى {to}. التحصيل حسب تاريخ الدفع لا يتغير.",
+    "statutoryImpact": "مستند خارجي",
+    "statutoryUnchanged": "مستند SUMIT/محاسبة صادر لن يتغير؛ يُصحَّح البيان الداخلي فقط.",
+    "amountImpact": "مبلغ الفوترة",
+    "amountImpactDetail": "يجب أن تتسق المدفوعات المسجّلة مع المجموع المصحّح."
+  },
   "creditNote": {
     "title": "إشعار دائن",
     "description": "يُصدر إشعار دائن جديد عبر التسوية الحالية. الفاتورة الأصلية لا تتغير ولا تُحذف.",
@@ -313,7 +342,11 @@
     "collectionFollowUpNotEligible": "متابعة التحصيل متاحة فقط لفاتورة مُنهية ما زالت مستحقة أو متأخرة.",
     "collectionDateInvalid": "أدخل التاريخ بصيغة YYYY-MM-DD.",
     "collectionNoteTooLong": "ملاحظة التحصيل يجب ألا تتجاوز 500 حرفاً.",
-    "collectionFollowUpUnavailable": "لا يمكن حفظ متابعة التحصيل قبل تطبيق تحديث قاعدة البيانات."
+    "collectionFollowUpUnavailable": "لا يمكن حفظ متابعة التحصيل قبل تطبيق تحديث قاعدة البيانات.",
+    "ownerOnlyRetroactiveEdit": "Only the organization owner may correct closed or finalized records.",
+    "confirmRequired": "Confirm the change before saving.",
+    "statutoryDateOnlyCorrection": "When an external document was issued, only billing dates may be corrected.",
+    "paymentNotEditable": "This payment cannot be edited in its current state."
   },
   "notAllowed": {
     "title": "غير مسموح",

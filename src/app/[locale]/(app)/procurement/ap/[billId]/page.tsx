@@ -43,6 +43,7 @@ import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { isMonthClosed, yearMonthFromBusinessDate } from '@/modules/month-close';
 import { money } from '@/shared/money/money';
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
@@ -159,6 +160,7 @@ export default async function ApBillDetailPage({
     return {
       ...detail,
       canManage,
+      canCorrectVendorPaymentDate: isOrganizationOwner(context),
       canEditRecognizedBill,
       paymentTermName: paymentTerm
         ? localizePaymentTermName(paymentTerm.key, paymentTerm.name, locale)
@@ -240,6 +242,7 @@ export default async function ApBillDetailPage({
     matchPosition,
     canManage,
     canEditRecognizedBill,
+    canCorrectVendorPaymentDate,
     purchaseOrders,
     expenses,
     documentsPanel,
@@ -463,6 +466,7 @@ export default async function ApBillDetailPage({
           payableStatus={payablePosition.payableStatus}
           paymentsAvailable={payablePosition.paymentsAvailable}
           canManage={canManage}
+          canCorrectPaymentDate={canCorrectVendorPaymentDate}
           defaultPaymentDate={orgToday}
           payments={payments}
           locale={locale}
@@ -508,6 +512,7 @@ export default async function ApBillDetailPage({
         }))}
         costCategories={costCategories}
         canEdit={canEditRecognizedBill}
+        locale={locale}
       />
 
       <VoidApBillPanel

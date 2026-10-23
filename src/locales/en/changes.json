@@ -135,8 +135,33 @@
     "reversedBadge": "Reversed",
     "reversalNote": "Reversing change orders neutralize contract value. They are not voided — both rows stay in history."
   },
+  "retroactiveEdit": {
+    "description": "Owner correction for an approved change order — metadata and net amount (updates contract value; not a new change order).",
+    "save": "Save correction",
+    "saved": "Correction saved.",
+    "reversalSaved": "Change order reversed.",
+    "confirmTitle": "Confirm change order correction",
+    "confirmDescription": "Review the changes before saving. The correction is recorded in audit history.",
+    "reverseConfirmTitle": "Confirm change order reversal",
+    "reverseConfirmDescription": "This creates an opposite change order and updates contract value. The original stays in history.",
+    "fields": {
+      "reference": "Reference",
+      "effectiveDate": "Effective date",
+      "billingCondition": "Billing condition",
+      "changeOrder": "Change order",
+      "amount": "Net amount"
+    },
+    "amountHint": "Corrects the approved net amount and the linked contract value event (not a new change order).",
+    "amountConfirmTitle": "Confirm amount correction",
+    "amountConfirmDescription": "This updates current contract value and downstream profitability views. Blocked if this change order has finalized billing.",
+    "amountImpactContractValue": "Current contract value and financial summaries will reflect the new amount.",
+    "duplicateTitle": "Similar change order found",
+    "duplicateDescription": "Another change order may match this reference — continue only if both are legitimate.",
+    "duplicateReason": "Same reference on this project."
+  },
   "reverse": {
     "confirm": "Reverse change order",
+    "confirmImpact": "Creates reversing change order",
     "reason": "Reason",
     "description": "The original change order stays in the history. Current contract value is neutralized by an opposite change order — not by voiding the original.",
     "alreadyReversedTitle": "This change order was reversed",
@@ -162,6 +187,8 @@
     "cannotReverseReversal": "A reversing change order cannot be reversed again.",
     "alreadyReversed": "This change order has already been reversed.",
     "unsafeBilling": "This change order has finalized billing. Issue a credit note or void that billing first.",
-    "closedMonth": "Cannot reverse a change order into a closed month. Use an open month as the effective date."
+    "closedMonth": "Cannot reverse a change order into a closed month. Use an open month as the effective date.",
+    "ownerOnlyRetroactiveEdit": "Only the organization owner may correct approved change orders.",
+    "changeOrderNotEditable": "Reversal change orders cannot be edited."
   }
 }

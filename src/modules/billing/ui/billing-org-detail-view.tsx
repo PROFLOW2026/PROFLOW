@@ -18,6 +18,8 @@ import { loadLinkedContractCurrentAmount } from '@/modules/billing/application/l
 import { statutoryStatusBlocksDraftEdit } from '@/modules/billing/domain/draft-rules';
 import { BillingDetailActions } from '@/modules/billing/ui/billing-detail-actions';
 import { DraftBillingEditForm } from '@/modules/billing/ui/draft-billing-edit-form';
+import { CustomerPaymentCorrectionPanel } from '@/modules/billing/ui/customer-payment-correction-panel';
+import { FinalizedBillingEditForm } from '@/modules/billing/ui/finalized-billing-edit-form';
 import { BillingStatusBadge } from '@/modules/billing/ui/billing-status-badge';
 import { BillingVatBreakdown } from '@/modules/billing/ui/billing-vat-breakdown';
 import {
@@ -107,6 +109,7 @@ export async function BillingOrgDetailView({
 
   let record;
   let canManage = false;
+  let canRetroactiveEdit = false;
   let canCommunicate = false;
   let documentsPanel: Awaited<ReturnType<typeof getEntityDocumentPanelData>> | null = null;
   let retentionReleases: Awaited<ReturnType<typeof listBillingRetentionReleases>> = [];
@@ -142,6 +145,10 @@ export async function BillingOrgDetailView({
         record,
         contractCurrentAmount,
         canManage: orgListHasPermission(context, PERMISSIONS.BILLING_MANAGE, surface),
+        canRetroactiveEdit:
+          surface === 'owner' &&
+          context.roleKeys.includes('owner') &&
+          orgListHasPermission(context, PERMISSIONS.BILLING_MANAGE, surface),
         canCommunicate: orgListHasPermission(context, PERMISSIONS.COMMUNICATIONS_MANAGE, surface),
         documentsPanel: await getEntityDocumentPanelData(context, 'billing_record', billingRecordId),
         retentionReleases: await listBillingRetentionReleases(context, billingRecordId).catch(
@@ -159,6 +166,7 @@ export async function BillingOrgDetailView({
     });
     record = result.record;
     canManage = result.canManage;
+    canRetroactiveEdit = result.canRetroactiveEdit;
     canCommunicate = result.canCommunicate;
     documentsPanel = result.documentsPanel;
     retentionReleases = result.retentionReleases;
@@ -182,6 +190,11 @@ export async function BillingOrgDetailView({
     statutoryStatusBlocksDraftEdit(document.status),
   );
   const canEditDraft = canManage && record.status === 'draft' && !issuedStatutory && Boolean(record.projectId);
+  const canEditFinalized =
+    canRetroactiveEdit &&
+    record.status === 'finalized' &&
+    !record.voidsBillingRecordId &&
+    record.kind !== 'credit_note';
   const draftEntryAmount =
     record.vatMode === 'inclusive' ? record.totalAmount.amount : record.subtotalAmount.amount;
   const captureRetentionAction =
@@ -231,6 +244,7 @@ export async function BillingOrgDetailView({
             <BillingDetailActions
               billingRecordId={record.id}
               canManage={canManage}
+              canRetroactiveVoid={canRetroactiveEdit}
               status={record.status}
               recordReference={record.reference}
               surface={surface}
@@ -363,7 +377,29 @@ export async function BillingOrgDetailView({
             dueDate={record.dueDate}
             reference={record.reference}
             notes={record.notes}
+            locale={locale}
             contractCurrentAmount={contractCurrentAmount}
+          />
+        </MainAppSection>
+      ) : null}
+
+      {canEditFinalized ? (
+        <MainAppSection>
+          <FinalizedBillingEditForm
+            billingRecordId={record.id}
+            projectId={record.projectId}
+            clientId={record.clientId}
+            currency={record.totalAmount.currency}
+            vatMode={record.vatMode}
+            initialAmount={draftEntryAmount}
+            subtotalAmount={record.subtotalAmount.amount}
+            totalAmount={record.totalAmount.amount}
+            issueDate={record.issueDate}
+            dueDate={record.dueDate}
+            reference={record.reference}
+            notes={record.notes}
+            hasIssuedStatutoryDocument={issuedStatutory}
+            locale={locale}
           />
         </MainAppSection>
       ) : null}
@@ -409,6 +445,7 @@ export async function BillingOrgDetailView({
         {record.payments.length === 0 ? (
           <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('detail.noPayments')}</p>
         ) : (
+          <>
           <ResponsiveTable
             items={record.payments}
             getRowKey={(payment) => payment.id}
@@ -441,6 +478,15 @@ export async function BillingOrgDetailView({
                           <span className="text-sm text-[var(--pf-text-secondary)]">
                             {tPayment(payment.status)}
                           </span>
+                          {canRetroactiveEdit && payment.status === 'recorded' ? (
+                            <CustomerPaymentCorrectionPanel
+                              paymentId={payment.id}
+                              currency={payment.amount.currency}
+                              initialPaymentDate={payment.paymentDate}
+                              initialAmount={payment.amount.amount}
+                              locale={locale}
+                            />
+                          ) : null}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -465,9 +511,19 @@ export async function BillingOrgDetailView({
                   {labelForStoredPaymentMethod(payment.method, methodLabels) ?? '-'}
                   {payment.reference ? ` · ${payment.reference}` : null}
                 </p>
+                {canRetroactiveEdit && payment.status === 'recorded' ? (
+                  <CustomerPaymentCorrectionPanel
+                    paymentId={payment.id}
+                    currency={payment.amount.currency}
+                    initialPaymentDate={payment.paymentDate}
+                    initialAmount={payment.amount.amount}
+                    locale={locale}
+                  />
+                ) : null}
               </div>
             )}
           />
+          </>
         )}
       </MainAppSection>
 

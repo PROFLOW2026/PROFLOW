@@ -19,6 +19,9 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
+import { ChangeOrderRetroactiveEditForm } from '@/modules/commercial/ui/change-order-retroactive-edit-form';
+import { editChangeOrderRetroactiveAction } from '../actions';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { fromNumericString } from '@/shared/money/money';
@@ -65,6 +68,7 @@ export default async function ChangeDetailPage({
   const loaded = await withOrgContext(async (context) => {
     const detail = await getChangeRequestDetail(context, changeRequestId).catch(() => null);
     if (!detail) return null;
+    const isOwner = isOrganizationOwner(context);
 
     const selectedVersion = detail.quoteVersions.find((version) => version.isSelected);
     const [changeRequestDocs, quoteVersionDocs, changeOrderDocs, approvalDocs, changeOrderBillingStatus] =
@@ -92,6 +96,7 @@ export default async function ChangeDetailPage({
       changeOrderDocs,
       approvalDocs,
       changeOrderBillingStatus,
+      isOwner,
     };
   });
 
@@ -105,6 +110,7 @@ export default async function ChangeDetailPage({
     changeOrderDocs,
     approvalDocs,
     changeOrderBillingStatus,
+    isOwner,
   } = loaded;
 
   const canManage = shell?.permissions.has(PERMISSIONS.CHANGES_MANAGE) ?? false;
@@ -234,6 +240,16 @@ export default async function ChangeDetailPage({
             action={reverseChangeOrderAction}
             canReverse={canApprove}
           />
+          {isOwner &&
+          detail.changeOrder &&
+          !detail.changeOrder.reversalOfChangeOrderId &&
+          !detail.reversingChangeOrder ? (
+            <ChangeOrderRetroactiveEditForm
+              changeOrder={detail.changeOrder}
+              changeRequestId={changeRequestId}
+              action={editChangeOrderRetroactiveAction}
+            />
+          ) : null}
         </MainAppSection>
       ) : null}
 

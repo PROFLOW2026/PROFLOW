@@ -164,6 +164,71 @@ export async function updatePaymentStatus(
     .where(and(eq(payments.organizationId, organizationId), eq(payments.id, paymentId)));
 }
 
+export async function updatePaymentBusinessDate(
+  db: DbExecutor,
+  organizationId: string,
+  paymentId: string,
+  paymentDate: BusinessDate,
+): Promise<void> {
+  await db
+    .update(payments)
+    .set({ paymentDate })
+    .where(and(eq(payments.organizationId, organizationId), eq(payments.id, paymentId)));
+}
+
+export async function updatePaymentAmount(
+  db: DbExecutor,
+  organizationId: string,
+  paymentId: string,
+  amount: string,
+): Promise<void> {
+  await db
+    .update(payments)
+    .set({ amount })
+    .where(and(eq(payments.organizationId, organizationId), eq(payments.id, paymentId)));
+}
+
+export async function listPaymentApplicationsForPayment(
+  db: DbExecutor,
+  organizationId: string,
+  paymentId: string,
+): Promise<
+  readonly { readonly billingRecordId: string; readonly appliedAmount: string; readonly currency: string }[]
+> {
+  return db
+    .select({
+      billingRecordId: paymentApplications.billingRecordId,
+      appliedAmount: paymentApplications.appliedAmount,
+      currency: paymentApplications.currency,
+    })
+    .from(paymentApplications)
+    .where(
+      and(
+        eq(paymentApplications.organizationId, organizationId),
+        eq(paymentApplications.paymentId, paymentId),
+      ),
+    );
+}
+
+export async function updatePaymentApplicationAmount(
+  db: DbExecutor,
+  organizationId: string,
+  paymentId: string,
+  billingRecordId: string,
+  appliedAmount: string,
+): Promise<void> {
+  await db
+    .update(paymentApplications)
+    .set({ appliedAmount })
+    .where(
+      and(
+        eq(paymentApplications.organizationId, organizationId),
+        eq(paymentApplications.paymentId, paymentId),
+        eq(paymentApplications.billingRecordId, billingRecordId),
+      ),
+    );
+}
+
 export async function findPaymentById(
   db: DbExecutor,
   organizationId: string,

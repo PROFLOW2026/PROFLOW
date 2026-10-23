@@ -7,6 +7,7 @@ import {
   updateContract,
   setProjectPrimaryContract,
 } from '@/modules/projects';
+import { listSimilarContracts } from '@/modules/projects/application/find-similar-contracts';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, ValidationError } from '@/shared/errors';
 
@@ -113,6 +114,8 @@ export async function updateContractAction(
         endDate: formValueOrNull(formData, 'endDate'),
         retentionPercent: formValueOrNull(formData, 'retentionPercent'),
         notes: formValueOrNull(formData, 'notes'),
+        changeAcknowledged:
+          formData.get('changeAcknowledged') === 'true' ? (true as const) : undefined,
         status:
           statusRaw === 'draft' ||
           statusRaw === 'active' ||
@@ -141,4 +144,13 @@ export async function updateContractAction(
     }
     throw error;
   }
+}
+
+export async function previewSimilarContractsAction(input: {
+  excludeContractId: string;
+  projectId: string;
+  contractNumber: string | null;
+  name: string | null;
+}) {
+  return withOrgContext((context) => listSimilarContracts(context, input));
 }

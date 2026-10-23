@@ -96,6 +96,29 @@ export async function insertEmployeeMonthCostDraft(
   return row!;
 }
 
+export async function updateEmployeeMonthCostNotes(
+  db: DbExecutor,
+  organizationId: string,
+  id: string,
+  notes: string | null,
+): Promise<EmployeeMonthCostRow | null> {
+  const [row] = await db
+    .update(employeeMonthCosts)
+    .set({
+      notes,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(employeeMonthCosts.id, id),
+        eq(employeeMonthCosts.organizationId, organizationId),
+        inArray(employeeMonthCosts.status, ['applied', 'closed']),
+      ),
+    )
+    .returning();
+  return row ?? null;
+}
+
 export async function updateEmployeeMonthCostDraft(
   db: DbExecutor,
   organizationId: string,

@@ -24,6 +24,7 @@ import {
   type ProjectStructureSnapshot,
 } from '@/modules/projects';
 import { parseProjectCreateForm } from '@/modules/projects/application/parse-project-create-form';
+import { listSimilarProjects } from '@/modules/projects/application/find-similar-projects';
 import { applyManagementModeAtCreate } from '@/modules/project-profile/application/create-section';
 import { previewUwmProjectTemplate } from '@/modules/tasks';
 import { withOrgContext } from '@/shared/auth/session';
@@ -128,6 +129,14 @@ export async function createProjectAction(
   return {};
 }
 
+export async function previewSimilarProjectsAction(input: {
+  excludeProjectId: string;
+  name: string;
+  clientId: string | null;
+}) {
+  return withOrgContext((context) => listSimilarProjects(context, input));
+}
+
 export async function updateProjectAction(
   _prev: ProjectFormState,
   formData: FormData,
@@ -203,6 +212,8 @@ export async function updateProjectAction(
           formValue(formData, 'progressStatus') === 'none'
             ? null
             : formValue(formData, 'progressStatus'),
+        changeAcknowledged:
+          formData.get('changeAcknowledged') === 'true' ? (true as const) : undefined,
       });
     });
 

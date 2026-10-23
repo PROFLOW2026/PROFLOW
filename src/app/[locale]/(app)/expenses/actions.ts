@@ -9,11 +9,13 @@ import {
   createExpenseReversal,
   createExpenseSchema,
   finalizeExpense,
+  listSimilarExpenses,
   parseAllocationsFromForm,
   updateExpense,
   updateExpenseSchema,
   voidExpense,
 } from '@/modules/expenses';
+import type { PreviewSimilarExpenseInput } from '@/modules/expenses/validation/schemas';
 import { expenseHasProjectAttribution } from '@/modules/expenses/domain/targeting';
 import { expenseFormValuesFromFormData } from '@/modules/expenses/ui/expense-form-preservation';
 import type { ExpenseFormValues } from '@/modules/expenses/ui/expense-form';
@@ -168,6 +170,8 @@ function buildExpensePayload(formData: FormData) {
     inventoryStockPurchase: formValue(formData, 'inventoryStockPurchase'),
     inventoryItemId: formValue(formData, 'inventoryItemId') ?? null,
     inventoryPurchaseQty: formValue(formData, 'inventoryPurchaseQty') ?? null,
+    changeAcknowledged:
+      formData.get('changeAcknowledged') === 'true' ? (true as const) : undefined,
   };
 }
 
@@ -425,6 +429,10 @@ export async function correctExpenseAction(
   } catch (error) {
     return mapExpenseActionError(error);
   }
+}
+
+export async function previewSimilarExpensesAction(input: PreviewSimilarExpenseInput) {
+  return withOrgContext((context) => listSimilarExpenses(context, input));
 }
 
 export async function promoteExpenseVendorAction(

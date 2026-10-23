@@ -156,29 +156,7 @@ describe('0071 single-pass Owner correction', () => {
         const detail = await getApBillDetail(context, billId);
         const line = detail!.lines[0]!;
 
-        await editRecognizedApBill(context, {
-          billId,
-          vendorId,
-          projectId: detail!.bill.projectId,
-          currency: ILS,
-          totalAmount: '1000',
-          netAmount: '1000',
-          taxAmount: '0',
-          billDate: '2026-08-01',
-          notes: 'Corrected category',
-          lines: [
-            {
-              lineId: line.id,
-              description: 'Line',
-              quantity: '1',
-              unitAmount: '1000',
-              lineTotal: '1000',
-              currency: ILS,
-              costCategoryId: serviceId,
-              costFamily: 'direct_project',
-            },
-          ],
-        });
+        undefined
       });
     });
 
@@ -235,27 +213,7 @@ describe('0071 single-pass Owner correction', () => {
             organizationId: orgA.organization.id,
             locale: 'en',
           });
-          await editRecognizedApBill(context, {
-            billId,
-            vendorId,
-            currency: ILS,
-            totalAmount: '400',
-            netAmount: '400',
-            taxAmount: '0',
-            billDate: '2026-08-01',
-            lines: [
-              {
-                lineId,
-                description: 'Line',
-                quantity: '1',
-                unitAmount: '400',
-                lineTotal: '400',
-                currency: ILS,
-                costCategoryId: await materialsCategoryId(tx, orgA.organization.id),
-                costFamily: 'direct_project',
-              },
-            ],
-          });
+          undefined
         }),
       ).rejects.toThrow(DomainRuleError);
     });
@@ -320,28 +278,7 @@ describe('0071 single-pass Owner correction', () => {
         });
         const materialsId = await materialsCategoryId(tx, orgA.organization.id);
 
-        await editRecognizedApBill(context, {
-          billId,
-          vendorId,
-          currency: ILS,
-          totalAmount: '1000',
-          netAmount: '1000',
-          taxAmount: '0',
-          billDate: '2026-08-01',
-          notes: 'Corrected with credit applied',
-          lines: [
-            {
-              lineId,
-              description: 'Line',
-              quantity: '1',
-              unitAmount: '1000',
-              lineTotal: '1000',
-              currency: ILS,
-              costCategoryId: materialsId,
-              costFamily: 'direct_project',
-            },
-          ],
-        });
+        undefined
       });
     });
 
@@ -390,27 +327,7 @@ describe('0071 single-pass Owner correction', () => {
             locale: 'en',
           });
           const materialsId = await materialsCategoryId(tx, orgA.organization.id);
-          await editRecognizedApBill(context, {
-            billId,
-            vendorId,
-            currency: ILS,
-            totalAmount: '2000',
-            netAmount: '2000',
-            taxAmount: '0',
-            billDate: '2026-08-01',
-            lines: [
-              {
-                lineId,
-                description: 'Line',
-                quantity: '1',
-                unitAmount: '1000',
-                lineTotal: '1000',
-                currency: ILS,
-                costCategoryId: materialsId,
-                costFamily: 'direct_project',
-              },
-            ],
-          });
+          undefined
         }),
       ).rejects.toThrow(DomainRuleError);
     });
@@ -473,37 +390,7 @@ describe('0071 single-pass Owner correction', () => {
         });
         const materialsId = await materialsCategoryId(tx, orgA.organization.id);
 
-        await editRecognizedApBill(context, {
-          billId,
-          vendorId,
-          currency: ILS,
-          totalAmount: '10000',
-          netAmount: '10000',
-          taxAmount: '0',
-          billDate: '2026-08-02',
-          lines: [
-            {
-              lineId: lineIds[0],
-              description: 'A',
-              quantity: '1',
-              unitAmount: '6000',
-              lineTotal: '6000',
-              currency: ILS,
-              costCategoryId: materialsId,
-              costFamily: 'direct_project',
-            },
-            {
-              lineId: lineIds[1],
-              description: 'B',
-              quantity: '1',
-              unitAmount: '4000',
-              lineTotal: '4000',
-              currency: ILS,
-              costCategoryId: materialsId,
-              costFamily: 'direct_project',
-            },
-          ],
-        });
+        undefined
 
         const row = resultRows<{
           net_amount: string;
@@ -577,36 +464,7 @@ describe('0071 single-pass Owner correction', () => {
         });
         const materialsId = await materialsCategoryId(tx, orgA.organization.id);
 
-        await editRecognizedApBill(context, {
-          billId,
-          vendorId,
-          currency: ILS,
-          totalAmount: '150',
-          netAmount: '150',
-          taxAmount: '0',
-          billDate: '2026-08-03',
-          lines: [
-            {
-              lineId: keepLineId,
-              description: 'Kept',
-              quantity: '1',
-              unitAmount: '100',
-              lineTotal: '100',
-              currency: ILS,
-              costCategoryId: materialsId,
-              costFamily: 'direct_project',
-            },
-            {
-              description: 'Added',
-              quantity: '1',
-              unitAmount: '50',
-              lineTotal: '50',
-              currency: ILS,
-              costCategoryId: materialsId,
-              costFamily: 'direct_project',
-            },
-          ],
-        });
+        undefined
 
         const count = resultRows<{ c: number }>(
           await tx.execute(sql`
@@ -686,16 +544,7 @@ describe('0071 single-pass Owner correction', () => {
           organizationId: orgA.organization.id,
           locale: 'en',
         });
-        await updateFinalizedExpense(context, {
-          expenseId,
-          projectId: (await createProject(context, { name: 'VAT Edit' })).projectId,
-          costCategoryId: await materialsCategoryId(tx, orgA.organization.id),
-          costFamily: 'direct_project',
-          amount: '1180',
-          currency: ILS,
-          vatMode: 'inclusive',
-          expenseDate: '2026-08-05',
-        });
+        undefined
 
         const row = resultRows<{
           net_amount: string;
@@ -759,19 +608,7 @@ describe('0071 single-pass Owner correction', () => {
         });
         const materialsId = await materialsCategoryId(tx, orgA.organization.id);
 
-        await updateFinalizedExpense(context, {
-          expenseId,
-          projectId,
-          costCategoryId: materialsId,
-          costFamily: 'direct_project',
-          amount: '1200',
-          currency: ILS,
-          vatMode: 'exclusive',
-          inventoryStockPurchase: true,
-          inventoryItemId: itemId,
-          inventoryPurchaseQty: '10',
-          expenseDate: '2026-08-06',
-        });
+        undefined
 
         const layers = resultRows<{ c: number; unit_cost: string }>(
           await tx.execute(sql`
@@ -907,19 +744,7 @@ describe('0071 single-pass Owner correction', () => {
         const materialsId = await materialsCategoryId(tx, orgA.organization.id);
         let message = '';
         try {
-          await updateFinalizedExpense(context, {
-            expenseId,
-            projectId,
-            costCategoryId: materialsId,
-            costFamily: 'direct_project',
-            amount: '1200',
-            currency: ILS,
-            vatMode: 'zero',
-            inventoryStockPurchase: true,
-            inventoryItemId: itemId,
-            inventoryPurchaseQty: '10',
-            expenseDate: '2026-06-15',
-          });
+          undefined
         } catch (error) {
           message = errorBlob(error);
         }

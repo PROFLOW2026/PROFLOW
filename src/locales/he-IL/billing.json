@@ -226,7 +226,9 @@
     "notTaxInvoice": "טיוטה אינה חשבונית מס. היא לא נכנסת לחייבים ולא לרווח.",
     "save": "שמירת טיוטה",
     "overContract": "סכום הטיוטה גבוה משווי החוזה הנוכחי. אפשר לשמור ולהפיק בכל זאת.",
-    "void": "ביטול טיוטה"
+    "void": "ביטול טיוטה",
+    "confirmTitle": "לאשר שינוי בטיוטה?",
+    "confirmDescription": "בדקו את השדות העסקיים לפני שמירת הטיוטה."
   },
   "detail": {
     "title": "חיוב",
@@ -289,6 +291,51 @@
     "whatsapp": "WhatsApp",
     "whatsappMessage": "תזכורת תשלום עבור {reference}. יתרה לגבייה: {amount}."
   },
+  "paymentCorrection": {
+    "title": "תיקון תקבול (בעלים)",
+    "save": "שמירת תיקון תקבול",
+    "confirmTitle": "לאשר תיקון התקבול?",
+    "confirmDescription": "גבייה לפי תאריך תשלום; סכומים כוללים מע״מ. השינוי נרשם בהיסטוריה."
+  },
+  "retroactiveVoid": {
+    "confirmTitle": "לבטל את החיוב {reference}?",
+    "confirmDescription": "תשלומים רשומים על החשבונית יבוטלו תחילה, ואז החיוב. כל השינויים נשמרים בהיסטוריה; הקצאות נשארות כרשומות מבוטלות.",
+    "billingStatus": "סטטוס חיוב",
+    "statusFinalized": "הופק",
+    "statusVoid": "מבוטל",
+    "paymentLine": "תשלום {index}",
+    "paymentVoided": "מבוטל (נשמר בהיסטוריה)",
+    "impactHistory": "היסטוריה",
+    "impactHistoryDetail": "תשלומים והחשבונית נשארים בספרים כרשומות מבוטלות.",
+    "impactAllocations": "הקצאות",
+    "impactAllocationsDetail": "קישורי תשלום נשמרים; הסכומים לא נספרים עוד ביתרה לגבייה."
+  },
+  "retroactiveEdit": {
+    "title": "תיקון חיוב (בעלים)",
+    "description": "תיקון תאריכים, סכומים ופרטים פנימיים. תשלומי לקוח מתוקנים בנפרד למטה. כל שינוי נרשם בהיסטוריה.",
+    "save": "שמירת תיקון",
+    "confirmTitle": "לאשר את התיקון?",
+    "confirmDescription": "בדקו את השינוי לפני שמירה סופית.",
+    "duplicateTitle": "נמצאה רשומה דומה",
+    "duplicateDescription": "ייתכן שמדובר בכפילות — אך ייתכנו גם שתי פעולות עסקיות לגיטימיות.",
+    "duplicateReason": "אותו תאריך חיוב וסכום לפני מע״מ ({date}, {amount} ₪).",
+    "invoicedMonthImpact": "חודש חיוב (הכנסה לפי תאריך הנפקה)",
+    "invoicedMonthShift": "מ-{from} ל-{to}. גבייה לפי תאריך תשלום לא משתנה.",
+    "statutoryImpact": "מסמך חיצוני",
+    "statutoryUnchanged": "מסמך SUMIT/חשבונאות שכבר הונפק לא ישתנה; מתקנים רק נתונים פנימיים.",
+    "statutoryInternalAmountDate": "המסמך החיצוני שהונפק לא ישתנה. מתקנים פנימית רק תאריך הנפקה וסכומים.",
+    "amountImpact": "סכום החיוב",
+    "amountImpactDetail": "תשלומים שכבר נרשמו חייבים להתאים לסכום המתוקן. גבייה לפי תאריך תשלום לא משתנה."
+  },
+  "paymentCorrection": {
+    "title": "תיקון תשלום (בעלים)",
+    "description": "תיקון תאריך וסכום התשלום. השינוי נרשם בהיסטוריה ומשפיע על דוחות גבייה לפי תאריך תשלום.",
+    "save": "שמירת תיקון תשלום",
+    "confirmTitle": "לאשר תיקון תשלום?",
+    "confirmDescription": "בדקו את השינוי לפני שמירה סופית.",
+    "collectionsMonthImpact": "חודש גבייה (מזומן לפי תאריך תשלום)",
+    "collectionsMonthShift": "מ-{from} ל-{to}. הכנסה לפי תאריך הנפקה לא משתנה."
+  },
   "creditNote": {
     "title": "הערת זיכוי",
     "description": "מנפיקה הערת זיכוי חדשה דרך ההתאמה הקיימת. החשבונית המקורית לא משתנה ולא נמחקת.",
@@ -325,7 +372,13 @@
     "collectionFollowUpNotEligible": "מעקב גבייה זמין רק לחיוב שהופק ועדיין פתוח או באיחור.",
     "collectionDateInvalid": "יש להזין תאריך בפורמט YYYY-MM-DD.",
     "collectionNoteTooLong": "הערת הגבייה יכולה להכיל עד 500 תווים.",
-    "collectionFollowUpUnavailable": "לא ניתן לשמור מעקב גבייה עד שהעדכון במסד הנתונים יוחל."
+    "collectionFollowUpUnavailable": "לא ניתן לשמור מעקב גבייה עד שהעדכון במסד הנתונים יוחל.",
+    "ownerOnlyRetroactiveEdit": "רק בעל הארגון רשאי לתקן רשומות סגורות או בחודש סגור.",
+    "confirmRequired": "יש לאשר את השינוי לפני שמירה.",
+    "statutoryDateOnlyCorrection": "כשהונפק מסמך חיצוני, ניתן לתקן פנימית רק תאריכי חיוב וסכומים.",
+    "paymentNotEditable": "לא ניתן לערוך תשלום במצב זה.",
+    "paidExceedsNewTotal": "תשלומים שכבר נרשמו חורגים מהסכום המתוקן. הפחיתו תשלומים או הנפיקו זיכוי.",
+    "paymentCorrectionMultiApply": "תשלום זה מחולק למספר חיובים. בטלו ורשמו מחדש במקום לתקן סכום כאן."
   },
   "notAllowed": {
     "title": "אין הרשאה",

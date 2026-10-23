@@ -527,6 +527,29 @@
     "laborPoolEquation": "مُوزّع {allocated} + معلّق {unallocated} = {total} مجموعة عمالة",
     "unallocatedHoursBanner": "{hours} ساعات بانتظار الاعتماد ولا تُحسب بعد في التكلفة الفعلية للمشروع."
   },
+  "retroactiveEdit": {
+    "title": "تصحيح راتب مؤكّد",
+    "payrollDescription": "تغيير تاريخ أو مبلغ الدفع المسجّل لهذا الشهر المدفوع. يتطلب تأكيد المالك ويُسجّل بالكامل.",
+    "evidenceNote": "سبب التصحيح",
+    "save": "مراجعة التصحيح",
+    "savePending": "جاري الحفظ…",
+    "confirmTitle": "تأكيد تصحيح الراتب",
+    "confirmDescription": "يحدّث تقارير نقد الرواتب للأشهر المغلقة عند الحاجة. المستندات المحاسبية لا تتغير.",
+    "cashMonthImpact": "شهر التقرير النقدي",
+    "cashMonthShift": "ينتقل الدفع من {from} إلى {to}",
+    "timeCorrectionConfirmTitle": "تأكيد تصحيح الوقت",
+    "timeCorrectionConfirmDescription": "سُبطل الإدخال المعتمد الأصلي ويُستبدل. يتحدّث الفعلي العمالي وفق قواعد الاعتماد.",
+    "monthCostConfirmTitle": "تأكيد تصحيح تكلفة صاحب العمل للشهر",
+    "monthCostConfirmDescription": "تُستبدل التكلفة المطبّقة بصف تعديل جديد. يُعاد حساب التوزيع والربحية.",
+    "monthCostSyncOff": "عدم تغيير دفع الراتب",
+    "monthCostSyncOn": "مواءمة دفع الراتب المسجّل مع التكلفة المصحّحة",
+    "monthCostNotesTitle": "تصحيح ملاحظات تكلفة الشهر (المالك)",
+    "monthCostNotesDescription": "تصحيح الملاحظات فقط على صف تكلفة مطبّق أو مغلق.",
+    "monthCostNotesSave": "حفظ تصحيح الملاحظات",
+    "monthCostNotesSaved": "تم تحديث الملاحظات.",
+    "monthCostNotesConfirmTitle": "تأكيد تصحيح الملاحظات",
+    "monthCostNotesConfirmDescription": "تحديث ملاحظات داخلية فقط؛ المبالغ لا تتغير."
+  },
   "payrollPayment": {
     "title": "دفع رواتب · {yearMonth}",
     "dueDate": "تاريخ الاستحقاق",
@@ -950,7 +973,9 @@
     "allocationWeightsRequired": "يجب أن تكون أوزان التوزيع أكبر من صفر.",
     "allocationOverKnown": "مبلغ التوزيع يتجاوز تكلفة المُشغّل للشهر.",
     "allocationAmountPositive": "يجب أن يكون مبلغ التوزيع موجباً.",
-    "allocationRunNotDraft": "يمكن تطبيق مسودة توزيع فقط."
+    "allocationRunNotDraft": "يمكن تطبيق مسودة توزيع فقط.",
+    "ownerOnlyRetroactiveEdit": "فقط مالك المنظمة يمكنه تصحيح سجلات القوى العاملة المغلقة أو النهائية.",
+    "payrollInvalidAmount": "يجب أن يكون مبلغ الدفع موجباً."
   },
   "employerCostOverview": {
     "title": "تكلفة المُشغّل",

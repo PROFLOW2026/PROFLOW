@@ -50,6 +50,7 @@ import { AddRateVersionForm } from '@/modules/workforce/ui/add-rate-version-form
 import { RateHistoryTable } from '@/modules/workforce/ui/rate-history-table';
 import { OrgWorkFrameworkForm } from '@/modules/workforce/ui/org-work-framework-form';
 import { withOrgContext } from '@/shared/auth/session';
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
 import { localizeCode } from '@/shared/i18n/code-display';
 import type { BusinessDate } from '@/shared/dates';
 import { businessDate, todayInTimeZone, startOfMonth, endOfMonth } from '@/shared/dates';
@@ -223,6 +224,7 @@ export default async function EmployeeDetailPage({
         canReadTimesheets,
         allowLog: canLogTime(context),
         allowManage,
+        isOwner: isOrganizationOwner(context),
         currency: context.organization.baseCurrency,
         defaultYearMonth: reviewYearMonth,
         workWeekStartDay: context.organization.workWeekStartDay,
@@ -649,6 +651,7 @@ export default async function EmployeeDetailPage({
                 }))}
                 canReview={canReadRates}
                 canManage={canManageCosts}
+                isOwner={data.isOwner}
                 initialReview={monthReview}
                 payrollApprovalMode
               />
@@ -667,6 +670,7 @@ export default async function EmployeeDetailPage({
             paidAt={payrollPayment.paidAt}
             locale={locale}
             canManage={canManageCosts}
+            isOwner={data.isOwner}
             defaultPaymentDate={today}
           />
         </>
@@ -693,6 +697,7 @@ export default async function EmployeeDetailPage({
               }))}
               canReview={canReadRates}
               canManage={canManageCosts}
+              isOwner={data.isOwner}
               initialReview={monthReview}
             />
           </div>

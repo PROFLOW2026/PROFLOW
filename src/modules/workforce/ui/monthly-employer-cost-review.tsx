@@ -1,6 +1,9 @@
 'use client';
 
 import { useMemo, useState, useTransition } from 'react';
+import { BusinessChangeConfirmDialog } from '@/components/patterns/business-change-confirm-dialog';
+import type { BusinessChangeFieldDiff } from '@/shared/business-change/types';
+import { EmployerMonthCostNotesEdit } from '@/modules/workforce/ui/employer-month-cost-notes-edit';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatDecimalDisplay } from '@/shared/number/display';
 import {
@@ -64,6 +67,7 @@ export interface MonthlyEmployerCostReviewProps {
   readonly canReview: boolean;
   /** When true and gate ready, shows Apply (requires cost.manage). */
   readonly canManage?: boolean;
+  readonly isOwner?: boolean;
   /** Server-loaded month row for the default month (existing Owner data). */
   readonly initialReview?: MonthlyEmployerCostReviewData | null;
   /** When true, show payroll month-end approval copy (salary alert path). */
@@ -126,6 +130,7 @@ export function MonthlyEmployerCostReview({
   projects = [],
   canReview,
   canManage = false,
+  isOwner = false,
   initialReview = null,
   payrollApprovalMode = false,
   reviewActions,
@@ -160,6 +165,8 @@ export function MonthlyEmployerCostReview({
   const [pendingSubmittedHours, setPendingSubmittedHours] = useState(
     () => initialReview?.pendingSubmittedHours ?? '0',
   );
+  const [appliedConfirmOpen, setAppliedConfirmOpen] = useState(false);
+  const [appliedConfirmMode, setAppliedConfirmMode] = useState<'save' | 'apply'>('save');
 
   function applyLoadedReview(review: MonthlyEmployerCostReviewData, targetYearMonth: string) {
     const month = monthRowFromReview(review, targetYearMonth);
@@ -251,6 +258,35 @@ export function MonthlyEmployerCostReview({
       ? actualNumeric - estimatedNumeric
       : null;
 
+  const appliedCorrectionDiffs = useMemo((): BusinessChangeFieldDiff[] => {
+    if (!hasAppliedMonth || !monthRow) return [];
+    const rows: BusinessChangeFieldDiff[] = [];
+    if (estimated !== (monthRow.estimatedAmount ?? '')) {
+      rows.push({
+        fieldLabel: t('monthReview.estimatedInput'),
+        before: monthRow.estimatedAmount ?? '—',
+        after: estimated || '—',
+      });
+    }
+    const priorActual = monthRow.actualAmount ?? '';
+    const nextActual = actual.trim() === '' ? '' : actual;
+    if (nextActual !== priorActual) {
+      rows.push({
+        fieldLabel: t('monthReview.actualInput'),
+        before: priorActual || '—',
+        after: nextActual || '—',
+      });
+    }
+    if (syncPaidAmount) {
+      rows.push({
+        fieldLabel: t('monthReview.syncPaidAmount'),
+        before: t('retroactiveEdit.monthCostSyncOff'),
+        after: t('retroactiveEdit.monthCostSyncOn'),
+      });
+    }
+    return rows;
+  }, [actual, estimated, hasAppliedMonth, monthRow, syncPaidAmount, t]);
+
   if (!canReview) return null;
 
   async function persistMonthCost(): Promise<{ error?: string }> {
@@ -265,6 +301,7 @@ export function MonthlyEmployerCostReview({
         ...payload,
         correctionNote: null,
         syncPaidAmount,
+        changeAcknowledged: true,
       });
     }
     return actions.saveMonthlyEmployerCostDraftAction({
@@ -279,12 +316,29 @@ export function MonthlyEmployerCostReview({
     });
   }
 
+  function runPersistAfterConfirm(mode: 'save' | 'apply') {
+    if (mode === 'save') {
+      handleSaveDraftConfirmed();
+      return;
+    }
+    handleApplyConfirmed();
+  }
+
   function handleSaveDraft() {
     setActionError(null);
     if (!ready) {
       setSavedDraft(true);
       return;
     }
+    if (hasAppliedMonth && isOwner && appliedCorrectionDiffs.length > 0) {
+      setAppliedConfirmMode('save');
+      setAppliedConfirmOpen(true);
+      return;
+    }
+    handleSaveDraftConfirmed();
+  }
+
+  function handleSaveDraftConfirmed() {
     startTransition(async () => {
       const result = await persistMonthCost();
       if (result.error) {
@@ -300,6 +354,15 @@ export function MonthlyEmployerCostReview({
   function handleApply() {
     setActionError(null);
     if (!ready || !canManage) return;
+    if (hasAppliedMonth && isOwner && appliedCorrectionDiffs.length > 0) {
+      setAppliedConfirmMode('apply');
+      setAppliedConfirmOpen(true);
+      return;
+    }
+    handleApplyConfirmed();
+  }
+
+  function handleApplyConfirmed() {
     startTransition(async () => {
       const saveResult = await persistMonthCost();
       if (saveResult.error) {
@@ -675,6 +738,14 @@ export function MonthlyEmployerCostReview({
         </div>
       )}
 
+      {hasAppliedMonth && isOwner && monthRow ? (
+        <EmployerMonthCostNotesEdit
+          employeeId={employeeId}
+          yearMonth={yearMonth}
+          initialNotes={monthRow.notes ?? null}
+        />
+      ) : null}
+
       <Button
         type="button"
         size="lg"
@@ -732,6 +803,20 @@ export function MonthlyEmployerCostReview({
       ) : null}
 
       <p className="text-xs text-[var(--pf-text-muted)]">{t('monthReview.disclaimer')}</p>
+
+      <BusinessChangeConfirmDialog
+        open={appliedConfirmOpen}
+        onOpenChange={setAppliedConfirmOpen}
+        title={t('retroactiveEdit.monthCostConfirmTitle')}
+        description={t('retroactiveEdit.monthCostConfirmDescription')}
+        changes={appliedCorrectionDiffs}
+        pending={pending}
+        onConfirm={() => {
+          setAppliedConfirmOpen(false);
+          runPersistAfterConfirm(appliedConfirmMode);
+        }}
+        onBackToEdit={() => setAppliedConfirmOpen(false)}
+      />
     </Card>
   );
 }

@@ -122,6 +122,21 @@
     "to": "По",
     "apply": "Применить"
   },
+  "businessChange": {
+    "historyNote": "Изменение будет сохранено в истории с значениями «до» и «после».",
+    "fieldColumn": "Поле",
+    "beforeColumn": "Было",
+    "afterColumn": "Стало",
+    "backToEdit": "Вернуться к редактированию",
+    "confirmSave": "Подтвердить и сохранить",
+    "confirmPending": "Сохранение…"
+  },
+  "duplicateWarning": {
+    "notBlocking": "Это только предупреждение — продолжайте, если действие обосновано.",
+    "openRecord": "Открыть запись",
+    "backToEdit": "Вернуться к редактированию",
+    "continueAnyway": "Всё равно продолжить"
+  },
   "a11y": {
     "skipToContent": "Перейти к основному содержимому",
     "mainNavigation": "Основная навигация",

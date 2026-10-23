@@ -69,9 +69,34 @@ export const reverseChangeOrderSchema = z.object({
   changeOrderId: z.string().uuid(),
   reason: z.string().trim().min(1).max(5000),
   effectiveDate: businessDateSchema,
+  changeAcknowledged: z.literal(true),
 });
 
+export const editChangeOrderRetroactiveSchema = z
+  .object({
+    changeOrderId: z.string().uuid(),
+    reference: z.string().trim().max(120).nullable().optional(),
+    effectiveDate: businessDateSchema.optional(),
+    notes: z.string().trim().max(4000).nullable().optional(),
+    billingCondition: z.enum(['immediate', 'milestone', 'custom_terms', 'deferred']).nullable().optional(),
+    amount: moneyAmountSchema,
+    changeAcknowledged: z.literal(true),
+    amountChangeAcknowledged: z.literal(true).optional(),
+  })
+  .superRefine((value, ctx) => {
+    const touched =
+      value.reference !== undefined ||
+      value.effectiveDate !== undefined ||
+      value.notes !== undefined ||
+      value.billingCondition !== undefined ||
+      (value.amount !== undefined && value.amount !== null && value.amount !== '');
+    if (!touched) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'At least one field must be updated' });
+    }
+  });
+
 export type ReverseChangeOrderInput = z.infer<typeof reverseChangeOrderSchema>;
+export type EditChangeOrderRetroactiveInput = z.infer<typeof editChangeOrderRetroactiveSchema>;
 
 const quoteLineSchema = z.object({
   description: z.string().trim().min(1).max(500),
