@@ -340,15 +340,7 @@ export async function HomeDashboardRestoredSections({
                   detailCopy,
                 )}
                 detailCopy={triggerCopy}
-                footer={
-                  billingNotes.length > 0
-                    ? billingNotes.map((note) => (
-                        <p key={note} className="break-words text-xs text-[var(--pf-text-secondary)]">
-                          {note}
-                        </p>
-                      ))
-                    : null
-                }
+                detailNotes={billingNotes.length > 0 ? billingNotes : undefined}
               />
             </div>
             <div data-pf-dashboard-metric="open-receivable">
@@ -487,6 +479,7 @@ export async function HomeDashboardRestoredSections({
                     vatLabels,
                   )}
                   detailCopy={triggerCopy}
+                  colorizeResult
                 />
               </div>
             </div>
@@ -498,13 +491,13 @@ export async function HomeDashboardRestoredSections({
                   grossAmount={summary.monthCash.display.forecast.gross}
                   grossLabel={vatLabels.incVat}
                   netClassName="text-sm"
-                  colorizeNegative
+                  colorizeResult
                 />
               ) : (
                 <MoneyText
                   value={summary.monthCash.display.forecast.net}
                   className="text-sm font-semibold"
-                  colorizeNegative
+                  colorizeResult
                 />
               )}
             </div>

@@ -105,7 +105,7 @@ export default async function ApAgingPage({
         }
         actions={
           <ExportDownloadControl href="/exports/ap-bills" size="sm" variant="secondary">
-            {tExports('kinds.apBills')}
+            {tExports('sheets.apBills')}
           </ExportDownloadControl>
         }
         meta={

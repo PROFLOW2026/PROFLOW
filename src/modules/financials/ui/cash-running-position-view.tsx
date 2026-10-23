@@ -53,7 +53,7 @@ export function CashRunningPositionView({
       key: 'opening',
       label: copy.opening,
       value: position.opening,
-      colorizeNegative: true,
+      colorizeResult: true,
       hint:
         openingRecorded && openingAsOf ? (
           <time dateTime={openingAsOf} dir="ltr">
@@ -78,13 +78,13 @@ export function CashRunningPositionView({
       key: 'end',
       label: copy.endBalance,
       value: position.endBalance,
-      colorizeNegative: true,
+      colorizeResult: true,
     },
     {
       key: 'low',
       label: copy.lowest,
       value: position.lowestBalance,
-      colorizeNegative: true,
+      colorizeResult: true,
     },
   ] as const;
 
@@ -101,7 +101,7 @@ export function CashRunningPositionView({
               <p className="mt-1 text-sm font-semibold sm:text-base">
                 <MoneyText
                   value={tile.value}
-                  colorizeNegative={'colorizeNegative' in tile && tile.colorizeNegative}
+                  colorizeResult={'colorizeResult' in tile && tile.colorizeResult}
                 />
               </p>
               {'hint' in tile && tile.hint ? (
@@ -121,7 +121,7 @@ export function CashRunningPositionView({
                 {copy.bucketLabel(step.key)}
               </p>
               <p className="mt-1 text-sm font-semibold">
-                <MoneyText value={step.running} colorizeNegative />
+                <MoneyText value={step.running} colorizeResult />
               </p>
             </div>
           ))}

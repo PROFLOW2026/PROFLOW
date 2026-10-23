@@ -79,16 +79,24 @@ export function MoneyReportMetricTile({
   metric,
   copy,
   colorizeNegative = false,
+  colorizeResult = false,
 }: {
   readonly metric: MoneyReportMetric;
   readonly copy: ReportMetricTileCopy;
   readonly colorizeNegative?: boolean;
+  readonly colorizeResult?: boolean;
 }) {
   return (
     <ReportMetricShell
       label={copy.label}
       natureLabel={copy.natureLabel}
-      value={<MoneyText value={metric.value} colorizeNegative={colorizeNegative} />}
+      value={
+        <MoneyText
+          value={metric.value}
+          colorizeNegative={colorizeNegative}
+          colorizeResult={colorizeResult}
+        />
+      }
       currency={metric.currency}
       inclusionLabels={copy.inclusionLabels}
       exclusionLabels={copy.exclusionLabels}

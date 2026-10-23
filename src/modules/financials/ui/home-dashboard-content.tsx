@@ -250,13 +250,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                     : undefined
                 }
                 detailCopy={triggerCopy}
-                footer={
-                  contractValueNote ? (
-                    <p className="break-words text-xs text-[var(--pf-text-secondary)]">
-                      {contractValueNote}
-                    </p>
-                  ) : null
-                }
+                detailNotes={contractValueNote ? [contractValueNote] : undefined}
               />
             </div>
           </section>
@@ -486,6 +480,12 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                     data.businessCashPosition,
                     t('ownerHeadline.cashPaid'),
                     detailCopy,
+                    data.monthlyLedger?.cashOutGapNet
+                      ? {
+                          label: t('monthlyLedger.gapDetail'),
+                          amount: data.monthlyLedger.cashOutGapNet,
+                        }
+                      : null,
                   )}
                   detailCopy={triggerCopy}
                 />
@@ -614,17 +614,12 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   detailCopy,
                 )}
                 detailCopy={triggerCopy}
-                footer={(() => {
-                  if (!data.billingCoverage) return null;
+                detailNotes={(() => {
+                  if (!data.billingCoverage) return undefined;
                   const notes = standalonePartialNotes(data.billingCoverage, tFinancial, [
                     'foreign_currency_billing_excluded',
                   ]);
-                  if (notes.length === 0) return null;
-                  return notes.map((note) => (
-                    <p key={note} className="break-words text-xs text-[var(--pf-text-secondary)]">
-                      {note}
-                    </p>
-                  ));
+                  return notes.length > 0 ? notes : undefined;
                 })()}
               />
               <DashboardKpiCard
@@ -952,6 +947,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   vatLabels,
                 )}
                 detailCopy={triggerCopy}
+                colorizeResult
               />
             </div>
             <div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-2 text-sm text-[var(--pf-text-secondary)]">
@@ -961,7 +957,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 grossAmount={data.organizationSummary.monthCash.display.forecast.gross}
                 grossLabel={vatLabels.incVat}
                 netClassName="text-sm"
-                colorizeNegative
+                colorizeResult
               />
             </div>
           </section>

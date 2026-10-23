@@ -3,13 +3,15 @@
 import { useLocale } from 'next-intl';
 import * as React from 'react';
 import { formatMoney, type FormatMoneyOptions } from '@/shared/money/format';
-import { isNegativeMoney, type MoneyValue } from '@/shared/money/money';
+import { isNegativeMoney, isPositiveMoney, type MoneyValue } from '@/shared/money/money';
 import { cn } from '@/shared/ui/cn';
 
 export interface MoneyTextProps extends FormatMoneyOptions {
   value: MoneyValue;
   /** Renders negatives in the danger tone. The sign is always present too. */
   colorizeNegative?: boolean;
+  /** Profit, loss, and cash difference: green when positive, red when negative, plain at zero. */
+  colorizeResult?: boolean;
   className?: string;
 }
 
@@ -22,19 +24,22 @@ export interface MoneyTextProps extends FormatMoneyOptions {
 export function MoneyText({
   value,
   colorizeNegative = false,
+  colorizeResult = false,
   className,
   ...options
 }: MoneyTextProps) {
   const locale = useLocale();
   const formatted = formatMoney(value, locale, options);
   const negative = isNegativeMoney(value);
+  const positive = isPositiveMoney(value);
 
   return (
     <span
       dir="ltr"
       className={cn(
         'pf-numeric inline-block max-w-full',
-        colorizeNegative && negative && 'text-[var(--pf-status-danger-fg)]',
+        colorizeResult && positive && 'text-[var(--pf-status-success-fg)]',
+        (colorizeResult || colorizeNegative) && negative && 'text-[var(--pf-status-danger-fg)]',
         className,
       )}
     >

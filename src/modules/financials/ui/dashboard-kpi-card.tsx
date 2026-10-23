@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { DashboardKpiDetailContent } from '../domain/dashboard-kpi-detail';
+import { mergeDashboardDetailNotes, type DashboardKpiDetailContent } from '../domain/dashboard-kpi-detail';
 import { DashboardKpiDetailTrigger } from './dashboard-kpi-detail-trigger';
 import type { mapDashboardKpiDetailTriggerCopy } from './dashboard-kpi-detail-copy';
 
@@ -20,6 +20,9 @@ export interface DashboardKpiCardProps {
   readonly unavailable?: boolean;
   readonly unavailableLabel?: string;
   readonly unavailableHint?: string;
+  /** Explanatory notes. They open from «פירוט» and stay off the card face. */
+  readonly detailNotes?: readonly string[];
+  readonly colorizeResult?: boolean;
 }
 
 /** Shared dashboard KPI card chrome — header separator, typography, and detail trigger placement. */
@@ -37,7 +40,14 @@ export function DashboardKpiCard({
   unavailable,
   unavailableLabel,
   unavailableHint,
+  detailNotes,
+  colorizeResult = false,
 }: DashboardKpiCardProps) {
+  const resolvedDetail = mergeDashboardDetailNotes(detail, title, [
+    hint,
+    unavailable ? unavailableHint : undefined,
+    ...(detailNotes ?? []),
+  ]);
   return (
     <Card className="min-w-0 max-w-full">
       <CardHeader className="pb-1">
@@ -45,8 +55,8 @@ export function DashboardKpiCard({
           <CardTitle className="break-words text-xs font-medium text-[var(--pf-text-secondary)]">
             {title}
           </CardTitle>
-          {detail && detailCopy ? (
-            <DashboardKpiDetailTrigger detail={detail} copy={detailCopy} />
+          {resolvedDetail && detailCopy ? (
+            <DashboardKpiDetailTrigger detail={resolvedDetail} copy={detailCopy} />
           ) : null}
         </div>
       </CardHeader>
@@ -56,11 +66,6 @@ export function DashboardKpiCard({
             <span className="text-lg font-semibold text-[var(--pf-status-warning-fg,var(--pf-text-primary))]">
               {unavailableLabel}
             </span>
-            {unavailableHint ? (
-              <p className="break-words text-xs text-[var(--pf-text-secondary)]">
-                {unavailableHint}
-              </p>
-            ) : null}
           </>
         ) : money && grossMoney && grossLabel ? (
           <BillingNetPrimaryDisplay
@@ -69,17 +74,15 @@ export function DashboardKpiCard({
             netLabel={netLabel}
             grossLabel={grossLabel}
             netClassName="text-lg"
+            colorizeResult={colorizeResult}
           />
         ) : money ? (
           <div className="min-w-0 max-w-full overflow-x-auto">
-            <MoneyText value={money} className="text-lg font-semibold" />
+            <MoneyText value={money} className="text-lg font-semibold" colorizeResult={colorizeResult} />
           </div>
         ) : (
           <span className="text-lg font-semibold">{value ?? '—'}</span>
         )}
-        {hint ? (
-          <p className="break-words text-xs text-[var(--pf-text-muted)]">{hint}</p>
-        ) : null}
         {footer}
       </CardContent>
     </Card>

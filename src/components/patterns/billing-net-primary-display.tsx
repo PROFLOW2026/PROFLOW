@@ -17,6 +17,7 @@ export function BillingNetPrimaryDisplay({
   netClassName,
   grossClassName,
   colorizeNegative,
+  colorizeResult,
 }: {
   readonly netAmount: MoneyValue;
   readonly grossAmount: MoneyValue;
@@ -26,11 +27,16 @@ export function BillingNetPrimaryDisplay({
   readonly netClassName?: string;
   readonly grossClassName?: string;
   readonly colorizeNegative?: boolean;
+  readonly colorizeResult?: boolean;
 }) {
   return (
     <div className={cn('flex min-w-0 flex-col gap-0.5', className)}>
       <div className={cn('font-semibold tabular-nums', netClassName)}>
-        <MoneyText value={netAmount} colorizeNegative={colorizeNegative} />
+        <MoneyText
+          value={netAmount}
+          colorizeNegative={colorizeNegative}
+          colorizeResult={colorizeResult}
+        />
       </div>
       {netLabel ? (
         <p className={cn('text-xs text-[var(--pf-text-muted)]', grossClassName)}>{netLabel}</p>

@@ -2,14 +2,14 @@ import { and, eq, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
 import { billingRecords, externalStatutoryDocuments, paymentApplications, payments } from '@drizzle/schema';
 import {
   aggregateBillingPositionInCurrency,
-  isOverdueOn,
-  recordNetOutstanding,
   sumInvoicedAmounts,
   sumNetInvoicedAmounts,
   type BillingAmountInput,
   type PaymentAmountInput,
 } from '@/modules/billing/domain/outstanding';
 import {
+  computeRecordRevenuePosition,
+  deriveCollectionStatusFromOpen,
   resolvePaymentTriplet,
   zeroTriplet,
   type RevenueTriplet,
@@ -186,7 +186,10 @@ export async function loadBillingRowsGroupedByProject(
   return result;
 }
 
-/** Count overdue invoices from already-loaded billing rows (avoids a second full load). */
+/**
+ * Count overdue invoices the same way the billing screen does.
+ * A sub-cent residue that displays as 0.00 is not a collectible balance.
+ */
 export function countOverdueFromBillingRows(
   rows: ProjectBillingRows,
   today: BusinessDate,
@@ -194,12 +197,17 @@ export function countOverdueFromBillingRows(
   let overdueCount = 0;
   for (const record of rows.records) {
     if (record.status === 'draft' || record.status === 'void' || !record.dueDate) continue;
-
-    const outstanding = recordNetOutstanding(record, rows.currency || record.totalAmount.currency);
-
-    if (isOverdueOn(outstanding, record.dueDate, today)) {
-      overdueCount += 1;
-    }
+    const currency = rows.currency || record.totalAmount.currency;
+    const position = computeRecordRevenuePosition(record, currency);
+    if (!position) continue;
+    const status = deriveCollectionStatusFromOpen(
+      position.open,
+      position.paid,
+      record.dueDate,
+      today,
+      record.status,
+    );
+    if (status === 'overdue') overdueCount += 1;
   }
   return overdueCount;
 }

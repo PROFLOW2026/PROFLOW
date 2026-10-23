@@ -8,6 +8,7 @@ import {
 } from '@/modules/workforce';
 import { getOrganizationApPayables } from '@/modules/ap';
 import { getMonthCashFlow } from './get-month-cash-flow';
+import { loadHomeMonthlyLedger } from './get-home-monthly-ledger';
 import type { MonthCashFlow } from '../domain/month-cash-flow';
 import { zeroTriplet, type RevenueTriplet } from '@/modules/billing/domain/revenue-position';
 import {
@@ -287,6 +288,8 @@ export interface HomeDashboardData {
    * project financials, or on the empty-org dashboard.
    */
   readonly cashForecast: HomeCashForecast | null;
+  /** One row per month from January 2026 through the current month. */
+  readonly monthlyLedger: import('../domain/home-monthly-ledger').HomeMonthlyLedger | null;
 }
 
 export interface HomeDashboardOptions {
@@ -549,6 +552,7 @@ export async function getHomeDashboard(
       dashboardLayoutMode: experienceSlice.dashboardLayoutMode,
       allCapabilitiesSupplements: experienceSlice.allCapabilitiesSupplements,
       experienceUiContext: experienceSlice.experienceUiContext,
+      monthlyLedger: null,
     };
   }
 
@@ -979,6 +983,13 @@ export async function getHomeDashboard(
   }
 
   const cashForecast = await cashForecastPromise;
+  const monthlyLedger = canReadFinancials
+    ? await loadHomeMonthlyLedger(context, {
+        dashboardCollectedNet: billing?.netPaid ?? null,
+        dashboardCashOutNet:
+          businessCashPosition?.actualPaidNet ?? businessCashPosition?.actualPaid ?? null,
+      })
+    : null;
 
   return {
     isBrandNew,
@@ -1032,6 +1043,7 @@ export async function getHomeDashboard(
     dashboardLayoutMode: experienceSlice.dashboardLayoutMode,
     allCapabilitiesSupplements: experienceSlice.allCapabilitiesSupplements,
     experienceUiContext: experienceSlice.experienceUiContext,
+    monthlyLedger,
   };
 }
 

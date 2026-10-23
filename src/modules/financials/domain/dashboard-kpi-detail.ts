@@ -26,3 +26,25 @@ export interface DashboardKpiDetailContent {
   readonly fullScreenHref?: string;
   readonly fullScreenLabel?: string;
 }
+
+/** Card-face notes move into the detail dialog. Exact text already there is not repeated. */
+export function mergeDashboardDetailNotes(
+  detail: DashboardKpiDetailContent | undefined,
+  title: string,
+  notes: readonly (string | null | undefined)[],
+): DashboardKpiDetailContent | undefined {
+  const fresh = notes
+    .map((note) => note?.trim() ?? '')
+    .filter((note) => note.length > 0)
+    .filter((note, index, all) => all.indexOf(note) === index)
+    .filter((note) => !detail || (!detail.whatIs.includes(note) && !detail.formula.includes(note)));
+  if (!detail) {
+    if (fresh.length === 0) return undefined;
+    return { title, whatIs: fresh.join('\n\n'), formula: '', breakdown: [] };
+  }
+  if (fresh.length === 0) return detail;
+  return {
+    ...detail,
+    whatIs: [detail.whatIs, ...fresh].filter((part) => part.trim().length > 0).join('\n\n'),
+  };
+}

@@ -3,7 +3,7 @@ import type { DashboardKpiDetailContent, DashboardKpiDetailLine } from './dashbo
 import type { BusinessCashPosition, BusinessCashSourceKey } from './business-cash-position';
 import type { HomeDashboardKpiBreakdown } from './home-dashboard-kpi-breakdown';
 import { endOfMonth, type BusinessDate } from '@/shared/dates';
-import { compareMoney, subtractMoney, zeroMoney, type MoneyValue } from '@/shared/money';
+import { compareMoney, isZeroMoney, subtractMoney, zeroMoney, type MoneyValue } from '@/shared/money';
 
 /** First and last calendar day of `YYYY-MM`, matching dashboard month KPIs. */
 export function dashboardMonthBounds(
@@ -492,6 +492,7 @@ export function buildBusinessCashPaidDetail(
   position: BusinessCashPosition,
   title: string,
   copy: DashboardKpiDetailCopy,
+  gap?: { readonly label: string; readonly amount: MoneyValue } | null,
 ): DashboardKpiDetailContent {
   const value = position.actualPaidNet ?? position.actualPaid;
   if (!value) {
@@ -515,7 +516,11 @@ export function buildBusinessCashPaidDetail(
         ? position.actualPaid
         : undefined,
     grossLabel: copy.includingVat,
-    breakdown: businessCashBreakdownLines(position, copy, 'paid'),
+    breakdown: businessCashBreakdownLines(position, copy, 'paid').concat(
+      gap && !isZeroMoney(gap.amount)
+        ? [{ label: gap.label, money: gap.amount }]
+        : [],
+    ),
   };
 }
 

@@ -63,6 +63,7 @@ const FILE_NAMESPACE_ALLOW: Readonly<Record<string, readonly MessageNamespace[]>
   'src/modules/projects/ui/project-scoped-access-panel.tsx': ['settings'],
   'src/modules/employee-app/ui/member-document-folder-grants-panel.tsx': ['settings'],
   'src/modules/identity-images/ui/contractor-avatar-panel.tsx': ['contractorAccess'],
+  'src/modules/financials/ui/home-dashboard-monthly-ledger.tsx': ['dashboard'],
 };
 
 export interface ReferencedTranslation {

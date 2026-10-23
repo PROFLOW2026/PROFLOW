@@ -15,7 +15,7 @@ export async function ReceivablesAgingPanel({ aging }: { aging: ReceivablesAging
           <p className="mt-1 break-words text-xs text-[var(--pf-text-secondary)]">{t('note')}</p>
         </div>
         <ExportDownloadControl href="/exports/receivables-aging" size="sm" variant="secondary">
-          {tExports('kinds.arAging')}
+          {tExports('sheets.arAging')}
         </ExportDownloadControl>
       </div>
       <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">

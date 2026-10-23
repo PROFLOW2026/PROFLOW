@@ -3,9 +3,11 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { filterRowsByWorkKind } from '@/modules/financials/domain/work-kind-filter';
 import { matchesWorkKindFilter } from '@/modules/financials/domain/work-pricing';
+import { mergeDashboardDetailNotes } from '@/modules/financials/domain/dashboard-kpi-detail';
 import {
   billingCollectedMonthHref,
   buildBillingOutstandingDetail,
+  buildBusinessCashPaidDetail,
   buildCompanyActualDetail,
   buildContractRemainingDetail,
   buildForecastCostDetail,
@@ -357,5 +359,42 @@ describe('dashboard cleanup — detail modals', () => {
       'View month billings',
     );
     expect(invoiced.fullScreenLabel).toBe('View month billings');
+  });
+
+  it('keeps a card hint inside the detail and does not repeat it', () => {
+    const detail = mergeDashboardDetailNotes(
+      {
+        title: 'Paid',
+        whatIs: 'Recorded payments.',
+        formula: 'Sum of payments.',
+        breakdown: [],
+      },
+      'Paid',
+      ['Recorded payments.', 'Partial slices can differ by minor units.'],
+    );
+    expect(detail?.whatIs).toBe('Recorded payments.\n\nPartial slices can differ by minor units.');
+    expect(detail?.formula).toBe('Sum of payments.');
+  });
+
+  it('shows the net split gap in the paid detail without changing the total', () => {
+    const paid = money('854283.90', ILS);
+    const detail = buildBusinessCashPaidDetail(
+      {
+        currency: ILS,
+        actualPaid: money('931297.96', ILS),
+        actualPaidNet: paid,
+        outstandingPayable: null,
+        outstandingPayableNet: null,
+        sources: {},
+      },
+      'Paid',
+      detailCopy,
+      { label: 'Net split gap', amount: money('0.05', ILS) },
+    );
+    expect(detail.value).toEqual(paid);
+    expect(detail.breakdown.some((line) => line.label === 'Net split gap')).toBe(true);
+    expect(detail.breakdown.find((line) => line.label === 'Net split gap')?.money).toEqual(
+      money('0.05', ILS),
+    );
   });
 });

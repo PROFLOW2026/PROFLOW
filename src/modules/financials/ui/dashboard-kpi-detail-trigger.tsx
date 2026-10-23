@@ -74,18 +74,22 @@ export function DashboardKpiDetailTrigger({
               </span>
             </p>
           ) : null}
-          <section>
-            <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--pf-text-muted)]">
-              {copy.whatIs}
-            </h3>
-            <p className="text-[var(--pf-text-secondary)]">{detail.whatIs}</p>
-          </section>
-          <section>
-            <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--pf-text-muted)]">
-              {copy.formula}
-            </h3>
-            <p className="whitespace-pre-line text-[var(--pf-text-secondary)]">{detail.formula}</p>
-          </section>
+          {detail.whatIs.trim() ? (
+            <section>
+              <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--pf-text-muted)]">
+                {copy.whatIs}
+              </h3>
+              <p className="whitespace-pre-line text-[var(--pf-text-secondary)]">{detail.whatIs}</p>
+            </section>
+          ) : null}
+          {detail.formula.trim() ? (
+            <section>
+              <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--pf-text-muted)]">
+                {copy.formula}
+              </h3>
+              <p className="whitespace-pre-line text-[var(--pf-text-secondary)]">{detail.formula}</p>
+            </section>
+          ) : null}
           {detail.breakdown.length > 0 ? (
             <section>
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--pf-text-muted)]">

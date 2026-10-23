@@ -193,7 +193,6 @@ export async function ReportsAnalyticsView({
                   secondaryMoney: analytics.cash.outstandingGross.value,
                   secondaryLabel: tFinancial('kpis.includingVat'),
                 }}
-                colorizeNegative
               />
             </MainAppSummaryGrid>
           ) : null}
@@ -330,7 +329,7 @@ export async function ReportsAnalyticsView({
                   tFinancial('kpis.actualMargin'),
                   'profitNet',
                 )}
-                colorizeNegative
+                colorizeResult
               />
             ) : null}
             {analytics.profitability.estimatedProfit ? (
@@ -341,14 +340,14 @@ export async function ReportsAnalyticsView({
                   tFinancial('kpis.forecastMargin'),
                   'profitNet',
                 )}
-                colorizeNegative
+                colorizeResult
               />
             ) : null}
             {analytics.companyProfit ? (
               <MoneyReportMetricTile
                 metric={analytics.companyProfit}
                 copy={moneyCopy(analytics.companyProfit, tFinancial('companyProfit'), 'profitNet')}
-                colorizeNegative
+                colorizeResult
               />
             ) : null}
             {rollup.ops.profitableCount != null ? (
@@ -613,7 +612,7 @@ export async function ReportsAnalyticsView({
                     {rollup.canReadProfit ? (
                       <TableCell>
                         {row.estimatedProfit ? (
-                          <MoneyText value={row.estimatedProfit} colorizeNegative />
+                          <MoneyText value={row.estimatedProfit} colorizeResult />
                         ) : (
                           '-'
                         )}
@@ -685,7 +684,7 @@ export async function ReportsAnalyticsView({
                     </dt>
                     <dd className="min-w-0 max-w-full overflow-x-auto">
                       {row.estimatedProfit ? (
-                        <MoneyText value={row.estimatedProfit} colorizeNegative />
+                        <MoneyText value={row.estimatedProfit} colorizeResult />
                       ) : (
                         '-'
                       )}

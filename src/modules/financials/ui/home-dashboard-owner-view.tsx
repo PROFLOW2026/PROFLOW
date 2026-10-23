@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { PrefetchOnIntentLink } from '@/components/ui/prefetch-on-intent-link';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { cn } from '@/shared/ui/cn';
 import { compareMoney, subtractMoney, type MoneyValue } from '@/shared/money';
 import { ProjectStatusBadge } from '@/app/[locale]/(app)/projects/project-status-badge';
@@ -29,7 +30,7 @@ import {
   buildCurrentProfitDetail,
   buildProfitabilityRateDetail,
 } from '../domain/dashboard-kpi-detail-builders';
-import type { DashboardKpiDetailContent } from '../domain/dashboard-kpi-detail';
+import { mergeDashboardDetailNotes, type DashboardKpiDetailContent } from '../domain/dashboard-kpi-detail';
 import { DashboardMissingDataTrigger } from './dashboard-missing-data-trigger';
 import { HomeLaborReconciliation, HomePendingTimeAlert } from './home-labor-alerts';
 import { mapDashboardMissingDataToView } from './map-dashboard-missing-data-view';
@@ -39,6 +40,7 @@ import { DashboardContractSummaryRow } from './dashboard-contract-summary-row';
 import { DashboardRecentProjectsSection } from './dashboard-recent-projects-section';
 import { DashboardKpiDetailTrigger } from './dashboard-kpi-detail-trigger';
 import { HomeDashboardCashForecast } from './home-dashboard-cash-forecast';
+import { HomeDashboardMonthlyLedger } from './home-dashboard-monthly-ledger';
 import { HomeDashboardRestoredSections } from './home-dashboard-restored-sections';
 import {
   mapDashboardKpiDetailCopy,
@@ -77,6 +79,7 @@ function KpiTile({
   detailCopy,
   unavailable,
   unavailableLabel,
+  colorizeResult = false,
 }: {
   title: string;
   money?: MoneyValue;
@@ -89,21 +92,31 @@ function KpiTile({
   detailCopy?: ReturnType<typeof mapDashboardKpiDetailTriggerCopy>;
   unavailable?: boolean;
   unavailableLabel?: string;
+  colorizeResult?: boolean;
 }) {
+  const percentTone =
+    colorizeResult && percent
+      ? Number(percent) > 0
+        ? 'text-[var(--pf-status-success-fg)]'
+        : Number(percent) < 0
+          ? 'text-[var(--pf-status-danger-fg)]'
+          : undefined
+      : undefined;
+  const resolvedDetail = mergeDashboardDetailNotes(detail, title, [hint]);
   return (
     <Card className="min-w-0 max-w-full">
       <CardContent className="flex min-w-0 flex-col gap-1 p-4">
         <div className="flex min-w-0 items-start justify-between gap-2">
           <p className="text-xs text-[var(--pf-text-muted)]">{title}</p>
-          {detail && detailCopy ? (
-            <DashboardKpiDetailTrigger detail={detail} copy={detailCopy} />
+          {resolvedDetail && detailCopy ? (
+            <DashboardKpiDetailTrigger detail={resolvedDetail} copy={detailCopy} />
           ) : null}
         </div>
         {unavailable ? (
           <p className="text-sm text-[var(--pf-text-secondary)]">{unavailableLabel}</p>
         ) : percent != null ? (
           <p className="text-lg font-semibold">
-            <span dir="ltr" className="pf-numeric inline-block max-w-full">
+            <span dir="ltr" className={`pf-numeric inline-block max-w-full ${percentTone ?? ''}`}>
               {formatPercentDisplay(percent)}
             </span>
           </p>
@@ -113,16 +126,15 @@ function KpiTile({
             grossAmount={grossMoney}
             grossLabel={grossLabel}
             netClassName="text-lg"
-            colorizeNegative
+            colorizeResult={colorizeResult}
           />
         ) : money ? (
           <p className="min-w-0 max-w-full overflow-x-auto text-lg font-semibold">
-            <MoneyText value={money} colorizeNegative />
+            <MoneyText value={money} colorizeResult={colorizeResult} />
           </p>
         ) : (
           <p className="text-sm text-[var(--pf-text-secondary)]">—</p>
         )}
-        {hint ? <p className="break-words text-xs text-[var(--pf-text-muted)]">{hint}</p> : null}
         {footer}
       </CardContent>
     </Card>
@@ -269,6 +281,12 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
                   data.businessCashPosition,
                   t('ownerHeadline.cashPaid'),
                   detailCopy,
+                  data.monthlyLedger?.cashOutGapNet
+                    ? {
+                        label: t('monthlyLedger.gapDetail'),
+                        amount: data.monthlyLedger.cashOutGapNet,
+                      }
+                    : null,
                 )}
                 detailCopy={triggerCopy}
               />
@@ -292,6 +310,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
                 )}
                 grossLabel={tFinancial('kpis.includingVat')}
                 hint={t('ownerHeadline.cashDifferenceHint')}
+                colorizeResult
                 detail={buildCashDifferenceDetail(
                   data.billing.netPaid,
                   data.billing.paid,
@@ -349,12 +368,14 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
           unavailable={profitUnavailable}
           unavailableLabel={t('missingData.kpiUnavailable')}
           hint={profitUnavailable ? undefined : t('ownerHeadline.actualProfitHint')}
+          colorizeResult
           detail={currentProfitDetail}
           detailCopy={triggerCopy}
         />
         <KpiTile
           title={t('ownerHeadline.profitability')}
           percent={data.profitabilityPercent}
+          colorizeResult
           unavailable={profitUnavailable && !data.profitabilityPercent}
           unavailableLabel={t('missingData.kpiUnavailable')}
           detail={
@@ -438,7 +459,14 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
             openPage: t('cashForecast.openPage'),
             inHidden: t('cashForecast.inHidden'),
           }}
+          detailCopy={triggerCopy}
         />
+      ) : null}
+
+      {data.monthlyLedger && data.monthlyLedger.months.length > 0 ? (
+        <WithAppClientMessages extra={['dashboard']}>
+          <HomeDashboardMonthlyLedger ledger={data.monthlyLedger} />
+        </WithAppClientMessages>
       ) : null}
 
       {data.apOutstanding &&
@@ -507,11 +535,22 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
                           {row.actualCost ? <MoneyText value={row.actualCost} /> : '—'}
                         </TableCell>
                         <TableCell numeric>
-                          {row.actualProfit ? <MoneyText value={row.actualProfit} /> : '—'}
+                          {row.actualProfit ? <MoneyText value={row.actualProfit} colorizeResult /> : '—'}
                         </TableCell>
                         <TableCell numeric>
                           {row.marginPercent ? (
-                            <span dir="ltr">{formatPercentDisplay(row.marginPercent, locale)}</span>
+                            <span
+                              dir="ltr"
+                              className={`pf-numeric inline-block max-w-full ${
+                                Number(row.marginPercent) > 0
+                                  ? 'text-[var(--pf-status-success-fg)]'
+                                  : Number(row.marginPercent) < 0
+                                    ? 'text-[var(--pf-status-danger-fg)]'
+                                    : ''
+                              }`}
+                            >
+                              {formatPercentDisplay(row.marginPercent, locale)}
+                            </span>
                           ) : (
                             '—'
                           )}
@@ -554,13 +593,28 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
                   </dd>
                   <dt className="text-[var(--pf-text-muted)]">{t('ownerHeadline.colProfit')}</dt>
                   <dd className="text-end">
-                    {row.actualProfit ? <MoneyText value={row.actualProfit} /> : '—'}
+                    {row.actualProfit ? <MoneyText value={row.actualProfit} colorizeResult /> : '—'}
                   </dd>
                   <dt className="text-[var(--pf-text-muted)]">
                     {t('ownerHeadline.colProfitability')}
                   </dt>
-                  <dd className="text-end" dir="ltr">
-                    {row.marginPercent ? formatPercentDisplay(row.marginPercent, locale) : '—'}
+                  <dd className="text-end">
+                    {row.marginPercent ? (
+                      <span
+                        dir="ltr"
+                        className={`pf-numeric inline-block max-w-full ${
+                          Number(row.marginPercent) > 0
+                            ? 'text-[var(--pf-status-success-fg)]'
+                            : Number(row.marginPercent) < 0
+                              ? 'text-[var(--pf-status-danger-fg)]'
+                              : ''
+                        }`}
+                      >
+                        {formatPercentDisplay(row.marginPercent, locale)}
+                      </span>
+                    ) : (
+                      '—'
+                    )}
                   </dd>
                 </dl>
               </Link>
