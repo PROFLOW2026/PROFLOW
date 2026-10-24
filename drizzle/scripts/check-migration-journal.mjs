@@ -29,19 +29,12 @@ const allSql = readdirSync(root)
   .filter((entry) => entry.endsWith('.sql'))
   .map((entry) => entry.replace(/\.sql$/, ''));
 
-/** Gate B pending — on disk only, not in journal until Owner SQL approval. */
-const PENDING_OFF_JOURNAL = new Set([
-  '0183_expense_installment_payments_rls_permissions',
-  '0184_crm_permission_rls',
-  '0185_rls_0009_0011_sibling_tables',
-  '0186_contract_value_events_rls_and_0174_grants',
-  '0187_statutory_document_share_links',
-  '0188_task_collaboration',
-  '0189_expenses_closed_period_guard_payment_columns',
-  '0190_connected_contract_value_projections',
-  '0191_project_cover_image',
-  '0192_inventory_rls',
-]);
+/**
+ * SQL files that are intentionally not in the journal yet.
+ * Empty: every current migration file is journaled. A new disk-only SQL file
+ * fails this gate until it is journaled or explicitly listed here after review.
+ */
+const PENDING_OFF_JOURNAL = new Set();
 
 const tags = entries.map((entry) => entry.tag);
 const sqlSet = new Set(allSql);

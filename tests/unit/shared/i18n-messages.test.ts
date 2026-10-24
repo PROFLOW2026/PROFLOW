@@ -10,8 +10,6 @@ import {
   readLocaleCatalog,
 } from './i18n-catalog-helpers';
 
-export { flattenLocaleCatalog, localePlaceholders, missingLocaleKeys, readLocaleCatalog };
-
 /**
  * Guards the message catalogs while several workstreams edit them in parallel.
  *

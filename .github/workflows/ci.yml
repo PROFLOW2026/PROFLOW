@@ -3,17 +3,32 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - '**/*.md'
+      - '.cursor/**'
+      - '.cursorignore'
   pull_request:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - '**/*.md'
+      - '.cursor/**'
+      - '.cursorignore'
+  schedule:
+    # 04:00 Asia/Jerusalem. Full suites, plus Playwright smoke.
+    - cron: '0 1 * * *'
   workflow_dispatch:
     inputs:
       run_ui_tests:
-        description: Run UI tests (vitest ui project)
+        description: Run the full UI project
         required: false
         type: boolean
         default: false
       run_integration_tests:
-        description: Run integration tests
+        description: Run the full integration project
         required: false
         type: boolean
         default: false
@@ -23,44 +38,48 @@ on:
         type: boolean
         default: false
       full_regression:
-        description: Run full Playwright regression (43 tests)
+        description: Run full Playwright regression
+        required: false
+        type: boolean
+        default: false
+      full_unit:
+        description: Run the full unit project
         required: false
         type: boolean
         default: false
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+
+env:
+  CI_DIFF_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
 
 jobs:
-  changes:
+  scope:
     name: Detect change scope
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     outputs:
-      migration: ${{ steps.filter.outputs.migration }}
+      unit_mode: ${{ steps.classify.outputs.unit_mode }}
+      migration: ${{ steps.classify.outputs.migration }}
+      ui: ${{ steps.classify.outputs.ui }}
+      integration: ${{ steps.classify.outputs.integration }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Migration-related paths
-        uses: dorny/paths-filter@v3
-        id: filter
         with:
-          filters: |
-            migration:
-              - 'drizzle/**'
-              - 'drizzle.config.*'
-              - 'vitest.config.ts'
-              - 'tests/setup/**'
-              - 'tests/integration/migration/**'
-              - 'tests/integration/database/migrations.test.ts'
-              - 'tests/unit/database/migration-journal.test.ts'
+          fetch-depth: ${{ github.event_name == 'pull_request' && '0' || '2' }}
 
-  quality:
-    name: Fast gate · Lint · Typecheck · Unit · Build
+      - name: Classify changes
+        id: classify
+        run: node scripts/ci-unit-scope.mjs --github-output
+
+  static:
+    name: Journal · Typecheck · Lint · CAD
+    if: github.event_name != 'schedule' || github.event.schedule == '0 1 * * *'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -86,8 +105,67 @@ jobs:
       - name: CAD licensing denylist
         run: node scripts/check-cad-licensing-denylist.mjs
 
-      - name: Unit tests
+  unit:
+    name: Affected and critical unit tests
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.full_unit != true)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ github.event_name == 'pull_request' && '0' || '2' }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Unit tests for this change
+        run: node scripts/ci-unit-scope.mjs --run --project unit
+
+  unit-full:
+    name: Full unit tests
+    if: (github.event_name == 'schedule' && github.event.schedule == '0 1 * * *') || (github.event_name == 'workflow_dispatch' && inputs.full_unit == true)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Full unit project
         run: npm run test:unit
+
+  build:
+    name: Production build
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
 
       - name: Production build
         run: npm run build
@@ -97,12 +175,12 @@ jobs:
           APP_ENV: local
           LOG_LEVEL: warn
 
-  ui-tests:
-    name: UI tests (manual)
-    if: github.event_name == 'workflow_dispatch' && inputs.run_ui_tests == true
+  ui-affected:
+    name: UI tests for component changes
+    needs: scope
+    if: github.event_name != 'schedule' && needs.scope.outputs.ui == 'true' && (github.event_name != 'workflow_dispatch' || inputs.run_ui_tests != true)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -119,12 +197,56 @@ jobs:
       - name: UI tests
         run: npm run test:ui
 
-  integration-tests:
-    name: Integration tests (manual)
-    if: github.event_name == 'workflow_dispatch' && inputs.run_integration_tests == true
+  ui-full:
+    name: UI tests (full)
+    if: (github.event_name == 'schedule' && github.event.schedule == '0 1 * * *') || (github.event_name == 'workflow_dispatch' && inputs.run_ui_tests == true)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: UI tests
+        run: npm run test:ui
+
+  integration-affected:
+    name: Integration tests for changed modules
+    needs: scope
+    if: github.event_name != 'schedule' && needs.scope.outputs.integration == 'true' && (github.event_name != 'workflow_dispatch' || inputs.run_integration_tests != true)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ github.event_name == 'pull_request' && '0' || '2' }}
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Affected integration tests
+        run: node scripts/ci-unit-scope.mjs --run --project integration
+
+  integration-full:
+    name: Integration tests (full)
+    if: (github.event_name == 'schedule' && github.event.schedule == '0 1 * * *') || (github.event_name == 'workflow_dispatch' && inputs.run_integration_tests == true)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -142,12 +264,32 @@ jobs:
         run: npm run test:integration
 
   migration:
-    name: Migration hardening (DB changes only)
-    needs: changes
-    if: needs.changes.outputs.migration == 'true'
+    name: Migration hardening
+    needs: scope
+    if: github.event_name != 'schedule' && needs.scope.outputs.migration == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Migration hardening (serial, 1 worker)
+        run: npm run test:migration
+
+  migration-full:
+    name: Migration hardening (nightly)
+    if: github.event_name == 'schedule' && github.event.schedule == '0 1 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -165,11 +307,10 @@ jobs:
         run: npm run test:migration
 
   e2e-smoke:
-    name: Playwright smoke (manual)
-    if: github.event_name == 'workflow_dispatch' && inputs.run_playwright_smoke == true
+    name: Playwright smoke
+    if: (github.event_name == 'schedule' && github.event.schedule == '0 1 * * *') || (github.event_name == 'workflow_dispatch' && inputs.run_playwright_smoke == true)
     runs-on: ubuntu-latest
     timeout-minutes: 25
-
     services:
       postgres:
         image: postgres:16
@@ -184,7 +325,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -221,11 +361,10 @@ jobs:
           retention-days: 7
 
   e2e-regression:
-    name: Playwright full regression (manual)
+    name: Playwright full regression
     if: github.event_name == 'workflow_dispatch' && inputs.full_regression == true
     runs-on: ubuntu-latest
     timeout-minutes: 90
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -259,3 +398,62 @@ jobs:
           name: playwright-regression-report
           path: playwright-report
           retention-days: 7
+
+  ci-result:
+    name: CI result
+    needs:
+      - scope
+      - static
+      - unit
+      - unit-full
+      - build
+      - ui-affected
+      - ui-full
+      - integration-affected
+      - integration-full
+      - migration
+      - migration-full
+      - e2e-smoke
+      - e2e-regression
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail when any lane failed
+        env:
+          SCOPE: ${{ needs.scope.result }}
+          STATIC: ${{ needs.static.result }}
+          UNIT: ${{ needs.unit.result }}
+          UNIT_FULL: ${{ needs.unit-full.result }}
+          BUILD: ${{ needs.build.result }}
+          UI_AFFECTED: ${{ needs.ui-affected.result }}
+          UI_FULL: ${{ needs.ui-full.result }}
+          INTEGRATION_AFFECTED: ${{ needs.integration-affected.result }}
+          INTEGRATION_FULL: ${{ needs.integration-full.result }}
+          MIGRATION: ${{ needs.migration.result }}
+          MIGRATION_FULL: ${{ needs.migration-full.result }}
+          E2E_SMOKE: ${{ needs.e2e-smoke.result }}
+          E2E_REGRESSION: ${{ needs.e2e-regression.result }}
+        run: |
+          failed=0
+          for pair in \
+            "scope=$SCOPE" \
+            "static=$STATIC" \
+            "unit=$UNIT" \
+            "unit-full=$UNIT_FULL" \
+            "build=$BUILD" \
+            "ui-affected=$UI_AFFECTED" \
+            "ui-full=$UI_FULL" \
+            "integration-affected=$INTEGRATION_AFFECTED" \
+            "integration-full=$INTEGRATION_FULL" \
+            "migration=$MIGRATION" \
+            "migration-full=$MIGRATION_FULL" \
+            "e2e-smoke=$E2E_SMOKE" \
+            "e2e-regression=$E2E_REGRESSION"
+          do
+            echo "$pair"
+            result="${pair#*=}"
+            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+              failed=1
+            fi
+          done
+          exit "$failed"

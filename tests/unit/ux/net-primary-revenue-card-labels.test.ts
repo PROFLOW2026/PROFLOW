@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-messages.test';
+import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-catalog-helpers';
 
 const GROSS_TITLE_PATTERN_HE = /כולל מע״מ|כולל מעמ|ברוטו|סכום כולל/;
 const GROSS_TITLE_PATTERN_EN = /including vat|gross|total due/i;

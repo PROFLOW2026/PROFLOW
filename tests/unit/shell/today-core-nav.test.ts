@@ -8,7 +8,7 @@ import {
 import { CUSTOMER_FEATURE_MODULE_KEYS, OPTIONAL_MODULE_KEYS } from '@/modules/tenancy/domain/types';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { ModuleVisibility } from '@/modules/tenancy';
-import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-messages.test';
+import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-catalog-helpers';
 
 function modulesOffExcept(on: Partial<ModuleVisibility> = {}): ModuleVisibility {
   return Object.fromEntries(

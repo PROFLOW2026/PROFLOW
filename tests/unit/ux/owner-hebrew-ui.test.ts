@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-messages.test';
+import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-catalog-helpers';
 
 const HE_DIR = join(process.cwd(), 'src', 'locales', 'he-IL');
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-messages.test';
+import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-catalog-helpers';
 
 function catalog(locale: 'he-IL' | 'en', namespace: string) {
   return flattenLocaleCatalog(readLocaleCatalog(locale, namespace));

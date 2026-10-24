@@ -60,32 +60,35 @@ Before running preflight:
 1. Read `.github/workflows/ci.yml`
 2. Read any workflow/scripts it calls (e.g. `package.json` scripts)
 
-The local preflight must match the **current** CI gates as closely as possible.
+Push CI is the fast tier. A release preflight runs the fast checks and the full suites, the same coverage as the nightly workflow plus the production build.
 
 If CI changes in the future, this document means: **follow the current workflow**.
 
-### Current CI gates (as of release baseline)
+### Push / pull request
 
-**Job: `Typecheck · Lint · Test · Build`** (`.github/workflows/ci.yml` → `quality`)
+| Job | Command |
+|------|---------|
+| Journal, typecheck, lint, CAD denylist | `npm run db:check-journal`, `npm run typecheck`, `npm run lint`, `node scripts/check-cad-licensing-denylist.mjs` |
+| Affected unit tests plus the critical money, payroll, permission, database, and i18n set | `node scripts/ci-unit-scope.mjs --run --project unit` |
+| Production build | `npm run build` |
+| Module integration, UI, migration hardening | Only when `scripts/ci-unit-scope.mjs` says the change touches them |
+
+Docs-only changes do not start this workflow. Shared code, auth, tenancy, schema, and workflow changes expand unit tests to `npm run test:unit`.
+
+### Nightly full suites, and release preflight
 
 | Step | Command |
 |------|---------|
-| Install | `npm ci` |
-| Migration journal parity | `npm run db:check-journal` |
-| Typecheck | `npm run typecheck` |
-| Lint | `npm run lint` |
-| Unit tests | `npm run test:unit` |
-| UI tests | `npm run test:ui` |
-| Integration tests | `npm run test:integration` |
+| Journal, typecheck, lint, CAD denylist | same as push |
+| Full unit | `npm run test:unit` |
+| Full UI | `npm run test:ui` |
+| Full integration | `npm run test:integration` |
 | Migration hardening | `npm run test:migration` |
 | Production build | `npm run build` (with CI env vars for Supabase public keys) |
+| Playwright smoke | `npm run playwright:smoke` |
+| Playwright regression | manual `workflow_dispatch`, or `npm run playwright:ci` before a release |
 
-**Job: `Playwright critical (local harness)`** (`.github/workflows/ci.yml` → `e2e`)
-
-| Step | Command |
-|------|---------|
-| Install Playwright Chromium | `npx playwright install --with-deps chromium` |
-| Critical E2E | `npm run playwright:ci` |
+Manual `workflow_dispatch` inputs can run the full unit, UI, integration, smoke, or regression suites on demand.
 
 Re-read `ci.yml` before each release — the table above is a snapshot, not a substitute.
 

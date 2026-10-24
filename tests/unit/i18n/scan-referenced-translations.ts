@@ -11,7 +11,7 @@ import {
   ROOT_CLIENT_MESSAGE_NAMESPACES,
   type MessageNamespace,
 } from '@/shared/i18n/config';
-import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-messages.test';
+import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-catalog-helpers';
 
 const SRC_DIR = join(process.cwd(), 'src');
 

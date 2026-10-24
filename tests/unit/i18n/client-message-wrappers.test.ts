@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { MESSAGE_NAMESPACES, APP_CLIENT_MESSAGE_NAMESPACES } from '@/shared/i18n/config';
-import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-messages.test';
+import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-catalog-helpers';
 import {
   analyzeTranslationCoverage,
   assertClientNamespaceShipped,

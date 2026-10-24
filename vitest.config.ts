@@ -1,3 +1,4 @@
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Plugin } from 'vite';
@@ -5,6 +6,10 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
+const cpuCount = typeof os.availableParallelism === 'function'
+  ? os.availableParallelism()
+  : os.cpus().length;
+const unitWorkers = Math.max(1, Math.min(4, cpuCount));
 const serverOnlyStub = path.resolve(rootDir, 'tests/setup/server-only-stub.ts');
 const nextNavigationStub = path.resolve(rootDir, 'tests/setup/next-navigation-stub.ts');
 const nextIntlNavigationStub = path.resolve(rootDir, 'tests/setup/next-intl-navigation-stub.ts');
@@ -61,8 +66,8 @@ export default defineConfig({
         inline: ['next-intl'],
       },
     },
-    // Forks keep each PGlite instance in its own process; the cap stops several
-    // WebAssembly Postgres instances from running at once.
+    // Forks keep each PGlite instance in its own process. The default cap is
+    // for database projects; the unit and UI projects raise it below.
     pool: 'forks',
     maxWorkers: 2,
     reporters,
@@ -76,7 +81,12 @@ export default defineConfig({
           environment: 'node',
           include: ['tests/unit/**/*.test.ts', 'src/modules/**/__tests__/**/*.test.ts'],
           // Explicit local regressions (private DWG fixtures); run by path, not in CI unit gate.
-          exclude: ['tests/unit/**/*.local.test.ts'],
+          exclude: [
+            'tests/unit/**/*.local.test.ts',
+            // The push workflow runs this script directly. The test only shells out to it.
+            'tests/unit/scripts/cad-licensing-denylist.test.ts',
+          ],
+          maxWorkers: unitWorkers,
           setupFiles: nodeTestSetup,
         },
       },
@@ -87,6 +97,7 @@ export default defineConfig({
           name: 'ui',
           environment: 'jsdom',
           include: ['tests/ui/**/*.test.{ts,tsx}'],
+          maxWorkers: unitWorkers,
           setupFiles: ['./tests/setup/ui.setup.ts', fileTiming],
         },
       },
