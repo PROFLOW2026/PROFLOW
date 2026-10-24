@@ -703,7 +703,9 @@
       "payment": {
         "recorded": "Payment recorded",
         "allocated": "Payment allocated to billing records",
-        "voided": "Payment voided"
+        "voided": "Payment voided",
+        "date_corrected": "Payment date corrected",
+        "corrected": "Payment corrected"
       },
       "employee": {
         "created": "Employee created",

@@ -156,10 +156,11 @@ export async function editFinalizedBillingRecordAction(
   formData: FormData,
 ): Promise<BillingFormState> {
   const tErrors = await getTranslations('errors');
+  const tBilling = await getTranslations('billing');
   const locale = await getLocale();
 
   if (formData.get('changeAcknowledged') !== 'true') {
-    return { error: 'billing.errors.confirmRequired' };
+    return { error: tBilling('errors.confirmRequired') };
   }
 
   try {

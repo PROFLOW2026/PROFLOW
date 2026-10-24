@@ -317,7 +317,7 @@
     "confirmTitle": "לאשר את התיקון?",
     "confirmDescription": "בדקו את השינוי לפני שמירה סופית.",
     "duplicateTitle": "נמצאה רשומה דומה",
-    "duplicateDescription": "ייתכן שמדובר בכפילות — אך ייתכנו גם שתי פעולות עסקיות לגיטימיות.",
+    "duplicateDescription": "ייתכן שמדובר בכפילות - אך ייתכנו גם שתי פעולות עסקיות לגיטימיות.",
     "duplicateReason": "אותו תאריך חיוב וסכום לפני מע״מ ({date}, {amount} ₪).",
     "invoicedMonthImpact": "חודש חיוב (הכנסה לפי תאריך הנפקה)",
     "invoicedMonthShift": "מ-{from} ל-{to}. גבייה לפי תאריך תשלום לא משתנה.",

@@ -157,7 +157,13 @@
     "amountImpactContractValue": "Текущая сумма договора и финансовые сводки отразят новую сумму.",
     "duplicateTitle": "Найдено похожее изменение",
     "duplicateDescription": "Возможно, есть другое изменение с тем же номером — продолжайте только если оба записи корректны.",
-    "duplicateReason": "Тот же номер в этом проекте."
+    "duplicateReason": "Тот же номер в этом проекте.",
+    "form": {
+      "billingConditionImmediate": "Немедленно",
+      "billingConditionMilestone": "С этапом",
+      "billingConditionCustom": "Особые условия",
+      "billingConditionDeferred": "Отложено / позже"
+    }
   },
   "reverse": {
     "confirm": "Сторнировать изменение",

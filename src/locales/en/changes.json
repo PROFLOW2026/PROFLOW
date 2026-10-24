@@ -157,7 +157,13 @@
     "amountImpactContractValue": "Current contract value and financial summaries will reflect the new amount.",
     "duplicateTitle": "Similar change order found",
     "duplicateDescription": "Another change order may match this reference — continue only if both are legitimate.",
-    "duplicateReason": "Same reference on this project."
+    "duplicateReason": "Same reference on this project.",
+    "form": {
+      "billingConditionImmediate": "Immediate",
+      "billingConditionMilestone": "With a milestone",
+      "billingConditionCustom": "Custom terms",
+      "billingConditionDeferred": "Deferred / later"
+    }
   },
   "reverse": {
     "confirm": "Reverse change order",

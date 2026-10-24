@@ -47,7 +47,7 @@ export function finalizeBillingSummariesForListFilter(
   filter: BillingListFilters['filter'],
   limit: number,
 ): BillingRecordSummary[] {
-  if (filter === 'all') return [...summaries];
+  if (filter === 'all' || filter === undefined) return [...summaries];
   if (filter === 'mismatch') return [...summaries];
 
   let filtered = summaries.filter((summary) =>

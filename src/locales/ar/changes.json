@@ -157,7 +157,13 @@
     "amountImpactContractValue": "ستعكس قيمة العقد الحالية والملخصات المالية المبلغ الجديد.",
     "duplicateTitle": "وُجد أمر تغيير مشابه",
     "duplicateDescription": "قد يوجد أمر تغيير آخر بنفس المرجع — تابعوا فقط إذا كان كلاهما مشروعاً.",
-    "duplicateReason": "نفس المرجع في هذا المشروع."
+    "duplicateReason": "نفس المرجع في هذا المشروع.",
+    "form": {
+      "billingConditionImmediate": "فوري",
+      "billingConditionMilestone": "مع مرحلة",
+      "billingConditionCustom": "شروط مخصصة",
+      "billingConditionDeferred": "مؤجل / لاحقًا"
+    }
   },
   "reverse": {
     "confirm": "عكس أمر التغيير",

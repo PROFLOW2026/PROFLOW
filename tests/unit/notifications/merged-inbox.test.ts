@@ -33,7 +33,7 @@ describe('buildMergedNotificationInbox', () => {
     const merged = buildMergedNotificationInbox(persisted, {
       items: [
         withItemDefaults({
-          sourceType: 'expense_pending_payment',
+          sourceType: 'expense_overdue',
           sourceId: 'exp-1',
           what: 'הוצאה ממתינה',
           why: 'אישור תשלום',

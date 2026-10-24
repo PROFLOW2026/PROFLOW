@@ -214,7 +214,9 @@
     "notTaxInvoice": "المسودة ليست فاتورة ضريبية. تبقى خارج الذمم المدينة والربح.",
     "save": "حفظ المسودة",
     "overContract": "مبلغ المسودة أعلى من قيمة العقد الحالية. يمكن الحفظ والإنهاء رغم ذلك.",
-    "void": "إلغاء المسودة"
+    "void": "إلغاء المسودة",
+    "confirmTitle": "تأكيد تغييرات المسودة؟",
+    "confirmDescription": "راجع الحقول التجارية قبل حفظ المسودة."
   },
   "detail": {
     "title": "سجل الفوترة",
@@ -303,8 +305,18 @@
     "invoicedMonthShift": "من {from} إلى {to}. التحصيل حسب تاريخ الدفع لا يتغير.",
     "statutoryImpact": "مستند خارجي",
     "statutoryUnchanged": "مستند SUMIT/محاسبة صادر لن يتغير؛ يُصحَّح البيان الداخلي فقط.",
+    "statutoryInternalAmountDate": "المستند الخارجي الصادر لن يتغير. يُصحَّح داخلياً فقط تاريخ الإصدار والمبالغ.",
     "amountImpact": "مبلغ الفوترة",
     "amountImpactDetail": "يجب أن تتسق المدفوعات المسجّلة مع المجموع المصحّح."
+  },
+  "paymentCorrection": {
+    "title": "تصحيح الدفعة (المالك)",
+    "description": "تصحيح تاريخ ومبلغ الدفعة. يُسجَّل التغيير في السجل ويؤثر على التحصيل حسب تاريخ الدفع.",
+    "save": "حفظ تصحيح الدفعة",
+    "confirmTitle": "تأكيد تصحيح الدفعة؟",
+    "confirmDescription": "راجع التغيير قبل الحفظ النهائي.",
+    "collectionsMonthImpact": "شهر التحصيل (نقداً حسب تاريخ الدفع)",
+    "collectionsMonthShift": "من {from} إلى {to}. الإيراد حسب تاريخ الإصدار لا يتغير."
   },
   "creditNote": {
     "title": "إشعار دائن",
@@ -343,10 +355,12 @@
     "collectionDateInvalid": "أدخل التاريخ بصيغة YYYY-MM-DD.",
     "collectionNoteTooLong": "ملاحظة التحصيل يجب ألا تتجاوز 500 حرفاً.",
     "collectionFollowUpUnavailable": "لا يمكن حفظ متابعة التحصيل قبل تطبيق تحديث قاعدة البيانات.",
-    "ownerOnlyRetroactiveEdit": "Only the organization owner may correct closed or finalized records.",
-    "confirmRequired": "Confirm the change before saving.",
-    "statutoryDateOnlyCorrection": "When an external document was issued, only billing dates may be corrected.",
-    "paymentNotEditable": "This payment cannot be edited in its current state."
+    "ownerOnlyRetroactiveEdit": "مالك المؤسسة فقط يمكنه تصحيح السجلات المغلقة أو المُنهية.",
+    "confirmRequired": "يجب تأكيد التغيير قبل الحفظ.",
+    "statutoryDateOnlyCorrection": "عند إصدار مستند خارجي، يمكن تصحيح تواريخ الفوترة والمبالغ داخلياً فقط.",
+    "paymentNotEditable": "لا يمكن تعديل هذه الدفعة في حالتها الحالية.",
+    "paidExceedsNewTotal": "المدفوعات المسجّلة تتجاوز إجمالي الفوترة بعد التصحيح. قلّل المدفوعات أو أصدر إشعار دائن.",
+    "paymentCorrectionMultiApply": "هذه الدفعة موزّعة على عدة فواتير. ألغِها وسجّلها من جديد بدلاً من تصحيح المبلغ هنا."
   },
   "notAllowed": {
     "title": "غير مسموح",

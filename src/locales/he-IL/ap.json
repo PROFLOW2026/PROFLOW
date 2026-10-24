@@ -365,10 +365,10 @@
     "confirmTitle": "לאשר את תיקון החשבון?",
     "confirmDescription": "בדקו את השינוי לפני שמירה סופית. התיקון יירשם בהיסטוריה.",
     "duplicateTitle": "נמצא חשבון דומה",
-    "duplicateDescription": "ייתכן שמדובר בכפילות — אך ייתכנו גם שתי פעולות עסקיות לגיטימיות.",
+    "duplicateDescription": "ייתכן שמדובר בכפילות - אך ייתכנו גם שתי פעולות עסקיות לגיטימיות.",
     "duplicateReason": "אותו תאריך וסכום ({date}, {amount}).",
     "correctPaymentDate": "תיקון תאריך תשלום",
-    "correctPaymentDateHint": "בעלים בלבד. דוחות מזומן לפי תאריך תשלום — ההכרה בחשבון לא משתנה.",
+    "correctPaymentDateHint": "בעלים בלבד. דוחות מזומן לפי תאריך תשלום - ההכרה בחשבון לא משתנה.",
     "savePaymentDate": "שמירת תאריך תשלום"
   },
   "aging": {

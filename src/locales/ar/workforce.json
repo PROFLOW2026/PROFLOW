@@ -601,6 +601,8 @@
     "effectiveCostThisMonth": "تكلفة المُشغّل الفعلية هذا الشهر:",
     "payrollTitle": "تأكيد تكلفة المُشغّل الشهرية",
     "payrollDescription": "أكّد شهر الرواتب. أدخل تكلفة المُشغّل الفعلية إذا كانت لديك أرقام رواتب نهائية. الدفع منفصل.",
+    "estimatedInput": "المبلغ المقدّر",
+    "actualInput": "المبلغ الفعلي",
     "estimatedEmployerCost": "تكلفة مُشغّل مقدّرة",
     "actualEmployerCost": "تكلفة مُشغّل فعلية",
     "costDifference": "الفرق",

@@ -88,6 +88,7 @@ describe('void-correction schemas', () => {
       kind: 'project',
       projectId: '22222222-2222-4222-8222-222222222222',
       description: 'Fixed hours',
+      changeAcknowledged: true,
     });
     expect(parsed.success).toBe(true);
   });

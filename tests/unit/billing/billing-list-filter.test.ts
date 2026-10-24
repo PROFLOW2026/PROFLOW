@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { finalizeBillingSummariesForListFilter } from '@/modules/billing/domain/billing-list-filter';
 import type { BillingRecordSummary } from '@/modules/billing/domain/types';
+import { businessDate } from '@/shared/dates';
 import { money } from '@/shared/money';
 
 function summary(input: {
@@ -21,8 +22,8 @@ function summary(input: {
     clientId: 'client-1',
     clientName: 'Client',
     reference: input.reference,
-    issueDate: input.issueDate,
-    dueDate: input.dueDate,
+    issueDate: businessDate(input.issueDate),
+    dueDate: businessDate(input.dueDate),
     status: 'finalized',
     kind: 'invoice',
     totalAmount: money('8850', currency),

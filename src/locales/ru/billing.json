@@ -214,7 +214,9 @@
     "notTaxInvoice": "Черновик — не налоговая накладная. Он не входит в дебиторку и в прибыль.",
     "save": "Сохранить черновик",
     "overContract": "Сумма черновика выше текущей стоимости договора. Сохранение и финализация всё равно возможны.",
-    "void": "Аннулировать черновик"
+    "void": "Аннулировать черновик",
+    "confirmTitle": "Подтвердить изменения черновика?",
+    "confirmDescription": "Проверьте бизнес-поля перед сохранением черновика."
   },
   "detail": {
     "title": "Запись о выставлении",
@@ -303,8 +305,18 @@
     "invoicedMonthShift": "С {from} на {to}. Поступления по дате платежа не меняются.",
     "statutoryImpact": "Внешний документ",
     "statutoryUnchanged": "Выпущенный SUMIT/учётный документ не меняется; исправляются только внутренние данные.",
+    "statutoryInternalAmountDate": "Выпущенный внешний документ не изменится. Исправляются только внутренняя дата выставления и суммы.",
     "amountImpact": "Сумма выставления",
     "amountImpactDetail": "Зафиксированные платежи должны соответствовать исправленной сумме."
+  },
+  "paymentCorrection": {
+    "title": "Исправление платежа (владелец)",
+    "description": "Исправление даты и суммы платежа. Изменение сохраняется в истории и влияет на отчёты по дате оплаты.",
+    "save": "Сохранить исправление платежа",
+    "confirmTitle": "Подтвердить исправление платежа?",
+    "confirmDescription": "Проверьте изменение перед сохранением.",
+    "collectionsMonthImpact": "Месяц поступлений (наличные по дате оплаты)",
+    "collectionsMonthShift": "С {from} на {to}. Выручка по дате выставления не меняется."
   },
   "creditNote": {
     "title": "Кредит-нота",
@@ -343,10 +355,12 @@
     "collectionDateInvalid": "Введите дату в формате YYYY-MM-DD.",
     "collectionNoteTooLong": "Заметка по оплате не длиннее 500 символов.",
     "collectionFollowUpUnavailable": "Контроль оплаты нельзя сохранить, пока не применено обновление базы данных.",
-    "ownerOnlyRetroactiveEdit": "Only the organization owner may correct closed or finalized records.",
-    "confirmRequired": "Confirm the change before saving.",
-    "statutoryDateOnlyCorrection": "When an external document was issued, only billing dates may be corrected.",
-    "paymentNotEditable": "This payment cannot be edited in its current state."
+    "ownerOnlyRetroactiveEdit": "Исправлять закрытые или финализированные записи может только владелец организации.",
+    "confirmRequired": "Подтвердите изменение перед сохранением.",
+    "statutoryDateOnlyCorrection": "Если внешний документ уже выпущен, внутренне можно исправить только даты и суммы выставления.",
+    "paymentNotEditable": "Этот платёж нельзя редактировать в текущем состоянии.",
+    "paidExceedsNewTotal": "Зафиксированные платежи превышают исправленную сумму выставления. Уменьшите платежи или выпустите кредит-ноту.",
+    "paymentCorrectionMultiApply": "Платёж распределён на несколько счетов. Аннулируйте и запишите заново вместо исправления суммы здесь."
   },
   "notAllowed": {
     "title": "Недоступно",
