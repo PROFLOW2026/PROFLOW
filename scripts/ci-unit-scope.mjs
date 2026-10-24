@@ -90,8 +90,8 @@ function isCodeOrConfig(filePath) {
 }
 
 function hasConfidentTestDomain(filePath) {
-  const module = moduleName(filePath);
-  if (module && existsSync(`tests/unit/${module}`)) return true;
+  const moduleKey = moduleName(filePath);
+  if (moduleKey && existsSync(`tests/unit/${moduleKey}`)) return true;
   if (filePath.startsWith('tests/unit/') && /\.test\.tsx?$/.test(filePath)) return true;
   if (filePath.startsWith('tests/ui/') || filePath.endsWith('.tsx')) return true;
   if (filePath.startsWith('src/locales/')) return true;
@@ -121,9 +121,9 @@ export function selectUnitScope(changedPaths) {
 
   const selected = new Set(CRITICAL_UNIT_PATHS.filter((entry) => existsSync(entry)));
   for (const file of files) {
-    const module = moduleName(file);
-    if (module) {
-      const unitDir = `tests/unit/${module}`;
+    const moduleKey = moduleName(file);
+    if (moduleKey) {
+      const unitDir = `tests/unit/${moduleKey}`;
       if (existsSync(unitDir)) selected.add(unitDir);
     }
     if (file.startsWith('tests/unit/') && /\.test\.tsx?$/.test(file)) {
@@ -149,9 +149,9 @@ export function selectIntegrationPaths(changedPaths) {
   const files = changedPaths.map(normalizePath).filter(Boolean);
   const selected = new Set();
   for (const file of files) {
-    const module = moduleName(file);
-    if (module) {
-      const integrationDir = `tests/integration/${module}`;
+    const moduleKey = moduleName(file);
+    if (moduleKey) {
+      const integrationDir = `tests/integration/${moduleKey}`;
       if (existsSync(integrationDir)) selected.add(integrationDir);
     }
     const direct = file.match(/^tests\/integration\/([^/]+)\//);
@@ -225,8 +225,8 @@ function changedFilesFromGit(local) {
 
 function extraImportedUnitTests(moduleNames) {
   const found = new Set();
-  for (const module of moduleNames) {
-    const lines = readGitLines(['grep', '-l', `@/modules/${module}`, '--', 'tests/unit']);
+  for (const moduleKey of moduleNames) {
+    const lines = readGitLines(['grep', '-l', `@/modules/${moduleKey}`, '--', 'tests/unit']);
     if (!lines) continue;
     for (const line of lines) {
       if (line.endsWith('.test.ts') || line.endsWith('.test.tsx')) found.add(normalizePath(line));
