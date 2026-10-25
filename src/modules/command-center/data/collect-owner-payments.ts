@@ -37,6 +37,7 @@ import { getOrgFinancialPolicies } from '@/modules/tenancy/application/org-finan
 import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import {
   expenseAllocationAlertHref,
+  expenseClassificationAlertHref,
   expensePaymentAlertHref,
   payrollAlertHref,
 } from '../domain/alert-deep-links';
@@ -450,6 +451,43 @@ export async function collectExpensesNeedingAllocation(
         .join(' · '),
       where,
       href: expenseAllocationAlertHref(row.id),
+      urgencyBump: 20,
+      meta: {
+        expenseId: row.id,
+      },
+    });
+  });
+}
+
+export async function collectExpensesNeedingClassification(
+  ctx: CollectContext,
+): Promise<CommandCenterItem[]> {
+  if (!hasPermission(ctx.context, PERMISSIONS.EXPENSES_READ)) return [];
+
+  const { listExpensesForOrg } = await import('@/modules/expenses/application/queries');
+  const locale = ctx.context.locale ?? 'he-IL';
+  const t = await getTranslations({ locale, namespace: 'commandCenter' });
+  const rows = (
+    await listExpensesForOrg(ctx.context, {
+      attentionFilter: 'classification',
+      limit: 20,
+    })
+  ).items;
+
+  return rows.map((row) => {
+    const title = row.description?.trim() || row.supplierName?.trim() || t('ownerPayments.expenseFallback');
+    const amount = row.grossAmount ? formatMoneyDisplay(row.grossAmount, locale) : '';
+    return withItemDefaults({
+      sourceType: 'expense_needs_classification',
+      sourceId: row.id,
+      what: t('ownerPayments.classificationWhat'),
+      why: [title, amount, t('ownerPayments.allocationDate', { date: formatBusinessDate(row.expenseDate, locale) })]
+        .filter(Boolean)
+        .join(' · '),
+      where: row.projectName
+        ? t('ownerPayments.projectWhere', { name: row.projectName })
+        : t('ownerPayments.classificationWhat'),
+      href: expenseClassificationAlertHref(row.id),
       urgencyBump: 20,
       meta: {
         expenseId: row.id,

@@ -165,7 +165,8 @@
     "allocated": "Распределено (утверждено)",
     "unallocated": "Ожидает утверждения",
     "total": "Итоговый пул рабочего времени",
-    "equation": "{allocated} + {unallocated} = {total}"
+    "equation": "{allocated} + {unallocated} = {total}",
+    "empty": "В этом виде нет часов за период."
   },
   "empty": {
     "title": "Начните с первого проекта",
@@ -425,7 +426,8 @@
     "label": "Показать",
     "all": "Всё",
     "project": "Проекты",
-    "job": "Задания"
+    "job": "Задания",
+    "emptyRecords": "В этом виде нет записей."
   },
   "reports": {
     "title": "Отчёты и экспорт",

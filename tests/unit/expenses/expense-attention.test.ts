@@ -6,6 +6,7 @@ import {
   expenseListShowsAttentionColumns,
   expenseNeedsProjectAllocationFromDetail,
   isExpenseAttentionEligible,
+  listExpenseAttentionRequired,
   pickAttentionFilterFromItems,
   resolveExpenseAttentionFilterFromQuery,
   resolveExpenseAttentionRequired,
@@ -109,6 +110,21 @@ describe('expense attention eligibility', () => {
     });
     expect(resolveExpenseAttentionRequired(companyOnly)).toBeNull();
     expect(countExpensesNeedingAttention([companyOnly])).toBe(0);
+  });
+
+  it('lists every actionable issue on one expense', () => {
+    const mixed = sampleExpense({
+      status: 'draft',
+      classificationStatus: 'needs_classification',
+      costFamily: 'shared',
+      needsProjectAllocation: true,
+    });
+    expect(listExpenseAttentionRequired(mixed)).toEqual([
+      'approval',
+      'classification',
+      'project_allocation',
+    ]);
+    expect(resolveExpenseAttentionRequired(mixed)).toBe('approval');
   });
 
   it('uses existing draft and classification states only for eligible rows', () => {

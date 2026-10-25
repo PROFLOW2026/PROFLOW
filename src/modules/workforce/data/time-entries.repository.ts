@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, isNotNull, isNull, lte, notExists, or, sql } from 'drizzle-orm';
+import { and, desc, eq, exists, gte, inArray, isNotNull, isNull, lte, notExists, or, sql } from 'drizzle-orm';
 import {
   employeeMonthCosts,
   employees,
@@ -16,6 +16,7 @@ import {
 import type { DbExecutor } from '@/shared/db/types';
 import { yearMonthBounds } from '@/modules/month-close/domain/year-month';
 import { coerceBusinessDate, type BusinessDate } from '@/shared/dates';
+import type { WorkKindFilter } from '@/modules/financials/domain/work-pricing';
 import { areEmployeeMonthCostsAvailable } from '../domain/monthly-cost-gates';
 import type {
   NonProjectTimeCodeRecord,
@@ -954,13 +955,38 @@ export interface TimeLaborPeriodReconciliation {
  * Period labor pool: approved hours vs draft/submitted hours that are not Actual.
  * Used by the owner dashboard so unallocated time is visible.
  */
+function timeEntryWorkKindExists(db: DbExecutor, workKindFilter: WorkKindFilter) {
+  if (workKindFilter === 'all') return undefined;
+  // Same rule as the dashboard work-kind filter: jobs are work_kind=job.
+  // Classic projects include a null work kind. Work orders belong to neither facet.
+  const kindMatch =
+    workKindFilter === 'job'
+      ? eq(projects.workKind, 'job')
+      : or(isNull(projects.workKind), eq(projects.workKind, 'project'));
+  return exists(
+    db
+      .select({ id: projects.id })
+      .from(projects)
+      .where(
+        and(
+          eq(projects.id, timeEntries.projectId),
+          eq(projects.organizationId, timeEntries.organizationId),
+          isNull(projects.archivedAt),
+          kindMatch,
+        ),
+      ),
+  );
+}
+
 export async function sumTimeLaborPeriodReconciliation(
   db: DbExecutor,
   organizationId: string,
   from?: BusinessDate | null,
   to?: BusinessDate | null,
   projectId?: string | null,
+  workKindFilter: WorkKindFilter = 'all',
 ): Promise<TimeLaborPeriodReconciliation> {
+  const workKindExists = timeEntryWorkKindExists(db, workKindFilter);
   const [row] = await db
     .select({
       pendingTimeCount: sql<number>`count(*) filter (
@@ -985,6 +1011,7 @@ export async function sumTimeLaborPeriodReconciliation(
         ...(from ? [gte(timeEntries.workDate, from)] : []),
         ...(to ? [lte(timeEntries.workDate, to)] : []),
         ...(projectId ? [eq(timeEntries.projectId, projectId)] : []),
+        ...(workKindExists ? [workKindExists] : []),
       ),
     );
 

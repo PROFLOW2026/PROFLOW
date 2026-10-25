@@ -47,6 +47,7 @@
     "correctionNet": "صافي بعد التصحيح",
     "attention": {
       "actionLabel": "ماذا تفعل",
+      "issuesTitle": "هناك أكثر من شيء للمعالجة في هذا المصروف",
       "project_allocation": {
         "title": "هذا المصروف يحتاج توزيعاً على مشروع",
         "explain": "يُحسب بالفعل في مصاريف الأعمال لكن لم يُقسّم على المشاريع، فربحية المشروع قد تكون ناقصة.",
@@ -351,7 +352,13 @@
   "filters": {
     "dateFrom": "تاريخ مصروف من",
     "dateTo": "تاريخ مصروف إلى",
-    "expenseDateHint": "التصفية تستخدم تاريخ المصروف — وليس تاريخ الدفع.",
+    "paymentDateFrom": "تاريخ الدفع من",
+    "paymentDateTo": "تاريخ الدفع إلى",
+    "dateBasis": "حسب أي تاريخ",
+    "dateBasisExpense": "تاريخ المصروف",
+    "dateBasisPayment": "تاريخ الدفع",
+    "expenseDateHint": "النطاق يصفّي حسب تاريخ المصروف، حين سُجّلت التكلفة.",
+    "paymentDateHint": "النطاق يصفّي حسب تاريخ الدفع، حين خرج النقد فعليًا.",
     "project": "المشروع",
     "family": "القسم",
     "category": "الفئة",
@@ -376,7 +383,8 @@
     "options": {
       "project_allocation": "يحتاج توزيع مشروع",
       "classification": "يحتاج تصنيف",
-      "approval": "يحتاج اعتماد"
+      "approval": "يحتاج اعتماد",
+      "any": "كل ما يحتاج معالجة"
     },
     "required": {
       "project_allocation": "يحتاج توزيع مشروع",
@@ -389,7 +397,8 @@
       "approval": "يحتاج اعتماد"
     },
     "summaryStrip": "{count, plural, one {مصروف واحد يحتاج إجراء} other {# مصروفات تحتاج إجراء}}",
-    "rowAction": "اتخذ إجراء",
+    "chooseCategory": "اختر فئة",
+    "rowAction": "اعرض وعالج",
     "clearFilter": "مسح تصفية «يحتاج إجراء»"
   },
   "list": {
@@ -407,6 +416,7 @@
     "reversalPrefix": "عكس",
     "adjustmentPrefix": "تصحيح",
     "count": "عرض {count} من {total}",
+    "resultCount": "{count, plural, one {تم العثور على مصروف واحد} other {تم العثور على # مصروفات}}",
     "pageStatus": "صفحة {page} من {pageCount}",
     "unallocatedBannerTitle": "مصروفات تحتاج توزيع مشروع",
     "actionRequired": "إجراء مطلوب",
@@ -450,6 +460,13 @@
     "paymentDateLabel": "تاريخ الدفع",
     "paymentDateHint": "تاريخ الدفع الفعلي. افتراضي اليوم؛ يمكنك اختيار تاريخاً سابقاً.",
     "voidConfirmation": "إلغاء تأكيد الدفع",
+    "voidHint": "يُسجَّل الإلغاء في السجل. تأكيدات الدفع السابقة تبقى ولا تُحذف.",
+    "correctTitle": "تصحيح بيانات الدفع",
+    "correctHint": "يُحدَّث التاريخ والمبلغ، وتبقى القيمة السابقة في سجل النشاط.",
+    "correctAmount": "المبلغ المدفوع",
+    "correctSubmit": "حفظ تصحيح الدفع",
+    "correcting": "جارٍ حفظ التصحيح…",
+    "corrected": "حُفظ تصحيح الدفع في السجل.",
     "confirmed": "تم تأكيد الدفع",
     "status": {
       "upcoming": "قادم",
@@ -545,7 +562,8 @@
     "inventoryStockPurchaseIncomplete": "مصروفات شراء مخزون تحتاج بنداً وكمية قبل الاعتماد.",
     "classificationRequired": "اختر نوع مصروف قبل الاعتراف بهذه التكلفة.",
     "internalPayrollRestricted": "لا يمكن تسجيل رواتب الموظفين الداخلية كمصروف عادي. استخدم قسم القوى العاملة.",
-    "approveFailed": "تعذّر اعتماد المصروف. تحقق من الحقول المطلوبة وحاول مرة أخرى."
+    "approveFailed": "تعذّر اعتماد المصروف. تحقق من الحقول المطلوبة وحاول مرة أخرى.",
+    "paymentCorrectionInvalid": "مبلغ الدفع المصحح يجب أن يكون أكبر من صفر ولا يتجاوز مبلغ المصروف."
   },
   "activityTimeline": {
     "title": "سجل النشاط",
@@ -553,6 +571,7 @@
       "expense": {
         "payment_confirmation_voided": "تم إلغاء تأكيد الدفع",
         "payment_confirmed": "تم تأكيد الدفع",
+        "payment_corrected": "تم تصحيح بيانات الدفع",
         "finalized": "تم اعتماد المصروف",
         "created": "تم إنشاء المصروف",
         "updated": "تم تحديث المصروف",

@@ -10,6 +10,7 @@
   },
   "actions": {
     "open": "Открыть",
+    "showAndHandle": "Показать и исправить",
     "preparePaymentReminder": "Подготовить напоминание об оплате",
     "confirmPaid": "Подтвердить оплату",
     "paymentDateLabel": "Дата платежа",
@@ -89,6 +90,7 @@
     "payroll_overdue": "Просроченная зарплата",
     "payroll_pending_review": "Зарплата ожидает проверки",
     "expense_needs_allocation": "Расход требует распределения по проекту",
+    "expense_needs_classification": "Расходу нужна категория",
     "monthly_workforce_report_ready": "Ежемесячный отчёт по персоналу",
     "task_overdue": "Просроченная задача",
     "task_due_today": "Задача на сегодня",
@@ -522,6 +524,7 @@
     "payrollReady": "Зарплата {month} готова к оплате",
     "allocationShared": "Общий расход — нужно отнести на проект",
     "allocationWhat": "Расход без проекта",
+    "classificationWhat": "Расход без категории затрат",
     "allocationDate": "Дата: {date}"
   }
 }

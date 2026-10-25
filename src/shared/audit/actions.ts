@@ -105,6 +105,7 @@ export const AUDIT_ACTIONS = {
   EXPENSE_VOIDED: 'expense.voided',
   EXPENSE_RESTORED: 'expense.restored',
   EXPENSE_PAYMENT_CONFIRMED: 'expense.payment_confirmed',
+  EXPENSE_PAYMENT_CORRECTED: 'expense.payment_corrected',
   EXPENSE_PAYMENT_CONFIRMATION_VOIDED: 'expense.payment_confirmation_voided',
   EXPENSE_INTEGRITY_REPAIR: 'expense.integrity_repair',
   EXPENSE_ROUTING_RESOLVED: 'expense.routing_resolved',

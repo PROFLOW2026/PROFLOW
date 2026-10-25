@@ -165,7 +165,8 @@
     "allocated": "مُخصَّص (معتمد)",
     "unallocated": "بانتظار الاعتماد",
     "total": "إجمالي مجمع العمالة",
-    "equation": "{allocated} + {unallocated} = {total}"
+    "equation": "{allocated} + {unallocated} = {total}",
+    "empty": "لا توجد ساعات في هذا العرض لهذه الفترة."
   },
   "empty": {
     "title": "ابدأ بمشروعك الأول",
@@ -425,7 +426,8 @@
     "label": "عرض",
     "all": "الكل",
     "project": "مشاريع",
-    "job": "أعمال"
+    "job": "أعمال",
+    "emptyRecords": "لا توجد سجلات في هذا العرض."
   },
   "reports": {
     "title": "التقارير والتصدير",

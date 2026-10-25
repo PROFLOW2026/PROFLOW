@@ -10,6 +10,7 @@
   },
   "actions": {
     "open": "Open",
+    "showAndHandle": "Show and handle",
     "preparePaymentReminder": "Prepare payment reminder",
     "confirmPaid": "Confirm paid",
     "paymentDateLabel": "Payment date",
@@ -89,6 +90,7 @@
     "payroll_overdue": "Payroll overdue",
     "payroll_pending_review": "Payroll pending review",
     "expense_needs_allocation": "Expense needs project allocation",
+    "expense_needs_classification": "Expense needs a category",
     "monthly_workforce_report_ready": "Monthly workforce report",
     "task_overdue": "Overdue task",
     "task_due_today": "Task due today",
@@ -522,6 +524,7 @@
     "payrollReady": "Payroll {month} ready to pay",
     "allocationShared": "Shared expense — needs a project",
     "allocationWhat": "Expense without a project",
+    "classificationWhat": "Expense without a cost category",
     "allocationDate": "Date: {date}"
   }
 }

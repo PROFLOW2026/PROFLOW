@@ -204,6 +204,8 @@ export interface ExpenseFormProps {
    */
   readonly taxRatePercent?: string | null;
   readonly readOnly?: boolean;
+  /** Paid expenses keep their payment record. Corrections happen on the payment panel. */
+  readonly recordedPayment?: boolean;
   readonly onProjectChange?: (projectId: string) => void;
   readonly error?: string | null;
   readonly fieldErrors?: Record<string, string>;
@@ -235,6 +237,7 @@ export function ExpenseForm({
   inventoryItems = [],
   taxRatePercent = null,
   readOnly = false,
+  recordedPayment = false,
   onProjectChange,
   error,
   fieldErrors = {},
@@ -980,7 +983,7 @@ export function ExpenseForm({
                 }}
                 disabled={readOnly}
               >
-                <SelectTrigger {...controlProps}>
+                <SelectTrigger {...controlProps} id="expense-category-control">
                   <SelectValue placeholder={t('placeholders.category')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -1074,7 +1077,13 @@ export function ExpenseForm({
           }}
         />
 
-        {paymentStructure === 'single' ? (
+        {recordedPayment ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">
+            <a href="#expense-payment" className="font-medium text-[var(--pf-text-primary)] underline">
+              {t('payment.correctTitle')}
+            </a>
+          </p>
+        ) : paymentStructure === 'single' ? (
           <div className="flex flex-col gap-2">
             <label className="flex cursor-pointer items-start gap-3">
               <Checkbox

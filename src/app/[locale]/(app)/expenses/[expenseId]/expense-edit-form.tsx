@@ -45,6 +45,9 @@ export interface ExpenseEditFormProps {
   readonly defaultToday?: string;
   readonly taxRatePercent?: string | null;
   readonly savedConfirmation?: boolean;
+  readonly recordedPayment?: boolean;
+  readonly returnTo?: string | null;
+  readonly detailPath?: string;
 }
 
 function toServerUpdatedAt(value: Date | string): string {
@@ -63,6 +66,9 @@ export function ExpenseEditForm({
   defaultToday = '',
   taxRatePercent = null,
   savedConfirmation = false,
+  recordedPayment = false,
+  returnTo = null,
+  detailPath,
 }: ExpenseEditFormProps) {
   const t = useTranslations('expenses');
   const locale = useLocale();
@@ -241,6 +247,8 @@ export function ExpenseEditForm({
       className="flex flex-col gap-6"
     >
       <input type="hidden" name="expenseId" value={expense.id} />
+      {detailPath ? <input type="hidden" name="detailPath" value={detailPath} /> : null}
+      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
       {isFinalizedEdit ? <input type="hidden" name="changeAcknowledged" value="false" /> : null}
 
       {savedConfirmation ? (
@@ -276,6 +284,7 @@ export function ExpenseEditForm({
         initialValues={formInitialValues}
         error={state.error ?? null}
         fieldErrors={state.fieldErrors}
+        recordedPayment={recordedPayment}
         onAmountChange={isFinalizedEdit ? setDraftAmount : undefined}
         onExpenseDateChange={isFinalizedEdit ? (date) => setDraftDate(date) : undefined}
       />
@@ -303,7 +312,7 @@ export function ExpenseEditForm({
           </Button>
         </div>
       ) : (
-        <Button type="submit" loading={pending}>
+        <Button type="submit" size="lg" loading={pending} className="w-full sm:w-auto">
           {pending ? tCommon('states.saving') : t('actions.saveChanges')}
         </Button>
       )}

@@ -18,6 +18,48 @@ export function filterRowsByWorkKind<T extends WorkKindScopedRow>(
   return rows.filter((row) => matchesWorkKindFilter(row.workKind, filter));
 }
 
+export function dashboardWorkKindHref(
+  pathname: '/' | '/reports',
+  workKind: WorkKindFilter,
+  month?: string | null,
+): string {
+  const params = new URLSearchParams();
+  if (month && /^\d{4}-\d{2}$/.test(month)) params.set('month', month);
+  if (workKind !== 'all') params.set('workKind', workKind);
+  const query = params.toString();
+  return query ? `${pathname}?${query}` : pathname;
+}
+
+/** Hours stay visible on a project/job facet even when the pool is empty. */
+export function laborPoolForWorkKindFilter(input: {
+  readonly filter: WorkKindFilter;
+  readonly allocatedHours: number;
+  readonly pendingHours: number;
+}): {
+  readonly allocatedHours: number;
+  readonly unallocatedHours: number;
+  readonly totalHours: number;
+} | null {
+  const totalHours = input.allocatedHours + input.pendingHours;
+  if (totalHours <= 0 && input.filter === 'all') return null;
+  return {
+    allocatedHours: input.allocatedHours,
+    unallocatedHours: input.pendingHours,
+    totalHours,
+  };
+}
+
+/** Paid-cash facts follow the same project ids the selected facet already rolled up. */
+export function scopeProjectPaidFactsToRollup<T extends { readonly projectId: string | null }>(
+  facts: readonly T[],
+  filter: WorkKindFilter,
+  rollupProjectIds: readonly string[],
+): readonly T[] {
+  if (filter === 'all') return facts;
+  const allowed = new Set(rollupProjectIds);
+  return facts.filter((fact) => fact.projectId != null && allowed.has(fact.projectId));
+}
+
 /**
  * Sum of actual costs across filtered rows - used to prove no double-count
  * when switching All ↔ Projects ↔ Jobs (Projects + Jobs = All).

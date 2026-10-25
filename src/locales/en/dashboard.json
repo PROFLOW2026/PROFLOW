@@ -165,7 +165,8 @@
     "allocated": "Allocated (approved)",
     "unallocated": "Pending approval",
     "total": "Total labor pool",
-    "equation": "{allocated} + {unallocated} = {total}"
+    "equation": "{allocated} + {unallocated} = {total}",
+    "empty": "No hours in this view for the period."
   },
   "empty": {
     "title": "Start with your first project",
@@ -425,7 +426,8 @@
     "label": "Show",
     "all": "All",
     "project": "Projects",
-    "job": "Jobs"
+    "job": "Jobs",
+    "emptyRecords": "No records in this view."
   },
   "reports": {
     "title": "Reports & exports",

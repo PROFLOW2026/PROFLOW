@@ -20,6 +20,7 @@ import { expenseHasProjectAttribution } from '@/modules/expenses/domain/targetin
 import { expenseFormValuesFromFormData } from '@/modules/expenses/ui/expense-form-preservation';
 import type { ExpenseFormValues } from '@/modules/expenses/ui/expense-form';
 import { confirmExpensePaid } from '@/modules/expenses/application/expense-payments';
+import { parseSafeInternalReturnTo } from '@/modules/expenses/domain/expense-return-navigation';
 import { businessDate } from '@/shared/dates';
 import { promoteVendorFromTransaction } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
@@ -322,10 +323,12 @@ export async function updateExpenseAction(
           'expenses.errors.approveFailed',
         );
       }
+      const alreadyPaid = Boolean(refreshed.paidAt || refreshed.paidGrossAmount);
       if (
         parsed.data.markPaidOnCreate === true &&
         parsed.data.paymentStructure !== 'installments' &&
-        refreshed.status === 'finalized'
+        refreshed.status === 'finalized' &&
+        !alreadyPaid
       ) {
         const paidAt = parsed.data.paidAt
           ? businessDate(parsed.data.paidAt)
@@ -334,9 +337,18 @@ export async function updateExpenseAction(
       }
       return refreshed;
     });
+    const detailPath =
+      formValue(formData, 'detailPath') === `/employee/expenses/${expense.id}`
+        ? `/employee/expenses/${expense.id}`
+        : `/expenses/${expense.id}`;
+    const returnTo = parseSafeInternalReturnTo(formValue(formData, 'returnTo'));
+    const savedParams = new URLSearchParams({ saved: '1' });
+    if (returnTo) savedParams.set('returnTo', returnTo);
     revalidatePath('/expenses');
-    revalidatePath(`/expenses/${expense.id}`);
-    redirect({ href: `/expenses/${expense.id}?saved=1`, locale });
+    revalidatePath('/employee/expenses');
+    revalidatePath('/today');
+    revalidatePath(detailPath);
+    redirect({ href: `${detailPath}?${savedParams.toString()}`, locale });
   } catch (error) {
     if (error instanceof ValidationError) {
       const taxIssue = error.issues.find(

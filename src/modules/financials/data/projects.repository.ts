@@ -1,4 +1,4 @@
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNull, or, sql } from 'drizzle-orm';
 import { projects } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { WorkKindFilter } from '../domain/work-pricing';
@@ -93,7 +93,14 @@ export async function loadActiveProjectClientNames(
 export async function countActiveProjects(
   db: DbExecutor,
   organizationId: string,
+  workKindFilter: WorkKindFilter = 'all',
 ): Promise<number> {
+  const kindMatch =
+    workKindFilter === 'job'
+      ? eq(projects.workKind, 'job')
+      : workKindFilter === 'project'
+        ? or(isNull(projects.workKind), eq(projects.workKind, 'project'))
+        : undefined;
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(projects)
@@ -102,6 +109,7 @@ export async function countActiveProjects(
         eq(projects.organizationId, organizationId),
         eq(projects.status, 'active'),
         isNull(projects.archivedAt),
+        kindMatch,
       ),
     );
 

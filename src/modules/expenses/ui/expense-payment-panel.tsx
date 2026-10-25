@@ -17,6 +17,7 @@ import { resolveExpensePaymentObligation } from '@/modules/expenses/domain/resol
 import type { ExpenseDetail } from '@/modules/expenses/domain/types';
 import {
   confirmExpensePaidAction,
+  correctExpensePaymentAction,
   voidExpensePaymentAction,
   type ExpensePaymentActionState,
 } from '@/app/[locale]/(app)/expenses/[expenseId]/payment-actions';
@@ -41,6 +42,10 @@ export function ExpensePaymentPanel({
   );
   const [voidState, voidAction, voidPending] = useActionState(
     voidExpensePaymentAction,
+    {} as ExpensePaymentActionState,
+  );
+  const [correctState, correctAction, correctPending] = useActionState(
+    correctExpensePaymentAction,
     {} as ExpensePaymentActionState,
   );
 
@@ -185,8 +190,46 @@ export function ExpensePaymentPanel({
         ) : null}
 
         {canManage && hasPaidProgress ? (
+          <form action={correctAction} className="flex flex-col gap-2 border-t border-[var(--pf-border-default)] pt-3">
+            <input type="hidden" name="expenseId" value={expense.id} />
+            <p className="font-medium">{t('correctTitle')}</p>
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('correctHint')}</p>
+            <Field label={t('paymentDateLabel')} required>
+              {(controlProps) => (
+                <Input
+                  {...controlProps}
+                  type="date"
+                  name="paidAt"
+                  defaultValue={expense.paidAt ?? defaultPaymentDate}
+                  dir="ltr"
+                />
+              )}
+            </Field>
+            {expense.installmentCount <= 1 ? (
+              <Field label={t('correctAmount')} required>
+                {(controlProps) => (
+                  <Input
+                    {...controlProps}
+                    name="paidGrossAmount"
+                    inputMode="decimal"
+                    defaultValue={obligation.totalPaid.amount}
+                    dir="ltr"
+                  />
+                )}
+              </Field>
+            ) : null}
+            <Button type="submit" size="sm" loading={correctPending} className="self-start">
+              {correctPending ? t('correcting') : t('correctSubmit')}
+            </Button>
+            {correctState.error ? <Alert tone="danger">{correctState.error}</Alert> : null}
+            {correctState.ok ? <Alert tone="success">{t('corrected')}</Alert> : null}
+          </form>
+        ) : null}
+
+        {canManage && hasPaidProgress ? (
           <form action={voidAction} className="flex flex-col gap-2">
             <input type="hidden" name="expenseId" value={expense.id} />
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('voidHint')}</p>
             <Button type="submit" size="sm" variant="secondary" loading={voidPending} className="self-start">
               {t('voidConfirmation')}
             </Button>

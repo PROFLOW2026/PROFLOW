@@ -41,7 +41,6 @@ import {
   type OrgListSurface,
 } from '@/modules/employee-app/application/org-list-permissions';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
-import { isMonthClosed, yearMonthFromBusinessDate } from '@/modules/month-close';
 import { upsertEntityFieldValueAction } from '@/app/[locale]/(app)/settings/custom-fields/actions';
 import { ExpenseCorrectionHistory } from '@/app/[locale]/(app)/expenses/[expenseId]/expense-correction-history';
 import { ExpenseDetailActions } from '@/app/[locale]/(app)/expenses/[expenseId]/expense-detail-actions';
@@ -52,7 +51,10 @@ import { ExpenseDetailAttentionPanel } from '@/modules/expenses/ui/expense-detai
 import { ExpenseRoutingStatusPanel } from '@/modules/expenses/ui/expense-routing-status-panel';
 import { ExpensePaymentPanel } from '@/modules/expenses/ui/expense-payment-panel';
 import { ExpenseActivityTimelineSection } from '@/modules/expenses/ui/expense-activity-timeline-section';
-import { resolveExpenseDetailAttention } from '@/modules/expenses/domain/expense-attention';
+import {
+  expenseNeedsProjectAllocationFromDetail,
+  listExpenseAttentionRequired,
+} from '@/modules/expenses/domain/expense-attention';
 import { expenseHasProjectAttribution } from '@/modules/expenses/domain/targeting';
 import { resolveExpenseBackNavigation } from '@/modules/expenses/domain/expense-return-navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
@@ -146,13 +148,6 @@ export async function ExpensesOrgDetailPage({
         canFinalizeExpense: orgListHasPermission(context, PERMISSIONS.EXPENSES_FINALIZE, surface),
         canCreateExpense: orgListHasPermission(context, PERMISSIONS.EXPENSES_CREATE, surface),
         canUpdateExpense: orgListHasPermission(context, PERMISSIONS.EXPENSES_UPDATE, surface),
-        monthOpen:
-          expense.status === 'finalized'
-            ? !(await isMonthClosed(
-                context,
-                yearMonthFromBusinessDate(expense.expenseDate),
-              ))
-            : true,
       };
     } catch {
       return null;
@@ -179,15 +174,10 @@ export async function ExpensesOrgDetailPage({
     canFinalizeExpense,
     canCreateExpense,
     canUpdateExpense,
-    monthOpen,
   } = data;
   const recurrence = decodeRecurrenceRule(expense.recurrenceRule);
   const canEditFinalized =
-    expense.status === 'finalized' &&
-    !expense.voidsExpenseId &&
-    !expense.adjustsExpenseId &&
-    monthOpen &&
-    canUpdateExpense;
+    expense.status === 'finalized' && !expense.voidsExpenseId && canUpdateExpense;
   const readOnly = expense.status !== 'draft' && !canEditFinalized;
   const canFinalize =
     expense.status === 'draft' &&
@@ -217,7 +207,29 @@ export async function ExpensesOrgDetailPage({
     correctionChain.entries.some(
       (entry) => entry.role === 'reversal' && entry.status === 'finalized',
     );
-  const detailAttention = resolveExpenseDetailAttention(expense, { hasActiveReversal });
+  const detailIssues = listExpenseAttentionRequired({
+    id: expense.id,
+    expenseDate: expense.expenseDate,
+    description: expense.description,
+    supplierName: expense.supplierName,
+    vendorId: expense.vendorId,
+    vendorName: null,
+    projectId: expense.projectId,
+    projectName: expense.projectName,
+    workPackageId: expense.workPackageId,
+    costFamily: expense.costFamily,
+    costCategoryId: expense.costCategoryId,
+    classificationStatus: expense.classificationStatus,
+    grossAmount: expense.grossAmount,
+    netAmount: expense.netAmount,
+    taxAmount: expense.taxAmount,
+    status: expense.status,
+    voidsExpenseId: expense.voidsExpenseId,
+    adjustsExpenseId: expense.adjustsExpenseId,
+    needsProjectAllocation: expenseNeedsProjectAllocationFromDetail(expense),
+    hasActiveReversal,
+  });
+  const detailAttention = detailIssues[0] ?? null;
 
   return (
     <MainAppPage>
@@ -246,10 +258,8 @@ export async function ExpensesOrgDetailPage({
         </Alert>
       ) : null}
 
-      {detailAttention ? (
-        <MainAppSection>
-          <ExpenseDetailAttentionPanel attention={detailAttention} />
-        </MainAppSection>
+      {detailIssues.length > 0 ? (
+        <ExpenseDetailAttentionPanel issues={detailIssues} />
       ) : null}
 
       {expense.status === 'finalized' && !expense.projectId ? (
@@ -386,6 +396,9 @@ export async function ExpensesOrgDetailPage({
             defaultToday={defaultPaymentDate}
             taxRatePercent={taxRatePercent}
             savedConfirmation={expenseEditSaved}
+            recordedPayment={Boolean(expense.paidAt || expense.paidGrossAmount)}
+            returnTo={backNavigation.safeReturnTo}
+            detailPath={`${routeBase}/${expense.id}`}
           />
         </MainAppSection>
       )}

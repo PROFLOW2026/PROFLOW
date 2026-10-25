@@ -108,6 +108,10 @@ import {
   shouldSurfaceCompanyProfit,
 } from '../domain/company-actual';
 import { parseWorkKindFilter } from '../domain/work-pricing';
+import {
+  laborPoolForWorkKindFilter,
+  scopeProjectPaidFactsToRollup,
+} from '../domain/work-kind-filter';
 import { buildOrgContractSummary, type OrgContractSummary } from '../domain/dashboard-contract-summary';
 import { getDashboardQuickAccessShortcuts } from '@/modules/tenancy/application/dashboard-quick-access';
 import type { DashboardQuickAccessDefinition } from '@/modules/tenancy/domain/dashboard-quick-access';
@@ -457,7 +461,7 @@ export async function getHomeDashboard(
     hasAnyProject(context.db, context.organizationId),
     hasAnyExpenseUsage(context.db, context.organizationId),
     hasAnyBillingUsage(context.db, context.organizationId),
-    countActiveProjects(context.db, context.organizationId),
+    countActiveProjects(context.db, context.organizationId, parsedWorkKindFilter),
     listRecentActiveProjects(
       context.db,
       context.organizationId,
@@ -482,6 +486,8 @@ export async function getHomeDashboard(
           context.organizationId,
           monthStart,
           monthEnd,
+          null,
+          parsedWorkKindFilter,
         )
       : Promise.resolve(null),
   ]);
@@ -495,12 +501,11 @@ export async function getHomeDashboard(
         }
       : null;
   const laborReconciliation: LaborReconciliation | null = timeLaborPeriod
-    ? (() => {
-        const allocatedHours = timeLaborPeriod.allocatedHours;
-        const unallocatedHours = timeLaborPeriod.pendingHours;
-        const totalHours = allocatedHours + unallocatedHours;
-        return totalHours > 0 ? { allocatedHours, unallocatedHours, totalHours } : null;
-      })()
+    ? laborPoolForWorkKindFilter({
+        filter: parsedWorkKindFilter,
+        allocatedHours: timeLaborPeriod.allocatedHours,
+        pendingHours: timeLaborPeriod.pendingHours,
+      })
     : null;
 
   const isBrandNew = !hasProjects && !hasExpenses && !hasBilling;
@@ -663,7 +668,14 @@ export async function getHomeDashboard(
       : Promise.resolve(null),
     canReadFinancials
       ? loadProjectPaidCashFacts(context.db, context.organizationId, currency).then((facts) =>
-          composeProjectPaidCash(facts, currency),
+          composeProjectPaidCash(
+            scopeProjectPaidFactsToRollup(
+              facts,
+              parsedWorkKindFilter,
+              rollup?.rows.map((row) => row.projectId) ?? [],
+            ),
+            currency,
+          ),
         )
       : Promise.resolve(null),
   ]);
@@ -1056,8 +1068,8 @@ export async function getHomeDashboard(
     persona,
     dashboardCards,
     showQuotes,
-    apOutstanding,
-    businessCashPosition,
+    apOutstanding: parsedWorkKindFilter === 'all' ? apOutstanding : null,
+    businessCashPosition: parsedWorkKindFilter === 'all' ? businessCashPosition : null,
     projectPaidCash,
     selectedMonth: effectiveSelectedMonth,
     workKindFilter: options.workKindFilter ?? null,
@@ -1065,12 +1077,12 @@ export async function getHomeDashboard(
     contractNetInvoiced,
     quickAccessShortcuts,
     kpiBreakdown,
-    cashForecast,
+    cashForecast: parsedWorkKindFilter === 'all' ? cashForecast : null,
     experienceFamily: experienceSlice.experienceFamily,
     dashboardLayoutMode: experienceSlice.dashboardLayoutMode,
     allCapabilitiesSupplements: experienceSlice.allCapabilitiesSupplements,
     experienceUiContext: experienceSlice.experienceUiContext,
-    monthlyLedger,
+    monthlyLedger: parsedWorkKindFilter === 'all' ? monthlyLedger : null,
   };
 }
 

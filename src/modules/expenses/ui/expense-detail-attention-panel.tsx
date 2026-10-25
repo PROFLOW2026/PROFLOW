@@ -1,14 +1,35 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { ExpenseAttentionRequired } from '../domain/expense-attention';
+import { Button } from '@/components/ui/button';
+import {
+  expenseAttentionFocusParam,
+  type ExpenseAttentionRequired,
+} from '../domain/expense-attention';
 
-export interface ExpenseDetailAttentionPanelProps {
-  readonly attention: ExpenseAttentionRequired;
+const FOCUS_TARGET_IDS = {
+  allocation: 'expense-allocation',
+  classification: 'expense-category',
+  approval: 'expense-finalize-actions',
+} as const;
+
+function focusIssue(issue: ExpenseAttentionRequired) {
+  const target = document.getElementById(FOCUS_TARGET_IDS[expenseAttentionFocusParam(issue)]);
+  if (!target) return;
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const control = target.querySelector<HTMLElement>(
+    '#expense-category-control, button, a, input, select, textarea',
+  );
+  control?.focus();
 }
 
-export function ExpenseDetailAttentionPanel({ attention }: ExpenseDetailAttentionPanelProps) {
+export interface ExpenseDetailAttentionPanelProps {
+  readonly issues: readonly ExpenseAttentionRequired[];
+}
+
+export function ExpenseDetailAttentionPanel({ issues }: ExpenseDetailAttentionPanelProps) {
   const t = useTranslations('expenses');
+  if (issues.length === 0) return null;
 
   return (
     <div
@@ -17,15 +38,21 @@ export function ExpenseDetailAttentionPanel({ attention }: ExpenseDetailAttentio
       className="scroll-mt-24 rounded-lg border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-4 py-3 text-sm text-[var(--pf-status-warning-fg)]"
     >
       <p className="font-semibold text-[var(--pf-status-warning-fg)]">
-        {t(`detail.attention.${attention}.title`)}
+        {issues.length > 1 ? t('detail.attention.issuesTitle') : t(`detail.attention.${issues[0]}.title`)}
       </p>
-      <p className="mt-2 text-[var(--pf-status-warning-fg)]/90">
-        {t(`detail.attention.${attention}.explain`)}
-      </p>
-      <p className="mt-2 text-[var(--pf-status-warning-fg)]">
-        <span className="font-medium">{t('detail.attention.actionLabel')}: </span>
-        {t(`detail.attention.${attention}.action`)}
-      </p>
+      <ul className="mt-3 flex flex-col gap-3">
+        {issues.map((issue) => (
+          <li key={issue} className="flex min-w-0 flex-col items-start gap-2">
+            {issues.length > 1 ? (
+              <p className="font-medium">{t(`detail.attention.${issue}.title`)}</p>
+            ) : null}
+            <p>{t(`detail.attention.${issue}.explain`)}</p>
+            <Button type="button" size="sm" onClick={() => focusIssue(issue)}>
+              {issue === 'classification' ? t('attention.chooseCategory') : t('attention.rowAction')}
+            </Button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

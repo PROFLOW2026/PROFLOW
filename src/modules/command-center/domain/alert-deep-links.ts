@@ -9,6 +9,10 @@ export function expenseAllocationAlertHref(expenseId: string): string {
   return buildExpenseDetailHref(expenseId, { focus: 'allocation' });
 }
 
+export function expenseClassificationAlertHref(expenseId: string): string {
+  return buildExpenseDetailHref(expenseId, { focus: 'classification' });
+}
+
 export function payrollAlertHref(input: {
   readonly employeeId: string;
   readonly yearMonth: string;

@@ -44,6 +44,15 @@ export async function HomeLaborReconciliation({
   laborReconciliation: NonNullable<HomeDashboardData['laborReconciliation']>;
 }) {
   const t = await getTranslations('dashboard');
+  if (laborReconciliation.totalHours <= 0) {
+    return (
+      <section className="min-w-0 max-w-full" data-pf-labor-reconciliation="">
+        <h2 className="mb-2 text-sm font-semibold">{t('laborReconciliation.title')}</h2>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('laborReconciliation.empty')}</p>
+      </section>
+    );
+  }
+
   const allocated = formatWorkHoursValue(laborReconciliation.allocatedHours);
   const unallocated = formatWorkHoursValue(laborReconciliation.unallocatedHours);
   const total = formatWorkHoursValue(laborReconciliation.totalHours);

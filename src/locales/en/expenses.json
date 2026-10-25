@@ -47,6 +47,7 @@
     "correctionNet": "Net after correction",
     "attention": {
       "actionLabel": "What to do",
+      "issuesTitle": "This expense has more than one thing to fix",
       "project_allocation": {
         "title": "This expense needs project allocation",
         "explain": "It is already counted in business costs but not split across projects, so project profitability may be incomplete.",
@@ -351,7 +352,13 @@
   "filters": {
     "dateFrom": "Expense date from",
     "dateTo": "Expense date to",
-    "expenseDateHint": "Filters use the expense date — not the payment date.",
+    "paymentDateFrom": "Payment date from",
+    "paymentDateTo": "Payment date to",
+    "dateBasis": "Which date",
+    "dateBasisExpense": "Expense date",
+    "dateBasisPayment": "Payment date",
+    "expenseDateHint": "The range filters by the expense date, when the cost was recorded.",
+    "paymentDateHint": "The range filters by the payment date, when the cash actually left.",
     "project": "Project",
     "family": "Section",
     "category": "Category",
@@ -376,7 +383,8 @@
     "options": {
       "project_allocation": "Needs project allocation",
       "classification": "Needs classification",
-      "approval": "Needs approval"
+      "approval": "Needs approval",
+      "any": "Everything that needs action"
     },
     "required": {
       "project_allocation": "Needs project allocation",
@@ -389,7 +397,8 @@
       "approval": "Needs approval"
     },
     "summaryStrip": "{count, plural, one {# expense needs action} other {# expenses need action}}",
-    "rowAction": "Take action",
+    "chooseCategory": "Choose category",
+    "rowAction": "Show and handle",
     "clearFilter": "Clear needs-action filter"
   },
   "list": {
@@ -407,6 +416,7 @@
     "reversalPrefix": "Reversal",
     "adjustmentPrefix": "Correction",
     "count": "Showing {count} of {total}",
+    "resultCount": "{count, plural, one {# expense found} other {# expenses found}}",
     "pageStatus": "Page {page} of {pageCount}",
     "unallocatedBannerTitle": "Expenses that need project allocation",
     "actionRequired": "Action needed",
@@ -450,6 +460,13 @@
     "paymentDateLabel": "Payment date",
     "paymentDateHint": "Actual payment date. Defaults to today; you can choose a retroactive date.",
     "voidConfirmation": "Void payment confirmation",
+    "voidHint": "The void is recorded in history. Earlier payment confirmations stay and are not deleted.",
+    "correctTitle": "Correct payment details",
+    "correctHint": "The date and amount are updated, and the previous values stay in the activity history.",
+    "correctAmount": "Amount paid",
+    "correctSubmit": "Save payment correction",
+    "correcting": "Saving correction…",
+    "corrected": "The payment correction was saved in history.",
     "confirmed": "Payment confirmed",
     "status": {
       "upcoming": "Upcoming",
@@ -545,7 +562,8 @@
     "inventoryStockPurchaseIncomplete": "Stock purchase expenses need an item and quantity before finalize.",
     "classificationRequired": "Choose an expense type before recognizing this cost.",
     "internalPayrollRestricted": "Internal employee payroll cannot be recorded as an ordinary expense. Use Workforce.",
-    "approveFailed": "The expense could not be approved. Check required fields and try again."
+    "approveFailed": "The expense could not be approved. Check required fields and try again.",
+    "paymentCorrectionInvalid": "The corrected payment must be greater than zero and not higher than the expense total."
   },
   "activityTimeline": {
     "title": "Activity history",
@@ -553,6 +571,7 @@
       "expense": {
         "payment_confirmation_voided": "Payment confirmation voided",
         "payment_confirmed": "Payment confirmed",
+        "payment_corrected": "Payment details corrected",
         "finalized": "Expense approved",
         "created": "Expense created",
         "updated": "Expense updated",

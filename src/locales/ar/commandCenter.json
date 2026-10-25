@@ -10,6 +10,7 @@
   },
   "actions": {
     "open": "فتح",
+    "showAndHandle": "اعرض وعالج",
     "preparePaymentReminder": "إعداد تذكير بالدفع",
     "confirmPaid": "تأكيد الدفع",
     "paymentDateLabel": "تاريخ الدفع",
@@ -89,6 +90,7 @@
     "payroll_overdue": "رواتب متأخرة",
     "payroll_pending_review": "رواتب بانتظار المراجعة",
     "expense_needs_allocation": "مصروف يحتاج تخصيص مشروع",
+    "expense_needs_classification": "مصروف يحتاج فئة",
     "monthly_workforce_report_ready": "تقرير موظفين شهري جاهز",
     "task_overdue": "مهمة متأخرة",
     "task_due_today": "مهمة مستحقة اليوم",
@@ -522,6 +524,7 @@
     "payrollReady": "راتب {month} جاهز للدفع",
     "allocationShared": "مصروف مشترك — يحتاج إسنادًا لمشروع",
     "allocationWhat": "مصروف بلا مشروع",
+    "classificationWhat": "مصروف بلا فئة تكلفة",
     "allocationDate": "التاريخ: {date}"
   }
 }

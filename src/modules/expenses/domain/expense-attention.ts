@@ -5,10 +5,11 @@ import {
 } from './expense-allocation-attention';
 import { buildExpenseDetailHref } from './expense-return-navigation';
 
-/** Existing actionable conditions — no new workflow states. */
-export type ExpenseAttentionFilter = 'project_allocation' | 'classification' | 'approval';
+/** Row-level actionable conditions — no new workflow states. */
+export type ExpenseAttentionRequired = 'project_allocation' | 'classification' | 'approval';
 
-export type ExpenseAttentionRequired = ExpenseAttentionFilter;
+/** List filter. `any` matches every actionable condition. */
+export type ExpenseAttentionFilter = ExpenseAttentionRequired | 'any';
 
 export type ExpenseAttentionEligibility = Pick<
   ExpenseSummary,
@@ -32,20 +33,26 @@ export function resolveExpenseAttentionFilterFromQuery(input: {
   return input.attention;
 }
 
+export function listExpenseAttentionRequired(
+  expense: ExpenseSummary,
+  options: { readonly assumeProjectAllocation?: boolean } = {},
+): readonly ExpenseAttentionRequired[] {
+  if (!isExpenseAttentionEligible(expense)) return [];
+  const issues: ExpenseAttentionRequired[] = [];
+  if (expense.status === 'draft') issues.push('approval');
+  if (expense.classificationStatus === 'needs_classification') issues.push('classification');
+  const needsAllocation =
+    expenseCostFamilyRequiresProjectAllocation(expense.costFamily) &&
+    (options.assumeProjectAllocation || expense.needsProjectAllocation === true);
+  if (needsAllocation) issues.push('project_allocation');
+  return issues;
+}
+
 export function resolveExpenseAttentionRequired(
   expense: ExpenseSummary,
   options: { readonly assumeProjectAllocation?: boolean } = {},
 ): ExpenseAttentionRequired | null {
-  if (!isExpenseAttentionEligible(expense)) return null;
-  if (expense.status === 'draft') return 'approval';
-  if (expense.classificationStatus === 'needs_classification') return 'classification';
-  const needsAllocation =
-    expenseCostFamilyRequiresProjectAllocation(expense.costFamily) &&
-    (options.assumeProjectAllocation || expense.needsProjectAllocation === true);
-  if (needsAllocation) {
-    return 'project_allocation';
-  }
-  return null;
+  return listExpenseAttentionRequired(expense, options)[0] ?? null;
 }
 
 export function countExpensesNeedingAttention(items: readonly ExpenseSummary[]): number {
@@ -56,7 +63,7 @@ export function countExpensesNeedingAttention(items: readonly ExpenseSummary[]):
 export function pickAttentionFilterFromItems(
   items: readonly ExpenseSummary[],
 ): ExpenseAttentionFilter | null {
-  const priorities: readonly ExpenseAttentionFilter[] = [
+  const priorities: readonly ExpenseAttentionRequired[] = [
     'project_allocation',
     'approval',
     'classification',

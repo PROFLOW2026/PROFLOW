@@ -36,7 +36,12 @@ import {
   collectFailedCommunications,
   collectWarrantyExpiring,
 } from './collect-next-gen';
-import { collectExpensesDueToday, collectExpensesNeedingAllocation, collectPayrollDueToday } from './collect-owner-payments';
+import {
+  collectExpensesDueToday,
+  collectExpensesNeedingAllocation,
+  collectExpensesNeedingClassification,
+  collectPayrollDueToday,
+} from './collect-owner-payments';
 import { collectMonthlyWorkforceReportReady } from './collect-monthly-workforce-report';
 import { collectUwmTaskSources } from './collect-tasks';
 import { collectStatutoryAttention, collectStorageAttention } from './collect-attention';
@@ -1248,6 +1253,7 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
     collectMissingAttendanceToday,
     collectExpensesDueToday,
     collectExpensesNeedingAllocation,
+    collectExpensesNeedingClassification,
     collectPayrollDueToday,
     collectMonthlyWorkforceReportReady,
     collectStorageAttention,

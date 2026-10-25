@@ -8,6 +8,7 @@ import type { OrgContext } from '@/shared/auth/context';
 
 const EXPENSE_TIMELINE_ACTIONS = [
   AUDIT_ACTIONS.EXPENSE_PAYMENT_CONFIRMATION_VOIDED,
+  AUDIT_ACTIONS.EXPENSE_PAYMENT_CORRECTED,
   AUDIT_ACTIONS.EXPENSE_PAYMENT_CONFIRMED,
   'expense.finalized',
   'expense.created',

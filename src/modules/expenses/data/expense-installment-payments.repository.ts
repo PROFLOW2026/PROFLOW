@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import { auditEvents, expenseInstallmentPayments } from '@drizzle/schema';
 import { businessDate, type BusinessDate } from '@/shared/dates';
 import {
@@ -318,6 +318,68 @@ export async function recordInstallmentPaymentPaidLedgerRow(
       idempotencyKey,
     })
     .onConflictDoNothing();
+}
+
+/**
+ * Correct the latest paid ledger fact in place and keep every prior row.
+ * The audit event stores the previous date and amount.
+ */
+export async function reviseLatestPaidLedgerForCorrection(
+  db: DbExecutor,
+  input: {
+    readonly organizationId: string;
+    readonly expenseId: string;
+    readonly paidAt: BusinessDate;
+    readonly grossPaid: MoneyValue;
+    readonly expenseNetAmount: string;
+    readonly expenseGrossAmount: string;
+    readonly replaceAmounts: boolean;
+  },
+): Promise<void> {
+  try {
+    const rows = await db
+      .select({
+        id: expenseInstallmentPayments.id,
+        installmentIndex: expenseInstallmentPayments.installmentIndex,
+      })
+      .from(expenseInstallmentPayments)
+      .where(
+        and(
+          eq(expenseInstallmentPayments.organizationId, input.organizationId),
+          eq(expenseInstallmentPayments.expenseId, input.expenseId),
+          eq(expenseInstallmentPayments.status, 'paid'),
+        ),
+      )
+      .orderBy(desc(expenseInstallmentPayments.createdAt));
+    const latest = rows[0];
+    if (!latest) return;
+    const replace =
+      input.replaceAmounts && rows.length === 1 && latest.installmentIndex == null;
+    const amounts = replace
+      ? netAndVatFromPaymentGross(input.grossPaid, input.expenseNetAmount, input.expenseGrossAmount)
+      : null;
+    await db
+      .update(expenseInstallmentPayments)
+      .set({
+        actualPaidAt: input.paidAt,
+        ...(amounts
+          ? {
+              grossPaid: input.grossPaid.amount,
+              netPaid: amounts.netPaid.amount,
+              vatPaid: amounts.vatPaid.amount,
+            }
+          : {}),
+      })
+      .where(
+        and(
+          eq(expenseInstallmentPayments.id, latest.id),
+          eq(expenseInstallmentPayments.organizationId, input.organizationId),
+        ),
+      );
+  } catch (error) {
+    if (isPostgresPermissionDenied(error)) return;
+    throw error;
+  }
 }
 
 /** Void every effective paid ledger row for an expense (full payment confirmation void). */

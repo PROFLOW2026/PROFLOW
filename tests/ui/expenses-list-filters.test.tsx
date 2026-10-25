@@ -199,7 +199,7 @@ describe('ExpensesList attention filter visibility', () => {
       name: '1 הוצאה דורשת טיפול',
     });
     fireEvent.click(summary);
-    expect(pushMock).toHaveBeenCalledWith('/expenses?unallocated=true');
+    expect(pushMock).toHaveBeenCalledWith('/expenses?attention=any');
   });
 
   it('does not show attention badges on voided or reversal rows in the general list', () => {

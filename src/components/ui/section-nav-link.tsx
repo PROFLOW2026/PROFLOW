@@ -2,9 +2,11 @@
 
 import { Loader2 } from 'lucide-react';
 import { useLinkStatus } from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { pressableClassName, textNavLinkClassName as textNavLinkClassNameBase } from '@/components/ui/pressable';
+import { sectionNavTargetSettled } from '@/components/ui/section-nav-target';
 import { Link, usePathname } from '@/shared/i18n/navigation';
 import { preserveScrollOnQueryNav } from '@/shared/i18n/soft-navigation';
 import { cn } from '@/shared/ui/cn';
@@ -56,12 +58,16 @@ export function SectionNavLink({
   prefetch = false,
 }: SectionNavLinkProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const search = searchParams.toString();
   const t = useTranslations('common');
   const [pendingHref, setPendingHref] = React.useState<string | null>(null);
-  const [seenPathname, setSeenPathname] = React.useState(pathname);
+  const [seenLocation, setSeenLocation] = React.useState(`${pathname}?${search}`);
+  const settled = sectionNavTargetSettled(pathname, search, href);
+  const location = `${pathname}?${search}`;
 
-  if (pathname !== seenPathname) {
-    setSeenPathname(pathname);
+  if (location !== seenLocation) {
+    setSeenLocation(location);
     if (pendingHref !== null) {
       setPendingHref(null);
     }
@@ -73,7 +79,7 @@ export function SectionNavLink({
     return () => window.clearTimeout(timer);
   }, [pendingHref]);
 
-  const busy = !active && pendingHref === href;
+  const busy = !settled && !active && pendingHref === href;
 
   return (
     <Link
@@ -98,7 +104,11 @@ export function SectionNavLink({
       }}
       className={cn(sectionNavLinkClassName, className)}
     >
-      <SectionNavLinkBody forcePending={busy} pendingLabel={t('a11y.navigating')}>
+      <SectionNavLinkBody
+        forcePending={busy}
+        settled={settled}
+        pendingLabel={t('a11y.navigating')}
+      >
         {children}
       </SectionNavLinkBody>
     </Link>
@@ -108,14 +118,16 @@ export function SectionNavLink({
 function SectionNavLinkBody({
   children,
   forcePending,
+  settled,
   pendingLabel,
 }: {
   children: React.ReactNode;
   forcePending: boolean;
+  settled: boolean;
   pendingLabel: string;
 }) {
   const { pending: linkPending } = useLinkStatus();
-  const pending = forcePending || linkPending;
+  const pending = !settled && (forcePending || linkPending);
 
   return (
     <>

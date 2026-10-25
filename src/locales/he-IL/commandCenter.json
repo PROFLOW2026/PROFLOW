@@ -10,6 +10,7 @@
   },
   "actions": {
     "open": "פתיחה",
+    "showAndHandle": "הצג וטפל",
     "preparePaymentReminder": "הכנת תזכורת תשלום",
     "confirmPaid": "אשר ששולם",
     "paymentDateLabel": "תאריך תשלום",
@@ -85,6 +86,7 @@
     "expense_overdue": "הוצאה באיחור",
     "expense_pending_review": "הוצאה ממתינה לאישור",
     "expense_needs_allocation": "הוצאה ללא שיוך פרויקט",
+    "expense_needs_classification": "הוצאה ללא קטגוריה",
     "payroll_due_today": "שכר לתשלום",
     "payroll_due_soon": "שכר לתשלום בקרוב",
     "payroll_overdue": "שכר באיחור",
@@ -522,6 +524,7 @@
     "payrollReady": "שכר {month} מוכן לתשלום",
     "allocationShared": "הוצאה משותפת, דורש שיוך לפרויקט",
     "allocationWhat": "הוצאה ללא שיוך פרויקט",
+    "classificationWhat": "הוצאה בלי קטגוריית עלות",
     "allocationDate": "תאריך: {date}"
   }
 }

@@ -5,6 +5,7 @@ import {
   apPoMatches,
   costCategories,
   expenseAllocations,
+  expenseInstallmentPayments,
   expenses,
   phases,
   projects,
@@ -45,6 +46,8 @@ function mapClassificationStatus(value: string | null | undefined): Classificati
 export interface ExpenseListFilters {
   readonly dateFrom?: BusinessDate;
   readonly dateTo?: BusinessDate;
+  /** `payment` filters cash-out date (`paid_at` or a paid installment). Default is expense date. */
+  readonly dateBasis?: 'expense' | 'payment';
   readonly projectId?: string;
   readonly costFamily?: CostFamily;
   readonly costCategoryId?: string;
@@ -596,8 +599,36 @@ export async function listExpenses(
 ): Promise<{ items: ExpenseSummary[]; total: number }> {
   const conditions = [eq(expenses.organizationId, organizationId), isNull(expenses.archivedAt)];
 
-  if (filters.dateFrom) conditions.push(gte(expenses.expenseDate, filters.dateFrom));
-  if (filters.dateTo) conditions.push(lte(expenses.expenseDate, filters.dateTo));
+  if (filters.dateBasis === 'payment' && (filters.dateFrom || filters.dateTo)) {
+    const paidBounds = [];
+    const ledgerBounds = [
+      eq(expenseInstallmentPayments.expenseId, expenses.id),
+      eq(expenseInstallmentPayments.organizationId, organizationId),
+      eq(expenseInstallmentPayments.status, 'paid'),
+    ];
+    if (filters.dateFrom) {
+      paidBounds.push(gte(expenses.paidAt, filters.dateFrom));
+      ledgerBounds.push(gte(expenseInstallmentPayments.actualPaidAt, filters.dateFrom));
+    }
+    if (filters.dateTo) {
+      paidBounds.push(lte(expenses.paidAt, filters.dateTo));
+      ledgerBounds.push(lte(expenseInstallmentPayments.actualPaidAt, filters.dateTo));
+    }
+    conditions.push(
+      or(
+        and(...paidBounds),
+        exists(
+          db
+            .select({ id: expenseInstallmentPayments.id })
+            .from(expenseInstallmentPayments)
+            .where(and(...ledgerBounds)),
+        ),
+      )!,
+    );
+  } else {
+    if (filters.dateFrom) conditions.push(gte(expenses.expenseDate, filters.dateFrom));
+    if (filters.dateTo) conditions.push(lte(expenses.expenseDate, filters.dateTo));
+  }
   if (filters.projectId) {
     // Include direct project expenses and overhead/shared expenses allocated to this project.
     conditions.push(
@@ -648,15 +679,31 @@ export async function listExpenses(
   }
 
   const projectAllocationAttention =
-    filters.unallocatedOnly || filters.attentionFilter === 'project_allocation';
+    filters.unallocatedOnly ||
+    filters.attentionFilter === 'project_allocation' ||
+    filters.attentionFilter === 'any';
 
   const projectAllocationCondition = projectAllocationAttention
     ? await needsProjectAllocationSelect(db, organizationId)
     : null;
 
-  if (projectAllocationCondition) {
+  if (
+    projectAllocationCondition &&
+    (filters.unallocatedOnly || filters.attentionFilter === 'project_allocation')
+  ) {
     // Canonical rule: only shared costs require project allocation (see expense-allocation-attention.ts).
     conditions.push(sql`${projectAllocationCondition}`);
+  }
+
+  if (filters.attentionFilter === 'any' && projectAllocationCondition) {
+    appendActionableExpenseAttentionConditions(db, organizationId, conditions);
+    conditions.push(
+      or(
+        eq(expenses.status, 'draft'),
+        eq(expenses.classificationStatus, 'needs_classification'),
+        sql`${projectAllocationCondition}`,
+      )!,
+    );
   }
 
   if (filters.attentionFilter === 'classification') {

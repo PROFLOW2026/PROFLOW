@@ -47,12 +47,14 @@ import {
 import { findExpenseById } from '../data/expenses.repository';
 import {
   recordInstallmentPaymentPaidLedgerRow,
+  reviseLatestPaidLedgerForCorrection,
   voidInstallmentPaymentLedgerForExpense,
   writeExpensePaymentAuditEvent,
 } from '../data/expense-installment-payments.repository';
 import { resolveExpensePaymentSchedule } from './resolve-expense-payment-schedule';
 
 const EXPENSE_PAYMENT_CONFIRMED = AUDIT_ACTIONS.EXPENSE_PAYMENT_CONFIRMED;
+const EXPENSE_PAYMENT_CORRECTED = AUDIT_ACTIONS.EXPENSE_PAYMENT_CORRECTED;
 const EXPENSE_PAYMENT_VOIDED = AUDIT_ACTIONS.EXPENSE_PAYMENT_CONFIRMATION_VOIDED;
 
 type ExpenseSyncRow = {
@@ -534,6 +536,107 @@ export async function confirmExpensePaid(
     expenseGrossAmount: row.grossAmount.amount,
     paymentReference: 'manual',
     auditEventId,
+  });
+}
+
+/**
+ * Correct a recorded payment without deleting the previous confirmation.
+ * The audit event keeps the prior date and amount; ledger rows stay.
+ */
+export async function correctExpensePaymentDetails(
+  context: OrgContext,
+  expenseId: string,
+  input: { readonly paidAt: BusinessDate; readonly paidGrossAmount?: string },
+): Promise<void> {
+  assertPermission(context, PERMISSIONS.EXPENSES_FINALIZE);
+
+  const row = await findExpenseById(context.db, context.organizationId, expenseId);
+  if (!row) throw new NotFoundError('Expense');
+  if (!row.paidAt && !row.paidGrossAmount) {
+    throw new DomainRuleError('Expense is not marked paid', 'expenses.errors.notPaid');
+  }
+
+  const currency = row.grossAmount.currency;
+  const priorGross =
+    fromNumericString(row.paidGrossAmount ?? '0', currency) ?? zeroMoney(currency);
+  const nextGross = input.paidGrossAmount
+    ? fromNumericString(input.paidGrossAmount, currency)
+    : priorGross;
+  if (!nextGross || !isPositiveMoney(nextGross)) {
+    throw new DomainRuleError(
+      'Corrected payment must stay a positive amount',
+      'expenses.errors.paymentCorrectionInvalid',
+    );
+  }
+  if (toDecimalValue(nextGross).gt(toDecimalValue(row.grossAmount))) {
+    throw new DomainRuleError(
+      'Payment exceeds the expense total',
+      'expenses.errors.paymentExceedsPayable',
+    );
+  }
+
+  const today = todayInTimeZone(context.organization.timezone);
+  const syncRow: ExpenseSyncRow = {
+    id: expenseId,
+    grossAmount: row.grossAmount.amount,
+    currency,
+    dueDate: row.dueDate,
+    expenseDate: row.expenseDate,
+    vendorId: row.vendorId,
+    paymentTermId: row.paymentTermId,
+    installmentCount: row.installmentCount,
+    installmentStartDate: row.installmentStartDate,
+    automaticInstallmentPayment: row.automaticInstallmentPayment ?? false,
+    installmentsPaidCount: row.installmentsPaidCount ?? 0,
+    paidGrossAmount: toNumericString(nextGross),
+    paymentStatus: row.paymentStatus,
+    paidAt: input.paidAt,
+    paymentMethod: row.paymentMethod,
+    paymentInstrumentId: row.paymentInstrumentId ?? null,
+    cashInstallmentSchedule: row.cashInstallmentSchedule,
+    sourceRecurringDraftId: row.sourceRecurringDraftId,
+  };
+  const schedule = row.installmentCount > 1 ? cashScheduleForSyncRow(syncRow) : [];
+  const nextCount =
+    schedule.length > 0
+      ? installmentsPaidCountFromPaidGross({ schedule, paidGross: nextGross })
+      : 1;
+  const nextRow: ExpenseSyncRow = {
+    ...syncRow,
+    installmentsPaidCount: nextCount,
+  };
+
+  await persistObligationState(context, expenseId, nextRow, today, {
+    paidAt: input.paidAt,
+    paidGrossAmount: toNumericString(nextGross),
+    installmentsPaidCount: nextCount,
+  });
+
+  await writeExpensePaymentAuditEvent(context.db, {
+    organizationId: context.organizationId,
+    actorUserId: context.userId,
+    action: EXPENSE_PAYMENT_CORRECTED,
+    entityId: expenseId,
+    before: {
+      correctionKind: 'payment_correction',
+      paidAt: row.paidAt,
+      paidGrossAmount: row.paidGrossAmount,
+    },
+    after: {
+      correctionKind: 'payment_correction',
+      paidAt: input.paidAt,
+      paidGrossAmount: toNumericString(nextGross),
+    },
+  });
+
+  await reviseLatestPaidLedgerForCorrection(context.db, {
+    organizationId: context.organizationId,
+    expenseId,
+    paidAt: input.paidAt,
+    grossPaid: roundMoney(nextGross),
+    expenseNetAmount: row.netAmount.amount,
+    expenseGrossAmount: row.grossAmount.amount,
+    replaceAmounts: row.installmentCount <= 1,
   });
 }
 

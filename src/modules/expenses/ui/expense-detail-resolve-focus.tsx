@@ -65,7 +65,13 @@ export function ExpenseDetailResolveFocus({ attention }: ExpenseDetailResolveFoc
     const target = document.getElementById(FOCUS_TARGET_IDS[focusKey]);
     if (!target) return;
 
-    const timer = window.setTimeout(() => highlightTarget(target), 120);
+    const timer = window.setTimeout(() => {
+      highlightTarget(target);
+      const control = target.querySelector<HTMLElement>(
+        '#expense-category-control, button, a, input, select, textarea',
+      );
+      control?.focus();
+    }, 120);
     return () => window.clearTimeout(timer);
   }, [attention, searchParams]);
 

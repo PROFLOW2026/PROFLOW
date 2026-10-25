@@ -71,7 +71,9 @@ function InboxItemCard({
         >
           {item.sourceType === 'monthly_workforce_report_ready'
             ? t('actions.generateMonthlyReport')
-            : t('actions.open')}
+            : item.sourceType.startsWith('expense_')
+              ? t('actions.showAndHandle')
+              : t('actions.open')}
         </Link>
       </div>
 

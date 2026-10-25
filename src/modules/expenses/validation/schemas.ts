@@ -213,6 +213,7 @@ export const expenseAttentionFilterSchema = z.enum([
   'project_allocation',
   'classification',
   'approval',
+  'any',
 ]);
 
 export const listExpensesSchema = z.object({
@@ -224,6 +225,8 @@ export const listExpensesSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
+  /** Expense date is the cost date. Payment date is when cash actually left. */
+  dateBasis: z.enum(['expense', 'payment']).optional(),
   projectId: z.string().uuid().optional(),
   costFamily: costFamilySchema.optional(),
   costCategoryId: z.string().uuid().optional(),

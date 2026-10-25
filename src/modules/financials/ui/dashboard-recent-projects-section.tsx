@@ -25,10 +25,17 @@ export async function DashboardRecentProjectsSection({
   projects: readonly ActiveProjectSummary[];
   workKindFilter?: string | null;
 }) {
-  if (projects.length === 0) return null;
-
   const t = await getTranslations('dashboard');
   const sectionTitle = recentSectionTitle(workKindFilter, t);
+  if (projects.length === 0) {
+    if (parseWorkKindFilter(workKindFilter) === 'all') return null;
+    return (
+      <section className="min-w-0 max-w-full">
+        <h2 className="mb-2 text-sm font-semibold">{sectionTitle}</h2>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('workKindFilter.emptyRecords')}</p>
+      </section>
+    );
+  }
 
   return (
     <section className="min-w-0 max-w-full">

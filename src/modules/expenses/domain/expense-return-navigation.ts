@@ -15,6 +15,7 @@ export type ExpenseBackLabelKey =
 
 const SAFE_RETURN_TO_PATHS = [
   /^\/expenses$/,
+  /^\/employee\/expenses$/,
   /^\/projects\/[^/?#]+$/,
   /^\/vendors\/[^/?#]+$/,
   /^\/dashboard$/,
@@ -117,7 +118,8 @@ export function resolveExpenseBackLabelKey(returnTo: string): ExpenseBackLabelKe
     if (
       attention === 'project_allocation' ||
       attention === 'classification' ||
-      attention === 'approval'
+      attention === 'approval' ||
+      attention === 'any'
     ) {
       return 'expensesAttention';
     }

@@ -167,8 +167,9 @@ async function AuthenticatedDashboardHome({
         <DashboardCapabilityTip />
       </Suspense>
       <PwaInstallCta variant="dashboard" />
-      <WorkKindFilterChrome active={workKindFilter} pathname="/" />
+      <WorkKindFilterChrome active={workKindFilter} pathname="/" month={month} />
       <Suspense
+        key={`${workKindFilter}:${month ?? ''}`}
         fallback={<DashboardSkeleton showTitle={false} label={tCommon('states.loading')} />}
       >
         <HomeDashboardSection workKindFilter={workKindFilter} selectedMonth={month} />

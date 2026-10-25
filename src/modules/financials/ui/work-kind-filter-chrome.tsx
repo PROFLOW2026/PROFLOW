@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { SectionNavLink } from '@/components/ui/section-nav-link';
+import { dashboardWorkKindHref } from '@/modules/financials/domain/work-kind-filter';
 import {
   parseWorkKindFilter,
   type WorkKindFilter,
@@ -18,6 +19,8 @@ export interface WorkKindFilterChromeProps {
   readonly pathname?: '/' | '/reports';
   /** Preserve `?section=` when switching work kind on reports. */
   readonly section?: string | null;
+  /** Preserve the dashboard month when switching work kind. */
+  readonly month?: string | null;
 }
 
 /**
@@ -28,6 +31,7 @@ export async function WorkKindFilterChrome({
   active,
   pathname = '/',
   section = null,
+  month = null,
 }: WorkKindFilterChromeProps) {
   const t = await getTranslations('dashboard.workKindFilter');
   const current = parseWorkKindFilter(active);
@@ -49,9 +53,7 @@ export async function WorkKindFilterChrome({
                   section: reportsSection,
                   workKind: value,
                 })
-              : value === 'all'
-                ? pathname
-                : `${pathname}?workKind=${value}`;
+              : dashboardWorkKindHref(pathname, value, month);
           return (
             <li key={value}>
               <SectionNavLink href={href} active={selected} className="min-h-8 px-2.5 py-1">

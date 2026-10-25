@@ -47,6 +47,7 @@
     "correctionNet": "נטו אחרי תיקון",
     "attention": {
       "actionLabel": "מה צריך לעשות",
+      "issuesTitle": "יש כמה דברים לטפל בהוצאה הזו",
       "project_allocation": {
         "title": "ההוצאה דורשת חלוקה לפרויקטים",
         "explain": "ההוצאה כבר נכללת בעלות העסק, אבל עדיין לא חולקה לפרויקטים. לכן יתרת חוזה הפרויקטים יכולה להיות חלקית.",
@@ -351,7 +352,13 @@
   "filters": {
     "dateFrom": "מתאריך הוצאה",
     "dateTo": "עד תאריך הוצאה",
-    "expenseDateHint": "הסינון הוא לפי תאריך ההוצאה; לא לפי תאריך תשלום.",
+    "paymentDateFrom": "מתאריך תשלום",
+    "paymentDateTo": "עד תאריך תשלום",
+    "dateBasis": "לפי איזה תאריך",
+    "dateBasisExpense": "תאריך ההוצאה",
+    "dateBasisPayment": "תאריך התשלום",
+    "expenseDateHint": "הטווח מסנן לפי תאריך ההוצאה, התאריך שבו העלות נרשמה.",
+    "paymentDateHint": "הטווח מסנן לפי תאריך התשלום, התאריך שבו הכסף יצא בפועל.",
     "project": "פרויקט",
     "family": "סעיף",
     "category": "קטגוריה",
@@ -376,7 +383,8 @@
     "options": {
       "project_allocation": "דורש חלוקה לפרויקטים",
       "classification": "דורש סיווג",
-      "approval": "דורש אישור"
+      "approval": "דורש אישור",
+      "any": "כל מה שדורש טיפול"
     },
     "required": {
       "project_allocation": "דורש חלוקה לפרויקטים",
@@ -389,7 +397,8 @@
       "approval": "דורש אישור"
     },
     "summaryStrip": "{count, plural, one {# הוצאה דורשת טיפול} two {# הוצאות דורשות טיפול} other {# הוצאות דורשות טיפול}}",
-    "rowAction": "לטיפול",
+    "chooseCategory": "בחר קטגוריה",
+    "rowAction": "הצג וטפל",
     "clearFilter": "הסרת סינון דורש טיפול"
   },
   "list": {
@@ -407,6 +416,7 @@
     "reversalPrefix": "קיזוז",
     "adjustmentPrefix": "תיקון",
     "count": "מוצגות {count} מתוך {total}",
+    "resultCount": "{count, plural, one {נמצאה הוצאה אחת} two {נמצאו שתי הוצאות} other {נמצאו # הוצאות}}",
     "pageStatus": "עמוד {page} מתוך {pageCount}",
     "unallocatedBannerTitle": "הוצאות שדורשות חלוקה לפרויקטים",
     "actionRequired": "מה נדרש",
@@ -450,6 +460,13 @@
     "paymentDateLabel": "תאריך תשלום",
     "paymentDateHint": "תאריך התשלום בפועל. ברירת מחדל היום; ניתן לבחור תאריך רטרואקטיבי.",
     "voidConfirmation": "בטל אישור תשלום",
+    "voidHint": "הביטול נרשם בהיסטוריה. אישורי התשלום הקודמים נשארים ולא נמחקים.",
+    "correctTitle": "תיקון נתוני תשלום",
+    "correctHint": "התאריך והסכום מתעדכנים, והערך הקודם נשמר בהיסטוריית הפעילות.",
+    "correctAmount": "סכום ששולם",
+    "correctSubmit": "שמור תיקון תשלום",
+    "correcting": "שומר תיקון…",
+    "corrected": "תיקון התשלום נשמר בהיסטוריה.",
     "confirmed": "התשלום אושר",
     "status": {
       "upcoming": "צפוי לתשלום",
@@ -545,7 +562,8 @@
     "inventoryStockPurchaseIncomplete": "רכישת מלאי דורשת פריט וכמות לפני רישום.",
     "classificationRequired": "יש לבחור סוג הוצאה לפני אישור העלות",
     "internalPayrollRestricted": "שכר עובדים פנימי אינו יכול להירשם כהוצאה רגילה. השתמשו בכוח האדם.",
-    "approveFailed": "לא ניתן לאשר את ההוצאה. בדקו שדות חובה ונסו שוב."
+    "approveFailed": "לא ניתן לאשר את ההוצאה. בדקו שדות חובה ונסו שוב.",
+    "paymentCorrectionInvalid": "סכום התשלום המתוקן חייב להיות גדול מאפס ולא גבוה מסכום ההוצאה."
   },
   "activityTimeline": {
     "title": "היסטוריית פעילות",
@@ -553,6 +571,7 @@
       "expense": {
         "payment_confirmation_voided": "אישור תשלום בוטל",
         "payment_confirmed": "תשלום אושר",
+        "payment_corrected": "נתוני תשלום תוקנו",
         "finalized": "הוצאה אושרה",
         "created": "הוצאה נוצרה",
         "updated": "הוצאה עודכנה",

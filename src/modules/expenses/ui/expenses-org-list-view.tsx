@@ -3,8 +3,6 @@
 import {
   AdaptiveListBody,
   AdaptiveListTableShell,
-  MainAppPage,
-  MainAppSection,
 } from '@/components/patterns/main-app';
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
@@ -47,7 +45,7 @@ import type {
 import {
   expenseAttentionFocusParam,
   expenseListShowsAttentionColumns,
-  pickAttentionFilterFromItems,
+  listExpenseAttentionRequired,
   resolveExpenseAttentionRequired,
 } from '@/modules/expenses/domain/expense-attention';
 import {
@@ -94,6 +92,7 @@ export interface ExpensesOrgListViewProps {
   readonly initialFilters: {
     dateFrom?: string;
     dateTo?: string;
+    dateBasis?: 'expense' | 'payment';
     projectId?: string;
     costFamily?: CostFamily;
     costCategoryId?: string;
@@ -166,6 +165,9 @@ export function ExpensesOrgListView({
 
   const [dateFrom, setDateFrom] = React.useState(initialFilters.dateFrom ?? '');
   const [dateTo, setDateTo] = React.useState(initialFilters.dateTo ?? '');
+  const [dateBasis, setDateBasis] = React.useState<'expense' | 'payment'>(
+    initialFilters.dateBasis ?? 'expense',
+  );
   const [projectId, setProjectId] = React.useState(initialFilters.projectId ?? EXPENSE_LIST_STATUS_ALL);
   const [costFamily, setCostFamily] = React.useState(initialFilters.costFamily ?? EXPENSE_LIST_STATUS_ALL);
   const [costCategoryId, setCostCategoryId] = React.useState(
@@ -178,6 +180,29 @@ export function ExpensesOrgListView({
   const [cashSource, setCashSource] = React.useState<string>(
     initialFilters.cashSource ?? EXPENSE_LIST_STATUS_ALL,
   );
+  const [isApplying, startApplyTransition] = React.useTransition();
+
+  React.useEffect(() => {
+    setDateFrom(initialFilters.dateFrom ?? '');
+    setDateTo(initialFilters.dateTo ?? '');
+    setDateBasis(initialFilters.dateBasis ?? 'expense');
+    setProjectId(initialFilters.projectId ?? EXPENSE_LIST_STATUS_ALL);
+    setCostFamily(initialFilters.costFamily ?? EXPENSE_LIST_STATUS_ALL);
+    setCostCategoryId(initialFilters.costCategoryId ?? EXPENSE_LIST_STATUS_ALL);
+    setStatusFilter(initialFilters.statusFilter ?? EXPENSE_LIST_STATUS_ALL);
+    setCash(initialFilters.cash ?? EXPENSE_LIST_STATUS_ALL);
+    setCashSource(initialFilters.cashSource ?? EXPENSE_LIST_STATUS_ALL);
+  }, [
+    initialFilters.dateFrom,
+    initialFilters.dateTo,
+    initialFilters.dateBasis,
+    initialFilters.projectId,
+    initialFilters.costFamily,
+    initialFilters.costCategoryId,
+    initialFilters.statusFilter,
+    initialFilters.cash,
+    initialFilters.cashSource,
+  ]);
 
   const activeAttention = isExpenseListAttentionStatusFilter(statusFilter)
     ? statusFilter
@@ -188,6 +213,7 @@ export function ExpensesOrgListView({
     const params = new URLSearchParams();
     if (dateFrom) params.set('dateFrom', dateFrom);
     if (dateTo) params.set('dateTo', dateTo);
+    if ((dateFrom || dateTo) && dateBasis === 'payment') params.set('dateBasis', 'payment');
     if (projectId !== EXPENSE_LIST_STATUS_ALL) params.set('projectId', projectId);
     if (costFamily !== EXPENSE_LIST_STATUS_ALL) params.set('costFamily', costFamily);
     if (costCategoryId !== EXPENSE_LIST_STATUS_ALL) params.set('costCategoryId', costCategoryId);
@@ -210,34 +236,41 @@ export function ExpensesOrgListView({
   }
 
   function applyFilters() {
-    router.push(listHref(1));
+    startApplyTransition(() => {
+      router.push(listHref(1));
+    });
   }
 
   function clearFilters() {
     setDateFrom('');
     setDateTo('');
+    setDateBasis('expense');
     setProjectId(EXPENSE_LIST_STATUS_ALL);
     setCostFamily(EXPENSE_LIST_STATUS_ALL);
     setCostCategoryId(EXPENSE_LIST_STATUS_ALL);
     setStatusFilter(EXPENSE_LIST_STATUS_ALL);
-    router.push(routeBase);
+    setCash(EXPENSE_LIST_STATUS_ALL);
+    setCashSource(EXPENSE_LIST_STATUS_ALL);
+    startApplyTransition(() => {
+      router.push(routeBase);
+    });
   }
 
   function goToPage(page: number) {
     router.push(listHref(page));
   }
 
-  function resolveRowAttention(expense: ExpenseSummary) {
-    return resolveExpenseAttentionRequired(expense, {
+  function resolveRowIssues(expense: ExpenseSummary) {
+    return listExpenseAttentionRequired(expense, {
       assumeProjectAllocation: activeAttention === 'project_allocation',
     });
   }
 
   function openAttentionFilterFromSummary() {
-    const filter = pickAttentionFilterFromItems(items);
-    if (!filter) return;
-    setStatusFilter(filter);
-    router.push(listHref(1, filter));
+    setStatusFilter('any');
+    startApplyTransition(() => {
+      router.push(listHref(1, 'any'));
+    });
   }
 
   function clearAttentionFilter() {
@@ -270,9 +303,11 @@ export function ExpensesOrgListView({
     );
   }
 
+  const filtersActive = hasActiveFilters(initialFilters);
+  const statusSelectValue = statusFilter === 'any' ? EXPENSE_LIST_STATUS_ALL : statusFilter;
+
   return (
-    <MainAppPage>
-      <MainAppSection>
+    <div className="flex min-w-0 flex-col gap-3">
         {scopeLimited && !scopeEmpty ? (
         <div
           role="status"
@@ -283,9 +318,10 @@ export function ExpensesOrgListView({
       ) : null}
 
       <AdaptiveListBody surface={surface}>
-      {/* Date range with presets — controlled by the parent's dateFrom/dateTo state */}
-      <div className="rounded-lg border border-[var(--pf-border-default)] p-3">
-        <p className="mb-2 text-xs text-[var(--pf-text-muted)]">{t('filters.expenseDateHint')}</p>
+      <div className="min-w-0">
+        <p className="mb-2 text-xs text-[var(--pf-text-muted)]">
+          {dateBasis === 'payment' ? t('filters.paymentDateHint') : t('filters.expenseDateHint')}
+        </p>
         <DateRangeSelector
           today={today}
           from={dateFrom}
@@ -295,25 +331,25 @@ export function ExpensesOrgListView({
           fromName="dateFrom"
           toName="dateTo"
           labels={{
-            from: t('filters.dateFrom'),
-            to: t('filters.dateTo'),
+            from: dateBasis === 'payment' ? t('filters.paymentDateFrom') : t('filters.dateFrom'),
+            to: dateBasis === 'payment' ? t('filters.paymentDateTo') : t('filters.dateTo'),
           }}
         />
       </div>
-      <div className="flex flex-wrap gap-2 sm:hidden">
-        <Button type="button" onClick={applyFilters}>
-          {tCommon('actions.filter')}
-        </Button>
-        <Button type="button" variant="ghost" onClick={clearFilters}>
-          {tCommon('actions.clearFilters')}
-        </Button>
-      </div>
-
-      <details className="group rounded-lg border border-[var(--pf-border-default)] p-3 sm:rounded-none sm:border-0 sm:p-0">
-        <summary className="cursor-pointer text-sm font-medium text-[var(--pf-text-primary)] sm:hidden">
-          {tCommon('actions.showMore')}
-        </summary>
-        <div className="mt-3 grid min-w-0 gap-3 group-open:grid sm:!mt-0 sm:!grid sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <Field label={t('filters.dateBasis')} className="min-w-0">
+          {(control) => (
+            <Select value={dateBasis} onValueChange={(value) => setDateBasis(value as 'expense' | 'payment')}>
+              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="expense">{t('filters.dateBasisExpense')}</SelectItem>
+                <SelectItem value="payment">{t('filters.dateBasisPayment')}</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
 
         <Field label={t('filters.project')} className="min-w-0">
           {(control) => (
@@ -379,7 +415,7 @@ export function ExpensesOrgListView({
         <Field label={t('filters.status')} className="min-w-0" id="expenses-status-filter">
           {(control) => (
             <Select
-              value={statusFilter}
+              value={statusSelectValue}
               onValueChange={(value) => setStatusFilter(value as ExpenseListStatusFilter)}
             >
               <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
@@ -427,16 +463,15 @@ export function ExpensesOrgListView({
           )}
         </Field>
 
-        <div className="hidden flex-wrap gap-2 sm:col-span-2 sm:flex lg:col-span-3">
-          <Button type="button" onClick={applyFilters}>
-            {tCommon('actions.filter')}
+        <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-3">
+          <Button type="button" onClick={applyFilters} loading={isApplying}>
+            {isApplying ? tCommon('states.loading') : tCommon('actions.filter')}
           </Button>
-          <Button type="button" variant="ghost" onClick={clearFilters}>
+          <Button type="button" variant="ghost" onClick={clearFilters} loading={isApplying}>
             {tCommon('actions.clearFilters')}
           </Button>
         </div>
-        </div>
-      </details>
+      </div>
 
       {activeAttention ? (
         <div
@@ -468,6 +503,15 @@ export function ExpensesOrgListView({
         </button>
       ) : null}
 
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('list.resultCount', { count: total })}</p>
+        {filtersActive ? (
+          <Button type="button" variant="ghost" size="sm" onClick={clearFilters} loading={isApplying}>
+            {tCommon('actions.clearFilters')}
+          </Button>
+        ) : null}
+      </div>
+
       {items.length === 0 ? (
         <p className="text-sm text-[var(--pf-text-muted)]">{tCommon('states.noResults')}</p>
       ) : (
@@ -497,13 +541,19 @@ export function ExpensesOrgListView({
                   </TableHeader>
                   <TableBody>
                     {items.map((expense) => {
-                      const rowAttention = resolveRowAttention(expense);
+                      const rowIssues = resolveRowIssues(expense);
+                      const rowAttention = rowIssues[0] ?? null;
+                      const needsCategory = rowIssues.includes('classification');
                       const actionHref = buildRouteExpenseAttentionActionHref(
                         routeBase,
                         expense.id,
                         rowAttention,
                         { returnTo: listReturnTo },
                       );
+                      const categoryHref = buildRouteExpenseDetailHref(routeBase, expense.id, {
+                        focus: 'classification',
+                        returnTo: listReturnTo,
+                      });
                       const rowHref = buildRouteExpenseDetailHref(routeBase, expense.id, {
                         returnTo: listReturnTo,
                       });
@@ -540,28 +590,50 @@ export function ExpensesOrgListView({
                               shape={statusShape(expense.status)}
                               label={tStatus(`expense.${expense.status}`)}
                             />
-                            {rowAttention && !showAttentionColumns ? (
-                              <ExpenseAttentionIndicator attention={rowAttention} compact />
+                            {rowIssues.length > 0 && !showAttentionColumns ? (
+                              rowIssues.map((issue) => (
+                                <ExpenseAttentionIndicator key={issue} attention={issue} compact />
+                              ))
+                            ) : null}
+                            {needsCategory && !showAttentionColumns ? (
+                              <Button asChild variant="secondary" size="sm">
+                                <Link href={categoryHref}>{t('attention.chooseCategory')}</Link>
+                              </Button>
                             ) : null}
                           </div>
                         </TableCell>
                         {showAttentionColumns ? (
                           <>
                             <TableCell className="text-start">
-                              {rowAttention ? (
-                                <span className="text-sm font-medium text-[var(--pf-status-warning-fg)]">
-                                  {t(`attention.required.${rowAttention}`)}
-                                </span>
+                              {rowIssues.length > 0 ? (
+                                <ul className="flex flex-col gap-1">
+                                  {rowIssues.map((issue) => (
+                                    <li key={issue} className="text-sm font-medium text-[var(--pf-status-warning-fg)]">
+                                      {t(`attention.required.${issue}`)}
+                                    </li>
+                                  ))}
+                                </ul>
                               ) : (
                                 <span className="text-[var(--pf-text-muted)]">—</span>
                               )}
                             </TableCell>
                             <TableCell>
-                              {rowAttention ? (
-                                <Button asChild variant="secondary" size="sm">
-                                  <Link href={actionHref}>{t('attention.rowAction')}</Link>
-                                </Button>
-                              ) : null}
+                              <div className="flex flex-col items-start gap-2">
+                                {rowAttention ? (
+                                  <Button asChild variant="secondary" size="sm">
+                                    <Link href={actionHref}>
+                                      {rowAttention === 'classification'
+                                        ? t('attention.chooseCategory')
+                                        : t('attention.rowAction')}
+                                    </Link>
+                                  </Button>
+                                ) : null}
+                                {needsCategory && rowAttention !== 'classification' ? (
+                                  <Button asChild variant="secondary" size="sm">
+                                    <Link href={categoryHref}>{t('attention.chooseCategory')}</Link>
+                                  </Button>
+                                ) : null}
+                              </div>
                             </TableCell>
                           </>
                         ) : null}
@@ -573,13 +645,19 @@ export function ExpensesOrgListView({
               </AdaptiveListTableShell>
             }
             renderMobileCard={(expense) => {
-              const rowAttention = resolveRowAttention(expense);
+              const rowIssues = resolveRowIssues(expense);
+              const rowAttention = rowIssues[0] ?? null;
+              const needsCategory = rowIssues.includes('classification');
               const actionHref = buildRouteExpenseAttentionActionHref(
                 routeBase,
                 expense.id,
                 rowAttention,
                 { returnTo: listReturnTo },
               );
+              const categoryHref = buildRouteExpenseDetailHref(routeBase, expense.id, {
+                focus: 'classification',
+                returnTo: listReturnTo,
+              });
               const rowHref = buildRouteExpenseDetailHref(routeBase, expense.id, {
                 returnTo: listReturnTo,
               });
@@ -599,9 +677,11 @@ export function ExpensesOrgListView({
                       shape={statusShape(expense.status)}
                       label={tStatus(`expense.${expense.status}`)}
                     />
-                    {rowAttention && !showAttentionColumns ? (
-                      <ExpenseAttentionIndicator attention={rowAttention} compact />
-                    ) : null}
+                    {rowIssues.length > 0 && !showAttentionColumns
+                      ? rowIssues.map((issue) => (
+                          <ExpenseAttentionIndicator key={issue} attention={issue} compact />
+                        ))
+                      : null}
                   </div>
                 </div>
                 <p className="mt-1 truncate text-start text-sm text-[var(--pf-text-secondary)]">
@@ -617,16 +697,33 @@ export function ExpensesOrgListView({
                   </span>
                   <MoneyText value={expense.grossAmount} />
                 </div>
-                {rowAttention && showAttentionColumns ? (
-                  <div className="mt-3 flex flex-col gap-2 border-t border-[var(--pf-border-default)] pt-3">
-                    <p className="text-sm text-start">
-                      <span className="text-[var(--pf-text-muted)]">{t('list.actionRequired')}: </span>
-                      <span className="font-medium text-[var(--pf-status-warning-fg)]">
-                        {t(`attention.required.${rowAttention}`)}
-                      </span>
-                    </p>
-                    <Button asChild variant="secondary" size="sm" className="self-start">
-                      <Link href={actionHref}>{t('attention.rowAction')}</Link>
+                {showAttentionColumns && rowIssues.length > 0 ? (
+                  <div className="mt-3 flex flex-col items-start gap-2 border-t border-[var(--pf-border-default)] pt-3">
+                    <ul className="flex flex-col gap-1 text-sm">
+                      {rowIssues.map((issue) => (
+                        <li key={issue}>
+                          <span className="text-[var(--pf-text-muted)]">{t('list.actionRequired')}: </span>
+                          <span className="font-medium text-[var(--pf-status-warning-fg)]">
+                            {t(`attention.required.${issue}`)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    {rowAttention && rowAttention !== 'classification' ? (
+                      <Button asChild variant="secondary" size="sm">
+                        <Link href={actionHref}>{t('attention.rowAction')}</Link>
+                      </Button>
+                    ) : null}
+                    {needsCategory ? (
+                      <Button asChild size="sm">
+                        <Link href={categoryHref}>{t('attention.chooseCategory')}</Link>
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : needsCategory ? (
+                  <div className="mt-3">
+                    <Button asChild size="sm">
+                      <Link href={categoryHref}>{t('attention.chooseCategory')}</Link>
                     </Button>
                   </div>
                 ) : null}
@@ -645,15 +742,10 @@ export function ExpensesOrgListView({
               statusLabel={t('list.pageStatus', { page: currentPage, pageCount })}
             />
           ) : null}
-
-          <p className="text-xs text-[var(--pf-text-muted)]">
-            {t('list.count', { count: items.length, total })}
-          </p>
         </>
       )}
       </AdaptiveListBody>
-      </MainAppSection>
-    </MainAppPage>
+    </div>
   );
 }
 

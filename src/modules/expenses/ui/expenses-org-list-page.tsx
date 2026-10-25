@@ -4,16 +4,17 @@ import { Plus, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
-import type { BusinessDate } from '@/shared/dates';
 import { todayInTimeZone } from '@/shared/dates';
 import {
   listCostCategoriesForOrg,
   listExpensesForOrg,
-  listExpensesSchema,
   countExpensesNeedingAttentionForOrg,
   listProjectsForOrg,
-  type ListExpensesInput,
 } from '@/modules/expenses';
+import {
+  assembleExpenseListFilters,
+  parseExpenseListSearchParams,
+} from '@/modules/expenses/domain/expense-list-query';
 import {
   EXPENSE_LIST_PAGE_SIZE,
   expenseListOffset,
@@ -22,11 +23,7 @@ import {
 } from '@/modules/expenses/domain/expense-list-pagination';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
-import {
-  isExpenseListAttentionStatusFilter,
-  resolveExpenseListStatusFilterFromQuery,
-  EXPENSE_LIST_STATUS_ALL,
-} from '@/modules/expenses/domain/expense-status-filter';
+import { EXPENSE_LIST_STATUS_ALL } from '@/modules/expenses/domain/expense-status-filter';
 import { OcrEntryLink } from '@/modules/ocr/ui/ocr-entry-link';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -69,42 +66,14 @@ export async function ExpensesOrgListPage({
 
   const projectParam = typeof rawParams.projectId === 'string' ? rawParams.projectId : undefined;
   const legacyUnallocated = projectParam === 'unallocated';
-  const parsedFilters = listExpensesSchema.safeParse({
-    dateFrom: rawParams.dateFrom,
-    dateTo: rawParams.dateTo,
+  const parsedQuery = parseExpenseListSearchParams({
+    ...rawParams,
     projectId: legacyUnallocated ? undefined : rawParams.projectId,
-    costFamily: rawParams.costFamily,
-    costCategoryId: rawParams.costCategoryId,
-    status: rawParams.status,
-    attention: rawParams.attention,
     unallocated: legacyUnallocated ? 'true' : rawParams.unallocated,
-    cash: rawParams.cash,
-    cashSource: rawParams.cashSource,
-    page: rawParams.page,
   });
-
-  const filters: ListExpensesInput = parsedFilters.success
-    ? parsedFilters.data
-    : { unallocated: false };
-  const { unallocated, attention: attentionParam, status, page: requestedPageRaw, ...restFilters } =
-    filters;
-  const requestedPage = requestedPageRaw ?? 1;
-  const statusFilter = resolveExpenseListStatusFilterFromQuery({
-    status,
-    attention: attentionParam,
-    unallocated,
-  });
-  const activeAttention = isExpenseListAttentionStatusFilter(statusFilter)
-    ? statusFilter
-    : undefined;
-  const showUnallocatedFilter = statusFilter === 'project_allocation';
-  const baseListFilters = {
-    ...restFilters,
-    dateFrom: restFilters.dateFrom as BusinessDate | undefined,
-    dateTo: restFilters.dateTo as BusinessDate | undefined,
-    unallocatedOnly: showUnallocatedFilter,
-    attentionFilter: activeAttention,
-  };
+  const requestedPage = parsedQuery.page;
+  const statusFilter = parsedQuery.statusFilter;
+  const baseListFilters = assembleExpenseListFilters(parsedQuery);
 
   const isOwnerSurface = surface === 'owner';
 
@@ -209,15 +178,6 @@ export async function ExpensesOrgListPage({
       )}
 
       <MainAppSection>
-      {showUnallocatedFilter ? (
-        <div
-          role="status"
-          className="rounded-lg border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-4 py-3 text-sm text-[var(--pf-status-warning-fg)]"
-        >
-          {t('list.unallocatedBannerTitle')}
-        </div>
-      ) : null}
-
       <ExpensesOrgListView
         routeBase={routeBase}
         surface={surface}
@@ -234,8 +194,15 @@ export async function ExpensesOrgListPage({
         scopeLimited={scopeMeta.scopeLimited}
         scopeEmpty={scopeMeta.scopeEmpty}
         initialFilters={{
-          ...restFilters,
+          dateFrom: parsedQuery.dateFrom,
+          dateTo: parsedQuery.dateTo,
+          dateBasis: parsedQuery.dateBasis,
+          projectId: parsedQuery.projectId,
+          costFamily: parsedQuery.costFamily,
+          costCategoryId: parsedQuery.costCategoryId,
           statusFilter,
+          cash: parsedQuery.cash,
+          cashSource: parsedQuery.cashSource,
         }}
       />
       </MainAppSection>

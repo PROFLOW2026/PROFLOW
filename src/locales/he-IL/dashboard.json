@@ -165,7 +165,8 @@
     "allocated": "הוקצה (מאושר)",
     "unallocated": "ממתין לאישור",
     "total": "סה״כ מאגר עבודה",
-    "equation": "{allocated} + {unallocated} = {total}"
+    "equation": "{allocated} + {unallocated} = {total}",
+    "empty": "אין שעות בתצוגה הזו לתקופה."
   },
   "empty": {
     "title": "מתחילים עם הפרויקט הראשון",
@@ -425,7 +426,8 @@
     "label": "הצג",
     "all": "הכל",
     "project": "פרויקטים",
-    "job": "עבודות"
+    "job": "עבודות",
+    "emptyRecords": "אין רשומות בתצוגה הזו."
   },
   "reports": {
     "title": "דוחות וייצוא",

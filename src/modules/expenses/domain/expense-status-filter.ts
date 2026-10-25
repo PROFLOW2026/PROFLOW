@@ -41,7 +41,7 @@ export function expenseListStatusFilterToSearchParams(
     params.set('unallocated', 'true');
     return params;
   }
-  if (value === 'classification' || value === 'approval') {
+  if (value === 'classification' || value === 'approval' || value === 'any') {
     params.set('attention', value);
     return params;
   }
@@ -53,7 +53,10 @@ export function isExpenseListAttentionStatusFilter(
   value: ExpenseListStatusFilter,
 ): value is ExpenseAttentionFilter {
   return (
-    value === 'project_allocation' || value === 'classification' || value === 'approval'
+    value === 'project_allocation' ||
+    value === 'classification' ||
+    value === 'approval' ||
+    value === 'any'
   );
 }
 
