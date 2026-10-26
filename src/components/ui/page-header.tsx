@@ -28,18 +28,18 @@ export function PageHeader({
       <div className="flex min-w-0 max-w-full flex-wrap items-start justify-between gap-3">
         {startAccessory ? (
           <div
-            dir="ltr"
-            className="flex min-w-0 w-full max-w-full items-center justify-between gap-2 sm:gap-3"
+            dir="rtl"
+            className="flex min-w-0 w-full max-w-full flex-1 basis-full items-center gap-2 sm:gap-3"
           >
-            <div className="min-w-0 shrink-0 max-w-[min(46%,11rem)] sm:max-w-[min(50%,14rem)]">
-              {startAccessory}
-            </div>
             <h1
               dir="auto"
-              className="min-w-0 flex-1 truncate text-end text-xl font-semibold sm:text-2xl"
+              className="min-w-0 flex-1 truncate text-start text-xl font-semibold sm:text-2xl"
             >
               {title}
             </h1>
+            <div dir="ltr" className="shrink-0">
+              {startAccessory}
+            </div>
           </div>
         ) : (
           <div className="min-w-0 flex-1">
