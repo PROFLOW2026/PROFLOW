@@ -11,8 +11,9 @@ describe('pwa theme colors', () => {
     expect(pwaColorsForResolved('dark').themeColor).toBe('#252d3d');
   });
 
-  it('manifest uses light splash for system preference', () => {
-    expect(pwaManifestColors('system').backgroundColor).toBe('#f4f6f8');
+  it('manifest uses brand teal splash for install (independent of page chrome)', () => {
+    expect(pwaManifestColors('system').backgroundColor).toBe('#0f766e');
+    expect(pwaManifestColors('dark').backgroundColor).toBe('#0f766e');
   });
 
   it('follows explicit preference for runtime chrome', () => {

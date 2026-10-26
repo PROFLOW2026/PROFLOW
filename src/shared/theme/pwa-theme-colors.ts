@@ -10,6 +10,8 @@ export const PWA_THEME_COLOR_LIGHT = '#0f766e';
 export const PWA_THEME_COLOR_DARK = '#252d3d';
 export const PWA_BACKGROUND_LIGHT = '#f4f6f8';
 export const PWA_BACKGROUND_DARK = '#171c28';
+/** Installed-app splash — opaque brand teal (matches PWA install icons). */
+export const PWA_SPLASH_BACKGROUND = '#0f766e';
 
 export type PwaThemeColors = {
   readonly themeColor: string;
@@ -24,9 +26,13 @@ export function pwaColorsForResolved(resolved: ResolvedTheme): PwaThemeColors {
 
 /** Manifest body colors from stored preference (system → light install splash). */
 export function pwaManifestColors(preference: ThemePreference): PwaThemeColors {
-  if (preference === 'dark') return pwaColorsForResolved('dark');
-  if (preference === 'light') return pwaColorsForResolved('light');
-  return pwaColorsForResolved('light');
+  const chrome =
+    preference === 'dark'
+      ? pwaColorsForResolved('dark')
+      : preference === 'light'
+        ? pwaColorsForResolved('light')
+        : pwaColorsForResolved('light');
+  return { themeColor: chrome.themeColor, backgroundColor: PWA_SPLASH_BACKGROUND };
 }
 
 export function pwaColorsForPreference(

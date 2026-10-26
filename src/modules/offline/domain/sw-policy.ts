@@ -3,7 +3,7 @@
  * Kept free of browser globals so unit tests can lock the cache policy.
  */
 
-export const SHELL_CACHE_NAME = 'projectflow-shell-v7';
+export const SHELL_CACHE_NAME = 'projectflow-shell-v8';
 
 /** Installed-app cold start: document fetch must overlap worker boot. */
 export const SHELL_NAVIGATION_PRELOAD = true;
@@ -12,6 +12,7 @@ export const SHELL_NAVIGATION_PRELOAD = true;
 export const SHELL_PRECACHE_URLS = [
   '/icons/icon-192.png',
   '/icons/icon-512.png',
+  '/icons/icon-512-maskable.png',
   '/offline.html',
 ] as const;
 
