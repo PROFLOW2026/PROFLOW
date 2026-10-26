@@ -46,7 +46,7 @@ import {
   expenseAttentionFocusParam,
   expenseListShowsAttentionColumns,
   listExpenseAttentionRequired,
-  resolveExpenseAttentionRequired,
+  type resolveExpenseAttentionRequired,
 } from '@/modules/expenses/domain/expense-attention';
 import {
   EXPENSE_LIST_STATUS_ALL,
@@ -181,8 +181,20 @@ export function ExpensesOrgListView({
     initialFilters.cashSource ?? EXPENSE_LIST_STATUS_ALL,
   );
   const [isApplying, startApplyTransition] = React.useTransition();
-
-  React.useEffect(() => {
+  const serverFilterKey = [
+    initialFilters.dateFrom ?? '',
+    initialFilters.dateTo ?? '',
+    initialFilters.dateBasis ?? 'expense',
+    initialFilters.projectId ?? EXPENSE_LIST_STATUS_ALL,
+    initialFilters.costFamily ?? EXPENSE_LIST_STATUS_ALL,
+    initialFilters.costCategoryId ?? EXPENSE_LIST_STATUS_ALL,
+    initialFilters.statusFilter ?? EXPENSE_LIST_STATUS_ALL,
+    initialFilters.cash ?? EXPENSE_LIST_STATUS_ALL,
+    initialFilters.cashSource ?? EXPENSE_LIST_STATUS_ALL,
+  ].join('\u0000');
+  const [seenServerFilterKey, setSeenServerFilterKey] = React.useState(serverFilterKey);
+  if (serverFilterKey !== seenServerFilterKey) {
+    setSeenServerFilterKey(serverFilterKey);
     setDateFrom(initialFilters.dateFrom ?? '');
     setDateTo(initialFilters.dateTo ?? '');
     setDateBasis(initialFilters.dateBasis ?? 'expense');
@@ -192,17 +204,7 @@ export function ExpensesOrgListView({
     setStatusFilter(initialFilters.statusFilter ?? EXPENSE_LIST_STATUS_ALL);
     setCash(initialFilters.cash ?? EXPENSE_LIST_STATUS_ALL);
     setCashSource(initialFilters.cashSource ?? EXPENSE_LIST_STATUS_ALL);
-  }, [
-    initialFilters.dateFrom,
-    initialFilters.dateTo,
-    initialFilters.dateBasis,
-    initialFilters.projectId,
-    initialFilters.costFamily,
-    initialFilters.costCategoryId,
-    initialFilters.statusFilter,
-    initialFilters.cash,
-    initialFilters.cashSource,
-  ]);
+  }
 
   const activeAttention = isExpenseListAttentionStatusFilter(statusFilter)
     ? statusFilter

@@ -739,7 +739,7 @@ export function OcrReviewPanel({
     <div
       className="flex flex-col gap-6"
       {...(embedded ? {} : { dir: 'auto' })}
-      data-pf-ocr-review={embedded ? 'embedded' : undefined}
+      data-pf-ocr-review={embedded ? 'embedded' : 'page'}
     >
       {!embedded ? (
         <>

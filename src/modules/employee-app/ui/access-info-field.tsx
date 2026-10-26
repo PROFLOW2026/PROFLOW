@@ -40,7 +40,7 @@ export function AccessInfoField({
   return (
     <div className={cn('flex w-full min-w-0 flex-col gap-1', className)}>
       <span className="text-xs font-medium text-[var(--pf-text-secondary)]">{label}</span>
-      <div className="flex w-full min-w-0 items-start justify-start gap-2">
+      <div className="flex w-full min-w-0 items-center justify-start gap-2">
         <span
           className={cn(
             'text-sm font-semibold text-[var(--pf-text-primary)]',

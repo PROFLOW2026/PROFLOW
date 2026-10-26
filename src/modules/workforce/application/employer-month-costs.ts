@@ -755,6 +755,7 @@ export async function returnMonthlyEmployerCostToEstimate(
     estimatedAmount: existing.estimatedAmount,
     actualAmount: null,
     correctionNote: input.note ?? 'Return to estimate',
+    changeAcknowledged: true,
   });
 
   await recordAuditEvent(context, {

@@ -66,7 +66,7 @@ describe('ShellNavLink pending feedback', () => {
 
     expect(link).toHaveAttribute('aria-busy', 'true');
     expect(link).toHaveAttribute('data-pending', '');
-    expect(link).toHaveAttribute('aria-disabled', 'true');
+    expect(link).not.toHaveAttribute('aria-disabled');
     expect(screen.getByText('Navigating')).toHaveClass('sr-only');
   });
 

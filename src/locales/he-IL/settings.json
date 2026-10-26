@@ -564,6 +564,7 @@
         "voided": "ביטול הוצאה",
         "restored": "שחזור הוצאה מבוטלת",
         "payment_confirmed": "אישור תשלום הוצאה",
+        "payment_corrected": "תיקון תשלום הוצאה",
         "payment_confirmation_voided": "ביטול אישור תשלום הוצאה",
         "integrity_repair": "תיקון שלמות נתוני הוצאה",
         "routing_resolved": "ניתוב הוצאה נקבע"

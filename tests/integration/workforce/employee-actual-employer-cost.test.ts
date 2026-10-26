@@ -196,6 +196,7 @@ describe('employee actual monthly employer cost', () => {
         yearMonth,
         estimatedAmount: '12000',
         actualAmount: '14800',
+        changeAcknowledged: true,
       });
 
       const [lineA] = await tx
@@ -255,6 +256,7 @@ describe('employee actual monthly employer cost', () => {
         yearMonth,
         estimatedAmount: '8250',
         actualAmount: '8205',
+        changeAcknowledged: true,
       });
 
       const [month] = await tx
@@ -389,6 +391,7 @@ describe('employee actual monthly employer cost', () => {
         yearMonth: ownerMonth,
         estimatedAmount: '27000',
         actualAmount: '26500',
+        changeAcknowledged: true,
       });
 
       const [month] = await tx

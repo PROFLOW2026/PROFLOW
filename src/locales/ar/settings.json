@@ -654,6 +654,7 @@
         "voided": "أُلغي المصروف",
         "restored": "استُعيد المصروف",
         "payment_confirmed": "تم تأكيد دفع المصروف",
+        "payment_corrected": "تم تصحيح دفع المصروف",
         "payment_confirmation_voided": "أُلغي تأكيد دفع المصروف",
         "integrity_repair": "تم إصلاح سلامة بيانات المصروف",
         "routing_resolved": "تم تحديد توجيه المصروف"

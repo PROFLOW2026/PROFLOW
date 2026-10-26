@@ -9,7 +9,52 @@ import { employeeMonthCosts, laborAllocationRuns } from '@drizzle/schema';
 import { createEmployee, getEmployee } from '@/modules/workforce/application/employees';
 import { resolveOrgContext } from '@/modules/tenancy';
 import { businessDate, todayInTimeZone } from '@/shared/dates';
+import { money } from '@/shared/money';
+import { resolveOrgWorkWeekdays } from '@/modules/tenancy/domain/labor-cost-defaults';
+import {
+  listConfiguredWorkDatesInRange,
+  monthDateBounds,
+  recognizeMonthlyEmployerPoolByCalendar,
+  shouldRecognizeFullEmployerMonth,
+} from '@/modules/workforce/domain/monthly-accrual';
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
+
+/** Past months stay the full 27,000. The open month accrues elapsed workdays. */
+function expectedOwnerManagerKnownAmount(yearMonth: string): string {
+  const today = todayInTimeZone('Asia/Jerusalem');
+  const currentYearMonth = today.slice(0, 7);
+  const { fromDate, toDate: monthEnd } = monthDateBounds(yearMonth);
+  const recognizeFullMonth = shouldRecognizeFullEmployerMonth({
+    yearMonth,
+    currentYearMonth,
+    today,
+    monthEnd,
+  });
+  const workWeekdays = resolveOrgWorkWeekdays(null);
+  const hasCoverage = () => true;
+  const eligible = listConfiguredWorkDatesInRange({
+    fromDate,
+    toDate: monthEnd,
+    workWeekdays,
+    hasCoverage,
+  });
+  const asOf = recognizeFullMonth || today > monthEnd ? monthEnd : today;
+  const accrued = listConfiguredWorkDatesInRange({
+    fromDate,
+    toDate: asOf < fromDate ? fromDate : asOf,
+    workWeekdays,
+    hasCoverage,
+  });
+  const recognition = recognizeMonthlyEmployerPoolByCalendar({
+    fullMonthlyEmployerCost: money('27000', 'ILS'),
+    totalEligibleWorkdaysInMonth: eligible.length,
+    accruedWorkDayCount: accrued.length,
+    recognizeFullMonth,
+    fallbackWorkingDaysPerMonth: '22',
+  });
+  if (!recognition) throw new Error(`No accrual for ${yearMonth}`);
+  return recognition.recognizedPool.amount;
+}
 
 describe('owner / manager employee create (0084)', () => {
   let database: TestDatabase;
@@ -123,7 +168,7 @@ describe('owner / manager employee create (0084)', () => {
       expect(monthRows.length).toBeGreaterThan(0);
       expect(monthRows.some((row) => row.yearMonth === currentYearMonth)).toBe(true);
       for (const row of monthRows) {
-        expect(row.knownAmount).toBe('27000.000000');
+        expect(row.knownAmount).toBe(expectedOwnerManagerKnownAmount(row.yearMonth));
         expect(row.companyOnlyAmount).toBe(row.knownAmount);
         expect(row.allocatedAmount).toBe('0.000000');
         expect(row.unallocatedAmount).toBe('0.000000');

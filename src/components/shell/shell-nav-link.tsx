@@ -1,6 +1,7 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
+import { useLinkStatus } from 'next/link';
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { pressableChromeClassName } from '@/components/ui/pressable';
@@ -123,6 +124,8 @@ function ShellNavLinkBody({
   pendingLabel: string;
   muteIcon: boolean;
 }) {
+  const { pending: linkPending } = useLinkStatus();
+  const showPending = pending || linkPending;
   const iconClass = variant === 'sidebar' ? 'size-4.5 shrink-0' : 'size-5 shrink-0';
   const slotClass = variant === 'sidebar' ? 'size-4.5' : 'size-5';
 
@@ -131,19 +134,19 @@ function ShellNavLinkBody({
       <span className={cn('relative inline-flex shrink-0 items-center justify-center', slotClass)}>
         <NavIcon
           iconKey={iconKey}
-          className={cn(iconClass, pending && 'opacity-0', muteIcon && 'text-[var(--pf-text-muted)]')}
+          className={cn(iconClass, showPending && 'opacity-0', muteIcon && 'text-[var(--pf-text-muted)]')}
         />
         <Loader2
           className={cn(
             'absolute inset-0 m-auto animate-spin text-current',
             iconClass,
-            pending ? 'opacity-100' : 'opacity-0',
+            showPending ? 'opacity-100' : 'opacity-0',
           )}
           aria-hidden
         />
       </span>
       <span className={cn('truncate', variant === 'mobile' && 'max-w-full')}>{label}</span>
-      {pending ? <span className="sr-only">{pendingLabel}</span> : null}
+      {showPending ? <span className="sr-only">{pendingLabel}</span> : null}
     </>
   );
 }
