@@ -5,7 +5,8 @@ export type ThemePreference = (typeof THEME_PREFERENCES)[number];
 
 export type ResolvedTheme = 'light' | 'dark';
 
-export const DEFAULT_THEME_PREFERENCE: ThemePreference = 'system';
+/** When cookie and auth metadata are absent, start in day mode (not OS/system). */
+export const DEFAULT_THEME_PREFERENCE: ThemePreference = 'light';
 
 export const THEME_COOKIE_NAME = 'pf-ui-theme';
 

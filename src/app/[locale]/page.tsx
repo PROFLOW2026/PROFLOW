@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { AppShell } from '@/components/shell/app-shell';
 import { UnusedCapabilityDashboardTip } from '@/components/shell/unused-capability-dashboard-tip';
+import { ProductMark } from '@/components/brand/product-mark';
 import { PageHeader } from '@/components/ui/page-header';
 import { PublicHomepage } from '@/modules/marketing/ui';
 import { getHomeDashboard, parseWorkKindFilter } from '@/modules/financials';
@@ -159,7 +160,16 @@ async function AuthenticatedDashboardHome({
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6" data-pf-dashboard-home>
-      <PageHeader title={name ? t('greeting', { name }) : t('greetingNoName')} />
+      <PageHeader
+        title={name ? t('greeting', { name }) : t('greetingNoName')}
+        startAccessory={
+          <ProductMark
+            variant="compact"
+            label={tCommon('appName')}
+            className="origin-left max-sm:scale-[0.88]"
+          />
+        }
+      />
       <Suspense fallback={null}>
         <DashboardQuickAccessBar />
       </Suspense>

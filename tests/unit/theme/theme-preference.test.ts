@@ -4,7 +4,7 @@ import { resolveEffectiveTheme, isThemePreference, DEFAULT_THEME_PREFERENCE } fr
 import { readThemeCookieValue } from '@/shared/theme/theme-cookie';
 
 describe('theme preference', () => {
-  it('defaults to system when no candidates are valid', () => {
+  it('defaults to light when no candidates are valid', () => {
     expect(resolveThemePreference([null, undefined, 'invalid'])).toBe(DEFAULT_THEME_PREFERENCE);
   });
 
@@ -25,8 +25,8 @@ describe('theme preference', () => {
     expect(isThemePreference('auto')).toBe(false);
   });
 
-  it('falls back cookie values to system', () => {
-    expect(readThemeCookieValue(undefined)).toBe('system');
+  it('falls back cookie values to light', () => {
+    expect(readThemeCookieValue(undefined)).toBe('light');
     expect(readThemeCookieValue('dark')).toBe('dark');
   });
 });
