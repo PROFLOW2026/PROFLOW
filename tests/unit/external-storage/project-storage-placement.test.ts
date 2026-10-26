@@ -118,7 +118,7 @@ describe('project info text', () => {
     expect(text).toContain('איש קשר: דנה');
     expect(text).not.toContain('אימייל:');
     expect(text).not.toContain('מיקום / כתובת:');
-    expect(text).toContain('נוצר אוטומטית על ידי ProjectFlow');
+    expect(text).toContain('נוצר אוטומטית על ידי EXLFY');
   });
 });
 
@@ -139,6 +139,6 @@ describe('client info text', () => {
     expect(text).toContain('כתובת: רחובות');
     expect(text).not.toContain('אימייל:');
     expect(text).not.toContain('הערות:');
-    expect(text).toContain('נוצר אוטומטית על ידי ProjectFlow');
+    expect(text).toContain('נוצר אוטומטית על ידי EXLFY');
   });
 });

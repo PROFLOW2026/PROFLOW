@@ -1,8 +1,8 @@
 {
-  "title": "ربط ProjectFlow",
+  "title": "ربط EXLFY",
   "developer": {
-    "panelTitle": "رمز ربط ProjectFlow",
-    "panelHint": "شارك رمزًا لمرة واحدة حتى يتمكن مقاول لديه مؤسسة ProjectFlow خاصة من إنشاء مشروع مرتبط في حسابه.",
+    "panelTitle": "رمز ربط EXLFY",
+    "panelHint": "شارك رمزًا لمرة واحدة حتى يتمكن مقاول لديه مؤسسة EXLFY خاصة من إنشاء مشروع مرتبط في حسابه.",
     "issue": "إنشاء رمز ربط",
     "revoke": "إلغاء",
     "codeResultTitle": "رمز الربط (يُعرض مرة واحدة)",

@@ -1,10 +1,10 @@
 {
   "title": "External statutory documents",
-  "subtitle": "Request and track legal invoices in a connected accounting system. ProjectFlow billing stays your management record.",
+  "subtitle": "Request and track legal invoices in a connected accounting system. EXLFY billing stays your management record.",
   "separation": {
     "billingRecord": "Billing record (management)",
     "externalDocument": "External statutory document",
-    "disclosure": "ProjectFlow does not issue tax invoices. External numbers come only from a connected provider."
+    "disclosure": "EXLFY does not issue tax invoices. External numbers come only from a connected provider."
   },
   "status": {
     "connectionRequired": "Connect an external invoicing provider to request statutory documents.",
@@ -98,9 +98,9 @@
   },
   "reconciliation": {
     "title": "Amount reconciliation",
-    "expectedNet": "Net (ProjectFlow)",
-    "expectedVat": "VAT (ProjectFlow)",
-    "expectedGross": "Gross (ProjectFlow)",
+    "expectedNet": "Net (EXLFY)",
+    "expectedVat": "VAT (EXLFY)",
+    "expectedGross": "Gross (EXLFY)",
     "mismatchBanner": "The invoice was issued in SUMIT but amounts do not match — review required.",
     "status": {
       "pending": "Pending comparison",
@@ -126,7 +126,7 @@
   "accountingSection": {
     "title": "Invoices and receipts",
     "subtitle": "Issue and track documents through your connected accounting system.",
-    "connectPrompt": "Connect an accounting system to issue invoices and receipts through ProjectFlow.",
+    "connectPrompt": "Connect an accounting system to issue invoices and receipts through EXLFY.",
     "connectAction": "Connect accounting system",
     "providerConnected": "Accounting system: {provider} • Connected"
   },
@@ -136,12 +136,12 @@
   },
   "settings": {
     "title": "Invoice and receipt issuance",
-    "intro": "Choose whether ProjectFlow handles collections only, or also issues invoices and receipts.",
+    "intro": "Choose whether EXLFY handles collections only, or also issues invoices and receipts.",
     "modeLabel": "Operating mode",
     "modeManual": "Collections only",
-    "modeManualDescription": "ProjectFlow manages billing, payments, and balances. Invoices and receipts are issued outside the system.",
-    "modeExternal": "Collections + invoices and receipts via ProjectFlow",
-    "modeExternalDescription": "ProjectFlow manages collections and issues invoices and receipts through a connected accounting system.",
+    "modeManualDescription": "EXLFY manages billing, payments, and balances. Invoices and receipts are issued outside the system.",
+    "modeExternal": "Collections + invoices and receipts via EXLFY",
+    "modeExternalDescription": "EXLFY manages collections and issues invoices and receipts through a connected accounting system.",
     "accountingSystemLabel": "Connected accounting system",
     "providerConnectedInline": "{provider} — Connected",
     "providerNotConnected": "No accounting system connected",
@@ -158,7 +158,7 @@
     "sumitTitle": "SUMIT",
     "sumitDescription": "Connect your SUMIT company ID and API key.",
     "sumitTechnicalSummary": "Technical details",
-    "sumitTechnicalNote": "ProjectFlow talks only to the live SUMIT API at api.sumit.co.il.",
+    "sumitTechnicalNote": "EXLFY talks only to the live SUMIT API at api.sumit.co.il.",
     "companyId": "Company ID",
     "apiKey": "API key",
     "connect": "Connect SUMIT",
@@ -167,7 +167,7 @@
     "testOnlyNotice": "This connection uses the live SUMIT API at api.sumit.co.il. Credits are issued as SUMIT credit invoices linked to the original document. Cancellation uses SUMIT document cancel.",
     "invalidCompanyId": "Company ID must be a positive number.",
     "expenseIngestionTitle": "Inbound expense capture (optional)",
-    "expenseIngestionDescription": "When enabled, ProjectFlow polls SUMIT for supplier expense documents, downloads the PDF, and runs your existing Azure OCR. Statutory invoicing settings are separate.",
+    "expenseIngestionDescription": "When enabled, EXLFY polls SUMIT for supplier expense documents, downloads the PDF, and runs your existing Azure OCR. Statutory invoicing settings are separate.",
     "expenseIngestionEnable": "Enable SUMIT expense ingestion",
     "expenseIngestionDisable": "Turn off ingestion",
     "expenseIngestionEnabled": "Expense ingestion on",
@@ -179,7 +179,7 @@
     "creditQuestion": "Issue a credit note in SUMIT for tax invoice {number}? Create a finalized billing credit note first if you have not already.",
     "creditSuccess": "Statutory credit requested",
     "cancelTitle": "Cancel external document",
-    "cancelQuestion": "Cancel document {number} in SUMIT? This cannot be undone in ProjectFlow.",
+    "cancelQuestion": "Cancel document {number} in SUMIT? This cannot be undone in EXLFY.",
     "cancelSuccess": "External document cancelled"
   },
   "providerLimitation": {

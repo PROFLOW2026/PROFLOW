@@ -127,7 +127,7 @@
   },
   "hiddenCapability": {
     "title": "{module} مخفي حالياً من القائمة",
-    "body": "هذه الإمكانية معطّلة في الإعدادات، لكن السجل متاح لمن لديه صلاحية. يمكن استعادتها من <settings>ما يعرضه ProjectFlow</settings>."
+    "body": "هذه الإمكانية معطّلة في الإعدادات، لكن السجل متاح لمن لديه صلاحية. يمكن استعادتها من <settings>ما يعرضه EXLFY</settings>."
   },
   "businessProfitability": "ربحية الأعمال",
   "operations": "العمليات",

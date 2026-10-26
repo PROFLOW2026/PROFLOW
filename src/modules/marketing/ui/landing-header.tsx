@@ -3,6 +3,7 @@
 import { Menu, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
+import { ProductMark } from '@/components/brand/product-mark';
 import { Button } from '@/components/ui/button';
 import { PwaInstallCta } from '@/modules/offline/ui/pwa-install-cta';
 import { LocaleSwitcherInline } from '@/shared/i18n/locale-switcher-inline';
@@ -31,13 +32,7 @@ export function LandingHeader() {
           className="inline-flex min-w-0 items-center gap-2 text-[var(--pf-text-primary)] no-underline"
           aria-label={tCommon('appName')}
         >
-          <span
-            className="flex size-7 shrink-0 items-center justify-center rounded-md bg-[var(--pf-action-primary)] text-xs font-bold text-[var(--pf-action-primary-fg)]"
-            aria-hidden
-          />
-          <span className="truncate text-lg font-bold tracking-tight" dir="ltr">
-            {tCommon('appName')}
-          </span>
+          <ProductMark variant="compact" label={tCommon('appName')} />
         </Link>
 
         <nav className="hidden items-center gap-5 md:flex" aria-label={t('navLabel')}>

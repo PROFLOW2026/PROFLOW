@@ -1,6 +1,6 @@
 {
   "auth": {
-    "brand": "ProjectFlow contractor portal",
+    "brand": "EXLFY contractor portal",
     "signIn": {
       "title": "Contractor sign-in",
       "subtitle": "Sign in with the username you received from the contractor that invited you.",
@@ -168,8 +168,8 @@
     },
     "credentialsShare": {
       "greeting": "Hello {name},",
-      "inviteIntro": "{organization} invited you to the ProjectFlow contractor portal.",
-      "resetIntro": "{organization} sent you a secure password reset link for the ProjectFlow contractor portal.",
+      "inviteIntro": "{organization} invited you to the EXLFY contractor portal.",
+      "resetIntro": "{organization} sent you a secure password reset link for the EXLFY contractor portal.",
       "linkLabel": "Link:",
       "usernameLabel": "Username:",
       "expiresLabel": "Valid until:",

@@ -1,8 +1,8 @@
 {
   "meta": {
-    "title": "ProjectFlow | Projects, jobs & service - with the money together",
+    "title": "EXLFY | Projects, jobs & service - with the money together",
     "description": "A system for project, job, and service businesses. Manage the work, see what needs attention now, and understand costs, billing, and profitability.",
-    "ogTitle": "Manage the work. Understand the money. | ProjectFlow",
+    "ogTitle": "Manage the work. Understand the money. | EXLFY",
     "ogDescription": "Projects, jobs, and service - with costs, billing, and profitability in the same system."
   },
   "header": {
@@ -16,14 +16,14 @@
     "closeMenu": "Close menu"
   },
   "hero": {
-    "brand": "ProjectFlow",
+    "brand": "EXLFY",
     "title": "Manage the work. Understand the money.",
-    "subtitle": "ProjectFlow brings together projects, jobs, and service - from quote through expenses, collections, and profitability - so you know what is happening and what needs handling.",
+    "subtitle": "EXLFY brings together projects, jobs, and service - from quote through expenses, collections, and profitability - so you know what is happening and what needs handling.",
     "primaryCta": "Get started",
     "secondaryCta": "See how it works",
     "shotFile": "today-desktop.png",
     "shotCaption": "Today - open the business and see what needs attention",
-    "shotAlt": "Preview of the Today screen in ProjectFlow",
+    "shotAlt": "Preview of the Today screen in EXLFY",
     "mobileShotFile": "today-mobile.png",
     "mobileShotCaption": "Today on your phone - the same priorities from the field",
     "mobileShotAlt": "Preview of Today on mobile"
@@ -154,7 +154,7 @@
     "billingAlt": "Preview of billing"
   },
   "tour": {
-    "title": "How ProjectFlow looks in practice",
+    "title": "How EXLFY looks in practice",
     "cta": "Get started",
     "tabs": [
       {
@@ -245,12 +245,12 @@
   },
   "mobile": {
     "title": "From the office and the field - two ways to work",
-    "body": "Owners and managers use ProjectFlow in the browser or as an installed app. Workers can use a dedicated Employee app built for the tasks they actually perform.",
-    "ownerTitle": "ProjectFlow for owners & managers",
+    "body": "Owners and managers use EXLFY in the browser or as an installed app. Workers can use a dedicated Employee app built for the tasks they actually perform.",
+    "ownerTitle": "EXLFY for owners & managers",
     "ownerBody": "Install from the browser when you want app-like access. Today, projects, money, and capture stay with you on the go.",
     "employeeTitle": "Employee app for the team",
     "employeeBody": "Simple employee sign-in, mobile-first layout, and only the work you allow: time, tasks, forms, and more by permission.",
-    "installHeading": "Install ProjectFlow",
+    "installHeading": "Install EXLFY",
     "shotFile": "employee-app-mobile.png",
     "shotCaption": "Employee app - focused work on a phone",
     "shotAlt": "Preview of the Employee app on mobile"
@@ -281,7 +281,7 @@
         "title": "Business fit",
         "items": [
           {
-            "q": "Who is ProjectFlow for?",
+            "q": "Who is EXLFY for?",
             "a": "Project, job, and service businesses - contractors, renovations, field trades, maintenance, subcontractors, architects, engineers, consultants, and project managers."
           },
           {
@@ -316,7 +316,7 @@
           },
           {
             "q": "Does the system warn when a project starts to overrun?",
-            "a": "Yes. ProjectFlow shows when a project starts to overrun budget, when profitability is eroding, or when collections are delayed."
+            "a": "Yes. EXLFY shows when a project starts to overrun budget, when profitability is eroding, or when collections are delayed."
           }
         ]
       },
@@ -338,7 +338,7 @@
           },
           {
             "q": "Can workers use it from a phone?",
-            "a": "Yes. Managers can use ProjectFlow mobile or installed PWA. Workers use the Employee app when you invite them."
+            "a": "Yes. Managers can use EXLFY mobile or installed PWA. Workers use the Employee app when you invite them."
           }
         ]
       },
@@ -359,8 +359,8 @@
             "a": "Yes. When configured, company and project files can connect to your external storage so documents stay where your business already works."
           },
           {
-            "q": "Does ProjectFlow replace bookkeeping?",
-            "a": "No. ProjectFlow is for managing the work, costs, billing, and profitability. Keep bookkeeping in the system meant for that."
+            "q": "Does EXLFY replace bookkeeping?",
+            "a": "No. EXLFY is for managing the work, costs, billing, and profitability. Keep bookkeeping in the system meant for that."
           }
         ]
       }
@@ -368,14 +368,14 @@
   },
   "finalCta": {
     "title": "Want to see what is really happening in your business?",
-    "body": "Start with ProjectFlow and connect the work, costs, changes, and collections.",
+    "body": "Start with EXLFY and connect the work, costs, changes, and collections.",
     "cta": "Get started"
   },
   "footer": {
-    "note": "ProjectFlow",
+    "note": "EXLFY",
     "tagline": "Work and money for project, job, and service businesses.",
     "languages": "Available in Hebrew, English, Arabic, and Russian.",
-    "bookkeepingNote": "ProjectFlow does not replace bookkeeping or statutory accounting software.",
+    "bookkeepingNote": "EXLFY does not replace bookkeeping or statutory accounting software.",
     "navLabel": "Footer links",
     "links": {
       "howItWorks": "How it works",

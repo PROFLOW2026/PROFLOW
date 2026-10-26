@@ -451,7 +451,7 @@
     "attendanceProjectTimeDraft": "مسودة — تتطلب اعتمادًا",
     "attendanceProjectTimeAutoApprove": "اعتماد تلقائي عندما يستطيع المدير الاعتماد",
     "workWeek": "أيام أسبوع العمل",
-    "workWeekHint": "افتراض ProjectFlow الأحد–الخميس. الحفظ هنا يعيّن أسبوع عمل هذه المنظمة.",
+    "workWeekHint": "افتراض EXLFY الأحد–الخميس. الحفظ هنا يعيّن أسبوع عمل هذه المنظمة.",
     "configuredSummary": "{hours} ساعة/يوم · {weekdays}",
     "edit": "تعديل إطار العمل",
     "collapse": "إخفاء الإعدادات",

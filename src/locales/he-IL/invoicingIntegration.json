@@ -1,10 +1,10 @@
 {
   "title": "מסמכים סטטוטוריים חיצוניים",
-  "subtitle": "בקשה ומעקב אחר חשבוניות חוקיות במערכת הנהלת חשבונות מחוברת. רשומת החיוב ב-ProjectFlow נשארת רשומת הניהול.",
+  "subtitle": "בקשה ומעקב אחר חשבוניות חוקיות במערכת הנהלת חשבונות מחוברת. רשומת החיוב ב-EXLFY נשארת רשומת הניהול.",
   "separation": {
     "billingRecord": "רשומת חיוב (ניהול)",
     "externalDocument": "מסמך סטטוטורי חיצוני",
-    "disclosure": "ProjectFlow אינו מנפיק חשבוניות מס. מספרים חיצוניים מגיעים רק מספק מחובר."
+    "disclosure": "EXLFY אינו מנפיק חשבוניות מס. מספרים חיצוניים מגיעים רק מספק מחובר."
   },
   "status": {
     "connectionRequired": "יש לחבר ספק הנפקת חשבוניות חיצוני כדי לבקש מסמכים סטטוטוריים.",
@@ -98,9 +98,9 @@
   },
   "reconciliation": {
     "title": "השוואת סכומים",
-    "expectedNet": "נטו (ProjectFlow)",
-    "expectedVat": "מע״מ (ProjectFlow)",
-    "expectedGross": "ברוטו (ProjectFlow)",
+    "expectedNet": "נטו (EXLFY)",
+    "expectedVat": "מע״מ (EXLFY)",
+    "expectedGross": "ברוטו (EXLFY)",
     "mismatchBanner": "חשבונית הונפקה ב-SUMIT אך הסכומים אינם תואמים. נדרש טיפול.",
     "status": {
       "pending": "ממתין להשוואה",
@@ -126,7 +126,7 @@
   "accountingSection": {
     "title": "חשבוניות וקבלות",
     "subtitle": "הפקה ומעקב אחר מסמכים דרך מערכת החשבוניות המחוברת.",
-    "connectPrompt": "יש לחבר מערכת חשבוניות כדי להפיק חשבוניות וקבלות דרך ProjectFlow.",
+    "connectPrompt": "יש לחבר מערכת חשבוניות כדי להפיק חשבוניות וקבלות דרך EXLFY.",
     "connectAction": "חיבור מערכת חשבוניות",
     "providerConnected": "מערכת חשבוניות: {provider} • מחובר"
   },
@@ -136,12 +136,12 @@
   },
   "settings": {
     "title": "הפקת חשבוניות וקבלות",
-    "intro": "בחרו האם ProjectFlow מנהל גבייה בלבד, או גם מפיק חשבוניות וקבלות.",
+    "intro": "בחרו האם EXLFY מנהל גבייה בלבד, או גם מפיק חשבוניות וקבלות.",
     "modeLabel": "אופן הפעלה",
     "modeManual": "גבייה בלבד",
-    "modeManualDescription": "ProjectFlow ינהל חיובים, תשלומים ויתרות. חשבוניות וקבלות יופקו מחוץ למערכת.",
-    "modeExternal": "גבייה + חשבוניות וקבלות דרך ProjectFlow",
-    "modeExternalDescription": "ProjectFlow ינהל את הגבייה וגם יפיק חשבוניות וקבלות באמצעות מערכת חשבוניות מחוברת.",
+    "modeManualDescription": "EXLFY ינהל חיובים, תשלומים ויתרות. חשבוניות וקבלות יופקו מחוץ למערכת.",
+    "modeExternal": "גבייה + חשבוניות וקבלות דרך EXLFY",
+    "modeExternalDescription": "EXLFY ינהל את הגבייה וגם יפיק חשבוניות וקבלות באמצעות מערכת חשבוניות מחוברת.",
     "accountingSystemLabel": "מערכת חשבוניות מחוברת",
     "providerConnectedInline": "{provider}: מחובר",
     "providerNotConnected": "לא מחוברת מערכת חשבוניות",
@@ -158,7 +158,7 @@
     "sumitTitle": "SUMIT",
     "sumitDescription": "חברו מזהה חברה ומפתח API של SUMIT.",
     "sumitTechnicalSummary": "פרטים טכניים",
-    "sumitTechnicalNote": "ProjectFlow פונה רק ל-API החי של SUMIT בכתובת api.sumit.co.il.",
+    "sumitTechnicalNote": "EXLFY פונה רק ל-API החי של SUMIT בכתובת api.sumit.co.il.",
     "companyId": "מזהה חברה",
     "apiKey": "מפתח API",
     "connect": "חיבור SUMIT",
@@ -167,7 +167,7 @@
     "testOnlyNotice": "החיבור משתמש ב-API החי של SUMIT בכתובת api.sumit.co.il. זיכוי מונפק כחשבונית זיכוי ב-SUMIT המקושרת למסמך המקורי. ביטול משתמש בפעולת הביטול של SUMIT.",
     "invalidCompanyId": "מזהה החברה חייב להיות מספר חיובי.",
     "expenseIngestionTitle": "קליטת הוצאות נכנסות (אופציונלי)",
-    "expenseIngestionDescription": "כשמופעל, ProjectFlow בודק ב-SUMIT מסמכי הוצאה, מוריד PDF ומריץ את זיהוי המסמכים הקיים (Azure). הגדרות הנפקה סטטוטורית נפרדות.",
+    "expenseIngestionDescription": "כשמופעל, EXLFY בודק ב-SUMIT מסמכי הוצאה, מוריד PDF ומריץ את זיהוי המסמכים הקיים (Azure). הגדרות הנפקה סטטוטורית נפרדות.",
     "expenseIngestionEnable": "הפעלת קליטת הוצאות מ-SUMIT",
     "expenseIngestionDisable": "כיבוי קליטה",
     "expenseIngestionEnabled": "קליטת הוצאות פעילה",
@@ -179,7 +179,7 @@
     "creditQuestion": "להנפיק חשבונית זיכוי ב-SUMIT עבור חשבונית מס {number}? יש ליצור תחילה זיכוי חיוב מסוים ומסוים.",
     "creditSuccess": "בקשת הזיכוי הסטטוטורי נשלחה",
     "cancelTitle": "ביטול מסמך חיצוני",
-    "cancelQuestion": "לבטל את מסמך {number} ב-SUMIT? לא ניתן לבטל פעולה זו ב-ProjectFlow.",
+    "cancelQuestion": "לבטל את מסמך {number} ב-SUMIT? לא ניתן לבטל פעולה זו ב-EXLFY.",
     "cancelSuccess": "המסמך החיצוני בוטל"
   },
   "providerLimitation": {

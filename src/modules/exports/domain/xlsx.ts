@@ -35,7 +35,7 @@ export async function tablesToXlsx(
   const locale = resolveExportLocale(options.locale);
   const rightToLeft = options.rightToLeft ?? isRtl(locale);
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'ProjectFlow';
+  workbook.creator = 'EXLFY';
   workbook.created = new Date();
 
   for (const table of tables) {

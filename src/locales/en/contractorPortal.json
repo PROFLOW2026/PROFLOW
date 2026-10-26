@@ -64,9 +64,9 @@
     "more": {
       "subtitle": "Account, notifications and app settings",
       "accountSection": "Account & alerts",
-      "connectOrgTitle": "Run ProjectFlow as your company?",
-      "connectOrgDescription": "If your developer shared a connection code, sign in to your ProjectFlow organization and redeem it there. Your guest portal access stays unchanged; no duplicate business project is created when the engagement is already linked.",
-      "connectOrgCta": "Connect project in ProjectFlow"
+      "connectOrgTitle": "Run EXLFY as your company?",
+      "connectOrgDescription": "If your developer shared a connection code, sign in to your EXLFY organization and redeem it there. Your guest portal access stays unchanged; no duplicate business project is created when the engagement is already linked.",
+      "connectOrgCta": "Connect project in EXLFY"
     }
   },
   "dashboard": {

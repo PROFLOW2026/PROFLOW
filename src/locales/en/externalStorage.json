@@ -1,6 +1,6 @@
 {
   "title": "File storage",
-  "description": "Connect your organization's cloud storage for documents, photos, and files in ProjectFlow.",
+  "description": "Connect your organization's cloud storage for documents, photos, and files in EXLFY.",
   "quickAccess": {
     "ariaLabel": "Company files quick access"
   },
@@ -66,8 +66,8 @@
     "connectionNotFound": "Storage connection not found.",
     "oauthSessionMismatch": "Sign in as the same user who started the storage connection, then try again.",
     "rootNotReady": "Storage is connected but the ProjectFlow folder is not ready yet. Reconnect or test the connection.",
-    "rootFolderMissing": "The ProjectFlow folder was deleted in cloud storage. ProjectFlow rebuilt the organization folders and project template — confirm the template to continue. No reconnect is required.",
-    "templateIncomplete": "The project template in cloud storage is incomplete. ProjectFlow tried to repair it; if the problem continues, open the template in storage and try again.",
+    "rootFolderMissing": "The ProjectFlow folder was deleted in cloud storage. EXLFY rebuilt the organization folders and project template — confirm the template to continue. No reconnect is required.",
+    "templateIncomplete": "The project template in cloud storage is incomplete. EXLFY tried to repair it; if the problem continues, open the template in storage and try again.",
     "provisionKickFailed": "Storage connected, but project folder provisioning failed to start. Try approving the template again, or reconnect if the problem continues.",
     "outOfScope": "Item is outside the project folder tree.",
     "folderNotEmpty": "Cannot delete a folder that is not empty.",
@@ -169,7 +169,7 @@
     },
     "registry": {
       "title": "All business documents",
-      "description": "Browse ProjectFlow document metadata by client, project, vendor, billing, and more. Files stay in your connected storage.",
+      "description": "Browse EXLFY document metadata by client, project, vendor, billing, and more. Files stay in your connected storage.",
       "hint": "Use the full registry for search, tags, folders, and preview."
     },
     "shortcuts": {

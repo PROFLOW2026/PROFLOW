@@ -11,7 +11,7 @@ export function PrivacyHebrewContent() {
       <section className="mb-6 space-y-3 text-sm leading-relaxed">
         <h2 className="text-lg font-semibold">1. מי אנחנו</h2>
         <p>
-          ProjectFlow מעבדת מידע עבור לקוחות עסקיים (ארגונים) ומשתמשיהם. מדיניות זו מתארת כיצד
+          EXLFY מעבדת מידע עבור לקוחות עסקיים (ארגונים) ומשתמשיהם. מדיניות זו מתארת כיצד
           המערכת מטפלת במידע במסגרת השירות כפי שהוא מיושם היום.
         </p>
       </section>

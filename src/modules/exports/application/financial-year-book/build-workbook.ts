@@ -368,7 +368,7 @@ function writeGuideSheet(workbook: ExcelJS.Workbook): void {
     '• תשלומי שכר — תזרים מזומן בלבד; עלות המעסיק מוצגת בנפרד.',
     '• חיוב ללקוח — מסמך שהופק; תקבול — מזומן שהתקבל (תאריך תשלום).',
     '• חודש עתידי — אין סימון תשלום כאילו בוצע.',
-    '• הסכומים מחושבים מנתוני הארגון שלכם ב-ProjectFlow — אין שימוש בנוסחאות נפרדות.',
+    '• הסכומים מחושבים מנתוני הארגון שלכם ב-EXLFY — אין שימוש בנוסחאות נפרדות.',
   ];
   lines.forEach((line, index) => {
     const row = sheet.getRow(index + 1);
@@ -380,7 +380,7 @@ function writeGuideSheet(workbook: ExcelJS.Workbook): void {
 
 export async function buildFinancialYearBookWorkbook(data: FinancialYearBookData): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'ProjectFlow';
+  workbook.creator = 'EXLFY';
   workbook.created = new Date();
   writeOverviewSheet(workbook, data);
   writeGuideSheet(workbook);

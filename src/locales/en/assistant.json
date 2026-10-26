@@ -3,9 +3,9 @@
   "description": "Ask about work you already have permission to see. The assistant does not post or approve money.",
   "placeholder": "What needs attention today?",
   "send": "Ask",
-  "unconfigured": "A live assistant is not connected. Answers use ProjectFlow records you can already see.",
+  "unconfigured": "A live assistant is not connected. Answers use EXLFY records you can already see.",
   "empty": "Ask a question about today, a project, or a number you want explained.",
-  "disclaimer": "Facts come from ProjectFlow records. Suggestions are labeled as such.",
+  "disclaimer": "Facts come from EXLFY records. Suggestions are labeled as such.",
   "facts": "Fact",
   "inference": "Inference",
   "notAllowed": {

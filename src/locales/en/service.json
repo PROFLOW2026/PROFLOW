@@ -174,7 +174,7 @@
     "new": "New recurring template",
     "empty": {
       "title": "No recurring templates yet",
-      "body": "Create a customer/site schedule. ProjectFlow will open draft service calls on each occurrence - you confirm work before money moves.",
+      "body": "Create a customer/site schedule. EXLFY will open draft service calls on each occurrence - you confirm work before money moves.",
       "action": "New recurring template"
     },
     "list": {

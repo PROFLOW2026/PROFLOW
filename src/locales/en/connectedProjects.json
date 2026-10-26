@@ -1,8 +1,8 @@
 {
-  "title": "Connect ProjectFlow",
+  "title": "Connect EXLFY",
   "developer": {
-    "panelTitle": "ProjectFlow connection code",
-    "panelHint": "Share a one-time code so a contractor with their own ProjectFlow organization can provision a linked project in their account.",
+    "panelTitle": "EXLFY connection code",
+    "panelHint": "Share a one-time code so a contractor with their own EXLFY organization can provision a linked project in their account.",
     "issue": "Generate connection code",
     "revoke": "Revoke",
     "codeResultTitle": "Connection code (shown once)",

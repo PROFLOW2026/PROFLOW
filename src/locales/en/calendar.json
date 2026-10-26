@@ -32,7 +32,7 @@
   },
   "external": {
     "title": "External calendars",
-    "unconfigured": "Google and Microsoft calendars are not connected. Dates here are ProjectFlow records only."
+    "unconfigured": "Google and Microsoft calendars are not connected. Dates here are EXLFY records only."
   },
   "empty": {
     "title": "Nothing scheduled in this range",

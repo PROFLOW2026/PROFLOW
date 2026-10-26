@@ -54,17 +54,17 @@
   },
   "signOut": "تسجيل الخروج",
   "pwa": {
-    "name": "ProjectFlow للموظفين",
-    "shortName": "ProjectFlow"
+    "name": "EXLFY للموظفين",
+    "shortName": "EXLFY"
   },
   "install": {
     "title": "تثبيت التطبيق",
-    "description": "أضف ProjectFlow إلى الشاشة الرئيسية للوصول السريع.",
+    "description": "أضف EXLFY إلى الشاشة الرئيسية للوصول السريع.",
     "cta": "تثبيت التطبيق",
     "installing": "جاري فتح نافذة التثبيت…",
     "success": "تم تثبيت التطبيق بنجاح",
     "alreadyInstalled": "التطبيق مثبّت بالفعل",
-    "iosTitle": "تثبيت ProjectFlow على iPhone",
+    "iosTitle": "تثبيت EXLFY على iPhone",
     "iosStepShare": "اضغط زر المشاركة في المتصفح",
     "iosStepAdd": "اختر إضافة إلى الشاشة الرئيسية",
     "iosStepConfirm": "اضغط إضافة",
@@ -75,7 +75,7 @@
     "manualHint": "إذا لم يُعرض التثبيت، حدّث الصفحة أو حاول لاحقاً.",
     "manualDismiss": "فهمت",
     "installedTitle": "التطبيق مثبّت",
-    "installedDescription": "ProjectFlow على شاشتك الرئيسية."
+    "installedDescription": "EXLFY على شاشتك الرئيسية."
   },
   "attendance": {
     "empty": "لا سجلات حضور بعد",
@@ -427,7 +427,7 @@
     "permissionsSaveFailed": "تعذّر حفظ الصلاحيات. حاول مرة أخرى.",
     "credentialsShare": {
       "greeting": "مرحباً {name}،",
-      "invitedBy": "دُعيت من {organization} لاستخدام تطبيق موظفي ProjectFlow.",
+      "invitedBy": "دُعيت من {organization} لاستخدام تطبيق موظفي EXLFY.",
       "loginLinkLabel": "رابط الدخول:",
       "usernameLabel": "اسم المستخدم:",
       "tempPinLabel": "PIN مؤقت:",

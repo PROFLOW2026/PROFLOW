@@ -64,9 +64,9 @@
     "more": {
       "subtitle": "חשבון, התראות והגדרות",
       "accountSection": "חשבון והתראות",
-      "connectOrgTitle": "מריצים ProjectFlow כחברה?",
-      "connectOrgDescription": "אם היזם שיתף קוד חיבור, התחברו לארגון ProjectFlow שלכם וממשו אותו שם. גישת הפורטל נשמרת; לא נוצר פרויקט כפול כשהעסקה כבר מקושרת.",
-      "connectOrgCta": "חיבור פרויקט ב-ProjectFlow"
+      "connectOrgTitle": "מריצים EXLFY כחברה?",
+      "connectOrgDescription": "אם היזם שיתף קוד חיבור, התחברו לארגון EXLFY שלכם וממשו אותו שם. גישת הפורטל נשמרת; לא נוצר פרויקט כפול כשהעסקה כבר מקושרת.",
+      "connectOrgCta": "חיבור פרויקט ב-EXLFY"
     }
   },
   "dashboard": {

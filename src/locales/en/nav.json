@@ -128,7 +128,7 @@
   },
   "hiddenCapability": {
     "title": "{module} is currently hidden from navigation",
-    "body": "This capability is turned off in settings, but the record remains available to anyone with permission. You can restore it under <settings>What ProjectFlow shows</settings>."
+    "body": "This capability is turned off in settings, but the record remains available to anyone with permission. You can restore it under <settings>What EXLFY shows</settings>."
   },
   "operations": "Operations",
   "myWork": "My Work",

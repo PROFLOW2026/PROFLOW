@@ -44,7 +44,7 @@
     "linkFallbackTitle": "Почта не настроена",
     "linkFallbackBody": "Отправьте эту одноразовую ссылку на {email}. Срок действия — до {date}.",
     "acceptTitle": "Присоединиться к {organization}",
-    "acceptBody": "Вас пригласили в {organization} в ProjectFlow.",
+    "acceptBody": "Вас пригласили в {organization} в EXLFY.",
     "acceptSubmit": "Присоединиться",
     "acceptSignInPrompt": "Войдите с адресом {email} или создайте учётную запись с этим адресом.",
     "accepted": "Вы присоединились к {organization}.",

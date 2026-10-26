@@ -1,6 +1,6 @@
 {
   "auth": {
-    "brand": "Портал подрядчиков ProjectFlow",
+    "brand": "Портал подрядчиков EXLFY",
     "signIn": {
       "title": "Вход для подрядчиков",
       "subtitle": "Войдите с именем пользователя, которое вы получили от пригласившей вас компании.",
@@ -168,8 +168,8 @@
     },
     "credentialsShare": {
       "greeting": "Здравствуйте, {name},",
-      "inviteIntro": "{organization} приглашает вас в портал подрядчиков ProjectFlow.",
-      "resetIntro": "{organization} отправила вам защищённую ссылку для сброса пароля в портале подрядчиков ProjectFlow.",
+      "inviteIntro": "{organization} приглашает вас в портал подрядчиков EXLFY.",
+      "resetIntro": "{organization} отправила вам защищённую ссылку для сброса пароля в портале подрядчиков EXLFY.",
       "linkLabel": "Ссылка:",
       "usernameLabel": "Имя пользователя:",
       "expiresLabel": "Действует до:",

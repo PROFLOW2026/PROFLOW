@@ -23,7 +23,7 @@ export async function buildMyWorkIcsFeed(context: OrgContext): Promise<string> {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//ProjectFlow//My Work//EN',
+    'PRODID:-//EXLFY//My Work//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
   ];

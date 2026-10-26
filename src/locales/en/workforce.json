@@ -451,7 +451,7 @@
     "attendanceProjectTimeDraft": "Draft — requires approval",
     "attendanceProjectTimeAutoApprove": "Auto-approve when manager may approve",
     "workWeek": "Work weekdays",
-    "workWeekHint": "ProjectFlow default is Sunday–Thursday. Saving here sets this organization’s work week.",
+    "workWeekHint": "EXLFY default is Sunday–Thursday. Saving here sets this organization’s work week.",
     "configuredSummary": "{hours} hours/day · {weekdays}",
     "edit": "Edit work framework",
     "collapse": "Hide settings",

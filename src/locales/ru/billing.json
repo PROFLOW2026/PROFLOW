@@ -367,7 +367,7 @@
     "body": "У вас нет прав на просмотр выставления счетов и инкассации."
   },
   "collectionMode": {
-    "externalAccountingNote": "Счета и квитанции выставляются вне ProjectFlow.",
+    "externalAccountingNote": "Счета и квитанции выставляются вне EXLFY.",
     "connectAccountingLink": "Подключить учётную систему"
   },
   "paymentRecorded": {

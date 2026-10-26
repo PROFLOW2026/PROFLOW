@@ -22,8 +22,8 @@ const MANIFEST_DESCRIPTIONS: Record<Locale, string> = {
  */
 export interface ProjectFlowWebManifest {
   readonly id: '/';
-  readonly name: 'ProjectFlow';
-  readonly short_name: 'ProjectFlow';
+  readonly name: 'EXLFY';
+  readonly short_name: 'EXLFY';
   readonly description: string;
   readonly start_url: `/${string}`;
   readonly scope: '/';
@@ -78,8 +78,8 @@ export function buildWebManifest(
   const pwa = pwaManifestColors(themePreference);
   return {
     id: '/',
-    name: 'ProjectFlow',
-    short_name: 'ProjectFlow',
+    name: 'EXLFY',
+    short_name: 'EXLFY',
     description: MANIFEST_DESCRIPTIONS[locale],
     start_url: `/${locale}`,
     scope: '/',

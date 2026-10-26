@@ -27,7 +27,7 @@ const FORBIDDEN_ENGLISH_ENTIRE_VALUES = new Set([
 ]);
 
 /** Allowed whole-value Latin tokens in he-IL catalogs. */
-const ALLOWED_ENTIRE_LATIN = new Set(['ProjectFlow', 'PDF', 'CSV', 'Excel', 'OCR']);
+const ALLOWED_ENTIRE_LATIN = new Set(['EXLFY', 'PDF', 'CSV', 'Excel', 'OCR']);
 
 /**
  * Optional allowlist of `namespace.json:dotted.path` for rare intentional dotted values.

@@ -1,6 +1,6 @@
 {
   "auth": {
-    "brand": "פורטל קבלנים ProjectFlow",
+    "brand": "פורטל קבלנים EXLFY",
     "signIn": {
       "title": "כניסת קבלנים",
       "subtitle": "התחברו עם שם המשתמש שקיבלתם מהחברה שהזמינה אתכם.",
@@ -168,8 +168,8 @@
     },
     "credentialsShare": {
       "greeting": "שלום {name},",
-      "inviteIntro": "{organization} הזמינה אותך לפורטל הקבלנים של ProjectFlow.",
-      "resetIntro": "{organization} שלחה לך קישור מאובטח לאיפוס סיסמה בפורטל הקבלנים של ProjectFlow.",
+      "inviteIntro": "{organization} הזמינה אותך לפורטל הקבלנים של EXLFY.",
+      "resetIntro": "{organization} שלחה לך קישור מאובטח לאיפוס סיסמה בפורטל הקבלנים של EXLFY.",
       "linkLabel": "קישור:",
       "usernameLabel": "שם משתמש:",
       "expiresLabel": "בתוקף עד:",

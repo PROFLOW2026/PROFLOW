@@ -23,7 +23,7 @@ describe('credentials-share', () => {
     const message = buildCredentialsShareMessage(baseInput, t);
     expect(message).toContain('שלום מוחמד נציר');
     expect(message).toContain('הוזמנת על ידי');
-    expect(message).toContain('ProjectFlow');
+    expect(message).toContain('EXLFY');
     expect(message).toContain(baseInput.organizationName);
     expect(message).toContain(baseInput.loginUrl);
     expect(message).toContain('2485');

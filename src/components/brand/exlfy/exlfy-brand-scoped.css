@@ -1,0 +1,61 @@
+/**
+ * EXLFY brand lockup tokens — references existing semantic teal tokens only.
+ * Scoped to `.exlfy-brand-scoped` so global theme tokens stay unchanged.
+ */
+.exlfy-brand-scoped {
+  --exlfy-mark-gradient: linear-gradient(
+    148deg,
+    var(--pf-teal-500) 0%,
+    var(--pf-teal-600) 42%,
+    var(--pf-teal-800) 100%
+  );
+  --exlfy-word-fill: var(--pf-teal-900);
+  --exlfy-word-accent: var(--pf-teal-600);
+  --exlfy-word-stroke: var(--pf-teal-700);
+  --exlfy-engine-grid: color-mix(in srgb, var(--pf-teal-600) 22%, transparent);
+}
+
+.exlfy-brand-scoped.exlfy-on-light {
+  --exlfy-word-fill: var(--pf-teal-900);
+}
+
+.dark .exlfy-brand-scoped,
+.exlfy-brand-scoped.exlfy-on-dark {
+  --exlfy-mark-gradient: linear-gradient(
+    148deg,
+    var(--pf-teal-300) 0%,
+    var(--pf-teal-500) 45%,
+    var(--pf-teal-700) 100%
+  );
+  --exlfy-word-fill: var(--pf-teal-300);
+  --exlfy-word-accent: var(--pf-teal-400);
+  --exlfy-word-stroke: var(--pf-teal-400);
+  --exlfy-engine-grid: color-mix(in srgb, var(--pf-teal-400) 28%, transparent);
+}
+
+.exlfy-wordmark-type {
+  font-family: var(--font-exlfy-wordmark), var(--font-noto-sans), ui-sans-serif, system-ui,
+    sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: -0.04em;
+  color: var(--exlfy-word-fill);
+  font-feature-settings: 'kern' 1;
+  font-variant-ligatures: none;
+  text-transform: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.exlfy-wordmark-wrap {
+  transform: translateY(0.5px);
+}
+
+.exlfy-monogram-tint {
+  background: var(--exlfy-mark-gradient);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}

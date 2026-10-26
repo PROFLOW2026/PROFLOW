@@ -5,7 +5,7 @@ import { LegalDocumentShell } from '@/modules/legal/ui/legal-document-shell';
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'מדיניות פרטיות',
-    description: 'מדיניות פרטיות ProjectFlow — גרסה ראשונה (עברית)',
+    description: 'מדיניות פרטיות EXLFY — גרסה ראשונה (עברית)',
     robots: { index: true, follow: true },
     alternates: { canonical: '/legal/privacy' },
   };
@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function PrivacyPage() {
   return (
-    <LegalDocumentShell title="מדיניות פרטיות — ProjectFlow">
+    <LegalDocumentShell title="מדיניות פרטיות — EXLFY">
       <PrivacyHebrewContent />
     </LegalDocumentShell>
   );

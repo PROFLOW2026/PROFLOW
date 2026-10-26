@@ -44,7 +44,7 @@
     "linkFallbackTitle": "Email is not configured",
     "linkFallbackBody": "Share this one-time link with {email} instead. It expires on {date}.",
     "acceptTitle": "Join {organization}",
-    "acceptBody": "You were invited to join {organization} on ProjectFlow.",
+    "acceptBody": "You were invited to join {organization} on EXLFY.",
     "acceptSubmit": "Join business",
     "accepted": "You have joined {organization}.",
     "acceptSignInPrompt": "Sign in with {email} to join, or create an account with that address.",

@@ -1,10 +1,10 @@
 {
   "title": "مستندات قانونية خارجية",
-  "subtitle": "اطلب وتتبع فواتير ضريبية قانونية في نظام محاسبة متصل. فوترة ProjectFlow تبقى سجل الإدارة لديك.",
+  "subtitle": "اطلب وتتبع فواتير ضريبية قانونية في نظام محاسبة متصل. فوترة EXLFY تبقى سجل الإدارة لديك.",
   "separation": {
     "billingRecord": "سجل فوترة (إدارة)",
     "externalDocument": "مستند قانوني خارجي",
-    "disclosure": "ProjectFlow لا يصدر فواتير ضريبية. الأرقام الخارجية تأتي فقط من مزود متصل."
+    "disclosure": "EXLFY لا يصدر فواتير ضريبية. الأرقام الخارجية تأتي فقط من مزود متصل."
   },
   "status": {
     "connectionRequired": "اربط مزود فوترة خارجي لطلب مستندات قانونية.",
@@ -110,9 +110,9 @@
     "save": "حفظ الإعدادات",
     "saved": "تم حفظ الإعدادات",
     "sumitTitle": "SUMIT",
-    "sumitDescription": "اربط معرّف الشركة ومفتاح API في SUMIT. ProjectFlow يتصل فقط بواجهة API الحية على api.sumit.co.il.",
+    "sumitDescription": "اربط معرّف الشركة ومفتاح API في SUMIT. EXLFY يتصل فقط بواجهة API الحية على api.sumit.co.il.",
     "sumitTechnicalSummary": "تفاصيل تقنية",
-    "sumitTechnicalNote": "يتصل ProjectFlow فقط بواجهة SUMIT الحية على api.sumit.co.il.",
+    "sumitTechnicalNote": "يتصل EXLFY فقط بواجهة SUMIT الحية على api.sumit.co.il.",
     "companyId": "معرّف الشركة",
     "apiKey": "مفتاح API",
     "connect": "ربط SUMIT",
@@ -121,15 +121,15 @@
     "testOnlyNotice": "يستخدم هذا الاتصال واجهة SUMIT الحية على api.sumit.co.il. يُصدر الائتمان كفاتورة دائن في SUMIT مرتبطة بالمستند الأصلي. يستخدم الإلغاء عملية إلغاء المستند في SUMIT.",
     "invalidCompanyId": "يجب أن يكون معرّف الشركة رقماً موجباً.",
     "expenseIngestionTitle": "استقبال مصروفات واردة (اختياري)",
-    "expenseIngestionDescription": "عند التفعيل، يستطلع ProjectFlow مستندات مصروفات SUMIT ويشغّل قراءة المستندات Azure.",
+    "expenseIngestionDescription": "عند التفعيل، يستطلع EXLFY مستندات مصروفات SUMIT ويشغّل قراءة المستندات Azure.",
     "expenseIngestionEnable": "تفعيل استقبال مصروفات SUMIT",
     "expenseIngestionDisable": "إيقاف الاستقبال",
     "expenseIngestionEnabled": "استقبال المصروفات مفعّل",
     "expenseIngestionDisabled": "استقبال المصروفات متوقف",
     "expenseIngestionOcrRequired": "يجب تفعيل قراءة المستندات قبل استقبال مصروفات SUMIT.",
-    "intro": "اختر ما إذا كان ProjectFlow يدير التحصيل فقط، أو يصدر أيضاً الفواتير والإيصالات.",
-    "modeManualDescription": "يدير ProjectFlow الفوترة والمدفوعات والأرصدة. تُصدر الفواتير والإيصالات خارج النظام.",
-    "modeExternalDescription": "يدير ProjectFlow التحصيل ويصدر الفواتير والإيصالات عبر نظام محاسبة متصل.",
+    "intro": "اختر ما إذا كان EXLFY يدير التحصيل فقط، أو يصدر أيضاً الفواتير والإيصالات.",
+    "modeManualDescription": "يدير EXLFY الفوترة والمدفوعات والأرصدة. تُصدر الفواتير والإيصالات خارج النظام.",
+    "modeExternalDescription": "يدير EXLFY التحصيل ويصدر الفواتير والإيصالات عبر نظام محاسبة متصل.",
     "accountingSystemLabel": "نظام المحاسبة المتصل",
     "providerConnectedInline": "{provider}: متصل",
     "providerNotConnected": "لا يوجد نظام محاسبة متصل",
@@ -140,7 +140,7 @@
     "creditQuestion": "إصدار إشعار دائن في SUMIT للفاتورة الضريبية {number}؟ أنشئ إشعار دائن فوترة منتهياً أولاً إن لم يكن موجوداً.",
     "creditSuccess": "تم طلب الائتمان القانوني",
     "cancelTitle": "إلغاء المستند الخارجي",
-    "cancelQuestion": "إلغاء المستند {number} في SUMIT؟ لا يمكن التراجع في ProjectFlow.",
+    "cancelQuestion": "إلغاء المستند {number} في SUMIT؟ لا يمكن التراجع في EXLFY.",
     "cancelSuccess": "تم إلغاء المستند الخارجي"
   },
   "providerLimitation": {
@@ -199,9 +199,9 @@
   },
   "reconciliation": {
     "title": "مطابقة المبالغ",
-    "expectedNet": "صافي (ProjectFlow)",
-    "expectedVat": "ضريبة (ProjectFlow)",
-    "expectedGross": "إجمالي (ProjectFlow)",
+    "expectedNet": "صافي (EXLFY)",
+    "expectedVat": "ضريبة (EXLFY)",
+    "expectedGross": "إجمالي (EXLFY)",
     "mismatchBanner": "صُدرت الفاتورة في SUMIT لكن المبالغ لا تتطابق. يلزم المراجعة.",
     "status": {
       "pending": "مقارنة معلقة",
@@ -213,7 +213,7 @@
   "accountingSection": {
     "title": "الفواتير والإيصالات",
     "subtitle": "إصدار وتتبع المستندات عبر نظام المحاسبة المتصل.",
-    "connectPrompt": "اربط نظام محاسبة لإصدار الفواتير والإيصالات عبر ProjectFlow.",
+    "connectPrompt": "اربط نظام محاسبة لإصدار الفواتير والإيصالات عبر EXLFY.",
     "connectAction": "ربط نظام المحاسبة",
     "providerConnected": "نظام المحاسبة: {provider} • متصل"
   },

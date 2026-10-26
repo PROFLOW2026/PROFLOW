@@ -423,7 +423,7 @@
     "attendanceProjectTimeDraft": "טיוטה, דורש אישור",
     "attendanceProjectTimeAutoApprove": "אישור אוטומטי כשהמנהל רשאי לאשר",
     "workWeek": "ימי עבודה בשבוע",
-    "workWeekHint": "ברירת המחדל ב־ProjectFlow היא א׳-ה׳. שמירה כאן קובעת את ימי השבוע של הארגון.",
+    "workWeekHint": "ברירת המחדל ב־EXLFY היא א׳-ה׳. שמירה כאן קובעת את ימי השבוע של הארגון.",
     "configuredSummary": "{hours} שעות ביום · {weekdays}",
     "edit": "עריכת מסגרת שעות",
     "collapse": "הסתרת הגדרות",

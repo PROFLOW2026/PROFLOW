@@ -13,8 +13,8 @@ export function LegalDocumentShell({
     <div className="min-h-dvh bg-[var(--pf-bg-page)] text-[var(--pf-text-primary)]">
       <header className="border-b border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <Link href="/" className="text-sm font-semibold text-[var(--pf-text-brand)] no-underline">
-            ProjectFlow
+          <Link href="/" className="text-sm font-semibold text-[var(--pf-text-brand)] no-underline" dir="ltr">
+            EXLFY
           </Link>
           <LegalFooterLinks className="text-sm" />
         </div>

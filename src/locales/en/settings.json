@@ -274,7 +274,7 @@
   },
   "complexity": {
     "title": "Experience depth",
-    "subtitle": "How much of ProjectFlow to show for your business profile. Does not change permissions or stored data.",
+    "subtitle": "How much of EXLFY to show for your business profile. Does not change permissions or stored data.",
     "label": "Complexity",
     "simple": "Simpler navigation",
     "advanced": "Advanced",
@@ -1153,8 +1153,8 @@
         "disputed": "Contractor deduction disputed"
       },
       "connected_project": {
-        "invitation_created": "ProjectFlow connection code issued",
-        "invitation_revoked": "ProjectFlow connection code revoked",
+        "invitation_created": "EXLFY connection code issued",
+        "invitation_revoked": "EXLFY connection code revoked",
         "accepted": "Developer project connected",
         "mapping_revoked": "Connected developer project revoked",
         "provision_retry": "Connected project setup retried",
@@ -1465,7 +1465,7 @@
     "title": "Document numbering",
     "subtitle": "Internal tracking numbers assigned when you leave the reference blank. Change requests and change orders keep their per-project numbers. Project, job, and service-call numbers are assigned on create only - existing rows are not backfilled.",
     "legalDisclaimer": "Internal tracking numbers only. This is not Israeli tax-invoice numbering.",
-    "commercialNote": "These numbers are for follow-up inside ProjectFlow. They are not statutory invoices and do not issue a legal tax invoice.",
+    "commercialNote": "These numbers are for follow-up inside EXLFY. They are not statutory invoices and do not issue a legal tax invoice.",
     "perProjectNote": "Not applied on create. Change requests and change orders keep per-project numbers such as CR-001 / CO-001.",
     "prefix": "Prefix",
     "padding": "Digit padding",
@@ -1808,12 +1808,12 @@
     "showArchived": "Show {count} archived"
   },
   "orgProfilePanel": {
-    "pageDescription": "Set your organization type and customize terminology used throughout ProjectFlow.",
+    "pageDescription": "Set your organization type and customize terminology used throughout EXLFY.",
     "profileTypeTitle": "Organization profile type",
     "profileTypeHint": "Your profile type controls default stage definitions, templates, and which modules are recommended. Changing this does not delete any existing data.",
     "saveProfileType": "Save profile type",
     "terminologyTitle": "Terminology overrides",
-    "terminologyHint": "Customize labels shown throughout ProjectFlow to match your industry's vocabulary. Leave blank to use the default term.",
+    "terminologyHint": "Customize labels shown throughout EXLFY to match your industry's vocabulary. Leave blank to use the default term.",
     "saveTerminology": "Save terminology",
     "terminologyPreview": "Terminology preview",
     "defaultLabel": "Default: {value}",

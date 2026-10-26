@@ -64,9 +64,9 @@
     "more": {
       "subtitle": "الحساب والإشعارات وإعدادات التطبيق",
       "accountSection": "الحساب والتنبيهات",
-      "connectOrgTitle": "تديرون ProjectFlow كشركة؟",
-      "connectOrgDescription": "إذا شارك المطور رمز ربط، سجّلوا الدخول إلى مؤسسة ProjectFlow الخاصة بكم وفعّلوه هناك. يبقى وصول البوابة كما هو؛ لا يُنشأ مشروع مكرر إذا كان التعاقد مرتبطًا بالفعل.",
-      "connectOrgCta": "ربط مشروع في ProjectFlow"
+      "connectOrgTitle": "تديرون EXLFY كشركة؟",
+      "connectOrgDescription": "إذا شارك المطور رمز ربط، سجّلوا الدخول إلى مؤسسة EXLFY الخاصة بكم وفعّلوه هناك. يبقى وصول البوابة كما هو؛ لا يُنشأ مشروع مكرر إذا كان التعاقد مرتبطًا بالفعل.",
+      "connectOrgCta": "ربط مشروع في EXLFY"
     }
   },
   "dashboard": {

@@ -19,10 +19,10 @@ describe('PWA web manifest start_url', () => {
 describe('installed-app service worker', () => {
   it('enables navigation preload and serves preloadResponse for navigations', () => {
     expect(SHELL_NAVIGATION_PRELOAD).toBe(true);
-    expect(SHELL_CACHE_NAME).toBe('projectflow-shell-v6');
+    expect(SHELL_CACHE_NAME).toBe('projectflow-shell-v7');
 
     const source = readFileSync(path.join(process.cwd(), 'public/sw.js'), 'utf8');
-    expect(source).toContain('projectflow-shell-v6');
+    expect(source).toContain('projectflow-shell-v7');
     expect(source).toContain("cache: 'no-store'");
     expect(source).toContain('/documents');
     expect(source).toContain('navigationPreload.enable');

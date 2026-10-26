@@ -1,10 +1,10 @@
 {
   "title": "Внешние налоговые документы",
-  "subtitle": "Запрашивайте и отслеживайте юридические счета в подключённой учётной системе. Выставление счетов ProjectFlow остаётся вашей управленческой записью.",
+  "subtitle": "Запрашивайте и отслеживайте юридические счета в подключённой учётной системе. Выставление счетов EXLFY остаётся вашей управленческой записью.",
   "separation": {
     "billingRecord": "Запись выставления счёта (управление)",
     "externalDocument": "Внешний налоговый документ",
-    "disclosure": "ProjectFlow не выставляет налоговые счета-фактуры. Внешние номера приходят только от подключённого провайдера."
+    "disclosure": "EXLFY не выставляет налоговые счета-фактуры. Внешние номера приходят только от подключённого провайдера."
   },
   "status": {
     "connectionRequired": "Подключите внешнего провайдера выставления счетов, чтобы запрашивать налоговые документы.",
@@ -110,9 +110,9 @@
     "save": "Сохранить настройки",
     "saved": "Настройки сохранены",
     "sumitTitle": "SUMIT",
-    "sumitDescription": "Подключите ID компании и API-ключ SUMIT. ProjectFlow обращается только к живому API api.sumit.co.il.",
+    "sumitDescription": "Подключите ID компании и API-ключ SUMIT. EXLFY обращается только к живому API api.sumit.co.il.",
     "sumitTechnicalSummary": "Технические детали",
-    "sumitTechnicalNote": "ProjectFlow обращается только к живому API SUMIT на api.sumit.co.il.",
+    "sumitTechnicalNote": "EXLFY обращается только к живому API SUMIT на api.sumit.co.il.",
     "companyId": "ID компании",
     "apiKey": "API-ключ",
     "connect": "Подключить SUMIT",
@@ -121,15 +121,15 @@
     "testOnlyNotice": "Подключение использует живой API SUMIT на api.sumit.co.il. Кредит выпускается как кредит-счёт SUMIT, связанный с исходным документом. Отмена использует отмену документа SUMIT.",
     "invalidCompanyId": "ID компании должен быть положительным числом.",
     "expenseIngestionTitle": "Входящий захват расходов (опционально)",
-    "expenseIngestionDescription": "При включении ProjectFlow опрашивает SUMIT по расходным документам и запускает Azure OCR.",
+    "expenseIngestionDescription": "При включении EXLFY опрашивает SUMIT по расходным документам и запускает Azure OCR.",
     "expenseIngestionEnable": "Включить захват расходов SUMIT",
     "expenseIngestionDisable": "Выключить захват",
     "expenseIngestionEnabled": "Захват расходов включён",
     "expenseIngestionDisabled": "Захват расходов выключен",
     "expenseIngestionOcrRequired": "Перед захватом расходов SUMIT должно быть включено распознавание документов.",
-    "intro": "Выберите, управляет ли ProjectFlow только сбором или также выдаёт счета и квитанции.",
-    "modeManualDescription": "ProjectFlow управляет биллингом, платежами и балансами. Счета и квитанции выдаются вне системы.",
-    "modeExternalDescription": "ProjectFlow управляет сбором и выдаёт счета и квитанции через подключённую учётную систему.",
+    "intro": "Выберите, управляет ли EXLFY только сбором или также выдаёт счета и квитанции.",
+    "modeManualDescription": "EXLFY управляет биллингом, платежами и балансами. Счета и квитанции выдаются вне системы.",
+    "modeExternalDescription": "EXLFY управляет сбором и выдаёт счета и квитанции через подключённую учётную систему.",
     "accountingSystemLabel": "Подключённая учётная система",
     "providerConnectedInline": "{provider}: подключено",
     "providerNotConnected": "Учётная система не подключена",
@@ -140,7 +140,7 @@
     "creditQuestion": "Выдать кредит-ноту в SUMIT для налоговой счёт-фактуры {number}? Сначала создайте финализированную кредит-ноту в биллинге, если её ещё нет.",
     "creditSuccess": "Запрос налогового кредита отправлен",
     "cancelTitle": "Отменить внешний документ",
-    "cancelQuestion": "Отменить документ {number} в SUMIT? В ProjectFlow это необратимо.",
+    "cancelQuestion": "Отменить документ {number} в SUMIT? В EXLFY это необратимо.",
     "cancelSuccess": "Внешний документ отменён"
   },
   "providerLimitation": {
@@ -199,9 +199,9 @@
   },
   "reconciliation": {
     "title": "Сверка сумм",
-    "expectedNet": "Нетто (ProjectFlow)",
-    "expectedVat": "НДС (ProjectFlow)",
-    "expectedGross": "Брутто (ProjectFlow)",
+    "expectedNet": "Нетто (EXLFY)",
+    "expectedVat": "НДС (EXLFY)",
+    "expectedGross": "Брутто (EXLFY)",
     "mismatchBanner": "Счёт выставлен в SUMIT, но суммы не совпадают. Требуется проверка.",
     "status": {
       "pending": "Ожидает сравнения",
@@ -213,7 +213,7 @@
   "accountingSection": {
     "title": "Счета и квитанции",
     "subtitle": "Выдача и отслеживание документов через подключённую учётную систему.",
-    "connectPrompt": "Подключите учётную систему для выдачи счетов и квитанций через ProjectFlow.",
+    "connectPrompt": "Подключите учётную систему для выдачи счетов и квитанций через EXLFY.",
     "connectAction": "Подключить учётную систему",
     "providerConnected": "Учётная система: {provider} • Подключена"
   },

@@ -1,6 +1,6 @@
 {
   "auth": {
-    "brand": "بوابة المقاولين ProjectFlow",
+    "brand": "بوابة المقاولين EXLFY",
     "signIn": {
       "title": "دخول المقاولين",
       "subtitle": "سجّل الدخول باسم المستخدم الذي استلمته من الشركة التي دعتك.",
@@ -168,7 +168,7 @@
     },
     "credentialsShare": {
       "greeting": "مرحبًا {name}،",
-      "inviteIntro": "دعاك {organization} إلى بوابة مقاولي ProjectFlow.",
+      "inviteIntro": "دعاك {organization} إلى بوابة مقاولي EXLFY.",
       "resetIntro": "أرسلت {organization} رابطًا آمنًا لإعادة تعيين كلمة المرور في بوابة المقاولين.",
       "linkLabel": "الرابط:",
       "usernameLabel": "اسم المستخدم:",

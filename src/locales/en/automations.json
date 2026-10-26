@@ -94,7 +94,7 @@
     "saved": "Saved.",
     "ran": "Rule ran."
   },
-  "unavailable": "Unavailable. This rule needs an event that ProjectFlow does not record, so it cannot run.",
+  "unavailable": "Unavailable. This rule needs an event that EXLFY does not record, so it cannot run.",
   "safeNote": "Rules may notify, add a Today item, create a follow-up task, or prepare a draft. They cannot post, pay, approve, or change contracts.",
   "notAllowed": {
     "title": "Automations are not available",

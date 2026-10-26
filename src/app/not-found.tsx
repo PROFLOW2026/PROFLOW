@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { ProductMark } from '@/components/brand/product-mark';
 import { Button } from '@/components/ui/button';
 import { getRequestPathname } from '@/shared/http/request-pathname';
 import { LOCALE_COOKIE_NAME } from '@/shared/i18n/auth-locale';
@@ -33,12 +34,7 @@ export default async function NotFound() {
       dir={metadata.dir}
       className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 px-4 text-center"
     >
-      <div className="flex items-center gap-2">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--pf-action-primary)] text-sm font-bold text-[var(--pf-action-primary-fg)]">
-          PF
-        </span>
-        <span className="text-lg font-semibold">ProjectFlow</span>
-      </div>
+      <ProductMark variant="auth" label="EXLFY" />
       <h1 className="text-xl font-semibold">{copy.title}</h1>
       <p className="text-sm text-[var(--pf-text-secondary)]">{copy.body}</p>
       <Button asChild variant="secondary">

@@ -7,9 +7,9 @@
     "viewUnallocated": "קבלות שלא שויכו",
     "moreFilters": "תאריכים, סינון וקישורים"
   },
-  "statutoryDisclosure": "מעקב חיובים, תשלומים ויתרות לגבייה ב-ProjectFlow.",
+  "statutoryDisclosure": "מעקב חיובים, תשלומים ויתרות לגבייה ב-EXLFY.",
   "collectionMode": {
-    "externalAccountingNote": "חשבוניות וקבלות מופקות מחוץ ל־ProjectFlow.",
+    "externalAccountingNote": "חשבוניות וקבלות מופקות מחוץ ל־EXLFY.",
     "connectAccountingLink": "חיבור מערכת חשבוניות"
   },
   "paymentRecorded": {

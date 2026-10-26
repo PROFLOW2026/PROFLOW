@@ -1,8 +1,8 @@
 {
-  "title": "חיבור ProjectFlow",
+  "title": "חיבור EXLFY",
   "developer": {
-    "panelTitle": "קוד חיבור ProjectFlow",
-    "panelHint": "שתף קוד חד-פעמי כדי שקבלן עם ארגון ProjectFlow משלו יוכל ליצור פרויקט מקושר בחשבון שלו.",
+    "panelTitle": "קוד חיבור EXLFY",
+    "panelHint": "שתף קוד חד-פעמי כדי שקבלן עם ארגון EXLFY משלו יוכל ליצור פרויקט מקושר בחשבון שלו.",
     "issue": "יצירת קוד חיבור",
     "revoke": "ביטול",
     "codeResultTitle": "קוד חיבור (מוצג פעם אחת)",

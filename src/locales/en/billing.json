@@ -7,9 +7,9 @@
     "viewUnallocated": "Unallocated receipts",
     "moreFilters": "Dates, filters & related pages"
   },
-  "statutoryDisclosure": "Track billing, payments, and outstanding balances in ProjectFlow.",
+  "statutoryDisclosure": "Track billing, payments, and outstanding balances in EXLFY.",
   "collectionMode": {
-    "externalAccountingNote": "Invoices and receipts are issued outside ProjectFlow.",
+    "externalAccountingNote": "Invoices and receipts are issued outside EXLFY.",
     "connectAccountingLink": "Connect accounting system"
   },
   "paymentRecorded": {

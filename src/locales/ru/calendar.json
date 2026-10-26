@@ -32,7 +32,7 @@
   },
   "external": {
     "title": "Внешние календари",
-    "unconfigured": "Календари Google и Microsoft не подключены. Здесь отображаются только записи ProjectFlow."
+    "unconfigured": "Календари Google и Microsoft не подключены. Здесь отображаются только записи EXLFY."
   },
   "empty": {
     "title": "В этом диапазоне ничего не запланировано",

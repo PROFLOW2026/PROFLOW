@@ -54,17 +54,17 @@
   },
   "signOut": "Sign out",
   "pwa": {
-    "name": "ProjectFlow Employee",
-    "shortName": "ProjectFlow"
+    "name": "EXLFY Employee",
+    "shortName": "EXLFY"
   },
   "install": {
     "title": "Install the app",
-    "description": "Add ProjectFlow to your home screen for quick access.",
+    "description": "Add EXLFY to your home screen for quick access.",
     "cta": "Install the app",
     "installing": "Opening install dialog…",
     "success": "App installed successfully",
     "alreadyInstalled": "App is already installed",
-    "iosTitle": "Install ProjectFlow on iPhone",
+    "iosTitle": "Install EXLFY on iPhone",
     "iosStepShare": "Tap the browser Share button",
     "iosStepAdd": "Choose Add to Home Screen",
     "iosStepConfirm": "Tap Add",
@@ -75,7 +75,7 @@
     "manualHint": "If install is not offered, refresh the page or try again later.",
     "manualDismiss": "Got it",
     "installedTitle": "App installed",
-    "installedDescription": "ProjectFlow is on your home screen."
+    "installedDescription": "EXLFY is on your home screen."
   },
   "attendance": {
     "empty": "No attendance records yet",
@@ -644,7 +644,7 @@
     "permissionsSaveFailed": "Could not save permissions. Try again.",
     "credentialsShare": {
       "greeting": "Hello {name},",
-      "invitedBy": "You were invited by {organization} to use the ProjectFlow employee app.",
+      "invitedBy": "You were invited by {organization} to use the EXLFY employee app.",
       "loginLinkLabel": "Login link:",
       "usernameLabel": "Username:",
       "tempPinLabel": "Temporary PIN:",

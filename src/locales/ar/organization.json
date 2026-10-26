@@ -44,7 +44,7 @@
     "linkFallbackTitle": "البريد غير مهيأ",
     "linkFallbackBody": "شارك هذا الرابط لمرة واحدة مع {email} بدلاً من ذلك. ينتهي في {date}.",
     "acceptTitle": "الانضمام إلى {organization}",
-    "acceptBody": "دُعيت للانضمام إلى {organization} على ProjectFlow.",
+    "acceptBody": "دُعيت للانضمام إلى {organization} على EXLFY.",
     "acceptSubmit": "الانضمام إلى الأعمال",
     "accepted": "انضممت إلى {organization}.",
     "acceptSignInPrompt": "سجّل الدخول بـ {email} للانضمام، أو أنشئ حساباً بهذا العنوان.",

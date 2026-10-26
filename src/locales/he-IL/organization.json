@@ -44,7 +44,7 @@
     "linkFallbackTitle": "שליחת אימייל אינה מוגדרת",
     "linkFallbackBody": "שתפו את הקישור החד-פעמי הזה עם {email}. הוא בתוקף עד {date}.",
     "acceptTitle": "הצטרפות אל {organization}",
-    "acceptBody": "הוזמנתם להצטרף אל {organization} ב-ProjectFlow.",
+    "acceptBody": "הוזמנתם להצטרף אל {organization} ב-EXLFY.",
     "acceptSubmit": "הצטרפות לעסק",
     "accepted": "הצטרפתם אל {organization}.",
     "acceptSignInPrompt": "התחברו עם {email} כדי להצטרף, או צרו חשבון עם הכתובת הזו.",

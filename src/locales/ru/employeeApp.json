@@ -54,17 +54,17 @@
   },
   "signOut": "Выйти",
   "pwa": {
-    "name": "ProjectFlow для сотрудников",
-    "shortName": "ProjectFlow"
+    "name": "EXLFY для сотрудников",
+    "shortName": "EXLFY"
   },
   "install": {
     "title": "Установить приложение",
-    "description": "Добавьте ProjectFlow на главный экран для быстрого доступа.",
+    "description": "Добавьте EXLFY на главный экран для быстрого доступа.",
     "cta": "Установить приложение",
     "installing": "Открытие диалога установки…",
     "success": "Приложение успешно установлено",
     "alreadyInstalled": "Приложение уже установлено",
-    "iosTitle": "Установить ProjectFlow на iPhone",
+    "iosTitle": "Установить EXLFY на iPhone",
     "iosStepShare": "Нажмите кнопку «Поделиться» в браузере",
     "iosStepAdd": "Выберите «На экран „Домой“»",
     "iosStepConfirm": "Нажмите «Добавить»",
@@ -75,7 +75,7 @@
     "manualHint": "Если установка недоступна, обновите страницу или попробуйте позже.",
     "manualDismiss": "Понятно",
     "installedTitle": "Приложение установлено",
-    "installedDescription": "ProjectFlow на вашем главном экране."
+    "installedDescription": "EXLFY на вашем главном экране."
   },
   "attendance": {
     "empty": "Записей посещаемости пока нет",
@@ -427,7 +427,7 @@
     "permissionsSaveFailed": "Не удалось сохранить права. Попробуйте снова.",
     "credentialsShare": {
       "greeting": "Здравствуйте, {name},",
-      "invitedBy": "Организация {organization} приглашает вас использовать приложение ProjectFlow для сотрудников.",
+      "invitedBy": "Организация {organization} приглашает вас использовать приложение EXLFY для сотрудников.",
       "loginLinkLabel": "Ссылка для входа:",
       "usernameLabel": "Имя пользователя:",
       "tempPinLabel": "Временный PIN:",

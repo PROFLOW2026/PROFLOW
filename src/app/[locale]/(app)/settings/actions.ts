@@ -281,8 +281,8 @@ export async function inviteMemberAction(
     if (emailPort.configured) {
       await emailPort.send({
         to: result.email,
-        subject: 'ProjectFlow invitation',
-        text: `You have been invited to join an organization on ProjectFlow.\n\nAccept: ${acceptUrl}`,
+        subject: 'EXLFY invitation',
+        text: `You have been invited to join an organization on EXLFY.\n\nAccept: ${acceptUrl}`,
       });
       revalidatePath('/settings/people');
       return { ok: true };

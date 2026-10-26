@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
+import { ProductMark } from '@/components/brand/product-mark';
 import { LegalFooterLinks } from '@/modules/legal/ui/legal-footer-links';
 
 export const metadata: Metadata = {
@@ -17,11 +18,8 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
   return (
     <WithClientMessages namespaces={[...AUTH_CLIENT_MESSAGE_NAMESPACES]}>
       <div className="flex min-h-dvh min-w-0 max-w-full flex-col items-center justify-center bg-[var(--pf-bg-page)] px-4 py-8 pb-[max(2.5rem,env(safe-area-inset-bottom))] sm:py-10">
-        <header className="order-1 mb-6 flex min-w-0 max-w-full items-center gap-2">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--pf-action-primary)] text-sm font-bold text-[var(--pf-action-primary-fg)]">
-            PF
-          </span>
-          <span className="min-w-0 truncate text-lg font-semibold">{t('appName')}</span>
+        <header className="order-1 mb-6 flex min-w-0 max-w-full justify-center">
+          <ProductMark variant="auth" label={t('appName')} />
         </header>
 
         {/* DOM order puts the form before the switcher so the first tab stop is a field. Visual order stays brand, language, form. */}

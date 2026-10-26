@@ -6,8 +6,8 @@
  * start_url is locale-prefixed via the dynamic manifest. Bare "/" is still
  * rewritten to the cookie locale in src/proxy.ts for already-installed shells.
  */
-/* pf-sw-release: single-pwa-v6-2026-09-17 */
-const SHELL_CACHE = 'projectflow-shell-v6';
+/* pf-sw-release: exlfy-icons-v7-2026-10-26 */
+const SHELL_CACHE = 'projectflow-shell-v7';
 const PRECACHE = [
   '/icons/icon-192.png',
   '/icons/icon-512.png',

@@ -97,7 +97,7 @@ export function buildProjectInfoText(input: ProjectInfoTextInput): string {
       line('הערות', input.notes),
     ]),
   ];
-  return `${blocks.map((rows) => rows.join('\n')).join('\n\n')}\n\nנוצר אוטומטית על ידי ProjectFlow\n`;
+  return `${blocks.map((rows) => rows.join('\n')).join('\n\n')}\n\nנוצר אוטומטית על ידי EXLFY\n`;
 }
 
 /** UTF-8 client convenience file. Blank fields are omitted. */
@@ -111,5 +111,5 @@ export function buildClientInfoText(input: ClientInfoTextInput): string {
     line('כתובת', input.clientAddress),
     line('הערות', input.notes),
   ];
-  return `${section('פרטי הלקוח', rows).join('\n')}\n\nנוצר אוטומטית על ידי ProjectFlow\n`;
+  return `${section('פרטי הלקוח', rows).join('\n')}\n\nנוצר אוטומטית על ידי EXLFY\n`;
 }

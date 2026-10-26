@@ -367,7 +367,7 @@
     "body": "ليس لديك صلاحية عرض الفوترة والتحصيل."
   },
   "collectionMode": {
-    "externalAccountingNote": "تُصدر الفواتير والإيصالات خارج ProjectFlow.",
+    "externalAccountingNote": "تُصدر الفواتير والإيصالات خارج EXLFY.",
     "connectAccountingLink": "ربط نظام المحاسبة"
   },
   "paymentRecorded": {

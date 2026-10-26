@@ -54,17 +54,17 @@
   },
   "signOut": "התנתקות",
   "pwa": {
-    "name": "ProjectFlow עובדים",
-    "shortName": "ProjectFlow"
+    "name": "EXLFY עובדים",
+    "shortName": "EXLFY"
   },
   "install": {
     "title": "התקנת האפליקציה",
-    "description": "הוסיפו את ProjectFlow למסך הבית לגישה מהירה ונוחה.",
+    "description": "הוסיפו את EXLFY למסך הבית לגישה מהירה ונוחה.",
     "cta": "התקנת האפליקציה",
     "installing": "פותח חלון התקנה…",
     "success": "האפליקציה הותקנה בהצלחה",
     "alreadyInstalled": "האפליקציה כבר מותקנת",
-    "iosTitle": "התקנת ProjectFlow באייפון",
+    "iosTitle": "התקנת EXLFY באייפון",
     "iosStepShare": "לחצו על כפתור השיתוף בדפדפן",
     "iosStepAdd": "בחרו \"הוסף למסך הבית\"",
     "iosStepConfirm": "לחצו \"הוסף\"",
@@ -75,7 +75,7 @@
     "manualHint": "אם כפתור ההתקנה לא מופיע, רעננו את העמוד או חזרו מאוחר יותר.",
     "manualDismiss": "הבנתי",
     "installedTitle": "האפליקציה מותקנת",
-    "installedDescription": "ProjectFlow זמין במסך הבית שלכם."
+    "installedDescription": "EXLFY זמין במסך הבית שלכם."
   },
   "attendance": {
     "empty": "עדיין אין רישומי נוכחות",
@@ -644,7 +644,7 @@
     "permissionsSaveFailed": "שמירת ההרשאות נכשלה. נסו שוב.",
     "credentialsShare": {
       "greeting": "שלום {name},",
-      "invitedBy": "הוזמנת על ידי {organization} להשתמש באפליקציית העובדים של ProjectFlow.",
+      "invitedBy": "הוזמנת על ידי {organization} להשתמש באפליקציית העובדים של EXLFY.",
       "loginLinkLabel": "קישור לכניסה:",
       "usernameLabel": "שם משתמש:",
       "tempPinLabel": "PIN זמני:",
