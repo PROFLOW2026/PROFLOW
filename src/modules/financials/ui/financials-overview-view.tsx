@@ -1,41 +1,42 @@
 ﻿import { getTranslations } from 'next-intl/server';
-import { DateRangeSelector } from '@/components/patterns/date-range-selector';
+import { DateRangeGetForm } from '@/components/patterns/date-range-get-form';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Link } from '@/shared/i18n/navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
+import type { ReportPayload } from '@/modules/reports/domain/types';
 import type { FinancialsOverviewData, FinancialsOverviewKpi } from '../application/get-financials-overview';
+import { FinancialReportPrintPanel } from './financial-report-print-panel';
 
-export async function FinancialsOverviewView({ data }: { readonly data: FinancialsOverviewData }) {
+export async function FinancialsOverviewView({
+  data,
+  printPayload,
+}: {
+  readonly data: FinancialsOverviewData;
+  readonly printPayload: ReportPayload;
+}) {
   const t = await getTranslations('financial.overview');
   const tRange = await getTranslations('common.dateRange');
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
-      <form method="get" className="flex min-w-0 max-w-full flex-col gap-2">
-        <DateRangeSelector
-          today={data.today}
-          defaultFrom={data.period.fromDate}
-          defaultTo={data.period.toDate}
-          labels={{
-            thisWeek: tRange('thisWeek'),
-            thisMonth: tRange('thisMonth'),
-            thisYear: tRange('thisYear'),
-            from: tRange('from'),
-            to: tRange('to'),
-          }}
-        />
-        <div>
-          <button
-            type="submit"
-            className="min-h-11 rounded-md border border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] px-4 text-sm font-medium"
-          >
-            {tRange('apply')}
-          </button>
-        </div>
-      </form>
+      <DateRangeGetForm
+        today={data.today}
+        defaultFrom={data.period.fromDate}
+        defaultTo={data.period.toDate}
+        labels={{
+          thisWeek: tRange('thisWeek'),
+          thisMonth: tRange('thisMonth'),
+          thisYear: tRange('thisYear'),
+          from: tRange('from'),
+          to: tRange('to'),
+          apply: tRange('apply'),
+        }}
+      />
+
+      <FinancialReportPrintPanel payload={printPayload} />
 
       <section className="flex min-w-0 flex-col gap-3">
         <h2 className="text-base font-semibold">{t('costsTitle')}</h2>
@@ -182,9 +183,7 @@ function OverviewKpiCard({
       </CardHeader>
       <CardContent className="flex min-w-0 flex-col gap-2">
         {unavailable || !kpi.value ? (
-          <span className="text-lg font-semibold text-[var(--pf-text-muted)]">
-            {unavailableLabel}
-          </span>
+          <span className="text-lg font-semibold text-[var(--pf-text-muted)]">{unavailableLabel}</span>
         ) : (
           <div className="min-w-0 overflow-x-auto">
             <MoneyText value={kpi.value} className="text-lg font-semibold" />

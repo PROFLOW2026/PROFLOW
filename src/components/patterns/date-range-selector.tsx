@@ -71,6 +71,8 @@ export interface DateRangeSelectorProps {
    * does not match a preset (hidden inputs still submit for GET forms).
    */
   dateInputs?: 'always' | 'custom-only';
+  /** After preset selection or custom apply — e.g. submit a wrapping GET form. */
+  onRangeCommit?: () => void;
 }
 
 /** Add integer `days` to a YYYY-MM-DD string, returns YYYY-MM-DD. */
@@ -194,6 +196,7 @@ export function DateRangeSelector({
   weekStartDay = 0,
   presets = DEFAULT_PRESETS,
   dateInputs: dateInputsProp,
+  onRangeCommit,
 }: DateRangeSelectorProps) {
   const t = useTranslations('common.dateRange');
   const labels: Required<DateRangeSelectorLabels> = {
@@ -251,6 +254,7 @@ export function DateRangeSelector({
     if (dateInputs === 'custom-only') {
       setCustomRangeOpen(false);
     }
+    queueMicrotask(() => onRangeCommit?.());
   }
 
   function openCustomRange() {
@@ -316,6 +320,14 @@ export function DateRangeSelector({
               dir="ltr"
             />
           </label>
+          {dateInputs === 'custom-only' && customRangeOpen && from && to ? (
+            <button
+              type="submit"
+              className="min-h-9 rounded-md border border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] px-4 text-sm font-medium"
+            >
+              {labels.apply}
+            </button>
+          ) : null}
         </div>
       ) : (
         <>

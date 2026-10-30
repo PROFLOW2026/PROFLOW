@@ -3,6 +3,7 @@ import { MainAppListBody, MainAppPage, MainAppSection } from '@/components/patte
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { buildFinancialOverviewPrintPayload } from '@/modules/financials/application/build-financial-print-reports';
 import { getFinancialsOverview } from '@/modules/financials/application/get-financials-overview';
 import { FinancialsOverviewView } from '@/modules/financials/ui/financials-overview-view';
 import { withOrgContext } from '@/shared/auth/session';
@@ -20,11 +21,14 @@ export async function generateMetadata({
 }
 
 export default async function FinancialsOverviewPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ fromDate?: string; toDate?: string }>;
 }) {
-  const [t, search] = await Promise.all([
+  const [{ locale }, t, search] = await Promise.all([
+    params,
     getTranslations('financial.overview'),
     searchParams,
   ]);
@@ -35,13 +39,18 @@ export default async function FinancialsOverviewPage({
       hasPermission(context, PERMISSIONS.BILLING_READ) ||
       hasPermission(context, PERMISSIONS.AP_READ);
     if (!allowed) {
-      return { allowed: false as const, data: null };
+      return { allowed: false as const, data: null, printPayload: null };
     }
     const data = await getFinancialsOverview(context, {
       fromDate: search.fromDate,
       toDate: search.toDate,
     });
-    return { allowed: true as const, data };
+    const printPayload = await buildFinancialOverviewPrintPayload(
+      locale,
+      context.organization.name,
+      data,
+    );
+    return { allowed: true as const, data, printPayload };
   });
 
   if (!result.allowed || !result.data) {
@@ -61,7 +70,7 @@ export default async function FinancialsOverviewPage({
       <PageHeader title={t('pageTitle')} description={t('pageHint')} />
       <MainAppSection>
         <MainAppListBody>
-        <FinancialsOverviewView data={result.data} />
+        <FinancialsOverviewView data={result.data} printPayload={result.printPayload} />
         </MainAppListBody>
       </MainAppSection>
     </MainAppPage>

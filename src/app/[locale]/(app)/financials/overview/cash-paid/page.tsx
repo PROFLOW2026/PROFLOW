@@ -3,6 +3,7 @@ import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { buildCashPaidBreakdownPrintPayload } from '@/modules/financials/application/build-financial-print-reports';
 import { getCashPaidBreakdown } from '@/modules/financials/application/get-cash-paid-breakdown';
 import { CashPaidBreakdownView } from '@/modules/financials/ui/cash-paid-breakdown-view';
 import { withOrgContext } from '@/shared/auth/session';
@@ -21,12 +22,16 @@ export async function generateMetadata({
 }
 
 export default async function CashPaidBreakdownPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ fromDate?: string; toDate?: string }>;
 }) {
-  const [t, search] = await Promise.all([
+  const [{ locale }, t, tOverview, search] = await Promise.all([
+    params,
     getTranslations('financial.overview.cashPaidBreakdown'),
+    getTranslations('financial.overview'),
     searchParams,
   ]);
 
@@ -34,14 +39,15 @@ export default async function CashPaidBreakdownPage({
     const allowed =
       hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ) ||
       hasPermission(context, PERMISSIONS.AP_READ);
-    if (!allowed) return { allowed: false as const, data: null, today: null };
+    if (!allowed) return { allowed: false as const, data: null, today: null, printPayload: null };
     const data = await getCashPaidBreakdown(context, {
       fromDate: search.fromDate,
       toDate: search.toDate,
     });
-    if (!data) return { allowed: false as const, data: null, today: null };
+    if (!data) return { allowed: false as const, data: null, today: null, printPayload: null };
     const today = todayInTimeZone(context.organization.timezone);
-    return { allowed: true as const, data, today };
+    const printPayload = await buildCashPaidBreakdownPrintPayload(locale, context.organization.name, data);
+    return { allowed: true as const, data, today, printPayload };
   });
 
   if (!result.allowed || !result.data || !result.today) {
@@ -58,9 +64,22 @@ export default async function CashPaidBreakdownPage({
 
   return (
     <MainAppPage>
-      <PageHeader title={t('pageTitle')} description={t('pageHint')} />
+      <PageHeader
+        title={t('pageTitle')}
+        description={
+          <>
+            <p>{t('pageHint')}</p>
+            <p>{t('scopeHint')}</p>
+            <p>{tOverview('cashPaidHint')}</p>
+          </>
+        }
+      />
       <MainAppSection>
-        <CashPaidBreakdownView data={result.data} today={result.today} />
+        <CashPaidBreakdownView
+          data={result.data}
+          today={result.today}
+          printPayload={result.printPayload}
+        />
     
       </MainAppSection>
     </MainAppPage>

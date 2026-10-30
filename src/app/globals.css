@@ -702,3 +702,16 @@
     }
   }
 }
+
+/* Financial overview print host — iframe stays in DOM for ReportPrintButton. */
+.pf-financial-report-print-frame {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

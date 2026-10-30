@@ -2,7 +2,8 @@
 import { MoneyText } from '@/components/patterns/money-text';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContextualInfo } from '@/components/ui/contextual-info';
-import { BusinessProfitabilityContextualInfo } from './business-profitability-contextual-info';
+import type { ReportPayload } from '@/modules/reports/domain/types';
+import { FinancialReportPrintPanel } from './financial-report-print-panel';
 import { Link } from '@/shared/i18n/navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import type { BusinessProfitabilityData, BusinessProfitabilityKpi } from '../application/get-business-profitability';
@@ -59,16 +60,17 @@ async function KpiCard({
 
 export async function BusinessProfitabilityView({
   data,
+  printPayload,
 }: {
   readonly data: BusinessProfitabilityData;
+  readonly printPayload: ReportPayload;
 }) {
   const t = await getTranslations('financial.businessProfitability');
+  const tFinancial = await getTranslations('financial');
 
   return (
     <div className="flex min-w-0 flex-col gap-8">
-      <div className="flex justify-end">
-        <BusinessProfitabilityContextualInfo />
-      </div>
+      <FinancialReportPrintPanel payload={printPayload} />
 
       <section className="flex min-w-0 flex-col gap-3">
         <h2 className="text-base font-semibold">{t('sections.commercial')}</h2>

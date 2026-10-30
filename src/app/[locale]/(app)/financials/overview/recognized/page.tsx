@@ -3,6 +3,7 @@ import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { buildRecognizedBreakdownPrintPayload } from '@/modules/financials/application/build-financial-print-reports';
 import { getRecognizedCostBreakdown } from '@/modules/financials/application/get-recognized-cost-breakdown';
 import { RecognizedCostBreakdownView } from '@/modules/financials/ui/recognized-cost-breakdown-view';
 import { withOrgContext } from '@/shared/auth/session';
@@ -19,12 +20,16 @@ export async function generateMetadata({
 }
 
 export default async function RecognizedCostBreakdownPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ fromDate?: string; toDate?: string }>;
 }) {
-  const [t, search] = await Promise.all([
+  const [{ locale }, t, tOverview, search] = await Promise.all([
+    params,
     getTranslations('financial.overview.recognizedBreakdown'),
+    getTranslations('financial.overview'),
     searchParams,
   ]);
 
@@ -33,9 +38,10 @@ export default async function RecognizedCostBreakdownPage({
       fromDate: search.fromDate,
       toDate: search.toDate,
     });
-    if (!data) return { allowed: false as const, data: null, today: null };
+    if (!data) return { allowed: false as const, data: null, today: null, printPayload: null };
     const today = todayInTimeZone(context.organization.timezone);
-    return { allowed: true as const, data, today };
+    const printPayload = await buildRecognizedBreakdownPrintPayload(locale, context.organization.name, data);
+    return { allowed: true as const, data, today, printPayload };
   });
 
   if (!result.allowed || !result.data || !result.today) {
@@ -52,9 +58,22 @@ export default async function RecognizedCostBreakdownPage({
 
   return (
     <MainAppPage>
-      <PageHeader title={t('pageTitle')} description={t('pageHint')} />
+      <PageHeader
+        title={t('pageTitle')}
+        description={
+          <>
+            <p>{t('pageHint')}</p>
+            <p>{t('scopeHint')}</p>
+            <p>{tOverview('recognizedActualHint')}</p>
+          </>
+        }
+      />
       <MainAppSection>
-        <RecognizedCostBreakdownView data={result.data} today={result.today} />
+        <RecognizedCostBreakdownView
+          data={result.data}
+          today={result.today}
+          printPayload={result.printPayload}
+        />
     
       </MainAppSection>
     </MainAppPage>
