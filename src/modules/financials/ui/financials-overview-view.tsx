@@ -13,27 +13,23 @@ export async function FinancialsOverviewView({ data }: { readonly data: Financia
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
-      <form method="get" className="rounded-lg border border-[var(--pf-border-default)] p-3">
+      <form method="get" className="flex min-w-0 max-w-full flex-col gap-2">
         <DateRangeSelector
           today={data.today}
           defaultFrom={data.period.fromDate}
           defaultTo={data.period.toDate}
           labels={{
+            thisWeek: tRange('thisWeek'),
             thisMonth: tRange('thisMonth'),
-            lastMonth: tRange('lastMonth'),
-            last30Days: tRange('last30Days'),
-            last90Days: tRange('last90Days'),
             thisYear: tRange('thisYear'),
-            lastYear: tRange('lastYear'),
             from: tRange('from'),
             to: tRange('to'),
-            apply: tRange('apply'),
           }}
         />
-        <div className="mt-3">
+        <div>
           <button
             type="submit"
-            className="min-h-11 rounded-md border border-[var(--pf-border-strong)] px-4 text-sm font-medium"
+            className="min-h-11 rounded-md border border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] px-4 text-sm font-medium"
           >
             {tRange('apply')}
           </button>

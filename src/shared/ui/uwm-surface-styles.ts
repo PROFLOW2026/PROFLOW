@@ -1,13 +1,17 @@
 /** Shared UWM / Employee list surface classes — aligned with main ProjectFlow hierarchy. */
 
 export const uwmPrimaryPanelClass =
-  'rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 shadow-[var(--pf-shadow-sm)]';
+  'rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 shadow-[var(--pf-shadow-sm)] sm:p-4';
 
 export const uwmSecondaryPanelClass =
   'rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 shadow-[var(--pf-shadow-sm)]';
 
 export const uwmFilterPanelClass =
-  'space-y-4 rounded-xl border border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] p-4 shadow-[var(--pf-shadow-md)]';
+  'space-y-3 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 shadow-[var(--pf-shadow-sm)]';
+
+/** Lighter filter chrome for list hubs (work tasks, my work). */
+export const uwmFilterPanelCompactClass =
+  'space-y-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2.5 sm:p-3 shadow-none';
 
 export const uwmListPanelClass =
   'overflow-hidden rounded-xl border border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] shadow-[var(--pf-shadow-sm)] divide-y divide-[var(--pf-border-default)]';
@@ -29,7 +33,7 @@ export const uwmFilterInputClass =
   'flex h-11 w-full rounded-md border border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] px-3 text-sm text-[var(--pf-text-primary)] shadow-sm focus:border-[var(--pf-border-focus)] focus:outline-2 focus:outline-offset-0 focus:outline-[var(--pf-focus-ring)]';
 
 export const uwmTabBarClass =
-  'flex gap-1 overflow-hidden rounded-lg border border-[var(--pf-border-strong)] bg-[var(--pf-bg-muted)] p-1 shadow-[var(--pf-shadow-sm)]';
+  'flex min-w-0 max-w-full flex-wrap gap-1.5 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] p-1.5 shadow-none';
 
 export function uwmTabClass(active: boolean): string {
   return active

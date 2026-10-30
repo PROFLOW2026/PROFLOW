@@ -15,7 +15,6 @@ import type { MyWorkItem, TaskCardData } from '@/modules/tasks/ui/task-api';
 import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
 import { MyWorkView as MyWorkViewComponent } from '@/modules/tasks/ui/my-work-view';
 import { MyWorkQuickCreate } from '@/modules/tasks/ui/my-work-quick-create';
-import { PlanningVsTasksHint } from '@/modules/tasks/ui/planning-vs-tasks-hint';
 import { WorkLensChrome } from '@/modules/tasks/ui/work-lens-chrome';
 import { listClientsForOrg } from '@/modules/clients';
 import { listWorkspaces } from '@/modules/workspaces';
@@ -100,8 +99,6 @@ export default async function MyWorkPage({ searchParams }: MyWorkPageProps) {
       <PageHeader title={t('myWork.pageTitle')} description={t('myWork.pageDescription')} />
       <MainAppSection className="w-full min-w-0">
         <WorkLensChrome searchParams={params} clients={clients} taskCount={taskCount} />
-
-      <PlanningVsTasksHint />
 
       <MyWorkViewComponent
         key={activeView}

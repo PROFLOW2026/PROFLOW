@@ -29,7 +29,7 @@ export function EmptyState({
     <div
       className={cn(
         'flex flex-col items-center justify-center text-center',
-        size === 'md' ? 'gap-3 px-6 py-12' : 'gap-2 px-4 py-8',
+        size === 'md' ? 'gap-3 px-4 py-8 sm:px-6 sm:py-10' : 'gap-2 px-4 py-6',
         className,
       )}
     >

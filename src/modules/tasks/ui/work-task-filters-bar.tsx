@@ -208,7 +208,7 @@ function WorkTaskFilterControls({
   if (applied.archived) summary.push(tTasks('filters.archivedOnly'));
 
   return (
-    <div className="space-y-3">
+    <div className="flex min-w-0 max-w-full flex-col gap-2">
       <OwnerListFilterBar
         title={t('title')}
         applyLabel={t('apply')}
@@ -221,6 +221,9 @@ function WorkTaskFilterControls({
         activeSummary={summary}
         onApply={() => onApply(draft)}
         onClear={onClear}
+        compact
+        suppressTitle
+        collapseDesktop
         toolbar={
           <input
             type="search"

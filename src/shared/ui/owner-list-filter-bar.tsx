@@ -7,6 +7,7 @@ import {
   uwmActiveChipClass,
   uwmActiveFilterBannerClass,
   uwmFilterPanelClass,
+  uwmFilterPanelCompactClass,
   uwmFilterTitleClass,
   uwmPrimaryButtonClass,
   uwmSecondaryButtonClass,
@@ -30,6 +31,10 @@ interface OwnerListFilterBarProps {
   readonly clearHref?: string;
   /** When true, advanced filters stay collapsed until opened (all breakpoints). */
   readonly collapseDesktop?: boolean;
+  /** Lighter panel chrome (work hubs). */
+  readonly compact?: boolean;
+  /** Hide visible title when toolbar supplies primary affordance (title stays on `aria-label`). */
+  readonly suppressTitle?: boolean;
   /** Always visible, on the same row as the mobile filter button. */
   readonly toolbar?: React.ReactNode;
   readonly children: React.ReactNode;
@@ -50,6 +55,8 @@ export function OwnerListFilterBar({
   applyButtonType = 'button',
   clearHref,
   collapseDesktop = false,
+  compact = false,
+  suppressTitle = false,
   toolbar,
   children,
 }: OwnerListFilterBarProps) {
@@ -66,16 +73,20 @@ export function OwnerListFilterBar({
       : 'hidden lg:flex'
     : undefined;
 
+  const panelClass = compact ? uwmFilterPanelCompactClass : uwmFilterPanelClass;
+
   return (
-    <section className={uwmFilterPanelClass} aria-label={title}>
-      <div className="flex items-start justify-between gap-2">
-        <h2 className={uwmFilterTitleClass}>{title}</h2>
-        {isActive ? (
-          <span className="shrink-0 rounded-full bg-[var(--pf-teal-100)] px-2.5 py-1 text-xs font-semibold text-[var(--pf-teal-900)]">
-            {activeLabel}
-          </span>
-        ) : null}
-      </div>
+    <section className={panelClass} aria-label={title}>
+      {suppressTitle ? null : (
+        <div className="flex items-start justify-between gap-2">
+          <h2 className={cn(uwmFilterTitleClass, compact && 'text-sm')}>{title}</h2>
+          {isActive ? (
+            <span className="shrink-0 rounded-full bg-[var(--pf-teal-100)] px-2.5 py-1 text-xs font-semibold text-[var(--pf-teal-900)]">
+              {activeLabel}
+            </span>
+          ) : null}
+        </div>
+      )}
 
       <div
         className={cn(
@@ -88,7 +99,7 @@ export function OwnerListFilterBar({
           type="button"
           className={cn(uwmSecondaryButtonClass, 'shrink-0', !showFilterToggle && 'lg:hidden')}
           onClick={() => setOpen((v) => !v)}
-          aria-expanded={collapseDesktop ? open : true}
+          aria-expanded={showFilterToggle ? open : true}
         >
           {activeCount > 0 && mobileWithCountLabel ? mobileWithCountLabel : mobileLabel}
         </button>
@@ -98,7 +109,8 @@ export function OwnerListFilterBar({
 
       <div
         className={cn(
-          'flex flex-wrap items-center gap-2 border-t border-[var(--pf-border-default)] pt-3',
+          'flex flex-wrap items-center gap-2 border-t border-[var(--pf-border-default)]',
+          compact ? 'pt-2' : 'pt-3',
           advancedFooterClass,
         )}
       >

@@ -18,7 +18,6 @@ import { listProjectParticipantAssigneeOptions } from '@/modules/projects';
 import { findWorkspaceIdsByProject } from '@/modules/workspaces';
 import type { CreateTaskInput } from '@/modules/tasks';
 import type { TaskCardData } from '@/modules/tasks/ui/task-api';
-import { PlanningVsTasksHint } from '@/modules/tasks/ui/planning-vs-tasks-hint';
 import { ProjectTasksClient } from './_project-tasks-client';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -106,7 +105,6 @@ export default async function ProjectTasksPage({
       />
       <MainAppSection className="w-full min-w-0">
         <div className="flex w-full min-w-0 flex-col gap-4">
-          <PlanningVsTasksHint projectId={projectId} />
           {hasMore ? (
             <p role="status" className="text-sm text-[var(--pf-text-muted)]">
               {t('list.hasMore')}

@@ -42,8 +42,7 @@ export function WorkHubNav() {
     <nav
       aria-label={tNav('myWork')}
       className={cn(
-        'flex min-w-0 max-w-full items-center gap-1 overflow-x-auto overscroll-x-contain border-b border-[var(--pf-border-default)]',
-        '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+        'flex min-w-0 max-w-full flex-wrap gap-1 border-b border-[var(--pf-border-default)] pb-1',
       )}
     >
       {WORK_HUB_ROUTES.map(({ path, labelKey, labelNs }) => {
@@ -60,8 +59,8 @@ export function WorkHubNav() {
             prefetch={false}
             aria-current={selected ? 'page' : undefined}
             className={cn(
-              'relative shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-sm font-medium',
-              'min-h-11',
+              'relative min-w-0 flex-1 basis-[calc(50%-0.25rem)] border-b-2 border-transparent px-2 py-2 text-center text-sm font-medium sm:basis-auto sm:flex-none sm:px-3 sm:py-2.5',
+              'min-h-11 sm:whitespace-nowrap',
               pressableClassName,
               selected
                 ? 'border-[var(--pf-action-primary)] text-[var(--pf-text-brand)]'

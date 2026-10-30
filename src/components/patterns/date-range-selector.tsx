@@ -17,6 +17,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
+import { cn } from '@/shared/ui/cn';
 
 export interface DateRangeSelectorLabels {
   today?: string;
@@ -65,6 +66,11 @@ export interface DateRangeSelectorProps {
   weekStartDay?: number;
   /** Preset chip keys; defaults to {@link STANDARD_DATE_RANGE_PRESETS}. */
   presets?: readonly Preset[];
+  /**
+   * When `custom-only`, from/to inputs show only after the user picks Custom or the range
+   * does not match a preset (hidden inputs still submit for GET forms).
+   */
+  dateInputs?: 'always' | 'custom-only';
 }
 
 /** Add integer `days` to a YYYY-MM-DD string, returns YYYY-MM-DD. */
@@ -83,7 +89,7 @@ function startOfWeekForPreset(isoDate: string, weekStart = 0): string {
   return d.toISOString().slice(0, 10);
 }
 
-function computePreset(
+export function computePresetRange(
   preset: string,
   today: string,
   weekStart = 0,
@@ -144,6 +150,35 @@ type StandardPreset = (typeof STANDARD_DATE_RANGE_PRESETS)[number];
 type LegacyPreset = (typeof LEGACY_DATE_RANGE_PRESETS)[number];
 type Preset = StandardPreset | LegacyPreset;
 
+function computePreset(
+  preset: string,
+  today: string,
+  weekStart = 0,
+): { from: string; to: string } {
+  return computePresetRange(preset, today, weekStart);
+}
+
+/** Returns matching preset key when `from`/`to` equal that preset's range. */
+export function findMatchingPreset(
+  from: string,
+  to: string,
+  today: string,
+  presets: readonly Preset[],
+  weekStartDay = 0,
+): Preset | null {
+  if (!from || !to) return null;
+  for (const preset of presets) {
+    const range = computePresetRange(preset, today, weekStartDay);
+    if (range.from === from && range.to === to) return preset;
+  }
+  return null;
+}
+
+function usesStandardCompactPresets(presets: readonly Preset[]): boolean {
+  if (presets.length !== STANDARD_DATE_RANGE_PRESETS.length) return false;
+  return STANDARD_DATE_RANGE_PRESETS.every((key, index) => presets[index] === key);
+}
+
 export function DateRangeSelector({
   today: todayProp,
   defaultFrom = '',
@@ -158,6 +193,7 @@ export function DateRangeSelector({
   className,
   weekStartDay = 0,
   presets = DEFAULT_PRESETS,
+  dateInputs: dateInputsProp,
 }: DateRangeSelectorProps) {
   const t = useTranslations('common.dateRange');
   const labels: Required<DateRangeSelectorLabels> = {
@@ -174,6 +210,9 @@ export function DateRangeSelector({
     apply: labelsProp?.apply ?? t('apply'),
   };
   const today = todayProp ?? new Date().toISOString().slice(0, 10);
+  const dateInputs =
+    dateInputsProp ?? (usesStandardCompactPresets(presets) ? 'custom-only' : 'always');
+  const customLabel = t('custom');
 
   // Support both controlled (from/to + onChange) and uncontrolled (defaultFrom/To) modes.
   const isControlled = fromProp !== undefined || toProp !== undefined;
@@ -182,6 +221,12 @@ export function DateRangeSelector({
 
   const from = isControlled ? (fromProp ?? '') : internalFrom;
   const to = isControlled ? (toProp ?? '') : internalTo;
+
+  const matchedPreset = findMatchingPreset(from, to, today, presets, weekStartDay);
+  const [customRangeOpen, setCustomRangeOpen] = React.useState(
+    () => dateInputs === 'always' || findMatchingPreset(defaultFrom, defaultTo, today, presets, weekStartDay) === null,
+  );
+  const showDateFields = dateInputs === 'always' || customRangeOpen;
 
   function setFrom(value: string) {
     if (isControlled) {
@@ -200,52 +245,84 @@ export function DateRangeSelector({
   }
 
   function applyPreset(preset: Preset) {
-    const { from: f, to: t } = computePreset(preset, today, weekStartDay);
+    const { from: f, to: tVal } = computePreset(preset, today, weekStartDay);
     setFrom(f);
-    setTo(t);
+    setTo(tVal);
+    if (dateInputs === 'custom-only') {
+      setCustomRangeOpen(false);
+    }
   }
 
+  function openCustomRange() {
+    setCustomRangeOpen(true);
+  }
+
+  const presetChipClass = (active: boolean) =>
+    cn(
+      'rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors min-h-9',
+      'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--pf-focus-ring)]',
+      active
+        ? 'border-[var(--pf-action-primary)] bg-[var(--pf-accent-soft)] text-[var(--pf-text-brand)]'
+        : 'border-[var(--pf-border-default)] bg-transparent hover:bg-[var(--pf-bg-subtle)]',
+    );
+
   return (
-    <div className={className}>
-      {/* Preset buttons */}
-      <div className="flex flex-wrap gap-1.5">
+    <div className={cn('min-w-0 max-w-full', className)}>
+      <div className="flex min-w-0 flex-wrap gap-1.5">
         {presets.map((preset) => (
           <button
             key={preset}
             type="button"
             onClick={() => applyPreset(preset)}
-            className="rounded border border-[var(--pf-border-default)] bg-transparent px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[var(--pf-bg-subtle)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--pf-focus-ring)]"
+            aria-pressed={matchedPreset === preset && !customRangeOpen}
+            className={presetChipClass(matchedPreset === preset && !customRangeOpen)}
           >
             {labels[preset]}
           </button>
         ))}
+        {dateInputs === 'custom-only' ? (
+          <button
+            type="button"
+            onClick={openCustomRange}
+            aria-pressed={customRangeOpen || matchedPreset === null}
+            className={presetChipClass(customRangeOpen || matchedPreset === null)}
+          >
+            {customLabel}
+          </button>
+        ) : null}
       </div>
 
-      {/* Date inputs */}
-      <div className="mt-2 flex flex-wrap items-end gap-3">
-        <label className="flex min-w-0 w-full flex-col gap-1 text-sm sm:w-auto sm:min-w-[10rem]">
-          <span className="text-[var(--pf-text-secondary)]">{labels.from}</span>
-          <input
-            type="date"
-            name={fromName}
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            className="h-9 w-full min-w-0 max-w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--pf-focus-ring)] sm:min-w-[10rem]"
-            dir="ltr"
-          />
-        </label>
-        <label className="flex min-w-0 w-full flex-col gap-1 text-sm sm:w-auto sm:min-w-[10rem]">
-          <span className="text-[var(--pf-text-secondary)]">{labels.to}</span>
-          <input
-            type="date"
-            name={toName}
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            className="h-9 w-full min-w-0 max-w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--pf-focus-ring)] sm:min-w-[10rem]"
-            dir="ltr"
-          />
-        </label>
-      </div>
+      {showDateFields ? (
+        <div className="mt-2 flex min-w-0 flex-wrap items-end gap-2 sm:gap-3">
+          <label className="flex min-w-0 w-full flex-col gap-1 text-sm sm:w-auto sm:min-w-[9rem]">
+            <span className="text-[var(--pf-text-secondary)]">{labels.from}</span>
+            <input
+              type="date"
+              name={fromName}
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="h-9 w-full min-w-0 max-w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--pf-focus-ring)]"
+              dir="ltr"
+            />
+          </label>
+          <label className="flex min-w-0 w-full flex-col gap-1 text-sm sm:w-auto sm:min-w-[9rem]">
+            <span className="text-[var(--pf-text-secondary)]">{labels.to}</span>
+            <input
+              type="date"
+              name={toName}
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="h-9 w-full min-w-0 max-w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--pf-focus-ring)]"
+              dir="ltr"
+            />
+          </label>
+        </div>
+      ) : (
+        <>
+          <input type="hidden" name={fromName} value={from} />
+          <input type="hidden" name={toName} value={to} />
+        </>
+      )}
     </div>
   );
 }

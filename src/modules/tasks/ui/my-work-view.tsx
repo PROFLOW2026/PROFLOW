@@ -129,7 +129,7 @@ function ViewTabBar({
   return (
     <nav
       aria-label={t('myWork.tabsLabel')}
-      className={cn(uwmTabBarClass, 'max-w-full min-w-0 overflow-x-auto overscroll-x-contain')}
+      className={cn(uwmTabBarClass, 'max-w-full min-w-0')}
     >
       {views.map((v) => {
         const count = counts[v.key];
@@ -142,7 +142,7 @@ function ViewTabBar({
             aria-selected={active}
             onClick={() => onChange(v.key)}
             className={cn(
-              'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-2 text-sm font-semibold transition-colors sm:px-3',
+              'inline-flex min-w-0 flex-1 basis-[calc(50%-0.25rem)] items-center justify-center gap-1 rounded-md px-2 py-2 text-sm font-semibold transition-colors sm:flex-none sm:basis-auto sm:justify-start sm:gap-1.5 sm:px-3',
               active
                 ? 'bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)] shadow-sm'
                 : 'border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] text-[var(--pf-text-primary)] hover:bg-[var(--pf-bg-subtle)]',
