@@ -1,3 +1,6 @@
+'use client';
+
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { cn } from '@/shared/ui/cn';
 
 export function selectClassName() {
@@ -8,18 +11,28 @@ export function FormRow({
   label,
   children,
   hint,
+  error,
   className,
 }: {
   label: string;
   children: React.ReactNode;
+  /** Help copy — shown in info dialog, not inline. */
   hint?: string;
+  error?: string | null;
   className?: string;
 }) {
   return (
     <label className={cn('flex flex-col gap-1 text-sm text-[var(--pf-text-primary)]', className)}>
-      <span className="font-medium">{label}</span>
+      <span className="inline-flex items-center gap-1 font-medium">
+        {label}
+        {hint ? <ContextualInfo dialogTitle={label} content={hint} size="sm" /> : null}
+      </span>
       {children}
-      {hint ? <span className="text-xs text-[var(--pf-text-secondary)]">{hint}</span> : null}
+      {error ? (
+        <span role="alert" className="text-xs text-[var(--pf-action-danger)]">
+          {error}
+        </span>
+      ) : null}
     </label>
   );
 }

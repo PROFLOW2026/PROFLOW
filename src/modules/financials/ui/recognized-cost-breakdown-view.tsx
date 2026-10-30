@@ -3,6 +3,7 @@ import { MainAppListBody, MainAppTableShell } from '@/components/patterns/main-a
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Link } from '@/shared/i18n/navigation';
@@ -56,15 +57,23 @@ export async function RecognizedCostBreakdownView({
         </div>
       </form>
 
-      <Alert tone="info">{t('scopeHint')}</Alert>
+      <div className="flex justify-end">
+        <ContextualInfo dialogTitle={t('totalTitle')} content={t('scopeHint')} size="sm" />
+      </div>
       {!parityOk ? (
         <Alert tone="warning">{t('parityWarning')}</Alert>
       ) : null}
 
       <Card className="min-w-0">
         <CardHeader>
-          <CardTitle className="text-base">{t('totalTitle')}</CardTitle>
-          <p className="text-xs text-[var(--pf-text-muted)]">{tOverview('recognizedActualHint')}</p>
+          <div className="flex items-start gap-1">
+            <CardTitle className="min-w-0 flex-1 text-base">{t('totalTitle')}</CardTitle>
+            <ContextualInfo
+              dialogTitle={t('totalTitle')}
+              content={tOverview('recognizedActualHint')}
+              size="sm"
+            />
+          </div>
         </CardHeader>
         <CardContent className="flex min-w-0 flex-wrap gap-6">
           <div>

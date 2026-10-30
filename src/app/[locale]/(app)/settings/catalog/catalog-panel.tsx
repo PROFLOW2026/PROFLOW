@@ -7,6 +7,7 @@ import { formatPercentDisplay } from '@/shared/number/display';
 import { localizeCode } from '@/shared/i18n/code-display';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { Alert } from '@/components/ui/alert';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -35,9 +36,9 @@ export function CatalogSettingsPanel({
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-4">
-      <MainAppSection>
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
-      </MainAppSection>
+      <div className="flex justify-end">
+        <ContextualInfo dialogTitle={t('title')} content={t('subtitle')} size="sm" />
+      </div>
 
       <CatalogList
         title={t('domainsTitle')}
@@ -90,7 +91,7 @@ function CatalogList({
   return (
     <MainAppSection title={title} description={hint} className="w-full min-w-0">
       {items.length === 0 ? (
-        <EmptyState title={emptyTitle} description={hint} />
+        <EmptyState title={emptyTitle} />
       ) : (
         <ul className="flex flex-col gap-2">
           {items.map((item) => (

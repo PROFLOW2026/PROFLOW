@@ -5,6 +5,7 @@ import { ChevronRight } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Button } from '@/components/ui/button';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -861,9 +862,13 @@ export function ExpenseForm({
                 {taxPreview.gross}
               </dd>
             </div>
-            <p className="text-xs text-[var(--pf-text-muted)] sm:col-span-3">
-              {t('fields.previewActualHint')}
-            </p>
+            <div className="flex justify-end sm:col-span-3">
+              <ContextualInfo
+                dialogTitle={t('fields.amount')}
+                content={t('fields.previewActualHint')}
+                size="sm"
+              />
+            </div>
           </dl>
         ) : null}
         </MainAppFormGrid>
@@ -963,7 +968,14 @@ export function ExpenseForm({
 
         {showMultiProjectAllocation ? (
           <div id="expense-allocation" className={`${mainAppFieldSpan.full} flex scroll-mt-24 flex-col gap-3`}>
-            <p className="text-sm text-[var(--pf-text-secondary)]">{t('destination.projectMultiHint')}</p>
+            <div className="flex items-center gap-1">
+              <span className="text-sm font-medium">{t('destination.projectMulti')}</span>
+              <ContextualInfo
+                dialogTitle={t('destination.projectMulti')}
+                content={t('destination.projectMultiHint')}
+                size="sm"
+              />
+            </div>
             <AllocationEditor
               currency={currency}
               totalAmount={allocationTotalAmount}
@@ -978,11 +990,17 @@ export function ExpenseForm({
         ) : null}
 
         {showGeneralIntentHint ? (
-          <p className={`${mainAppFieldSpan.full} rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-start text-sm text-[var(--pf-text-secondary)]`}>
-            {costDestinationMode === 'company_only'
-              ? t('allocationIntent.companyOnlyHint')
-              : t('allocationIntent.autoPoolHint')}
-          </p>
+          <div className={`${mainAppFieldSpan.full} flex justify-end`}>
+            <ContextualInfo
+              dialogTitle={t('destination.label')}
+              content={
+                costDestinationMode === 'company_only'
+                  ? t('allocationIntent.companyOnlyHint')
+                  : t('allocationIntent.autoPoolHint')
+              }
+              size="sm"
+            />
+          </div>
         ) : null}
 
         <input
@@ -1407,7 +1425,14 @@ export function ExpenseForm({
               role="status"
               className={`${mainAppFieldSpan.full} rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-start text-sm`}
             >
-              <p className="font-medium text-[var(--pf-text-primary)]">{t('categoryPolicy.title')}</p>
+              <div className="flex items-center gap-1 font-medium text-[var(--pf-text-primary)]">
+                {t('categoryPolicy.title')}
+                <ContextualInfo
+                  dialogTitle={t('categoryPolicy.title')}
+                  content={t('categoryPolicy.overrideHint')}
+                  size="sm"
+                />
+              </div>
               <dl className="mt-2 grid gap-1 text-xs text-[var(--pf-text-secondary)] sm:grid-cols-3">
                 <div>
                   <dt className="text-[var(--pf-text-muted)]">{t('categoryPolicy.family')}</dt>
@@ -1436,8 +1461,6 @@ export function ExpenseForm({
               </dl>
               <p className="mt-2 text-xs text-[var(--pf-text-muted)]">
                 {showingPolicyOverride ? t('categoryPolicy.overridden') : t('categoryPolicy.fromPolicy')}
-                {' · '}
-                {t('categoryPolicy.overrideHint')}
               </p>
             </div>
           ) : null}
@@ -1532,13 +1555,19 @@ export function ExpenseForm({
                 </>
               )}
 
-              <p className="text-xs text-[var(--pf-text-muted)]">
-                {usesAutomaticDriver
-                  ? t('allocation.autoDriverHint')
-                  : `${t('allocation.period')}: ${t(`recurrence.${recurrenceCadence}`)}${
-                      hasProjectAllocation ? ` · ${t('lifecycle.overheadAllocatedHint')}` : ''
-                    }`}
-              </p>
+              <div className="flex justify-end">
+                <ContextualInfo
+                  dialogTitle={t('allocation.driverLabel')}
+                  content={
+                    usesAutomaticDriver
+                      ? t('allocation.autoDriverHint')
+                      : `${t('allocation.period')}: ${t(`recurrence.${recurrenceCadence}`)}${
+                          hasProjectAllocation ? ` · ${t('lifecycle.overheadAllocatedHint')}` : ''
+                        }`
+                  }
+                  size="sm"
+                />
+              </div>
 
               {!usesAutomaticDriver ? (
                 <AllocationEditor

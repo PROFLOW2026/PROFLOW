@@ -9,6 +9,7 @@ import {
 } from '@/app/[locale]/(app)/projects/actions';
 import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -122,8 +123,11 @@ function FormSection({
 }) {
   return (
     <fieldset className="flex flex-col gap-4 rounded-md border border-[var(--pf-border-default)] p-3">
-      <legend className="px-1 text-sm font-medium">{title}</legend>
-      {hint ? <p className="text-xs text-[var(--pf-text-muted)]">{hint}</p> : null}
+      <legend className="sr-only">{title}</legend>
+      <div className="flex items-center gap-1 px-1 text-sm font-medium text-[var(--pf-text-primary)]">
+        {title}
+        {hint ? <ContextualInfo dialogTitle={title} content={hint} size="sm" /> : null}
+      </div>
       {children}
     </fieldset>
   );

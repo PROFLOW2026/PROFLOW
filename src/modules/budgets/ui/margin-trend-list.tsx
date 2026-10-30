@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { MoneyText } from '@/components/patterns/money-text';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { fromNumericString } from '@/shared/money/money';
 import type { MarginTrendPoint } from '@/modules/financials/domain/margin-trend';
 
@@ -91,8 +92,10 @@ export function MarginTrendList({
 
   return (
     <div className="flex min-w-0 w-full flex-col gap-2">
-      <h3 className="text-sm font-semibold">{labels.title}</h3>
-      <p className="text-xs text-[var(--pf-text-muted)]">{labels.hint}</p>
+      <div className="flex items-center gap-1">
+        <h3 className="text-sm font-semibold">{labels.title}</h3>
+        <ContextualInfo dialogTitle={labels.title} content={labels.hint} size="sm" />
+      </div>
 
       <div className="flex min-w-0 w-full flex-col gap-3 md:hidden">
         {rows.map((row) => (

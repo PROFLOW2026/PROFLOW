@@ -3,7 +3,8 @@
 import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { RFI_PRIORITIES } from '../domain/types';
@@ -62,17 +63,19 @@ export function RfiCreateForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('create.title')}</CardTitle>
-        <CardDescription>{t('create.description')}</CardDescription>
+        <div className="flex items-start gap-1.5">
+          <CardTitle className="min-w-0 flex-1">{t('create.title')}</CardTitle>
+          <ContextualInfo dialogTitle={t('create.title')} content={t('create.description')} size="sm" />
+        </div>
       </CardHeader>
       <CardContent>
         <form className="flex flex-col gap-4" onSubmit={onSubmit}>
           <FormError message={error} />
           <MainAppFormGrid dense>
-          <FormRow label={t('fields.subject')} hint={fieldErrors.subject} className={mainAppFieldSpan.full}>
+          <FormRow label={t('fields.subject')} error={fieldErrors.subject} className={mainAppFieldSpan.full}>
             <Input name="subject" required maxLength={300} />
           </FormRow>
-          <FormRow label={t('fields.question')} hint={fieldErrors.question} className={mainAppFieldSpan.full}>
+          <FormRow label={t('fields.question')} error={fieldErrors.question} className={mainAppFieldSpan.full}>
             <Textarea name="question" required rows={5} maxLength={20000} />
           </FormRow>
           <FormRow label={t('fields.contractor')} className={mainAppFieldSpan.lg}>

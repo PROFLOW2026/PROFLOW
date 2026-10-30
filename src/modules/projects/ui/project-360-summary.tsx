@@ -7,6 +7,7 @@ import type { MoneyValue } from '@/shared/money';
 import { formatPercentDisplay } from '@/shared/number/display';
 import { NotFoundError } from '@/shared/errors';
 import { MarginTrendList } from '@/modules/budgets/ui/margin-trend-list';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import {
   getProject360Summary,
   type Project360Summary as Project360SummaryData,
@@ -173,7 +174,10 @@ function MoneyMetric({
 }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-[var(--pf-text-muted)]">{label}</dt>
+      <dt className="flex items-center gap-1 text-xs text-[var(--pf-text-muted)]">
+        {label}
+        {hint ? <ContextualInfo dialogTitle={label} content={hint} size="sm" /> : null}
+      </dt>
       <dd className="min-w-0 max-w-full overflow-x-auto text-sm font-semibold">
         {value ? (
           <MoneyText value={value} colorizeNegative={colorizeNegative} />
@@ -181,7 +185,6 @@ function MoneyMetric({
           <span className="font-normal text-[var(--pf-text-muted)]">{emptyLabel ?? '—'}</span>
         )}
       </dd>
-      {hint ? <p className="text-xs text-[var(--pf-text-muted)]">{hint}</p> : null}
     </div>
   );
 }

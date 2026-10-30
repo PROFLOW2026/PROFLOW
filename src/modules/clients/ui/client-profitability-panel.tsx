@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Link } from '@/shared/i18n/navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import type { MoneyValue } from '@/shared/money';
@@ -30,8 +31,10 @@ function Metric({
 }) {
   return (
     <div className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
-      <p className="text-xs text-[var(--pf-text-secondary)]">{label}</p>
-      <p className="mt-0.5 text-[11px] text-[var(--pf-text-muted)]">{hint}</p>
+      <div className="flex items-center gap-1">
+        <p className="text-xs text-[var(--pf-text-secondary)]">{label}</p>
+        <ContextualInfo dialogTitle={label} content={hint} size="sm" />
+      </div>
       <p className="mt-1 break-words text-base font-semibold">{children}</p>
     </div>
   );
@@ -51,8 +54,12 @@ export async function ClientProfitabilityPanel({
     <section className="flex min-w-0 flex-col gap-4" aria-labelledby="client-profitability-heading">
       <Card className="min-w-0">
         <CardHeader>
-          <CardTitle id="client-profitability-heading">{t('title')}</CardTitle>
-          <CardDescription>{t('subtitle')}</CardDescription>
+          <div className="flex items-start gap-1.5">
+            <CardTitle id="client-profitability-heading" className="min-w-0 flex-1">
+              {t('title')}
+            </CardTitle>
+            <ContextualInfo dialogTitle={t('title')} content={t('subtitle')} size="sm" />
+          </div>
         </CardHeader>
         <CardContent className="flex min-w-0 flex-col gap-4">
           {!snapshot.hasProjects ? (

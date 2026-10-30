@@ -215,7 +215,13 @@ export async function ApBillsOrgListView({
       {isOwner ? <ProcurementSectionNav active="ap" /> : null}
 
       {outstandingOnly ? (
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('list.outstandingOnly')}</p>
+        <div className="flex justify-end">
+          <ContextualInfo
+            dialogTitle={t('list.filterPanelTitle')}
+            content={t('list.outstandingOnly')}
+            size="sm"
+          />
+        </div>
       ) : null}
 
       <ApBillsListFilters
