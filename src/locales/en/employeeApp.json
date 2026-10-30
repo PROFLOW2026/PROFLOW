@@ -639,6 +639,15 @@
     "projectScopeEmpty": "No active projects are available to assign.",
     "savePermissions": "Save permissions",
     "unsavedGrantsWarning": "Unsaved permission changes. Click Save to apply to this account",
+    "unsavedCollapseConfirm": "You have unsaved permission changes. Collapse this section anyway?",
+    "confirm": {
+      "blockTitle": "Block app access?",
+      "blockDescription": "{name} will not be able to sign in until the account is unblocked.",
+      "blockSuccess": "Account blocked",
+      "disableTitle": "Disable app access?",
+      "disableDescription": "This removes app access for {name}. You can enable access again later.",
+      "disableSuccess": "App access disabled"
+    },
     "presetRequiresSave": "Preset changes update the editor only. Click Save permissions to apply them to this employee's live account.",
     "permissionsSaved": "Permissions saved successfully",
     "permissionsSaveFailed": "Could not save permissions. Try again.",

@@ -2,14 +2,13 @@
 
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
+import { FormDialogFooter } from '@/components/patterns/form-dialog-footer';
 import { Alert } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogBody,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -74,14 +73,12 @@ export function DuplicateRecordWarningDialog({
             ))}
           </ul>
         </DialogBody>
-        <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
-          <Button type="button" variant="secondary" onClick={handleBack}>
-            {t('backToEdit')}
-          </Button>
-          <Button type="button" onClick={handleContinue}>
-            {t('continueAnyway')}
-          </Button>
-        </DialogFooter>
+        <FormDialogFooter
+          cancelLabel={t('backToEdit')}
+          onCancel={handleBack}
+          submitLabel={t('continueAnyway')}
+          onSubmit={handleContinue}
+        />
       </DialogContent>
     </Dialog>
   );

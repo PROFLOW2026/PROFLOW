@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
+import { CredentialsOutboundShareActions } from '@/components/patterns/credentials-outbound-share-actions';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -111,34 +112,20 @@ export function EmployeeCredentialsShareDialog({
           <AccessInfoField label={t('tempPinExpiry')} value={expiryLabel} valueDir="ltr" />
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <Button type="button" asChild variant="secondary" className="flex-1">
-              <a
-                href={buildWhatsAppShareUrl(normalizeWhatsAppPhone(employeePhone), message)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {t('shareWhatsApp')}
-              </a>
-            </Button>
-            <Button type="button" asChild variant="secondary" className="flex-1 min-h-11">
-              <a href={buildMailtoUrl(employeeEmail, subject, message)}>{t('shareEmail')}</a>
-            </Button>
-            <Button type="button" asChild variant="secondary" className="flex-1 min-h-11">
-              <a href={smsHref}>{t('shareSms')}</a>
-            </Button>
-            <Button type="button" variant="secondary" className="flex-1 min-h-11" onClick={() => void nativeShare()}>
-              {t('shareNative')}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              className="flex-1 min-h-11"
-              onClick={() => void copyText(message, t('messageCopied'))}
-            >
-              {t('copyMessage')}
-            </Button>
-          </div>
+          <CredentialsOutboundShareActions
+            whatsAppHref={buildWhatsAppShareUrl(normalizeWhatsAppPhone(employeePhone), message)}
+            mailtoHref={buildMailtoUrl(employeeEmail, subject, message)}
+            smsHref={smsHref}
+            labels={{
+              shareWhatsApp: t('shareWhatsApp'),
+              shareEmail: t('shareEmail'),
+              shareSms: t('shareSms'),
+              shareNative: t('shareNative'),
+              copyMessage: t('copyMessage'),
+            }}
+            onNativeShare={nativeShare}
+            onCopyMessage={() => copyText(message, t('messageCopied'))}
+          />
         </DialogBody>
       </DialogContent>
     </Dialog>

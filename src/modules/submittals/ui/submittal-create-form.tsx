@@ -2,7 +2,6 @@
 
 import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,7 +9,7 @@ import { SUBMITTAL_TYPES } from '../domain/types';
 import { useRouter } from '@/shared/i18n/navigation';
 import { createSubmittalAction } from '../actions/internal-actions';
 import type { SubmittalFormOptions } from '../application/form-options';
-import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
+import { MainAppFormActions, MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { FormError, FormRow, selectClassName } from './form-controls';
 
 export function SubmittalCreateForm({
@@ -136,14 +135,13 @@ export function SubmittalCreateForm({
               </select>
             </FormRow>
           </MainAppFormGrid>
-          <div className="flex flex-wrap gap-2">
-            <Button type="submit" variant="primary" disabled={pending}>
-              {t('create.save')}
-            </Button>
-            <Button type="button" variant="ghost" disabled={pending} onClick={() => router.push(cancelHref)}>
-              {tCommon('actions.cancel')}
-            </Button>
-          </div>
+          <MainAppFormActions
+            onCancel={() => router.push(cancelHref)}
+            cancelLabel={tCommon('actions.cancel')}
+            submitLabel={t('create.save')}
+            submitLoading={pending}
+            sticky
+          />
         </form>
       </CardContent>
     </Card>

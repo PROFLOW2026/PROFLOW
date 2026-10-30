@@ -1,15 +1,15 @@
 'use client';
 
-import { ArrowRight, Cloud, FileText, Folder, RefreshCw } from 'lucide-react';
+import { ArrowRight, FileText, Folder, RefreshCw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
+import { FormDialogFooter } from '@/components/patterns/form-dialog-footer';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -303,15 +303,13 @@ export function ProjectCloudFilePicker({
           </div>
         )}
 
-        <DialogFooter className="gap-2 sm:justify-between">
-          <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
-            {tPicker('cancel')}
-          </Button>
-          <Button type="button" disabled={!selectedFile} onClick={handleConfirm}>
-            <Cloud aria-hidden />
-            {tPicker('attachSelected')}
-          </Button>
-        </DialogFooter>
+        <FormDialogFooter
+          cancelLabel={tPicker('cancel')}
+          onCancel={() => onOpenChange(false)}
+          submitLabel={tPicker('attachSelected')}
+          submitDisabled={!selectedFile}
+          onSubmit={handleConfirm}
+        />
       </DialogContent>
     </Dialog>
   );

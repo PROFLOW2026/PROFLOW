@@ -71,6 +71,7 @@ export async function CrmNewOpportunityView({
         defaultCurrency={currency}
         defaultLeadId={defaultLeadId}
         createOpportunityAction={createAction}
+        cancelHref={crmHubHref(surface)}
       />
     
       </MainAppSection>

@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { startTransition, useActionState, useState, type FormEvent } from 'react';
-import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
+import { MainAppFormActions, MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -230,9 +230,13 @@ export function ClientCreateForm() {
         </div>
       ) : null}
 
-      <Button type="submit" loading={pending} block>
-        {t('create.submit')}
-      </Button>
+      <MainAppFormActions
+        cancelHref="/clients"
+        cancelLabel={tCommon('actions.cancel')}
+        submitLabel={t('create.submit')}
+        submitLoading={pending}
+        sticky
+      />
     </form>
   );
 }

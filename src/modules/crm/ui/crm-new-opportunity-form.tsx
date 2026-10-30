@@ -2,9 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
-import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
+import { MainAppFormActions, MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,12 +20,14 @@ export function CrmNewOpportunityForm({
   defaultCurrency,
   defaultLeadId,
   createOpportunityAction,
+  cancelHref,
 }: {
   prospects: readonly { id: string; name: string }[];
   leads: readonly { id: string; title: string }[];
   defaultCurrency: string;
   defaultLeadId?: string;
   createOpportunityAction: CreateOpportunityAction;
+  cancelHref: string;
 }) {
   const t = useTranslations('crm.opportunity');
   const tFollowUp = useTranslations('crm.followUp');
@@ -146,9 +147,13 @@ export function CrmNewOpportunityForm({
           {(control) => <Input {...control} name="nextActionAt" type="datetime-local" dir="ltr" />}
         </Field>
       </MainAppFormGrid>
-      <Button type="submit" loading={pending} className="self-start">
-        {t('submit')}
-      </Button>
+      <MainAppFormActions
+        cancelHref={cancelHref}
+        cancelLabel={tCommon('actions.cancel')}
+        submitLabel={t('submit')}
+        submitLoading={pending}
+        sticky
+      />
     </form>
   );
 }

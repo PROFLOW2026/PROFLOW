@@ -319,6 +319,10 @@
       "editProfile": "Edit account details",
       "profileSaved": "Account details saved.",
       "usernameChangeHint": "The contractor signs in with this username. Changing it does not reset the password."
+    },
+    "confirm": {
+      "disableTitle": "Disable contractor account?",
+      "disableDescription": "This contractor will not be able to sign in until the account is enabled again."
     }
   }
 }

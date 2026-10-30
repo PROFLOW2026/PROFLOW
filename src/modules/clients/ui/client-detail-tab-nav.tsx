@@ -1,7 +1,9 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { mainAppDetailRouteTabListClassName } from '@/components/patterns/main-app/main-app-detail-tabs-shell';
 import { SectionNavLink } from '@/components/ui/section-nav-link';
+import { cn } from '@/shared/ui/cn';
 import {
   CLIENT_DETAIL_TABS,
   type ClientDetailTabKey,
@@ -20,7 +22,7 @@ export function ClientDetailTabNav({
   return (
     <nav
       aria-label={t('navLabel')}
-      className="-mx-1 flex gap-1 overflow-x-auto overscroll-x-contain border-b border-[var(--pf-border-default)] pb-px [scrollbar-width:thin]"
+      className={cn(mainAppDetailRouteTabListClassName, '-mx-1 pb-px')}
     >
       {CLIENT_DETAIL_TABS.map((tab) => (
         <SectionNavLink

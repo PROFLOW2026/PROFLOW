@@ -1,6 +1,7 @@
 export { MainAppPage } from './main-app-page';
 export { MainAppSection } from './main-app-section';
 export { MainAppFormGrid, mainAppFieldSpan } from './main-app-form-grid';
+export { MainAppFormActions, type MainAppFormActionsProps } from './main-app-form-actions';
 export { MainAppSummaryGrid, MainAppSummaryItem } from './main-app-summary-grid';
 export { MainAppListToolbar } from './main-app-list-toolbar';
 export { MainAppReportWorkspace } from './main-app-report-workspace';
@@ -20,3 +21,13 @@ export {
   LegacyListTableShell,
   mainAppListKitEnabled,
 } from './main-app-list-surface-kit';
+export {
+  MainAppDetailAdvancedSection,
+  MainAppDetailTabsContent,
+  MainAppDetailTabsList,
+  MainAppDetailTabsShell,
+  MainAppDetailTabsTrigger,
+  mainAppDetailHubSectionNavClassName,
+  mainAppDetailRouteTabListClassName,
+  mainAppDetailRouteTabsFrameClassName,
+} from './main-app-detail-tabs-shell';

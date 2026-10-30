@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { CredentialsOutboundShareActions } from '@/components/patterns/credentials-outbound-share-actions';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -168,34 +169,31 @@ function ContractorCredentialsShareDialogBody({
             valueClassName="break-all font-mono text-xs font-normal"
           />
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <Button type="button" asChild variant="secondary" className="min-h-11 flex-1">
-              <a href={whatsAppHref} target="_blank" rel="noopener noreferrer">
-                {tUi('shareWhatsApp')}
-              </a>
-            </Button>
-            <Button type="button" asChild variant="secondary" className="min-h-11 flex-1">
-              <a href={mailtoHref}>{tUi('shareEmail')}</a>
-            </Button>
-            <Button type="button" asChild variant="secondary" className="min-h-11 flex-1">
-              <a href={smsHref}>{tUi('shareSms')}</a>
-            </Button>
-            <Button type="button" variant="secondary" className="min-h-11 flex-1" onClick={() => void nativeShare()}>
-              {tUi('shareNative')}
-            </Button>
-            <Button type="button" variant="secondary" className="min-h-11 flex-1" onClick={() => void copy(message, tUi('messageCopied'))}>
-              {tUi('copyMessage')}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              className="min-h-11 flex-1"
-              onClick={() => void copy(linkUrl, tUi('linkCopied'))}
-              disabled={!linkUrl}
-            >
-              {tUi('copyLink')}
-            </Button>
-          </div>
+          <CredentialsOutboundShareActions
+            whatsAppHref={whatsAppHref}
+            mailtoHref={mailtoHref}
+            smsHref={smsHref}
+            labels={{
+              shareWhatsApp: tUi('shareWhatsApp'),
+              shareEmail: tUi('shareEmail'),
+              shareSms: tUi('shareSms'),
+              shareNative: tUi('shareNative'),
+              copyMessage: tUi('copyMessage'),
+            }}
+            onNativeShare={nativeShare}
+            onCopyMessage={() => copy(message, tUi('messageCopied'))}
+            trailingActions={
+              <Button
+                type="button"
+                variant="secondary"
+                className="min-h-11 flex-1"
+                onClick={() => void copy(linkUrl, tUi('linkCopied'))}
+                disabled={!linkUrl}
+              >
+                {tUi('copyLink')}
+              </Button>
+            }
+          />
         </DialogBody>
       </DialogContent>
     </Dialog>

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { ChevronDown, KeyRound, UserPlus } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useActionState, useCallback, useEffect, useMemo, useState } from 'react';
+import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { Alert } from '@/components/ui/alert';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -588,7 +589,25 @@ function AccountCard({
             </>
           ) : null}
           {canHomeManage && account.status !== 'disabled' ? (
-            <PrincipalCommand projectId={projectId} principalId={account.principalId} command="disable" label={t('actions.disable')} variant="dangerGhost" action={commandAction} />
+            <ConfirmAction
+              title={t('confirm.disableTitle')}
+              description={<p>{t('confirm.disableDescription')}</p>}
+              confirmLabel={t('actions.disable')}
+              successMessage={t('actions.disabled')}
+              onConfirm={async () => {
+                const formData = new FormData();
+                formData.set('projectId', projectId);
+                formData.set('principalId', account.principalId);
+                formData.set('command', 'disable');
+                const result = await actions.principalCommand({}, formData);
+                if (result.error) return { error: result.error };
+              }}
+              trigger={
+                <Button type="button" size="sm" variant="dangerGhost">
+                  {t('actions.disable')}
+                </Button>
+              }
+            />
           ) : null}
           {canHomeManage && account.status === 'disabled' ? (
             <PrincipalCommand projectId={projectId} principalId={account.principalId} command="enable" label={t('actions.enable')} action={commandAction} />

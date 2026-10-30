@@ -1,4 +1,8 @@
 import type { ReactNode } from 'react';
+import {
+  mainAppDetailRouteTabListClassName,
+  mainAppDetailRouteTabsFrameClassName,
+} from '@/components/patterns/main-app/main-app-detail-tabs-shell';
 import { pressableClassName } from '@/components/ui/pressable';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
@@ -31,10 +35,7 @@ export function ProjectTabsList({
       role="tablist"
       data-pf-project-tabs=""
       dir={dir}
-      className={cn(
-        'flex min-w-0 max-w-full w-full items-center gap-1 overflow-x-auto overscroll-x-contain border-b border-[var(--pf-border-default)]',
-        '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-      )}
+      className={mainAppDetailRouteTabListClassName}
     >
       {tabs.map((hub) => {
         const selected = hub === activeHub;
@@ -82,7 +83,7 @@ export function ProjectTabsFrame({
   children,
 }: ProjectTabsListProps & { children?: ReactNode }) {
   return (
-    <div className="min-w-0 max-w-full" dir={dir}>
+    <div className={mainAppDetailRouteTabsFrameClassName} dir={dir}>
       <ProjectTabsList
         tabs={tabs}
         activeHub={activeHub}

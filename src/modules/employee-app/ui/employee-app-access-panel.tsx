@@ -3,6 +3,8 @@
 import { useCallback, useMemo, useState, useTransition } from 'react';
 import { useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
+import { ConfirmAction } from '@/components/patterns/confirm-action';
+import { useCollapseUnsavedGuard } from '@/components/patterns/use-dialog-unsaved-guard';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -201,6 +203,11 @@ export function EmployeeAppAccessPanel({
   ]);
 
   useEmployeeDetailUnsaved('employee-app-grants', isDirty);
+
+  const permissionsCollapseGuard = useCollapseUnsavedGuard({
+    dirty: isDirty,
+    confirmMessage: t('unsavedCollapseConfirm'),
+  });
 
   const showPresetRequiresSave =
     Boolean(account && account.status !== 'inactive') &&
@@ -837,23 +844,37 @@ export function EmployeeAppAccessPanel({
             </Button>
           ) : null}
           {account.status !== 'blocked' ? (
-            <Button
-              type="button"
-              variant="danger"
-              disabled={pending}
-              onClick={() => run(() => blockEmployeeAppAction(employeeId))}
-            >
-              {t('block')}
-            </Button>
+            <ConfirmAction
+              title={t('confirm.blockTitle')}
+              description={<p>{t('confirm.blockDescription', { name: employeeName })}</p>}
+              confirmLabel={t('block')}
+              successMessage={t('confirm.blockSuccess')}
+              onConfirm={async () => {
+                await blockEmployeeAppAction(employeeId);
+                router.refresh();
+              }}
+              trigger={
+                <Button type="button" variant="danger" disabled={pending}>
+                  {t('block')}
+                </Button>
+              }
+            />
           ) : null}
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={pending}
-            onClick={() => run(() => disableEmployeeAppAction(employeeId))}
-          >
-            {t('disable')}
-          </Button>
+          <ConfirmAction
+            title={t('confirm.disableTitle')}
+            description={<p>{t('confirm.disableDescription', { name: employeeName })}</p>}
+            confirmLabel={t('disable')}
+            successMessage={t('confirm.disableSuccess')}
+            onConfirm={async () => {
+              await disableEmployeeAppAction(employeeId);
+              router.refresh();
+            }}
+            trigger={
+              <Button type="button" variant="secondary" disabled={pending}>
+                {t('disable')}
+              </Button>
+            }
+          />
         </div>
       </section>
     ) : null;
@@ -882,6 +903,7 @@ export function EmployeeAppAccessPanel({
         summary={tPresets(presetTranslationKey(selectedPreset))}
         keepMounted
         collapsedActions={permissionsSaveCollapsed}
+        onBeforeToggle={permissionsCollapseGuard}
       >
         {permissionEditor}
       </CollapsibleSection>

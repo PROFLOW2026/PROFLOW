@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { mainAppDetailHubSectionNavClassName } from '@/components/patterns/main-app/main-app-detail-tabs-shell';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { pressableClassName } from '@/components/ui/pressable';
@@ -42,7 +43,7 @@ export async function ProjectHubSectionNav({
     <nav
       aria-label={hub}
       dir={dir}
-      className="flex min-w-0 max-w-full gap-1 overflow-x-auto border-b border-[var(--pf-border-default)] pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className={mainAppDetailHubSectionNavClassName}
     >
       {sections.map((section) => {
         const selected = section === activeSection;

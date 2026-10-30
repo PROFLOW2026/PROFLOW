@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { mainAppDetailRouteTabsFrameClassName } from '@/components/patterns/main-app/main-app-detail-tabs-shell';
 import { type ProjectHubKey } from './project-hub-order';
 import { ProjectTabsEnhancer } from './project-tabs-enhancer';
 import { ProjectTabsList } from './project-tabs-list';
@@ -27,7 +28,7 @@ export function ProjectCommercialTabFrame({
     activeHub && tabs.includes(activeHub) ? activeHub : (tabs[0] ?? 'overview');
 
   return (
-    <div className="min-w-0 max-w-full" dir={dir}>
+    <div className={mainAppDetailRouteTabsFrameClassName} dir={dir}>
       <ProjectTabsList
         tabs={tabs}
         activeHub={resolvedActive}

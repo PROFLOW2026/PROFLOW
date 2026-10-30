@@ -1,6 +1,10 @@
 'use client';
 
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  MainAppDetailTabsList,
+  MainAppDetailTabsShell,
+  MainAppDetailTabsTrigger,
+} from '@/components/patterns/main-app/main-app-detail-tabs-shell';
 import { Link } from '@/shared/i18n/navigation';
 
 export type WorkforceTab = 'employees' | 'time' | 'attendance' | 'approvals' | 'timesheets';
@@ -22,14 +26,14 @@ interface WorkforceSubNavClientProps {
  */
 export function WorkforceSubNavClient({ active, tabs }: WorkforceSubNavClientProps) {
   return (
-    <Tabs value={active}>
-      <TabsList>
+    <MainAppDetailTabsShell value={active}>
+      <MainAppDetailTabsList>
         {tabs.map((tab) => (
-          <TabsTrigger key={tab.value} value={tab.value} asChild>
+          <MainAppDetailTabsTrigger key={tab.value} value={tab.value} asChild>
             <Link href={tab.href}>{tab.label}</Link>
-          </TabsTrigger>
+          </MainAppDetailTabsTrigger>
         ))}
-      </TabsList>
-    </Tabs>
+      </MainAppDetailTabsList>
+    </MainAppDetailTabsShell>
   );
 }

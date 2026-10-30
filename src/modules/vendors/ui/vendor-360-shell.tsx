@@ -1,8 +1,14 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ReactNode } from 'react';
+import {
+  MainAppDetailAdvancedSection,
+  MainAppDetailTabsContent,
+  MainAppDetailTabsList,
+  MainAppDetailTabsShell,
+  MainAppDetailTabsTrigger,
+} from '@/components/patterns/main-app/main-app-detail-tabs-shell';
 
 export type Vendor360Tab =
   | 'details'
@@ -25,23 +31,6 @@ interface Vendor360ShellProps {
   detailsAdvanced?: ReactNode;
 }
 
-function AdvancedSections({ children }: { children: ReactNode }) {
-  const t = useTranslations('vendors.detail.tabs');
-
-  if (!children) return null;
-
-  return (
-    <details className="rounded-md border border-[var(--pf-border-default)]">
-      <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-[var(--pf-text-secondary)] marker:me-2">
-        {t('advancedSection')}
-      </summary>
-      <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] p-4">
-        {children}
-      </div>
-    </details>
-  );
-}
-
 export function Vendor360Shell({
   defaultTab = 'details',
   details,
@@ -61,7 +50,9 @@ export function Vendor360Shell({
       content: (
         <>
           {details}
-          <AdvancedSections>{detailsAdvanced}</AdvancedSections>
+          <MainAppDetailAdvancedSection title={t('advancedSection')}>
+            {detailsAdvanced}
+          </MainAppDetailAdvancedSection>
         </>
       ),
     },
@@ -75,19 +66,19 @@ export function Vendor360Shell({
   ];
 
   return (
-    <Tabs defaultValue={defaultTab} className="flex min-w-0 flex-col gap-4">
-      <TabsList aria-label={t('label')}>
+    <MainAppDetailTabsShell defaultValue={defaultTab}>
+      <MainAppDetailTabsList aria-label={t('label')}>
         {tabs.map((tab) => (
-          <TabsTrigger key={tab.id} value={tab.id}>
+          <MainAppDetailTabsTrigger key={tab.id} value={tab.id}>
             {tab.label}
-          </TabsTrigger>
+          </MainAppDetailTabsTrigger>
         ))}
-      </TabsList>
+      </MainAppDetailTabsList>
       {tabs.map((tab) => (
-        <TabsContent key={tab.id} value={tab.id} className="flex min-w-0 flex-col gap-4">
+        <MainAppDetailTabsContent key={tab.id} value={tab.id}>
           {tab.content}
-        </TabsContent>
+        </MainAppDetailTabsContent>
       ))}
-    </Tabs>
+    </MainAppDetailTabsShell>
   );
 }

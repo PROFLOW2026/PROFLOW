@@ -2,9 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
-import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
+import { MainAppFormActions, MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { MoneyText } from '@/components/patterns/money-text';
-import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,6 +20,7 @@ export interface ApproveChangeFormProps {
 
 export function ApproveChangeForm({ detail, action, canApprove }: ApproveChangeFormProps) {
   const t = useTranslations('changes.approve');
+  const tCommon = useTranslations('common');
   const [state, formAction, pending] = useActionState(action, {});
 
   const selectedVersion = detail.quoteVersions.find((version) => version.isSelected);
@@ -72,9 +72,14 @@ export function ApproveChangeForm({ detail, action, canApprove }: ApproveChangeF
             </p>
           ) : null}
 
-          <Button type="submit" disabled={pending || !signed}>
-            {t('confirm')}
-          </Button>
+          <MainAppFormActions
+            cancelHref={`/changes/${detail.id}`}
+            cancelLabel={tCommon('actions.cancel')}
+            submitLabel={t('confirm')}
+            submitLoading={pending}
+            submitDisabled={!signed}
+            sticky
+          />
         </form>
       ) : (
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('noPermission')}</p>

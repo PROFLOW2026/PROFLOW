@@ -11,6 +11,7 @@ export function CollapsibleSection({
   defaultOpen = false,
   keepMounted = false,
   collapsedActions,
+  onBeforeToggle,
   children,
   className,
 }: {
@@ -22,6 +23,8 @@ export function CollapsibleSection({
   keepMounted?: boolean;
   /** Actions shown in the header row while collapsed (e.g. save when dirty). */
   collapsedActions?: ReactNode;
+  /** Return false to keep the current open state (e.g. unsaved guard). */
+  onBeforeToggle?: (nextOpen: boolean) => boolean;
   children: ReactNode;
   className?: string;
 }) {
@@ -52,7 +55,13 @@ export function CollapsibleSection({
           className="flex min-w-0 flex-1 items-center justify-between gap-3 px-4 py-3 text-start"
           aria-expanded={open}
           aria-controls={panelId}
-          onClick={() => setOpen((value) => !value)}
+          onClick={() =>
+            setOpen((value) => {
+              const next = !value;
+              if (onBeforeToggle && onBeforeToggle(next) === false) return value;
+              return next;
+            })
+          }
         >
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="text-sm font-medium text-[var(--pf-text-primary)]">{title}</span>

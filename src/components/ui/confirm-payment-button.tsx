@@ -2,14 +2,15 @@
 
 import { useRouter } from '@/shared/i18n/navigation';
 import { useState, useTransition } from 'react';
+import { FormDialogFooter } from '@/components/patterns/form-dialog-footer';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -54,34 +55,33 @@ export function ConfirmPaymentButton({
             <DialogTitle>{label}</DialogTitle>
             <DialogDescription>{paymentDateHint}</DialogDescription>
           </DialogHeader>
-          <Field label={paymentDateLabel} required>
-            {(controlProps) => (
-              <Input
-                {...controlProps}
-                type="date"
-                value={paidAt}
-                onChange={(event) => setPaidAt(event.target.value)}
-              />
-            )}
-          </Field>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              {cancelLabel}
-            </Button>
-            <Button
-              type="button"
-              disabled={pending || !paidAt}
-              onClick={() => {
-                startTransition(async () => {
-                  await onConfirm(paidAt);
-                  setOpen(false);
-                  router.refresh();
-                });
-              }}
-            >
-              {confirmLabel}
-            </Button>
-          </DialogFooter>
+          <DialogBody className="flex min-w-0 flex-col gap-4">
+            <Field label={paymentDateLabel} required>
+              {(controlProps) => (
+                <Input
+                  {...controlProps}
+                  type="date"
+                  value={paidAt}
+                  onChange={(event) => setPaidAt(event.target.value)}
+                />
+              )}
+            </Field>
+          </DialogBody>
+          <FormDialogFooter
+            cancelLabel={cancelLabel}
+            onCancel={() => setOpen(false)}
+            cancelDisabled={pending}
+            submitLabel={confirmLabel}
+            submitDisabled={!paidAt}
+            submitLoading={pending}
+            onSubmit={() => {
+              startTransition(async () => {
+                await onConfirm(paidAt);
+                setOpen(false);
+                router.refresh();
+              });
+            }}
+          />
         </DialogContent>
       </Dialog>
     </>

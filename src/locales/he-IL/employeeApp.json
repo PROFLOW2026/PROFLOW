@@ -639,6 +639,15 @@
     "projectScopeEmpty": "אין פרויקטים פעילים לשיוך.",
     "savePermissions": "שמירת הרשאות",
     "unsavedGrantsWarning": "יש שינויי הרשאות שלא נשמרו. לחצו שמירה כדי להחיל על החשבון",
+    "unsavedCollapseConfirm": "יש שינויי הרשאות שלא נשמרו. לסגור את המקטע בכל זאת?",
+    "confirm": {
+      "blockTitle": "לחסום גישה לאפליקציה?",
+      "blockDescription": "{name} לא יוכל/תכלה להתחבר עד שהחשבון ישוחרר מחסימה.",
+      "blockSuccess": "החשבון נחסם",
+      "disableTitle": "לבטל גישה לאפליקציה?",
+      "disableDescription": "פעולה זו מסירה את גישת האפליקציה עבור {name}. ניתן להפעיל שוב מאוחר יותר.",
+      "disableSuccess": "גישת האפליקציה בוטלה"
+    },
     "presetRequiresSave": "שינוי תבנית מעדכן את העורך בלבד. לחצו שמירת הרשאות כדי להחיל על חשבון העובד הפעיל.",
     "permissionsSaved": "ההרשאות נשמרו בהצלחה",
     "permissionsSaveFailed": "שמירת ההרשאות נכשלה. נסו שוב.",

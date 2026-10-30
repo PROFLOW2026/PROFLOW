@@ -3,14 +3,13 @@
 import { useCallback, useRef, useState, useTransition } from 'react';
 import { useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
+import { FormDialogFooter } from '@/components/patterns/form-dialog-footer';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -97,35 +96,34 @@ export function SaveToStorageButton({
             <DialogTitle>{t('duplicate.title')}</DialogTitle>
             <DialogDescription>{t('duplicate.body')}</DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex flex-wrap gap-2">
-            <DialogClose asChild>
-              <Button type="button" variant="ghost">
-                {t('duplicate.cancel')}
+          <FormDialogFooter
+            className="flex-wrap sm:flex-wrap"
+            cancelLabel={t('duplicate.cancel')}
+            onCancel={() => setDuplicateOpen(false)}
+            cancelDisabled={pending}
+            submitLabel={t('duplicate.openExisting')}
+            submitVariant="secondary"
+            submitDisabled={pending}
+            onSubmit={() => {
+              const docId = duplicateRef.current?.documentId;
+              if (docId) {
+                window.open(`/api/org-storage/download/${docId}?disposition=inline`, '_blank');
+              }
+            }}
+            trailing={
+              <Button
+                type="button"
+                loading={pending}
+                disabled={pending}
+                onClick={() => {
+                  idempotencyRef.current = crypto.randomUUID();
+                  runSave(true);
+                }}
+              >
+                {t('duplicate.saveNewVersion')}
               </Button>
-            </DialogClose>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                const docId = duplicateRef.current?.documentId;
-                if (docId) {
-                  window.open(`/api/org-storage/download/${docId}?disposition=inline`, '_blank');
-                }
-              }}
-            >
-              {t('duplicate.openExisting')}
-            </Button>
-            <Button
-              type="button"
-              disabled={pending}
-              onClick={() => {
-                idempotencyRef.current = crypto.randomUUID();
-                runSave(true);
-              }}
-            >
-              {t('duplicate.saveNewVersion')}
-            </Button>
-          </DialogFooter>
+            }
+          />
         </DialogContent>
       </Dialog>
     </>

@@ -2,9 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
-import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
+import { MainAppFormActions, MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -38,9 +37,13 @@ export function CrmNewProspectForm() {
           {(control) => <Textarea {...control} name="notes" rows={3} />}
         </Field>
       </MainAppFormGrid>
-      <Button type="submit" loading={pending} className="self-start">
-        {t('submit')}
-      </Button>
+      <MainAppFormActions
+        cancelHref="/crm/prospects"
+        cancelLabel={tCommon('actions.cancel')}
+        submitLabel={t('submit')}
+        submitLoading={pending}
+        sticky
+      />
     </form>
   );
 }
