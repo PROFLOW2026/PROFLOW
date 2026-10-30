@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Card } from '@/components/ui/card';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import {
@@ -96,12 +97,16 @@ export default async function OcrSettingsPage() {
           {data.azureNeedsCredentials ? (
             <Alert tone="warning">{t('azureGuidance')}</Alert>
           ) : null}
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('draftsOnly')}</p>
+          <div className="flex justify-end">
+            <ContextualInfo dialogTitle={t('title')} content={t('draftsOnly')} size="sm" />
+          </div>
         </Card>
 
         <Card className="flex flex-col gap-3 p-5">
-          <h2 className="text-base font-semibold">{t('queueTitle')}</h2>
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('queueHint')}</p>
+          <div className="flex items-center gap-1 text-base font-semibold">
+            {t('queueTitle')}
+            <ContextualInfo dialogTitle={t('queueTitle')} content={t('queueHint')} size="sm" />
+          </div>
           <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4" data-pf-ocr-queue-counts>
             <div>
               <dt className="text-[var(--pf-text-secondary)]">{t('queued')}</dt>

@@ -2,7 +2,7 @@ import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 ﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { listAvailableCreateWorkKinds } from '@/components/shell/quick-create-actions';
-import { Alert } from '@/components/ui/alert';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { PageHeader } from '@/components/ui/page-header';
 import { listClientsForOrg, listContactsForClients } from '@/modules/clients';
 import {
@@ -164,17 +164,22 @@ export default async function NewProjectPage({
 
   return (
     <MainAppPage>
-      <PageHeader title={t('create.title')} description={t('create.description')} />
+      <PageHeader
+        title={t('create.title')}
+        description={t('create.description')}
+        meta={
+          recommendedTemplateNames.length > 0 ? (
+            <ContextualInfo
+              dialogTitle={t('create.title')}
+              content={t('create.recommendedTemplatesTip', {
+                templates: recommendedTemplateNames.join(' · '),
+              })}
+              size="sm"
+            />
+          ) : undefined
+        }
+      />
       <MainAppSection>
-        {recommendedTemplateNames.length > 0 ? (
-        <Alert tone="info" role="status">
-          <p className="text-sm">
-            {t('create.recommendedTemplatesTip', {
-              templates: recommendedTemplateNames.join(' · '),
-            })}
-          </p>
-        </Alert>
-      ) : null}
       <WorkKindCreateHint
         current="project"
         defaultWorkKind={shell?.suggestedDefaults?.defaultWorkKind}

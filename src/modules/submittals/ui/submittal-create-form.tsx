@@ -2,7 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { SUBMITTAL_TYPES } from '../domain/types';
@@ -58,8 +59,10 @@ export function SubmittalCreateForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('create.title')}</CardTitle>
-        <CardDescription>{t('create.description')}</CardDescription>
+        <div className="flex items-start gap-1.5">
+          <CardTitle className="min-w-0 flex-1">{t('create.title')}</CardTitle>
+          <ContextualInfo dialogTitle={t('create.title')} content={t('create.description')} size="sm" />
+        </div>
       </CardHeader>
       <CardContent>
         <form className="flex flex-col gap-4" onSubmit={onSubmit}>

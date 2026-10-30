@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { formatPercentDisplay } from '@/shared/number/display';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -747,7 +748,9 @@ export function OcrReviewPanel({
             <p className="font-medium">{t(`configurationState.${initialStatus.featureMode}`)}</p>
             <p>{t(initialStatus.messageKey)}</p>
           </Alert>
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('honesty')}</p>
+          <div className="flex justify-end">
+            <ContextualInfo dialogTitle={t('title')} content={t('honesty')} size="sm" />
+          </div>
         </>
       ) : null}
       {offline || (typeof navigator !== 'undefined' && !navigator.onLine) ? (
@@ -1041,9 +1044,13 @@ export function OcrReviewPanel({
                     className="flex flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-3"
                     data-pf-ocr-suggestions
                   >
-                    <div>
-                      <p className="text-sm font-medium">{t('recommendationsTitle')}</p>
-                      <p className="text-xs text-[var(--pf-text-secondary)]">{t('recommendationsHint')}</p>
+                    <div className="flex items-center gap-1 text-sm font-medium">
+                      {t('recommendationsTitle')}
+                      <ContextualInfo
+                        dialogTitle={t('recommendationsTitle')}
+                        content={t('recommendationsHint')}
+                        size="sm"
+                      />
                     </div>
 
                     <div className="flex flex-col gap-1.5">
@@ -1298,8 +1305,15 @@ export function OcrReviewPanel({
                   ) : null}
 
                   <fieldset className="flex flex-col gap-2">
-                    <legend className="text-sm font-medium">{t('draftTargetTitle')}</legend>
-                    <p className="text-xs text-[var(--pf-text-secondary)]">{t('draftTargetHint')}</p>
+                    <legend className="sr-only">{t('draftTargetTitle')}</legend>
+                    <div className="flex items-center gap-1 text-sm font-medium">
+                      {t('draftTargetTitle')}
+                      <ContextualInfo
+                        dialogTitle={t('draftTargetTitle')}
+                        content={t('draftTargetHint')}
+                        size="sm"
+                      />
+                    </div>
                     <div className="flex flex-wrap gap-3">
                       <label className="flex min-h-11 items-center gap-2 text-sm">
                         <input

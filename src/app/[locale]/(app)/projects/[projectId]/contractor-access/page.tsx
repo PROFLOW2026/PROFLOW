@@ -2,6 +2,7 @@ import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { PageHeader } from '@/components/ui/page-header';
 import { getContractorAccessOverview, loadContractorAccessAuthority } from '@/modules/contractor-access';
 import { ContractorAccessManager } from '@/modules/contractor-access/ui/contractor-access-manager';
@@ -58,7 +59,9 @@ export default async function ProjectContractorAccessPage({ params }: { params: 
           <div className="flex w-full min-w-0 flex-col gap-4">
             {overview ? (
               <>
-                <Alert tone="info">{t('manage.whereHint')}</Alert>
+                <div className="flex justify-end">
+                  <ContextualInfo dialogTitle={t('manage.title')} content={t('manage.whereHint')} size="sm" />
+                </div>
                 <ContractorAccessManager
                   projectId={projectId}
                   overview={overview}

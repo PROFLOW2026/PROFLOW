@@ -9,6 +9,7 @@ import { businessDate } from '@/shared/dates';
 import { listTasksForTimeLogAction } from '@/app/[locale]/(app)/workforce/time/actions';
 import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -592,8 +593,11 @@ export function TimeEntryForm({
           </MainAppFormGrid>
 
           <fieldset className="flex flex-col gap-2">
-            <legend className="text-sm font-medium">{t('time.form.weekdays')}</legend>
-            <p className="text-xs text-[var(--pf-text-muted)]">{t('time.form.weekdaysHint')}</p>
+            <legend className="sr-only">{t('time.form.weekdays')}</legend>
+            <div className="flex items-center gap-1 text-sm font-medium">
+              {t('time.form.weekdays')}
+              <ContextualInfo dialogTitle={t('time.form.weekdays')} content={t('time.form.weekdaysHint')} size="sm" />
+            </div>
             <div className="flex flex-wrap gap-2">
               {WEEKDAY_KEYS.map((key, index) => {
                 const day = index as WeekdayIndex;

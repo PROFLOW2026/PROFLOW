@@ -205,7 +205,12 @@ test.describe('OCR authenticated journey (mocked provider)', () => {
     await expect(page.locator('[data-pf-ocr-review]')).toBeVisible();
     await drainActiveQueue(page);
     await expect(page.getByText(he.documents.ocr.providerLiveReady)).toBeVisible();
-    await expect(page.getByText(he.documents.ocr.honesty)).toBeVisible();
+    await page
+      .locator('[data-pf-ocr-review="page"]')
+      .getByRole('button', { name: he.common.contextualInfo.openAbout.replace('{subject}', he.documents.ocr.title) })
+      .click();
+    await expect(page.getByRole('dialog')).toContainText(he.documents.ocr.honesty);
+    await page.keyboard.press('Escape');
 
     // Mobile/PWA-relevant camera capture control remains on the OCR surface.
     await expect(page.locator('input[capture="environment"]').first()).toBeAttached();

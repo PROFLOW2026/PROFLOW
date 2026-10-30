@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Link } from '@/shared/i18n/navigation';
@@ -77,7 +78,9 @@ export function TimeEntryListFilters({
       </Field>
 
       <div className="w-full">
-        <p className="mb-1 text-xs text-[var(--pf-text-muted)]">{t('time.filters.workDateHint')}</p>
+        <div className="mb-1 flex justify-end">
+          <ContextualInfo content={t('time.filters.workDateHint')} size="sm" />
+        </div>
         <DateRangeSelector
           today={today}
           defaultFrom={initial.fromDate ?? ''}

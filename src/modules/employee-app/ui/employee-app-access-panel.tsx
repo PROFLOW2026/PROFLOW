@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { useCollapseUnsavedGuard } from '@/components/patterns/use-dialog-unsaved-guard';
 import { Alert } from '@/components/ui/alert';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -484,7 +485,11 @@ export function EmployeeAppAccessPanel({
             <p className="text-xs text-[var(--pf-text-secondary)]">{t('presetRequiresSave')}</p>
           ) : null}
           {selectedPreset === 'external_consultant' ? (
-            <p className="text-xs text-[var(--pf-text-muted)]">{tPresets('externalConsultantHint')}</p>
+            <ContextualInfo
+              dialogTitle={tPresets('externalConsultant')}
+              content={tPresets('externalConsultantHint')}
+              size="sm"
+            />
           ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -572,8 +577,10 @@ export function EmployeeAppAccessPanel({
       {usesGrantedProjects && account && account.status !== 'inactive' ? (
         <section className="space-y-3 rounded-lg border border-[var(--pf-border-default)] p-3">
           <div className="space-y-1">
-            <h4 className="text-sm font-medium">{t('projectScopeTitle')}</h4>
-            <p className="text-xs text-[var(--pf-text-secondary)]">{t('projectScopeHint')}</p>
+            <div className="flex items-center gap-1">
+              <h4 className="text-sm font-medium">{t('projectScopeTitle')}</h4>
+              <ContextualInfo dialogTitle={t('projectScopeTitle')} content={t('projectScopeHint')} size="sm" />
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -644,8 +651,10 @@ export function EmployeeAppAccessPanel({
     documentsReadGranted ? (
       <section className="space-y-3">
         <div className="space-y-1">
-          <h4 className="text-sm font-medium">{t('folderAccessTitle')}</h4>
-          <p className="text-xs text-[var(--pf-text-secondary)]">{t('folderAccessHint')}</p>
+          <div className="flex items-center gap-1">
+            <h4 className="text-sm font-medium">{t('folderAccessTitle')}</h4>
+            <ContextualInfo dialogTitle={t('folderAccessTitle')} content={t('folderAccessHint')} size="sm" />
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -671,7 +680,14 @@ export function EmployeeAppAccessPanel({
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('folderAccessAllSummary')}</p>
         ) : (
           <>
-            <h5 className="text-sm font-medium">{t('documentCategoriesHint')}</h5>
+            <div className="flex items-center gap-1">
+              <h5 className="text-sm font-medium">{t('documentCategories')}</h5>
+              <ContextualInfo
+                dialogTitle={t('documentCategories')}
+                content={t('documentCategoriesHint')}
+                size="sm"
+              />
+            </div>
             <ul className="grid gap-2 sm:grid-cols-2">
               {EMPLOYEE_DOCUMENT_CATEGORY_KEYS.map((category) => (
                 <li key={category}>
@@ -791,12 +807,14 @@ export function EmployeeAppAccessPanel({
         </div>
 
         {!canShare && tempPinActive ? (
-          <p className="text-xs text-[var(--pf-text-secondary)]">{t('legacyTempPinHint')}</p>
+          <ContextualInfo dialogTitle={t('tempPinLabel')} content={t('legacyTempPinHint')} size="sm" />
         ) : null}
       </section>
     ) : (
       <section className="space-y-4">
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('noAccessHint')}</p>
+        <div className="flex justify-end">
+          <ContextualInfo dialogTitle={t('title')} content={t('noAccessHint')} size="sm" />
+        </div>
         <Button type="button" disabled={pending} onClick={() => run(handleActivate)}>
           {t('activate')}
         </Button>

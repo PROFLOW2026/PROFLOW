@@ -12,6 +12,7 @@ import {
   isFolderExternalCapability,
   type ExternalCapability,
 } from '@/shared/external';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { cn } from '@/shared/ui/cn';
 
 export const TEMPLATE_CHOICES = [...Object.keys(EXTERNAL_GRANT_TEMPLATES), 'custom'] as const;
@@ -117,8 +118,12 @@ export function CapabilityPicker({
                   }}
                 />
                 {t(`manage.templates.${choice}.name`)}
+                <ContextualInfo
+                  dialogTitle={t(`manage.templates.${choice}.name`)}
+                  content={t(`manage.templates.${choice}.description`)}
+                  size="sm"
+                />
               </span>
-              <span className="text-xs text-[var(--pf-text-secondary)]">{t(`manage.templates.${choice}.description`)}</span>
             </label>
           );
         })}
@@ -166,7 +171,9 @@ export function CapabilityPicker({
         </p>
       ) : null}
       {!canGrantFinancial ? (
-        <p className="text-xs text-[var(--pf-text-secondary)]">{t('manage.financialLocked')}</p>
+        <div className="flex justify-end">
+          <ContextualInfo dialogTitle={t('manage.invite.capabilities')} content={t('manage.financialLocked')} size="sm" />
+        </div>
       ) : null}
     </fieldset>
   );

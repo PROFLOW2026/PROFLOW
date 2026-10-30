@@ -87,11 +87,10 @@ export default async function TimesheetApprovalsPage({
 
   return (
     <MainAppPage>
-      <PageHeader title={t('time.approvals.title')} />
+      <PageHeader title={t('time.approvals.title')} description={t('time.approvals.queueHint')} />
       <MainAppSection>
         <WorkforceSubNav active="approvals" />
       <MainAppListBody>
-      <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('time.approvals.queueHint')}</p>
 
       <TimesheetApprovalFilters
         employees={data.employees.map((employee) => ({ id: employee.id, name: employee.name }))}

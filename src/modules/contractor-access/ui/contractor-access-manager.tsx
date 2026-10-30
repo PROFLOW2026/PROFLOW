@@ -8,6 +8,7 @@ import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { Alert } from '@/components/ui/alert';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { LOCALES, LOCALE_METADATA } from '@/shared/i18n/config';
@@ -161,7 +162,7 @@ function ScopeFields({
           <input type="checkbox" name="allProjects" className="mt-1" />
           <span>
             {t('allProjects')}
-            <span className="block text-xs text-[var(--pf-text-secondary)]">{t('allProjectsHint')}</span>
+            <ContextualInfo dialogTitle={t('allProjects')} content={t('allProjectsHint')} size="sm" className="ms-1 inline-flex align-middle" />
           </span>
         </label>
       ) : null}
@@ -199,8 +200,10 @@ function InviteForm({
         <div className="flex items-center gap-2">
           <UserPlus className="size-5 shrink-0 text-[var(--pf-text-brand)]" aria-hidden />
           <div className="min-w-0">
-            <h2 className="text-base font-semibold">{tLayout('inviteSection')}</h2>
-            <p className="text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
+            <div className="flex items-center gap-1">
+              <h2 className="text-base font-semibold">{tLayout('inviteSection')}</h2>
+              <ContextualInfo dialogTitle={tLayout('inviteSection')} content={t('description')} size="sm" />
+            </div>
           </div>
         </div>
       }
@@ -220,8 +223,10 @@ function InviteForm({
               onChange={(event) => setLinkExisting(event.target.checked)}
             />
             <span>
-              {t('linkExisting')}
-              <span className="block text-xs text-[var(--pf-text-secondary)]">{t('linkExistingHint')}</span>
+              <span className="inline-flex items-center gap-1">
+                {t('linkExisting')}
+                <ContextualInfo dialogTitle={t('linkExisting')} content={t('linkExistingHint')} size="sm" />
+              </span>
             </span>
           </label>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -613,7 +618,11 @@ function AccountCard({
             <PrincipalCommand projectId={projectId} principalId={account.principalId} command="enable" label={t('actions.enable')} action={commandAction} />
           ) : null}
         </div>
-        {!account.isHomeOrganization ? <p className="text-xs text-[var(--pf-text-secondary)]">{t('list.homeOrgOnly')}</p> : null}
+        {!account.isHomeOrganization ? (
+          <div className="flex justify-end">
+            <ContextualInfo dialogTitle={t('list.homeOrgOnly')} content={t('list.homeOrgOnly')} size="sm" />
+          </div>
+        ) : null}
       </div>
       </div>
     </CollapsiblePanel>
@@ -635,8 +644,14 @@ function AddAccessForm({ projectId, overview, action }: { projectId: string; ove
         <div className="flex items-center gap-2">
           <KeyRound className="size-5 shrink-0 text-[var(--pf-text-brand)]" aria-hidden />
           <div className="min-w-0">
-            <h2 className="text-base font-semibold">{tLayout('addAccessSection')}</h2>
-            <p className="text-sm text-[var(--pf-text-secondary)]">{t('actions.addAccessDescription')}</p>
+            <div className="flex items-center gap-1">
+              <h2 className="text-base font-semibold">{tLayout('addAccessSection')}</h2>
+              <ContextualInfo
+                dialogTitle={tLayout('addAccessSection')}
+                content={t('actions.addAccessDescription')}
+                size="sm"
+              />
+            </div>
           </div>
         </div>
       }

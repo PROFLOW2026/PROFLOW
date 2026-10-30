@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { cn } from '@/shared/ui/cn';
 
 /** Username / PIN — full digits visible, copy button stays adjacent. */
@@ -39,7 +40,10 @@ export function AccessInfoField({
 
   return (
     <div className={cn('flex w-full min-w-0 flex-col gap-1', className)}>
-      <span className="text-xs font-medium text-[var(--pf-text-secondary)]">{label}</span>
+      <span className="inline-flex items-center gap-1 text-xs font-medium text-[var(--pf-text-secondary)]">
+        {label}
+        {hint ? <ContextualInfo dialogTitle={label} content={hint} size="sm" /> : null}
+      </span>
       <div className="flex w-full min-w-0 items-center justify-start gap-2">
         <span
           className={cn(
@@ -53,7 +57,6 @@ export function AccessInfoField({
         </span>
         {actions ? <div className="shrink-0 self-center">{actions}</div> : null}
       </div>
-      {hint ? <span className="text-xs text-[var(--pf-text-secondary)]">{hint}</span> : null}
     </div>
   );
 }

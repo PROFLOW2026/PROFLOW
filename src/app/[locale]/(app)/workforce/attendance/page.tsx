@@ -1,7 +1,7 @@
 import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 ﻿import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { Alert } from '@/components/ui/alert';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import {
@@ -285,7 +285,13 @@ export default async function AttendancePage({
         </nav>
       ) : null}
 
-      <Alert tone="info">{t('attendance.scopeDisclaimer')}</Alert>
+      <div className="flex justify-end">
+        <ContextualInfo
+          dialogTitle={t('attendance.title')}
+          content={t('attendance.scopeDisclaimer')}
+          size="sm"
+        />
+      </div>
 
       {data.canReviewCorrections && data.correctionRequests.length > 0 ? (
         <section className="flex flex-col gap-3">

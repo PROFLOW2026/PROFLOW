@@ -6,6 +6,7 @@ import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-ap
 import { resolveOwnerManagerCreateCompensationDefaults } from '@/modules/workforce/domain/owner-manager-employer-cost';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -165,8 +166,14 @@ export function EmployeeForm({
 
       {showRateFields ? (
         <div className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
-          <p className="text-sm font-medium">{t('employees.form.salarySectionTitle')}</p>
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('employees.form.salarySectionHint')}</p>
+          <div className="flex items-center gap-1 text-sm font-medium">
+            {t('employees.form.salarySectionTitle')}
+            <ContextualInfo
+              dialogTitle={t('employees.form.salarySectionTitle')}
+              content={t('employees.form.salarySectionHint')}
+              size="sm"
+            />
+          </div>
 
           <MainAppFormGrid dense className="gap-4">
             <Field
@@ -345,7 +352,9 @@ export function EmployeeForm({
         </Button>
       </div>
 
-      <p className="text-xs text-[var(--pf-text-muted)]">{t('employees.form.assignmentHintMuted')}</p>
+      <div className="flex justify-end">
+        <ContextualInfo content={t('employees.form.assignmentHintMuted')} size="sm" />
+      </div>
     </form>
   );
 }
