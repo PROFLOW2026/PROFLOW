@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { ProjectWorkNavTabs } from './project-work-nav-tabs';
 
 interface ProjectWorkNavProps {
@@ -31,8 +32,15 @@ export async function ProjectWorkNav({
       {compact ? null : (
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <h2 className="text-base font-semibold text-[var(--pf-text-primary)]">{t('projectWork.identityTitle')}</h2>
-            <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('projectWork.identityHint')}</p>
+            <div className="flex items-start gap-1.5">
+              <h2 className="min-w-0 flex-1 text-base font-semibold text-[var(--pf-text-primary)]">
+                {t('projectWork.identityTitle')}
+              </h2>
+              <ContextualInfo
+                dialogTitle={t('projectWork.identityTitle')}
+                content={t('projectWork.identityHint')}
+              />
+            </div>
           </div>
           {backToProjectHref ? (
             <Link

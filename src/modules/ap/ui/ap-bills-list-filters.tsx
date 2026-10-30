@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { MainAppOrgListFilterPanel } from '@/components/patterns/main-app';
+import { ContextualInfoLabel } from '@/components/ui/contextual-info';
 
 export interface ApBillsListFiltersProps {
   readonly routeBase: string;
@@ -61,7 +62,7 @@ export function ApBillsListFilters(props: ApBillsListFiltersProps) {
     >
       <div className="flex flex-col gap-4">
         <div className="min-w-0">
-          <p className="mb-2 text-xs text-[var(--pf-text-muted)]">{t('list.billDateHint')}</p>
+          <ContextualInfoLabel label={t('list.billDate')} hint={t('list.billDateHint')} />
           <DateRangeSelector
             today={props.today}
             defaultFrom={props.fromDate ?? ''}
@@ -71,7 +72,7 @@ export function ApBillsListFilters(props: ApBillsListFiltersProps) {
           />
         </div>
         <div className="min-w-0">
-          <p className="mb-2 text-xs text-[var(--pf-text-muted)]">{t('list.paidInPeriodHint')}</p>
+          <ContextualInfoLabel label={t('list.paidInPeriodLabel')} hint={t('list.paidInPeriodHint')} />
           <DateRangeSelector
             today={props.today}
             defaultFrom={props.paymentFrom ?? ''}

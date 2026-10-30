@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { cn } from '@/shared/ui/cn';
+import { ContextualInfo } from './contextual-info';
 import { Label } from './label';
 
 interface FieldContextValue {
@@ -30,6 +31,8 @@ export interface FieldProps {
   required?: boolean;
   optionalLabel?: string;
   description?: React.ReactNode;
+  /** When `info`, field help opens from (i) beside the label instead of inline text. */
+  descriptionMode?: 'info' | 'inline';
   error?: string | null;
   className?: string;
   children: (controlProps: FieldControlProps) => React.ReactNode;
@@ -41,6 +44,7 @@ export function Field({
   required = false,
   optionalLabel,
   description,
+  descriptionMode = 'info',
   error,
   className,
   children,
@@ -61,31 +65,45 @@ export function Field({
     id: value.id,
     'aria-invalid': value.hasError || undefined,
     'aria-describedby':
-      [value.hasError ? value.errorId : null, description ? value.descriptionId : null]
+      [
+        value.hasError ? value.errorId : null,
+        description && descriptionMode === 'inline' ? value.descriptionId : null,
+      ]
         .filter(Boolean)
         .join(' ') || undefined,
   } as const;
+
+  const descriptionDialogTitle = typeof label === 'string' ? label : undefined;
 
   return (
     <FieldContext.Provider value={value}>
       <div className={cn('flex flex-col gap-1.5', className)}>
         <div className="flex items-baseline justify-between gap-2">
-          <Label htmlFor={value.id}>
-            {label}
-            {required ? (
-              <span className="ms-1 text-[var(--pf-action-danger)]" aria-hidden>
-                *
-              </span>
+          <div className="flex min-w-0 items-center gap-1">
+            <Label htmlFor={value.id}>
+              {label}
+              {required ? (
+                <span className="ms-1 text-[var(--pf-action-danger)]" aria-hidden>
+                  *
+                </span>
+              ) : null}
+            </Label>
+            {description && descriptionMode === 'info' ? (
+              <ContextualInfo
+                dialogTitle={descriptionDialogTitle}
+                content={description}
+                size="sm"
+              />
             ) : null}
-          </Label>
+          </div>
           {!required && optionalLabel ? (
-            <span className="text-xs text-[var(--pf-text-muted)]">{optionalLabel}</span>
+            <span className="shrink-0 text-xs text-[var(--pf-text-muted)]">{optionalLabel}</span>
           ) : null}
         </div>
 
         {children(controlProps)}
 
-        {description ? (
+        {description && descriptionMode === 'inline' ? (
           <p id={value.descriptionId} className="text-xs text-[var(--pf-text-muted)]">
             {description}
           </p>

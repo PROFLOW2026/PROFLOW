@@ -1,9 +1,12 @@
 import * as React from 'react';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { cn } from '@/shared/ui/cn';
 
 export interface PageHeaderProps {
   title: React.ReactNode;
   description?: React.ReactNode;
+  /** When `info` (default), page description opens from the (i) control beside the title. */
+  descriptionMode?: 'info' | 'inline';
   /** Optional leading slot on the title row (e.g. dashboard brand lockup). */
   startAccessory?: React.ReactNode;
   /** Status chips, counts, or other inline metadata under the title. */
@@ -16,12 +19,27 @@ export interface PageHeaderProps {
 export function PageHeader({
   title,
   description,
+  descriptionMode = 'info',
   startAccessory,
   meta,
   actions,
   breadcrumb,
   className,
 }: PageHeaderProps) {
+  const titleInfo =
+    description && descriptionMode === 'info' ? (
+      <ContextualInfo
+        dialogTitle={typeof title === 'string' ? title : undefined}
+        content={description}
+        className="mt-0.5"
+      />
+    ) : null;
+
+  const inlineDescription =
+    description && descriptionMode === 'inline' ? (
+      <p className="mt-1 break-words text-sm text-[var(--pf-text-secondary)]">{description}</p>
+    ) : null;
+
   return (
     <header data-pf-page-header="" className={cn('flex min-w-0 max-w-full flex-col gap-3', className)}>
       {breadcrumb}
@@ -31,22 +49,26 @@ export function PageHeader({
             dir="rtl"
             className="flex min-w-0 w-full max-w-full flex-1 basis-full items-center gap-2 sm:gap-3"
           >
-            <h1
-              dir="auto"
-              className="min-w-0 flex-1 truncate text-start text-xl font-semibold sm:text-2xl"
-            >
-              {title}
-            </h1>
+            <div className="flex min-w-0 flex-1 items-start gap-1.5">
+              <h1
+                dir="auto"
+                className="min-w-0 flex-1 truncate text-start text-xl font-semibold sm:text-2xl"
+              >
+                {title}
+              </h1>
+              {titleInfo}
+            </div>
             <div dir="ltr" className="shrink-0">
               {startAccessory}
             </div>
           </div>
         ) : (
           <div className="min-w-0 flex-1">
-            <h1 className="break-words text-xl font-semibold sm:text-2xl">{title}</h1>
-            {description ? (
-              <p className="mt-1 break-words text-sm text-[var(--pf-text-secondary)]">{description}</p>
-            ) : null}
+            <div className="flex min-w-0 items-start gap-1.5">
+              <h1 className="min-w-0 flex-1 break-words text-xl font-semibold sm:text-2xl">{title}</h1>
+              {titleInfo}
+            </div>
+            {inlineDescription}
             {meta ? <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">{meta}</div> : null}
           </div>
         )}
@@ -59,11 +81,9 @@ export function PageHeader({
           </div>
         ) : null}
       </div>
-      {startAccessory && (description || meta) ? (
+      {startAccessory && (inlineDescription || meta) ? (
         <div className="min-w-0 max-w-full">
-          {description ? (
-            <p className="break-words text-sm text-[var(--pf-text-secondary)]">{description}</p>
-          ) : null}
+          {inlineDescription}
           {meta ? <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">{meta}</div> : null}
         </div>
       ) : null}

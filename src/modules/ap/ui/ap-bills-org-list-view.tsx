@@ -15,6 +15,7 @@ import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { ApBillsListFilters } from '@/modules/ap/ui/ap-bills-list-filters';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -231,7 +232,12 @@ export async function ApBillsOrgListView({
         <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm">
           <span className="font-medium">{t('list.paidInPeriodLabel')} </span>
           <MoneyText value={{ amount: paidInPeriod, currency }} />
-          <span className="ms-2 text-[var(--pf-text-secondary)]">{t('list.paidInPeriodHint')}</span>
+          <ContextualInfo
+            dialogTitle={t('list.paidInPeriodLabel')}
+            content={t('list.paidInPeriodHint')}
+            size="sm"
+            className="ms-1 inline-flex align-middle"
+          />
         </div>
       ) : null}
 

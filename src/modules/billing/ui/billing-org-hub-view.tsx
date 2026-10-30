@@ -10,6 +10,7 @@ import { QueryPagination } from '@/components/ui/query-pagination';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BillingHubPeriodFilters } from '@/modules/billing/ui/billing-hub-period-filters';
@@ -364,7 +365,9 @@ export async function BillingOrgHubView({
         }
         preamble={
           <>
-            <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
+            <div className="flex justify-end">
+              <ContextualInfo dialogTitle={t('title')} content={t('statutoryDisclosure')} size="sm" />
+            </div>
             {isOwnerSurface ? <CommercialDocsHub current="billing" /> : null}
           </>
         }
@@ -374,7 +377,12 @@ export async function BillingOrgHubView({
         <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-4 py-3 text-sm">
           <span className="font-medium">{t('list.collectedInPeriodLabel')} </span>
           <MoneyText value={collectionsInPeriod} />
-          <span className="ms-2 text-[var(--pf-text-secondary)]">{t('list.collectedInPeriodHint')}</span>
+          <ContextualInfo
+            dialogTitle={t('list.collectedInPeriodLabel')}
+            content={t('list.collectedInPeriodHint')}
+            size="sm"
+            className="ms-1 inline-flex align-middle"
+          />
         </div>
       ) : null}
 

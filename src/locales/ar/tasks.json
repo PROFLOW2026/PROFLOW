@@ -802,6 +802,7 @@
     "approvalNotRequired": "هذه المهمة لا تتطلب موافقة."
   },
   "planningVsTasks": {
+    "dialogTitle": "التخطيط والمهام",
     "hint": "التخطيط (الجدول، Gantt) منفصل عن مهام UWM (التنفيذ، المكلّفون، Kanban).",
     "openPlanning": "فتح الجدول",
     "openTasks": "فتح مهام المشروع",

@@ -802,6 +802,7 @@
     "approvalNotRequired": "This task does not require approval."
   },
   "planningVsTasks": {
+    "dialogTitle": "Planning and tasks",
     "hint": "Planning (schedule, Gantt) is separate from UWM tasks (execution, assignees, Kanban).",
     "openPlanning": "Open schedule",
     "openTasks": "Open project tasks",

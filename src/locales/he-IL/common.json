@@ -137,6 +137,10 @@
     "backToEdit": "חזרה לעריכה",
     "continueAnyway": "המשך בכל זאת"
   },
+  "contextualInfo": {
+    "dialogFallbackTitle": "מידע",
+    "openAbout": "מידע נוסף: {subject}"
+  },
   "a11y": {
     "skipToContent": "דילוג לתוכן הראשי",
     "mainNavigation": "ניווט ראשי",

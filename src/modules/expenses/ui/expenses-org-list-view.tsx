@@ -22,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ContextualInfoLabel } from '@/components/ui/contextual-info';
 import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import { Button } from '@/components/ui/button';
 import { textNavLinkClassName } from '@/components/ui/pressable';
@@ -354,9 +355,10 @@ export function ExpensesOrgListView({
         advancedFilters={
           <>
             <div className="min-w-0">
-              <p className="mb-2 text-xs text-[var(--pf-text-muted)]">
-                {dateBasis === 'payment' ? t('filters.paymentDateHint') : t('filters.expenseDateHint')}
-              </p>
+              <ContextualInfoLabel
+                label={t('filters.dateBasis')}
+                hint={dateBasis === 'payment' ? t('filters.paymentDateHint') : t('filters.expenseDateHint')}
+              />
               <DateRangeSelector
                 today={today}
                 from={dateFrom}

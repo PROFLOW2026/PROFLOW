@@ -1,7 +1,8 @@
 ﻿import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert } from '@/components/ui/alert';
+import { ContextualInfo } from '@/components/ui/contextual-info';
+import { BusinessProfitabilityContextualInfo } from './business-profitability-contextual-info';
 import { Link } from '@/shared/i18n/navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import type { BusinessProfitabilityData, BusinessProfitabilityKpi } from '../application/get-business-profitability';
@@ -24,8 +25,10 @@ async function KpiCard({
   return (
     <Card className="min-w-0">
       <CardHeader className="pb-2">
-        <CardTitle className="text-start text-sm font-medium">{title}</CardTitle>
-        <p className="text-start text-xs text-[var(--pf-text-secondary)]">{hint}</p>
+        <div className="flex items-start gap-1">
+          <CardTitle className="min-w-0 flex-1 text-start text-sm font-medium">{title}</CardTitle>
+          <ContextualInfo dialogTitle={title} content={hint} size="sm" />
+        </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-2 pt-0">
         {unavailable ? (
@@ -60,13 +63,12 @@ export async function BusinessProfitabilityView({
   readonly data: BusinessProfitabilityData;
 }) {
   const t = await getTranslations('financial.businessProfitability');
-  const tFinancial = await getTranslations('financial');
 
   return (
     <div className="flex min-w-0 flex-col gap-8">
-      <Alert tone="info">{t('disclaimer')}</Alert>
-      <Alert tone="info">{t('scopeNote')}</Alert>
-      <p className="text-sm text-[var(--pf-text-secondary)]">{tFinancial('profitVsCash')}</p>
+      <div className="flex justify-end">
+        <BusinessProfitabilityContextualInfo />
+      </div>
 
       <section className="flex min-w-0 flex-col gap-3">
         <h2 className="text-base font-semibold">{t('sections.commercial')}</h2>
@@ -96,8 +98,10 @@ export async function BusinessProfitabilityView({
       </section>
 
       <section className="flex min-w-0 flex-col gap-3">
-        <h2 className="text-base font-semibold">{t('sections.billing')}</h2>
-        <p className="text-xs text-[var(--pf-text-muted)]">{t('billingNote')}</p>
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-base font-semibold">{t('sections.billing')}</h2>
+          <ContextualInfo dialogTitle={t('sections.billing')} content={t('billingNote')} size="sm" />
+        </div>
         <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <KpiCard
             title={t('kpis.netBilled')}
@@ -172,8 +176,10 @@ export async function BusinessProfitabilityView({
       </section>
 
       <section className="flex min-w-0 flex-col gap-3">
-        <h2 className="text-base font-semibold">{t('sections.forecast')}</h2>
-        <p className="text-xs text-[var(--pf-text-muted)]">{t('forecastFormula')}</p>
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-base font-semibold">{t('sections.forecast')}</h2>
+          <ContextualInfo dialogTitle={t('sections.forecast')} content={t('forecastFormula')} size="sm" />
+        </div>
         <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <KpiCard
             title={t('kpis.openCommitments')}

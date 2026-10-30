@@ -137,6 +137,10 @@
     "backToEdit": "العودة للتحرير",
     "continueAnyway": "المتابعة على أي حال"
   },
+  "contextualInfo": {
+    "dialogFallbackTitle": "معلومات",
+    "openAbout": "مزيد من المعلومات: {subject}"
+  },
   "a11y": {
     "skipToContent": "انتقل إلى المحتوى الرئيسي",
     "mainNavigation": "التنقل الرئيسي",

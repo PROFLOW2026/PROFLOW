@@ -137,6 +137,10 @@
     "backToEdit": "Вернуться к редактированию",
     "continueAnyway": "Всё равно продолжить"
   },
+  "contextualInfo": {
+    "dialogFallbackTitle": "Информация",
+    "openAbout": "Подробнее: {subject}"
+  },
   "a11y": {
     "skipToContent": "Перейти к основному содержимому",
     "mainNavigation": "Основная навигация",

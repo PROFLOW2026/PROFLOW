@@ -137,6 +137,10 @@
     "backToEdit": "Back to editing",
     "continueAnyway": "Continue anyway"
   },
+  "contextualInfo": {
+    "dialogFallbackTitle": "Information",
+    "openAbout": "More information: {subject}"
+  },
   "a11y": {
     "skipToContent": "Skip to main content",
     "mainNavigation": "Main navigation",

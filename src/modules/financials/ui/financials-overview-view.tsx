@@ -2,6 +2,7 @@
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Link } from '@/shared/i18n/navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
@@ -163,9 +164,21 @@ function OverviewKpiCard({
   return (
     <Card className="min-w-0">
       <CardHeader className="pb-1">
-        <CardTitle className="break-words text-xs font-medium text-[var(--pf-text-secondary)]">
-          {title}
-        </CardTitle>
+        <div className="flex min-w-0 items-start gap-1">
+          <CardTitle className="min-w-0 flex-1 break-words text-xs font-medium text-[var(--pf-text-secondary)]">
+            {title}
+          </CardTitle>
+          <ContextualInfo
+            dialogTitle={title}
+            content={
+              <>
+                <p>{hint}</p>
+                {basis ? <p className="text-[var(--pf-text-muted)]">{basis}</p> : null}
+              </>
+            }
+            size="sm"
+          />
+        </div>
       </CardHeader>
       <CardContent className="flex min-w-0 flex-col gap-2">
         {unavailable || !kpi.value ? (
@@ -177,8 +190,6 @@ function OverviewKpiCard({
             <MoneyText value={kpi.value} className="text-lg font-semibold" />
           </div>
         )}
-        <p className="text-xs text-[var(--pf-text-muted)]">{hint}</p>
-        {basis ? <p className="text-xs text-[var(--pf-text-muted)]">{basis}</p> : null}
         <Link href={kpi.href} className={cn(textNavLinkClassName, 'text-xs')}>
           {drillLabel}
         </Link>

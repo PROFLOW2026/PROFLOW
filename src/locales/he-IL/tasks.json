@@ -802,6 +802,7 @@
     "approvalNotRequired": "משימה זו אינה דורשת אישור."
   },
   "planningVsTasks": {
+    "dialogTitle": "תכנון ומשימות",
     "hint": "תכנון (לוח זמנים, Gantt) מנוהל בנפרד ממשימות UWM (ביצוע, אחראים, Kanban).",
     "openPlanning": "פתח לוח זמנים",
     "openTasks": "פתח משימות פרויקט",

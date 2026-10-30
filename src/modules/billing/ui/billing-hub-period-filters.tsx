@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { MainAppOrgListFilterPanel } from '@/components/patterns/main-app';
+import { ContextualInfoLabel } from '@/components/ui/contextual-info';
 
 export interface BillingHubPeriodFiltersProps {
   readonly clearHref: string;
@@ -62,7 +63,7 @@ export function BillingHubPeriodFilters(props: BillingHubPeriodFiltersProps) {
       <div className="flex flex-col gap-4">
         {props.preamble}
         <div className="min-w-0">
-          <p className="mb-2 text-xs text-[var(--pf-text-muted)]">{t('list.issueDateHint')}</p>
+          <ContextualInfoLabel label={t('list.issueDate')} hint={t('list.issueDateHint')} />
           <DateRangeSelector
             today={props.today}
             defaultFrom={props.fromDate ?? ''}
@@ -76,7 +77,7 @@ export function BillingHubPeriodFilters(props: BillingHubPeriodFiltersProps) {
           />
         </div>
         <div className="min-w-0">
-          <p className="mb-2 text-xs text-[var(--pf-text-muted)]">{t('list.paymentDateHint')}</p>
+          <ContextualInfoLabel label={t('list.paymentFrom')} hint={t('list.paymentDateHint')} />
           <DateRangeSelector
             today={props.today}
             defaultFrom={props.paymentFrom ?? ''}

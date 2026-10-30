@@ -5,6 +5,7 @@ import { startTransition, useActionState, useState, type FormEvent } from 'react
 import { MainAppFormActions, MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { ContextualInfo } from '@/components/ui/contextual-info';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -48,13 +49,20 @@ export function ClientCreateForm() {
     <form onSubmit={handleSubmit} className="flex w-full min-w-0 flex-col gap-4">
       {showValidationBanner(state) ? <Alert tone="danger">{state.error}</Alert> : null}
 
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('create.walkInHint')}</p>
+      <div className="flex justify-end">
+        <ContextualInfo dialogTitle={t('create.title')} content={t('create.walkInHint')} />
+      </div>
 
       <fieldset className="flex flex-col gap-4">
-        <legend className="text-sm font-medium text-[var(--pf-text-primary)]">
+        <legend className="sr-only">{t('create.companySection')}</legend>
+        <div className="flex items-center gap-1 text-sm font-medium text-[var(--pf-text-primary)]">
           {t('create.companySection')}
-        </legend>
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('create.companySectionHint')}</p>
+          <ContextualInfo
+            dialogTitle={t('create.companySection')}
+            content={t('create.companySectionHint')}
+            size="sm"
+          />
+        </div>
 
         <MainAppFormGrid dense>
           <Field
@@ -79,10 +87,15 @@ export function ClientCreateForm() {
       </fieldset>
 
       <fieldset className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
-        <legend className="text-sm font-medium text-[var(--pf-text-primary)]">
+        <legend className="sr-only">{t('create.contactSection')}</legend>
+        <div className="flex items-center gap-1 text-sm font-medium text-[var(--pf-text-primary)]">
           {t('create.contactSection')}
-        </legend>
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('create.contactSectionHint')}</p>
+          <ContextualInfo
+            dialogTitle={t('create.contactSection')}
+            content={t('create.contactSectionHint')}
+            size="sm"
+          />
+        </div>
 
         <MainAppFormGrid dense>
           <Field
