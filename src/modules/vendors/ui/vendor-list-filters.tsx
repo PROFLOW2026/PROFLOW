@@ -1,14 +1,14 @@
 ﻿'use client';
 
-import { useState, useSyncExternalStore } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MainAppOrgListFilterPanel } from '@/components/patterns/main-app';
 import { VENDOR_STATUSES, VENDOR_TYPES } from '@/modules/vendors/domain/types';
+import { OwnerFilterField } from '@/shared/ui/owner-list-filter-bar';
 import { cn } from '@/shared/ui/cn';
 
 interface CatalogOption {
@@ -17,6 +17,7 @@ interface CatalogOption {
 }
 
 interface VendorListFiltersProps {
+  readonly routeBase?: string;
   initialQuery: string;
   initialType?: string;
   initialStatus?: string;
@@ -25,18 +26,42 @@ interface VendorListFiltersProps {
   layout?: 'default' | 'ownerList';
 }
 
-function subscribeMobileQuery(onStoreChange: () => void) {
-  const mq = window.matchMedia('(max-width: 639px)');
-  mq.addEventListener('change', onStoreChange);
-  return () => mq.removeEventListener('change', onStoreChange);
+const nativeSelectClass =
+  'h-9 w-full min-w-0 rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 text-sm';
+
+function countOwnerActive(
+  initialQuery: string,
+  initialType: string,
+  initialStatus: string,
+  initialCategoryId: string,
+): number {
+  let n = 0;
+  if (initialQuery.trim()) n += 1;
+  if (initialType && initialType !== 'all') n += 1;
+  if (initialStatus && initialStatus !== 'all') n += 1;
+  if (initialCategoryId && initialCategoryId !== 'all') n += 1;
+  return n;
 }
 
-function getMobileSnapshot() {
-  return window.matchMedia('(max-width: 639px)').matches;
-}
-
-function getMobileServerSnapshot() {
-  return false;
+function buildOwnerSummary(
+  initialQuery: string,
+  initialType: string,
+  initialStatus: string,
+  initialCategoryId: string,
+  categories: readonly CatalogOption[],
+  t: (key: string) => string,
+  tTypes: (key: string) => string,
+): string[] {
+  const chips: string[] = [];
+  const q = initialQuery.trim();
+  if (q) chips.push(q);
+  if (initialType && initialType !== 'all') chips.push(tTypes(initialType));
+  if (initialStatus && initialStatus !== 'all') chips.push(t(`list.status.${initialStatus}`));
+  if (initialCategoryId && initialCategoryId !== 'all') {
+    const category = categories.find((row) => row.id === initialCategoryId);
+    chips.push(category?.name ?? t('list.columns.category'));
+  }
+  return chips;
 }
 
 function VendorFilterFields({
@@ -59,7 +84,7 @@ function VendorFilterFields({
     <>
       <Field
         label={t('list.columns.type')}
-        className={cn('min-w-0', ownerCompact ? 'pf-vendors-owner-filter-field sm:w-36' : 'w-full sm:w-36')}
+        className={cn('min-w-0', ownerCompact ? 'sm:w-36' : 'w-full sm:w-36')}
       >
         {(control) => (
           <Select name="type" defaultValue={initialType}>
@@ -79,7 +104,7 @@ function VendorFilterFields({
       </Field>
       <Field
         label={t('list.columns.status')}
-        className={cn('min-w-0', ownerCompact ? 'pf-vendors-owner-filter-field sm:w-36' : 'w-full sm:w-36')}
+        className={cn('min-w-0', ownerCompact ? 'sm:w-36' : 'w-full sm:w-36')}
       >
         {(control) => (
           <Select name="status" defaultValue={initialStatus}>
@@ -100,7 +125,7 @@ function VendorFilterFields({
       {categories.length > 0 ? (
         <Field
           label={t('list.columns.category')}
-          className={cn('min-w-0', ownerCompact ? 'pf-vendors-owner-filter-field sm:w-40' : 'w-full sm:w-40')}
+          className={cn('min-w-0', ownerCompact ? 'sm:w-40' : 'w-full sm:w-40')}
         >
           {(control) => (
             <Select name="categoryId" defaultValue={initialCategoryId || 'all'}>
@@ -123,7 +148,113 @@ function VendorFilterFields({
   );
 }
 
+function VendorOwnerListFilters({
+  routeBase,
+  initialQuery,
+  initialType,
+  initialStatus,
+  initialCategoryId,
+  categories,
+}: {
+  routeBase: string;
+  initialQuery: string;
+  initialType: string;
+  initialStatus: string;
+  initialCategoryId: string;
+  categories: readonly CatalogOption[];
+}) {
+  const t = useTranslations('vendors');
+  const tTypes = useTranslations('vendors.types');
+  const tCommon = useTranslations('common');
+  const activeCount = countOwnerActive(initialQuery, initialType, initialStatus, initialCategoryId);
+  const isActive = activeCount > 0;
+  const activeSummary = buildOwnerSummary(
+    initialQuery,
+    initialType,
+    initialStatus,
+    initialCategoryId,
+    categories,
+    t,
+    tTypes,
+  );
+
+  const searchField = (
+    <Field
+      label={<span className="sr-only">{tCommon('actions.search')}</span>}
+      className="pf-vendors-owner-kit-search min-w-0 flex flex-1 flex-col gap-0"
+    >
+      {(control) => (
+        <Input
+          {...control}
+          type="search"
+          name="q"
+          defaultValue={initialQuery}
+          placeholder={t('list.searchPlaceholder')}
+          aria-label={tCommon('actions.search')}
+          className="min-w-0"
+        />
+      )}
+    </Field>
+  );
+
+  return (
+    <MainAppOrgListFilterPanel
+      title={t('list.filterPanelTitle')}
+      applyLabel={tCommon('actions.filter')}
+      clearLabel={tCommon('actions.clearFilters')}
+      clearHref={routeBase}
+      activeLabel={t('list.activeFilters')}
+      mobileLabel={tCommon('actions.filter')}
+      mobileWithCountLabel={t('list.mobileWithCount', { count: activeCount })}
+      activeCount={activeCount}
+      isActive={isActive}
+      activeSummary={activeSummary}
+      toolbar={searchField}
+    >
+      <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <OwnerFilterField label={t('list.columns.type')}>
+          <select name="type" defaultValue={initialType || 'all'} className={nativeSelectClass}>
+            <option value="all">{t('list.filterAll')}</option>
+            {VENDOR_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {tTypes(type)}
+              </option>
+            ))}
+          </select>
+        </OwnerFilterField>
+        <OwnerFilterField label={t('list.columns.status')}>
+          <select name="status" defaultValue={initialStatus || 'all'} className={nativeSelectClass}>
+            <option value="all">{t('list.filterAll')}</option>
+            {VENDOR_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {t(`list.status.${status}`)}
+              </option>
+            ))}
+          </select>
+        </OwnerFilterField>
+        {categories.length > 0 ? (
+          <OwnerFilterField label={t('list.columns.category')}>
+            <select
+              name="categoryId"
+              defaultValue={initialCategoryId || 'all'}
+              className={nativeSelectClass}
+            >
+              <option value="all">{t('list.filterAll')}</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </OwnerFilterField>
+        ) : null}
+      </div>
+    </MainAppOrgListFilterPanel>
+  );
+}
+
 export function VendorListFilters({
+  routeBase,
   initialQuery,
   initialType = 'all',
   initialStatus = 'all',
@@ -133,87 +264,21 @@ export function VendorListFilters({
 }: VendorListFiltersProps) {
   const t = useTranslations('vendors');
   const tCommon = useTranslations('common');
-  const isMobile = useSyncExternalStore(subscribeMobileQuery, getMobileSnapshot, getMobileServerSnapshot);
-  const ownerList = layout === 'ownerList';
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  if (ownerList) {
+  if (layout === 'ownerList') {
+    if (!routeBase) {
+      throw new Error('VendorListFilters ownerList layout requires routeBase');
+    }
     return (
-      <form
-        method="get"
-        role="search"
-        className={cn('pf-vendors-list-toolbar min-w-0 max-w-full', isMobile ? 'pf-vendors-list-toolbar-mobile' : 'pf-vendors-list-toolbar-desktop flex flex-wrap items-center gap-2')}
-      >
-        {isMobile ? (
-          <div className="pf-vendors-mobile-search-row w-full min-w-0">
-            <div className="pf-vendors-mobile-filter-slot">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button type="button" variant="secondary" className="w-full min-w-0 gap-2">
-                    <SlidersHorizontal className="size-4 shrink-0" aria-hidden />
-                    {tCommon('actions.filter')}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="flex w-[min(100vw-2rem,20rem)] flex-col gap-2" align="start">
-                  <VendorFilterFields
-                    initialType={initialType}
-                    initialStatus={initialStatus}
-                    initialCategoryId={initialCategoryId}
-                    categories={categories}
-                    ownerCompact
-                  />
-                  <Button type="submit" variant="secondary" size="sm" className="w-full">
-                    {tCommon('actions.filter')}
-                  </Button>
-                </PopoverContent>
-              </Popover>
-            </div>
-            <Field
-              label={<span className="sr-only">{tCommon('actions.search')}</span>}
-              className="pf-vendors-search-field-owner min-w-0 flex flex-col gap-0"
-            >
-              {(control) => (
-                <Input
-                  {...control}
-                  type="search"
-                  name="q"
-                  defaultValue={initialQuery}
-                  placeholder={t('list.searchPlaceholder')}
-                  aria-label={tCommon('actions.search')}
-                />
-              )}
-            </Field>
-          </div>
-        ) : (
-          <>
-            <Field
-              label={<span className="sr-only">{tCommon('actions.search')}</span>}
-              className="pf-vendors-search-field-owner min-w-0 flex flex-col gap-0"
-            >
-              {(control) => (
-                <Input
-                  {...control}
-                  type="search"
-                  name="q"
-                  defaultValue={initialQuery}
-                  placeholder={t('list.searchPlaceholder')}
-                  aria-label={tCommon('actions.search')}
-                />
-              )}
-            </Field>
-            <VendorFilterFields
-              initialType={initialType}
-              initialStatus={initialStatus}
-              initialCategoryId={initialCategoryId}
-              categories={categories}
-              ownerCompact
-            />
-            <Button type="submit" variant="secondary" size="sm" className="shrink-0">
-              {tCommon('actions.filter')}
-            </Button>
-          </>
-        )}
-      </form>
+      <VendorOwnerListFilters
+        routeBase={routeBase}
+        initialQuery={initialQuery}
+        initialType={initialType}
+        initialStatus={initialStatus}
+        initialCategoryId={initialCategoryId}
+        categories={categories}
+      />
     );
   }
 

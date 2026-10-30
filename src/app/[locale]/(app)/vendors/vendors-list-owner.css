@@ -35,15 +35,6 @@
   }
 }
 
-[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-list-toolbar-mobile {
-  gap: 0.5rem;
-}
-
-[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-list-toolbar-desktop {
-  align-items: center;
-  min-width: 0;
-}
-
 /* MainAppSection wraps list block in one inner div — stack toolbar / table / pagination with rhythm */
 [data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-ma-section] > div {
   display: flex;
@@ -51,39 +42,27 @@
   gap: 1rem;
 }
 
-@media (min-width: 640px) {
-  [data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-search-field-owner {
-    flex: 1 1 12rem;
-    min-width: 0;
-  }
-
-  [data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-search-field-owner input {
-    width: 100%;
-  }
+[data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-ma-section] > div > form[method='get'] {
+  min-width: 0;
+  max-width: 100%;
 }
 
-[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-list-toolbar .flex.flex-col.gap-0 {
-  gap: 0;
-}
-
-[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-list-toolbar input:not([type='checkbox']):not([type='radio']),
-[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-list-toolbar button[role='combobox'],
-[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-list-toolbar button:not([role='combobox']) {
+[data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-ma-section] > div > form[method='get'] input[type='search'],
+[data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-ma-section] > div > form[method='get'] select,
+[data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-ma-section] > div > form[method='get'] .pf-vendors-owner-kit-search input {
   height: 38px;
   min-height: 38px;
 }
 
-[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-list-toolbar .pf-vendors-search-field-owner {
-  flex: none;
-}
+@media (max-width: 639px) {
+  [data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-ma-section] > div > form[method='get'] > section > div:nth-child(2) {
+    min-width: 0;
+  }
 
-[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-owner-filter-field > div:first-child {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
+  [data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-owner-kit-search {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
 }
 
 [data-pf-owner-app] [data-pf-vendors-list-owner] [data-pf-ma-table-shell] thead th {
@@ -180,20 +159,6 @@
   width: 6.75rem;
   text-align: center;
   padding-inline: 0.5rem;
-}
-
-[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-mobile-search-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  direction: rtl;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-mobile-filter-slot,
-[data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-mobile-search-row input {
-  min-width: 0;
-  width: 100%;
 }
 
 [data-pf-owner-app] [data-pf-vendors-list-owner] .pf-vendors-col-status {

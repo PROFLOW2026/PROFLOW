@@ -182,6 +182,7 @@ export async function VendorsOrgListView({
       ) : null}
 
       <VendorListFilters
+        routeBase={isOwner ? routeBase : undefined}
         layout={isOwner ? 'ownerList' : 'default'}
         initialQuery={q ?? ''}
         initialType={params.type ?? 'all'}

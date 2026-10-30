@@ -12,6 +12,9 @@
     "searchPlaceholder": "بحث في الموردين…",
     "projectsCount": "{count, plural, one {مشروع واحد} other {# مشاريع}}",
     "filterAll": "الكل",
+    "filterPanelTitle": "تصفية الموردين",
+    "activeFilters": "تصفية نشطة",
+    "mobileWithCount": "تصفية ({count})",
     "lifecycleHint": "نشط / غير نشط تشغيلي. الأرشفة تخفي المورد من القوائم العملية دون حذف التاريخ.",
     "status": {
       "active": "نشط",

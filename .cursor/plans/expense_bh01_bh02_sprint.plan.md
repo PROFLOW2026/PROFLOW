@@ -4,13 +4,13 @@ overview: Separate sprint after EXLFY wave 3 — fix expense project association
 todos:
   - id: owner-approve-bh-scope
     content: "Owner confirms BH-01 (clear projectId on auto_pool) and BH-02 (destination UX) scope and acceptance criteria"
-    status: pending
+    status: completed
   - id: map-current-write-paths
     content: "Document expense header projectId vs allocation lines; prove runAutomaticAllocation write set (no silent address clear today)"
-    status: pending
+    status: completed
   - id: ux-destination-separation
     content: "UI: separate 'run auto-split' from 'change destination' with explicit copy and confirm when project association changes"
-    status: pending
+    status: completed
   - id: engine-guardrails
     content: "If approved: allocation-only writes; optional explicit server action to clear projectId with audit — no side effect on split run"
     status: pending

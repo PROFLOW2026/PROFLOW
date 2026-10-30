@@ -12,6 +12,9 @@
     "searchPlaceholder": "Search vendors…",
     "projectsCount": "{count, plural, one {# project} other {# projects}}",
     "filterAll": "All",
+    "filterPanelTitle": "Vendor filters",
+    "activeFilters": "Active filters",
+    "mobileWithCount": "Filters ({count})",
     "lifecycleHint": "Active / Inactive is operational. Archive hides the vendor from working lists without deleting history.",
     "status": {
       "active": "Active",

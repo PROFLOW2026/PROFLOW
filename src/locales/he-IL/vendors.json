@@ -21,6 +21,9 @@
       "contact": "איש קשר"
     },
     "filterAll": "הכול",
+    "filterPanelTitle": "סינון ספקים",
+    "activeFilters": "סינון פעיל",
+    "mobileWithCount": "סינון ({count})",
     "lifecycleHint": "פעיל / לא פעיל הוא תפעולי. ארכיון מסתיר את הספק מרשימות עבודה בלי למחוק היסטוריה.",
     "status": {
       "active": "פעיל",

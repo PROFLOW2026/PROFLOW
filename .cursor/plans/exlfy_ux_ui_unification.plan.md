@@ -28,13 +28,13 @@ todos:
     status: completed
   - id: vendors-onto-kit
     content: "After pilot stable: migrate vendors from parallel toolbar/CSS onto shared kit without regressing mobile density"
-    status: pending
+    status: completed
   - id: dialog-families
     content: "Unify ConfirmAction adoption, DialogFooter Cancel=secondary, merge credentials-share dialogs"
     status: completed
   - id: expense-destination-ux
     content: "ONLY after Owner approval: separate auto-split run from destination change that clears projectId (BH-01/BH-02); no engine mutation of header address"
-    status: pending
+    status: completed
   - id: employee-contractor-parity
     content: "Apply list/filter parity to employee mirrors and review contractor portal separately last"
     status: pending

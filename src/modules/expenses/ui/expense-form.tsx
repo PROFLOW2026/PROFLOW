@@ -58,15 +58,17 @@ import { resolveExpenseVatMode } from '../domain/vat-mode';
 import type { SupplierBillReferenceRow } from '../domain/supplier-cost-guidance';
 import { SupplierCostGuidance } from './supplier-cost-guidance';
 import { normalizeExpenseFormError } from './expense-form-preservation';
+import {
+  type CostDestinationMode,
+  resolveRestoredSingleProjectId,
+  shouldConfirmLeavingSingleProject,
+} from '@/modules/expenses/domain/expense-cost-destination-state';
 
 const OVERHEAD_VALUE = '__overhead__';
 const NONE_VALUE = '__none__';
 const MANUAL_DRIVER = '__manual__';
 
 type ExpenseDestination = 'project' | 'general' | 'inventory' | 'asset';
-
-/** Primary cost routing — multi-project split is not "advanced". */
-type CostDestinationMode = 'project_single' | 'project_multi' | 'auto_pool' | 'company_only';
 
 const COST_FAMILY_ORDER: readonly CostFamily[] = [
   'direct_project',
@@ -374,6 +376,12 @@ export function ExpenseForm({
   const [costDestinationMode, setCostDestinationMode] = React.useState<CostDestinationMode>(() =>
     resolveInitialCostDestination(initialValues),
   );
+  const [rememberedSingleProjectId, setRememberedSingleProjectId] = React.useState(() => {
+    const initial = initialValues?.projectId?.trim();
+    return initial ?? '';
+  });
+
+  const projectIds = React.useMemo(() => projects.map((project) => project.id), [projects]);
 
   const isProjectDestinationMode = costDestinationMode === 'project_single';
   const isProjectRouteMode =
@@ -550,11 +558,37 @@ export function ExpenseForm({
       if (destination === 'project') setDestination('general');
     } else {
       setDestination('project');
+      setRememberedSingleProjectId(value);
       onProjectChange?.(value);
     }
   }
 
   function handleCostDestinationChange(mode: CostDestinationMode) {
+    if (mode === costDestinationMode) return;
+
+    const headerProjectId =
+      costDestinationMode === 'project_single' &&
+      targeting !== OVERHEAD_VALUE &&
+      targeting !== NONE_VALUE
+        ? targeting
+        : null;
+
+    if (
+      shouldConfirmLeavingSingleProject(costDestinationMode, mode, headerProjectId) &&
+      typeof window !== 'undefined' &&
+      !window.confirm(t('destination.confirmLeaveSingleProject'))
+    ) {
+      return;
+    }
+
+    if (headerProjectId) {
+      setRememberedSingleProjectId(headerProjectId);
+    }
+
+    applyCostDestinationChange(mode);
+  }
+
+  function applyCostDestinationChange(mode: CostDestinationMode) {
     setCostDestinationMode(mode);
     clearCategoryIncompatibleWithDestination(mode);
     switch (mode) {
@@ -601,10 +635,10 @@ export function ExpenseForm({
       setInventoryItemId('');
       setInventoryPurchaseQty('');
       if (targeting === OVERHEAD_VALUE || targeting === NONE_VALUE) {
-        const firstProject = projects[0]?.id;
-        if (firstProject) {
-          setTargeting(firstProject);
-          onProjectChange?.(firstProject);
+        const restored = resolveRestoredSingleProjectId(rememberedSingleProjectId, projectIds);
+        if (restored) {
+          setTargeting(restored);
+          onProjectChange?.(restored);
         }
       }
       if (costFamily === 'asset_capital') setCostFamily('');

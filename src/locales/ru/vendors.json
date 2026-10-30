@@ -12,6 +12,9 @@
     "searchPlaceholder": "Поиск поставщиков…",
     "projectsCount": "{count, plural, one {# проект} few {# проекта} many {# проектов} other {# проектов}}",
     "filterAll": "Все",
+    "filterPanelTitle": "Фильтры поставщиков",
+    "activeFilters": "Активные фильтры",
+    "mobileWithCount": "Фильтры ({count})",
     "lifecycleHint": "Активный / Неактивный — операционный статус. Архив скрывает поставщика из рабочих списков без удаления истории.",
     "status": {
       "active": "Активный",
