@@ -8,7 +8,7 @@
 | `f6655de2` | Wave 3 start: `FormDialogFooter` |
 | `9c77de44` | Wave 3 complete: dialogs, forms, 360 tabs |
 | `313e5d39` | BH-01/BH-02 + vendors kit |
-| *(pending)* | BH-01 confirm → shared `Dialog` + `FormDialogFooter` |
+| `c382f71c` | BH-01 confirm → shared `Dialog` + `FormDialogFooter` |
 
 ---
 
