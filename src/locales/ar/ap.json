@@ -37,7 +37,10 @@
     "billDateHint": "القائمة مُصفّاة بتاريخ الحساب — وليس تاريخ الدفع.",
     "paymentDateFrom": "تاريخ الدفع من",
     "paymentDateTo": "تاريخ الدفع إلى",
-    "outstandingOnly": "تُعرض فقط فواتير الموردين التي عليها رصيد للدفع."
+    "outstandingOnly": "تُعرض فقط فواتير الموردين التي عليها رصيد للدفع.",
+    "filterPanelTitle": "تصفية فواتير الموردين",
+    "activeFilters": "تصفية نشطة",
+    "mobileWithCount": "تصفية ({count})"
   },
   "statuses": {
     "draft": "مسودة",

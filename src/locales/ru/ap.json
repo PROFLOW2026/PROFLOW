@@ -37,7 +37,10 @@
     "billDateHint": "Список фильтруется по дате счёта — не по дате платежа.",
     "paymentDateFrom": "Дата платежа с",
     "paymentDateTo": "Дата платежа по",
-    "outstandingOnly": "Показаны только счета поставщиков с остатком к оплате."
+    "outstandingOnly": "Показаны только счета поставщиков с остатком к оплате.",
+    "filterPanelTitle": "Фильтры счетов поставщиков",
+    "activeFilters": "Активные фильтры",
+    "mobileWithCount": "Фильтры ({count})"
   },
   "statuses": {
     "draft": "Черновик",

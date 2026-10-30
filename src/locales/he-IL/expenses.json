@@ -402,6 +402,10 @@
     "clearFilter": "הסרת סינון דורש טיפול"
   },
   "list": {
+    "searchPlaceholder": "חיפוש לפי תיאור או ספק…",
+    "filterPanelTitle": "סינון הוצאות",
+    "mobileWithCount": "סינון ({count})",
+    "activeFilters": "סינון פעיל",
     "empty": {
       "title": "מעקב אחרי ההוצאות של העסק",
       "description": "רשמו חומרים, קבלני משנה, שכירות ועוד. מתחילים בסכום - הפרטים יכולים לחכות.",

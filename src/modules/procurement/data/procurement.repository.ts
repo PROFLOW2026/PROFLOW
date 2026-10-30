@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, ne } from 'drizzle-orm';
+import { and, desc, eq, exists, ilike, inArray, isNull, ne, or } from 'drizzle-orm';
 import {
   apBillLines,
   apBills,
@@ -379,17 +379,47 @@ export async function updateSupplierQuoteStatus(
   return row ?? null;
 }
 
+const PO_LIST_SEARCH_MAX = 120;
+
 export async function listPurchaseOrders(
   db: DbExecutor,
   organizationId: string,
   projectId?: string,
-  options: { readonly limit?: number; readonly offset?: number } = {},
+  options: {
+    readonly limit?: number;
+    readonly offset?: number;
+    readonly status?: string;
+    readonly search?: string;
+  } = {},
 ): Promise<(typeof purchaseOrders.$inferSelect)[]> {
   const filters = [
     eq(purchaseOrders.organizationId, organizationId),
     isNull(purchaseOrders.archivedAt),
   ];
   if (projectId) filters.push(eq(purchaseOrders.projectId, projectId));
+  if (options.status) filters.push(eq(purchaseOrders.status, options.status));
+  const trimmedSearch = options.search?.trim();
+  if (trimmedSearch) {
+    const term = `%${trimmedSearch.slice(0, PO_LIST_SEARCH_MAX)}%`;
+    filters.push(
+      or(
+        ilike(purchaseOrders.reference, term),
+        ilike(purchaseOrders.notes, term),
+        exists(
+          db
+            .select({ id: vendors.id })
+            .from(vendors)
+            .where(
+              and(
+                eq(vendors.id, purchaseOrders.vendorId),
+                eq(vendors.organizationId, organizationId),
+                ilike(vendors.name, term),
+              ),
+            ),
+        ),
+      )!,
+    );
+  }
   return db
     .select()
     .from(purchaseOrders)

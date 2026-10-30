@@ -49,3 +49,14 @@
   gap: 1rem;
   min-width: 0;
 }
+
+[data-pf-ma-list] .pf-ma-compact-list-card:hover {
+  background: var(--pf-bg-subtle);
+}
+
+[data-pf-ma-list] .pf-ma-compact-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}

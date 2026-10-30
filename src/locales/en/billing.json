@@ -51,6 +51,8 @@
     "emptyBody": "Record billing when you send an amount to a client - even if the legal invoice lives in another system.",
     "filterButton": "Filter",
     "clearFilter": "Clear filter",
+    "activeFilters": "Active filters",
+    "mobileWithCount": "Filters ({count})",
     "collectedInPeriodLabel": "Collected in period:",
     "collectedInPeriodHint": "(customer payments received, by payment date)",
     "emptyAction": "Add billing record"

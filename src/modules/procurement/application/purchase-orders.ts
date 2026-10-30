@@ -48,7 +48,12 @@ export async function getPurchaseOrderById(context: OrgContext, purchaseOrderId:
 export async function listPurchaseOrdersWithCommittedForOrg(
   context: OrgContext,
   projectId?: string,
-  options: { readonly limit?: number; readonly offset?: number } = {},
+  options: {
+    readonly limit?: number;
+    readonly offset?: number;
+    readonly status?: string;
+    readonly search?: string;
+  } = {},
 ) {
   assertPermission(context, PERMISSIONS.PROCUREMENT_READ);
   const orders = await listPurchaseOrders(

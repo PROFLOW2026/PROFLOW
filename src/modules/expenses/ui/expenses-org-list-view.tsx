@@ -3,6 +3,8 @@
 import {
   AdaptiveListBody,
   AdaptiveListTableShell,
+  MainAppCompactListCard,
+  MainAppStandardListFilters,
 } from '@/components/patterns/main-app';
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
@@ -11,7 +13,6 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { Field } from '@/components/ui/field';
 import {
   Table,
   TableBody,
@@ -23,8 +24,8 @@ import {
 import { EmptyState } from '@/components/ui/empty-state';
 import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import { Button } from '@/components/ui/button';
-import { Input as _Input } from '@/components/ui/input';
-import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { OwnerFilterField } from '@/shared/ui/owner-list-filter-bar';
 import {
   Select,
   SelectContent,
@@ -99,6 +100,7 @@ export interface ExpensesOrgListViewProps {
     statusFilter?: ExpenseListStatusFilter;
     cash?: 'open' | 'paid';
     cashSource?: 'suppliers' | 'subcontractors';
+    q?: string;
   };
   /** Server-supplied today for timezone-accurate presets in DateRangeSelector. */
   today?: string;
@@ -180,6 +182,7 @@ export function ExpensesOrgListView({
   const [cashSource, setCashSource] = React.useState<string>(
     initialFilters.cashSource ?? EXPENSE_LIST_STATUS_ALL,
   );
+  const [query, setQuery] = React.useState(initialFilters.q ?? '');
   const [isApplying, startApplyTransition] = React.useTransition();
   const serverFilterKey = [
     initialFilters.dateFrom ?? '',
@@ -191,6 +194,7 @@ export function ExpensesOrgListView({
     initialFilters.statusFilter ?? EXPENSE_LIST_STATUS_ALL,
     initialFilters.cash ?? EXPENSE_LIST_STATUS_ALL,
     initialFilters.cashSource ?? EXPENSE_LIST_STATUS_ALL,
+    initialFilters.q ?? '',
   ].join('\u0000');
   const [seenServerFilterKey, setSeenServerFilterKey] = React.useState(serverFilterKey);
   if (serverFilterKey !== seenServerFilterKey) {
@@ -204,6 +208,7 @@ export function ExpensesOrgListView({
     setStatusFilter(initialFilters.statusFilter ?? EXPENSE_LIST_STATUS_ALL);
     setCash(initialFilters.cash ?? EXPENSE_LIST_STATUS_ALL);
     setCashSource(initialFilters.cashSource ?? EXPENSE_LIST_STATUS_ALL);
+    setQuery(initialFilters.q ?? '');
   }
 
   const activeAttention = isExpenseListAttentionStatusFilter(statusFilter)
@@ -227,6 +232,8 @@ export function ExpensesOrgListView({
     }
     if (cash !== EXPENSE_LIST_STATUS_ALL) params.set('cash', cash);
     if (cashSource !== EXPENSE_LIST_STATUS_ALL) params.set('cashSource', cashSource);
+    const trimmedQuery = query.trim();
+    if (trimmedQuery) params.set('q', trimmedQuery);
     if (page > 1) params.set('page', String(page));
     return params;
   }
@@ -253,6 +260,7 @@ export function ExpensesOrgListView({
     setStatusFilter(EXPENSE_LIST_STATUS_ALL);
     setCash(EXPENSE_LIST_STATUS_ALL);
     setCashSource(EXPENSE_LIST_STATUS_ALL);
+    setQuery('');
     startApplyTransition(() => {
       router.push(routeBase);
     });
@@ -307,6 +315,13 @@ export function ExpensesOrgListView({
 
   const filtersActive = hasActiveFilters(initialFilters);
   const statusSelectValue = statusFilter === 'any' ? EXPENSE_LIST_STATUS_ALL : statusFilter;
+  const appliedActiveCount = countExpenseListActiveFilters(initialFilters);
+  const appliedActiveSummary = buildExpenseListActiveSummary(initialFilters, {
+    projects,
+    categories,
+    t,
+    tStatus,
+  });
 
   return (
     <div className="flex min-w-0 flex-col gap-3">
@@ -320,160 +335,161 @@ export function ExpensesOrgListView({
       ) : null}
 
       <AdaptiveListBody surface={surface}>
-      <div className="min-w-0">
-        <p className="mb-2 text-xs text-[var(--pf-text-muted)]">
-          {dateBasis === 'payment' ? t('filters.paymentDateHint') : t('filters.expenseDateHint')}
-        </p>
-        <DateRangeSelector
-          today={today}
-          from={dateFrom}
-          to={dateTo}
-          onFromChange={setDateFrom}
-          onToChange={setDateTo}
-          fromName="dateFrom"
-          toName="dateTo"
-          labels={{
-            from: dateBasis === 'payment' ? t('filters.paymentDateFrom') : t('filters.dateFrom'),
-            to: dateBasis === 'payment' ? t('filters.paymentDateTo') : t('filters.dateTo'),
-          }}
-        />
-      </div>
-      <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Field label={t('filters.dateBasis')} className="min-w-0">
-          {(control) => (
-            <Select value={dateBasis} onValueChange={(value) => setDateBasis(value as 'expense' | 'payment')}>
-              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="expense">{t('filters.dateBasisExpense')}</SelectItem>
-                <SelectItem value="payment">{t('filters.dateBasisPayment')}</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        </Field>
+      <MainAppStandardListFilters
+        title={t('list.filterPanelTitle')}
+        applyLabel={tCommon('actions.filter')}
+        clearLabel={tCommon('actions.clearFilters')}
+        activeLabel={t('list.activeFilters')}
+        mobileLabel={tCommon('actions.filter')}
+        mobileWithCountLabel={t('list.mobileWithCount', { count: appliedActiveCount })}
+        searchLabel={tCommon('actions.search')}
+        searchPlaceholder={t('list.searchPlaceholder')}
+        query={query}
+        onQueryChange={setQuery}
+        activeCount={appliedActiveCount}
+        isActive={filtersActive}
+        activeSummary={appliedActiveSummary}
+        onApply={applyFilters}
+        onClear={clearFilters}
+        advancedFilters={
+          <>
+            <div className="min-w-0">
+              <p className="mb-2 text-xs text-[var(--pf-text-muted)]">
+                {dateBasis === 'payment' ? t('filters.paymentDateHint') : t('filters.expenseDateHint')}
+              </p>
+              <DateRangeSelector
+                today={today}
+                from={dateFrom}
+                to={dateTo}
+                onFromChange={setDateFrom}
+                onToChange={setDateTo}
+                fromName="dateFrom"
+                toName="dateTo"
+                labels={{
+                  from: dateBasis === 'payment' ? t('filters.paymentDateFrom') : t('filters.dateFrom'),
+                  to: dateBasis === 'payment' ? t('filters.paymentDateTo') : t('filters.dateTo'),
+                }}
+              />
+            </div>
+            <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+              <OwnerFilterField label={t('filters.dateBasis')}>
+                <Select
+                  value={dateBasis}
+                  onValueChange={(value) => setDateBasis(value as 'expense' | 'payment')}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="expense">{t('filters.dateBasisExpense')}</SelectItem>
+                    <SelectItem value="payment">{t('filters.dateBasisPayment')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </OwnerFilterField>
 
-        <Field label={t('filters.project')} className="min-w-0">
-          {(control) => (
-            <Select value={projectId} onValueChange={setProjectId}>
-              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                <SelectValue placeholder={t('filters.allProjects')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.allProjects')}</SelectItem>
-                {projects.map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </Field>
+              <OwnerFilterField label={t('filters.project')}>
+                <Select value={projectId} onValueChange={setProjectId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('filters.allProjects')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.allProjects')}</SelectItem>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </OwnerFilterField>
 
-        <Field label={t('filters.family')} className="min-w-0">
-          {(control) => (
-            <Select
-              value={costFamily}
-              onValueChange={(value) =>
-                setCostFamily(value as CostFamily | typeof EXPENSE_LIST_STATUS_ALL)
-              }
-            >
-              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                <SelectValue placeholder={t('filters.allFamilies')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.allFamilies')}</SelectItem>
-                {(['direct_project', 'shared', 'business_overhead', 'asset_capital'] as const).map(
-                  (family) => (
-                    <SelectItem key={family} value={family}>
-                      {t(`costFamilies.${family}`)}
-                    </SelectItem>
-                  ),
-                )}
-              </SelectContent>
-            </Select>
-          )}
-        </Field>
+              <OwnerFilterField label={t('filters.family')}>
+                <Select
+                  value={costFamily}
+                  onValueChange={(value) =>
+                    setCostFamily(value as CostFamily | typeof EXPENSE_LIST_STATUS_ALL)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('filters.allFamilies')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.allFamilies')}</SelectItem>
+                    {(['direct_project', 'shared', 'business_overhead', 'asset_capital'] as const).map(
+                      (family) => (
+                        <SelectItem key={family} value={family}>
+                          {t(`costFamilies.${family}`)}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+              </OwnerFilterField>
 
-        <Field label={t('filters.category')} className="min-w-0">
-          {(control) => (
-            <Select value={costCategoryId} onValueChange={setCostCategoryId}>
-              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                <SelectValue placeholder={t('filters.allCategories')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.allCategories')}</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {displayCostCategoryName(category, (key) => t(key))}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </Field>
+              <OwnerFilterField label={t('filters.category')}>
+                <Select value={costCategoryId} onValueChange={setCostCategoryId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('filters.allCategories')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.allCategories')}</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {displayCostCategoryName(category, (key) => t(key))}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </OwnerFilterField>
 
-        <Field label={t('filters.status')} className="min-w-0" id="expenses-status-filter">
-          {(control) => (
-            <Select
-              value={statusSelectValue}
-              onValueChange={(value) => setStatusFilter(value as ExpenseListStatusFilter)}
-            >
-              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                <SelectValue placeholder={t('filters.allStatuses')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.allStatuses')}</SelectItem>
-                {EXPENSE_LIST_STATUS_FILTER_OPTIONS.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {statusFilterLabel(value, t, tStatus)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </Field>
+              <OwnerFilterField label={t('filters.status')}>
+                <Select
+                  value={statusSelectValue}
+                  onValueChange={(value) => setStatusFilter(value as ExpenseListStatusFilter)}
+                >
+                  <SelectTrigger id="expenses-status-filter">
+                    <SelectValue placeholder={t('filters.allStatuses')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.allStatuses')}</SelectItem>
+                    {EXPENSE_LIST_STATUS_FILTER_OPTIONS.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {statusFilterLabel(value, t, tStatus)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </OwnerFilterField>
 
-        <Field label={t('filters.cash')} className="min-w-0">
-          {(control) => (
-            <Select value={cash} onValueChange={setCash}>
-              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                <SelectValue placeholder={t('filters.cashAll')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.cashAll')}</SelectItem>
-                <SelectItem value="open">{t('filters.cashOpen')}</SelectItem>
-                <SelectItem value="paid">{t('filters.cashPaid')}</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        </Field>
+              <OwnerFilterField label={t('filters.cash')}>
+                <Select value={cash} onValueChange={setCash}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('filters.cashAll')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.cashAll')}</SelectItem>
+                    <SelectItem value="open">{t('filters.cashOpen')}</SelectItem>
+                    <SelectItem value="paid">{t('filters.cashPaid')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </OwnerFilterField>
 
-        <Field label={t('filters.cashSource')} className="min-w-0">
-          {(control) => (
-            <Select value={cashSource} onValueChange={setCashSource}>
-              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                <SelectValue placeholder={t('filters.cashSourceAll')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.cashSourceAll')}</SelectItem>
-                <SelectItem value="suppliers">{t('filters.cashSourceSuppliers')}</SelectItem>
-                <SelectItem value="subcontractors">{t('filters.cashSourceSubcontractors')}</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        </Field>
-
-        <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-3">
-          <Button type="button" onClick={applyFilters} loading={isApplying}>
-            {isApplying ? tCommon('states.loading') : tCommon('actions.filter')}
-          </Button>
-          <Button type="button" variant="ghost" onClick={clearFilters} loading={isApplying}>
-            {tCommon('actions.clearFilters')}
-          </Button>
-        </div>
-      </div>
+              <OwnerFilterField label={t('filters.cashSource')}>
+                <Select value={cashSource} onValueChange={setCashSource}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('filters.cashSourceAll')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.cashSourceAll')}</SelectItem>
+                    <SelectItem value="suppliers">{t('filters.cashSourceSuppliers')}</SelectItem>
+                    <SelectItem value="subcontractors">{t('filters.cashSourceSubcontractors')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </OwnerFilterField>
+            </div>
+          </>
+        }
+      />
 
       {activeAttention ? (
         <div
@@ -521,6 +537,7 @@ export function ExpensesOrgListView({
           <ResponsiveTable
             items={items}
             getRowKey={(expense) => expense.id}
+            mobileListClassName={surface === 'owner' ? 'pf-ma-compact-mobile-list' : undefined}
             desktop={
               <AdaptiveListTableShell surface={surface}>
                 <Table>
@@ -664,7 +681,7 @@ export function ExpensesOrgListView({
                 returnTo: listReturnTo,
               });
               return (
-              <div className={cn(pressableCardLinkClassName, 'text-start')}>
+              <MainAppCompactListCard>
                 <div className="flex items-start justify-between gap-2">
                   <Link
                     href={rowHref}
@@ -729,7 +746,7 @@ export function ExpensesOrgListView({
                     </Button>
                   </div>
                 ) : null}
-              </div>
+              </MainAppCompactListCard>
               );
             }}
           />
@@ -752,14 +769,70 @@ export function ExpensesOrgListView({
 }
 
 function hasActiveFilters(filters: ExpensesOrgListViewProps['initialFilters']): boolean {
-  return Boolean(
-    filters.dateFrom ||
-      filters.dateTo ||
-      filters.projectId ||
-      filters.costFamily ||
-      filters.costCategoryId ||
-      expenseListStatusFilterIsActive(filters.statusFilter ?? EXPENSE_LIST_STATUS_ALL) ||
-      filters.cash ||
-      filters.cashSource,
-  );
+  return countExpenseListActiveFilters(filters) > 0;
+}
+
+function countExpenseListActiveFilters(filters: ExpensesOrgListViewProps['initialFilters']): number {
+  let count = 0;
+  if (filters.q?.trim()) count += 1;
+  if (filters.dateFrom || filters.dateTo) count += 1;
+  if (filters.projectId) count += 1;
+  if (filters.costFamily) count += 1;
+  if (filters.costCategoryId) count += 1;
+  if (expenseListStatusFilterIsActive(filters.statusFilter ?? EXPENSE_LIST_STATUS_ALL)) count += 1;
+  if (filters.cash) count += 1;
+  if (filters.cashSource) count += 1;
+  return count;
+}
+
+function buildExpenseListActiveSummary(
+  filters: ExpensesOrgListViewProps['initialFilters'],
+  ctx: {
+    projects: ProjectOption[];
+    categories: CostCategoryRow[];
+    t: (key: string) => string;
+    tStatus: (key: string) => string;
+  },
+): string[] {
+  const chips: string[] = [];
+  const trimmedQ = filters.q?.trim();
+  if (trimmedQ) chips.push(trimmedQ);
+  if (filters.dateFrom || filters.dateTo) {
+    const from = filters.dateFrom ?? '…';
+    const to = filters.dateTo ?? '…';
+    chips.push(`${from} – ${to}`);
+  }
+  if (filters.dateBasis === 'payment' && (filters.dateFrom || filters.dateTo)) {
+    chips.push(ctx.t('filters.dateBasisPayment'));
+  }
+  if (filters.projectId) {
+    const project = ctx.projects.find((row) => row.id === filters.projectId);
+    chips.push(project?.name ?? ctx.t('filters.project'));
+  }
+  if (filters.costFamily) chips.push(ctx.t(`costFamilies.${filters.costFamily}`));
+  if (filters.costCategoryId) {
+    const category = ctx.categories.find((row) => row.id === filters.costCategoryId);
+    chips.push(
+      category ? displayCostCategoryName(category, (key) => ctx.t(key)) : ctx.t('filters.category'),
+    );
+  }
+  const statusFilter = filters.statusFilter ?? EXPENSE_LIST_STATUS_ALL;
+  if (expenseListStatusFilterIsActive(statusFilter)) {
+    if (statusFilter === 'finalized' || statusFilter === 'void') {
+      chips.push(ctx.tStatus(`expense.${statusFilter}`));
+    } else {
+      chips.push(ctx.t(`attention.options.${statusFilter}`));
+    }
+  }
+  if (filters.cash) {
+    chips.push(filters.cash === 'open' ? ctx.t('filters.cashOpen') : ctx.t('filters.cashPaid'));
+  }
+  if (filters.cashSource) {
+    chips.push(
+      filters.cashSource === 'suppliers'
+        ? ctx.t('filters.cashSourceSuppliers')
+        : ctx.t('filters.cashSourceSubcontractors'),
+    );
+  }
+  return chips;
 }

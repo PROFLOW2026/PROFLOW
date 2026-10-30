@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DateRangeSelector } from '@/components/patterns/date-range-selector';
+import { BillingHubPeriodFilters } from '@/modules/billing/ui/billing-hub-period-filters';
 import { MoneyText } from '@/components/patterns/money-text';
 import {
   listBillingRecords,
@@ -348,65 +348,27 @@ export async function BillingOrgHubView({
         </div>
       ) : null}
 
-      <details className="rounded-lg border border-[var(--pf-border-default)] p-3 text-sm">
-        <summary className="cursor-pointer font-medium text-[var(--pf-text-primary)]">
-          {t('hub.moreFilters')}
-        </summary>
-        <div className="mt-4 flex flex-col gap-4">
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
-          {isOwnerSurface ? <CommercialDocsHub current="billing" /> : null}
-
-      <form method="get" className="flex flex-col gap-3">
-        {filter !== 'all' && <input type="hidden" name="filter" value={filter} />}
-        {contractId && <input type="hidden" name="contractId" value={contractId} />}
-        {paymentsView ? <input type="hidden" name="view" value="payments" /> : null}
-        <div>
-          <p className="mb-1 text-xs text-[var(--pf-text-muted)]">{t('list.issueDateHint')}</p>
-          <DateRangeSelector
-            today={today}
-            defaultFrom={fromDate ?? ''}
-            defaultTo={toDate ?? ''}
-            fromName="fromDate"
-            toName="toDate"
-            labels={{
-              from: t('list.issueDate'),
-              to: t('list.issueDate'),
-            }}
-          />
-        </div>
-        <div>
-          <p className="mb-1 text-xs text-[var(--pf-text-muted)]">{t('list.paymentDateHint')}</p>
-          <DateRangeSelector
-            today={today}
-            defaultFrom={paymentFrom ?? ''}
-            defaultTo={paymentTo ?? ''}
-            fromName="paymentFrom"
-            toName="paymentTo"
-            labels={{
-              from: t('list.paymentFrom'),
-              to: t('list.paymentTo'),
-            }}
-          />
-        </div>
-        <div className="flex gap-2">
-          <button
-            type="submit"
-            className="h-9 rounded-md border border-[var(--pf-border-strong)] px-4 text-sm font-medium"
-          >
-            {t('list.filterButton')}
-          </button>
-          {(fromDate ?? toDate ?? paymentFrom ?? paymentTo ?? paymentsView) ? (
-            <a
-              href={billingClearHref()}
-              className="inline-flex h-9 items-center rounded-md px-3 text-sm text-[var(--pf-text-secondary)] hover:underline"
-            >
-              {t('list.clearFilter')}
-            </a>
-          ) : null}
-        </div>
-      </form>
-        </div>
-      </details>
+      <BillingHubPeriodFilters
+        clearHref={billingClearHref()}
+        today={today}
+        fromDate={fromDate}
+        toDate={toDate}
+        paymentFrom={paymentFrom}
+        paymentTo={paymentTo}
+        hiddenFields={
+          <>
+            {filter !== 'all' ? <input type="hidden" name="filter" value={filter} /> : null}
+            {contractId ? <input type="hidden" name="contractId" value={contractId} /> : null}
+            {paymentsView ? <input type="hidden" name="view" value="payments" /> : null}
+          </>
+        }
+        preamble={
+          <>
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
+            {isOwnerSurface ? <CommercialDocsHub current="billing" /> : null}
+          </>
+        }
+      />
 
       {collectionsInPeriod && parseFloat(collectionsInPeriod.amount) > 0 ? (
         <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-4 py-3 text-sm">

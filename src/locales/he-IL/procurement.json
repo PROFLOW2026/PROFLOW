@@ -39,6 +39,11 @@
     }
   },
   "list": {
+    "searchPlaceholder": "חיפוש לפי אסמכתא, ספק או הערות…",
+    "filterPanelTitle": "סינון הזמנות רכש",
+    "filterAll": "הכל",
+    "activeFilters": "סינון פעיל",
+    "mobileWithCount": "סינון ({count})",
     "columns": {
       "reference": "אסמכתא",
       "status": "סטטוס",

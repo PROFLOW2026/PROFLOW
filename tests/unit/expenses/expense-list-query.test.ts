@@ -67,4 +67,10 @@ describe('expense list query', () => {
     expect(query.page).toBe(2);
     expect(assembleExpenseListFilters(query).attentionFilter).toBe('any');
   });
+
+  it('parses org-scoped text search and passes it to list filters', () => {
+    const query = parseExpenseListSearchParams({ q: '  cement  ', status: 'finalized' });
+    expect(query.q).toBe('cement');
+    expect(assembleExpenseListFilters(query).search).toBe('cement');
+  });
 });

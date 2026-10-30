@@ -57,6 +57,11 @@
     "action": "הצעה חדשה"
   },
   "list": {
+    "searchPlaceholder": "חיפוש לפי כותרת או לקוח…",
+    "filterPanelTitle": "סינון הצעות",
+    "filterAll": "הכל",
+    "activeFilters": "סינון פעיל",
+    "mobileWithCount": "סינון ({count})",
     "columns": {
       "title": "כותרת",
       "client": "לקוח",

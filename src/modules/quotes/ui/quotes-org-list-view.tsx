@@ -1,9 +1,13 @@
 ﻿import {
   AdaptiveListBody,
   AdaptiveListTableShell,
+  MainAppCompactListCard,
   MainAppPage,
   MainAppSection,
+  mainAppListKitEnabled,
 } from '@/components/patterns/main-app';
+import { QuotesListFilters } from '@/modules/quotes/ui/quotes-list-filters';
+import { QUOTE_STATUSES, type QuoteStatus } from '@/modules/quotes/domain/types';
 import { FileSpreadsheet, Plus } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -56,13 +60,22 @@ export async function QuotesOrgListView({
   surface,
   searchParams,
 }: QuotesOrgListViewProps) {
-  const [t, tStatus, locale] = await Promise.all([
+  const [t, tStatus, locale, rawParams, tCommon] = await Promise.all([
     getTranslations('quotes'),
     getTranslations('status.estimateQuote'),
     getLocale(),
+    searchParams,
+    getTranslations('common'),
   ]);
-  await searchParams;
   const isOwner = surface === 'owner';
+  const listKit = mainAppListKitEnabled(surface);
+  const q = typeof rawParams.q === 'string' ? rawParams.q.trim() : '';
+  const statusRaw = typeof rawParams.status === 'string' ? rawParams.status : 'all';
+  const statusFilter =
+    statusRaw !== 'all' && QUOTE_STATUSES.includes(statusRaw as QuoteStatus)
+      ? (statusRaw as QuoteStatus)
+      : undefined;
+  const filtersActive = Boolean(q || statusFilter);
 
   const { items, canManage, canRead } = await withOrgContext(async (context) => {
     const allowed = orgListHasPermission(context, PERMISSIONS.QUOTES_READ, surface);
@@ -75,7 +88,10 @@ export async function QuotesOrgListView({
     }
 
     return {
-      items: await listQuotesForOrg(context),
+      items: await listQuotesForOrg(context, {
+        ...(statusFilter ? { status: statusFilter } : {}),
+        ...(q ? { q } : {}),
+      }),
       canManage: orgListHasPermission(context, PERMISSIONS.QUOTES_MANAGE, surface),
       canRead: true,
     };
@@ -117,7 +133,11 @@ export async function QuotesOrgListView({
 
       <MainAppSection>
         <AdaptiveListBody surface={surface}>
+      <QuotesListFilters routeBase={routeBase} initialQuery={q} initialStatus={statusRaw} />
       {items.length === 0 ? (
+        filtersActive ? (
+          <p className="text-sm text-[var(--pf-text-muted)]">{tCommon('states.noResults')}</p>
+        ) : (
         <EmptyState
           icon={FileSpreadsheet}
           title={t('empty.title')}
@@ -130,6 +150,7 @@ export async function QuotesOrgListView({
             ) : undefined
           }
         />
+        )
       ) : (
         <ResponsiveTable
           items={items}
@@ -183,7 +204,22 @@ export async function QuotesOrgListView({
               </Table>
             </AdaptiveListTableShell>
           }
+          mobileListClassName={listKit ? 'pf-ma-compact-mobile-list' : undefined}
           renderMobileCard={(item) => (
+            listKit ? (
+            <MainAppCompactListCard>
+              <Link
+                href={`${routeBase}/${item.id}`}
+                className={cn(textNavLinkClassName, 'block min-w-0 font-semibold')}
+              >
+                {item.title}
+              </Link>
+              <div className="mt-1 flex items-start justify-between gap-2">
+                <p className="min-w-0 text-sm text-[var(--pf-text-secondary)]">{item.clientName ?? '-'}</p>
+                <StatusBadge shape={quoteShape(item.status)} label={tStatus(item.status)} />
+              </div>
+            </MainAppCompactListCard>
+            ) : (
             <Link href={`${routeBase}/${item.id}`} className={pressableCardLinkClassName}>
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0 flex-1 font-semibold">{item.title}</span>
@@ -196,6 +232,7 @@ export async function QuotesOrgListView({
                   : ''}
               </p>
             </Link>
+            )
           )}
         />
       )}

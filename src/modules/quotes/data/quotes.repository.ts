@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, ne } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, isNull, ne, or } from 'drizzle-orm';
 import { clients } from '@drizzle/schema';
 import { estimateLineItems, estimates } from '@drizzle/schema/next-gen';
 import type { DbExecutor } from '@/shared/db/types';
@@ -65,12 +65,24 @@ function mapLine(row: typeof estimateLineItems.$inferSelect): QuoteLineItemRecor
 export async function listQuotes(
   db: DbExecutor,
   organizationId: string,
-  filters: { status?: QuoteStatus; clientId?: string; opportunityId?: string } = {},
+  filters: {
+    status?: QuoteStatus;
+    clientId?: string;
+    opportunityId?: string;
+    search?: string;
+  } = {},
 ): Promise<QuoteListItem[]> {
   const conditions = [eq(estimates.organizationId, organizationId), isNull(estimates.archivedAt)];
   if (filters.status) conditions.push(eq(estimates.status, filters.status));
   if (filters.clientId) conditions.push(eq(estimates.clientId, filters.clientId));
   if (filters.opportunityId) conditions.push(eq(estimates.opportunityId, filters.opportunityId));
+  const trimmedSearch = filters.search?.trim();
+  if (trimmedSearch) {
+    const term = `%${trimmedSearch.slice(0, 120)}%`;
+    conditions.push(
+      or(ilike(estimates.title, term), ilike(clients.name, term), ilike(estimates.description, term))!,
+    );
+  }
 
   const rows = await db
     .select({

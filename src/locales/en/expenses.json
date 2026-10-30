@@ -402,6 +402,10 @@
     "clearFilter": "Clear needs-action filter"
   },
   "list": {
+    "searchPlaceholder": "Search description or supplier…",
+    "filterPanelTitle": "Expense filters",
+    "mobileWithCount": "Filters ({count})",
+    "activeFilters": "Active filters",
     "empty": {
       "title": "Track what the business spends",
       "description": "Record materials, subcontractors, rent, and other costs. Start with an amount - details can wait.",

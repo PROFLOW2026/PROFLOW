@@ -39,6 +39,11 @@
     }
   },
   "list": {
+    "searchPlaceholder": "Search reference, vendor, or notes…",
+    "filterPanelTitle": "Purchase order filters",
+    "filterAll": "All",
+    "activeFilters": "Active filters",
+    "mobileWithCount": "Filters ({count})",
     "columns": {
       "reference": "Reference",
       "status": "Status",

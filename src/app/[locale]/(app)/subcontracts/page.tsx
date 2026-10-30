@@ -125,6 +125,7 @@ export default async function SubcontractsPage({
       <MainAppSection>
         <MainAppListBody>
         <SubcontractsListFilters
+          routeBase="/subcontracts"
           initialVendorId={params.vendorId ?? ''}
           initialProjectId={params.projectId ?? ''}
           initialStatus={params.status ?? 'all'}

@@ -78,6 +78,18 @@ describe('buildQuickCreateActions', () => {
     expect(desktop[0]?.key).toBe('quickCapture');
   });
 
+  it('routes expense quick create to the composer, not the list', () => {
+    const actions = buildQuickCreateActions(
+      OWNER_CREATE_WITH_TASKS,
+      OWNER_MODULES,
+      'mixed',
+      null,
+      null,
+      'all',
+    );
+    expect(actions.find((action) => action.key === 'expense')?.href).toBe('/expenses/new');
+  });
+
   it('never exposes non-canonical Quick Create actions', () => {
     const actions = buildQuickCreateActions(
       new Set([

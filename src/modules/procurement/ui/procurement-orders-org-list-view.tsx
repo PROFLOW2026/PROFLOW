@@ -4,6 +4,7 @@
   MainAppPage,
   MainAppSection,
 } from '@/components/patterns/main-app';
+import { ProcurementOrdersListFilters } from '@/modules/procurement/ui/procurement-orders-list-filters';
 import { ClipboardList, Plus } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -33,6 +34,7 @@ import { ProcurementSectionNav } from './procurement-section-nav';
 export interface ProcurementOrdersOrgListViewProps {
   readonly routeBase: string;
   readonly surface: OrgListSurface;
+  readonly searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }
 
 function purchaseOrderStatusShape(status: string): StatusShape {
@@ -52,16 +54,33 @@ function purchaseOrderStatusShape(status: string): StatusShape {
   }
 }
 
+const PO_STATUS_VALUES = [
+  'draft',
+  'issued',
+  'partially_received',
+  'closed',
+  'cancelled',
+] as const;
+
 export async function ProcurementOrdersOrgListView({
   routeBase,
   surface,
+  searchParams,
 }: ProcurementOrdersOrgListViewProps) {
-  const [t, tMarket, locale] = await Promise.all([
+  const [t, tMarket, locale, rawParams, tCommon] = await Promise.all([
     getTranslations('procurement'),
     getTranslations('materialMarket'),
     getLocale(),
+    searchParams ?? Promise.resolve({}),
+    getTranslations('common'),
   ]);
   const isOwner = surface === 'owner';
+  const q = typeof rawParams.q === 'string' ? rawParams.q.trim() : '';
+  const statusRaw = typeof rawParams.status === 'string' ? rawParams.status : 'all';
+  const statusFilter = PO_STATUS_VALUES.includes(statusRaw as (typeof PO_STATUS_VALUES)[number])
+    ? statusRaw
+    : undefined;
+  const filtersActive = Boolean(q || (statusFilter && statusFilter !== 'all'));
 
   const { orders, canManage, canRead, marketEntries } = await withOrgContext(async (context) => {
     const allowed = orgListHasPermission(context, PERMISSIONS.PROCUREMENT_READ, surface);
@@ -75,7 +94,10 @@ export async function ProcurementOrdersOrgListView({
     }
 
     const [orders, marketEntries] = await Promise.all([
-      listPurchaseOrdersWithCommittedForOrg(context),
+      listPurchaseOrdersWithCommittedForOrg(context, undefined, {
+        ...(statusFilter && statusFilter !== 'all' ? { status: statusFilter } : {}),
+        ...(q ? { search: q } : {}),
+      }),
       loadMaterialMarketDashboard(context.db).catch(() => []),
     ]);
 
@@ -134,6 +156,11 @@ export async function ProcurementOrdersOrgListView({
 
       <MainAppSection>
         <AdaptiveListBody surface={surface}>
+      <ProcurementOrdersListFilters
+        routeBase={routeBase}
+        initialQuery={q}
+        initialStatus={statusRaw}
+      />
       {/* Market pressure context — indication only, not a forecast */}
       {marketSnapshots.length > 0 && canRead ? (
         <MarketPressureContextBanner
@@ -155,6 +182,9 @@ export async function ProcurementOrdersOrgListView({
       ) : null}
 
       {orders.length === 0 ? (
+        filtersActive ? (
+          <p className="text-sm text-[var(--pf-text-muted)]">{tCommon('states.noResults')}</p>
+        ) : (
         <EmptyState
           icon={ClipboardList}
           title={t('empty.orders.title')}
@@ -167,6 +197,7 @@ export async function ProcurementOrdersOrgListView({
             ) : undefined
           }
         />
+        )
       ) : (
         <ResponsiveTable
           items={orders}

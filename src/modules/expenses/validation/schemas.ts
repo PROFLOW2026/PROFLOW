@@ -240,6 +240,7 @@ export const listExpensesSchema = z.object({
   cash: z.enum(['open', 'paid']).optional(),
   /** Supplier expenses vs subcontractor expenses. Structured category key, not free text. */
   cashSource: z.enum(['suppliers', 'subcontractors']).optional(),
+  q: z.string().trim().max(120).optional(),
   limit: z.coerce.number().int().min(1).max(200).optional(),
   offset: z.coerce.number().int().min(0).optional(),
   page: z.coerce.number().int().min(1).optional(),

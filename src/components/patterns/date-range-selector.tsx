@@ -63,6 +63,8 @@ export interface DateRangeSelectorProps {
   className?: string;
   /** JS weekday that starts the week (0=Sunday … 6=Saturday). Default 0. */
   weekStartDay?: number;
+  /** Preset chip keys; defaults to {@link STANDARD_DATE_RANGE_PRESETS}. */
+  presets?: readonly Preset[];
 }
 
 /** Add integer `days` to a YYYY-MM-DD string, returns YYYY-MM-DD. */
@@ -121,7 +123,11 @@ function computePreset(
   }
 }
 
-const PRESETS = [
+/** Owner-approved quick picks: week | month | year (+ precise from/to inputs for custom). */
+export const STANDARD_DATE_RANGE_PRESETS = ['thisWeek', 'thisMonth', 'thisYear'] as const;
+
+/** Full legacy preset set — pass explicitly when a screen still needs gradual migration. */
+export const LEGACY_DATE_RANGE_PRESETS = [
   'today',
   'thisWeek',
   'thisMonth',
@@ -129,9 +135,14 @@ const PRESETS = [
   'last30Days',
   'last90Days',
   'thisYear',
+  'lastYear',
 ] as const;
 
-type Preset = (typeof PRESETS)[number];
+const DEFAULT_PRESETS = STANDARD_DATE_RANGE_PRESETS;
+
+type StandardPreset = (typeof STANDARD_DATE_RANGE_PRESETS)[number];
+type LegacyPreset = (typeof LEGACY_DATE_RANGE_PRESETS)[number];
+type Preset = StandardPreset | LegacyPreset;
 
 export function DateRangeSelector({
   today: todayProp,
@@ -146,6 +157,7 @@ export function DateRangeSelector({
   labels: labelsProp,
   className,
   weekStartDay = 0,
+  presets = DEFAULT_PRESETS,
 }: DateRangeSelectorProps) {
   const t = useTranslations('common.dateRange');
   const labels: Required<DateRangeSelectorLabels> = {
@@ -197,7 +209,7 @@ export function DateRangeSelector({
     <div className={className}>
       {/* Preset buttons */}
       <div className="flex flex-wrap gap-1.5">
-        {PRESETS.map((preset) => (
+        {presets.map((preset) => (
           <button
             key={preset}
             type="button"

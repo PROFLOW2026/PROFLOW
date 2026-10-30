@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState } from 'react';
+import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import {
   uwmActiveChipClass,
@@ -23,6 +24,12 @@ interface OwnerListFilterBarProps {
   readonly activeSummary: readonly string[];
   readonly onApply: () => void;
   readonly onClear: () => void;
+  /** When `submit`, the apply control submits the wrapping `<form>`. */
+  readonly applyButtonType?: 'button' | 'submit';
+  /** When set, clear navigates here instead of calling `onClear`. */
+  readonly clearHref?: string;
+  /** When true, advanced filters stay collapsed until opened (all breakpoints). */
+  readonly collapseDesktop?: boolean;
   /** Always visible, on the same row as the mobile filter button. */
   readonly toolbar?: React.ReactNode;
   readonly children: React.ReactNode;
@@ -40,10 +47,24 @@ export function OwnerListFilterBar({
   activeSummary,
   onApply,
   onClear,
+  applyButtonType = 'button',
+  clearHref,
+  collapseDesktop = false,
   toolbar,
   children,
 }: OwnerListFilterBarProps) {
   const [open, setOpen] = useState(false);
+  const showFilterToggle = Boolean(toolbar) || collapseDesktop;
+  const advancedPanelClass = !open
+    ? collapseDesktop
+      ? 'hidden'
+      : 'hidden lg:block'
+    : undefined;
+  const advancedFooterClass = !open
+    ? collapseDesktop
+      ? 'hidden'
+      : 'hidden lg:flex'
+    : undefined;
 
   return (
     <section className={uwmFilterPanelClass} aria-label={title}>
@@ -56,31 +77,56 @@ export function OwnerListFilterBar({
         ) : null}
       </div>
 
-      <div className={cn('flex min-w-0 items-center gap-2', !toolbar && 'lg:hidden')}>
+      <div
+        className={cn(
+          'flex min-w-0 items-center gap-2',
+          !showFilterToggle && 'lg:hidden',
+        )}
+      >
         {toolbar ? <div className="min-w-0 flex-1">{toolbar}</div> : null}
         <button
           type="button"
-          className={cn(uwmSecondaryButtonClass, 'shrink-0 lg:hidden')}
+          className={cn(uwmSecondaryButtonClass, 'shrink-0', !showFilterToggle && 'lg:hidden')}
           onClick={() => setOpen((v) => !v)}
+          aria-expanded={collapseDesktop ? open : true}
         >
           {activeCount > 0 && mobileWithCountLabel ? mobileWithCountLabel : mobileLabel}
         </button>
       </div>
 
-      <div className={cn('space-y-3', !open && 'hidden lg:block')}>{children}</div>
+      <div className={cn('space-y-3', advancedPanelClass)}>{children}</div>
 
       <div
         className={cn(
           'flex flex-wrap items-center gap-2 border-t border-[var(--pf-border-default)] pt-3',
-          !open && 'hidden lg:flex',
+          advancedFooterClass,
         )}
       >
-        <button type="button" className={uwmPrimaryButtonClass} onClick={onApply}>
+        <button
+          type={applyButtonType}
+          className={uwmPrimaryButtonClass}
+          onClick={applyButtonType === 'button' ? onApply : undefined}
+        >
           {applyLabel}
         </button>
-        <button type="button" className={uwmSecondaryButtonClass} onClick={onClear} disabled={!isActive}>
-          {clearLabel}
-        </button>
+        {clearHref ? (
+          <Link
+            href={clearHref}
+            className={cn(
+              uwmSecondaryButtonClass,
+              'inline-flex items-center',
+              !isActive && 'pointer-events-none opacity-50',
+            )}
+            aria-disabled={!isActive}
+            tabIndex={isActive ? 0 : -1}
+          >
+            {clearLabel}
+          </Link>
+        ) : (
+          <button type="button" className={uwmSecondaryButtonClass} onClick={onClear} disabled={!isActive}>
+            {clearLabel}
+          </button>
+        )}
       </div>
 
       {isActive ? (

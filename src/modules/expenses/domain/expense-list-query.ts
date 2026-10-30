@@ -23,9 +23,12 @@ export interface ParsedExpenseListQuery {
   readonly unallocated: boolean;
   readonly cash?: 'open' | 'paid';
   readonly cashSource?: 'suppliers' | 'subcontractors';
+  readonly q?: string;
   readonly page: number;
   readonly statusFilter: ExpenseListStatusFilter;
 }
+
+const EXPENSE_LIST_Q_MAX_LEN = 120;
 
 function firstString(value: unknown): string | undefined {
   const raw = Array.isArray(value) ? value[0] : value;
@@ -76,6 +79,8 @@ export function parseExpenseListSearchParams(
   const dateBasis = firstString(raw.dateBasis) === 'payment' ? 'payment' : 'expense';
   const pageRaw = Number(firstString(raw.page));
   const page = Number.isInteger(pageRaw) && pageRaw >= 1 ? pageRaw : 1;
+  const qRaw = firstString(raw.q);
+  const q = qRaw ? qRaw.slice(0, EXPENSE_LIST_Q_MAX_LEN) : undefined;
 
   const parsed = {
     dateFrom: dateOrUndefined(raw.dateFrom),
@@ -89,6 +94,7 @@ export function parseExpenseListSearchParams(
     unallocated,
     cash,
     cashSource,
+    q,
     page,
   } as const;
 
@@ -114,6 +120,7 @@ export interface AssembledExpenseListFilters {
   readonly attentionFilter?: ExpenseAttentionFilter;
   readonly cash?: 'open' | 'paid';
   readonly cashSource?: 'suppliers' | 'subcontractors';
+  readonly search?: string;
 }
 
 export function assembleExpenseListFilters(
@@ -139,5 +146,6 @@ export function assembleExpenseListFilters(
     attentionFilter,
     cash: query.cash,
     cashSource: query.cashSource,
+    search: query.q,
   };
 }

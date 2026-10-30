@@ -172,6 +172,7 @@ export const listQuotesSchema = z.object({
   status: z.enum(QUOTE_STATUSES).optional(),
   clientId: z.string().uuid().optional(),
   opportunityId: z.string().uuid().optional(),
+  q: z.string().trim().max(120).optional(),
 });
 
 export type ListQuotesInput = z.input<typeof listQuotesSchema>;

@@ -2,9 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
-import { Button } from '@/components/ui/button';
-import { Field } from '@/components/ui/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MainAppOrgListFilterPanel } from '@/components/patterns/main-app';
+import { OwnerFilterField } from '@/shared/ui/owner-list-filter-bar';
 
 interface Option {
   readonly id: string;
@@ -12,6 +11,7 @@ interface Option {
 }
 
 interface SubcontractsListFiltersProps {
+  readonly routeBase: string;
   initialVendorId: string;
   initialProjectId: string;
   initialStatus: string;
@@ -21,82 +21,101 @@ interface SubcontractsListFiltersProps {
   projects: readonly Option[];
 }
 
-export function SubcontractsListFilters({
-  initialVendorId,
-  initialProjectId,
-  initialStatus,
-  initialFrom,
-  initialTo,
-  vendors,
-  projects,
-}: SubcontractsListFiltersProps) {
+function countActive(props: SubcontractsListFiltersProps): number {
+  let n = 0;
+  if (props.initialVendorId && props.initialVendorId !== 'all') n += 1;
+  if (props.initialProjectId && props.initialProjectId !== 'all') n += 1;
+  if (props.initialStatus && props.initialStatus !== 'all') n += 1;
+  if (props.initialFrom || props.initialTo) n += 1;
+  return n;
+}
+
+export function SubcontractsListFilters(props: SubcontractsListFiltersProps) {
   const t = useTranslations('vendors.subcontractsWorkspace');
-  const tCommon = useTranslations('common');
   const tSub = useTranslations('vendors.subcontracts');
+  const tCommon = useTranslations('common');
+  const activeCount = countActive(props);
+  const isActive = activeCount > 0;
+  const chips: string[] = [];
+  if (props.initialVendorId && props.initialVendorId !== 'all') {
+    const vendor = props.vendors.find((row) => row.id === props.initialVendorId);
+    chips.push(vendor?.name ?? t('list.columns.vendor'));
+  }
+  if (props.initialProjectId && props.initialProjectId !== 'all') {
+    const project = props.projects.find((row) => row.id === props.initialProjectId);
+    chips.push(project?.name ?? t('list.columns.project'));
+  }
+  if (props.initialStatus && props.initialStatus !== 'all') {
+    chips.push(tSub(`status.${props.initialStatus}`));
+  }
+  if (props.initialFrom || props.initialTo) {
+    chips.push(`${props.initialFrom ?? '…'} – ${props.initialTo ?? '…'}`);
+  }
 
   return (
-    <form method="get" className="flex w-full flex-col gap-3">
-      <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-      <Field label={t('list.columns.vendor')} className="min-w-0 sm:w-44">
-        {(control) => (
-          <Select name="vendorId" defaultValue={initialVendorId || 'all'}>
-            <SelectTrigger id={control.id}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('filters.all')}</SelectItem>
-              {vendors.map((vendor) => (
-                <SelectItem key={vendor.id} value={vendor.id}>
-                  {vendor.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </Field>
-      <Field label={t('list.columns.project')} className="min-w-0 sm:w-44">
-        {(control) => (
-          <Select name="projectId" defaultValue={initialProjectId || 'all'}>
-            <SelectTrigger id={control.id}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('filters.all')}</SelectItem>
-              {projects.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </Field>
-      <Field label={t('list.columns.status')} className="min-w-0 sm:w-36">
-        {(control) => (
-          <Select name="status" defaultValue={initialStatus}>
-            <SelectTrigger id={control.id}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('filters.all')}</SelectItem>
-              <SelectItem value="draft">{tSub('status.draft')}</SelectItem>
-              <SelectItem value="active">{tSub('status.active')}</SelectItem>
-              <SelectItem value="completed">{tSub('status.completed')}</SelectItem>
-              <SelectItem value="cancelled">{tSub('status.cancelled')}</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
-      </Field>
-      <Button type="submit" variant="secondary">
-        {tCommon('actions.search')}
-      </Button>
+    <MainAppOrgListFilterPanel
+      title={t('filters.panelTitle')}
+      applyLabel={tCommon('actions.filter')}
+      clearLabel={tCommon('actions.clearFilters')}
+      clearHref={props.routeBase}
+      activeLabel={t('filters.active')}
+      mobileLabel={tCommon('actions.filter')}
+      mobileWithCountLabel={t('filters.mobileWithCount', { count: activeCount })}
+      activeCount={activeCount}
+      isActive={isActive}
+      activeSummary={chips}
+    >
+      <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+        <OwnerFilterField label={t('list.columns.vendor')}>
+          <select
+            name="vendorId"
+            defaultValue={props.initialVendorId || 'all'}
+            className="h-9 w-full min-w-0 rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 text-sm"
+          >
+            <option value="all">{t('filters.all')}</option>
+            {props.vendors.map((vendor) => (
+              <option key={vendor.id} value={vendor.id}>
+                {vendor.name}
+              </option>
+            ))}
+          </select>
+        </OwnerFilterField>
+        <OwnerFilterField label={t('list.columns.project')}>
+          <select
+            name="projectId"
+            defaultValue={props.initialProjectId || 'all'}
+            className="h-9 w-full min-w-0 rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 text-sm"
+          >
+            <option value="all">{t('filters.all')}</option>
+            {props.projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+        </OwnerFilterField>
+        <OwnerFilterField label={t('list.columns.status')}>
+          <select
+            name="status"
+            defaultValue={props.initialStatus || 'all'}
+            className="h-9 w-full min-w-0 rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 text-sm"
+          >
+            <option value="all">{t('filters.all')}</option>
+            <option value="draft">{tSub('status.draft')}</option>
+            <option value="active">{tSub('status.active')}</option>
+            <option value="completed">{tSub('status.completed')}</option>
+            <option value="cancelled">{tSub('status.cancelled')}</option>
+          </select>
+        </OwnerFilterField>
       </div>
-      <DateRangeSelector
-        fromName="from"
-        toName="to"
-        defaultFrom={initialFrom}
-        defaultTo={initialTo}
-      />
-    </form>
+      <div className="min-w-0">
+        <DateRangeSelector
+          fromName="from"
+          toName="to"
+          defaultFrom={props.initialFrom ?? ''}
+          defaultTo={props.initialTo ?? ''}
+        />
+      </div>
+    </MainAppOrgListFilterPanel>
   );
 }

@@ -39,6 +39,8 @@
     "emptyBody": "سجّل فوترة عند إرسال مبلغ للعميل — حتى لو كانت الفاتورة القانونية في نظام آخر.",
     "filterButton": "تصفية",
     "clearFilter": "مسح التصفية",
+    "activeFilters": "تصفية نشطة",
+    "mobileWithCount": "تصفية ({count})",
     "collectedInPeriodLabel": "المُحصَّل في الفترة:",
     "collectedInPeriodHint": "(مدفوعات العملاء المُستلمة، حسب تاريخ الدفع)",
     "emptyAction": "إضافة سجل فوترة"

@@ -37,7 +37,10 @@
     "billDateHint": "The list is filtered by bill date — not payment date.",
     "paymentDateFrom": "Payment date from",
     "paymentDateTo": "Payment date to",
-    "outstandingOnly": "Only vendor bills with a balance to pay are shown."
+    "outstandingOnly": "Only vendor bills with a balance to pay are shown.",
+    "filterPanelTitle": "Vendor bill filters",
+    "activeFilters": "Active filters",
+    "mobileWithCount": "Filters ({count})"
   },
   "statuses": {
     "draft": "Draft",

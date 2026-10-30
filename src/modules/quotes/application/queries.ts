@@ -19,7 +19,11 @@ export async function listQuotesForOrg(
     );
   }
 
-  return listQuotes(context.db, context.organizationId, parsed.data);
+  const { q, ...rest } = parsed.data;
+  return listQuotes(context.db, context.organizationId, {
+    ...rest,
+    search: q,
+  });
 }
 
 export async function getQuoteById(

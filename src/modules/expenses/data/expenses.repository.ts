@@ -1,4 +1,4 @@
-import { and, desc, eq, exists, gte, inArray, isNull, lte, not, or, sql } from 'drizzle-orm';
+import { and, desc, eq, exists, gte, ilike, inArray, isNull, lte, not, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import {
   apBills,
@@ -63,6 +63,39 @@ export interface ExpenseListFilters {
   readonly cash?: 'open' | 'paid';
   /** Structured cost-category key: suppliers vs subcontractors. */
   readonly cashSource?: 'suppliers' | 'subcontractors';
+  /** Org-scoped text search (description, supplier name, linked vendor name). */
+  readonly search?: string;
+}
+
+const EXPENSE_LIST_SEARCH_MAX_LEN = 120;
+
+function appendExpenseTextSearchConditions(
+  db: DbExecutor,
+  organizationId: string,
+  search: string | undefined,
+  conditions: unknown[],
+) {
+  const trimmed = search?.trim();
+  if (!trimmed) return;
+  const term = `%${trimmed.slice(0, EXPENSE_LIST_SEARCH_MAX_LEN)}%`;
+  conditions.push(
+    or(
+      ilike(expenses.description, term),
+      ilike(expenses.supplierName, term),
+      exists(
+        db
+          .select({ id: vendors.id })
+          .from(vendors)
+          .where(
+            and(
+              eq(vendors.id, expenses.vendorId),
+              eq(vendors.organizationId, organizationId),
+              ilike(vendors.name, term),
+            ),
+          ),
+      ),
+    )!,
+  );
 }
 
 export interface ExpenseInsertRow {
@@ -717,6 +750,7 @@ export async function listExpenses(
   }
 
   appendExpenseCashBalanceConditions(db, organizationId, filters, conditions);
+  appendExpenseTextSearchConditions(db, organizationId, filters.search, conditions);
 
   const where = and(...conditions);
 

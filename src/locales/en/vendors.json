@@ -175,7 +175,10 @@
     "title": "Subcontracts",
     "description": "Subcontractor agreements across projects. Open a vendor to manage the agreement.",
     "filters": {
-      "all": "All"
+      "all": "All",
+      "panelTitle": "Subcontract filters",
+      "active": "Active filters",
+      "mobileWithCount": "Filters ({count})"
     },
     "empty": {
       "title": "No subcontracts yet",

@@ -57,6 +57,11 @@
     "action": "New quote"
   },
   "list": {
+    "searchPlaceholder": "Search title or client…",
+    "filterPanelTitle": "Quote filters",
+    "filterAll": "All",
+    "activeFilters": "Active filters",
+    "mobileWithCount": "Filters ({count})",
     "columns": {
       "title": "Title",
       "client": "Client",

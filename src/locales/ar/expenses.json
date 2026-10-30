@@ -402,6 +402,10 @@
     "clearFilter": "مسح تصفية «يحتاج إجراء»"
   },
   "list": {
+    "searchPlaceholder": "بحث في الوصف أو المورد…",
+    "filterPanelTitle": "تصفية المصروفات",
+    "mobileWithCount": "تصفية ({count})",
+    "activeFilters": "تصفية نشطة",
     "empty": {
       "title": "تتبّع ما ينفقه العمل",
       "description": "سجّل مواد ومقاولي باطن وإيجار وتكاليف أخرى. ابدأ بمبلغ — التفاصيل يمكن أن تنتظر.",

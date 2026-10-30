@@ -37,7 +37,10 @@
     "billDateHint": "סינון הרשימה לפי תאריך החשבון; לא לפי תאריך תשלום.",
     "paymentDateFrom": "מתאריך תשלום",
     "paymentDateTo": "עד תאריך תשלום",
-    "outstandingOnly": "מוצגות רק חשבוניות ספק עם יתרה לתשלום."
+    "outstandingOnly": "מוצגות רק חשבוניות ספק עם יתרה לתשלום.",
+    "filterPanelTitle": "סינון חשבוניות ספק",
+    "activeFilters": "סינון פעיל",
+    "mobileWithCount": "סינון ({count})"
   },
   "statuses": {
     "draft": "טיוטה",

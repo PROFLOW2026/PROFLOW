@@ -12,8 +12,16 @@ export async function generateMetadata({
   return { title: t('title') };
 }
 
-export default function ProcurementPage() {
+export default function ProcurementPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   return (
-    <ProcurementOrdersOrgListView routeBase="/procurement" surface="owner" />
+    <ProcurementOrdersOrgListView
+      routeBase="/procurement"
+      surface="owner"
+      searchParams={searchParams}
+    />
   );
 }

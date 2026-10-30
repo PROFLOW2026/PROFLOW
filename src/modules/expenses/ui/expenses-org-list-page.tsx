@@ -203,6 +203,7 @@ export async function ExpensesOrgListPage({
           statusFilter,
           cash: parsedQuery.cash,
           cashSource: parsedQuery.cashSource,
+          q: parsedQuery.q,
         }}
       />
       </MainAppSection>

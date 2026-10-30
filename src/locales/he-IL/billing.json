@@ -51,6 +51,8 @@
     "emptyBody": "רשמו חיוב כששלחתם סכום ללקוח - גם אם המסמך החוקי במערכת אחרת.",
     "filterButton": "סנן",
     "clearFilter": "נקה סינון",
+    "activeFilters": "סינון פעיל",
+    "mobileWithCount": "סינון ({count})",
     "collectedInPeriodLabel": "נגבה בפועל בתקופה:",
     "collectedInPeriodHint": "(תשלומי לקוחות שהתקבלו לפי תאריך תשלום)",
     "emptyAction": "חיוב חדש"

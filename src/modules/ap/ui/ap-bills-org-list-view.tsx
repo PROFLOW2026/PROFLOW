@@ -7,11 +7,12 @@ import {
   MainAppListPagination,
   MainAppPage,
   MainAppSection,
+  mainAppCompactListCardClassName,
   mainAppListKitEnabled,
 } from '@/components/patterns/main-app';
 import { QueryPagination } from '@/components/ui/query-pagination';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
-import { DateRangeSelector } from '@/components/patterns/date-range-selector';
+import { ApBillsListFilters } from '@/modules/ap/ui/ap-bills-list-filters';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -216,49 +217,15 @@ export async function ApBillsOrgListView({
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('list.outstandingOnly')}</p>
       ) : null}
 
-      <form method="get" className="flex flex-col gap-2">
-        {outstandingOnly ? <input type="hidden" name="outstanding" value="1" /> : null}
-        <div>
-          <p className="mb-0.5 text-xs text-[var(--pf-text-muted)]">{t('list.billDateHint')}</p>
-          <DateRangeSelector
-            today={today}
-            defaultFrom={fromDate ?? ''}
-            defaultTo={toDate ?? ''}
-            fromName="fromDate"
-            toName="toDate"
-          />
-        </div>
-        <div>
-          <p className="mb-0.5 text-xs text-[var(--pf-text-muted)]">{t('list.paidInPeriodHint')}</p>
-          <DateRangeSelector
-            today={today}
-            defaultFrom={paymentFrom ?? ''}
-            defaultTo={paymentTo ?? ''}
-            fromName="paymentFrom"
-            toName="paymentTo"
-            labels={{
-              from: t('list.paymentDateFrom'),
-              to: t('list.paymentDateTo'),
-            }}
-          />
-        </div>
-        <div className="flex gap-2">
-          <button
-            type="submit"
-            className="h-9 rounded-md border border-[var(--pf-border-strong)] px-4 text-sm font-medium"
-          >
-            {t('aging.apply')}
-          </button>
-          {(fromDate ?? toDate ?? paymentFrom ?? paymentTo ?? outstandingOnly) ? (
-            <Link
-              href={routeBase}
-              className="inline-flex h-9 items-center rounded-md px-3 text-sm text-[var(--pf-text-secondary)] hover:underline"
-            >
-              {t('aging.clear')}
-            </Link>
-          ) : null}
-        </div>
-      </form>
+      <ApBillsListFilters
+        routeBase={routeBase}
+        today={today}
+        fromDate={fromDate}
+        toDate={toDate}
+        paymentFrom={paymentFrom}
+        paymentTo={paymentTo}
+        outstandingOnly={outstandingOnly}
+      />
 
       {paidInPeriod !== null && parseFloat(paidInPeriod) > 0 ? (
         <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm">
@@ -286,6 +253,7 @@ export async function ApBillsOrgListView({
         <ResponsiveTable
           items={bills}
           getRowKey={(bill) => bill.id}
+          mobileListClassName={listKit ? 'pf-ma-compact-mobile-list' : undefined}
           desktop={
             <AdaptiveListTableShell surface={surface}>
               <Table>
@@ -367,7 +335,11 @@ export async function ApBillsOrgListView({
           renderMobileCard={(bill) => (
             <Link
               href={billDetailHref(routeBase, bill.id)}
-              className="flex min-h-11 min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+              className={
+                listKit
+                  ? cn(mainAppCompactListCardClassName, 'flex min-w-0 flex-col gap-2')
+                  : 'flex min-h-11 min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]'
+              }
             >
               <div className="flex min-w-0 items-start justify-between gap-2">
                 <span className="min-w-0 break-words font-semibold">

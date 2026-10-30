@@ -127,7 +127,7 @@ export function buildQuickCreateActions(
   }
 
   if (permissions.has(PERMISSIONS.EXPENSES_CREATE)) {
-    candidates.push({ key: 'expense', href: '/expenses', labelKey: 'expense' });
+    candidates.push({ key: 'expense', href: '/expenses/new', labelKey: 'expense' });
   }
 
   if (modules.vendors && permissions.has(PERMISSIONS.VENDORS_MANAGE)) {
