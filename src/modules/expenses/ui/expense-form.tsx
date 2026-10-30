@@ -63,6 +63,7 @@ import {
   resolveRestoredSingleProjectId,
   shouldConfirmLeavingSingleProject,
 } from '@/modules/expenses/domain/expense-cost-destination-state';
+import { ExpenseDestinationChangeConfirmDialog } from './expense-destination-change-confirm-dialog';
 
 const OVERHEAD_VALUE = '__overhead__';
 const NONE_VALUE = '__none__';
@@ -380,6 +381,9 @@ export function ExpenseForm({
     const initial = initialValues?.projectId?.trim();
     return initial ?? '';
   });
+  const [pendingDestinationMode, setPendingDestinationMode] =
+    React.useState<CostDestinationMode | null>(null);
+  const [destinationConfirmOpen, setDestinationConfirmOpen] = React.useState(false);
 
   const projectIds = React.useMemo(() => projects.map((project) => project.id), [projects]);
 
@@ -563,6 +567,21 @@ export function ExpenseForm({
     }
   }
 
+  function commitCostDestinationChange(mode: CostDestinationMode) {
+    const headerProjectId =
+      costDestinationMode === 'project_single' &&
+      targeting !== OVERHEAD_VALUE &&
+      targeting !== NONE_VALUE
+        ? targeting
+        : null;
+
+    if (headerProjectId) {
+      setRememberedSingleProjectId(headerProjectId);
+    }
+
+    applyCostDestinationChange(mode);
+  }
+
   function handleCostDestinationChange(mode: CostDestinationMode) {
     if (mode === costDestinationMode) return;
 
@@ -573,19 +592,27 @@ export function ExpenseForm({
         ? targeting
         : null;
 
-    if (
-      shouldConfirmLeavingSingleProject(costDestinationMode, mode, headerProjectId) &&
-      typeof window !== 'undefined' &&
-      !window.confirm(t('destination.confirmLeaveSingleProject'))
-    ) {
+    if (shouldConfirmLeavingSingleProject(costDestinationMode, mode, headerProjectId)) {
+      setPendingDestinationMode(mode);
+      setDestinationConfirmOpen(true);
       return;
     }
 
-    if (headerProjectId) {
-      setRememberedSingleProjectId(headerProjectId);
-    }
+    commitCostDestinationChange(mode);
+  }
 
-    applyCostDestinationChange(mode);
+  function handleDestinationConfirmOpenChange(open: boolean) {
+    setDestinationConfirmOpen(open);
+    if (!open) {
+      setPendingDestinationMode(null);
+    }
+  }
+
+  function confirmPendingDestinationChange() {
+    const mode = pendingDestinationMode;
+    if (!mode) return;
+    commitCostDestinationChange(mode);
+    setPendingDestinationMode(null);
   }
 
   function applyCostDestinationChange(mode: CostDestinationMode) {
@@ -1583,6 +1610,12 @@ export function ExpenseForm({
           </div>
         </section>
       )}
+
+      <ExpenseDestinationChangeConfirmDialog
+        open={destinationConfirmOpen}
+        onOpenChange={handleDestinationConfirmOpenChange}
+        onConfirm={confirmPendingDestinationChange}
+      />
     </div>
   );
 }
