@@ -3,16 +3,15 @@
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { Alert } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogBody,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { FormDialogFooter } from '@/components/patterns/form-dialog-footer';
 import type {
   BusinessChangeFieldDiff,
   BusinessChangeImpactLine,
@@ -94,14 +93,14 @@ export function BusinessChangeConfirmDialog({
             </ul>
           ) : null}
         </DialogBody>
-        <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
-          <Button type="button" variant="secondary" disabled={pending} onClick={handleBack}>
-            {t('backToEdit')}
-          </Button>
-          <Button type="button" disabled={pending} onClick={() => void handleConfirm()}>
-            {pending ? t('confirmPending') : t('confirmSave')}
-          </Button>
-        </DialogFooter>
+        <FormDialogFooter
+          cancelLabel={t('backToEdit')}
+          onCancel={handleBack}
+          cancelDisabled={pending}
+          submitLabel={pending ? t('confirmPending') : t('confirmSave')}
+          onSubmit={() => void handleConfirm()}
+          submitLoading={pending}
+        />
       </DialogContent>
     </Dialog>
   );

@@ -9,11 +9,11 @@ import {
   DialogBody,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { FormDialogFooter } from '@/components/patterns/form-dialog-footer';
 
 export interface ConfirmActionResult {
   readonly error?: string;
@@ -120,20 +120,16 @@ export function ConfirmAction({
           </DialogBody>
         ) : null}
 
-        <DialogFooter>
-          <Button
-            ref={cancelRef}
-            type="button"
-            variant="secondary"
-            disabled={pending}
-            onClick={() => handleOpenChange(false)}
-          >
-            {tCommon('actions.cancel')}
-          </Button>
-          <Button type="button" variant="danger" loading={pending} onClick={() => void handleConfirm()}>
-            {confirmLabel}
-          </Button>
-        </DialogFooter>
+        <FormDialogFooter
+          cancelRef={cancelRef}
+          cancelLabel={tCommon('actions.cancel')}
+          onCancel={() => handleOpenChange(false)}
+          cancelDisabled={pending}
+          submitLabel={confirmLabel}
+          onSubmit={() => void handleConfirm()}
+          submitLoading={pending}
+          submitVariant="danger"
+        />
       </DialogContent>
     </Dialog>
   );
