@@ -45,6 +45,12 @@ export function VendorFinancialActivityView({
             {activity.aggregateVendorIds.length > 1 ? (
               <p className="text-xs text-[var(--pf-text-muted)]">{t('aggregateScope')}</p>
             ) : null}
+            <Link
+              href={`/expenses?vendorId=${activity.canonicalVendorId}`}
+              className={`${textNavLinkClassName} text-xs`}
+            >
+              {t('openExpenseList')}
+            </Link>
           </div>
           <div
             className="inline-flex w-full max-w-full shrink-0 rounded-md border border-[var(--pf-border-default)] p-0.5 sm:w-auto"

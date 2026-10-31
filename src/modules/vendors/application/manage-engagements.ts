@@ -17,8 +17,10 @@ import {
   insertVendorEngagement,
   listEngagementsForProject,
   listEngagementsForVendor,
+  listEngagementsForVendorIds,
   updateVendorEngagementById,
 } from '../data/vendors.repository';
+import { listVendorIdsForAggregateQuery } from '../domain/resolve-vendor-aggregate-ids';
 import {
   archiveEngagementSchema,
   cancelEngagementSchema,
@@ -286,7 +288,9 @@ export async function listVendorEngagementHistory(
   const vendor = await findVendorById(context.db, context.organizationId, vendorId);
   if (!vendor) throw new NotFoundError('Vendor');
 
-  return listEngagementsForVendor(context.db, context.organizationId, vendorId, {
+  const vendorIds = await listVendorIdsForAggregateQuery(context, vendorId);
+
+  return listEngagementsForVendorIds(context.db, context.organizationId, vendorIds, {
     status: 'history',
   });
 }

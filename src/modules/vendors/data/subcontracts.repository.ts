@@ -398,6 +398,7 @@ export async function findSubcontractAgreementOperationalById(
 
 export interface SubcontractListFilters {
   vendorId?: string;
+  vendorIds?: readonly string[];
   projectId?: string;
   status?: string;
   limit?: number;
@@ -416,7 +417,11 @@ export async function listSubcontractsOperational(
     eq(subcontractAgreements.organizationId, organizationId),
     isNull(subcontractAgreements.archivedAt),
   ];
-  if (filters.vendorId) conditions.push(eq(subcontractAgreements.vendorId, filters.vendorId));
+  if (filters.vendorIds && filters.vendorIds.length > 0) {
+    conditions.push(inArray(subcontractAgreements.vendorId, [...filters.vendorIds]));
+  } else if (filters.vendorId) {
+    conditions.push(eq(subcontractAgreements.vendorId, filters.vendorId));
+  }
   if (filters.projectId) conditions.push(eq(subcontractAgreements.projectId, filters.projectId));
   if (filters.status && filters.status !== 'all') {
     conditions.push(eq(subcontractAgreements.status, filters.status));

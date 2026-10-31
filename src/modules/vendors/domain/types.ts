@@ -113,6 +113,8 @@ export interface VendorListFilters {
   /** Filter vendors linked to this catalog category (vendor_category). */
   readonly categoryId?: string;
   readonly includeArchived?: boolean;
+  /** When false (default), hide vendor rows linked via parent_vendor_id (historical aliases). */
+  readonly includeLinkedChildRecords?: boolean;
   readonly limit?: number;
   readonly offset?: number;
 }

@@ -17,6 +17,7 @@ import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors
 import { addMoney, money, toNumericString } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { listVendorIdsForAggregateQuery } from '@/modules/vendors/domain/resolve-vendor-aggregate-ids';
 import { enqueuePaymentReportedValueSync } from '@/modules/connected-projects/application/sync-contract-value-projection';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
@@ -28,6 +29,7 @@ import { listActiveCreditAmountsForBill } from '../data/credits.repository';
 import {
   getVendorPaymentsRepository,
   listRecordedPaymentsForVendor,
+  listRecordedPaymentsForVendorIds,
   type ApPaymentApplicationRow,
   type ApPaymentRow,
   type ApPaymentWithApplications,
@@ -155,7 +157,8 @@ export async function listVendorPaymentsForVendor(
 ): Promise<readonly ApPaymentRow[]> {
   assertPermission(context, PERMISSIONS.AP_READ);
   if (!areApPaymentsAvailable()) return [];
-  return listRecordedPaymentsForVendor(context.db, context.organizationId, vendorId);
+  const vendorIds = await listVendorIdsForAggregateQuery(context, vendorId);
+  return listRecordedPaymentsForVendorIds(context.db, context.organizationId, vendorIds);
 }
 
 /**

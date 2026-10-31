@@ -11,6 +11,7 @@ import {
   employeePermissionScope,
   isEmployeeAppUser,
 } from '@/modules/employee-app/application/load-employee-app-context';
+import { listVendorIdsForAggregateQuery } from '@/modules/vendors/domain/resolve-vendor-aggregate-ids';
 import type { CostFamily } from '../domain/types';
 import {
   findExpenseById,
@@ -119,11 +120,15 @@ export async function listExpensesForOrg(
     };
   }
 
-  const result = await listExpenses(
-    context.db,
-    context.organizationId,
-    withAccessibleProjectFilter(filters, accessibleProjectIds),
-  );
+  const unifiedVendorIds = filters.vendorId
+    ? await listVendorIdsForAggregateQuery(context, filters.vendorId)
+    : undefined;
+  const scopedFilters = withAccessibleProjectFilter(filters, accessibleProjectIds);
+  const result = await listExpenses(context.db, context.organizationId, {
+    ...scopedFilters,
+    vendorId: unifiedVendorIds ? undefined : scopedFilters.vendorId,
+    vendorIds: unifiedVendorIds,
+  });
 
   return {
     ...result,

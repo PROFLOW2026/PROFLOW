@@ -461,11 +461,24 @@ export async function listRecordedPaymentsForVendor(
   organizationId: string,
   vendorId: string,
 ): Promise<readonly ApPaymentRow[]> {
-  if (!areApPaymentsAvailable()) return [];
+  return listRecordedPaymentsForVendorIds(db, organizationId, [vendorId]);
+}
+
+export async function listRecordedPaymentsForVendorIds(
+  db: DbExecutor,
+  organizationId: string,
+  vendorIds: readonly string[],
+): Promise<readonly ApPaymentRow[]> {
+  if (!areApPaymentsAvailable() || vendorIds.length === 0) return [];
   const rows = await db
     .select()
     .from(apPayments)
-    .where(and(eq(apPayments.organizationId, organizationId), eq(apPayments.vendorId, vendorId)))
+    .where(
+      and(
+        eq(apPayments.organizationId, organizationId),
+        inArray(apPayments.vendorId, [...vendorIds]),
+      ),
+    )
     .orderBy(desc(apPayments.paymentDate), desc(apPayments.createdAt));
   return rows.map(mapPayment);
 }

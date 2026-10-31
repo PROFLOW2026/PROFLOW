@@ -14,6 +14,7 @@ import {
 } from '@/modules/ap';
 import { listComplianceArtifactsForOrg } from '@/modules/compliance';
 import { listPurchaseOrdersForOrg } from '@/modules/procurement';
+import { listVendorIdsForAggregateQuery } from '../domain/resolve-vendor-aggregate-ids';
 import { getVendorById } from './list-vendors';
 import { listVendorEngagementHistory } from './manage-engagements';
 import { listVendorSubcontractsForViewer } from './subcontracts';
@@ -39,15 +40,16 @@ function addSameCurrency(left: MoneyValue, right: MoneyValue): MoneyValue {
 
 async function loadFulfillmentLag(
   context: OrgContext,
-  vendorId: string,
+  vendorIds: readonly string[],
 ): Promise<{
   readonly poCount: number;
   readonly poCommitted: MoneyValue;
   readonly lag: SupplierFulfillmentLag | null;
 }> {
   const currency = context.organization.baseCurrency;
+  const vendorIdSet = new Set(vendorIds);
   const orders = (await listPurchaseOrdersForOrg(context)).filter(
-    (order) => order.vendorId === vendorId && !order.archivedAt,
+    (order) => order.vendorId && vendorIdSet.has(order.vendorId) && !order.archivedAt,
   );
 
   const issued = orders.filter(
@@ -113,8 +115,9 @@ async function loadFulfillmentLag(
 
 async function loadWarrantyQuality(
   context: OrgContext,
-  vendorId: string,
+  vendorIds: readonly string[],
 ): Promise<SupplierWarrantyQuality | null> {
+  if (vendorIds.length === 0) return null;
   try {
     const coverages = await context.db
       .select({ id: warrantyCoverages.id })
@@ -122,7 +125,7 @@ async function loadWarrantyQuality(
       .where(
         and(
           eq(warrantyCoverages.organizationId, context.organizationId),
-          eq(warrantyCoverages.vendorId, vendorId),
+          inArray(warrantyCoverages.vendorId, [...vendorIds]),
           isNull(warrantyCoverages.archivedAt),
         ),
       );
@@ -187,6 +190,7 @@ export async function getVendorPerformance(
   vendorId: string,
 ): Promise<SupplierPerformance> {
   assertPermission(context, PERMISSIONS.VENDORS_READ);
+  const unifiedVendorIds = await listVendorIdsForAggregateQuery(context, vendorId);
   const vendor = await getVendorById(context, vendorId);
   const currency = context.organization.baseCurrency;
   const canAp = hasPermission(context, PERMISSIONS.AP_READ);
@@ -202,9 +206,9 @@ export async function getVendorPerformance(
         ? listVendorPaymentsForVendor(context, vendorId).catch(() => [])
         : Promise.resolve([]),
       canProcurement
-        ? loadFulfillmentLag(context, vendorId).catch(() => null)
+        ? loadFulfillmentLag(context, unifiedVendorIds).catch(() => null)
         : Promise.resolve(null),
-      loadWarrantyQuality(context, vendorId),
+      loadWarrantyQuality(context, unifiedVendorIds),
       canCompliance
         ? listComplianceArtifactsForOrg(context, { subjectType: 'vendor' }).catch(() => [])
         : Promise.resolve([]),
@@ -266,7 +270,10 @@ export async function getVendorPerformance(
     };
   }
 
-  const vendorArtifacts = complianceRows.filter((row) => row.subjectId === vendorId);
+  const unifiedVendorIdSet = new Set(unifiedVendorIds);
+  const vendorArtifacts = complianceRows.filter(
+    (row) => row.subjectId && unifiedVendorIdSet.has(row.subjectId),
+  );
   let compliance: SupplierComplianceSnapshot | null = null;
   if (vendorArtifacts.length > 0) {
     const expiredOrRevokedCount = vendorArtifacts.filter(

@@ -1,4 +1,4 @@
-import { and, eq, ilike, isNull, or, sql } from 'drizzle-orm';
+import { and, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import {
   expenses,
   organizationCatalogEntries,
@@ -207,6 +207,10 @@ function buildVendorListConditions(organizationId: string, filters: VendorListFi
     conditions.push(isNull(vendors.archivedAt));
   }
 
+  if (!filters.includeLinkedChildRecords) {
+    conditions.push(isNull(vendors.parentVendorId));
+  }
+
   if (filters.status && filters.status !== 'all') {
     conditions.push(eq(vendors.status, filters.status));
   }
@@ -229,7 +233,18 @@ function buildVendorListConditions(organizationId: string, filters: VendorListFi
 
   if (filters.search?.trim()) {
     const term = `%${filters.search.trim()}%`;
-    conditions.push(or(ilike(vendors.name, term), ilike(vendors.notes, term))!);
+    conditions.push(
+      or(
+        ilike(vendors.name, term),
+        ilike(vendors.notes, term),
+        sql`exists (
+          select 1 from vendors linked_child
+          where linked_child.parent_vendor_id = vendors.id
+            and linked_child.organization_id = ${organizationId}
+            and (linked_child.name ilike ${term} or linked_child.notes ilike ${term})
+        )`,
+      )!,
+    );
   }
 
   return conditions;
@@ -860,9 +875,20 @@ export async function listEngagementsForVendor(
   vendorId: string,
   options: { status?: EngagementStatus | 'history' | 'all' } = {},
 ): Promise<VendorEngagementSummary[]> {
+  return listEngagementsForVendorIds(db, organizationId, [vendorId], options);
+}
+
+export async function listEngagementsForVendorIds(
+  db: DbExecutor,
+  organizationId: string,
+  vendorIds: readonly string[],
+  options: { status?: EngagementStatus | 'history' | 'all' } = {},
+): Promise<VendorEngagementSummary[]> {
+  if (vendorIds.length === 0) return [];
+
   const conditions = [
     eq(vendorEngagements.organizationId, organizationId),
-    eq(vendorEngagements.vendorId, vendorId),
+    inArray(vendorEngagements.vendorId, [...vendorIds]),
     isNull(vendorEngagements.archivedAt),
   ];
 

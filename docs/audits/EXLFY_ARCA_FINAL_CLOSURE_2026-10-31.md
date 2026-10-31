@@ -36,11 +36,9 @@
 
 **מצב:** שני `vendor_id`; «ארכה» בארכיון מאז 2026-08-27; «ארכה בע"מ» פעיל.
 
-**קוד (ללא שינוי DB):**
-- `normalizeVendorLegalNameForAlias` — קיבוץ שמות «ארכה» / «ארכה בע"מ».
-- `resolveVendorAggregateScope` — `parent_vendor_id` + alias; `getVendorFinancialActivity` שולף `vendor_id IN (…)`.
+**קוד:** `resolveVendorAggregateScope` — רק `parent_vendor_id` (ללא איחוד לפי שם); `getVendorFinancialActivity` שולף `vendor_id IN (…)`.
 
-**SQL מומלץ (metadata בלבד):** `docs/audits/sql-prepared/arca_link_archa_parent_vendor.sql` — **לא הופעל**; דורש אישור Owner נפרד.
+**מיגרציה (metadata):** `drizzle/migrations/0194_owner_arca_parent_vendor_link.sql` — **לא הופעל**; דורש אישור Owner נפרד להרצה.
 
 ## 4. שינויי קוד
 

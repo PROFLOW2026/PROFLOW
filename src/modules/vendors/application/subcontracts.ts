@@ -20,6 +20,7 @@ import {
   resolveAccessibleProjectIds,
 } from '@/modules/projects/application/project-access';
 import { findProjectById, findVendorById, updateVendorById } from '../data/vendors.repository';
+import { listVendorIdsForAggregateQuery } from '../domain/resolve-vendor-aggregate-ids';
 import { changeAgreementStatus, createDraftAgreement } from '@/modules/subcontracts';
 import {
   findContractInOrg,
@@ -555,12 +556,22 @@ export async function getSubcontractForViewer(
   return loadOperationalDetail(context, subcontractId);
 }
 
+async function expandSubcontractVendorFilter(
+  context: OrgContext,
+  filters: SubcontractListFilters,
+): Promise<SubcontractListFilters> {
+  if (!filters.vendorId) return filters;
+  const vendorIds = await listVendorIdsForAggregateQuery(context, filters.vendorId);
+  return { ...filters, vendorId: undefined, vendorIds: [...vendorIds] };
+}
+
 async function listAccessibleOperational(
   context: OrgContext,
   filters: SubcontractListFilters,
 ): Promise<SubcontractOperationalView[]> {
   const allowed = await resolveAccessibleProjectIds(context);
-  const rows = await listSubcontractsOperational(context.db, context.organizationId, filters);
+  const expandedFilters = await expandSubcontractVendorFilter(context, filters);
+  const rows = await listSubcontractsOperational(context.db, context.organizationId, expandedFilters);
   return rows.filter((row) => isAccessibleProjectId(allowed, row.projectId));
 }
 

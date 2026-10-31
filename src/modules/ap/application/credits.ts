@@ -12,6 +12,7 @@ import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors
 import { money, moneyEquals, subtractMoney, toNumericString } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { expandUnifiedVendorFilterIds } from '@/modules/vendors/domain/vendor-unified-filter';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { findProjectById } from '@/modules/projects';
 import {
@@ -92,7 +93,11 @@ export async function listVendorCredits(
 ): Promise<ApVendorCreditListView[]> {
   assertPermission(context, PERMISSIONS.AP_READ);
   if (!areApCreditsAvailable()) return [];
-  const rows = await listVendorCreditsForOrg(context.db, context.organizationId, options);
+  const unifiedVendorIds = await expandUnifiedVendorFilterIds(context, options.vendorId);
+  const rows = await listVendorCreditsForOrg(context.db, context.organizationId, {
+    vendorId: unifiedVendorIds ? undefined : options.vendorId,
+    vendorIds: unifiedVendorIds ? [...unifiedVendorIds] : undefined,
+  });
   const draftIds = rows.filter((row) => row.status === 'draft').map((row) => row.id);
   const approvalByCreditId = new Map<string, string | null>();
   await Promise.all(

@@ -12,7 +12,7 @@ import {
   type VendorExpenseActivityKind,
   type VendorExpensePaymentDisplay,
 } from '../domain/vendor-expense-activity-display';
-import { listVendorIdsForAggregateQuery } from '../domain/resolve-vendor-aggregate-ids';
+import { resolveVendorAggregateScope } from '../domain/resolve-vendor-aggregate-ids';
 import { resolveVendorExpenseCashPaid } from '../domain/vendor-expense-cash-paid';
 
 export interface VendorExpenseProjectAllocation {
@@ -67,6 +67,7 @@ export interface VendorFinancialBasisTotals {
 }
 
 export interface VendorFinancialActivity {
+  readonly canonicalVendorId: string;
   readonly aggregateVendorIds: readonly string[];
   readonly expenses: readonly VendorExpenseActivityRow[];
   readonly derivedProjects: readonly VendorDerivedProject[];
@@ -84,7 +85,8 @@ export async function getVendorFinancialActivity(
 ): Promise<VendorFinancialActivity> {
   assertPermission(context, PERMISSIONS.EXPENSES_READ);
   const locale = context.locale ?? 'he-IL';
-  const vendorIds = await listVendorIdsForAggregateQuery(context, vendorId);
+  const scope = await resolveVendorAggregateScope(context, vendorId);
+  const vendorIds = scope.expenseVendorIds;
 
   const rows = await context.db
     .select({
@@ -339,6 +341,7 @@ export async function getVendorFinancialActivity(
   ).length;
 
   return {
+    canonicalVendorId: scope.canonicalVendorId,
     aggregateVendorIds: vendorIds,
     expenses: expensesList,
     derivedProjects: [...projectAgg.values()].sort((a, b) => a.name.localeCompare(b.name, 'he')),

@@ -24,6 +24,7 @@ import {
   derivePayableStatus,
   sumActiveAppliedAmounts,
 } from '../domain/vendor-payments';
+import { expandUnifiedVendorFilterIds } from '@/modules/vendors/domain/vendor-unified-filter';
 
 export interface BillPayableSummary {
   readonly billId: string;
@@ -60,9 +61,15 @@ export interface OrgApPayablesSummary {
 
 export function billMatchesPayablesFilters(
   bill: { readonly vendorId: string; readonly projectId: string | null },
-  filters: { readonly vendorId?: string; readonly projectId?: string | null },
+  filters: {
+    readonly vendorId?: string;
+    readonly unifiedVendorIds?: readonly string[];
+    readonly projectId?: string | null;
+  },
 ): boolean {
-  if (filters.vendorId && bill.vendorId !== filters.vendorId) return false;
+  if (filters.unifiedVendorIds && filters.unifiedVendorIds.length > 0) {
+    if (!filters.unifiedVendorIds.includes(bill.vendorId)) return false;
+  } else if (filters.vendorId && bill.vendorId !== filters.vendorId) return false;
   if (filters.projectId !== undefined && bill.projectId !== filters.projectId) return false;
   return true;
 }
@@ -122,9 +129,15 @@ async function loadPayableBills(
     readonly currency: string;
   },
 ): Promise<BillPayableSummary[]> {
+  const unifiedVendorIds = await expandUnifiedVendorFilterIds(context, options.vendorId);
+  const filterOptions = {
+    projectId: options.projectId,
+    unifiedVendorIds,
+    vendorId: unifiedVendorIds ? undefined : options.vendorId,
+  };
   const bills = await listApBills(context.db, context.organizationId, { limit: 500 });
   const filtered = bills.filter((bill) => {
-    if (!billMatchesPayablesFilters(bill, options)) return false;
+    if (!billMatchesPayablesFilters(bill, filterOptions)) return false;
     if (
       options.subcontractAgreementId &&
       bill.subcontractAgreementId !== options.subcontractAgreementId

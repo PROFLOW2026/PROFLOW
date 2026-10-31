@@ -1345,6 +1345,13 @@
             "when": 1789715760000,
             "tag": "0193_identity_profile_images",
             "breakpoints": true
+        },
+        {
+            "idx": 192,
+            "version": "7",
+            "when": 1789715820000,
+            "tag": "0194_owner_arca_parent_vendor_link",
+            "breakpoints": true
         }
     ]
 }

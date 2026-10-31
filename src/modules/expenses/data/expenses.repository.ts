@@ -65,6 +65,9 @@ export interface ExpenseListFilters {
   readonly cashSource?: 'suppliers' | 'subcontractors';
   /** Org-scoped text search (description, supplier name, linked vendor name). */
   readonly search?: string;
+  /** Filter by canonical vendor (includes linked parent_vendor_id aliases). */
+  readonly vendorId?: string;
+  readonly vendorIds?: readonly string[];
 }
 
 const EXPENSE_LIST_SEARCH_MAX_LEN = 120;
@@ -695,6 +698,11 @@ export async function listExpenses(
   if (filters.costFamily) conditions.push(eq(expenses.costFamily, filters.costFamily));
   if (filters.costCategoryId) conditions.push(eq(expenses.costCategoryId, filters.costCategoryId));
   if (filters.status) conditions.push(eq(expenses.status, filters.status));
+  if (filters.vendorIds && filters.vendorIds.length > 0) {
+    conditions.push(inArray(expenses.vendorId, [...filters.vendorIds]));
+  } else if (filters.vendorId) {
+    conditions.push(eq(expenses.vendorId, filters.vendorId));
+  }
 
   if (filters.accessibleProjectIds !== undefined) {
     if (filters.accessibleProjectIds.length === 0) {

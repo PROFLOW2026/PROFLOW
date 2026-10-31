@@ -14,6 +14,8 @@ import {
   listVendorSubcontractsForViewer,
   listVendorsForOrg,
 } from "@/modules/vendors";
+import { getVendorFinancialActivity } from "@/modules/vendors/application/get-vendor-financial-activity";
+import { listVendorIdsForAggregateQuery } from "@/modules/vendors/domain/resolve-vendor-aggregate-ids";
 
 import {
   getOrganizationApPayables,
@@ -578,6 +580,36 @@ async function buildVendor360(
       ? {}
       : { commercial: true };
 
+  if (hasPermission(context, PERMISSIONS.EXPENSES_READ)) {
+    const activity = await getVendorFinancialActivity(context, vendorId).catch(() => null);
+    if (activity) {
+      sections.push({
+        id: "expense_kpi",
+        heading: ctx.copy.sections.expenses ?? ctx.copy.sections.accountsPayable,
+        rows: [
+          {
+            label: ctx.copy.fields.recognizedGross ?? "Recognized (gross)",
+            value: formatMoney(money(activity.totals.gross.recognized, activity.totals.currency), ctx.locale),
+            nature: "accrual",
+          },
+          {
+            label: ctx.copy.fields.paidGross ?? "Paid (gross)",
+            value: formatMoney(money(activity.totals.gross.paid, activity.totals.currency), ctx.locale),
+            nature: "cash",
+          },
+          {
+            label: ctx.copy.fields.outstandingGross ?? "Outstanding (gross)",
+            value: formatMoney(
+              money(activity.totals.gross.outstanding, activity.totals.currency),
+              ctx.locale,
+            ),
+            nature: "cash",
+          },
+        ],
+      });
+    }
+  }
+
   if (hasPermission(context, PERMISSIONS.AP_READ)) {
     const [apSummary, bills] = await Promise.all([
       getVendorApOutstanding(context, vendorId).catch(() => null),
@@ -585,7 +617,8 @@ async function buildVendor360(
       listApBillsForOrg(context, { limit: 80 }),
     ]);
 
-    const vendorBills = bills.filter((bill) => bill.vendorId === vendorId);
+    const unifiedVendorIds = await listVendorIdsForAggregateQuery(context, vendorId);
+    const vendorBills = bills.filter((bill) => unifiedVendorIds.includes(bill.vendorId));
 
     if (apSummary) {
       sections.push({

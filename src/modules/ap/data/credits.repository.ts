@@ -375,13 +375,19 @@ export async function listCreditApplicationsForBill(
 export async function listVendorCreditsForOrg(
   db: DbExecutor,
   organizationId: string,
-  options: { readonly vendorId?: string; readonly limit?: number } = {},
+  options: {
+    readonly vendorId?: string;
+    readonly vendorIds?: readonly string[];
+    readonly limit?: number;
+  } = {},
 ): Promise<ApVendorCreditListItem[]> {
   const conditions = [
     eq(apVendorCredits.organizationId, organizationId),
     isNull(apVendorCredits.archivedAt),
   ];
-  if (options.vendorId) {
+  if (options.vendorIds && options.vendorIds.length > 0) {
+    conditions.push(inArray(apVendorCredits.vendorId, [...options.vendorIds]));
+  } else if (options.vendorId) {
     conditions.push(eq(apVendorCredits.vendorId, options.vendorId));
   }
   const rows = await db

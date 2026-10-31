@@ -18,6 +18,7 @@ import {
   type MoneyValue,
 } from '@/shared/money';
 import { applyLinkedExpenseDeductionsToContributions } from '../domain/expense-ap-dedup';
+import { canonicalVendorIdFromMap, loadVendorCanonicalIdMap } from '@/modules/vendors/domain/vendor-canonical-map';
 import { loadProjectExpenseContributions } from './expenses.repository';
 import { loadRecognizedVendorBillsForProject } from './committed-costs.repository';
 
@@ -36,10 +37,16 @@ export async function loadProjectVendorActualBreakdown(
   const normalized = currency.toUpperCase();
   const byVendor = new Map<string, { name: string; total: MoneyValue }>();
 
-  const [rollup, contributions] = await Promise.all([
+  const [rollup, contributions, canonicalMap] = await Promise.all([
     loadRecognizedVendorBillsForProject(db, organizationId, projectId, normalized),
     loadProjectExpenseContributions(db, organizationId, projectId),
+    loadVendorCanonicalIdMap(db, organizationId),
   ]);
+
+  const bucketKey = (vendorId: string, vendorName: string) => {
+    const canonicalId = canonicalVendorIdFromMap(canonicalMap, vendorId);
+    return { canonicalId, vendorName };
+  };
 
   const expensesForActual = applyLinkedExpenseDeductionsToContributions(
     contributions,
@@ -51,12 +58,13 @@ export async function loadProjectVendorActualBreakdown(
     if (line.currency.toUpperCase() !== normalized) continue;
     const amount = fromNumericString(line.amount, line.currency);
     if (!amount || isZeroMoney(amount)) continue;
-    const bucket = byVendor.get(line.vendorId) ?? {
-      name: line.vendorName ?? '',
+    const { canonicalId, vendorName } = bucketKey(line.vendorId, line.vendorName ?? '');
+    const bucket = byVendor.get(canonicalId) ?? {
+      name: vendorName,
       total: zeroMoney(normalized),
     };
-    byVendor.set(line.vendorId, {
-      name: line.vendorName ?? bucket.name,
+    byVendor.set(canonicalId, {
+      name: bucket.name || vendorName,
       total: addMoney(bucket.total, amount),
     });
   }
@@ -114,12 +122,13 @@ export async function loadProjectVendorActualBreakdown(
     if (!bill?.vendorId) continue;
     const amount = fromNumericString(amountStr, normalized);
     if (!amount || isZeroMoney(amount) || !isPositiveMoney(amount)) continue;
-    const bucket = byVendor.get(bill.vendorId) ?? {
-      name: bill.vendorName,
+    const { canonicalId, vendorName } = bucketKey(bill.vendorId, bill.vendorName);
+    const bucket = byVendor.get(canonicalId) ?? {
+      name: vendorName,
       total: zeroMoney(normalized),
     };
-    byVendor.set(bill.vendorId, {
-      name: bill.vendorName,
+    byVendor.set(canonicalId, {
+      name: bucket.name || vendorName,
       total: addMoney(bucket.total, amount),
     });
   }

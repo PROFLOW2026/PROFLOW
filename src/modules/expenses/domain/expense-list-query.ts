@@ -24,6 +24,7 @@ export interface ParsedExpenseListQuery {
   readonly cash?: 'open' | 'paid';
   readonly cashSource?: 'suppliers' | 'subcontractors';
   readonly q?: string;
+  readonly vendorId?: string;
   readonly page: number;
   readonly statusFilter: ExpenseListStatusFilter;
 }
@@ -87,6 +88,7 @@ export function parseExpenseListSearchParams(
     dateTo: dateOrUndefined(raw.dateTo),
     dateBasis,
     projectId: uuidOrUndefined(raw.projectId),
+    vendorId: uuidOrUndefined(raw.vendorId),
     costFamily,
     costCategoryId: uuidOrUndefined(raw.costCategoryId),
     status,
@@ -121,6 +123,7 @@ export interface AssembledExpenseListFilters {
   readonly cash?: 'open' | 'paid';
   readonly cashSource?: 'suppliers' | 'subcontractors';
   readonly search?: string;
+  readonly vendorId?: string;
 }
 
 export function assembleExpenseListFilters(
@@ -147,5 +150,6 @@ export function assembleExpenseListFilters(
     cash: query.cash,
     cashSource: query.cashSource,
     search: query.q,
+    vendorId: query.vendorId,
   };
 }

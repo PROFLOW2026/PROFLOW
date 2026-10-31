@@ -101,6 +101,7 @@ export const listVendorsSchema = z.object({
   type: z.enum([...VENDOR_TYPES, 'all'] as const).optional(),
   categoryId: z.string().uuid().optional(),
   includeArchived: z.boolean().optional(),
+  includeLinkedChildRecords: z.boolean().optional(),
   limit: z.coerce.number().int().min(0).optional(),
   offset: z.coerce.number().int().min(0).optional(),
   page: z.coerce.number().int().min(1).optional(),

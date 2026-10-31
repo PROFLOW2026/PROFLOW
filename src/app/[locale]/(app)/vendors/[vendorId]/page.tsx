@@ -44,7 +44,9 @@ import {
   VendorPerformancePanel,
 } from '@/modules/vendors/ui';
 import { VendorFinancialActivityPanel } from '@/modules/vendors/ui/vendor-financial-activity-panel';
+import { resolveVendorAggregateScope } from '@/modules/vendors/domain/resolve-vendor-aggregate-ids';
 import { withOrgContext } from '@/shared/auth/session';
+import { redirect } from '@/shared/i18n/navigation';
 import { todayInTimeZone } from '@/shared/dates';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -124,6 +126,10 @@ export default async function VendorDetailPage({
 
   try {
     const result = await withOrgContext(async (context) => {
+      const scope = await resolveVendorAggregateScope(context, vendorId);
+      if (scope.viewedVendorId !== scope.canonicalVendorId) {
+        redirect({ href: `/vendors/${scope.canonicalVendorId}`, locale });
+      }
       const detail = await getVendorById(context, vendorId);
       const allowManage = hasPermission(context, PERMISSIONS.VENDORS_MANAGE);
       const allowManageAdvances = hasPermission(context, PERMISSIONS.AP_MANAGE);

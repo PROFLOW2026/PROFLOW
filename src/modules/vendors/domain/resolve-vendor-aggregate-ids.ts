@@ -1,7 +1,6 @@
 import { and, eq, or } from 'drizzle-orm';
 import { vendors } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
-import { normalizeVendorLegalNameForAlias } from './normalize-vendor-legal-name';
 
 export interface VendorAggregateScope {
   /** Vendor record the user opened (may be archived alias). */
@@ -14,7 +13,32 @@ export interface VendorAggregateScope {
 }
 
 /**
- * Resolves one business vendor from possibly split DB rows (parent link + legal-name alias).
+ * Builds aggregate scope from explicit `parent_vendor_id` tree members only.
+ * No name matching — avoids merging unrelated suppliers with similar legal names.
+ */
+export function buildVendorAggregateScopeFromTree(
+  viewedVendorId: string,
+  openedVendorParentId: string | null,
+  treeMemberIds: readonly string[],
+): VendorAggregateScope {
+  const canonicalVendorId = openedVendorParentId ?? viewedVendorId;
+  const idSet = new Set<string>(treeMemberIds);
+  idSet.add(viewedVendorId);
+  idSet.add(canonicalVendorId);
+
+  const expenseVendorIds = [...idSet];
+  const aliasVendorIds = expenseVendorIds.filter((id) => id !== canonicalVendorId);
+
+  return {
+    viewedVendorId,
+    canonicalVendorId,
+    expenseVendorIds,
+    aliasVendorIds,
+  };
+}
+
+/**
+ * Resolves one business vendor from linked DB rows (`parent_vendor_id` only).
  * Does not mutate expenses or payments.
  */
 export async function resolveVendorAggregateScope(
@@ -24,22 +48,14 @@ export async function resolveVendorAggregateScope(
   const [vendor] = await context.db
     .select({
       id: vendors.id,
-      name: vendors.name,
       parentVendorId: vendors.parentVendorId,
-      status: vendors.status,
-      archivedAt: vendors.archivedAt,
     })
     .from(vendors)
     .where(and(eq(vendors.organizationId, context.organizationId), eq(vendors.id, vendorId)))
     .limit(1);
 
   if (!vendor) {
-    return {
-      viewedVendorId: vendorId,
-      canonicalVendorId: vendorId,
-      expenseVendorIds: [vendorId],
-      aliasVendorIds: [],
-    };
+    return buildVendorAggregateScopeFromTree(vendorId, null, [vendorId]);
   }
 
   const canonicalVendorId = vendor.parentVendorId ?? vendor.id;
@@ -54,30 +70,11 @@ export async function resolveVendorAggregateScope(
       ),
     );
 
-  const normalized = normalizeVendorLegalNameForAlias(vendor.name);
-  const orgVendors = await context.db
-    .select({ id: vendors.id, name: vendors.name })
-    .from(vendors)
-    .where(eq(vendors.organizationId, context.organizationId));
-
-  const aliasMatches = orgVendors.filter(
-    (row) => normalizeVendorLegalNameForAlias(row.name) === normalized && normalized.length > 0,
+  return buildVendorAggregateScopeFromTree(
+    vendorId,
+    vendor.parentVendorId,
+    treeRows.map((row) => row.id),
   );
-
-  const idSet = new Set<string>([
-    ...treeRows.map((r) => r.id),
-    ...aliasMatches.map((r) => r.id),
-  ]);
-
-  const expenseVendorIds = [...idSet];
-  const aliasVendorIds = expenseVendorIds.filter((id) => id !== canonicalVendorId);
-
-  return {
-    viewedVendorId: vendorId,
-    canonicalVendorId,
-    expenseVendorIds,
-    aliasVendorIds,
-  };
 }
 
 export async function listVendorIdsForAggregateQuery(
