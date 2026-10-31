@@ -313,14 +313,24 @@ function hasActiveReversalSelect(db: DbExecutor, organizationId: string) {
   return sql<boolean>`${hasActiveReversalExists(db, organizationId)}`;
 }
 
+/** SQL mirror of `isExpenseAttentionEligible` (expense-attention.ts). */
+function appendExpenseAttentionEligibilityConditions(
+  db: DbExecutor,
+  organizationId: string,
+  conditions: unknown[],
+) {
+  conditions.push(not(eq(expenses.status, 'void')));
+  conditions.push(isNull(expenses.voidsExpenseId));
+  conditions.push(isNull(expenses.adjustsExpenseId));
+  conditions.push(not(hasActiveReversalExists(db, organizationId)));
+}
+
 function appendActionableExpenseAttentionConditions(
   db: DbExecutor,
   organizationId: string,
   conditions: unknown[],
 ) {
-  conditions.push(isNull(expenses.voidsExpenseId));
-  conditions.push(isNull(expenses.adjustsExpenseId));
-  conditions.push(not(hasActiveReversalExists(db, organizationId)));
+  appendExpenseAttentionEligibilityConditions(db, organizationId, conditions);
 }
 
 async function needsProjectAllocationSelect(db: DbExecutor, organizationId: string) {
@@ -846,15 +856,13 @@ export async function countExpensesNeedingAttentionForOrg(
   const conditions = [
     eq(expenses.organizationId, organizationId),
     isNull(expenses.archivedAt),
-    isNull(expenses.voidsExpenseId),
-    isNull(expenses.adjustsExpenseId),
-    not(hasActiveReversalExists(db, organizationId)),
     or(
       eq(expenses.status, 'draft'),
       eq(expenses.classificationStatus, 'needs_classification'),
       sharedUnallocated,
     ),
   ];
+  appendExpenseAttentionEligibilityConditions(db, organizationId, conditions);
 
   if (accessibleProjectIds !== undefined) {
     conditions.push(
