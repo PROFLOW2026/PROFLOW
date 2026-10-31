@@ -8,14 +8,16 @@ import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import type { ReportPayload } from '@/modules/reports/domain/types';
 import type { FinancialsOverviewData, FinancialsOverviewKpi } from '../application/get-financials-overview';
-import { FinancialReportPrintPanel } from './financial-report-print-panel';
+import { FinancialOverviewPrintPanel } from './financial-overview-print-panel';
 
 export async function FinancialsOverviewView({
   data,
-  printPayload,
+  shortPrintPayload,
+  detailedPrintPayload,
 }: {
   readonly data: FinancialsOverviewData;
-  readonly printPayload: ReportPayload;
+  readonly shortPrintPayload: ReportPayload;
+  readonly detailedPrintPayload: ReportPayload;
 }) {
   const t = await getTranslations('financial.overview');
   const tRange = await getTranslations('common.dateRange');
@@ -36,7 +38,10 @@ export async function FinancialsOverviewView({
         }}
       />
 
-      <FinancialReportPrintPanel payload={printPayload} />
+      <FinancialOverviewPrintPanel
+        shortPayload={shortPrintPayload}
+        detailedPayload={detailedPrintPayload}
+      />
 
       <section className="flex min-w-0 flex-col gap-3">
         <h2 className="text-base font-semibold">{t('costsTitle')}</h2>

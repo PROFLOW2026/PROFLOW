@@ -3,10 +3,18 @@
 import { REPORT_PREVIEW_FRAME_ID } from './report-print-button';
 
 /** Isolated document frame. Printing uses this frame so the app shell stays out of the page. */
-export function ReportPreviewFrame({ title, html }: { title: string; html: string }) {
+export function ReportPreviewFrame({
+  title,
+  html,
+  frameId = REPORT_PREVIEW_FRAME_ID,
+}: {
+  title: string;
+  html: string;
+  frameId?: string;
+}) {
   return (
     <iframe
-      id={REPORT_PREVIEW_FRAME_ID}
+      id={frameId}
       title={title}
       srcDoc={html}
       onLoad={(event) => {

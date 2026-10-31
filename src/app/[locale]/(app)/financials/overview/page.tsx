@@ -4,7 +4,9 @@ import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { buildFinancialOverviewPrintPayload } from '@/modules/financials/application/build-financial-print-reports';
+import { buildFinancialOverviewDetailedPrintPayload } from '@/modules/financials/application/build-financial-overview-detailed-print-payload';
 import { getFinancialsOverview } from '@/modules/financials/application/get-financials-overview';
+import { loadFinancialOverviewDetailedReportData } from '@/modules/financials/application/load-financial-overview-detailed-report-data';
 import { FinancialsOverviewView } from '@/modules/financials/ui/financials-overview-view';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -39,18 +41,31 @@ export default async function FinancialsOverviewPage({
       hasPermission(context, PERMISSIONS.BILLING_READ) ||
       hasPermission(context, PERMISSIONS.AP_READ);
     if (!allowed) {
-      return { allowed: false as const, data: null, printPayload: null };
+      return {
+        allowed: false as const,
+        data: null,
+        shortPrintPayload: null,
+        detailedPrintPayload: null,
+      };
     }
     const data = await getFinancialsOverview(context, {
       fromDate: search.fromDate,
       toDate: search.toDate,
     });
-    const printPayload = await buildFinancialOverviewPrintPayload(
-      locale,
-      context.organization.name,
-      data,
-    );
-    return { allowed: true as const, data, printPayload };
+    const detailedData = await loadFinancialOverviewDetailedReportData(context, {
+      fromDate: search.fromDate,
+      toDate: search.toDate,
+    });
+    const [shortPrintPayload, detailedPrintPayload] = await Promise.all([
+      buildFinancialOverviewPrintPayload(locale, context.organization.name, data),
+      buildFinancialOverviewDetailedPrintPayload(
+        locale,
+        context.organization.name,
+        data,
+        detailedData,
+      ),
+    ]);
+    return { allowed: true as const, data, shortPrintPayload, detailedPrintPayload };
   });
 
   if (!result.allowed || !result.data) {
@@ -70,7 +85,11 @@ export default async function FinancialsOverviewPage({
       <PageHeader title={t('pageTitle')} description={t('pageHint')} />
       <MainAppSection>
         <MainAppListBody>
-        <FinancialsOverviewView data={result.data} printPayload={result.printPayload} />
+        <FinancialsOverviewView
+          data={result.data}
+          shortPrintPayload={result.shortPrintPayload}
+          detailedPrintPayload={result.detailedPrintPayload}
+        />
         </MainAppListBody>
       </MainAppSection>
     </MainAppPage>
