@@ -6,7 +6,7 @@ import {
   type ExperienceUiContext,
 } from './experience-ui-registry';
 
-const OPTIONAL_TABS: readonly Exclude<ProjectTabKey, 'overview' | 'details'>[] = [
+const OPTIONAL_TABS: readonly Exclude<ProjectTabKey, 'overview' | 'details' | 'infra'>[] = [
   'financials',
   'expenses',
   'changes',

@@ -30,6 +30,7 @@ export const LEGACY_TAB_TO_HUB: Readonly<
   schedule: { hub: 'work', section: 'schedule' },
   usage: { hub: 'work', section: 'usage' },
   documents: { hub: 'documents', section: 'documents' },
+  infra: { hub: 'documents', section: 'infra' },
   closeout: { hub: 'details', section: 'closeout' },
   warranty: { hub: 'details', section: 'warranty' },
   details: { hub: 'details', section: 'details' },
@@ -40,7 +41,7 @@ export const HUB_SECTION_PRIORITY: Readonly<Record<ProjectHubKey, readonly Proje
   overview: ['overview'],
   money: ['financials', 'expenses', 'billing', 'billingPlan', 'budgets'],
   work: ['work', 'boq', 'changes', 'team', 'time', 'schedule', 'usage'],
-  documents: ['documents'],
+  documents: ['documents', 'infra'],
   details: ['details', 'closeout', 'warranty'],
 };
 
@@ -122,6 +123,7 @@ function isSectionVisible(section: ProjectTabKey, visibility: ProjectTabVisibili
     case 'time':
       return visibility.time;
     case 'documents':
+    case 'infra':
       return visibility.documents;
     case 'usage':
       return visibility.usage;

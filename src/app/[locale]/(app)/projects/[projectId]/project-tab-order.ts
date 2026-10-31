@@ -18,6 +18,7 @@ export type ProjectTabKey =
   | 'usage'
   | 'closeout'
   | 'warranty'
+  | 'infra'
   | 'details';
 
 /**

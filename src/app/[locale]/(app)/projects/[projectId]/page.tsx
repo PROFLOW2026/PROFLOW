@@ -71,6 +71,7 @@ const MODULE_PANEL_TABS = new Set<ProjectTabKey>([
   'usage',
   'closeout',
   'warranty',
+  'infra',
 ]);
 
 function tabFromSearchParams(raw: string | string[] | undefined): string {
@@ -469,6 +470,12 @@ async function loadActiveModulePanel(input: {
           primaryContractId={chrome.contract?.id ?? null}
         />
       );
+    }
+    case 'infra': {
+      const { InfraOverlayTrial } = await import(
+        '@/modules/project-workspace/ui/infra-overlay-trial'
+      );
+      return <InfraOverlayTrial projectId={projectId} />;
     }
     case 'closeout': {
       const { ProjectCloseoutPanel } = await import('@/modules/closeout/ui/project-closeout-panel');
