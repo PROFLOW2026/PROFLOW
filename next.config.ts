@@ -6,6 +6,7 @@ const withNextIntl = createNextIntlPlugin('./src/shared/i18n/request.ts');
 
 function nextConfig(phase: string): NextConfig {
   const productionBuild = phase === PHASE_PRODUCTION_BUILD;
+  const githubActionsBuild = productionBuild && process.env.GITHUB_ACTIONS === 'true';
   return {
   reactStrictMode: true,
   poweredByHeader: false,
@@ -48,11 +49,13 @@ function nextConfig(phase: string): NextConfig {
           // Peak CAD compile cost is also cut by production-only single DWG engine
           // in pf-dwg-versioned-viewer.tsx.
           webpackBuildWorker: false,
-          staticGenerationMaxConcurrency: 2,
+          staticGenerationMaxConcurrency: githubActionsBuild ? 1 : 2,
         },
         webpack: (config) => {
           config.parallelism = 1;
-          if (config.cache && typeof config.cache === 'object') {
+          if (githubActionsBuild) {
+            config.cache = false;
+          } else if (config.cache && typeof config.cache === 'object') {
             config.cache.maxMemoryGenerations = 0;
           }
           return config;
