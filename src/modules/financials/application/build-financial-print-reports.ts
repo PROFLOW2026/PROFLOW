@@ -16,8 +16,8 @@ import { buildFinancialReportPayload, moneyCell } from './build-financial-report
 
 function periodLabel(locale: string, from: string, to: string, template: string): string {
   return template
-    .replace('{from}', formatBusinessDate(businessDate(from), locale))
-    .replace('{to}', formatBusinessDate(businessDate(to), locale));
+    .replace('{from}', formatBusinessDate(businessDate(from), locale, 'short'))
+    .replace('{to}', formatBusinessDate(businessDate(to), locale, 'short'));
 }
 
 function kpiRow(label: string, value: string, hint?: string) {
@@ -294,6 +294,7 @@ export async function buildBusinessProfitabilityPrintPayload(
     locale,
     title: t('pageTitle'),
     companyName,
+    periodLabel: t('printPeriodCumulative'),
     notices: [t('pageHint'), t('disclaimer'), t('scopeNote'), tFinancial('profitVsCash'), t('billingNote'), t('forecastFormula')],
     sections: [
       { id: 'commercial', heading: t('sections.commercial'), rows: commercial },

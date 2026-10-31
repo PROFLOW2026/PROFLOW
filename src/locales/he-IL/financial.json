@@ -443,7 +443,7 @@
     "overheadCategoryHint": "הוצאות כלליות של העסק ששויכו ישירות לפרויקט. הוצאות כלליות שלא הוקצו לפרויקט אינן חלק מהעלות הישירה שלו. חלקים מהוצאות משותפות מוצגים בנפרד תחת «הוצאות כלליות שהוקצו לפרויקט»."
   },
   "overview": {
-    "pageTitle": "סקירה עסקית חודשית",
+    "pageTitle": "סקירה עסקית",
     "pageHint": "סיכום עלויות והכנסות לתקופה שנבחרה. עלות מוכרת אינה כוללת מקדמות לקבלני משנה.",
     "noAccessTitle": "אין הרשאה לסקירה העסקית",
     "noAccessBody": "נדרשת הרשאת כספים, חיוב או חשבוניות ספק.",
@@ -476,7 +476,7 @@
     "upcomingCashOutHint": "הוצאות, שכר וחשבוניות ספק עם מועד פירעון ב־30 הימים הקרובים.",
     "drilldown": "פירוט",
     "unavailable": "אין הרשאה",
-    "printPeriod": "תקופה: {from} – {to}",
+    "printPeriod": "תקופת הדוח: {from} – {to}",
     "recognizedBreakdown": {
       "pageTitle": "פירוט עלות מוכרת",
       "pageHint": "שורות לפי תאריך הכרה ומדיניות ההכרה הקיימת; לא לפי תאריך רכישה בלבד.",
@@ -486,7 +486,7 @@
       "parityWarning": "סכום השורות לא תואם לסיכום העלות המוכרת. פנו לתמיכה.",
       "backToOverview": "חזרה לסקירה העסקית",
       "totalTitle": "סיכום התקופה",
-      "printPeriod": "תקופה: {from} – {to}",
+      "printPeriod": "תקופת הדוח: {from} – {to}",
       "detailSectionTitle": "פירוט מלא",
       "kpiNetLabel": "תואם לסיכום עלות מוכרת (נטו)",
       "columnRecognitionDate": "תאריך הכרה",
@@ -525,7 +525,7 @@
       "parityWarning": "סכום השורות לא תואם לסיכום שולם בפועל. פנו לתמיכה.",
       "backToOverview": "חזרה לסקירה העסקית",
       "totalTitle": "סיכום התקופה",
-      "printPeriod": "תקופה: {from} – {to}",
+      "printPeriod": "תקופת הדוח: {from} – {to}",
       "detailSectionTitle": "פירוט מלא",
       "columnPaymentDate": "תאריך תשלום",
       "columnSource": "סוג",
@@ -544,6 +544,7 @@
     }
   },
   "businessProfitability": {
+    "printPeriodCumulative": "תקופת הדוח: מצטבר (ללא סינון תקופה)",
     "pageTitle": "רווחיות העסק",
     "pageHint": "תצוגה ניהולית של שווי חוזים, חיובים, גבייה, עלויות ותחזית. לא דוח חשבונאי רשמי.",
     "noAccessTitle": "אין הרשאה לרווחיות העסק",

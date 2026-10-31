@@ -99,6 +99,7 @@ export function renderReportHtmlDocument(payload: ReportPayload): string {
   <div class="doc-sheet">
     ${letterhead}
     <h1>${escapeHtml(payload.title)}</h1>
+    ${payload.identity.extra ? `<p class="meta report-period">${escapeHtml(payload.identity.extra)}</p>` : ''}
     <p class="meta"><strong>${escapeHtml(copy.generatedAt)}:</strong> ${escapeHtml(generated)}</p>
     <p class="note">${escapeHtml(copy.snapshotNote)}</p>
     ${identity}

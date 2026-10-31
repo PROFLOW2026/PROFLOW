@@ -443,7 +443,7 @@
     "overheadCategoryHint": "General business expenses assigned directly to this project. Company general expenses not allocated here are not part of direct project cost. Shared-cost portions appear separately under allocated general."
   },
   "overview": {
-    "pageTitle": "Monthly business overview",
+    "pageTitle": "Business overview",
     "pageHint": "Period-selectable cost and revenue summary. Recognized Actual does not include subcontract advances.",
     "noAccessTitle": "No access to the business overview",
     "noAccessBody": "Financials, billing, or vendor-bill permission is required.",
@@ -476,7 +476,7 @@
     "upcomingCashOutHint": "Expenses, payroll, and vendor bills due in the next 30 days.",
     "drilldown": "Breakdown",
     "unavailable": "No permission",
-    "printPeriod": "Period: {from} – {to}",
+    "printPeriod": "Report period: {from} – {to}",
     "recognizedBreakdown": {
       "pageTitle": "Recognized cost breakdown",
       "pageHint": "Lines by recognition date and existing policy — not purchase date alone.",
@@ -486,7 +486,7 @@
       "parityWarning": "Line totals do not match the recognized-cost KPI — contact support.",
       "backToOverview": "Back to business overview",
       "totalTitle": "Period total",
-      "printPeriod": "Period: {from} – {to}",
+      "printPeriod": "Report period: {from} – {to}",
       "detailSectionTitle": "Full breakdown",
       "kpiNetLabel": "Matches recognized-cost KPI (NET)",
       "columnRecognitionDate": "Recognition date",
@@ -525,7 +525,7 @@
       "parityWarning": "Line totals do not match the cash-paid KPI — contact support.",
       "backToOverview": "Back to business overview",
       "totalTitle": "Period total",
-      "printPeriod": "Period: {from} – {to}",
+      "printPeriod": "Report period: {from} – {to}",
       "detailSectionTitle": "Full breakdown",
       "columnPaymentDate": "Payment date",
       "columnSource": "Type",
@@ -544,6 +544,7 @@
     }
   },
   "businessProfitability": {
+    "printPeriodCumulative": "Report period: Cumulative (no period filter)",
     "pageTitle": "Business profitability",
     "pageHint": "Management view of contract value, billing, collections, costs, and forecast — not formal accounting.",
     "noAccessTitle": "No access to business profitability",

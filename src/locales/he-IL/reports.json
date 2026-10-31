@@ -4,7 +4,7 @@
   "previewPrint": "תצוגה מקדימה / הדפסה",
   "previewKindPrint": "תצוגה מקדימה / הדפסה - {kind}",
   "print": "הדפסה",
-  "generatedAt": "נוצר ב-",
+  "generatedAt": "תאריך הפקת הדוח",
   "snapshotNote": "הקובץ הוא תמונת מצב במועד היצירה.",
   "selectProject": "פרויקט",
   "selectQuote": "הצעת מחיר",
