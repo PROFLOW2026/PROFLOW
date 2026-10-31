@@ -31,7 +31,9 @@ describe('Job price fields (not contract chrome)', () => {
     );
 
     expect(screen.getByText(heJobs.pricing.priceLabel)).toBeVisible();
-    expect(screen.getByText(heJobs.pricing.priceHint)).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: `מידע נוסף: ${heJobs.pricing.priceLabel}` }),
+    ).toBeVisible();
     expect(screen.queryByText(heProjects.create.contractValueLabel)).toBeNull();
     expect(screen.queryByText(heProjects.create.managedOpeningPreviewLabel)).toBeNull();
     expect(screen.queryByText(/סכום חוזה מקורי/)).toBeNull();

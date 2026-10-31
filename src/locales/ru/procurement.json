@@ -39,6 +39,11 @@
     }
   },
   "list": {
+    "searchPlaceholder": "Поиск по ссылке, поставщику или заметкам…",
+    "filterPanelTitle": "Фильтры заказов на закупку",
+    "filterAll": "Все",
+    "activeFilters": "Активные фильтры",
+    "mobileWithCount": "Фильтры ({count})",
     "columns": {
       "reference": "Ссылка",
       "status": "Статус",

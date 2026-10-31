@@ -1,10 +1,11 @@
+import type { ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { MainAppFormActions } from '@/components/patterns/main-app/main-app-form-actions';
 
 vi.mock('@/shared/i18n/navigation', () => ({
-  Link: ({ href, children }: { href: string; children: unknown }) => (
+  Link: ({ href, children }: { href: string; children: ReactNode }) => (
     <a href={href}>{children}</a>
   ),
 }));

@@ -199,3 +199,5 @@ export {
   findSubcontractAgreementMoneyById,
 } from './data/subcontracts.repository';
 export { sumPaidSubcontractAdvancesInDateRange } from './data/subcontract-advances.repository';
+export { loadVendorCanonicalIdMap } from './data/vendor-canonical-map.repository';
+export { canonicalVendorIdFromMap } from './domain/vendor-canonical-map';

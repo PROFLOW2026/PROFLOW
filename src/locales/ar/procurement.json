@@ -39,6 +39,11 @@
     }
   },
   "list": {
+    "searchPlaceholder": "البحث في المرجع أو المورد أو الملاحظات…",
+    "filterPanelTitle": "تصفية أوامر الشراء",
+    "filterAll": "الكل",
+    "activeFilters": "تصفيات نشطة",
+    "mobileWithCount": "تصفيات ({count})",
     "columns": {
       "reference": "المرجع",
       "status": "الحالة",

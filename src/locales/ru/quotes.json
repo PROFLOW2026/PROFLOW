@@ -57,6 +57,11 @@
     "action": "Новое предложение"
   },
   "list": {
+    "searchPlaceholder": "Поиск по названию или клиенту…",
+    "filterPanelTitle": "Фильтры смет",
+    "filterAll": "Все",
+    "activeFilters": "Активные фильтры",
+    "mobileWithCount": "Фильтры ({count})",
     "columns": {
       "title": "Заголовок",
       "client": "Клиент",

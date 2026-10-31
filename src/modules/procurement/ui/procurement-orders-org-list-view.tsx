@@ -71,7 +71,8 @@ export async function ProcurementOrdersOrgListView({
     getTranslations('procurement'),
     getTranslations('materialMarket'),
     getLocale(),
-    searchParams ?? Promise.resolve({}),
+    searchParams ??
+      Promise.resolve({} as Record<string, string | string[] | undefined>),
     getTranslations('common'),
   ]);
   const isOwner = surface === 'owner';

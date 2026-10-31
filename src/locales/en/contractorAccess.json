@@ -150,6 +150,7 @@
       "allProjects": "All projects of this company",
       "allProjectsHint": "Organization administrators only.",
       "template": "Access template",
+      "capabilities": "Permissions",
       "customCapabilities": "Permissions ({count} selected)",
       "expiresAt": "Access expires on",
       "expiresHint": "Optional.",

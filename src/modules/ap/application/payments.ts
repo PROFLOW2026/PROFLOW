@@ -28,7 +28,6 @@ import {
 import { listActiveCreditAmountsForBill } from '../data/credits.repository';
 import {
   getVendorPaymentsRepository,
-  listRecordedPaymentsForVendor,
   listRecordedPaymentsForVendorIds,
   type ApPaymentApplicationRow,
   type ApPaymentRow,

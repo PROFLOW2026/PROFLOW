@@ -89,13 +89,13 @@ describe('Field', () => {
       </Field>,
     );
 
-    const input = screen.getByLabelText(/סכום/);
+    const input = screen.getByRole('textbox', { name: 'סכום' });
     expect(input).toHaveAttribute('aria-invalid', 'true');
 
     const describedBy = input.getAttribute('aria-describedby') ?? '';
-    expect(describedBy.split(' ').filter(Boolean).length).toBe(2);
+    expect(describedBy.split(' ').filter(Boolean).length).toBe(1);
     expect(screen.getByText('הזינו סכום תקין')).toBeVisible();
-    expect(screen.getByText('כולל מע״מ')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'מידע נוסף: סכום' })).toBeVisible();
   });
 
   it('marks an optional field as optional rather than pretending it is required', () => {

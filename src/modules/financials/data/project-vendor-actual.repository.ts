@@ -18,7 +18,7 @@ import {
   type MoneyValue,
 } from '@/shared/money';
 import { applyLinkedExpenseDeductionsToContributions } from '../domain/expense-ap-dedup';
-import { canonicalVendorIdFromMap, loadVendorCanonicalIdMap } from '@/modules/vendors/domain/vendor-canonical-map';
+import { canonicalVendorIdFromMap, loadVendorCanonicalIdMap } from '@/modules/vendors';
 import { loadProjectExpenseContributions } from './expenses.repository';
 import { loadRecognizedVendorBillsForProject } from './committed-costs.repository';
 

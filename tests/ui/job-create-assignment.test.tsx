@@ -50,13 +50,17 @@ describe('Job create employee assignment picker', () => {
     );
 
     expect(screen.getByText(heJobs.create.assignLabel)).toBeVisible();
-    expect(screen.getByText(heJobs.create.assignHint)).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: `מידע נוסף: ${heJobs.create.assignLabel}` }),
+    ).toBeVisible();
     expect(screen.getByText(/דנה כהן/)).toBeVisible();
     expect(screen.queryByPlaceholderText('הערת צוות (אופציונלי)')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: heJobs.create.moreDetails }));
     expect(screen.getByText(heJobs.create.notesLabel)).toBeVisible();
-    expect(screen.getByText(heJobs.create.notesHint)).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: `מידע נוסף: ${heJobs.create.notesLabel}` }),
+    ).toBeVisible();
   });
 
   it('submits selected employeeIds and does not treat assignment as cost', async () => {
@@ -72,6 +76,8 @@ describe('Job create employee assignment picker', () => {
     expect(screen.queryByDisplayValue(EMPLOYEE_ID)).toBeNull();
     await user.click(screen.getByRole('checkbox', { name: 'דנה כהן' }));
     expect(screen.getByDisplayValue(EMPLOYEE_ID)).toHaveAttribute('name', 'employeeIds');
-    expect(screen.getByText(heJobs.create.assignHint)).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: `מידע נוסף: ${heJobs.create.assignLabel}` }),
+    ).toBeVisible();
   });
 });

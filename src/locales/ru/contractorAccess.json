@@ -150,6 +150,7 @@
       "allProjects": "Все проекты этой компании",
       "allProjectsHint": "Только для администраторов организации.",
       "template": "Шаблон доступа",
+      "capabilities": "Разрешения",
       "customCapabilities": "Разрешения (выбрано: {count})",
       "expiresAt": "Доступ действует до",
       "expiresHint": "Необязательно.",

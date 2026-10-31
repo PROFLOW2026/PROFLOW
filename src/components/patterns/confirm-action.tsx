@@ -3,7 +3,6 @@
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { Alert } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogBody,

@@ -57,6 +57,11 @@
     "action": "عرض سعر جديد"
   },
   "list": {
+    "searchPlaceholder": "البحث في العنوان أو العميل…",
+    "filterPanelTitle": "تصفية عروض الأسعار",
+    "filterAll": "الكل",
+    "activeFilters": "تصفيات نشطة",
+    "mobileWithCount": "تصفيات ({count})",
     "columns": {
       "title": "العنوان",
       "client": "العميل",

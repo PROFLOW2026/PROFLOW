@@ -150,6 +150,7 @@
       "allProjects": "כל הפרויקטים של החברה",
       "allProjectsHint": "למנהלי הארגון בלבד.",
       "template": "תבנית הרשאות",
+      "capabilities": "הרשאות",
       "customCapabilities": "הרשאות ({count} נבחרו)",
       "expiresAt": "הגישה בתוקף עד",
       "expiresHint": "לא חובה.",

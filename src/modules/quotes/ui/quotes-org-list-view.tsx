@@ -17,7 +17,7 @@ import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MoneyText } from '@/components/patterns/money-text';
-import { listQuotesForOrg, type QuoteStatus } from '@/modules/quotes';
+import { listQuotesForOrg } from '@/modules/quotes';
 import { money } from '@/shared/money';
 import { formatMoneyString } from '@/shared/money/format';
 import { withOrgContext } from '@/shared/auth/session';

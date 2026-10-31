@@ -32,6 +32,7 @@
       "payableStatus": "Payment status"
     },
     "noReference": "Untitled bill",
+    "billDate": "Bill date",
     "paidInPeriodLabel": "Cash paid to vendors in period:",
     "paidInPeriodHint": "(by payment date — not bill date)",
     "billDateHint": "The list is filtered by bill date — not payment date.",

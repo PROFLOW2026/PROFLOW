@@ -585,20 +585,20 @@ async function buildVendor360(
     if (activity) {
       sections.push({
         id: "expense_kpi",
-        heading: ctx.copy.sections.expenses ?? ctx.copy.sections.accountsPayable,
+        heading: ctx.copy.sections.cost,
         rows: [
           {
-            label: ctx.copy.fields.recognizedGross ?? "Recognized (gross)",
+            label: ctx.copy.fields.vendorActual,
             value: formatMoney(money(activity.totals.gross.recognized, activity.totals.currency), ctx.locale),
-            nature: "accrual",
+            nature: "actual",
           },
           {
-            label: ctx.copy.fields.paidGross ?? "Paid (gross)",
+            label: ctx.copy.fields.paid,
             value: formatMoney(money(activity.totals.gross.paid, activity.totals.currency), ctx.locale),
             nature: "cash",
           },
           {
-            label: ctx.copy.fields.outstandingGross ?? "Outstanding (gross)",
+            label: ctx.copy.fields.outstanding,
             value: formatMoney(
               money(activity.totals.gross.outstanding, activity.totals.currency),
               ctx.locale,

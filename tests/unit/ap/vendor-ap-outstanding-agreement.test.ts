@@ -21,6 +21,11 @@ vi.mock('@/modules/ap/data/payments.repository', () => ({
   }),
 }));
 
+vi.mock('@/modules/vendors/domain/vendor-unified-filter', () => ({
+  expandUnifiedVendorFilterIds: async (_context: OrgContext, vendorId?: string) =>
+    vendorId ? [vendorId] : undefined,
+}));
+
 import { getVendorApOutstanding } from '@/modules/ap/application/payables';
 
 const VENDOR_ID = '01900000-0000-7000-8000-000000000001';

@@ -150,6 +150,7 @@
       "allProjects": "جميع مشاريع هذه الشركة",
       "allProjectsHint": "لمديري المؤسسة فقط.",
       "template": "قالب الصلاحيات",
+      "capabilities": "الصلاحيات",
       "customCapabilities": "الصلاحيات ({count} محددة)",
       "expiresAt": "الوصول صالح حتى",
       "expiresHint": "اختياري.",
