@@ -178,7 +178,10 @@
     "title": "اتفاقيات مقاول باطن",
     "description": "اتفاقيات مقاول باطن عبر المشاريع. افتح مورداً لإدارة الاتفاقية.",
     "filters": {
-      "all": "الكل"
+      "all": "الكل",
+      "panelTitle": "تصفية اتفاقيات مقاول الباطن",
+      "active": "تصفيات نشطة",
+      "mobileWithCount": "تصفيات ({count})"
     },
     "empty": {
       "title": "لا اتفاقيات مقاول باطن بعد",
@@ -350,8 +353,17 @@
     "description": "مصروفات ومدفوعات ومشاريع. المصدر المرجعي هو المصروفات.",
     "empty": "لا مصروفات مرتبطة بهذا المورد.",
     "recognizedNet": "تكلفة معترف بها (صافي)",
+    "recognizedCost": "تكلفة معترف بها",
+    "recognizedCostGross": "تكلفة معترف بها (إجمالي)",
     "paidGross": "مدفوع (إجمالي)",
+    "paidNet": "مدفوع (صافي)",
     "outstandingGross": "متبقٍ",
+    "outstandingNet": "متبقٍ (صافي)",
+    "basisToggleLabel": "أساس العرض",
+    "basisNet": "صافي",
+    "basisGross": "إجمالي",
+    "aggregateScope": "يشمل مصروفات من سجلات مورد مرتبطة (نفس المورد التجاري).",
+    "linePaid": "مدفوع",
     "expenseCount": "معاملات",
     "derivedProjects": "مشاريع من المصروفات",
     "projectExpenseCount": "{count, plural, one {معاملة واحدة} other {# معاملات}}",

@@ -335,8 +335,8 @@ async function main() {
         vendorId: vendorRow.id,
         expenseCount: activity.expenses.length,
         derivedProjects: activity.derivedProjects.length,
-        recognizedNet: activity.totals.recognizedNet,
-        paidGross: activity.totals.paidGross,
+        recognizedNet: activity.totals.net.recognized,
+        paidGross: activity.totals.gross.paid,
         sampleExpenses: activity.expenses.slice(0, 5).map((e) => ({
           description: e.description,
           projectName: e.projectName,
@@ -357,8 +357,8 @@ async function main() {
           vendorId: fallback.id,
           expenseCount: activity.expenses.length,
           derivedProjects: activity.derivedProjects.length,
-          recognizedNet: activity.totals.recognizedNet,
-          paidGross: activity.totals.paidGross,
+          recognizedNet: activity.totals.net.recognized,
+          paidGross: activity.totals.gross.paid,
         };
       }
     }
