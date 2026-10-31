@@ -6,6 +6,8 @@ import {
   fitHomography,
   fitSimilarity,
   fitWithin,
+  isPlausibleWarp,
+  landmarksAreSpread,
   multiplyMat3,
   toCssMatrix3d,
   userAdjustMatrix,
@@ -98,41 +100,45 @@ describe('infra overlay geometry', () => {
     expect(meanSim).toBeLessThan(meanHom);
   });
 
-  it('computeAlignment defaults to similarity and falls back when the warp is implausible', () => {
+  it('computeAlignment gives a stable similarity fit and ignores perspective unless asked', () => {
     const dst = LANDMARKS.map((p) => applyMat3(SIM, p));
-    const asked = computeAlignment({
-      photo: LANDMARKS,
-      live: dst,
-      photoW: W,
-      photoH: H,
-      perspective: true,
-    })!;
-    expect(asked.perspectiveRejected).toBe(false);
-    expect(asked.fit.rms).toBeLessThan(1e-6);
-
-    // Violent tap error on one corner -> skewed quad -> must be rejected.
-    const bad = dst.map((p, i) => (i === 2 ? { x: p.x + 160, y: p.y - 140 } : p));
-    const res = computeAlignment({
-      photo: LANDMARKS,
-      live: bad,
-      photoW: W,
-      photoH: H,
-      perspective: true,
-    })!;
-    expect(res.perspectiveRejected).toBe(true);
-    expect(res.fit.kind).toBe('similarity');
-
-    const plain = computeAlignment({
-      photo: LANDMARKS,
-      live: bad,
-      photoW: W,
-      photoH: H,
-      perspective: false,
-    })!;
+    const plain = computeAlignment({ photo: LANDMARKS, live: dst, photoW: W, photoH: H, perspective: false })!;
     expect(plain.fit.kind).toBe('similarity');
-    expect(plain.perspectiveRejected).toBe(false);
+    expect(plain.fit.rms).toBeLessThan(1e-6);
+    const asked = computeAlignment({ photo: LANDMARKS, live: dst, photoW: W, photoH: H, perspective: true })!;
+    expect(asked.perspectiveRejected).toBe(false);
   });
 
+  it('refuses to present an unreliable fit (bad taps) instead of showing a distorted layer', () => {
+    const dst = LANDMARKS.map((p) => applyMat3(SIM, p));
+    const bad = dst.map((p, i) => (i === 2 ? { x: p.x + 160, y: p.y - 140 } : p));
+    expect(computeAlignment({ photo: LANDMARKS, live: bad, photoW: W, photoH: H, perspective: false })).toBeNull();
+    expect(computeAlignment({ photo: LANDMARKS, live: bad, photoW: W, photoH: H, perspective: true })).toBeNull();
+  });
+
+  it('refuses an abnormal rotation', () => {
+    const a = (50 * Math.PI) / 180;
+    const rot: Mat3 = [0.5 * Math.cos(a), -0.5 * Math.sin(a), 300, 0.5 * Math.sin(a), 0.5 * Math.cos(a), 100, 0, 0, 1];
+    const live = LANDMARKS.map((p) => applyMat3(rot, p));
+    expect(computeAlignment({ photo: LANDMARKS, live, photoW: W, photoH: H, perspective: false })).toBeNull();
+  });
+
+  it('rejects an implausible warp but keeps a plausible one', () => {
+    const skew: Mat3 = [0.5, 0, 0, 0, 0.5, 0, 0.0016, 0, 1];
+    expect(isPlausibleWarp(skew, W, H, SIM)).toBe(false);
+    const mild: Mat3 = [0.5, 0.01, 90, -0.01, 0.5, 70, 0.00002, 0, 1];
+    expect(isPlausibleWarp(mild, W, H, SIM)).toBe(true);
+  });
+
+  it('requires four landmarks that are spread over the surface', () => {
+    const spread = [{ x: 0.1, y: 0.15 }, { x: 0.9, y: 0.2 }, { x: 0.85, y: 0.85 }, { x: 0.15, y: 0.8 }];
+    expect(landmarksAreSpread(spread)).toBe(true);
+    expect(landmarksAreSpread(spread.slice(0, 3))).toBe(false);
+    const bunched = [{ x: 0.4, y: 0.4 }, { x: 0.5, y: 0.42 }, { x: 0.47, y: 0.52 }, { x: 0.41, y: 0.5 }];
+    expect(landmarksAreSpread(bunched)).toBe(false);
+    const line = [{ x: 0.1, y: 0.5 }, { x: 0.4, y: 0.5 }, { x: 0.7, y: 0.5 }, { x: 0.9, y: 0.5 }];
+    expect(landmarksAreSpread(line)).toBe(false);
+  });
   it('needs at least two landmark pairs', () => {
     expect(
       computeAlignment({ photo: [LANDMARKS[0]!], live: [LANDMARKS[0]!], photoW: W, photoH: H, perspective: false }),

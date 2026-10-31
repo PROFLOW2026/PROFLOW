@@ -193,8 +193,8 @@ function dist(a: Pt, b: Pt): number {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-export const SANITY_MAX_EDGE_RATIO = 1.6;
-export const SANITY_AREA_BAND: readonly [number, number] = [0.5, 2];
+export const SANITY_MAX_EDGE_RATIO = 1.25;
+export const SANITY_AREA_BAND: readonly [number, number] = [0.7, 1.4];
 
 /**
  * Is a non-similarity fit plausible? The photo rectangle must map to a convex
@@ -246,11 +246,66 @@ export interface AlignmentResult {
   readonly perspectiveRejected: boolean;
 }
 
+/** Landmarks the user must mark (same order on the photo and on the camera). */
+export const REQUIRED_LANDMARKS = 4;
+/** Largest tolerated rotation of the old photo relative to the live view. */
+export const MAX_ROTATION_RAD = (30 * Math.PI) / 180;
+/** Largest tolerated landmark residual, as a fraction of the live landmark spread. */
+export const MAX_RESIDUAL_FRACTION = 0.06;
+/** Minimum convex-hull area of the landmarks, as a fraction of the surface area. */
+export const MIN_SPREAD_AREA = 0.1;
+/** Minimum bounding-box side of the landmarks, as a fraction of the surface side. */
+export const MIN_SPREAD_SIDE = 0.25;
+
+function convexHull(points: readonly Pt[]): Pt[] {
+  const pts = [...points].sort((a, b) => a.x - b.x || a.y - b.y);
+  if (pts.length < 3) return pts;
+  const cross = (o: Pt, a: Pt, b: Pt) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+  const lower: Pt[] = [];
+  for (const p of pts) {
+    while (lower.length >= 2 && cross(lower[lower.length - 2]!, lower[lower.length - 1]!, p) <= 0) lower.pop();
+    lower.push(p);
+  }
+  const upper: Pt[] = [];
+  for (const p of [...pts].reverse()) {
+    while (upper.length >= 2 && cross(upper[upper.length - 2]!, upper[upper.length - 1]!, p) <= 0) upper.pop();
+    upper.push(p);
+  }
+  return [...lower.slice(0, -1), ...upper.slice(0, -1)];
+}
+
+/**
+ * Are normalised (0..1) landmarks spread over the surface rather than bunched together?
+ * Needs all REQUIRED_LANDMARKS points.
+ */
+export function landmarksAreSpread(points: readonly Pt[]): boolean {
+  if (points.length < REQUIRED_LANDMARKS) return false;
+  const xs = points.map((p) => p.x);
+  const ys = points.map((p) => p.y);
+  const w = Math.max(...xs) - Math.min(...xs);
+  const h = Math.max(...ys) - Math.min(...ys);
+  if (w < MIN_SPREAD_SIDE || h < MIN_SPREAD_SIDE) return false;
+  return polygonArea(convexHull(points)) >= MIN_SPREAD_AREA;
+}
+
+/** Straight (similarity) fit that is too rotated or fits the landmarks badly is not trustworthy. */
+function isReliableSimilarity(fit: FitResult, live: readonly Pt[]): boolean {
+  const m = fit.matrix;
+  const rotation = Math.atan2(m[3], m[0]);
+  if (Math.abs(rotation) > MAX_ROTATION_RAD) return false;
+  const xs = live.map((p) => p.x);
+  const ys = live.map((p) => p.y);
+  const spread = Math.hypot(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+  return spread > 0 && fit.rms <= MAX_RESIDUAL_FRACTION * spread;
+}
+
 export function computeAlignment(input: AlignmentInput): AlignmentResult | null {
   const n = Math.min(input.photo.length, input.live.length);
   if (n < 2) return null;
   const sim = fitSimilarity(input.photo.slice(0, n), input.live.slice(0, n));
   if (!sim) return null;
+  // Never present an implausible result as if the alignment had succeeded.
+  if (!isReliableSimilarity(sim, input.live.slice(0, n))) return null;
   if (!input.perspective || n < 3) return { fit: sim, perspectiveRejected: false };
   const warp =
     n >= 4

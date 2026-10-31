@@ -20,7 +20,9 @@ import { createPortal } from 'react-dom';
 import { Camera, Check, Copy, ImageUp, RotateCcw, Rotate3d, Undo2, X } from 'lucide-react';
 import {
   IDENTITY,
+  REQUIRED_LANDMARKS,
   computeAlignment,
+  landmarksAreSpread,
   fitWithin,
   multiplyMat3,
   toCssMatrix3d,
@@ -30,20 +32,18 @@ import {
 } from '../domain/infra-overlay-geometry';
 
 const MAX_PHOTO_SIDE = 1600;
-const MIN_PINS = 2;
-const MAX_PINS = 4;
-/** Touch placement: the pin sits above the fingertip so the finger never hides it. */
-const TOUCH_PIN_OFFSET_PX = 46;
-const PIN_HIT_RADIUS_PX = 34;
+/** A pin is placed exactly where the finger touches (no offset). */
+const MAX_PINS = REQUIRED_LANDMARKS;
+const PIN_HIT_RADIUS_PX = 24;
 
 const TEXT = {
   title: 'זיהוי תשתיות',
   intro:
-    'ניסוי: מצלמים/בוחרים תמונה מלפני סגירת הקיר, מסמנים 2–4 נקודות זיהוי, ואז מציגים אותה שקופה מעל המצלמה החיה. שום דבר לא נשמר או נשלח.',
+    'ניסוי: מצלמים/בוחרים תמונה מלפני סגירת הקיר, מסמנים 4 נקודות זיהוי, ואז מציגים אותה שקופה מעל המצלמה החיה. שום דבר לא נשמר או נשלח.',
   capture: 'צילום תמונה',
   choose: 'בחירת תמונה',
   loadError: 'לא ניתן לקרוא את התמונה',
-  markHint: 'סמנו 2–4 נקודות קבועות (פינות, שקעים, מסגרות)',
+  markHint: 'סמנו 4 נקודות קבועות, מפוזרות על פני הקיר',
   next: 'המשך',
   back: 'חזרה',
   undo: 'ביטול נקודה אחרונה',
@@ -204,13 +204,12 @@ function PinSurface({
       return;
     }
     if (current.length < max) {
-      const offset = e.pointerType === 'mouse' ? 0 : TOUCH_PIN_OFFSET_PX;
-      grab.current = { x: 0, y: -offset };
+      grab.current = { x: 0, y: 0 };
       activeIndex.current = current.length;
       mode.current = 'pin';
       latest.current.onPinsChange([
         ...current,
-        { x: clamp01(p.x / w), y: clamp01((p.y - offset) / h) },
+        { x: clamp01(p.x / w), y: clamp01(p.y / h) },
       ]);
       return;
     }
@@ -388,7 +387,7 @@ function MarkStep({
           type="button"
           className={`${barButtonClass} bg-cyan-500/90 hover:bg-cyan-400`}
           onClick={onNext}
-          disabled={pins.length < MIN_PINS}
+          disabled={pins.length < MAX_PINS || !landmarksAreSpread(pins)}
           aria-label={TEXT.next}
         >
           <Check className="size-5" />
@@ -492,7 +491,11 @@ function LiveStep({
   }, [orientation, size.w]);
 
   const alignment = useMemo(() => {
-    if (size.w === 0 || livePins.length < MIN_PINS) return null;
+    if (size.w === 0 || livePins.length < MAX_PINS) return null;
+    const unit = Math.min(size.w, size.h);
+    if (!landmarksAreSpread(livePins.map((p) => ({ x: (p.x * size.w) / unit, y: (p.y * size.h) / unit })))) {
+      return null;
+    }
     return computeAlignment({
       photo: photoPins.map((p) => ({ x: p.x * photo.width, y: p.y * photo.height })),
       live: livePins.map((p) => ({ x: p.x * size.w, y: p.y * size.h })),
