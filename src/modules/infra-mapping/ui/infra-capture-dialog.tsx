@@ -29,6 +29,8 @@ import { InfraDetailsForm } from './infra-details-form';
 import { evidenceFileUrl, formatDateTime, uploadBytes } from './infra-client';
 import { InfraLocationSelect } from './infra-location-select';
 import { InfraMarkingEditor, type MarkingEditorSave } from './infra-marking-editor';
+import { InfraVideoPlayer } from './infra-video-player';
+import { isVideoMime } from '../domain/video';
 import { INFRA_TEXT } from './texts';
 
 export type LocateSlot = 'before' | 'after' | 'live';
@@ -56,6 +58,7 @@ export function InfraCaptureDialog({
   onClose,
   onChanged,
   onSelectForLocate,
+  onUseVideoFrame,
 }: {
   readonly capture: InfraCaptureDto;
   readonly viewer: InfraViewer;
@@ -67,6 +70,8 @@ export function InfraCaptureDialog({
   readonly onClose: () => void;
   readonly onChanged: () => void;
   readonly onSelectForLocate: (capture: InfraCaptureDto, slot: LocateSlot) => void;
+  /** A frame extracted from a video, handed to the existing live / two-photo locate flows. */
+  readonly onUseVideoFrame: (frame: File, slot: LocateSlot, capture: InfraCaptureDto) => void;
 }) {
   const [detail, setDetail] = useState<InfraCaptureDetailDto | null>(null);
   const [mode, setMode] = useState<'view' | 'edit' | 'marks'>('view');
@@ -92,6 +97,7 @@ export function InfraCaptureDialog({
   const originalUrl = evidenceFileUrl(viewer, capture.evidenceId);
   const shownUrl = showMarked && annotatedId ? evidenceFileUrl(viewer, annotatedId) : originalUrl;
   const available = capture.status === 'available';
+  const isVideo = isVideoMime(capture.mimeType);
 
   const initialMarkings = useMemo<DraftMarking[]>(
     () =>
@@ -202,6 +208,13 @@ export function InfraCaptureDialog({
           ) : (
             <>
               {available ? (
+                isVideo ? (
+                  <InfraVideoPlayer
+                    src={originalUrl}
+                    canLocate={permissions.canDocument}
+                    onUseFrame={(frame, slot) => onUseVideoFrame(frame, slot, capture)}
+                  />
+                ) : (
                 <div className="flex flex-col gap-2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={shownUrl} alt={capture.description ?? capture.fileName} className="max-h-[50dvh] w-full rounded-md bg-black object-contain" />
@@ -216,6 +229,7 @@ export function InfraCaptureDialog({
                     </div>
                   ) : null}
                 </div>
+                )
               ) : (
                 <Alert tone="info">{INFRA_TEXT.gallery.pending}</Alert>
               )}
@@ -267,7 +281,7 @@ export function InfraCaptureDialog({
               </>
             ) : (
               <>
-                {available && permissions.canDocument ? (
+                {available && permissions.canDocument && !isVideo ? (
                   <>
                     <Button type="button" variant="secondary" onClick={() => onSelectForLocate(capture, 'before')} data-testid="infra-select-before">
                       {INFRA_TEXT.gallery.selectForBefore}
@@ -282,10 +296,12 @@ export function InfraCaptureDialog({
                 ) : null}
                 {capture.canEdit && available ? (
                   <>
-                    <Button type="button" variant="secondary" onClick={() => setMode('marks')} data-testid="infra-edit-marks">
-                      <Pencil aria-hidden />
-                      {INFRA_TEXT.gallery.editMarks}
-                    </Button>
+                    {isVideo ? null : (
+                      <Button type="button" variant="secondary" onClick={() => setMode('marks')} data-testid="infra-edit-marks">
+                        <Pencil aria-hidden />
+                        {INFRA_TEXT.gallery.editMarks}
+                      </Button>
+                    )}
                     <Button type="button" variant="secondary" onClick={() => setMode('edit')} data-testid="infra-edit-details">
                       {INFRA_TEXT.edit}
                     </Button>

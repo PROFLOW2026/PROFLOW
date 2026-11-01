@@ -1,6 +1,6 @@
 'use client';
 
-import { Camera, Check, ChevronDown, ImageUp, Loader2, RefreshCw, RotateCcw, Trash2, X } from 'lucide-react';
+import { Camera, Check, ChevronDown, ImageUp, Loader2, RefreshCw, RotateCcw, Trash2, Video, X } from 'lucide-react';
 import { useRef, useState, type ReactNode } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,9 @@ import { canApprove, canRetry, type QueueItem } from '../domain/upload-queue';
 import { InfraCamera } from './infra-camera';
 import { InfraDetailsForm } from './infra-details-form';
 import { InfraLocationSelect } from './infra-location-select';
+import { inspectPickedVideo } from './infra-video-file';
+import { InfraVideoRecorder } from './infra-video-recorder';
+import { formatVideoDuration } from '../domain/video';
 import { INFRA_TEXT } from './texts';
 import type { useInfraUploads } from './use-infra-uploads';
 
@@ -39,6 +42,8 @@ function QueueCard({
 }) {
   const [showDetails, setShowDetails] = useState(false);
   const preview = uploads.previews[item.clientId];
+  const video = uploads.videos[item.clientId] ?? null;
+  const uploadProgress = uploads.progress[item.clientId];
   const label = item.locationId ? locationLabel(locations, item.locationId) : null;
   const pending = item.status === 'pending_approval';
 
@@ -49,7 +54,17 @@ function QueueCard({
       data-status={item.status}
     >
       <div className="flex min-w-0 items-start gap-3">
-        {preview ? (
+        {preview && video ? (
+          <video
+            src={preview}
+            controls={pending}
+            muted
+            playsInline
+            preload="metadata"
+            className={`rounded-md border border-[var(--pf-border-default)] bg-black object-cover ${pending ? 'h-36 w-44 sm:h-44 sm:w-56' : 'size-16'}`}
+            data-testid="infra-queue-video-preview"
+          />
+        ) : preview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={preview}
@@ -62,7 +77,14 @@ function QueueCard({
           <span className={`w-fit rounded-full px-2 py-0.5 text-xs font-medium ${statusTone[item.status]}`}>
             {item.status === 'uploading' ? <Loader2 className="me-1 inline size-3 animate-spin" aria-hidden /> : null}
             {INFRA_TEXT.capture.status[item.status]}
+            {item.status === 'uploading' && video && uploadProgress !== undefined ? ` ${Math.round(uploadProgress * 100)}%` : ''}
           </span>
+          {video ? (
+            <span className="flex w-fit items-center gap-1 text-xs text-[var(--pf-text-secondary)]">
+              <Video className="size-3" aria-hidden />
+              {INFRA_TEXT.video.badge} {formatVideoDuration(video.durationMs)}
+            </span>
+          ) : null}
           {label ? <span className="truncate text-sm">{label}</span> : null}
           {item.error ? (
             <span className="text-xs text-[var(--pf-status-danger-fg)]" role="alert">
@@ -157,6 +179,7 @@ export function InfraCapturePanel({
   taskTitle,
   storagePicker,
   canDocument,
+  canCaptureVideo = false,
 }: {
   readonly locations: readonly InfraLocationOption[];
   readonly locationId: string | null;
@@ -167,11 +190,32 @@ export function InfraCapturePanel({
   /** Storage browser button (only for viewers allowed to browse the connected storage). */
   readonly storagePicker?: (onFile: (file: File) => void) => ReactNode;
   readonly canDocument: boolean;
+  /** Short-video recording (trial: owner / office accounts only). */
+  readonly canCaptureVideo?: boolean;
 }) {
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [videoOpen, setVideoOpen] = useState(false);
+  const [videoMessage, setVideoMessage] = useState<{ tone: 'info' | 'danger'; text: string } | null>(null);
   const nativeCapture = useRef<HTMLInputElement>(null);
   const nativePick = useRef<HTMLInputElement>(null);
+  const nativeVideoPick = useRef<HTMLInputElement>(null);
   const items = uploads.items;
+
+  const addRecordedVideo = (file: File, durationMs: number, autoStopped: boolean) => {
+    setVideoOpen(false);
+    setVideoMessage(autoStopped ? { tone: 'info', text: INFRA_TEXT.video.autoStopped } : null);
+    uploads.addVideo(file, { locationId, source: 'camera', durationMs });
+  };
+
+  const addPickedVideo = async (file: File) => {
+    const picked = await inspectPickedVideo(file);
+    if (!picked.ok) {
+      setVideoMessage({ tone: 'danger', text: picked.error });
+      return;
+    }
+    setVideoMessage(null);
+    uploads.addVideo(picked.file, { locationId, source: 'gallery', durationMs: picked.durationMs });
+  };
 
   const addPhoto = (file: File, source: QueueItem['source']) => {
     // Carry room / wall to the next shot so continuous shooting at one wall needs no retyping.
@@ -185,7 +229,13 @@ export function InfraCapturePanel({
 
   const onRetake = (item: QueueItem) => {
     const source = item.source;
+    const wasVideo = Boolean(uploads.videos[item.clientId]);
     uploads.discard(item.clientId);
+    if (wasVideo) {
+      if (source === 'camera') setVideoOpen(true);
+      else nativeVideoPick.current?.click();
+      return;
+    }
     if (source === 'camera') setCameraOpen(true);
     else if (source === 'gallery') nativePick.current?.click();
   };
@@ -235,6 +285,46 @@ export function InfraCapturePanel({
           {INFRA_TEXT.capture.fromPhone}
         </Button>
         {storagePicker?.((file) => addPhoto(file, 'storage'))}
+        {canCaptureVideo ? (
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={!locationId}
+              onClick={() => {
+                setCameraOpen(false);
+                setVideoOpen((open) => !open);
+              }}
+              aria-pressed={videoOpen}
+              data-testid="infra-open-video"
+            >
+              <Video aria-hidden />
+              {INFRA_TEXT.video.record}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={!locationId}
+              onClick={() => nativeVideoPick.current?.click()}
+              data-testid="infra-pick-video"
+            >
+              <ImageUp aria-hidden />
+              {INFRA_TEXT.video.fromPhone}
+            </Button>
+            <input
+              ref={nativeVideoPick}
+              type="file"
+              accept="video/*"
+              className="sr-only"
+              data-testid="infra-native-video-pick"
+              onChange={(event) => {
+                const picked = Array.from(event.target.files ?? []);
+                event.target.value = '';
+                for (const file of picked) void addPickedVideo(file);
+              }}
+            />
+          </>
+        ) : null}
         <input
           ref={nativeCapture}
           type="file"
@@ -262,6 +352,14 @@ export function InfraCapturePanel({
       </div>
 
       {cameraOpen ? <InfraCamera onCapture={(file) => addPhoto(file, 'camera')} onClose={() => setCameraOpen(false)} /> : null}
+      {canCaptureVideo && videoOpen ? (
+        <InfraVideoRecorder onRecorded={addRecordedVideo} onClose={() => setVideoOpen(false)} />
+      ) : null}
+      {videoMessage ? (
+        <Alert tone={videoMessage.tone} data-testid="infra-video-message">
+          {videoMessage.text}
+        </Alert>
+      ) : null}
 
       {uploads.unsaved ? <Alert tone="warning">{INFRA_TEXT.capture.unsaved}</Alert> : null}
 

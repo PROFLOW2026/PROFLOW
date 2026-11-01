@@ -1,6 +1,10 @@
 import 'server-only';
 
-import type { StorageProviderAdapter } from '../domain/provider-interface';
+import type {
+  ResumableChunkResult,
+  ResumableUploader,
+  StorageProviderAdapter,
+} from '../domain/provider-interface';
 import type {
   ProviderAccountInfo,
   ProviderFileItem,
@@ -68,6 +72,19 @@ function mapEntry(
     modifiedAt: entry.client_modified ? new Date(String(entry.client_modified)) : null,
     etag: entry.rev ? String(entry.rev) : null,
   } as ProviderFileItem;
+}
+
+/** `incorrect_offset` 409 body -> the offset Dropbox actually holds. */
+export function parseDropboxCorrectOffset(body: string): number | null {
+  try {
+    const parsed = JSON.parse(body) as {
+      error?: { lookup_failed?: { correct_offset?: unknown }; correct_offset?: unknown };
+    };
+    const value = parsed.error?.lookup_failed?.correct_offset ?? parsed.error?.correct_offset;
+    return typeof value === 'number' && value >= 0 ? value : null;
+  } catch {
+    return null;
+  }
 }
 
 export class DropboxStorageProvider implements StorageProviderAdapter {
@@ -438,6 +455,70 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
       input.parentFolderId,
     )) as ProviderFileItem;
   }
+
+  /**
+   * Upload sessions (`upload_session/start|append_v2|finish`). The session id and the target path
+   * are the `state`; the session itself is created with the first chunk's bytes.
+   */
+  readonly resumableUpload: ResumableUploader = {
+    start: async (accessToken, input) => {
+      const parentPath = await this.resolvePath(accessToken, input.parentFolderId);
+      const path = `${parentPath}/${input.fileName}`.replace(/\/+/g, '/');
+      return { state: JSON.stringify({ path, sessionId: null }) };
+    },
+    putChunk: async (accessToken, input) => {
+      const state = JSON.parse(input.state) as { path: string; sessionId: string | null };
+      const isLast = input.offset + input.bytes.length >= input.totalBytes;
+      const commit = { path: state.path, mode: 'add', autorename: false, mute: false };
+
+      const send = async (endpoint: string, arg: Record<string, unknown>, bytes: Uint8Array) =>
+        fetch(`${CONTENT}/files/upload_session/${endpoint}`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/octet-stream',
+            'Dropbox-API-Arg': stringifyDropboxApiArgHeader(arg),
+          },
+          body: Buffer.from(bytes),
+        });
+
+      const finished = async (response: Response): Promise<ResumableChunkResult> => {
+        const created = (await response.json()) as Record<string, unknown>;
+        const file = (await this.mapEntryWithParent(accessToken, created, input.parentFolderId)) as ProviderFileItem;
+        return { kind: 'complete', file };
+      };
+
+      if (!state.sessionId) {
+        if (input.offset !== 0) throw new ProviderHttpError(409, 'upload session was not started');
+        const started = await send('start', { close: false }, input.bytes);
+        if (!started.ok) throw new ProviderHttpError(started.status, (await started.text().catch(() => '')).slice(0, 500));
+        const { session_id: sessionId } = (await started.json()) as { session_id?: string };
+        if (!sessionId) throw new Error('Dropbox upload session missing session_id');
+        const nextState = JSON.stringify({ path: state.path, sessionId });
+        if (!isLast) return { kind: 'continue', state: nextState, nextOffset: input.bytes.length };
+        const done = await send(
+          'finish',
+          { cursor: { session_id: sessionId, offset: input.bytes.length }, commit },
+          new Uint8Array(0),
+        );
+        if (!done.ok) throw new ProviderHttpError(done.status, (await done.text().catch(() => '')).slice(0, 500));
+        return finished(done);
+      }
+
+      const cursor = { session_id: state.sessionId, offset: input.offset };
+      const response = isLast
+        ? await send('finish', { cursor, commit }, input.bytes)
+        : await send('append_v2', { cursor, close: false }, input.bytes);
+      if (response.ok) {
+        if (isLast) return finished(response);
+        return { kind: 'continue', state: input.state, nextOffset: input.offset + input.bytes.length };
+      }
+      const text = (await response.text().catch(() => '')).slice(0, 500);
+      const correctOffset = response.status === 409 ? parseDropboxCorrectOffset(text) : null;
+      if (correctOffset !== null) return { kind: 'continue', state: input.state, nextOffset: correctOffset };
+      throw new ProviderHttpError(response.status, text);
+    },
+  };
 
   async replaceFileContent(
     accessToken: string,

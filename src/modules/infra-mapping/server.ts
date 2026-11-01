@@ -48,7 +48,7 @@ import type { InfraDeps, InfraFolderPort } from './application/ports';
  * authorized the caller - contractors and employees never hold storage credentials of their own.
  */
 
-async function usableConnection(db: DbExecutor, organizationId: string): Promise<StorageConnectionRecord> {
+export async function usableConnection(db: DbExecutor, organizationId: string): Promise<StorageConnectionRecord> {
   const connection = await ensureUsablePrimaryStorageConnection(db, organizationId);
   if (!connection || !organizationHasActiveStorage(connection)) {
     throw new ServiceUnavailableError('Organization storage is not connected', 'externalStorage.errors.notConnected');
@@ -130,7 +130,7 @@ interface FolderRuntime {
   readonly accessToken: string;
 }
 
-async function buildRuntime(
+export async function buildRuntime(
   db: DbExecutor,
   input: { organizationId: string; projectId: string; userId?: string | null },
 ): Promise<FolderRuntime> {
@@ -260,7 +260,7 @@ export const infraFolderPort: InfraFolderPort = {
  * (falling back to the project's regular photos folder when the location folder cannot be
  * resolved, so an upload is never lost because of a folder problem).
  */
-const infraFileStore: ProjectFileDeps['store'] = {
+export const infraFileStore: ProjectFileDeps['store'] = {
   resolveConnection: externalProviderFileStore.resolveConnection,
   open: externalProviderFileStore.open,
   async put(input) {

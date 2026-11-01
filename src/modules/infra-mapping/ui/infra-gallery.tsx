@@ -21,9 +21,12 @@ import {
 import { InfraCaptureDialog, type LocateSlot } from './infra-capture-dialog';
 import { evidenceFileUrl, formatDateTime } from './infra-client';
 import { InfraLocationSelect } from './infra-location-select';
+import { InfraVideoThumb } from './infra-video-player';
+import { isVideoMime, parseVideoDurationMs } from '../domain/video';
 import { INFRA_TEXT } from './texts';
 
 interface Filters {
+  media: '' | 'photo' | 'video';
   text: string;
   locationId: string | null;
   room: string;
@@ -36,6 +39,7 @@ interface Filters {
 }
 
 const EMPTY_FILTERS: Filters = {
+  media: '',
   text: '',
   locationId: null,
   room: '',
@@ -60,6 +64,7 @@ export function InfraGallery({
   refreshKey,
   initialLocationId,
   onSelectForLocate,
+  onUseVideoFrame,
   allowCloudLink,
 }: {
   readonly viewer: InfraViewer;
@@ -72,6 +77,7 @@ export function InfraGallery({
   readonly refreshKey: number;
   readonly initialLocationId?: string | null;
   readonly onSelectForLocate: (capture: InfraCaptureDto, slot: LocateSlot) => void;
+  readonly onUseVideoFrame: (frame: File, slot: LocateSlot, capture: InfraCaptureDto) => void;
   readonly allowCloudLink: boolean;
 }) {
   const [filters, setFilters] = useState<Filters>({ ...EMPTY_FILTERS, locationId: initialLocationId ?? null });
@@ -107,6 +113,7 @@ export function InfraGallery({
         from: filters.from || null,
         to: filters.to || null,
         mineOnly: filters.mineOnly,
+        media: filters.media || null,
         taskId: null,
         cursor: after,
       });
@@ -137,6 +144,7 @@ export function InfraGallery({
     filters.role !== '' ||
     filters.from !== '' ||
     filters.to !== '' ||
+    filters.media !== '' ||
     filters.mineOnly;
 
   return (
@@ -237,6 +245,19 @@ export function InfraGallery({
               <input type="date" className={inputClass} value={filters.to} min={filters.from || undefined} onChange={(event) => patch({ to: event.target.value })} />
             </label>
           </div>
+          <label className="flex min-w-0 flex-col gap-1 text-sm">
+            <span className="font-medium">{INFRA_TEXT.video.media}</span>
+            <select
+              className={inputClass}
+              value={filters.media}
+              onChange={(event) => patch({ media: event.target.value as Filters['media'] })}
+              data-testid="infra-filter-media"
+            >
+              <option value="">{INFRA_TEXT.video.mediaAll}</option>
+              <option value="photo">{INFRA_TEXT.video.mediaPhotos}</option>
+              <option value="video">{INFRA_TEXT.video.mediaVideos}</option>
+            </select>
+          </label>
           <label className="flex min-h-11 items-center gap-2 text-sm sm:col-span-2 lg:col-span-3">
             <input type="checkbox" checked={filters.mineOnly} onChange={(event) => patch({ mineOnly: event.target.checked })} className="size-4" />
             {INFRA_TEXT.gallery.mineOnly}
@@ -272,7 +293,13 @@ export function InfraGallery({
                 data-testid="infra-gallery-item"
               >
                 <div className="relative aspect-square w-full bg-[var(--pf-bg-muted)]">
-                  {capture.status === 'available' ? (
+                  {capture.status === 'available' && isVideoMime(capture.mimeType) ? (
+                    <InfraVideoThumb
+                      src={evidenceFileUrl(viewer, capture.evidenceId)}
+                      durationMs={parseVideoDurationMs(capture.fileName)}
+                      label={capture.description ?? capture.fileName}
+                    />
+                  ) : capture.status === 'available' ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={evidenceFileUrl(viewer, capture.latestAnnotatedEvidenceId ?? capture.evidenceId)}
@@ -330,6 +357,10 @@ export function InfraGallery({
           onSelectForLocate={(capture, slot) => {
             setOpen(null);
             onSelectForLocate(capture, slot);
+          }}
+          onUseVideoFrame={(frame, slot, capture) => {
+            setOpen(null);
+            onUseVideoFrame(frame, slot, capture);
           }}
         />
       ) : null}

@@ -115,6 +115,20 @@ function InfraWorkspaceLoaded({
     if (next !== 'locate') setPreset(null);
   };
 
+  /**
+   * A frame taken from a video enters the same hand-off as any other photo. It is not a catalogued
+   * capture (no captureId) and is not saved anywhere unless the user later saves a comparison.
+   */
+  function openVideoFrameInLocate(frame: File, slot: LocateSlot) {
+    setSelectError(null);
+    setPreset({
+      key: Date.now(),
+      target: slot === 'live' ? 'live-before' : slot === 'after' ? 'two-after' : 'two-before',
+      photo: { file: frame },
+    });
+    setTab('locate');
+  }
+
   async function selectForLocate(capture: InfraCaptureDto, slot: LocateSlot) {
     setSelectError(null);
     try {
@@ -176,6 +190,7 @@ function InfraWorkspaceLoaded({
               suggestions={suggestions}
               taskTitle={data.task?.title ?? null}
               canDocument={permissions.canDocument}
+              canCaptureVideo={permissions.canCaptureVideo}
               storagePicker={
                 activeStorage
                   ? (onFile) => <ProjectStoragePickButton projectId={projectId} browserActions={activeStorage} onFile={onFile} />
@@ -199,6 +214,7 @@ function InfraWorkspaceLoaded({
             initialLocationId={null}
             allowCloudLink={viewer === 'internal' && permissions.canBrowseStorage}
             onSelectForLocate={(capture, slot) => void selectForLocate(capture, slot)}
+            onUseVideoFrame={(frame, slot) => openVideoFrameInLocate(frame, slot)}
           />
         </TabsContent>
 

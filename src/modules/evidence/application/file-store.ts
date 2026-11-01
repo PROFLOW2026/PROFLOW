@@ -20,7 +20,8 @@ export interface StoredFile {
   readonly externalParentFolderId: string | null;
   readonly etag: string | null;
   readonly sizeBytes: number;
-  readonly checksum: string;
+  /** SHA-256 of the bytes; null for chunked uploads, where no single request ever holds the whole file. */
+  readonly checksum: string | null;
 }
 
 export interface OpenedFile {

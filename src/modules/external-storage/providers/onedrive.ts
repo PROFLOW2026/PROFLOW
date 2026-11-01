@@ -1,6 +1,6 @@
 import 'server-only';
 
-import type { StorageProviderAdapter } from '../domain/provider-interface';
+import type { ResumableUploader, StorageProviderAdapter } from '../domain/provider-interface';
 import type {
   ProviderAccountInfo,
   ProviderFileItem,
@@ -49,6 +49,14 @@ function mapDriveItem(item: Record<string, unknown>): ProviderFileItem | Provide
     modifiedAt: modified,
     etag: item.eTag ? String(item.eTag) : null,
   } as ProviderFileItem;
+}
+
+/** `["26-"]` / `["26-12345"]` -> 26. Null when the session reports nothing usable. */
+export function parseOneDriveNextOffset(ranges: readonly string[] | undefined): number | null {
+  const first = ranges?.[0];
+  if (!first) return null;
+  const start = Number.parseInt(first.split('-')[0] ?? '', 10);
+  return Number.isFinite(start) && start >= 0 ? start : null;
 }
 
 export class OneDriveStorageProvider implements StorageProviderAdapter {
@@ -347,6 +355,63 @@ export class OneDriveStorageProvider implements StorageProviderAdapter {
     }
     return uploaded;
   }
+
+  /**
+   * Chunked upload for requests that must stay under the serverless body limit. The Graph upload
+   * session URL (pre-authenticated, so never sent an Authorization header) is the `state`.
+   * Every chunk except the last must be a multiple of 320 KiB.
+   */
+  readonly resumableUpload: ResumableUploader = {
+    start: async (accessToken, input) => {
+      const pathFileName = toProviderUploadPathFileName(input.fileName);
+      const session = await providerJson<{ uploadUrl?: string }>(
+        `${GRAPH}/me/drive/items/${input.parentFolderId}:/${encodeURIComponent(pathFileName)}:/createUploadSession`,
+        {
+          method: 'POST',
+          accessToken,
+          body: JSON.stringify({ item: { '@microsoft.graph.conflictBehavior': 'fail' } }),
+        },
+      );
+      if (!session.uploadUrl) throw new Error('OneDrive upload session missing uploadUrl');
+      const rename = pathFileName !== input.fileName && !isLatin1FileName(input.fileName);
+      return { state: JSON.stringify({ uploadUrl: session.uploadUrl, rename }) };
+    },
+    putChunk: async (accessToken, input) => {
+      const state = JSON.parse(input.state) as { uploadUrl: string; rename: boolean };
+      const end = input.offset + input.bytes.length - 1;
+      const response = await fetch(state.uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Length': String(input.bytes.length),
+          'Content-Range': `bytes ${input.offset}-${end}/${input.totalBytes}`,
+        },
+        body: Buffer.from(input.bytes),
+      });
+      if (response.status === 200 || response.status === 201) {
+        let uploaded = mapDriveItem((await response.json()) as Record<string, unknown>) as ProviderFileItem;
+        if (state.rename) uploaded = await this.renameFile(accessToken, uploaded.id, input.fileName);
+        return { kind: 'complete', file: uploaded };
+      }
+      if (response.status === 202) {
+        const body = (await response.json().catch(() => null)) as { nextExpectedRanges?: string[] } | null;
+        return {
+          kind: 'continue',
+          state: input.state,
+          nextOffset: parseOneDriveNextOffset(body?.nextExpectedRanges) ?? input.offset + input.bytes.length,
+        };
+      }
+      if (response.status === 416) {
+        // The session already holds other bytes (a retry of a chunk that did land): ask where it is.
+        const status = await fetch(state.uploadUrl, { method: 'GET' });
+        if (!status.ok) throw new ProviderHttpError(status.status, (await status.text()).slice(0, 500));
+        const body = (await status.json().catch(() => null)) as { nextExpectedRanges?: string[] } | null;
+        const nextOffset = parseOneDriveNextOffset(body?.nextExpectedRanges);
+        if (nextOffset === null) throw new ProviderHttpError(416, 'upload session has no expected range');
+        return { kind: 'continue', state: input.state, nextOffset };
+      }
+      throw new ProviderHttpError(response.status, (await response.text().catch(() => '')).slice(0, 500));
+    },
+  };
 
   async replaceFileContent(
     accessToken: string,

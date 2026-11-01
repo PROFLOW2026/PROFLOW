@@ -51,7 +51,7 @@ export function InfraGalleryPicker({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch when filters change
     setLoading(true);
     setError(null);
-    listCapturesAction(viewer, { projectId, organizationId, locationId, text: debounced || null, limit: 30 }).then((result) => {
+    listCapturesAction(viewer, { projectId, organizationId, locationId, text: debounced || null, limit: 30, media: 'photo' }).then((result) => {
       if (cancelled) return;
       setLoading(false);
       if (!result.ok) {
@@ -69,7 +69,7 @@ export function InfraGalleryPicker({
   async function more() {
     if (!cursor) return;
     setLoading(true);
-    const result = await listCapturesAction(viewer, { projectId, organizationId, locationId, text: debounced || null, limit: 30, cursor });
+    const result = await listCapturesAction(viewer, { projectId, organizationId, locationId, text: debounced || null, limit: 30, media: 'photo', cursor });
     setLoading(false);
     if (!result.ok) {
       setError(result.error);

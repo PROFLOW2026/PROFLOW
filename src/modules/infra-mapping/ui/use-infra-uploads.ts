@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { beginCaptureAction } from '../actions';
+import { beginCaptureAction, beginVideoCaptureAction } from '../actions';
 import {
   MAX_UPLOAD_ATTEMPTS,
   approve as approveItem,
@@ -18,7 +18,9 @@ import {
   type QueueItem,
 } from '../domain/upload-queue';
 import type { InfraViewer } from '../domain/types';
+import { INFRA_VIDEO_MAX_MS, normalizeVideoMime } from '../domain/video';
 import { newClientId, normalizeUploadMime, uploadBytes } from './infra-client';
+import { uploadVideoInChunks, type VideoTransferState } from './infra-video-upload';
 
 interface Context {
   readonly viewer: InfraViewer;
@@ -37,6 +39,11 @@ interface Context {
 export function useInfraUploads(context: Context) {
   const [items, setItems] = useState<QueueItem[]>([]);
   const [previews, setPreviews] = useState<Record<string, string>>({});
+  /** Queue items that are short videos (clientId -> duration). Photos are not listed. */
+  const [videos, setVideos] = useState<Record<string, { durationMs: number }>>({});
+  const [progress, setProgress] = useState<Record<string, number>>({});
+  const transfers = useRef(new Map<string, VideoTransferState>());
+  const videoMeta = useRef(new Map<string, { durationMs: number }>());
   const files = useRef(new Map<string, File>());
   const capturedAt = useRef(new Map<string, string>());
   const started = useRef(new Set<string>());
@@ -64,18 +71,40 @@ export function useInfraUploads(context: Context) {
     [],
   );
 
+  /** A recorded / picked short video enters the same approve-then-upload queue as a photo. */
+  const addVideo = useCallback(
+    (
+      file: File,
+      input: { locationId: string | null; source: QueueItem['source']; durationMs: number; details?: Partial<QueueDetails> },
+    ) => {
+      const { durationMs, ...rest } = input;
+      const clientId = add(file, rest);
+      const meta = { durationMs: Math.min(Math.max(1, Math.round(durationMs)), INFRA_VIDEO_MAX_MS) };
+      videoMeta.current.set(clientId, meta);
+      setVideos((current) => ({ ...current, [clientId]: meta }));
+      return clientId;
+    },
+    [add],
+  );
+
   const release = useCallback((clientId: string) => {
     files.current.delete(clientId);
     capturedAt.current.delete(clientId);
     started.current.delete(clientId);
+    transfers.current.delete(clientId);
+    videoMeta.current.delete(clientId);
     const registered = urlRegistry.current.get(clientId);
     if (registered) URL.revokeObjectURL(registered);
     urlRegistry.current.delete(clientId);
-    setPreviews((current) => {
+    const without = <T,>(current: Record<string, T>): Record<string, T> => {
+      if (!(clientId in current)) return current;
       const next = { ...current };
       delete next[clientId];
       return next;
-    });
+    };
+    setPreviews(without);
+    setVideos(without);
+    setProgress(without);
   }, []);
 
   /** Edits details / location of a photo that is still waiting for approval. */
@@ -123,12 +152,72 @@ export function useInfraUploads(context: Context) {
     [release],
   );
 
+  /**
+   * Video upload: register the approved video (idempotent on the client id), then send it in chunks.
+   * The transfer state is kept per item, so a retry resumes from the last confirmed offset.
+   */
+  const runVideo = useCallback(
+    async (item: QueueItem, file: File, locationId: string, durationMs: number) => {
+      const ctx = contextRef.current;
+      const mimeType = normalizeVideoMime(file.type, file.name) ?? 'video/mp4';
+      const begin = await beginVideoCaptureAction(ctx.viewer, {
+        projectId: ctx.projectId,
+        organizationId: ctx.viewer === 'external' ? ctx.organizationId : null,
+        locationId,
+        clientCaptureId: item.clientId,
+        taskId: ctx.taskId,
+        source: item.source,
+        capturedAt: capturedAt.current.get(item.clientId) ?? null,
+        durationMs,
+        file: { fileName: file.name || 'video.mp4', mimeType, sizeBytes: file.size },
+        details: {
+          description: item.details.description,
+          room: item.details.room,
+          wall: item.details.wall,
+          infraType: (item.details.infraType || null) as never,
+          dimensions: item.details.dimensions,
+          note: item.details.note,
+          role: item.details.role,
+        },
+      });
+      if (!begin.ok) {
+        patch(item.clientId, (current) => failUpload(current, begin.error));
+        return;
+      }
+      if (!begin.data.alreadyUploaded) {
+        const state = transfers.current.get(item.clientId) ?? { offset: 0, session: null };
+        transfers.current.set(item.clientId, state);
+        const upload = await uploadVideoInChunks({
+          uploadUrl: begin.data.uploadUrl,
+          file,
+          state,
+          onProgress: (fraction) => setProgress((current) => ({ ...current, [item.clientId]: fraction })),
+        });
+        if (!upload.ok) {
+          patch(item.clientId, (current) => {
+            const failed = failUpload(current, upload.error);
+            return upload.permanent ? { ...failed, attempts: MAX_UPLOAD_ATTEMPTS } : failed;
+          });
+          return;
+        }
+      }
+      patch(item.clientId, (current) => finishUpload(current, begin.data.captureId));
+      contextRef.current.onUploaded?.(begin.data.captureId);
+    },
+    [patch],
+  );
+
   const run = useCallback(
     async (item: QueueItem) => {
       const file = files.current.get(item.clientId);
       const ctx = contextRef.current;
       if (!file || !item.locationId) {
         patch(item.clientId, (current) => failUpload(current, 'הקובץ אינו זמין יותר. צלמו שוב.'));
+        return;
+      }
+      const video = videoMeta.current.get(item.clientId);
+      if (video) {
+        await runVideo(item, file, item.locationId, video.durationMs);
         return;
       }
       const mimeType = normalizeUploadMime(file, file.name);
@@ -168,7 +257,7 @@ export function useInfraUploads(context: Context) {
       patch(item.clientId, (current) => finishUpload(current, begin.data.captureId));
       ctx.onUploaded?.(begin.data.captureId);
     },
-    [patch],
+    [patch, runVideo],
   );
 
   // Start every approved photo (up to the concurrency limit). Shooting never waits for this.
@@ -218,5 +307,5 @@ export function useInfraUploads(context: Context) {
   }, []);
 
   const summary = useMemo(() => queueSummary(items), [items]);
-  return { items, previews, summary, unsaved, add, edit, approve, discard, retry, dismiss } as const;
+  return { items, previews, videos, progress, summary, unsaved, add, addVideo, edit, approve, discard, retry, dismiss } as const;
 }

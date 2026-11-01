@@ -42,7 +42,12 @@ export function fileResponse(file: OpenedFile & { readonly fileName: string }, i
     'Accept-Ranges': 'bytes',
   });
   if (file.sizeBytes != null && file.httpStatus !== 206) headers.set('Content-Length', String(file.sizeBytes));
-  if (file.contentRange) headers.set('Content-Range', file.contentRange);
+  if (file.contentRange) {
+    headers.set('Content-Range', file.contentRange);
+    // Safari / iOS video playback needs the exact length of a partial response.
+    const part = /^bytes (\d+)-(\d+)\//i.exec(file.contentRange);
+    if (part && file.httpStatus === 206) headers.set('Content-Length', String(Number(part[2]) - Number(part[1]) + 1));
+  }
   return new Response(file.stream, { status: file.httpStatus, headers });
 }
 

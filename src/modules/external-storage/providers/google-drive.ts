@@ -1,6 +1,6 @@
 import 'server-only';
 
-import type { StorageProviderAdapter } from '../domain/provider-interface';
+import type { ResumableUploader, StorageProviderAdapter } from '../domain/provider-interface';
 import type {
   ProviderAccountInfo,
   ProviderFileItem,
@@ -82,6 +82,12 @@ function mapFile(item: Record<string, unknown>): ProviderFileItem | ProviderFold
     modifiedAt: modified,
     etag: item.md5Checksum ? String(item.md5Checksum) : null,
   } as ProviderFileItem;
+}
+
+/** `Range: bytes=0-42` -> 43 (bytes held by the session); no header -> nothing received yet. */
+export function parseGoogleNextOffset(rangeHeader: string | null): number {
+  const match = rangeHeader?.match(/bytes=0-(\d+)/i);
+  return match ? Number(match[1]) + 1 : 0;
 }
 
 export class GoogleDriveStorageProvider implements StorageProviderAdapter {
@@ -361,6 +367,55 @@ export class GoogleDriveStorageProvider implements StorageProviderAdapter {
     );
     return mapFile(created) as ProviderFileItem;
   }
+
+  /**
+   * Resumable upload (https://developers.google.com/drive/api/guides/manage-uploads#resumable).
+   * The session URI is the `state`. Every chunk except the last must be a multiple of 256 KiB.
+   */
+  readonly resumableUpload: ResumableUploader = {
+    start: async (accessToken, input) => {
+      const parentId = input.parentFolderId === 'root' ? 'root' : input.parentFolderId;
+      const response = await fetch(`${UPLOAD}/files?uploadType=resumable&fields=${FILE_FIELDS}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json; charset=UTF-8',
+          'X-Upload-Content-Type': input.mimeType,
+          'X-Upload-Content-Length': String(input.sizeBytes),
+        },
+        body: JSON.stringify({ name: input.fileName, parents: [parentId], mimeType: input.mimeType }),
+      });
+      if (!response.ok) throw new ProviderHttpError(response.status, (await response.text().catch(() => '')).slice(0, 500));
+      const location = response.headers.get('Location');
+      if (!location) throw new Error('Google Drive resumable session missing Location');
+      return { state: JSON.stringify({ sessionUri: location }) };
+    },
+    putChunk: async (accessToken, input) => {
+      const state = JSON.parse(input.state) as { sessionUri: string };
+      const end = input.offset + input.bytes.length - 1;
+      const response = await fetch(state.sessionUri, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Length': String(input.bytes.length),
+          'Content-Range': `bytes ${input.offset}-${end}/${input.totalBytes}`,
+        },
+        body: Buffer.from(input.bytes),
+      });
+      if (response.status === 200 || response.status === 201) {
+        const created = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+        if (created?.id) {
+          const file = await this.getFileMetadata(accessToken, String(created.id));
+          if (file) return { kind: 'complete', file };
+        }
+        throw new ProviderHttpError(502, 'resumable upload finished without a file id');
+      }
+      if (response.status === 308) {
+        return { kind: 'continue', state: input.state, nextOffset: parseGoogleNextOffset(response.headers.get('Range')) };
+      }
+      throw new ProviderHttpError(response.status, (await response.text().catch(() => '')).slice(0, 500));
+    },
+  };
 
   async replaceFileContent(
     accessToken: string,

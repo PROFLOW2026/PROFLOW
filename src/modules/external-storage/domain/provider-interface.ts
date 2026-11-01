@@ -8,8 +8,42 @@ import type {
   StorageProviderKey,
 } from './types';
 
+/**
+ * Chunked upload that survives separate serverless invocations: the provider's own session is
+ * kept in an opaque `state` string that the caller carries (sealed) between requests, so nothing
+ * has to be stored server-side and the whole file never sits in one request.
+ */
+export interface ResumableUploader {
+  start(
+    accessToken: string,
+    input: { parentFolderId: string; fileName: string; mimeType: string; sizeBytes: number },
+  ): Promise<{ state: string }>;
+  /**
+   * Sends `bytes` at `offset`. `continue` reports the offset the provider confirms it holds
+   * (which may differ from offset + bytes.length after a retry); `complete` returns the file.
+   */
+  putChunk(
+    accessToken: string,
+    input: {
+      state: string;
+      parentFolderId: string;
+      fileName: string;
+      mimeType: string;
+      totalBytes: number;
+      offset: number;
+      bytes: Uint8Array;
+    },
+  ): Promise<ResumableChunkResult>;
+}
+
+export type ResumableChunkResult =
+  | { readonly kind: 'continue'; readonly state: string; readonly nextOffset: number }
+  | { readonly kind: 'complete'; readonly file: ProviderFileItem };
+
 export interface StorageProviderAdapter {
   readonly provider: StorageProviderKey;
+  /** Present when the provider can take a large file in several requests (OneDrive, Google Drive, Dropbox). */
+  readonly resumableUpload?: ResumableUploader;
   buildAuthorizationUrl(input: {
     redirectUri: string;
     state: string;

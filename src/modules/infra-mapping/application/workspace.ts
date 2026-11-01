@@ -92,6 +92,7 @@ export async function loadInfraWorkspace(
       canManageCaptures: await viewerCanManageCaptures(actor, access.projectId),
       canManageLocations,
       canBrowseStorage,
+      canCaptureVideo: actor.kind === 'internal' && !raw.employeeApp && canDocument,
     },
     task,
   };

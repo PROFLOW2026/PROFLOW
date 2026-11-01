@@ -251,6 +251,8 @@ export interface ListCapturesQuery {
   readonly toExclusive?: Date | null;
   readonly createdByUserId?: string;
   readonly createdByPrincipalId?: string;
+  /** Restrict to photos or to videos (the evidence kind); omitted = both. */
+  readonly media?: 'photo' | 'video';
   readonly cursor?: { readonly capturedAt: Date; readonly id: string } | null;
   readonly limit: number;
 }
@@ -293,6 +295,7 @@ export async function listCaptureRows(db: DbExecutor, query: ListCapturesQuery):
   if (query.toExclusive) conditions.push(lt(infraCaptures.capturedAt, query.toExclusive));
   if (query.createdByUserId) conditions.push(eq(infraCaptures.createdByUserId, query.createdByUserId));
   if (query.createdByPrincipalId) conditions.push(eq(infraCaptures.createdByPrincipalId, query.createdByPrincipalId));
+  if (query.media) conditions.push(eq(evidenceItems.kind, query.media));
   if (query.cursor) {
     conditions.push(
       or(
@@ -351,6 +354,10 @@ export interface EvidenceBrief {
   readonly fileName: string;
   readonly mimeType: string;
   readonly uploadedByActorType: 'internal' | 'external';
+  readonly uploadedByUserId?: string | null;
+  /** Declared size (bytes) registered when the upload began. */
+  readonly sizeBytes?: number;
+  readonly kind?: 'photo' | 'video' | 'document';
 }
 
 export async function listEvidenceBriefs(
@@ -370,6 +377,9 @@ export async function listEvidenceBriefs(
       fileName: evidenceItems.fileName,
       mimeType: evidenceItems.mimeType,
       uploadedByActorType: evidenceItems.uploadedByActorType,
+      uploadedByUserId: evidenceItems.uploadedByUserId,
+      sizeBytes: evidenceItems.sizeBytes,
+      kind: evidenceItems.kind,
     })
     .from(evidenceItems)
     .where(and(eq(evidenceItems.organizationId, organizationId), inArray(evidenceItems.id, [...evidenceIds])));

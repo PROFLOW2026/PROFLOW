@@ -10,7 +10,7 @@ import {
 import { resolveProjectScopedUploadFolderId } from '@/modules/external-storage/application/project-upload-folder';
 import { ensureUsablePrimaryStorageConnection } from '@/modules/external-storage/application/reconcile-primary-storage';
 import { getStorageProviderAdapter } from '@/modules/external-storage/providers/registry';
-import { parseByteRangeHeader } from '@/modules/external-storage/server/byte-range';
+import { buildContentRange, parseByteRangeHeader } from '@/modules/external-storage/server/byte-range';
 import type { OrgContext } from '@/shared/auth/context';
 import type { DbExecutor } from '@/shared/db/types';
 import { DomainRuleError, NotFoundError, ServiceUnavailableError } from '@/shared/errors';
@@ -96,12 +96,18 @@ export const externalProviderFileStore: ProjectFileStore = {
     const downloaded = await adapter.downloadFileStream(resolved.accessToken, resolved.document.externalFileId!, {
       byteRange,
     });
+    const httpStatus = downloaded.httpStatus ?? (byteRange ? 206 : 200);
+    const total = downloaded.sizeBytes ?? sizeBytes;
+    // A 206 without Content-Range cannot be played back / seeked: rebuild it from the range we asked for.
+    const contentRange =
+      downloaded.contentRange ??
+      (httpStatus === 206 && byteRange && total ? buildContentRange(byteRange.start, byteRange.end, total) : null);
     return {
       stream: downloaded.stream,
       mimeType: downloaded.mimeType || resolved.document.mimeType,
-      sizeBytes: downloaded.sizeBytes ?? sizeBytes,
-      httpStatus: downloaded.httpStatus ?? (byteRange ? 206 : 200),
-      contentRange: downloaded.contentRange ?? null,
+      sizeBytes: total,
+      httpStatus,
+      contentRange,
     };
   },
 };

@@ -47,6 +47,7 @@ import {
   removeComparison,
   type BeginComparisonResult,
 } from './application/comparisons';
+import { beginVideoCapture, type BeginVideoCaptureResult } from './application/videos';
 import { assertCanManageLocations, organizationFor } from './application/access';
 import type { InfraActor } from './application/ports';
 import { loadInfraWorkspace, type InfraWorkspaceData } from './application/workspace';
@@ -71,6 +72,7 @@ import {
   folderSyncSchema,
   type BeginCaptureInput,
   type BeginComparisonInput,
+  type BeginVideoCaptureInput,
   type FolderLinkInput,
   type FolderSyncInput,
   type ListCapturesInput,
@@ -78,6 +80,7 @@ import {
   type UpdateCaptureInput,
 } from './domain/validation';
 import { infraDeps } from './server';
+import { infraVideoPort } from './video-server';
 
 export type InfraResult<T = undefined> =
   | { readonly ok: true; readonly data: T }
@@ -142,6 +145,20 @@ export async function loadInfraWorkspaceAction(input: {
 
 export async function beginCaptureAction(viewer: InfraViewer, input: BeginCaptureInput): Promise<InfraResult<BeginCaptureResult>> {
   return run(viewer, (actor) => beginCapture(actor, input, infraDeps));
+}
+
+/**
+ * Registers an approved short video (owner / office accounts only) and returns the chunked-upload
+ * ticket. The bytes follow through `/api/infra/video-upload/:evidenceId`.
+ */
+export async function beginVideoCaptureAction(
+  viewer: InfraViewer,
+  input: BeginVideoCaptureInput,
+): Promise<InfraResult<BeginVideoCaptureResult>> {
+  return run(viewer, async (actor) => {
+    if (actor.kind !== 'internal' || isEmployeeAppUser(actor.context)) throw new AuthorizationError('infra:video');
+    return beginVideoCapture(actor, input, infraDeps, infraVideoPort);
+  });
 }
 
 export async function listCapturesAction(

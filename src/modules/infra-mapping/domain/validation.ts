@@ -54,6 +54,12 @@ export const beginCaptureSchema = z.object({
 });
 export type BeginCaptureInput = z.input<typeof beginCaptureSchema>;
 
+/** Same capture, but the file is a short video; the duration is checked here and again on the file name. */
+export const beginVideoCaptureSchema = beginCaptureSchema.extend({
+  durationMs: z.number().int().min(1).max(60_000),
+});
+export type BeginVideoCaptureInput = z.input<typeof beginVideoCaptureSchema>;
+
 /**
  * A PATCH: only the keys the caller sent are present in the output. (Reusing `captureDetailsSchema`
  * with `.partial()` would turn every omitted field into NULL and silently wipe it.)
@@ -112,6 +118,8 @@ export const listCapturesSchema = z.object({
   from: z.string().date().nullish(),
   to: z.string().date().nullish(),
   mineOnly: z.boolean().default(false),
+  /** Only photos or only videos; omitted = both (the gallery shows them together). */
+  media: z.enum(['photo', 'video']).nullish(),
   cursor: z.string().max(200).nullish(),
   limit: z.number().int().min(1).max(60).default(30),
 });

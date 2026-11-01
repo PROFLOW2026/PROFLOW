@@ -86,7 +86,7 @@ function normalizeMime(raw: string | null | undefined): string {
   return mime;
 }
 
-async function assertLocationUsable(
+export async function assertLocationUsable(
   actor: InfraActor,
   input: { organizationId: string; projectId: string; locationId: string },
 ): Promise<void> {
@@ -117,7 +117,7 @@ export interface BeginCaptureResult {
   readonly alreadyUploaded: boolean;
 }
 
-async function beginEvidence(
+export async function beginEvidence(
   actor: InfraActor,
   access: InfraAccess,
   input: {
@@ -127,6 +127,8 @@ async function beginEvidence(
     mimeType: string;
     sizeBytes: number;
     visibility?: 'internal' | 'contractor' | null;
+    /** Evidence kinds accepted for this capture. Photos by default; videos are opted into explicitly. */
+    accept?: readonly ('photo' | 'video' | 'document')[];
   },
   deps: InfraDeps,
 ): Promise<EvidenceUploadTicket> {
@@ -138,7 +140,7 @@ async function beginEvidence(
     mimeType: input.mimeType,
     sizeBytes: input.sizeBytes,
     locationId: input.locationId,
-    accept: ['photo'] as ('photo' | 'video' | 'document')[],
+    accept: [...(input.accept ?? ['photo'])] as ('photo' | 'video' | 'document')[],
   };
   if (actor.kind === 'internal') {
     return beginInternalEvidenceUpload(actor.context, { ...common, visibility: input.visibility ?? null }, deps.files);
@@ -262,6 +264,7 @@ export async function listCaptures(actor: InfraActor, raw: ListCapturesInput): P
     wall: input.wall?.trim() || undefined,
     infraType: input.infraType ?? undefined,
     role: input.role ?? undefined,
+    media: input.media ?? undefined,
     taskId: input.taskId ?? undefined,
     from: range.from,
     toExclusive: range.toExclusive,
@@ -391,6 +394,10 @@ export async function saveMarkings(actor: InfraActor, raw: SaveMarkingsInput, de
   const [original] = await listEvidenceBriefs(db, organizationId, [row.evidenceId]);
   if (!original || original.status !== 'available') {
     throw new DomainRuleError('The photo is not uploaded yet', 'infraMapping.errors.photoNotUploaded');
+  }
+  if ((original.mimeType ?? '').startsWith('video/')) {
+    // Markings are drawn on photos; a video's frame goes through the locate flow instead.
+    throw new DomainRuleError('Videos cannot be marked', 'infraMapping.errors.videoNoMarks');
   }
 
   const version = (await maxVersionNumber(db, organizationId, row.id)) + 1;

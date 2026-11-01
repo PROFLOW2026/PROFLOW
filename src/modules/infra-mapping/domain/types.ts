@@ -152,6 +152,8 @@ export interface InfraPermissions {
   readonly canManageLocations: boolean;
   /** Browse the connected storage (project files). */
   readonly canBrowseStorage: boolean;
+  /** Record / upload short videos (trial: owner / office accounts only, not employees or contractors). */
+  readonly canCaptureVideo: boolean;
 }
 
 export interface InfraListPage<T> {

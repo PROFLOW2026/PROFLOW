@@ -25,7 +25,7 @@ import {
 } from '../data/evidence.repository';
 import { authorizeExternalEntity, authorizeInternalEntity, type ProjectEntityScope } from './access';
 import { createPendingProjectDocument, markProjectDocumentStored } from './document-records';
-import type { ProjectFileDeps, ProjectFileFolder } from './file-store';
+import type { ProjectFileDeps, ProjectFileFolder, StoredFile } from './file-store';
 
 const beginSchema = z.object({
   entityType: z.string().regex(/^[a-z][a-z0-9_]*$/).max(64),
@@ -286,6 +286,58 @@ export async function completeInternalEvidenceUpload(
     mimeType: row.mimeType,
     bytes: input.bytes,
   });
+  await deps.elevated((db) =>
+    markProjectDocumentStored(db, {
+      organizationId: row.organizationId,
+      documentId: row.documentId,
+      fileName: row.fileName,
+      mimeType: row.mimeType,
+      stored,
+      uploadedByUserId: context.userId,
+    }),
+  );
+  if (!(await markEvidenceAvailable(context.db, row.organizationId, row.id, stored.sizeBytes))) {
+    throw new DomainRuleError('Evidence is not awaiting upload', 'projectPlans.evidence.errors.notPending');
+  }
+  await emitDomainEvent(context.db, {
+    organizationId: row.organizationId,
+    projectId: row.projectId,
+    type: DOMAIN_EVENTS.EVIDENCE_UPLOADED,
+    entityType: 'evidence',
+    entityId: row.id,
+    actor: internalActor(context.userId),
+    payload: eventPayload(row, stored.sizeBytes),
+  });
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.EVIDENCE_UPLOADED,
+    entityType: 'evidence',
+    entityId: row.id,
+    after: { ...eventPayload(row, stored.sizeBytes), fileName: row.fileName, projectId: row.projectId },
+  });
+  return { evidenceId: row.id };
+}
+
+/**
+ * Step 2 (internal, chunked): the bytes already reached the provider over several requests, so only
+ * the bookkeeping remains - same document / evidence / event / audit result as the single-request path.
+ */
+export async function finalizeInternalEvidenceUpload(
+  context: OrgContext,
+  input: { readonly evidenceId: string; readonly stored: StoredFile },
+  deps: Pick<ProjectFileDeps, 'elevated'>,
+): Promise<{ evidenceId: string }> {
+  const row = await findEvidenceById(context.db, context.organizationId, input.evidenceId);
+  if (!row || row.uploadedByActorType !== 'internal' || row.uploadedByUserId !== context.userId) {
+    throw new NotFoundError('Evidence');
+  }
+  if (row.status !== 'pending') {
+    throw new DomainRuleError('Evidence is not awaiting upload', 'projectPlans.evidence.errors.notPending');
+  }
+  const { stored } = input;
+  if (stored.sizeBytes <= 0) throw new DomainRuleError('Empty upload', 'projectPlans.evidence.errors.empty');
+  if (stored.sizeBytes > EVIDENCE_SIZE_LIMITS[row.kind]) {
+    throw new DomainRuleError('Upload too large', 'projectPlans.evidence.errors.tooLarge');
+  }
   await deps.elevated((db) =>
     markProjectDocumentStored(db, {
       organizationId: row.organizationId,
