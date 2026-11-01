@@ -53,6 +53,7 @@ describe('migration journal', () => {
       '0192_inventory_rls',
       '0193_identity_profile_images',
       '0194_owner_arca_parent_vendor_link',
+      '0195_infra_mapping',
     ] as const;
     const tags = (await loadJournal()).entries.map((entry) => entry.tag);
     const tail = tags.slice(tags.indexOf('0182_expense_installment_payments_grants') + 1);
@@ -463,7 +464,7 @@ describe('migration journal', () => {
     expect(tags.indexOf('0171_retention_release_service_grant')).toBeLessThan(
       tags.indexOf('0172_notification_attention_badge_snapshot'),
     );
-    expect(tags.at(-1)).toBe('0194_owner_arca_parent_vendor_link');
+    expect(tags.at(-1)).toBe('0195_infra_mapping');
     expect(tags.indexOf('0181_owner_bms_installment_payment_backfill')).toBeLessThan(
       tags.indexOf('0182_expense_installment_payments_grants'),
     );

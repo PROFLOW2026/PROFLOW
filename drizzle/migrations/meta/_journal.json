@@ -1352,6 +1352,13 @@
             "when": 1789715820000,
             "tag": "0194_owner_arca_parent_vendor_link",
             "breakpoints": true
+        },
+        {
+            "idx": 193,
+            "version": "7",
+            "when": 1789715880000,
+            "tag": "0195_infra_mapping",
+            "breakpoints": true
         }
     ]
 }

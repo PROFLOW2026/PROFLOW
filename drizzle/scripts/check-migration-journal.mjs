@@ -34,11 +34,7 @@ const allSql = readdirSync(root)
  * Empty: every current migration file is journaled. A new disk-only SQL file
  * fails this gate until it is journaled or explicitly listed here after review.
  */
-const PENDING_OFF_JOURNAL = new Set([
-  // Prepared, NOT applied: infrastructure mapping tables. Journaled only after the Owner's
-  // separate explicit SQL approval (see docs/audits/infra-mapping-sql-0195.md).
-  '0195_infra_mapping',
-]);
+const PENDING_OFF_JOURNAL = new Set([]);
 
 const tags = entries.map((entry) => entry.tag);
 const sqlSet = new Set(allSql);
