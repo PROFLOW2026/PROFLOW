@@ -71,6 +71,8 @@ export const evidenceItems = pgTable(
   },
   (table) => [
     uniqueIndex('evidence_items_id_organization_id_uq').on(table.id, table.organizationId),
+    // Added by migration 0195 (prepared, not applied): lets infra tables pin the evidence PROJECT too.
+    uniqueIndex('evidence_items_id_organization_id_project_id_uq').on(table.id, table.organizationId, table.projectId),
     uniqueIndex('evidence_items_document_entity_uq').on(
       table.organizationId,
       table.documentId,

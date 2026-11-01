@@ -26,7 +26,7 @@ import {
   isAuthor,
   organizationFor,
 } from './access';
-import { beginCapture } from './captures';
+import { assertTaskUsable, beginCapture } from './captures';
 import { INFRA_ENTITY_TYPE, uploadUrlFor, type InfraActor, type InfraDeps } from './ports';
 
 /** Deterministic uuid so a retried save re-uses the same capture / evidence instead of duplicating. */
@@ -74,9 +74,12 @@ export async function beginComparisonSave(actor: InfraActor, raw: BeginCompariso
   });
   const db = actorDb(actor);
   const uploads: ComparisonUpload[] = [];
+  await assertTaskUsable(actor, { organizationId, projectId: access.projectId, taskId: input.taskId });
 
   const existing = await findComparisonByClientId(db, organizationId, input.clientComparisonId);
-  if (existing && !isAuthor(actor, existing)) throw new NotFoundError('Comparison');
+  if (existing && (!isAuthor(actor, existing) || existing.projectId !== access.projectId || existing.locationId !== input.locationId)) {
+    throw new NotFoundError('Comparison');
+  }
   if (existing?.removedAt) throw new ConflictError('Comparison was removed', 'infraMapping.errors.comparisonRemoved');
 
   let beforeCaptureId = existing?.beforeCaptureId ?? input.beforeCaptureId ?? null;

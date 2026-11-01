@@ -8,6 +8,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const repo = vi.hoisted(() => ({
   captureEvidenceIds: vi.fn(),
+  findComparisonByClientId: vi.fn(),
+  findComparisonRow: vi.fn(),
+  insertComparison: vi.fn(),
+  listComparisonRows: vi.fn(),
+  toComparisonDto: vi.fn(),
+  updateComparisonRow: vi.fn(),
   findCaptureByClientId: vi.fn(),
   findCaptureJoin: vi.fn(),
   findCaptureRow: vi.fn(),
@@ -53,6 +59,7 @@ vi.mock('@/modules/project-team', () => team);
 
 import { AuthorizationError, ConflictError, DomainRuleError, NotFoundError } from '@/shared/errors';
 import { deriveClientId } from '@/modules/infra-mapping/application/comparisons';
+import { beginComparisonSave } from '@/modules/infra-mapping/application/comparisons';
 import {
   beginCapture,
   openCaptureInCloud,
@@ -360,6 +367,97 @@ describe('comparison save ids (explicit save, retry-safe)', () => {
     expect(deriveClientId('cmp-1', 'after')).not.toBe(a);
     expect(deriveClientId('cmp-2', 'before')).not.toBe(a);
     expect(a).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+  });
+});
+
+describe('comparison save keeps every reference inside the comparison organization and project', () => {
+  const pins: [number, number][] = [[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]];
+  const COMPARISON_CLIENT = 'cccccccc-0000-4000-8000-000000000001';
+  const TASK = '12121212-1212-4212-8212-121212121212';
+  const OTHER_PROJECT = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+  const input = (extra: Record<string, unknown> = {}) => ({
+    projectId: PROJECT,
+    locationId: LOCATION,
+    clientComparisonId: COMPARISON_CLIENT,
+    mode: 'two_photos' as const,
+    alignment: { version: 1 as const, kind: 'similarity' as const, beforePins: pins, afterPins: pins, opacity: 0.5 },
+    files: { result: { fileName: 'r.jpg', mimeType: 'image/jpeg', sizeBytes: 900 } },
+    ...extra,
+  });
+
+  beforeEach(() => {
+    repo.findComparisonByClientId.mockResolvedValue(null);
+    repo.insertComparison.mockResolvedValue(undefined);
+    repo.updateComparisonRow.mockResolvedValue(true);
+    repo.findCaptureRow.mockResolvedValue(captureRow());
+  });
+
+  it('stores the comparison under the authorized organization and project', async () => {
+    await beginComparisonSave(internal(), input({ taskId: TASK }), deps);
+    expect(repo.insertComparison.mock.calls[0]![1]).toMatchObject({
+      organizationId: ORG,
+      projectId: PROJECT,
+      locationId: LOCATION,
+      taskId: TASK,
+      createdByActorType: 'internal',
+    });
+  });
+
+  it('refuses a task that is not in this project BEFORE anything is registered', async () => {
+    repo.taskBelongsToProject.mockResolvedValue(false);
+    await expect(beginComparisonSave(internal(), input({ taskId: TASK }), deps)).rejects.toBeInstanceOf(NotFoundError);
+    expect(repo.taskBelongsToProject).toHaveBeenCalledWith(expect.anything(), ORG, PROJECT, TASK);
+    expect(repo.insertComparison).not.toHaveBeenCalled();
+    expect(evidence.beginInternalEvidenceUpload).not.toHaveBeenCalled();
+  });
+
+  it('refuses a "before" photo from another project of the same organization', async () => {
+    repo.findCaptureRow.mockResolvedValue(captureRow({ projectId: OTHER_PROJECT }));
+    await expect(beginComparisonSave(internal(), input({ beforeCaptureId: CAPTURE }), deps)).rejects.toBeInstanceOf(NotFoundError);
+    expect(repo.insertComparison).not.toHaveBeenCalled();
+  });
+
+  it('refuses a removed "before" photo', async () => {
+    repo.findCaptureRow.mockResolvedValue(captureRow({ removedAt: new Date() }));
+    await expect(beginComparisonSave(internal(), input({ beforeCaptureId: CAPTURE }), deps)).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it('a retry can never re-target an existing comparison to another project or location', async () => {
+    const existing = {
+      id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+      organizationId: ORG,
+      createdByActorType: 'internal',
+      createdByUserId: USER,
+      createdByPrincipalId: null,
+      removedAt: null,
+      beforeCaptureId: null,
+      afterCaptureId: null,
+      resultEvidenceId: null,
+    };
+    repo.findComparisonByClientId.mockResolvedValue({ ...existing, projectId: OTHER_PROJECT, locationId: LOCATION });
+    await expect(beginComparisonSave(internal(), input(), deps)).rejects.toBeInstanceOf(NotFoundError);
+    repo.findComparisonByClientId.mockResolvedValue({ ...existing, projectId: PROJECT, locationId: LOCATION_2 });
+    await expect(beginComparisonSave(internal(), input(), deps)).rejects.toBeInstanceOf(NotFoundError);
+    expect(repo.updateComparisonRow).not.toHaveBeenCalled();
+  });
+
+  it('a contractor cannot save into an organization it has no grant for', async () => {
+    await expect(
+      beginComparisonSave(contractor(), input({ organizationId: OTHER_ORG }), deps),
+    ).rejects.toBeInstanceOf(NotFoundError);
+    expect(repo.insertComparison).not.toHaveBeenCalled();
+  });
+
+  it('a contractor save is attributed to the principal and vendor of the active grant', async () => {
+    await beginComparisonSave(contractor(), input({ organizationId: ORG }), deps);
+    expect(repo.insertComparison.mock.calls[0]![1]).toMatchObject({
+      organizationId: ORG,
+      projectId: PROJECT,
+      createdByActorType: 'external',
+      createdByUserId: null,
+      createdByPrincipalId: PRINCIPAL,
+      vendorId: 'v1',
+    });
   });
 });
 

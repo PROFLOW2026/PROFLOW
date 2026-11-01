@@ -98,7 +98,8 @@ async function assertLocationUsable(
   }
 }
 
-async function assertTaskUsable(
+/** The task must belong to this organization AND project (the DB trigger enforces the same rule). */
+export async function assertTaskUsable(
   actor: InfraActor,
   input: { organizationId: string; projectId: string; taskId: string | null | undefined },
 ): Promise<void> {

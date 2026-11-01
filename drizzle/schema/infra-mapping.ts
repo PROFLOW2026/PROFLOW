@@ -22,8 +22,14 @@ import { organizations } from './tenancy';
  * Reuses `project_locations` (hierarchy), `evidence_items` (photo index row; bytes live only in the
  * organization's own cloud storage), `tasks` (optional link) and `organization_storage_connections`.
  * These tables only carry management / search / permission metadata and file references.
- * Composite foreign keys (project / location / evidence / task / vendor / connection) are declared in
- * the SQL migration; they are intentionally not repeated here (queries never need the relation graph).
+ * Composite foreign keys, triggers and policies are declared in the SQL migration; they are
+ * intentionally not repeated here (queries never need the relation graph). The unique indexes that
+ * those keys point at ARE declared here (and `evidence_items_id_organization_id_project_id_uq` next to
+ * `evidenceItems`), so the schema and the migration describe the same index set:
+ *   evidence (id, organization_id, project_id)            <- captures / versions / comparisons
+ *   infra_captures (id, organization_id, project_id)      <- versions / comparisons
+ *   infra_capture_versions (id, capture_id, org, project) <- markings
+ * `tasks` is validated by trigger app.infra_task_link_guard (tasks.project_id is nullable and movable).
  */
 
 const ts = (name: string) => timestamp(name, { withTimezone: true, mode: 'date' });
@@ -101,7 +107,7 @@ export const infraCaptures = pgTable(
     updatedAt: ts('updated_at').notNull().defaultNow(),
   },
   (table) => [
-    uniqueIndex('infra_captures_id_organization_id_uq').on(table.id, table.organizationId),
+    uniqueIndex('infra_captures_id_organization_id_project_id_uq').on(table.id, table.organizationId, table.projectId),
     uniqueIndex('infra_captures_evidence_uq').on(table.evidenceId),
     index('infra_captures_location_idx').on(table.organizationId, table.projectId, table.locationId, table.capturedAt),
     index('infra_captures_project_idx').on(table.organizationId, table.projectId, table.capturedAt),
@@ -130,7 +136,12 @@ export const infraCaptureVersions = pgTable(
     createdAt: ts('created_at').notNull().defaultNow(),
   },
   (table) => [
-    uniqueIndex('infra_capture_versions_id_organization_id_uq').on(table.id, table.organizationId),
+    uniqueIndex('infra_capture_versions_id_capture_org_project_uq').on(
+      table.id,
+      table.captureId,
+      table.organizationId,
+      table.projectId,
+    ),
     uniqueIndex('infra_capture_versions_capture_version_uq').on(table.captureId, table.version),
     uniqueIndex('infra_capture_versions_evidence_uq').on(table.annotatedEvidenceId),
   ],
@@ -198,6 +209,9 @@ export const infraComparisons = pgTable(
     uniqueIndex('infra_comparisons_id_organization_id_uq').on(table.id, table.organizationId),
     index('infra_comparisons_project_idx').on(table.organizationId, table.projectId, table.createdAt),
     index('infra_comparisons_location_idx').on(table.organizationId, table.projectId, table.locationId),
+    index('infra_comparisons_before_idx').on(table.beforeCaptureId),
+    index('infra_comparisons_after_idx').on(table.afterCaptureId),
+    index('infra_comparisons_result_idx').on(table.resultEvidenceId),
     check('infra_comparisons_mode_known', sql`${table.mode} IN ('two_photos', 'live')`),
   ],
 );

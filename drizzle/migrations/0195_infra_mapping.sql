@@ -2,8 +2,24 @@
 -- and the location <-> cloud-folder mapping.
 --
 -- STATUS: PREPARED, NOT APPLIED. Do not run without separate explicit Owner SQL approval.
--- Additive only: new tables, indexes, policies, grants and two trigger functions. No existing table
--- or column is altered; no data is read, moved or rewritten.
+-- Additive only: new tables, indexes, policies, grants and trigger functions. No existing table
+-- or column is altered; no data is read, moved or rewritten. The ONLY object added on an existing
+-- table is one unique index on evidence_items (id, organization_id, project_id) (section 0); it is
+-- trivially unique (id is the primary key) and evidence_items.project_id is immutable
+-- (app.evidence_items_guard), so the composite foreign keys below stay valid forever.
+--
+-- Integrity model (every reference is checked for organization AND project, not organization only):
+--   * infra_captures      -> evidence_items  (id, organization_id, project_id)   composite FK
+--                         -> project_locations (id, organization_id, project_id) composite FK
+--                         -> tasks           trigger app.infra_task_link_guard (tasks.project_id is nullable and
+--                                            movable by the task system, so a composite FK would block task moves)
+--   * infra_capture_versions -> infra_captures (id, organization_id, project_id) and evidence_items (same)
+--   * infra_markings      -> infra_capture_versions (id, capture_id, organization_id, project_id): a marking can
+--                            only point at a version of ITS OWN capture, in the same organization and project
+--   * infra_comparisons   -> before / after captures and result evidence (id, organization_id, project_id),
+--                            location (id, organization_id, project_id), task via the trigger above
+--   * Identity / association columns are immutable (guard triggers); contractor access is re-checked against
+--     the ACTIVE grant on every read, insert and update (never just "created by me").
 --
 -- Reuse (no duplication):
 --   * project_locations  - the location hierarchy (parent_id, type, code, name) is NOT duplicated.
@@ -15,6 +31,13 @@
 --                          foreign keys and no uniqueness per entity. infra_folder_mappings adds both.
 --
 -- Photo / description / marking metadata is stored in real columns and rows (never inside `caption`).
+
+--------------------------------------------------------------------------------
+-- 0. Unique index that lets composite foreign keys also pin the PROJECT of an evidence row
+--------------------------------------------------------------------------------
+
+CREATE UNIQUE INDEX IF NOT EXISTS evidence_items_id_organization_id_project_id_uq
+  ON public.evidence_items (id, organization_id, project_id);
 
 --------------------------------------------------------------------------------
 -- Helper trigger functions
@@ -37,12 +60,16 @@ LANGUAGE plpgsql
 AS $fn$
 BEGIN
   IF (NEW.id, NEW.organization_id, NEW.project_id, NEW.evidence_id, NEW.client_capture_id,
-      NEW.created_by_actor_type, NEW.created_by_user_id, NEW.created_by_principal_id,
+      NEW.created_by_actor_type, NEW.created_by_principal_id,
       NEW.vendor_id, NEW.created_at)
      IS DISTINCT FROM
      (OLD.id, OLD.organization_id, OLD.project_id, OLD.evidence_id, OLD.client_capture_id,
-      OLD.created_by_actor_type, OLD.created_by_user_id, OLD.created_by_principal_id,
+      OLD.created_by_actor_type, OLD.created_by_principal_id,
       OLD.vendor_id, OLD.created_at) THEN
+    RAISE EXCEPTION 'infra_captures: identity columns are immutable' USING ERRCODE = '42501';
+  END IF;
+  -- created_by_user_id may only be cleared (profile deleted -> FK ON DELETE SET NULL), never re-pointed.
+  IF NEW.created_by_user_id IS NOT NULL AND NEW.created_by_user_id IS DISTINCT FROM OLD.created_by_user_id THEN
     RAISE EXCEPTION 'infra_captures: identity columns are immutable' USING ERRCODE = '42501';
   END IF;
   IF OLD.removed_at IS NOT NULL AND NEW.removed_at IS NULL THEN
@@ -55,6 +82,97 @@ BEGIN
   RETURN NEW;
 END
 $fn$;
+
+-- infra_comparisons: identity, provenance and association columns are immutable. Associations may be
+-- filled once (NULL -> value) or cleared by a foreign-key ON DELETE SET NULL, never re-pointed.
+CREATE OR REPLACE FUNCTION app.infra_comparisons_guard()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $fn$
+BEGIN
+  IF (NEW.id, NEW.organization_id, NEW.project_id, NEW.location_id, NEW.client_comparison_id, NEW.mode,
+      NEW.created_by_actor_type, NEW.created_by_principal_id, NEW.vendor_id, NEW.created_at)
+     IS DISTINCT FROM
+     (OLD.id, OLD.organization_id, OLD.project_id, OLD.location_id, OLD.client_comparison_id, OLD.mode,
+      OLD.created_by_actor_type, OLD.created_by_principal_id, OLD.vendor_id, OLD.created_at) THEN
+    RAISE EXCEPTION 'infra_comparisons: identity columns are immutable' USING ERRCODE = '42501';
+  END IF;
+  IF NEW.created_by_user_id IS NOT NULL AND NEW.created_by_user_id IS DISTINCT FROM OLD.created_by_user_id THEN
+    RAISE EXCEPTION 'infra_comparisons: identity columns are immutable' USING ERRCODE = '42501';
+  END IF;
+  IF (OLD.task_id IS NOT NULL AND NEW.task_id IS NOT NULL AND NEW.task_id IS DISTINCT FROM OLD.task_id)
+     OR (OLD.before_capture_id IS NOT NULL AND NEW.before_capture_id IS NOT NULL
+         AND NEW.before_capture_id IS DISTINCT FROM OLD.before_capture_id)
+     OR (OLD.after_capture_id IS NOT NULL AND NEW.after_capture_id IS NOT NULL
+         AND NEW.after_capture_id IS DISTINCT FROM OLD.after_capture_id)
+     OR (OLD.result_evidence_id IS NOT NULL AND NEW.result_evidence_id IS NOT NULL
+         AND NEW.result_evidence_id IS DISTINCT FROM OLD.result_evidence_id)
+     OR (OLD.sidecar_connection_id IS NOT NULL AND NEW.sidecar_connection_id IS NOT NULL
+         AND NEW.sidecar_connection_id IS DISTINCT FROM OLD.sidecar_connection_id) THEN
+    RAISE EXCEPTION 'infra_comparisons: associations cannot be re-pointed' USING ERRCODE = '42501';
+  END IF;
+  IF OLD.removed_at IS NOT NULL AND NEW.removed_at IS NULL THEN
+    RAISE EXCEPTION 'infra_comparisons: removed comparisons are final' USING ERRCODE = '42501';
+  END IF;
+  NEW.updated_at := now();
+  RETURN NEW;
+END
+$fn$;
+
+-- A linked task must belong to the SAME organization and project as the row that links it.
+-- tasks.project_id is nullable (workspace-wide tasks) and movable, so this is a trigger instead of a
+-- composite foreign key (which would also block legitimate task moves). SECURITY DEFINER: the check
+-- must see the task regardless of the caller's own row-level visibility.
+CREATE OR REPLACE FUNCTION app.infra_task_link_guard()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $fn$
+BEGIN
+  IF NEW.task_id IS NOT NULL
+     AND (TG_OP = 'INSERT'
+       OR NEW.task_id IS DISTINCT FROM OLD.task_id
+       OR NEW.project_id IS DISTINCT FROM OLD.project_id
+       OR NEW.organization_id IS DISTINCT FROM OLD.organization_id)
+     AND NOT EXISTS (
+       SELECT 1 FROM public.tasks t
+       WHERE t.id = NEW.task_id
+         AND t.organization_id = NEW.organization_id
+         AND t.project_id = NEW.project_id
+     ) THEN
+    RAISE EXCEPTION '%: task does not belong to this organization/project', TG_TABLE_NAME
+      USING ERRCODE = '23503';
+  END IF;
+  RETURN NEW;
+END
+$fn$;
+
+REVOKE ALL ON FUNCTION app.infra_task_link_guard() FROM PUBLIC;
+
+-- An original capture file and an annotated (marked) file are different evidence rows: neither may be
+-- registered as the other. SECURITY DEFINER so the check sees every row.
+CREATE OR REPLACE FUNCTION app.infra_evidence_role_guard()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $fn$
+BEGIN
+  IF TG_TABLE_NAME = 'infra_captures' THEN
+    IF EXISTS (SELECT 1 FROM public.infra_capture_versions v WHERE v.annotated_evidence_id = NEW.evidence_id) THEN
+      RAISE EXCEPTION 'infra_captures: evidence is already an annotated version' USING ERRCODE = '23514';
+    END IF;
+  ELSE
+    IF EXISTS (SELECT 1 FROM public.infra_captures c WHERE c.evidence_id = NEW.annotated_evidence_id) THEN
+      RAISE EXCEPTION 'infra_capture_versions: annotated evidence is an original capture' USING ERRCODE = '23514';
+    END IF;
+  END IF;
+  RETURN NEW;
+END
+$fn$;
+
+REVOKE ALL ON FUNCTION app.infra_evidence_role_guard() FROM PUBLIC;
 
 --------------------------------------------------------------------------------
 -- 1. infra_folder_mappings : location <-> real folder in the organization's cloud storage
@@ -180,8 +298,8 @@ ALTER TABLE public.infra_captures
 ALTER TABLE public.infra_captures DROP CONSTRAINT IF EXISTS infra_captures_evidence_fk;
 ALTER TABLE public.infra_captures
   ADD CONSTRAINT infra_captures_evidence_fk
-  FOREIGN KEY (evidence_id, organization_id)
-  REFERENCES public.evidence_items (id, organization_id) ON DELETE CASCADE;
+  FOREIGN KEY (evidence_id, organization_id, project_id)
+  REFERENCES public.evidence_items (id, organization_id, project_id) ON DELETE CASCADE;
 ALTER TABLE public.infra_captures DROP CONSTRAINT IF EXISTS infra_captures_task_fk;
 ALTER TABLE public.infra_captures
   ADD CONSTRAINT infra_captures_task_fk
@@ -193,8 +311,9 @@ ALTER TABLE public.infra_captures
   FOREIGN KEY (vendor_id, organization_id)
   REFERENCES public.vendors (id, organization_id);
 
-CREATE UNIQUE INDEX IF NOT EXISTS infra_captures_id_organization_id_uq
-  ON public.infra_captures (id, organization_id);
+-- Target of every composite foreign key that must also pin the project (versions, markings, comparisons).
+CREATE UNIQUE INDEX IF NOT EXISTS infra_captures_id_organization_id_project_id_uq
+  ON public.infra_captures (id, organization_id, project_id);
 CREATE UNIQUE INDEX IF NOT EXISTS infra_captures_evidence_uq
   ON public.infra_captures (evidence_id);
 CREATE UNIQUE INDEX IF NOT EXISTS infra_captures_client_capture_uq
@@ -221,6 +340,16 @@ CREATE TRIGGER infra_captures_guard
   BEFORE UPDATE ON public.infra_captures
   FOR EACH ROW EXECUTE FUNCTION app.infra_captures_guard();
 
+DROP TRIGGER IF EXISTS infra_captures_task_link ON public.infra_captures;
+CREATE TRIGGER infra_captures_task_link
+  BEFORE INSERT OR UPDATE OF task_id, project_id, organization_id ON public.infra_captures
+  FOR EACH ROW EXECUTE FUNCTION app.infra_task_link_guard();
+
+DROP TRIGGER IF EXISTS infra_captures_evidence_role ON public.infra_captures;
+CREATE TRIGGER infra_captures_evidence_role
+  BEFORE INSERT ON public.infra_captures
+  FOR EACH ROW EXECUTE FUNCTION app.infra_evidence_role_guard();
+
 --------------------------------------------------------------------------------
 -- 3. infra_capture_versions + infra_markings : markings are versioned, never overwritten
 --------------------------------------------------------------------------------
@@ -240,14 +369,19 @@ CREATE TABLE IF NOT EXISTS public.infra_capture_versions (
   created_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT infra_capture_versions_version_positive CHECK (version >= 1),
   CONSTRAINT infra_capture_versions_count_nonneg CHECK (marking_count >= 0),
-  CONSTRAINT infra_capture_versions_actor_known CHECK (created_by_actor_type IN ('internal', 'external'))
+  CONSTRAINT infra_capture_versions_actor_known CHECK (created_by_actor_type IN ('internal', 'external')),
+  CONSTRAINT infra_capture_versions_actor_shape CHECK (
+    (created_by_actor_type = 'internal' AND created_by_principal_id IS NULL)
+    OR (created_by_actor_type = 'external' AND created_by_principal_id IS NOT NULL
+      AND created_by_user_id IS NULL)
+  )
 );
 
 ALTER TABLE public.infra_capture_versions DROP CONSTRAINT IF EXISTS infra_capture_versions_capture_fk;
 ALTER TABLE public.infra_capture_versions
   ADD CONSTRAINT infra_capture_versions_capture_fk
-  FOREIGN KEY (capture_id, organization_id)
-  REFERENCES public.infra_captures (id, organization_id) ON DELETE CASCADE;
+  FOREIGN KEY (capture_id, organization_id, project_id)
+  REFERENCES public.infra_captures (id, organization_id, project_id) ON DELETE CASCADE;
 ALTER TABLE public.infra_capture_versions DROP CONSTRAINT IF EXISTS infra_capture_versions_project_org_fk;
 ALTER TABLE public.infra_capture_versions
   ADD CONSTRAINT infra_capture_versions_project_org_fk
@@ -256,11 +390,12 @@ ALTER TABLE public.infra_capture_versions
 ALTER TABLE public.infra_capture_versions DROP CONSTRAINT IF EXISTS infra_capture_versions_evidence_fk;
 ALTER TABLE public.infra_capture_versions
   ADD CONSTRAINT infra_capture_versions_evidence_fk
-  FOREIGN KEY (annotated_evidence_id, organization_id)
-  REFERENCES public.evidence_items (id, organization_id) ON DELETE CASCADE;
+  FOREIGN KEY (annotated_evidence_id, organization_id, project_id)
+  REFERENCES public.evidence_items (id, organization_id, project_id) ON DELETE CASCADE;
 
-CREATE UNIQUE INDEX IF NOT EXISTS infra_capture_versions_id_organization_id_uq
-  ON public.infra_capture_versions (id, organization_id);
+-- Target of infra_markings_version_fk: a marking is bound to (version, ITS capture, organization, project).
+CREATE UNIQUE INDEX IF NOT EXISTS infra_capture_versions_id_capture_org_project_uq
+  ON public.infra_capture_versions (id, capture_id, organization_id, project_id);
 CREATE UNIQUE INDEX IF NOT EXISTS infra_capture_versions_capture_version_uq
   ON public.infra_capture_versions (capture_id, version);
 CREATE UNIQUE INDEX IF NOT EXISTS infra_capture_versions_evidence_uq
@@ -270,6 +405,11 @@ DROP TRIGGER IF EXISTS infra_capture_versions_append_only ON public.infra_captur
 CREATE TRIGGER infra_capture_versions_append_only
   BEFORE UPDATE ON public.infra_capture_versions
   FOR EACH ROW EXECUTE FUNCTION app.infra_block_update();
+
+DROP TRIGGER IF EXISTS infra_capture_versions_evidence_role ON public.infra_capture_versions;
+CREATE TRIGGER infra_capture_versions_evidence_role
+  BEFORE INSERT ON public.infra_capture_versions
+  FOR EACH ROW EXECUTE FUNCTION app.infra_evidence_role_guard();
 
 CREATE TABLE IF NOT EXISTS public.infra_markings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -297,16 +437,13 @@ CREATE TABLE IF NOT EXISTS public.infra_markings (
   )
 );
 
+-- One composite key binds the marking to its version AND that version's capture / organization / project.
+-- (A separate capture FK would be redundant and could not express "the capture OF THIS version".)
 ALTER TABLE public.infra_markings DROP CONSTRAINT IF EXISTS infra_markings_version_fk;
 ALTER TABLE public.infra_markings
   ADD CONSTRAINT infra_markings_version_fk
-  FOREIGN KEY (version_id, organization_id)
-  REFERENCES public.infra_capture_versions (id, organization_id) ON DELETE CASCADE;
-ALTER TABLE public.infra_markings DROP CONSTRAINT IF EXISTS infra_markings_capture_fk;
-ALTER TABLE public.infra_markings
-  ADD CONSTRAINT infra_markings_capture_fk
-  FOREIGN KEY (capture_id, organization_id)
-  REFERENCES public.infra_captures (id, organization_id) ON DELETE CASCADE;
+  FOREIGN KEY (version_id, capture_id, organization_id, project_id)
+  REFERENCES public.infra_capture_versions (id, capture_id, organization_id, project_id) ON DELETE CASCADE;
 ALTER TABLE public.infra_markings DROP CONSTRAINT IF EXISTS infra_markings_project_org_fk;
 ALTER TABLE public.infra_markings
   ADD CONSTRAINT infra_markings_project_org_fk
@@ -372,10 +509,10 @@ CREATE TABLE IF NOT EXISTS public.infra_comparisons (
     (created_by_actor_type = 'internal' AND created_by_principal_id IS NULL)
     OR (created_by_actor_type = 'external' AND created_by_principal_id IS NOT NULL
       AND created_by_user_id IS NULL AND vendor_id IS NOT NULL)
-  ),
-  CONSTRAINT infra_comparisons_has_subject CHECK (
-    before_capture_id IS NOT NULL OR after_capture_id IS NOT NULL OR result_evidence_id IS NOT NULL
   )
+  -- "At least one of before / after / result" is enforced by the use-case (beginComparisonSchema).
+  -- It is deliberately NOT a CHECK: the ON DELETE SET NULL actions below could otherwise null the last
+  -- reference while a project / organization cascade deletes the same row.
 );
 
 ALTER TABLE public.infra_comparisons DROP CONSTRAINT IF EXISTS infra_comparisons_project_org_fk;
@@ -396,18 +533,18 @@ ALTER TABLE public.infra_comparisons
 ALTER TABLE public.infra_comparisons DROP CONSTRAINT IF EXISTS infra_comparisons_before_fk;
 ALTER TABLE public.infra_comparisons
   ADD CONSTRAINT infra_comparisons_before_fk
-  FOREIGN KEY (before_capture_id, organization_id)
-  REFERENCES public.infra_captures (id, organization_id) ON DELETE SET NULL (before_capture_id);
+  FOREIGN KEY (before_capture_id, organization_id, project_id)
+  REFERENCES public.infra_captures (id, organization_id, project_id) ON DELETE SET NULL (before_capture_id);
 ALTER TABLE public.infra_comparisons DROP CONSTRAINT IF EXISTS infra_comparisons_after_fk;
 ALTER TABLE public.infra_comparisons
   ADD CONSTRAINT infra_comparisons_after_fk
-  FOREIGN KEY (after_capture_id, organization_id)
-  REFERENCES public.infra_captures (id, organization_id) ON DELETE SET NULL (after_capture_id);
+  FOREIGN KEY (after_capture_id, organization_id, project_id)
+  REFERENCES public.infra_captures (id, organization_id, project_id) ON DELETE SET NULL (after_capture_id);
 ALTER TABLE public.infra_comparisons DROP CONSTRAINT IF EXISTS infra_comparisons_result_fk;
 ALTER TABLE public.infra_comparisons
   ADD CONSTRAINT infra_comparisons_result_fk
-  FOREIGN KEY (result_evidence_id, organization_id)
-  REFERENCES public.evidence_items (id, organization_id) ON DELETE SET NULL (result_evidence_id);
+  FOREIGN KEY (result_evidence_id, organization_id, project_id)
+  REFERENCES public.evidence_items (id, organization_id, project_id) ON DELETE SET NULL (result_evidence_id);
 ALTER TABLE public.infra_comparisons DROP CONSTRAINT IF EXISTS infra_comparisons_sidecar_connection_fk;
 ALTER TABLE public.infra_comparisons
   ADD CONSTRAINT infra_comparisons_sidecar_connection_fk
@@ -431,6 +568,23 @@ CREATE INDEX IF NOT EXISTS infra_comparisons_location_idx
   WHERE removed_at IS NULL;
 CREATE INDEX IF NOT EXISTS infra_comparisons_task_idx
   ON public.infra_comparisons (organization_id, task_id) WHERE task_id IS NOT NULL;
+-- Referencing-side indexes: keep the ON DELETE SET NULL actions on captures / evidence index-driven.
+CREATE INDEX IF NOT EXISTS infra_comparisons_before_idx
+  ON public.infra_comparisons (before_capture_id) WHERE before_capture_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS infra_comparisons_after_idx
+  ON public.infra_comparisons (after_capture_id) WHERE after_capture_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS infra_comparisons_result_idx
+  ON public.infra_comparisons (result_evidence_id) WHERE result_evidence_id IS NOT NULL;
+
+DROP TRIGGER IF EXISTS infra_comparisons_guard ON public.infra_comparisons;
+CREATE TRIGGER infra_comparisons_guard
+  BEFORE UPDATE ON public.infra_comparisons
+  FOR EACH ROW EXECUTE FUNCTION app.infra_comparisons_guard();
+
+DROP TRIGGER IF EXISTS infra_comparisons_task_link ON public.infra_comparisons;
+CREATE TRIGGER infra_comparisons_task_link
+  BEFORE INSERT OR UPDATE OF task_id, project_id, organization_id ON public.infra_comparisons
+  FOR EACH ROW EXECUTE FUNCTION app.infra_task_link_guard();
 
 --------------------------------------------------------------------------------
 -- 5. RLS + grants
@@ -470,6 +624,22 @@ CREATE POLICY infra_captures_select ON public.infra_captures
       SELECT 1 FROM public.evidence_items e
       WHERE e.id = infra_captures.evidence_id
         AND e.organization_id = infra_captures.organization_id
+        AND e.project_id = infra_captures.project_id
+    )
+    -- A contractor reading their OWN capture needs an ACTIVE grant today (evidence_items_select also lets
+    -- an uploader see their own file; that must not outlive a revoked grant here).
+    AND (
+      NOT COALESCE(
+        created_by_actor_type = 'external' AND created_by_principal_id = app.external_principal_id(),
+        false)
+      OR (app.is_org_member(organization_id)
+        AND app.has_project_capability(organization_id, project_id, 'project.view'))
+      OR (vendor_id IS NOT NULL AND (
+        (app.external_has_scope(organization_id, project_id, vendor_id, NULL, 'ext.document.view')
+          AND app.docs_external_capability(organization_id, project_id, vendor_id, 'ext.document.view'))
+        OR (app.external_has_scope(organization_id, project_id, vendor_id, NULL, 'ext.document.upload')
+          AND app.docs_external_capability(organization_id, project_id, vendor_id, 'ext.document.upload'))
+      ))
     )
   );
 DROP POLICY IF EXISTS infra_captures_insert_internal ON public.infra_captures;
@@ -513,8 +683,14 @@ CREATE POLICY infra_captures_update_external ON public.infra_captures
     created_by_actor_type = 'external'
     AND created_by_principal_id = app.external_principal_id()
     AND app.external_has_scope(organization_id, project_id, vendor_id, NULL, 'ext.document.upload')
+    AND app.docs_external_capability(organization_id, project_id, vendor_id, 'ext.document.upload')
   )
-  WITH CHECK (created_by_principal_id = app.external_principal_id());
+  WITH CHECK (
+    created_by_actor_type = 'external'
+    AND created_by_principal_id = app.external_principal_id()
+    AND app.external_has_scope(organization_id, project_id, vendor_id, NULL, 'ext.document.upload')
+    AND app.docs_external_capability(organization_id, project_id, vendor_id, 'ext.document.upload')
+  );
 DROP POLICY IF EXISTS infra_captures_service_all ON public.infra_captures;
 CREATE POLICY infra_captures_service_all ON public.infra_captures
   FOR ALL TO service_role USING (true) WITH CHECK (true);
@@ -529,6 +705,7 @@ CREATE POLICY infra_capture_versions_select ON public.infra_capture_versions
       SELECT 1 FROM public.infra_captures c
       WHERE c.id = infra_capture_versions.capture_id
         AND c.organization_id = infra_capture_versions.organization_id
+        AND c.project_id = infra_capture_versions.project_id
     )
   );
 DROP POLICY IF EXISTS infra_capture_versions_insert ON public.infra_capture_versions;
@@ -547,7 +724,9 @@ CREATE POLICY infra_capture_versions_insert ON public.infra_capture_versions
           OR (c.created_by_actor_type = 'external'
             AND c.created_by_principal_id = app.external_principal_id()
             AND infra_capture_versions.created_by_actor_type = 'external'
-            AND infra_capture_versions.created_by_principal_id = app.external_principal_id())
+            AND infra_capture_versions.created_by_principal_id = app.external_principal_id()
+            AND app.external_has_scope(c.organization_id, c.project_id, c.vendor_id, NULL, 'ext.document.upload')
+            AND app.docs_external_capability(c.organization_id, c.project_id, c.vendor_id, 'ext.document.upload'))
           OR (app.is_org_member(c.organization_id)
             AND infra_capture_versions.created_by_actor_type = 'internal'
             AND infra_capture_versions.created_by_user_id = app.current_user_id()
@@ -568,6 +747,7 @@ CREATE POLICY infra_markings_select ON public.infra_markings
       SELECT 1 FROM public.infra_captures c
       WHERE c.id = infra_markings.capture_id
         AND c.organization_id = infra_markings.organization_id
+        AND c.project_id = infra_markings.project_id
     )
   );
 DROP POLICY IF EXISTS infra_markings_insert ON public.infra_markings;
@@ -575,15 +755,22 @@ CREATE POLICY infra_markings_insert ON public.infra_markings
   FOR INSERT TO authenticated
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM public.infra_capture_versions v
+      SELECT 1
+      FROM public.infra_capture_versions v
+      JOIN public.infra_captures c
+        ON c.id = v.capture_id
+       AND c.organization_id = v.organization_id
+       AND c.project_id = v.project_id
       WHERE v.id = infra_markings.version_id
-        AND v.organization_id = infra_markings.organization_id
         AND v.capture_id = infra_markings.capture_id
+        AND v.organization_id = infra_markings.organization_id
         AND v.project_id = infra_markings.project_id
         AND (
           (v.created_by_actor_type = 'internal' AND v.created_by_user_id = app.current_user_id())
           OR (v.created_by_actor_type = 'external'
-            AND v.created_by_principal_id = app.external_principal_id())
+            AND v.created_by_principal_id = app.external_principal_id()
+            AND app.external_has_scope(c.organization_id, c.project_id, c.vendor_id, NULL, 'ext.document.upload')
+            AND app.docs_external_capability(c.organization_id, c.project_id, c.vendor_id, 'ext.document.upload'))
         )
     )
   );
@@ -591,15 +778,26 @@ DROP POLICY IF EXISTS infra_markings_service_all ON public.infra_markings;
 CREATE POLICY infra_markings_service_all ON public.infra_markings
   FOR ALL TO service_role USING (true) WITH CHECK (true);
 
--- infra_comparisons: internal project members read all; contractors read only their own saves.
+-- infra_comparisons: internal project members read all; contractors read only their own saves AND only
+-- while their grant is still ACTIVE for this project (revoked / expired / out-of-project -> no access,
+-- even though they created the row).
 DROP POLICY IF EXISTS infra_comparisons_select ON public.infra_comparisons;
 CREATE POLICY infra_comparisons_select ON public.infra_comparisons
   FOR SELECT TO authenticated
   USING (
     (app.is_org_member(organization_id)
       AND app.has_project_capability(organization_id, project_id, 'project.view'))
-    OR (created_by_actor_type = 'external'
-      AND created_by_principal_id = app.external_principal_id())
+    OR (
+      created_by_actor_type = 'external'
+      AND created_by_principal_id = app.external_principal_id()
+      AND vendor_id IS NOT NULL
+      AND (
+        (app.external_has_scope(organization_id, project_id, vendor_id, NULL, 'ext.document.view')
+          AND app.docs_external_capability(organization_id, project_id, vendor_id, 'ext.document.view'))
+        OR (app.external_has_scope(organization_id, project_id, vendor_id, NULL, 'ext.document.upload')
+          AND app.docs_external_capability(organization_id, project_id, vendor_id, 'ext.document.upload'))
+      )
+    )
   );
 DROP POLICY IF EXISTS infra_comparisons_insert_internal ON public.infra_comparisons;
 CREATE POLICY infra_comparisons_insert_internal ON public.infra_comparisons
@@ -640,8 +838,15 @@ CREATE POLICY infra_comparisons_update_external ON public.infra_comparisons
   USING (
     created_by_actor_type = 'external'
     AND created_by_principal_id = app.external_principal_id()
+    AND app.external_has_scope(organization_id, project_id, vendor_id, NULL, 'ext.document.upload')
+    AND app.docs_external_capability(organization_id, project_id, vendor_id, 'ext.document.upload')
   )
-  WITH CHECK (created_by_principal_id = app.external_principal_id());
+  WITH CHECK (
+    created_by_actor_type = 'external'
+    AND created_by_principal_id = app.external_principal_id()
+    AND app.external_has_scope(organization_id, project_id, vendor_id, NULL, 'ext.document.upload')
+    AND app.docs_external_capability(organization_id, project_id, vendor_id, 'ext.document.upload')
+  );
 DROP POLICY IF EXISTS infra_comparisons_service_all ON public.infra_comparisons;
 CREATE POLICY infra_comparisons_service_all ON public.infra_comparisons
   FOR ALL TO service_role USING (true) WITH CHECK (true);
