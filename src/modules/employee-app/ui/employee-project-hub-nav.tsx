@@ -1,5 +1,6 @@
 import {
   CalendarClock,
+  Camera,
   ChevronRight,
   ClipboardList,
   FileStack,
@@ -31,6 +32,7 @@ function iconForHref(href: string): LucideIcon {
   if (href.includes('/files')) return FolderOpen;
   if (href.includes('/meetings')) return ClipboardList;
   if (href.includes('/financials')) return Wallet;
+  if (href.includes('/infrastructure')) return Camera;
   return FileStack;
 }
 
@@ -85,6 +87,11 @@ export async function buildEmployeeProjectHubLinks(input: {
       href: `/employee/projects/${projectId}/financials`,
       label: t('hub.financials'),
       visible: Boolean(canFinancials),
+    },
+    {
+      href: `/employee/projects/${projectId}/infrastructure`,
+      label: t('hub.infra'),
+      visible: true,
     },
   ];
 }

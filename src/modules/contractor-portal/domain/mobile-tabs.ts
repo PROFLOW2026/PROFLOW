@@ -76,6 +76,7 @@ export const CONTRACTOR_WORK_PROJECT_ROUTE_KEYS = new Set<PortalRouteKey>([
   'project.tenders',
   'project.tender',
   'project.documents',
+  'project.infrastructure',
   'project.plans',
   'project.plan',
 ]);

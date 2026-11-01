@@ -28,6 +28,7 @@ import { TaskContractorSection } from '@/modules/collaboration/ui';
 import { TaskRelatedWorkSection } from '@/modules/tasks/ui/task-related-work-section';
 import { TaskDetailHubNav } from '@/modules/tasks/ui/task-detail-hub-nav';
 import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
+import { InfraTaskLink } from '@/modules/infra-mapping/ui/infra-task-link';
 
 const EMPTY = '—';
 
@@ -122,6 +123,11 @@ export default async function TaskDetailPage({
             )}
           </MainAppSummaryItem>
         </MainAppSummaryGrid>
+        {detail.projectId ? (
+          <div className="mt-3">
+            <InfraTaskLink href={`/projects/${detail.projectId}?tab=infra&taskId=${taskId}`} />
+          </div>
+        ) : null}
       </MainAppSection>
 
       <MainAppSection title={t('task.edit')}>

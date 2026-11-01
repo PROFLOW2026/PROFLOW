@@ -51,6 +51,7 @@ interface ProjectPageProps {
     tab?: string | string[];
     contractId?: string | string[];
     cycleId?: string | string[];
+    taskId?: string | string[];
     experienceShowHidden?: string | string[];
   }>;
 }
@@ -116,6 +117,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
       boqContractId:
         typeof search.contractId === 'string' ? search.contractId : search.contractId?.[0],
       cycleId: typeof search.cycleId === 'string' ? search.cycleId : search.cycleId?.[0],
+      infraTaskId: typeof search.taskId === 'string' ? search.taskId : search.taskId?.[0],
       experienceShowHidden: experienceShowHiddenFromSearchParams(search.experienceShowHidden),
     });
   }
@@ -301,6 +303,7 @@ function renderModuleTab(input: {
   projectId: string;
   boqContractId?: string;
   cycleId?: string;
+  infraTaskId?: string;
   experienceShowHidden?: boolean;
 }) {
   return (
@@ -317,6 +320,7 @@ async function ModuleTabWithHubNav(input: {
   projectId: string;
   boqContractId?: string;
   cycleId?: string;
+  infraTaskId?: string;
   experienceShowHidden?: boolean;
 }) {
   const { hub, section } = resolveHubFromTabParam(input.activeTab);
@@ -401,6 +405,7 @@ async function loadActiveModulePanel(input: {
   projectId: string;
   boqContractId?: string;
   cycleId?: string;
+  infraTaskId?: string;
 }) {
   const { activeTab, projectId } = input;
 
@@ -472,10 +477,8 @@ async function loadActiveModulePanel(input: {
       );
     }
     case 'infra': {
-      const { InfraOverlayTrial } = await import(
-        '@/modules/project-workspace/ui/infra-overlay-trial'
-      );
-      return <InfraOverlayTrial projectId={projectId} />;
+      const { InfraWorkspaceMain } = await import('@/modules/infra-mapping/ui/infra-workspace-main');
+      return <InfraWorkspaceMain projectId={projectId} taskId={input.infraTaskId ?? null} />;
     }
     case 'closeout': {
       const { ProjectCloseoutPanel } = await import('@/modules/closeout/ui/project-closeout-panel');

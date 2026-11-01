@@ -75,5 +75,6 @@ export * from './dg-compliance-safety';
 export * from './dg-procurement-closeout';
 export * from './dg-notifications';
 export * from './dg-surfaces';
+export * from './infra-mapping';
 export * from './connected-projects';
 

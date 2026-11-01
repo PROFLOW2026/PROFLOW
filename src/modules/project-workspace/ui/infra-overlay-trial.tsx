@@ -37,6 +37,7 @@ import {
   REQUIRED_LANDMARKS,
   applyMat3,
   computeStageAlignment,
+  fitAffine,
   fitContain,
   invertMat3,
   landmarksAreSpread,
@@ -47,6 +48,12 @@ import {
   type Mat3,
   type Pt,
 } from '../domain/infra-overlay-geometry';
+import { InfraSaveSheet } from './infra-save-sheet';
+import type {
+  InfraTrialAlignment,
+  InfraTrialIntegration,
+  InfraTrialSaveInput,
+} from './infra-trial-integration';
 
 const MAX_PHOTO_SIDE = 1600;
 /** A pin is placed exactly where the finger touches (no offset). */
@@ -59,6 +66,10 @@ const TEXT = {
     'ניסוי: בוחרים תמונה מלפני סגירת הקיר, מסמנים 4 נקודות זיהוי, ואז מציגים אותה שקופה מעל המצלמה החיה. שום דבר לא נשמר או נשלח.',
   introTwo:
     'ניסוי: בוחרים תמונת לפני סגירה ותמונת אחרי סגירה, מסמנים בשתיהן אותן 4 נקודות, ומשווים בעזרת שקיפות. שום דבר לא נשמר או נשלח.',
+  introLiveSaved:
+    'בוחרים תמונה מלפני סגירת הקיר (מהמצלמה, מהגלריה של הפרויקט, מהאחסון המחובר או מהטלפון), מסמנים 4 נקודות זיהוי, ואז מציגים אותה שקופה מעל המצלמה החיה. שום דבר לא נשמר אלא אם תבחרו לשמור.',
+  introTwoSaved:
+    'בוחרים תמונת לפני סגירה ותמונת אחרי סגירה (מהמצלמה, מהגלריה של הפרויקט, מהאחסון המחובר או מהטלפון), מסמנים בשתיהן אותן 4 נקודות, ומשווים בעזרת שקיפות. שום דבר לא נשמר אלא אם תבחרו לשמור.',
   modeTwo: '2 תמונות',
   modeLiveDesc: 'תמונת לפני + מצלמה חיה בשטח, עם התשתיות שקופות מעל הקיר.',
   modeTwoDesc: 'השוואה בין תמונת לפני סגירה לתמונת אחרי סגירה.',
@@ -95,6 +106,10 @@ interface PhotoAsset {
   readonly url: string;
   readonly width: number;
   readonly height: number;
+  /** The untouched source file (kept only so the user can explicitly save it later). */
+  readonly file?: File;
+  /** Set when the photo came from the infrastructure gallery. */
+  readonly captureId?: string | null;
 }
 
 type Phase = 'idle' | 'markBefore' | 'markAfter' | 'live' | 'compare';
@@ -142,6 +157,113 @@ async function preparePhoto(file: File): Promise<PhotoAsset> {
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9));
   if (!blob) throw new Error('encode');
   return { url: URL.createObjectURL(blob), width, height };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Explicit save helpers (only used when the workspace integration is present)  */
+/* -------------------------------------------------------------------------- */
+
+const SNAPSHOT_MAX_SIDE = 1600;
+
+function matrixToAdjust(m: Mat3): { tx: number; ty: number; scale: number; rotation: number } {
+  return { tx: m[2], ty: m[5], scale: Math.hypot(m[0], m[3]), rotation: Math.atan2(m[3], m[0]) };
+}
+
+function isIdentityAdjust(m: Mat3): boolean {
+  return m.every((value, index) => Math.abs(value - IDENTITY[index]!) < 1e-9);
+}
+
+function round4(value: number): number {
+  return Math.round(value * 10000) / 10000;
+}
+
+function pinsToTuples(pins: readonly Pt[]): [number, number][] {
+  return pins.map((pin) => [round4(clamp01(pin.x)), round4(clamp01(pin.y))]);
+}
+
+/** Canvas 2D has no perspective: for the snapshot only, a homography is replaced by its best affine fit. */
+function canvasMatrix(matrix: Mat3, photoW: number, photoH: number): Mat3 {
+  if (Math.abs(matrix[6]) < 1e-9 && Math.abs(matrix[7]) < 1e-9) return matrix;
+  const src: Pt[] = [
+    { x: 0, y: 0 },
+    { x: photoW, y: 0 },
+    { x: photoW, y: photoH },
+    { x: 0, y: photoH },
+  ];
+  const dst = src.map((p) => applyMat3(matrix, p));
+  return fitAffine(src, dst)?.matrix ?? matrix;
+}
+
+function loadImage(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('image'));
+    img.src = url;
+  });
+}
+
+function canvasToFile(canvas: HTMLCanvasElement, name: string): Promise<File | null> {
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => resolve(blob ? new File([blob], name, { type: 'image/jpeg' }) : null), 'image/jpeg', 0.9);
+  });
+}
+
+function snapshotScale(w: number, h: number): number {
+  return Math.min(1, SNAPSHOT_MAX_SIDE / Math.max(w, h, 1));
+}
+
+/** The live camera frame, cropped exactly like the on-screen `object-cover` video (stage-shaped). */
+function grabFrameCanvas(video: HTMLVideoElement, stageW: number, stageH: number): HTMLCanvasElement | null {
+  const vw = video.videoWidth;
+  const vh = video.videoHeight;
+  if (!vw || !vh || stageW <= 0 || stageH <= 0) return null;
+  const k = snapshotScale(stageW, stageH);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(stageW * k));
+  canvas.height = Math.max(1, Math.round(stageH * k));
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  const cover = Math.max(stageW / vw, stageH / vh);
+  const dw = vw * cover;
+  const dh = vh * cover;
+  ctx.scale(k, k);
+  ctx.drawImage(video, (stageW - dw) / 2, (stageH - dh) / 2, dw, dh);
+  return canvas;
+}
+
+/** Overlay snapshot in stage coordinates: backdrop first, then the transparent "before" layer. */
+async function renderResultFile(input: {
+  readonly stageW: number;
+  readonly stageH: number;
+  readonly drawBackdrop: (ctx: CanvasRenderingContext2D) => void;
+  readonly overlay: PhotoAsset;
+  readonly overlayMatrix: Mat3;
+  readonly opacity: number;
+}): Promise<File | null> {
+  const k = snapshotScale(input.stageW, input.stageH);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(input.stageW * k));
+  canvas.height = Math.max(1, Math.round(input.stageH * k));
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  const overlay = await loadImage(input.overlay.url);
+  ctx.scale(k, k);
+  input.drawBackdrop(ctx);
+  const m = canvasMatrix(input.overlayMatrix, input.overlay.width, input.overlay.height);
+  ctx.save();
+  ctx.globalAlpha = input.opacity;
+  ctx.setTransform(m[0] * k, m[3] * k, m[1] * k, m[4] * k, m[2] * k, m[5] * k);
+  ctx.drawImage(overlay, 0, 0, input.overlay.width, input.overlay.height);
+  ctx.restore();
+  return canvasToFile(canvas, 'result.jpg');
+}
+
+async function fetchAsFile(url: string, name: string): Promise<File> {
+  const response = await fetch(url, { credentials: 'same-origin' });
+  if (!response.ok) throw new Error('fetch');
+  const blob = await response.blob();
+  return new File([blob], name, { type: blob.type || 'image/jpeg' });
 }
 
 function useElementSize<T extends HTMLElement>() {
@@ -672,13 +794,17 @@ function LiveStep({
   photo,
   photoPins,
   onBack,
+  integration,
 }: {
   readonly projectId: string;
   readonly photo: PhotoAsset;
   readonly photoPins: readonly Pt[];
   readonly onBack: () => void;
+  readonly integration?: InfraTrialIntegration;
 }) {
   const [rootRef, size] = useElementSize<HTMLDivElement>();
+  const [saveRequest, setSaveRequest] = useState<{ input: InfraTrialSaveInput; previewUrl: string | null } | null>(null);
+  const [preparing, setPreparing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const trackSettings = useRef<MediaTrackSettings>({});
   const [cameraFailed, setCameraFailed] = useState(false);
@@ -766,7 +892,62 @@ function LiveStep({
     clearSaved();
   }
 
+  /** Workspace integration: freeze the current frame + overlay, then let the user choose what to keep. */
+  async function requestSave() {
+    const video = videoRef.current;
+    if (!video || !alignment || !matrix || preparing) return;
+    setPreparing(true);
+    try {
+      const frame = grabFrameCanvas(video, size.w, size.h);
+      if (!frame) return;
+      const afterFile = await canvasToFile(frame, 'after-live.jpg');
+      const resultFile = await renderResultFile({
+        stageW: size.w,
+        stageH: size.h,
+        drawBackdrop: (ctx) => ctx.drawImage(frame, 0, 0, size.w, size.h),
+        overlay: photo,
+        overlayMatrix: matrix,
+        opacity,
+      });
+      const record: InfraTrialAlignment = {
+        version: 1,
+        kind: alignment.fit.kind === 'homography' ? 'perspective' : 'similarity',
+        beforePins: pinsToTuples(photoPins),
+        afterPins: pinsToTuples(livePins),
+        adjust: isIdentityAdjust(adjust) ? null : matrixToAdjust(adjust),
+        stage: { w: Math.round(size.w), h: Math.round(size.h) },
+        opacity: round4(opacity),
+        view: 'overlay',
+      };
+      setSaveRequest({
+        input: {
+          mode: 'live',
+          alignment: record,
+          reliable: !(perspective && alignment.perspectiveRejected),
+          beforeCaptureId: photo.captureId ?? null,
+          beforeFile: photo.file ?? null,
+          afterFile,
+          resultFile,
+        },
+        previewUrl: resultFile ? URL.createObjectURL(resultFile) : null,
+      });
+    } finally {
+      setPreparing(false);
+    }
+  }
+
+  function closeSaveRequest() {
+    setSaveRequest((current) => {
+      if (current?.previewUrl) URL.revokeObjectURL(current.previewUrl);
+      return null;
+    });
+  }
+
   function save() {
+    if (integration) {
+      void requestSave();
+      return;
+    }
     saved.publish({
       savedAt: new Date().toISOString(),
       projectId,
@@ -838,11 +1019,19 @@ function LiveStep({
         perspective={perspective}
         onTogglePerspective={() => setPerspective((v) => !v)}
         onSave={save}
-        canSave={Boolean(alignment)}
+        canSave={Boolean(alignment) && !preparing}
       />
 
       {saved.result ? (
         <ResultSheet result={saved.result} copied={saved.copied} onCopy={saved.copy} onClose={saved.clear} />
+      ) : null}
+      {integration && saveRequest ? (
+        <InfraSaveSheet
+          input={saveRequest.input}
+          previewUrl={saveRequest.previewUrl}
+          integration={integration}
+          onClose={closeSaveRequest}
+        />
       ) : null}
     </div>
   );
@@ -867,6 +1056,8 @@ function CompareStep({
   afterPins,
   onBack,
   onRealign,
+  integration,
+  initial,
 }: {
   readonly projectId: string;
   readonly before: PhotoAsset;
@@ -875,8 +1066,13 @@ function CompareStep({
   readonly afterPins: readonly Pt[];
   readonly onBack: () => void;
   readonly onRealign: () => void;
+  readonly integration?: InfraTrialIntegration;
+  /** A saved result being reopened: restores the stored adjustment / opacity / fit kind. */
+  readonly initial?: InfraTrialAlignment | null;
 }) {
   const [rootRef, size] = useElementSize<HTMLDivElement>();
+  const [saveRequest, setSaveRequest] = useState<{ input: InfraTrialSaveInput; previewUrl: string | null } | null>(null);
+  const [preparing, setPreparing] = useState(false);
   const [adjust, setAdjust] = useState<Mat3>(IDENTITY);
   const [view, setView] = useState<Mat3>(IDENTITY);
   const [viewMode, setViewMode] = useState<'layer' | 'view'>('layer');
@@ -903,6 +1099,21 @@ function CompareStep({
     }
     lastStage.current = stageKey;
   }, [stageKey, size.w, clearSaved]);
+
+  // Reopening a saved result: restore its manual adjustment (scaled to this stage), opacity and fit kind.
+  const appliedInitial = useRef(false);
+  useEffect(() => {
+    if (!initial || appliedInitial.current || size.w === 0) return;
+    appliedInitial.current = true;
+    if (initial.adjust) {
+      const sx = initial.stage.w > 0 ? size.w / initial.stage.w : 1;
+      const sy = initial.stage.h > 0 ? size.h / initial.stage.h : 1;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- restores a saved alignment once
+      setAdjust(userAdjustMatrix({ x: 0, y: 0 }, { ...initial.adjust, tx: initial.adjust.tx * sx, ty: initial.adjust.ty * sy }));
+    }
+    setOpacity(initial.opacity);
+    setPerspective(initial.kind === 'perspective');
+  }, [initial, size.w, size.h]);
 
   const targetPx = useMemo(
     () => afterPins.map((p) => applyMat3(base, { x: p.x * after.width, y: p.y * after.height })),
@@ -945,7 +1156,70 @@ function CompareStep({
     [view, viewMode],
   );
 
+  async function requestSave() {
+    if (!alignment || !matrix || preparing || size.w === 0) return;
+    setPreparing(true);
+    try {
+      const afterImage = await loadImage(after.url);
+      const resultFile = await renderResultFile({
+        stageW: size.w,
+        stageH: size.h,
+        drawBackdrop: (ctx) => {
+          ctx.save();
+          ctx.setTransform(
+            base[0] * snapshotScale(size.w, size.h),
+            base[3] * snapshotScale(size.w, size.h),
+            base[1] * snapshotScale(size.w, size.h),
+            base[4] * snapshotScale(size.w, size.h),
+            base[2] * snapshotScale(size.w, size.h),
+            base[5] * snapshotScale(size.w, size.h),
+          );
+          ctx.drawImage(afterImage, 0, 0, after.width, after.height);
+          ctx.restore();
+        },
+        overlay: before,
+        overlayMatrix: matrix,
+        opacity,
+      });
+      const record: InfraTrialAlignment = {
+        version: 1,
+        kind: alignment.fit.kind === 'homography' ? 'perspective' : 'similarity',
+        beforePins: pinsToTuples(beforePins),
+        afterPins: pinsToTuples(afterPins),
+        adjust: isIdentityAdjust(adjust) ? null : matrixToAdjust(adjust),
+        stage: { w: Math.round(size.w), h: Math.round(size.h) },
+        opacity: round4(opacity),
+        view: 'overlay',
+      };
+      setSaveRequest({
+        input: {
+          mode: 'two_photos',
+          alignment: record,
+          reliable: !(perspective && alignment.perspectiveRejected),
+          beforeCaptureId: before.captureId ?? null,
+          beforeFile: before.file ?? null,
+          afterFile: after.file ?? null,
+          resultFile,
+        },
+        previewUrl: resultFile ? URL.createObjectURL(resultFile) : null,
+      });
+    } finally {
+      setPreparing(false);
+    }
+  }
+
+  function closeSaveRequest() {
+    setSaveRequest((current) => {
+      if (current?.previewUrl) URL.revokeObjectURL(current.previewUrl);
+      return null;
+    });
+  }
+
   function save() {
+    if (integration) {
+      void requestSave();
+      return;
+    }
     saved.publish({
       savedAt: new Date().toISOString(),
       projectId,
@@ -1053,11 +1327,19 @@ function CompareStep({
           </button>
         }
         onSave={save}
-        canSave={Boolean(alignment)}
+        canSave={Boolean(alignment) && !preparing && !initial}
       />
 
       {saved.result ? (
         <ResultSheet result={saved.result} copied={saved.copied} onCopy={saved.copy} onClose={saved.clear} />
+      ) : null}
+      {integration && saveRequest ? (
+        <InfraSaveSheet
+          input={saveRequest.input}
+          previewUrl={saveRequest.previewUrl}
+          integration={integration}
+          onClose={closeSaveRequest}
+        />
       ) : null}
     </div>
   );
@@ -1121,7 +1403,14 @@ function PhotoPicker({
   );
 }
 
-export function InfraOverlayTrial({ projectId }: { readonly projectId: string }) {
+export function InfraOverlayTrial({
+  projectId,
+  integration,
+}: {
+  readonly projectId: string;
+  /** Workspace wiring (extra photo sources, explicit save, reopen). Omit for the stand-alone experiment. */
+  readonly integration?: InfraTrialIntegration;
+}) {
   const [mode, setMode] = useState<Mode | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
   const [before, setBefore] = useState<PhotoAsset | null>(null);
@@ -1129,6 +1418,41 @@ export function InfraOverlayTrial({ projectId }: { readonly projectId: string })
   const [beforePins, setBeforePins] = useState<Pt[]>([]);
   const [afterPins, setAfterPins] = useState<Pt[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [reopened, setReopened] = useState<InfraTrialAlignment | null>(null);
+  const initialRef = useRef(integration?.initial ?? null);
+
+  // Reopen a saved result straight into the comparison view.
+  useEffect(() => {
+    const initial = initialRef.current;
+    if (!initial) return undefined;
+    let cancelled = false;
+    (async () => {
+      try {
+        const [beforeFile, afterFile] = await Promise.all([
+          fetchAsFile(initial.beforeUrl, 'before.jpg'),
+          fetchAsFile(initial.afterUrl, 'after.jpg'),
+        ]);
+        const [preparedBefore, preparedAfter] = await Promise.all([preparePhoto(beforeFile), preparePhoto(afterFile)]);
+        if (cancelled) {
+          URL.revokeObjectURL(preparedBefore.url);
+          URL.revokeObjectURL(preparedAfter.url);
+          return;
+        }
+        setMode('two');
+        setBefore({ ...preparedBefore, file: beforeFile });
+        setAfter({ ...preparedAfter, file: afterFile });
+        setBeforePins(initial.alignment.beforePins.map(([x, y]) => ({ x, y })));
+        setAfterPins(initial.alignment.afterPins.map(([x, y]) => ({ x, y })));
+        setReopened(initial.alignment);
+        setPhase('compare');
+      } catch {
+        if (!cancelled) setError(TEXT.loadError);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const mounted = useSyncExternalStore(
     subscribeNoop,
     () => true,
@@ -1156,24 +1480,38 @@ export function InfraOverlayTrial({ projectId }: { readonly projectId: string })
     };
   }, [phase]);
 
-  async function onFile(slot: Slot, file: File | undefined) {
+  async function onFile(slot: Slot, file: File | undefined, captureId?: string | null) {
     if (!file) return;
     setError(null);
     try {
-      const prepared = await preparePhoto(file);
+      const prepared = { ...(await preparePhoto(file)), file, captureId: captureId ?? null };
       if (slot === 'before') {
         setBefore(prepared);
         setBeforePins([]);
         setAfterPins([]);
+        setReopened(null);
         if (mode === 'live') setPhase('markBefore');
       } else {
         setAfter(prepared);
         setAfterPins([]);
+        setReopened(null);
       }
     } catch {
       setError(TEXT.loadError);
     }
   }
+
+  // A photo picked in the gallery dialog goes straight into the chosen locating mode.
+  const preset = integration?.preset ?? null;
+  const presetKey = preset?.key ?? null;
+  useEffect(() => {
+    if (!preset) return;
+    const wanted: Mode = preset.target === 'live-before' ? 'live' : 'two';
+    if (mode !== wanted) chooseMode(wanted);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- applies an external pick once
+    void onFile(preset.target === 'two-after' ? 'after' : 'before', preset.photo.file, preset.photo.captureId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- apply once per pick
+  }, [presetKey]);
 
   const canStartTwo = Boolean(before && after);
 
@@ -1208,6 +1546,7 @@ export function InfraOverlayTrial({ projectId }: { readonly projectId: string })
         photo={before}
         photoPins={beforePins}
         onBack={() => setPhase('markBefore')}
+        integration={integration}
       />
     );
   } else if (phase === 'compare' && before && after) {
@@ -1218,8 +1557,18 @@ export function InfraOverlayTrial({ projectId }: { readonly projectId: string })
         beforePins={beforePins}
         after={after}
         afterPins={afterPins}
-        onBack={() => setPhase('markAfter')}
+        integration={integration}
+        initial={reopened}
+        onBack={() => {
+          if (reopened) {
+            chooseMode(null);
+            integration?.onExit?.();
+            return;
+          }
+          setPhase('markAfter');
+        }}
         onRealign={() => {
+          setReopened(null);
           setAfterPins([]);
           setPhase('markAfter');
         }}
@@ -1250,6 +1599,7 @@ export function InfraOverlayTrial({ projectId }: { readonly projectId: string })
     setAfter(null);
     setBeforePins([]);
     setAfterPins([]);
+    setReopened(null);
     setError(null);
   }
 
@@ -1300,7 +1650,7 @@ export function InfraOverlayTrial({ projectId }: { readonly projectId: string })
       {mode === 'live' ? (
         <div className="flex flex-col gap-3" data-testid="infra-live-setup">
           <h3 className="text-base font-semibold">{TEXT.modeLive}</h3>
-          <p className="text-sm text-[var(--pf-text-secondary)]">{TEXT.introLive}</p>
+          <p className="text-sm text-[var(--pf-text-secondary)]">{integration ? TEXT.introLiveSaved : TEXT.introLive}</p>
           <div className="flex flex-wrap gap-2">
             <PhotoPicker
               testIdPrefix="infra-photo"
@@ -1308,6 +1658,7 @@ export function InfraOverlayTrial({ projectId }: { readonly projectId: string })
               chooseLabel={TEXT.liveChoose}
               onFile={(f) => void onFile('before', f)}
             />
+            {integration?.renderPhotoSources?.('before', (photo) => void onFile('before', photo.file, photo.captureId))}
           </div>
           {before ? (
             <div className="flex items-center gap-3">
@@ -1334,7 +1685,7 @@ export function InfraOverlayTrial({ projectId }: { readonly projectId: string })
       {mode === 'two' ? (
         <div className="flex flex-col gap-3" data-testid="infra-two-setup">
           <h3 className="text-base font-semibold">{TEXT.modeTwo}</h3>
-          <p className="text-sm text-[var(--pf-text-secondary)]">{TEXT.introTwo}</p>
+          <p className="text-sm text-[var(--pf-text-secondary)]">{integration ? TEXT.introTwoSaved : TEXT.introTwo}</p>
           {(['before', 'after'] as const).map((slot) => {
             const asset = slot === 'before' ? before : after;
             return (
@@ -1343,6 +1694,7 @@ export function InfraOverlayTrial({ projectId }: { readonly projectId: string })
                   {slot === 'before' ? TEXT.slotBefore : TEXT.slotAfter}
                 </span>
                 <PhotoPicker testIdPrefix={`infra-${slot}`} onFile={(f) => void onFile(slot, f)} compact />
+                {integration?.renderPhotoSources?.(slot, (photo) => void onFile(slot, photo.file, photo.captureId))}
                 {asset ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img

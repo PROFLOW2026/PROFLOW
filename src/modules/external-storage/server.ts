@@ -114,6 +114,7 @@ export {
   findStorageFileByDocumentId,
   findStorageFileByExternalId,
   insertStorageFile,
+  updateStorageFile,
 } from './data/files.repository';
 export { findStorageConnectionById } from './data/connections.repository';
 export {

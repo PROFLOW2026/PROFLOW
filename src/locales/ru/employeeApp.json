@@ -261,6 +261,7 @@
       "files": "Файлы",
       "meetings": "Встречи",
       "financials": "Финансы",
+      "infra": "Поиск коммуникаций",
       "navAriaLabel": "Центр проекта"
     },
     "openTaskDetail": "Открыть задачу",

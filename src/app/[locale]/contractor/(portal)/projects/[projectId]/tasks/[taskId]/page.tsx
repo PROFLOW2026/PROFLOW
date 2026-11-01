@@ -6,6 +6,7 @@ import { getContractorPortalTask } from '@/modules/collaboration';
 import { EntityDiscussion } from '@/modules/collaboration/ui';
 import { ContractorTaskCommandForm } from '@/modules/collaboration/ui/contractor-task-command-form';
 import { requireExternalContext } from '@/modules/contractor-access';
+import { InfraTaskLink } from '@/modules/infra-mapping/ui/infra-task-link';
 import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
 import { loadOrNotFound } from '@/modules/site-log/shared/page-guard';
 import { Link } from '@/shared/i18n/navigation';
@@ -54,6 +55,8 @@ export default async function ContractorTaskDetailPage({
           {task.locationName ? <p className="text-xs text-[var(--pf-text-secondary)]">{task.locationName}</p> : null}
         </CardContent>
       </Card>
+
+      <InfraTaskLink href={`/contractor/projects/${projectId}/infrastructure?taskId=${taskId}`} />
 
       {task.canAct && task.availableCommands.length > 0 ? (
         <WithPortalClientMessages extra={['collaboration']}>

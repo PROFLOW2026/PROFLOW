@@ -45,6 +45,7 @@ import { TaskActivity } from '@/modules/tasks/ui/task-activity';
 import { getEmployeeTaskDocumentPanelData } from '@/modules/employee-app/application/employee-task-documents';
 import { EmployeeTaskDocumentAttachments } from '@/modules/employee-app/ui/employee-task-document-attachments';
 import { SubmitButton } from '@/components/ui/submit-button';
+import { InfraTaskLink } from '@/modules/infra-mapping/ui/infra-task-link';
 import { cn } from '@/shared/ui/cn';
 import { EmployeeTaskActionErrorBanner } from '@/modules/employee-app/ui/employee-task-action-error-banner';
 
@@ -226,6 +227,10 @@ export default async function EmployeePmTaskDetailPage({ params, searchParams }:
           </Link>
         ) : null}
       </section>
+
+      {task.projectId ? (
+        <InfraTaskLink href={`/employee/projects/${task.projectId}/infrastructure?taskId=${taskId}`} />
+      ) : null}
 
       {task.approvalRequired ? (
         <section className={cn(employeePanelClass, 'space-y-2')}>
