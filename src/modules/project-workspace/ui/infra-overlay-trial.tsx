@@ -17,7 +17,21 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { Camera, Check, Copy, ImageUp, Move, RotateCcw, Rotate3d, Undo2, X, ZoomIn } from 'lucide-react';
+import {
+  ArrowRight,
+  Camera,
+  Check,
+  Copy,
+  ImageUp,
+  Images,
+  Move,
+  RotateCcw,
+  Rotate3d,
+  Undo2,
+  Video,
+  X,
+  ZoomIn,
+} from 'lucide-react';
 import {
   IDENTITY,
   REQUIRED_LANDMARKS,
@@ -46,6 +60,12 @@ const TEXT = {
   introTwo:
     'ניסוי: בוחרים תמונת לפני סגירה ותמונת אחרי סגירה, מסמנים בשתיהן אותן 4 נקודות, ומשווים בעזרת שקיפות. שום דבר לא נשמר או נשלח.',
   modeTwo: '2 תמונות',
+  modeLiveDesc: 'תמונת לפני + מצלמה חיה בשטח, עם התשתיות שקופות מעל הקיר.',
+  modeTwoDesc: 'השוואה בין תמונת לפני סגירה לתמונת אחרי סגירה.',
+  backToModes: 'חזרה לבחירת מצב',
+  liveCapture: 'צילום תמונת לפני',
+  liveChoose: 'בחירת תמונת לפני קיימת',
+  useSelected: 'המשך עם התמונה שנבחרה',
   modeLive: 'מצלמה חיה',
   slotBefore: 'לפני סגירה',
   slotAfter: 'אחרי סגירה',
@@ -1056,17 +1076,21 @@ function PhotoPicker({
   testIdPrefix,
   onFile,
   compact,
+  captureLabel,
+  chooseLabel,
 }: {
   readonly testIdPrefix: string;
   readonly onFile: (file: File | undefined) => void;
   readonly compact?: boolean;
+  readonly captureLabel?: string;
+  readonly chooseLabel?: string;
 }) {
   const size = compact ? 'px-3 py-1.5' : '';
   return (
     <>
       <label className={`${pickButtonPrimary} ${size}`}>
         <Camera className="size-4" />
-        {TEXT.capture}
+        {captureLabel ?? TEXT.capture}
         <input
           type="file"
           accept="image/*"
@@ -1081,7 +1105,7 @@ function PhotoPicker({
       </label>
       <label className={`${pickButtonSecondary} ${size}`}>
         <ImageUp className="size-4" />
-        {TEXT.choose}
+        {chooseLabel ?? TEXT.choose}
         <input
           type="file"
           accept="image/*"
@@ -1098,7 +1122,7 @@ function PhotoPicker({
 }
 
 export function InfraOverlayTrial({ projectId }: { readonly projectId: string }) {
-  const [mode, setMode] = useState<Mode>('two');
+  const [mode, setMode] = useState<Mode | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
   const [before, setBefore] = useState<PhotoAsset | null>(null);
   const [after, setAfter] = useState<PhotoAsset | null>(null);
@@ -1218,42 +1242,99 @@ export function InfraOverlayTrial({ projectId }: { readonly projectId: string })
         )
       : null;
 
-  const modeButton = (value: Mode, label: string) => (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={mode === value}
-      data-testid={`infra-mode-${value}`}
-      onClick={() => setMode(value)}
-      className={`flex-1 rounded-md px-3 py-1.5 text-sm ${
-        mode === value
-          ? 'bg-[var(--pf-action-subtle-active)] font-medium text-[var(--pf-text-brand)]'
-          : 'text-[var(--pf-text-secondary)]'
-      }`}
-    >
-      {label}
-    </button>
-  );
+  function chooseMode(next: Mode | null) {
+    // Each mode is its own flow: never carry photos or landmarks over from the other one.
+    setMode(next);
+    setPhase('idle');
+    setBefore(null);
+    setAfter(null);
+    setBeforePins([]);
+    setAfterPins([]);
+    setError(null);
+  }
+
+  const modeCardClass =
+    'flex flex-1 flex-col items-start gap-1 rounded-lg border border-[var(--pf-border-default)] p-4 text-start hover:bg-[var(--pf-action-subtle-active)]';
 
   return (
     <div className="flex max-w-2xl flex-col gap-3 pt-2" data-testid="infra-overlay-trial">
-      <div
-        role="tablist"
-        className="flex w-full max-w-xs gap-1 rounded-lg border border-[var(--pf-border-default)] p-1"
-      >
-        {modeButton('two', TEXT.modeTwo)}
-        {modeButton('live', TEXT.modeLive)}
-      </div>
-      <p className="text-sm text-[var(--pf-text-secondary)]">
-        {mode === 'two' ? TEXT.introTwo : TEXT.introLive}
-      </p>
-
-      {mode === 'live' ? (
-        <div className="flex flex-wrap gap-2">
-          <PhotoPicker testIdPrefix="infra-photo" onFile={(f) => void onFile('before', f)} />
+      {mode === null ? (
+        <div className="flex flex-col gap-3 sm:flex-row" data-testid="infra-mode-select">
+          <button
+            type="button"
+            className={modeCardClass}
+            data-testid="infra-mode-live"
+            onClick={() => chooseMode('live')}
+          >
+            <span className="flex items-center gap-2 text-base font-semibold">
+              <Video className="size-5" />
+              {TEXT.modeLive}
+            </span>
+            <span className="text-sm text-[var(--pf-text-secondary)]">{TEXT.modeLiveDesc}</span>
+          </button>
+          <button
+            type="button"
+            className={modeCardClass}
+            data-testid="infra-mode-two"
+            onClick={() => chooseMode('two')}
+          >
+            <span className="flex items-center gap-2 text-base font-semibold">
+              <Images className="size-5" />
+              {TEXT.modeTwo}
+            </span>
+            <span className="text-sm text-[var(--pf-text-secondary)]">{TEXT.modeTwoDesc}</span>
+          </button>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={() => chooseMode(null)}
+          data-testid="infra-mode-back"
+          className="inline-flex w-fit items-center gap-1 text-sm text-[var(--pf-text-brand)] hover:underline"
+        >
+          <ArrowRight className="size-4" />
+          {TEXT.backToModes}
+        </button>
+      )}
+
+      {mode === 'live' ? (
+        <div className="flex flex-col gap-3" data-testid="infra-live-setup">
+          <h3 className="text-base font-semibold">{TEXT.modeLive}</h3>
+          <p className="text-sm text-[var(--pf-text-secondary)]">{TEXT.introLive}</p>
+          <div className="flex flex-wrap gap-2">
+            <PhotoPicker
+              testIdPrefix="infra-photo"
+              captureLabel={TEXT.liveCapture}
+              chooseLabel={TEXT.liveChoose}
+              onFile={(f) => void onFile('before', f)}
+            />
+          </div>
+          {before ? (
+            <div className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={before.url}
+                alt=""
+                className="h-12 w-12 rounded border border-[var(--pf-border-default)] object-cover"
+                data-testid="infra-thumb-before"
+              />
+              <button
+                type="button"
+                data-testid="infra-live-continue"
+                onClick={() => setPhase('markBefore')}
+                className={pickButtonPrimary}
+              >
+                {TEXT.useSelected}
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {mode === 'two' ? (
+        <div className="flex flex-col gap-3" data-testid="infra-two-setup">
+          <h3 className="text-base font-semibold">{TEXT.modeTwo}</h3>
+          <p className="text-sm text-[var(--pf-text-secondary)]">{TEXT.introTwo}</p>
           {(['before', 'after'] as const).map((slot) => {
             const asset = slot === 'before' ? before : after;
             return (
@@ -1286,7 +1367,7 @@ export function InfraOverlayTrial({ projectId }: { readonly projectId: string })
             </button>
           </div>
         </div>
-      )}
+      ) : null}
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       {overlay}
     </div>
