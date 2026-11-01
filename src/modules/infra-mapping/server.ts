@@ -302,6 +302,18 @@ export const infraFileStore: ProjectFileDeps['store'] = {
   },
 };
 
+/** True when the organization has an active, usable cloud connection (the same check folders use). */
+export async function isInfraStorageConnected(organizationId: string): Promise<boolean> {
+  try {
+    return await runCommittedStorageWrite(async (db) => {
+      const connection = await ensureUsablePrimaryStorageConnection(db, organizationId);
+      return Boolean(connection && organizationHasActiveStorage(connection));
+    });
+  } catch {
+    return false;
+  }
+}
+
 export const infraDeps: InfraDeps = {
   files: { store: infraFileStore, elevated: runCommittedStorageWrite },
   folders: infraFolderPort,

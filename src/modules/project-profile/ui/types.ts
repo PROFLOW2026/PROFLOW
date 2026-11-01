@@ -5,7 +5,7 @@ import type { OperatingRole, OwnershipModel } from '../domain/profile';
 
 /** Serializable result of every structure server action. */
 export type StructureActionResult =
-  | { readonly ok: true; readonly count?: number }
+  | { readonly ok: true; readonly count?: number; readonly locationId?: string }
   | { readonly ok: false; readonly error: string; readonly fieldErrors?: Record<string, string> };
 
 export interface SaveProfilePayload {

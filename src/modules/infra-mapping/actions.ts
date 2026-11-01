@@ -57,6 +57,8 @@ import {
   INFRA_ERROR_MESSAGES,
   INFRA_FORBIDDEN,
   INFRA_GENERIC_ERROR,
+  INFRA_LOCATION_FOLDER_FAILED,
+  INFRA_LOCATION_NEEDS_CLOUD,
   INFRA_NOT_FOUND,
   isMissingInfraSchema,
 } from './domain/messages';
@@ -79,7 +81,8 @@ import {
   type SaveMarkingsInput,
   type UpdateCaptureInput,
 } from './domain/validation';
-import { infraDeps } from './server';
+import { createLocationWithFolder } from './application/location-create';
+import { infraDeps, isInfraStorageConnected } from './server';
 import { infraVideoPort } from './video-server';
 
 export type InfraResult<T = undefined> =
@@ -131,14 +134,19 @@ export async function loadInfraWorkspaceAction(input: {
   organizationId?: string | null;
   taskId?: string | null;
 }): Promise<InfraResult<InfraWorkspaceData>> {
-  return run(input.viewer, (actor) =>
-    loadInfraWorkspace(actor, {
+  return run(input.viewer, async (actor) => {
+    const data = await loadInfraWorkspace(actor, {
       projectId: input.projectId,
       organizationId: input.organizationId,
       taskId: input.taskId,
       employeeApp: actor.kind === 'internal' && isEmployeeAppUser(actor.context),
-    }),
-  );
+    });
+    // Only the locations screen needs to know whether the cloud is connected.
+    if (actor.kind === 'internal' && data.permissions.canManageLocations) {
+      return { ...data, storageConnected: await isInfraStorageConnected(data.organizationId) };
+    }
+    return data;
+  });
 }
 
 // ── captures ────────────────────────────────────────────────────────────────────────────────────
@@ -284,8 +292,63 @@ export async function infraMoveLocationAction(payload: MoveLocationPayload): Pro
   return result;
 }
 
+/** Authorizes the caller and returns the organization that owns the cloud, or a failure result. */
+async function manageableOrganization(
+  projectId: string,
+): Promise<{ ok: true; organizationId: string } | { ok: false; error: string }> {
+  try {
+    const organizationId = await withOrgContext(async (context) => {
+      const actor: InfraActor = { kind: 'internal', context };
+      await assertCanManageLocations(actor, projectId);
+      return organizationFor(actor, null);
+    });
+    return { ok: true, organizationId };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+/**
+ * Adds a location together with its real folder in the organization's cloud. Without an active cloud
+ * connection nothing is created; if the folder cannot be created the location is taken back out.
+ */
 export async function infraCreateLocationAction(payload: CreateLocationPayload): Promise<StructureActionResult> {
-  return createLocationAction(payload);
+  const owner = await manageableOrganization(payload.projectId);
+  if (!owner.ok) return owner;
+
+  const outcome = await createLocationWithFolder<{ error: string; fieldErrors?: Record<string, string> }>({
+    isCloudConnected: () => isInfraStorageConnected(owner.organizationId),
+    async createLocation() {
+      const result = await createLocationAction(payload);
+      if (result.ok && result.locationId) return { ok: true, locationId: result.locationId };
+      if (result.ok) return { ok: false, error: INFRA_GENERIC_ERROR };
+      return { ok: false, error: result.error, fieldErrors: result.fieldErrors };
+    },
+    async ensureFolder(locationId) {
+      const folderId = await infraDeps.folders.resolveLocationFolder({
+        organizationId: owner.organizationId,
+        projectId: payload.projectId,
+        locationId,
+      });
+      return Boolean(folderId);
+    },
+    async rollback(locationId) {
+      await archiveLocationAction({ projectId: payload.projectId, locationId });
+    },
+  });
+
+  switch (outcome.kind) {
+    case 'created':
+      revalidatePath('/', 'layout');
+      return { ok: true, locationId: outcome.locationId };
+    case 'no_cloud':
+      return { ok: false, error: INFRA_LOCATION_NEEDS_CLOUD };
+    case 'rejected':
+      return { ok: false, error: outcome.failure.error, fieldErrors: outcome.failure.fieldErrors };
+    case 'folder_failed':
+      revalidatePath('/', 'layout');
+      return { ok: false, error: INFRA_LOCATION_FOLDER_FAILED };
+  }
 }
 
 export async function infraArchiveLocationAction(payload: LocationRefPayload): Promise<StructureActionResult> {
@@ -297,6 +360,10 @@ export async function infraRestoreLocationAction(payload: LocationRefPayload): P
 }
 
 export async function infraGenerateLocationsAction(payload: GenerateLocationsPayload): Promise<StructureActionResult> {
+  // New locations on this screen need the organization's cloud (their folders are created by the sync).
+  const owner = await manageableOrganization(payload.projectId);
+  if (!owner.ok) return owner;
+  if (!(await isInfraStorageConnected(owner.organizationId))) return { ok: false, error: INFRA_LOCATION_NEEDS_CLOUD };
   return generateLocationsAction(payload);
 }
 

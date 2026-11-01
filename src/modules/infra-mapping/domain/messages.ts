@@ -28,6 +28,10 @@ export const INFRA_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   'projectPlans.evidence.errors.contentMismatch': 'תוכן הקובץ אינו תמונה תקינה.',
 };
 
+/** Adding a location needs the organization's cloud: the folder is created together with it. */
+export const INFRA_LOCATION_NEEDS_CLOUD = 'אי אפשר להוסיף מיקום בלי חיבור לענן הארגון. יש לחבר אחסון בהגדרות ולנסות שוב.';
+export const INFRA_LOCATION_FOLDER_FAILED = 'התיקייה בענן לא נוצרה, ולכן המיקום לא נוסף. נסו שוב.';
+
 export const INFRA_DB_PENDING_MESSAGE = 'ממתין להפעלת מסד נתונים: מיפוי התשתיות עדיין לא הופעל בסביבה זו.';
 export const INFRA_GENERIC_ERROR = 'הפעולה נכשלה. נסו שוב.';
 export const INFRA_FORBIDDEN = 'אין לך הרשאה לפעולה הזו.';

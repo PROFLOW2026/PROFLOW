@@ -68,9 +68,13 @@ export async function saveCharacteristicsAction(payload: SaveCharacteristicsPayl
 }
 
 export async function createLocationAction(payload: CreateLocationPayload): Promise<StructureActionResult> {
-  return run(async () => {
-    await withOrgContext((context) => createProjectLocation(context, payload));
-  });
+  try {
+    const created = await withOrgContext((context) => createProjectLocation(context, payload));
+    refresh();
+    return { ok: true, locationId: created.id };
+  } catch (error) {
+    return toFailure(error);
+  }
 }
 
 export async function updateLocationAction(payload: UpdateLocationPayload): Promise<StructureActionResult> {

@@ -241,6 +241,7 @@ function InfraWorkspaceLoaded({
               locations={data.locations}
               folders={data.folders}
               canManage={permissions.canManageLocations}
+              storageConnected={data.storageConnected !== false}
               browserActions={activeStorage}
               onChanged={() => void reload()}
             />

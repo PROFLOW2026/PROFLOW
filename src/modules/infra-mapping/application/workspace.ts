@@ -25,6 +25,8 @@ export interface InfraWorkspaceData {
   readonly folders: readonly InfraFolderStatusDto[];
   readonly permissions: InfraPermissions;
   readonly task: { readonly id: string; readonly title: string } | null;
+  /** Set for location managers: whether the organization's cloud is connected (new locations need it). */
+  readonly storageConnected?: boolean;
 }
 
 /**

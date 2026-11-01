@@ -39,6 +39,7 @@ export function InfraLocationsPanel({
   locations,
   folders,
   canManage,
+  storageConnected = true,
   browserActions,
   onChanged,
 }: {
@@ -46,6 +47,8 @@ export function InfraLocationsPanel({
   readonly locations: readonly InfraLocationOption[];
   readonly folders: readonly InfraFolderStatusDto[];
   readonly canManage: boolean;
+  /** False when the organization has no active cloud connection: new locations cannot be added. */
+  readonly storageConnected?: boolean;
   /** Storage browser (only for viewers allowed to browse the connected storage). */
   readonly browserActions?: ProjectCloudFileBrowserActions;
   readonly onChanged: () => void;
@@ -133,6 +136,11 @@ export function InfraLocationsPanel({
         <h3 className="text-base font-semibold">{INFRA_TEXT.locations.foldersTitle}</h3>
         <p className="text-sm text-[var(--pf-text-secondary)]">{INFRA_TEXT.locations.foldersIntro}</p>
         {!canManage ? <Alert tone="info">{INFRA_TEXT.locations.noPermission}</Alert> : null}
+        {canManage && !storageConnected ? (
+          <Alert tone="danger" data-testid="infra-needs-cloud">
+            {INFRA_TEXT.locations.needsCloud}
+          </Alert>
+        ) : null}
         {canManage ? (
           <div className="flex flex-wrap items-center gap-2">
             <Button type="button" onClick={() => void syncAll()} disabled={syncing || flat.length === 0} data-testid="infra-sync-folders">
