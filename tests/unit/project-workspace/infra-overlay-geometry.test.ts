@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   applyMat3,
   computeAlignment,
+  computeStageAlignment,
+  fitContain,
+  invertMat3,
   fitAffine,
   fitHomography,
   fitSimilarity,
@@ -139,6 +142,39 @@ describe('infra overlay geometry', () => {
     const line = [{ x: 0.1, y: 0.5 }, { x: 0.4, y: 0.5 }, { x: 0.7, y: 0.5 }, { x: 0.9, y: 0.5 }];
     expect(landmarksAreSpread(line)).toBe(false);
   });
+  it('invertMat3 and fitContain keep aspect ratio and round-trip', () => {
+    const m = fitContain(1900, 900, 390, 844);
+    expect(m[0]).toBeCloseTo(m[4], 9);
+    const p = applyMat3(m, { x: 950, y: 450 });
+    expect(p.x).toBeCloseTo(195, 6);
+    expect(p.y).toBeCloseTo(422, 6);
+    const back = applyMat3(invertMat3(m), p);
+    expect(back.x).toBeCloseTo(950, 6);
+    expect(back.y).toBeCloseTo(450, 6);
+  });
+
+  it('shared engine aligns a photo to a different-resolution, different-aspect target photo', () => {
+    // the 1200x900 "before" wall appears in a 1900x900 "after" photo, shown contain-fit on a 390x844 stage
+    const afterM: Mat3 = [0.62, 0, 300, 0, 0.62, 40, 0, 0, 1];
+    const contain = fitContain(1900, 900, 390, 844);
+    const before = LANDMARKS.map((p) => ({ x: p.x / W, y: p.y / H }));
+    const targetPx = LANDMARKS.map((p) => applyMat3(contain, applyMat3(afterM, p)));
+    const res = computeStageAlignment({
+      photoW: W,
+      photoH: H,
+      photoPins: before,
+      targetPx,
+      stageW: 390,
+      stageH: 844,
+      perspective: false,
+      checkSpreadOnStage: false,
+    })!;
+    expect(res.fit.rms).toBeLessThan(1e-6);
+    const probe = applyMat3(res.fit.matrix, { x: 600, y: 450 });
+    const truth = applyMat3(contain, applyMat3(afterM, { x: 600, y: 450 }));
+    expect(Math.hypot(probe.x - truth.x, probe.y - truth.y)).toBeLessThan(1e-6);
+  });
+
   it('needs at least two landmark pairs', () => {
     expect(
       computeAlignment({ photo: [LANDMARKS[0]!], live: [LANDMARKS[0]!], photoW: W, photoH: H, perspective: false }),

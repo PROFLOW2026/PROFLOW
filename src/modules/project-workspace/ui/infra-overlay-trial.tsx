@@ -17,11 +17,14 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { Camera, Check, Copy, ImageUp, RotateCcw, Rotate3d, Undo2, X } from 'lucide-react';
+import { Camera, Check, Copy, ImageUp, Move, RotateCcw, Rotate3d, Undo2, X, ZoomIn } from 'lucide-react';
 import {
   IDENTITY,
   REQUIRED_LANDMARKS,
-  computeAlignment,
+  applyMat3,
+  computeStageAlignment,
+  fitContain,
+  invertMat3,
   landmarksAreSpread,
   fitWithin,
   multiplyMat3,
@@ -38,8 +41,18 @@ const PIN_HIT_RADIUS_PX = 24;
 
 const TEXT = {
   title: 'זיהוי תשתיות',
-  intro:
-    'ניסוי: מצלמים/בוחרים תמונה מלפני סגירת הקיר, מסמנים 4 נקודות זיהוי, ואז מציגים אותה שקופה מעל המצלמה החיה. שום דבר לא נשמר או נשלח.',
+  introLive:
+    'ניסוי: בוחרים תמונה מלפני סגירת הקיר, מסמנים 4 נקודות זיהוי, ואז מציגים אותה שקופה מעל המצלמה החיה. שום דבר לא נשמר או נשלח.',
+  introTwo:
+    'ניסוי: בוחרים תמונת לפני סגירה ותמונת אחרי סגירה, מסמנים בשתיהן אותן 4 נקודות, ומשווים בעזרת שקיפות. שום דבר לא נשמר או נשלח.',
+  modeTwo: '2 תמונות',
+  modeLive: 'מצלמה חיה',
+  slotBefore: 'לפני סגירה',
+  slotAfter: 'אחרי סגירה',
+  start: 'המשך',
+  markAfterHint: 'סמנו את אותן 4 נקודות, באותו סדר',
+  moveLayer: 'התאמת השכבה',
+  zoomView: 'הגדלת תצוגה',
   capture: 'צילום תמונה',
   choose: 'בחירת תמונה',
   loadError: 'לא ניתן לקרוא את התמונה',
@@ -64,7 +77,17 @@ interface PhotoAsset {
   readonly height: number;
 }
 
-type Phase = 'idle' | 'mark' | 'live';
+type Phase = 'idle' | 'markBefore' | 'markAfter' | 'live' | 'compare';
+type Mode = 'two' | 'live';
+type Slot = 'before' | 'after';
+
+interface GestureParts {
+  readonly pivot: Pt;
+  readonly tx: number;
+  readonly ty: number;
+  readonly scale: number;
+  readonly rotation: number;
+}
 
 async function preparePhoto(file: File): Promise<PhotoAsset> {
   let source: CanvasImageSource;
@@ -146,7 +169,7 @@ interface PinSurfaceProps {
   readonly maxPins: number;
   readonly onPinsChange: (pins: Pt[]) => void;
   /** When set, a drag on empty space (1 finger) / pinch (2 fingers) fine-tunes the overlay. */
-  readonly onAdjust?: (incremental: Mat3) => void;
+  readonly onAdjust?: (incremental: Mat3, parts: GestureParts) => void;
   readonly highlightIndex?: number;
   readonly children?: ReactNode;
 }
@@ -240,7 +263,14 @@ function PinSurface({
       const ids = [...pointers.current.keys()];
       if (ids.length === 1) {
         const before = prev.get(e.pointerId)!;
-        adjust(userAdjustMatrix({ x: 0, y: 0 }, { tx: p.x - before.x, ty: p.y - before.y, scale: 1, rotation: 0 }));
+        const parts: GestureParts = {
+          pivot: { x: 0, y: 0 },
+          tx: p.x - before.x,
+          ty: p.y - before.y,
+          scale: 1,
+          rotation: 0,
+        };
+        adjust(userAdjustMatrix(parts.pivot, parts), parts);
       } else if (ids.length >= 2) {
         const [a, b] = ids as [number, number];
         const p0 = prev.get(a)!;
@@ -254,14 +284,14 @@ function PinSurface({
         const rotation = Math.atan2(c1.y - c0.y, c1.x - c0.x) - Math.atan2(p1.y - p0.y, p1.x - p0.x);
         const midPrev = { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 };
         const midCur = { x: (c0.x + c1.x) / 2, y: (c0.y + c1.y) / 2 };
-        adjust(
-          userAdjustMatrix(midPrev, {
-            tx: midCur.x - midPrev.x,
-            ty: midCur.y - midPrev.y,
-            scale,
-            rotation,
-          }),
-        );
+        const parts: GestureParts = {
+          pivot: midPrev,
+          tx: midCur.x - midPrev.x,
+          ty: midCur.y - midPrev.y,
+          scale,
+          rotation,
+        };
+        adjust(userAdjustMatrix(parts.pivot, parts), parts);
       }
     }
   }
@@ -337,18 +367,216 @@ function PinMark({
 }
 
 /* -------------------------------------------------------------------------- */
-/* Step 1: landmarks on the photo                                              */
+/* Shared pieces                                                               */
+/* -------------------------------------------------------------------------- */
+
+/** Small copy of the "before" photo showing which landmark to mark next. */
+function ReferenceThumb({
+  photo,
+  pins,
+  nextIndex,
+}: {
+  readonly photo: PhotoAsset;
+  readonly pins: readonly Pt[];
+  readonly nextIndex: number;
+}) {
+  return (
+    <div
+      className="pointer-events-none absolute start-2 top-[max(0.5rem,env(safe-area-inset-top))] w-24 overflow-hidden rounded-md border border-white/40 bg-black/60 shadow"
+      aria-hidden="true"
+    >
+      <div className="relative" style={{ aspectRatio: `${photo.width} / ${photo.height}` }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photo.url} alt="" className="absolute inset-0 size-full" draggable={false} />
+        {pins.map((p, i) => (
+          <PinMark
+            key={i}
+            x={p.x * 96}
+            y={p.y * (96 * (photo.height / photo.width))}
+            label={i + 1}
+            small
+            highlighted={i === nextIndex}
+          />
+        ))}
+      </div>
+      <div className="bg-black/70 text-center text-[11px] leading-4 text-white" dir="ltr">
+        {Math.min(nextIndex + 1, pins.length)}/{pins.length}
+      </div>
+    </div>
+  );
+}
+
+/** The old photo drawn through the alignment matrix (stage pixels). */
+function OverlayImage({
+  photo,
+  matrix,
+  opacity,
+}: {
+  readonly photo: PhotoAsset;
+  readonly matrix: Mat3;
+  readonly opacity: number;
+}) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={photo.url}
+      alt=""
+      draggable={false}
+      className="pointer-events-none absolute left-0 top-0 max-w-none select-none"
+      data-testid="infra-overlay-layer"
+      style={{
+        width: photo.width,
+        height: photo.height,
+        transformOrigin: '0 0',
+        transform: toCssMatrix3d(matrix),
+        opacity,
+        willChange: 'transform',
+      }}
+    />
+  );
+}
+
+function OverlayBar({
+  opacity,
+  onOpacity,
+  onBack,
+  onRealign,
+  showPerspectiveToggle,
+  perspective,
+  onTogglePerspective,
+  extra,
+  onSave,
+  canSave,
+}: {
+  readonly opacity: number;
+  readonly onOpacity: (v: number) => void;
+  readonly onBack: () => void;
+  readonly onRealign: () => void;
+  readonly showPerspectiveToggle: boolean;
+  readonly perspective: boolean;
+  readonly onTogglePerspective: () => void;
+  readonly extra?: ReactNode;
+  readonly onSave: () => void;
+  readonly canSave: boolean;
+}) {
+  return (
+    <div
+      className="absolute inset-x-0 bottom-[max(0.5rem,env(safe-area-inset-bottom))] flex justify-center px-2"
+      onPointerDown={(e) => e.stopPropagation()}
+    >
+      <div className="flex max-w-full items-center gap-1 rounded-full bg-black/60 px-1.5 py-1 backdrop-blur">
+        <button type="button" className={barButtonClass} onClick={onBack} aria-label={TEXT.back}>
+          <X className="size-5" />
+        </button>
+        <input
+          type="range"
+          min={0.1}
+          max={1}
+          step={0.05}
+          value={opacity}
+          onChange={(e) => onOpacity(Number(e.target.value))}
+          aria-label={TEXT.opacity}
+          className="mx-1 h-6 w-24 min-w-0 shrink accent-cyan-400 sm:w-40"
+        />
+        <button type="button" className={barButtonClass} onClick={onRealign} aria-label={TEXT.realign}>
+          <RotateCcw className="size-5" />
+        </button>
+        {showPerspectiveToggle ? (
+          <button
+            type="button"
+            className={`${barButtonClass} ${perspective ? 'bg-cyan-500/90' : ''}`}
+            onClick={onTogglePerspective}
+            aria-pressed={perspective}
+            aria-label={TEXT.perspective}
+          >
+            <Rotate3d className="size-5" />
+          </button>
+        ) : null}
+        {extra}
+        <button
+          type="button"
+          className={barButtonClass}
+          onClick={onSave}
+          disabled={!canSave}
+          aria-label={TEXT.save}
+        >
+          <Check className="size-5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function useSavedResult() {
+  const [result, setResult] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const publish = useCallback((record: unknown) => {
+    const text = JSON.stringify(record, null, 2);
+    setResult(text);
+    setCopied(false);
+    void navigator.clipboard
+      ?.writeText(text)
+      .then(() => setCopied(true))
+      .catch(() => undefined);
+  }, []);
+  const clear = useCallback(() => setResult(null), []);
+  const copy = useCallback(() => {
+    if (result) void navigator.clipboard?.writeText(result).then(() => setCopied(true));
+  }, [result]);
+  return { result, copied, publish, clear, copy } as const;
+}
+
+function ResultSheet({
+  result,
+  copied,
+  onCopy,
+  onClose,
+}: {
+  readonly result: string;
+  readonly copied: boolean;
+  readonly onCopy: () => void;
+  readonly onClose: () => void;
+}) {
+  return (
+    <div
+      className="absolute inset-x-2 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] top-[max(0.5rem,env(safe-area-inset-top))] flex flex-col rounded-lg bg-black/85 p-2 text-white backdrop-blur"
+      onPointerDown={(e) => e.stopPropagation()}
+      dir="rtl"
+    >
+      <div className="flex items-center gap-2 text-xs">
+        <span className="flex-1">{copied ? TEXT.copied : TEXT.save}</span>
+        <button type="button" className={barButtonClass} aria-label={TEXT.copy} onClick={onCopy}>
+          <Copy className="size-4" />
+        </button>
+        <button type="button" className={barButtonClass} aria-label={TEXT.close} onClick={onClose}>
+          <X className="size-4" />
+        </button>
+      </div>
+      <pre className="mt-1 min-h-0 flex-1 overflow-auto text-[10px] leading-4" dir="ltr">
+        {result}
+      </pre>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Landmarks on a photo (before, or after in two-photo mode)                    */
 /* -------------------------------------------------------------------------- */
 
 function MarkStep({
   photo,
   pins,
+  hint,
+  reference,
   onPinsChange,
   onBack,
   onNext,
 }: {
   readonly photo: PhotoAsset;
   readonly pins: readonly Pt[];
+  readonly hint: string;
+  /** "Before" photo + its landmarks, shown while marking the same points on the "after" photo. */
+  readonly reference?: { readonly photo: PhotoAsset; readonly pins: readonly Pt[] };
   readonly onPinsChange: (pins: Pt[]) => void;
   readonly onBack: () => void;
   readonly onNext: () => void;
@@ -377,9 +605,7 @@ function MarkStep({
         >
           <Undo2 className="size-5" />
         </button>
-        <span className="min-w-0 flex-1 truncate px-1 text-center text-xs text-white/80">
-          {TEXT.markHint}
-        </span>
+        <span className="min-w-0 flex-1 truncate px-1 text-center text-xs text-white/80">{hint}</span>
         <span className="text-xs tabular-nums text-white/70" dir="ltr">
           {pins.length}/{MAX_PINS}
         </span>
@@ -393,15 +619,12 @@ function MarkStep({
           <Check className="size-5" />
         </button>
       </div>
-      <div ref={areaRef} className="flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-neutral-900">
+      <div
+        ref={areaRef}
+        className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-neutral-900"
+      >
         {ready ? (
-          <PinSurface
-            width={w}
-            height={h}
-            pins={pins}
-            maxPins={MAX_PINS}
-            onPinsChange={onPinsChange}
-          >
+          <PinSurface width={w} height={h} pins={pins} maxPins={MAX_PINS} onPinsChange={onPinsChange}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={photo.url}
@@ -412,13 +635,16 @@ function MarkStep({
             />
           </PinSurface>
         ) : null}
+        {reference && pins.length < MAX_PINS ? (
+          <ReferenceThumb photo={reference.photo} pins={reference.pins} nextIndex={pins.length} />
+        ) : null}
       </div>
     </div>
   );
 }
 
 /* -------------------------------------------------------------------------- */
-/* Step 2: live camera + overlay                                               */
+/* Live camera + overlay                                                       */
 /* -------------------------------------------------------------------------- */
 
 function LiveStep({
@@ -440,8 +666,7 @@ function LiveStep({
   const [adjust, setAdjust] = useState<Mat3>(IDENTITY);
   const [opacity, setOpacity] = useState(0.55);
   const [perspective, setPerspective] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const saved = useSavedResult();
 
   // Camera (rear camera preferred), released on exit.
   useEffect(() => {
@@ -480,28 +705,28 @@ function LiveStep({
   // Rotating the phone changes the stage shape: old taps no longer match the scene.
   const orientation = size.w >= size.h ? 'landscape' : 'portrait';
   const lastOrientation = useRef<string | null>(null);
+  const { clear: clearSaved } = saved;
   useEffect(() => {
     if (size.w === 0) return;
     if (lastOrientation.current && lastOrientation.current !== orientation) {
       setLivePins([]);
       setAdjust(IDENTITY);
-      setResult(null);
+      clearSaved();
     }
     lastOrientation.current = orientation;
-  }, [orientation, size.w]);
+  }, [orientation, size.w, clearSaved]);
 
   const alignment = useMemo(() => {
     if (size.w === 0 || livePins.length < MAX_PINS) return null;
-    const unit = Math.min(size.w, size.h);
-    if (!landmarksAreSpread(livePins.map((p) => ({ x: (p.x * size.w) / unit, y: (p.y * size.h) / unit })))) {
-      return null;
-    }
-    return computeAlignment({
-      photo: photoPins.map((p) => ({ x: p.x * photo.width, y: p.y * photo.height })),
-      live: livePins.map((p) => ({ x: p.x * size.w, y: p.y * size.h })),
+    return computeStageAlignment({
       photoW: photo.width,
       photoH: photo.height,
+      photoPins,
+      targetPx: livePins.map((p) => ({ x: p.x * size.w, y: p.y * size.h })),
+      stageW: size.w,
+      stageH: size.h,
       perspective,
+      checkSpreadOnStage: true,
     });
   }, [livePins, photoPins, photo.width, photo.height, size.w, size.h, perspective]);
 
@@ -518,13 +743,14 @@ function LiveStep({
   function realign() {
     setLivePins([]);
     setAdjust(IDENTITY);
-    setResult(null);
+    clearSaved();
   }
 
   function save() {
-    const record = {
+    saved.publish({
       savedAt: new Date().toISOString(),
       projectId,
+      source: 'live-camera',
       mode: alignment?.fit.kind ?? null,
       perspectiveRequested: perspective,
       perspectiveRejected: alignment?.perspectiveRejected ?? false,
@@ -537,14 +763,7 @@ function LiveStep({
       opacity: Number(opacity.toFixed(2)),
       camera: trackSettings.current,
       userAgent: navigator.userAgent,
-    };
-    const text = JSON.stringify(record, null, 2);
-    setResult(text);
-    setCopied(false);
-    void navigator.clipboard
-      ?.writeText(text)
-      .then(() => setCopied(true))
-      .catch(() => undefined);
+    });
   }
 
   const complete = livePins.length >= photoPins.length;
@@ -569,50 +788,11 @@ function LiveStep({
             muted
             className="pointer-events-none absolute inset-0 size-full object-cover"
           />
-          {matrix ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={photo.url}
-              alt=""
-              draggable={false}
-              className="pointer-events-none absolute left-0 top-0 max-w-none select-none"
-              style={{
-                width: photo.width,
-                height: photo.height,
-                transformOrigin: '0 0',
-                transform: toCssMatrix3d(matrix),
-                opacity,
-                willChange: 'transform',
-              }}
-            />
-          ) : null}
+          {matrix ? <OverlayImage photo={photo} matrix={matrix} opacity={opacity} /> : null}
         </PinSurface>
       ) : null}
 
-      {complete ? null : (
-        <div
-          className="pointer-events-none absolute start-2 top-[max(0.5rem,env(safe-area-inset-top))] w-24 overflow-hidden rounded-md border border-white/40 bg-black/60 shadow"
-          aria-hidden="true"
-        >
-          <div className="relative" style={{ aspectRatio: `${photo.width} / ${photo.height}` }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photo.url} alt="" className="absolute inset-0 size-full" draggable={false} />
-            {photoPins.map((p, i) => (
-              <PinMark
-                key={i}
-                x={p.x * 96}
-                y={p.y * (96 * (photo.height / photo.width))}
-                label={i + 1}
-                small
-                highlighted={i === livePins.length}
-              />
-            ))}
-          </div>
-          <div className="bg-black/70 text-center text-[11px] leading-4 text-white" dir="ltr">
-            {Math.min(livePins.length + 1, photoPins.length)}/{photoPins.length}
-          </div>
-        </div>
-      )}
+      {complete ? null : <ReferenceThumb photo={photo} pins={photoPins} nextIndex={livePins.length} />}
 
       {cameraFailed ? (
         <div className="pointer-events-none absolute inset-x-0 top-1/3 text-center text-sm text-white/80" dir="rtl">
@@ -629,76 +809,235 @@ function LiveStep({
         </div>
       ) : null}
 
-      <div
-        className="absolute inset-x-0 bottom-[max(0.5rem,env(safe-area-inset-bottom))] flex justify-center px-2"
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        <div className="flex max-w-full items-center gap-1 rounded-full bg-black/60 px-1.5 py-1 backdrop-blur">
-          <button type="button" className={barButtonClass} onClick={onBack} aria-label={TEXT.back}>
-            <X className="size-5" />
-          </button>
-          <input
-            type="range"
-            min={0.1}
-            max={1}
-            step={0.05}
-            value={opacity}
-            onChange={(e) => setOpacity(Number(e.target.value))}
-            aria-label={TEXT.opacity}
-            className="mx-1 h-6 w-24 min-w-0 shrink accent-cyan-400 sm:w-40"
-          />
-          <button type="button" className={barButtonClass} onClick={realign} aria-label={TEXT.realign}>
-            <RotateCcw className="size-5" />
-          </button>
-          {showPerspectiveToggle ? (
-            <button
-              type="button"
-              className={`${barButtonClass} ${perspective ? 'bg-cyan-500/90' : ''}`}
-              onClick={() => setPerspective((v) => !v)}
-              aria-pressed={perspective}
-              aria-label={TEXT.perspective}
-            >
-              <Rotate3d className="size-5" />
-            </button>
-          ) : null}
-          <button
-            type="button"
-            className={barButtonClass}
-            onClick={save}
-            disabled={!alignment}
-            aria-label={TEXT.save}
-          >
-            <Check className="size-5" />
-          </button>
-        </div>
-      </div>
+      <OverlayBar
+        opacity={opacity}
+        onOpacity={setOpacity}
+        onBack={onBack}
+        onRealign={realign}
+        showPerspectiveToggle={showPerspectiveToggle}
+        perspective={perspective}
+        onTogglePerspective={() => setPerspective((v) => !v)}
+        onSave={save}
+        canSave={Boolean(alignment)}
+      />
 
-      {result ? (
+      {saved.result ? (
+        <ResultSheet result={saved.result} copied={saved.copied} onCopy={saved.copy} onClose={saved.clear} />
+      ) : null}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Two photos: "after" photo is the backdrop instead of the live video          */
+/* -------------------------------------------------------------------------- */
+
+const VIEW_MIN_SCALE = 1;
+const VIEW_MAX_SCALE = 10;
+
+function matrixScale(m: Mat3): number {
+  return Math.hypot(m[0], m[3]);
+}
+
+function CompareStep({
+  projectId,
+  before,
+  beforePins,
+  after,
+  afterPins,
+  onBack,
+  onRealign,
+}: {
+  readonly projectId: string;
+  readonly before: PhotoAsset;
+  readonly beforePins: readonly Pt[];
+  readonly after: PhotoAsset;
+  readonly afterPins: readonly Pt[];
+  readonly onBack: () => void;
+  readonly onRealign: () => void;
+}) {
+  const [rootRef, size] = useElementSize<HTMLDivElement>();
+  const [adjust, setAdjust] = useState<Mat3>(IDENTITY);
+  const [view, setView] = useState<Mat3>(IDENTITY);
+  const [viewMode, setViewMode] = useState<'layer' | 'view'>('layer');
+  const [opacity, setOpacity] = useState(0.55);
+  const [perspective, setPerspective] = useState(false);
+  const saved = useSavedResult();
+  const { clear: clearSaved } = saved;
+
+  // "after" photo (its own pixels) -> stage pixels, aspect ratio preserved.
+  const base = useMemo(
+    () => (size.w > 0 ? fitContain(after.width, after.height, size.w, size.h) : IDENTITY),
+    [after.width, after.height, size.w, size.h],
+  );
+
+  // A different stage shape invalidates manual tweaks and zoom.
+  const stageKey = `${Math.round(size.w)}x${Math.round(size.h)}`;
+  const lastStage = useRef<string | null>(null);
+  useEffect(() => {
+    if (size.w === 0) return;
+    if (lastStage.current && lastStage.current !== stageKey) {
+      setAdjust(IDENTITY);
+      setView(IDENTITY);
+      clearSaved();
+    }
+    lastStage.current = stageKey;
+  }, [stageKey, size.w, clearSaved]);
+
+  const targetPx = useMemo(
+    () => afterPins.map((p) => applyMat3(base, { x: p.x * after.width, y: p.y * after.height })),
+    [afterPins, after.width, after.height, base],
+  );
+
+  const alignment = useMemo(
+    () =>
+      computeStageAlignment({
+        photoW: before.width,
+        photoH: before.height,
+        photoPins: beforePins,
+        targetPx,
+        stageW: size.w,
+        stageH: size.h,
+        perspective,
+        checkSpreadOnStage: false, // spread is enforced on the "after" photo itself
+      }),
+    [before.width, before.height, beforePins, targetPx, size.w, size.h, perspective],
+  );
+
+  const matrix = alignment ? multiplyMat3(adjust, alignment.fit.matrix) : null;
+
+  const onGesture = useCallback(
+    (incremental: Mat3, parts: GestureParts) => {
+      if (viewMode === 'layer') {
+        // Gesture coordinates are screen pixels; the layer lives under the view transform.
+        const inView = multiplyMat3(invertMat3(view), multiplyMat3(incremental, view));
+        setAdjust((prev) => multiplyMat3(inView, prev));
+        return;
+      }
+      // Zoom/pan the whole comparison (both images together); never rotate the view.
+      const zoom = userAdjustMatrix(parts.pivot, { ...parts, rotation: 0 });
+      setView((prev) => {
+        const next = multiplyMat3(zoom, prev);
+        const s = matrixScale(next);
+        return s < VIEW_MIN_SCALE || s > VIEW_MAX_SCALE ? prev : next;
+      });
+    },
+    [view, viewMode],
+  );
+
+  function save() {
+    saved.publish({
+      savedAt: new Date().toISOString(),
+      projectId,
+      source: 'two-photos',
+      mode: alignment?.fit.kind ?? null,
+      perspectiveRequested: perspective,
+      perspectiveRejected: alignment?.perspectiveRejected ?? false,
+      landmarkResidualPx: alignment ? Number(alignment.fit.rms.toFixed(2)) : null,
+      stage: { width: Math.round(size.w), height: Math.round(size.h) },
+      before: { width: before.width, height: before.height },
+      after: { width: after.width, height: after.height },
+      beforeLandmarksPx: beforePins.map((p) => [Math.round(p.x * before.width), Math.round(p.y * before.height)]),
+      afterLandmarksPx: afterPins.map((p) => [Math.round(p.x * after.width), Math.round(p.y * after.height)]),
+      manualAdjustment: adjust.map((v) => Number(v.toFixed(5))),
+      view: view.map((v) => Number(v.toFixed(5))),
+      opacity: Number(opacity.toFixed(2)),
+      userAgent: navigator.userAgent,
+    });
+  }
+
+  return (
+    <div
+      ref={rootRef}
+      className="relative h-full w-full overflow-hidden bg-neutral-900"
+      dir="ltr"
+      data-testid="infra-compare"
+      onWheel={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        const zoom = userAdjustMatrix(
+          { x: e.clientX - r.left, y: e.clientY - r.top },
+          { tx: 0, ty: 0, scale: Math.exp(-e.deltaY * 0.002), rotation: 0 },
+        );
+        setView((prev) => {
+          const next = multiplyMat3(zoom, prev);
+          const s = matrixScale(next);
+          return s < VIEW_MIN_SCALE || s > VIEW_MAX_SCALE ? prev : next;
+        });
+      }}
+    >
+      {size.w > 0 ? (
+        <PinSurface
+          width={size.w}
+          height={size.h}
+          pins={[]}
+          maxPins={0}
+          onPinsChange={() => undefined}
+          onAdjust={onGesture}
+        >
+          <div
+            className="absolute left-0 top-0"
+            style={{
+              width: size.w,
+              height: size.h,
+              transformOrigin: '0 0',
+              transform: toCssMatrix3d(view),
+              willChange: 'transform',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={after.url}
+              alt=""
+              draggable={false}
+              className="pointer-events-none absolute left-0 top-0 max-w-none select-none"
+              data-testid="infra-after-image"
+              style={{
+                width: after.width,
+                height: after.height,
+                transformOrigin: '0 0',
+                transform: toCssMatrix3d(base),
+              }}
+            />
+            {matrix ? <OverlayImage photo={before} matrix={matrix} opacity={opacity} /> : null}
+          </div>
+        </PinSurface>
+      ) : null}
+
+      {perspective && alignment?.perspectiveRejected ? (
         <div
-          className="absolute inset-x-2 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] top-[max(0.5rem,env(safe-area-inset-top))] flex flex-col rounded-lg bg-black/85 p-2 text-white backdrop-blur"
-          onPointerDown={(e) => e.stopPropagation()}
+          className="pointer-events-none absolute inset-x-2 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] mx-auto w-fit rounded bg-black/70 px-2 py-1 text-[11px] text-white"
           dir="rtl"
         >
-          <div className="flex items-center gap-2 text-xs">
-            <span className="flex-1">{copied ? TEXT.copied : TEXT.save}</span>
-            <button
-              type="button"
-              className={barButtonClass}
-              aria-label={TEXT.copy}
-              onClick={() => {
-                void navigator.clipboard?.writeText(result).then(() => setCopied(true));
-              }}
-            >
-              <Copy className="size-4" />
-            </button>
-            <button type="button" className={barButtonClass} aria-label={TEXT.close} onClick={() => setResult(null)}>
-              <X className="size-4" />
-            </button>
-          </div>
-          <pre className="mt-1 min-h-0 flex-1 overflow-auto text-[10px] leading-4" dir="ltr">
-            {result}
-          </pre>
+          {TEXT.perspectiveRejected}
         </div>
+      ) : null}
+
+      <OverlayBar
+        opacity={opacity}
+        onOpacity={setOpacity}
+        onBack={onBack}
+        onRealign={onRealign}
+        showPerspectiveToggle
+        perspective={perspective}
+        onTogglePerspective={() => setPerspective((v) => !v)}
+        extra={
+          <button
+            type="button"
+            className={`${barButtonClass} ${viewMode === 'view' ? 'bg-cyan-500/90' : ''}`}
+            onClick={() => setViewMode((m) => (m === 'layer' ? 'view' : 'layer'))}
+            aria-pressed={viewMode === 'view'}
+            aria-label={viewMode === 'view' ? TEXT.moveLayer : TEXT.zoomView}
+            data-testid="infra-view-mode"
+          >
+            {viewMode === 'view' ? <ZoomIn className="size-5" /> : <Move className="size-5" />}
+          </button>
+        }
+        onSave={save}
+        canSave={Boolean(alignment)}
+      />
+
+      {saved.result ? (
+        <ResultSheet result={saved.result} copied={saved.copied} onCopy={saved.copy} onClose={saved.clear} />
       ) : null}
     </div>
   );
@@ -708,10 +1047,63 @@ function LiveStep({
 /* Entry (inside the project tab)                                              */
 /* -------------------------------------------------------------------------- */
 
+const pickButtonPrimary =
+  'inline-flex cursor-pointer items-center gap-2 rounded-md bg-[var(--pf-action-primary,#0e7490)] px-4 py-2 text-sm font-medium text-white';
+const pickButtonSecondary =
+  'inline-flex cursor-pointer items-center gap-2 rounded-md border border-[var(--pf-border-default)] px-4 py-2 text-sm font-medium';
+
+function PhotoPicker({
+  testIdPrefix,
+  onFile,
+  compact,
+}: {
+  readonly testIdPrefix: string;
+  readonly onFile: (file: File | undefined) => void;
+  readonly compact?: boolean;
+}) {
+  const size = compact ? 'px-3 py-1.5' : '';
+  return (
+    <>
+      <label className={`${pickButtonPrimary} ${size}`}>
+        <Camera className="size-4" />
+        {TEXT.capture}
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="sr-only"
+          data-testid={`${testIdPrefix}-capture`}
+          onChange={(e) => {
+            onFile(e.target.files?.[0]);
+            e.target.value = '';
+          }}
+        />
+      </label>
+      <label className={`${pickButtonSecondary} ${size}`}>
+        <ImageUp className="size-4" />
+        {TEXT.choose}
+        <input
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          data-testid={`${testIdPrefix}-choose`}
+          onChange={(e) => {
+            onFile(e.target.files?.[0]);
+            e.target.value = '';
+          }}
+        />
+      </label>
+    </>
+  );
+}
+
 export function InfraOverlayTrial({ projectId }: { readonly projectId: string }) {
+  const [mode, setMode] = useState<Mode>('two');
   const [phase, setPhase] = useState<Phase>('idle');
-  const [photo, setPhoto] = useState<PhotoAsset | null>(null);
-  const [photoPins, setPhotoPins] = useState<Pt[]>([]);
+  const [before, setBefore] = useState<PhotoAsset | null>(null);
+  const [after, setAfter] = useState<PhotoAsset | null>(null);
+  const [beforePins, setBeforePins] = useState<Pt[]>([]);
+  const [afterPins, setAfterPins] = useState<Pt[]>([]);
   const [error, setError] = useState<string | null>(null);
   const mounted = useSyncExternalStore(
     subscribeNoop,
@@ -721,9 +1113,14 @@ export function InfraOverlayTrial({ projectId }: { readonly projectId: string })
 
   useEffect(() => {
     return () => {
-      if (photo) URL.revokeObjectURL(photo.url);
+      if (before) URL.revokeObjectURL(before.url);
     };
-  }, [photo]);
+  }, [before]);
+  useEffect(() => {
+    return () => {
+      if (after) URL.revokeObjectURL(after.url);
+    };
+  }, [after]);
 
   // Lock page scroll while the full-screen experiment is open.
   useEffect(() => {
@@ -735,21 +1132,79 @@ export function InfraOverlayTrial({ projectId }: { readonly projectId: string })
     };
   }, [phase]);
 
-  async function onFile(file: File | undefined) {
+  async function onFile(slot: Slot, file: File | undefined) {
     if (!file) return;
     setError(null);
     try {
       const prepared = await preparePhoto(file);
-      setPhoto(prepared);
-      setPhotoPins([]);
-      setPhase('mark');
+      if (slot === 'before') {
+        setBefore(prepared);
+        setBeforePins([]);
+        setAfterPins([]);
+        if (mode === 'live') setPhase('markBefore');
+      } else {
+        setAfter(prepared);
+        setAfterPins([]);
+      }
     } catch {
       setError(TEXT.loadError);
     }
   }
 
+  const canStartTwo = Boolean(before && after);
+
+  let step: ReactNode = null;
+  if (phase === 'markBefore' && before) {
+    step = (
+      <MarkStep
+        photo={before}
+        pins={beforePins}
+        hint={TEXT.markHint}
+        onPinsChange={setBeforePins}
+        onBack={() => setPhase('idle')}
+        onNext={() => setPhase(mode === 'two' ? 'markAfter' : 'live')}
+      />
+    );
+  } else if (phase === 'markAfter' && before && after) {
+    step = (
+      <MarkStep
+        photo={after}
+        pins={afterPins}
+        hint={TEXT.markAfterHint}
+        reference={{ photo: before, pins: beforePins }}
+        onPinsChange={setAfterPins}
+        onBack={() => setPhase('markBefore')}
+        onNext={() => setPhase('compare')}
+      />
+    );
+  } else if (phase === 'live' && before) {
+    step = (
+      <LiveStep
+        projectId={projectId}
+        photo={before}
+        photoPins={beforePins}
+        onBack={() => setPhase('markBefore')}
+      />
+    );
+  } else if (phase === 'compare' && before && after) {
+    step = (
+      <CompareStep
+        projectId={projectId}
+        before={before}
+        beforePins={beforePins}
+        after={after}
+        afterPins={afterPins}
+        onBack={() => setPhase('markAfter')}
+        onRealign={() => {
+          setAfterPins([]);
+          setPhase('markAfter');
+        }}
+      />
+    );
+  }
+
   const overlay =
-    mounted && phase !== 'idle' && photo
+    mounted && step
       ? createPortal(
           <div
             className="fixed inset-0 z-[1000] bg-black text-white"
@@ -757,61 +1212,81 @@ export function InfraOverlayTrial({ projectId }: { readonly projectId: string })
             role="dialog"
             aria-label={TEXT.title}
           >
-            {phase === 'mark' ? (
-              <MarkStep
-                photo={photo}
-                pins={photoPins}
-                onPinsChange={setPhotoPins}
-                onBack={() => setPhase('idle')}
-                onNext={() => setPhase('live')}
-              />
-            ) : (
-              <LiveStep
-                projectId={projectId}
-                photo={photo}
-                photoPins={photoPins}
-                onBack={() => setPhase('mark')}
-              />
-            )}
+            {step}
           </div>,
           document.body,
         )
       : null;
 
+  const modeButton = (value: Mode, label: string) => (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={mode === value}
+      data-testid={`infra-mode-${value}`}
+      onClick={() => setMode(value)}
+      className={`flex-1 rounded-md px-3 py-1.5 text-sm ${
+        mode === value
+          ? 'bg-[var(--pf-action-subtle-active)] font-medium text-[var(--pf-text-brand)]'
+          : 'text-[var(--pf-text-secondary)]'
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <div className="flex max-w-2xl flex-col gap-3 pt-2" data-testid="infra-overlay-trial">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{TEXT.intro}</p>
-      <div className="flex flex-wrap gap-2">
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-[var(--pf-action-primary,#0e7490)] px-4 py-2 text-sm font-medium text-white">
-          <Camera className="size-4" />
-          {TEXT.capture}
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="sr-only"
-            data-testid="infra-photo-capture"
-            onChange={(e) => {
-              void onFile(e.target.files?.[0]);
-              e.target.value = '';
-            }}
-          />
-        </label>
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-[var(--pf-border-default)] px-4 py-2 text-sm font-medium">
-          <ImageUp className="size-4" />
-          {TEXT.choose}
-          <input
-            type="file"
-            accept="image/*"
-            className="sr-only"
-            data-testid="infra-photo-choose"
-            onChange={(e) => {
-              void onFile(e.target.files?.[0]);
-              e.target.value = '';
-            }}
-          />
-        </label>
+      <div
+        role="tablist"
+        className="flex w-full max-w-xs gap-1 rounded-lg border border-[var(--pf-border-default)] p-1"
+      >
+        {modeButton('two', TEXT.modeTwo)}
+        {modeButton('live', TEXT.modeLive)}
       </div>
+      <p className="text-sm text-[var(--pf-text-secondary)]">
+        {mode === 'two' ? TEXT.introTwo : TEXT.introLive}
+      </p>
+
+      {mode === 'live' ? (
+        <div className="flex flex-wrap gap-2">
+          <PhotoPicker testIdPrefix="infra-photo" onFile={(f) => void onFile('before', f)} />
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {(['before', 'after'] as const).map((slot) => {
+            const asset = slot === 'before' ? before : after;
+            return (
+              <div key={slot} className="flex flex-wrap items-center gap-2" data-testid={`infra-slot-${slot}`}>
+                <span className="w-24 text-sm font-medium">
+                  {slot === 'before' ? TEXT.slotBefore : TEXT.slotAfter}
+                </span>
+                <PhotoPicker testIdPrefix={`infra-${slot}`} onFile={(f) => void onFile(slot, f)} compact />
+                {asset ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={asset.url}
+                    alt=""
+                    className="h-10 w-10 rounded border border-[var(--pf-border-default)] object-cover"
+                    data-testid={`infra-thumb-${slot}`}
+                  />
+                ) : null}
+              </div>
+            );
+          })}
+          <div>
+            <button
+              type="button"
+              disabled={!canStartTwo}
+              data-testid="infra-two-start"
+              onClick={() => setPhase('markBefore')}
+              className={`${pickButtonPrimary} disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              {TEXT.start}
+            </button>
+          </div>
+        </div>
+      )}
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       {overlay}
     </div>

@@ -340,3 +340,59 @@ export function fitWithin(width: number, height: number, maxSide: number): Resiz
   const k = Math.min(1, maxSide / Math.max(width, height));
   return { width: Math.max(1, Math.round(width * k)), height: Math.max(1, Math.round(height * k)) };
 }
+
+/** General 3x3 inverse (row-major). Returns identity if singular. */
+export function invertMat3(m: Mat3): Mat3 {
+  const [a, b, c, d, e, f, g, h, i] = m;
+  const A = e * i - f * h;
+  const B = -(d * i - f * g);
+  const C = d * h - e * g;
+  const det = a * A + b * B + c * C;
+  if (Math.abs(det) < 1e-12) return IDENTITY;
+  const k = 1 / det;
+  return [
+    A * k, -(b * i - c * h) * k, (b * f - c * e) * k,
+    B * k, (a * i - c * g) * k, -(a * f - c * d) * k,
+    C * k, -(a * h - b * g) * k, (a * e - b * d) * k,
+  ];
+}
+
+/** Uniform "contain" fit of a src-sized image into a dst-sized box, centred (src px -> dst px). */
+export function fitContain(srcW: number, srcH: number, dstW: number, dstH: number): Mat3 {
+  const s = Math.min(dstW / srcW, dstH / srcH);
+  return [s, 0, (dstW - srcW * s) / 2, 0, s, (dstH - srcH * s) / 2, 0, 0, 1];
+}
+
+export interface StageAlignmentInput {
+  readonly photoW: number;
+  readonly photoH: number;
+  /** Landmarks on the old photo, normalised 0..1. */
+  readonly photoPins: readonly Pt[];
+  /** The same landmarks on the target surface, in target-stage pixels. */
+  readonly targetPx: readonly Pt[];
+  readonly stageW: number;
+  readonly stageH: number;
+  readonly perspective: boolean;
+  /** Live camera: judge spread on the stage. Two photos: spread is enforced on the photo itself. */
+  readonly checkSpreadOnStage: boolean;
+}
+
+/**
+ * The single alignment engine for BOTH modes. The only difference between live camera
+ * and two-photo comparison is where 	argetPx comes from (taps on the video stage vs
+ * taps on the "after" photo mapped into the stage).
+ */
+export function computeStageAlignment(input: StageAlignmentInput): AlignmentResult | null {
+  if (input.stageW <= 0 || input.stageH <= 0) return null;
+  if (input.photoPins.length < REQUIRED_LANDMARKS || input.targetPx.length < REQUIRED_LANDMARKS) return null;
+  const unit = Math.min(input.stageW, input.stageH);
+  const spreadOnStage = input.targetPx.map((p) => ({ x: p.x / unit, y: p.y / unit }));
+  if (input.checkSpreadOnStage && !landmarksAreSpread(spreadOnStage)) return null;
+  return computeAlignment({
+    photo: input.photoPins.map((p) => ({ x: p.x * input.photoW, y: p.y * input.photoH })),
+    live: input.targetPx,
+    photoW: input.photoW,
+    photoH: input.photoH,
+    perspective: input.perspective,
+  });
+}
