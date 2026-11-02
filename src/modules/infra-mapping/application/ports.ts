@@ -1,7 +1,7 @@
 import type { OrgContext } from '@/shared/auth/context';
 import type { ExternalContext } from '@/shared/external';
 import type { ProjectFileDeps } from '@/modules/evidence';
-import type { SyncResult } from './folders';
+import type { DriftChoice, FolderInspection, SyncResult } from './folders';
 
 /**
  * Who is calling. Internal users (owner app, employee app) carry an OrgContext; contractors carry an
@@ -38,8 +38,19 @@ export interface InfraFolderPort {
     projectId: string;
     locationId: string;
   }): Promise<{ ok: true; folderId: string } | { ok: false; stage: string; code: string }>;
-  /** The cloud folder of a location (creating real folders as needed); null when it cannot be resolved. */
-  resolveLocationFolder(input: { organizationId: string; projectId: string; locationId: string }): Promise<string | null>;
+  /** The cloud folder of a location, created lazily (only the needed chain); throws when it cannot be resolved. */
+  resolveLocationFolder(input: { organizationId: string; projectId: string; locationId: string }): Promise<string>;
+  /** Checks the one known folder of a location by its provider id (on demand, never a background scan). */
+  inspectFolder(input: { organizationId: string; projectId: string; locationId: string }): Promise<FolderInspection>;
+  /** Settles a folder renamed in the cloud: adopt the cloud name, or rename the cloud folder back. */
+  resolveFolderDrift(input: {
+    organizationId: string;
+    projectId: string;
+    locationId: string;
+    choice: DriftChoice;
+  }): Promise<'adopted' | 'restored' | 'unchanged'>;
+  /** Explicitly replaces a folder that disappeared from the cloud (files already uploaded keep their links). */
+  recreateFolder(input: { organizationId: string; projectId: string; locationId: string }): Promise<string>;
   syncFolders(input: {
     organizationId: string;
     projectId: string;

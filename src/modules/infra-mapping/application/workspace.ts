@@ -73,6 +73,10 @@ export async function loadInfraWorkspace(
     sortOrder: node.sortOrder,
     isActive: node.isActive,
     archived: node.archived,
+    ...(node.extraLevelIds ? { extraLevelIds: node.extraLevelIds } : {}),
+    ...(node.levelId ? { levelId: node.levelId } : {}),
+    ...(node.structure ? { structure: node.structure } : {}),
+    ...(node.unitKind ? { unitKind: node.unitKind } : {}),
   }));
 
   const canManageLocations = await viewerCanManageLocations(actor, access.projectId);

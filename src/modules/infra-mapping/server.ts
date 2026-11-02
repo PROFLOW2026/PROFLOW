@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { createHash, randomUUID } from 'node:crypto';
+import { sql } from 'drizzle-orm';
 import { externalProviderFileStore } from '@/modules/evidence/server';
 import type { ProjectFileDeps, StoredFile } from '@/modules/evidence';
 import { findDocumentById, updateDocumentById } from '@/modules/documents';
@@ -15,8 +16,6 @@ import {
   type StorageConnectionRecord,
 } from '@/modules/external-storage/server';
 import { provisionStoredProjectFolder } from '@/modules/external-storage/application/project-provision';
-import { resolveProjectScopedUploadFolderId } from '@/modules/external-storage/application/project-upload-folder';
-import type { OrgContext } from '@/shared/auth/context';
 import type { DbExecutor } from '@/shared/db/types';
 import { DomainRuleError, NotFoundError, ServiceUnavailableError } from '@/shared/errors';
 import {
@@ -29,12 +28,15 @@ import {
   type FolderMappingRow,
 } from './data/infra.repository';
 import {
+  FOLDER_MISSING,
   ensureLocationFolder,
+  inspectLocationFolder,
   linkExistingFolder,
   moveLocationFolder,
+  recreateMissingFolder,
   renameLocationFolder,
+  resolveFolderDrift,
   syncLocationFolders,
-  tryEnsureLocationFolder,
   type FolderAdapter,
   type FolderContext,
   type FolderMappingStore,
@@ -136,6 +138,15 @@ interface FolderRuntime {
   readonly accessToken: string;
 }
 
+/**
+ * Serializes folder creation per project: two uploads (or a retry racing the first attempt) for the same
+ * location must not create two folders. Transaction-scoped, so it is released when the write commits.
+ */
+async function lockProjectFolders(db: DbExecutor, input: { organizationId: string; projectId: string }): Promise<void> {
+  const key = `infra-folders:${input.organizationId}:${input.projectId}`;
+  await db.execute(sql`select pg_advisory_xact_lock(hashtextextended(${key}, 0))`);
+}
+
 export async function buildRuntime(
   db: DbExecutor,
   input: { organizationId: string; projectId: string; userId?: string | null },
@@ -145,16 +156,9 @@ export async function buildRuntime(
   const connection = await usableConnection(db, input.organizationId);
   onStage?.('token');
   const accessToken = await resolveValidAccessToken(db, input.organizationId, connection);
-  onStage?.('project_folder');
-  const projectFolderId = await provisionStoredProjectFolder(db, {
-    organizationId: input.organizationId,
-    connection,
-    accessToken,
-    projectId: input.projectId,
-  });
-  if (!projectFolderId) throw new DomainRuleError('Project folder is unavailable', 'infraMapping.errors.projectFolder');
   onStage?.('locations');
   const nodes = await listLocationNodes(db, input.organizationId, input.projectId);
+  let projectFolder: Promise<string> | null = null;
   return {
     connection,
     accessToken,
@@ -166,10 +170,45 @@ export async function buildRuntime(
         connectionId: connection.id,
         userId: input.userId ?? null,
       }),
-      projectFolderId,
-      tree: nodes.map((node) => ({ id: node.id, parentId: node.parentId, name: node.name, code: node.code, archived: node.archived })),
+      // Lazy: the project's own folder is only touched when a folder really has to be created.
+      getProjectFolderId() {
+        projectFolder ??= (async () => {
+          onStage?.('project_folder');
+          const projectFolderId = await provisionStoredProjectFolder(db, {
+            organizationId: input.organizationId,
+            connection,
+            accessToken,
+            projectId: input.projectId,
+          });
+          if (!projectFolderId) {
+            throw new DomainRuleError('Project folder is unavailable', 'infraMapping.errors.projectFolder');
+          }
+          onStage?.('folder');
+          return projectFolderId;
+        })();
+        return projectFolder;
+      },
+      tree: nodes.map((node) => ({
+        id: node.id,
+        parentId: node.parentId,
+        name: node.name,
+        code: node.code,
+        type: node.type,
+        structure: node.structure ?? null,
+        archived: node.archived,
+      })),
     },
   };
+}
+
+/** Runs a folder-creating operation under the per-project lock (idempotent and parallel safe). */
+export async function withFolderLock<T>(
+  db: DbExecutor,
+  input: { organizationId: string; projectId: string },
+  work: () => Promise<T>,
+): Promise<T> {
+  await lockProjectFolders(db, input);
+  return work();
 }
 
 export const infraFolderPort: InfraFolderPort = {
@@ -181,8 +220,8 @@ export const infraFolderPort: InfraFolderPort = {
           stage = next;
         });
         stage = 'folder';
-        // Strict: unlike the upload path, a failure here must surface (nothing may look synced).
-        return ensureLocationFolder(runtime.context, input.locationId);
+        // Strict: a failure must surface (nothing may look created when it is not).
+        return withFolderLock(db, input, () => ensureLocationFolder(runtime.context, input.locationId));
       });
       return { ok: true, folderId };
     } catch (error) {
@@ -209,35 +248,62 @@ export const infraFolderPort: InfraFolderPort = {
   resolveLocationFolder(input) {
     return runCommittedStorageWrite(async (db) => {
       const runtime = await buildRuntime(db, input);
-      return tryEnsureLocationFolder(runtime.context, input.locationId);
+      return withFolderLock(db, input, () => ensureLocationFolder(runtime.context, input.locationId));
     });
   },
 
   syncFolders(input) {
     return runCommittedStorageWrite(async (db) => {
       const runtime = await buildRuntime(db, { ...input, userId: input.createdByUserId });
-      return syncLocationFolders(runtime.context, { locationIds: input.locationIds ?? null, batchSize: input.batchSize });
+      return withFolderLock(db, input, () =>
+        syncLocationFolders(runtime.context, { locationIds: input.locationIds ?? null, batchSize: input.batchSize }),
+      );
     });
   },
 
   renameFolder(input) {
     return runCommittedStorageWrite(async (db) => {
       const runtime = await buildRuntime(db, input);
-      return renameLocationFolder(runtime.context, input.locationId);
+      return withFolderLock(db, input, () => renameLocationFolder(runtime.context, input.locationId));
     });
   },
 
   moveFolder(input) {
     return runCommittedStorageWrite(async (db) => {
       const runtime = await buildRuntime(db, input);
-      return moveLocationFolder(runtime.context, input.locationId);
+      return withFolderLock(db, input, () => moveLocationFolder(runtime.context, input.locationId));
     });
   },
 
   async linkFolder(input) {
     await runCommittedStorageWrite(async (db) => {
       const runtime = await buildRuntime(db, { ...input, userId: input.createdByUserId });
-      await linkExistingFolder(runtime.context, { locationId: input.locationId, externalFolderId: input.externalFolderId });
+      await withFolderLock(db, input, () =>
+        linkExistingFolder(runtime.context, { locationId: input.locationId, externalFolderId: input.externalFolderId }),
+      );
+    });
+  },
+
+  inspectFolder(input) {
+    return runCommittedStorageWrite(async (db) => {
+      const runtime = await buildRuntime(db, input);
+      return withFolderLock(db, input, () => inspectLocationFolder(runtime.context, input.locationId));
+    });
+  },
+
+  resolveFolderDrift(input) {
+    return runCommittedStorageWrite(async (db) => {
+      const runtime = await buildRuntime(db, input);
+      return withFolderLock(db, input, () =>
+        resolveFolderDrift(runtime.context, { locationId: input.locationId, choice: input.choice }),
+      );
+    });
+  },
+
+  recreateFolder(input) {
+    return runCommittedStorageWrite(async (db) => {
+      const runtime = await buildRuntime(db, input);
+      return withFolderLock(db, input, () => recreateMissingFolder(runtime.context, input.locationId));
     });
   },
 
@@ -245,7 +311,7 @@ export const infraFolderPort: InfraFolderPort = {
     if (input.documentIds.length === 0) return;
     await runCommittedStorageWrite(async (db) => {
       const runtime = await buildRuntime(db, input);
-      const folderId = await ensureLocationFolder(runtime.context, input.locationId);
+      const folderId = await withFolderLock(db, input, () => ensureLocationFolder(runtime.context, input.locationId));
       const provider = getStorageProviderAdapter(runtime.connection.provider);
       for (const documentId of input.documentIds) {
         const document = await findDocumentById(db, input.organizationId, documentId);
@@ -273,7 +339,7 @@ export const infraFolderPort: InfraFolderPort = {
   writeSidecar(input) {
     return runCommittedStorageWrite(async (db) => {
       const runtime = await buildRuntime(db, input);
-      const folderId = await ensureLocationFolder(runtime.context, input.locationId);
+      const folderId = await withFolderLock(db, input, () => ensureLocationFolder(runtime.context, input.locationId));
       const body = new TextEncoder().encode(input.json);
       const uploaded = await getStorageProviderAdapter(runtime.connection.provider).uploadFile(runtime.accessToken, {
         parentFolderId: folderId,
@@ -299,10 +365,38 @@ export const infraFolderPort: InfraFolderPort = {
   },
 };
 
+function providerStatusOf(error: unknown): number | null {
+  for (let cursor: unknown = error, depth = 0; cursor && typeof cursor === 'object' && depth < 5; depth += 1) {
+    const item = cursor as { name?: unknown; status?: unknown; cause?: unknown };
+    if (item.name === 'ProviderHttpError' && typeof item.status === 'number') return item.status;
+    cursor = item.cause;
+  }
+  return null;
+}
+
+/** Flags the location's folder as gone (a separate write: the failed upload transaction rolls back). */
+async function flagFolderMissing(input: { organizationId: string; projectId: string; locationId: string }): Promise<void> {
+  try {
+    await runCommittedStorageWrite(async (db) => {
+      const runtime = await buildRuntime(db, input);
+      await withFolderLock(db, input, async () => {
+        const rows = await runtime.context.store.list();
+        const row = rows.find((item) => item.locationId === input.locationId);
+        if (row) await runtime.context.store.update(row.id, { status: 'error', lastError: FOLDER_MISSING });
+      });
+    });
+  } catch (error) {
+    logger.warn('infra.flag_folder_missing_failed', { locationId: input.locationId, errorName: error instanceof Error ? error.name : typeof error });
+  }
+}
+
 /**
- * Evidence store that writes infrastructure photos straight into the folder of their location
- * (falling back to the project's regular photos folder when the location folder cannot be
- * resolved, so an upload is never lost because of a folder problem).
+ * Evidence store that writes infrastructure photos / videos into the folder of their location.
+ *
+ * The folder is created lazily on the first upload to a location (only the needed chain, under a per-project
+ * lock so two parallel uploads never create two folders) and reused afterwards without any provider call. If
+ * the folder cannot be resolved the upload FAILS with a clear error - it is never filed somewhere else and never
+ * reported as saved - so the client keeps the file and retries.
  */
 export const infraFileStore: ProjectFileDeps['store'] = {
   resolveConnection: externalProviderFileStore.resolveConnection,
@@ -312,37 +406,45 @@ export const infraFileStore: ProjectFileDeps['store'] = {
       findEvidenceLocationByDocument(db, input.organizationId, input.documentId),
     );
     if (!targetLocation) return externalProviderFileStore.put(input);
-    return runCommittedStorageWrite(async (db): Promise<StoredFile> => {
-      const runtime = await buildRuntime(db, { organizationId: input.organizationId, projectId: input.projectId });
-      let parentFolderId = await tryEnsureLocationFolder(runtime.context, targetLocation).catch(() => null);
-      if (!parentFolderId) {
-        parentFolderId = await resolveProjectScopedUploadFolderId(
-          { db, organizationId: input.organizationId } as unknown as OrgContext,
-          {
-            connection: runtime.connection,
-            accessToken: runtime.accessToken,
-            projectId: input.projectId,
-            semanticFolderType: input.folder,
-          },
-        );
-      }
-      const uploaded = await getStorageProviderAdapter(runtime.connection.provider).uploadFile(runtime.accessToken, {
-        parentFolderId,
+
+    const scope = { organizationId: input.organizationId, projectId: input.projectId, locationId: targetLocation };
+    const target = await runCommittedStorageWrite(async (db) => {
+      const runtime = await buildRuntime(db, scope);
+      const folderId = await withFolderLock(db, scope, () => ensureLocationFolder(runtime.context, targetLocation));
+      return { connection: runtime.connection, accessToken: runtime.accessToken, folderId };
+    }).catch((error: unknown) => {
+      if (error instanceof DomainRuleError || error instanceof ServiceUnavailableError || error instanceof NotFoundError) throw error;
+      logger.error('infra.upload_folder_failed', {
+        locationId: targetLocation,
+        code: describeFolderFailure('folder', error).code,
+      });
+      throw new ServiceUnavailableError('Location folder could not be created', 'infraMapping.errors.folderCreate');
+    });
+
+    try {
+      const uploaded = await getStorageProviderAdapter(target.connection.provider).uploadFile(target.accessToken, {
+        parentFolderId: target.folderId,
         fileName: input.fileName,
         mimeType: input.mimeType,
         body: input.bytes,
         sizeBytes: input.bytes.length,
       });
       return {
-        connectionId: runtime.connection.id,
-        provider: runtime.connection.provider,
+        connectionId: target.connection.id,
+        provider: target.connection.provider,
         externalFileId: uploaded.id,
-        externalParentFolderId: parentFolderId,
+        externalParentFolderId: target.folderId,
         etag: uploaded.etag ?? null,
         sizeBytes: uploaded.sizeBytes ?? input.bytes.length,
         checksum: createHash('sha256').update(input.bytes).digest('hex'),
-      };
-    });
+      } satisfies StoredFile;
+    } catch (error) {
+      if (providerStatusOf(error) === 404) {
+        await flagFolderMissing(scope);
+        throw new DomainRuleError('The cloud folder was removed or moved away', 'infraMapping.errors.folderMissing');
+      }
+      throw error;
+    }
   },
 };
 

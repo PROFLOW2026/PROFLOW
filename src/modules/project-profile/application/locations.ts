@@ -22,26 +22,53 @@ import {
   type LocationNode,
 } from '../domain/locations';
 import {
+  planDepthLevels,
+  planStructure,
+  unitLocationType,
+  unitName,
+  validateWizardSpec,
+  type UnitKind,
+  type WizardSpec,
+} from '../domain/structure-wizard';
+import {
+  buildingOf,
+  isUnitType,
+  suggestUnitNumber,
+  validateExtraLevels,
+  validateSpaceLevel,
+} from '../domain/unit-levels';
+import {
   countProjectLocations,
   findLocationsByIds,
   findProjectLocation,
   insertLocations,
   listProjectLocations,
   listSiblingCodes,
+  patchLocationMetadata,
   setLocationsArchived,
   updateProjectLocation,
   type LocationRecord,
   type NewLocationRow,
 } from '../data/locations.repository';
 import {
+  addUnitsSchema,
   createLocationSchema,
+  createStructureSchema,
   generateLocationsSchema,
   locationRefSchema,
   moveLocationSchema,
+  setSpaceLevelSchema,
+  setUnitKindSchema,
+  setUnitLevelsSchema,
   updateLocationSchema,
+  type AddUnitsInput,
   type CreateLocationInput,
+  type CreateStructureInput,
   type GenerateLocationsInput,
   type MoveLocationInput,
+  type SetSpaceLevelInput,
+  type SetUnitKindInput,
+  type SetUnitLevelsInput,
   type UpdateLocationInput,
 } from '../validation/schemas';
 import { CAP, parseInput, requireProjectWith } from './authorize';
@@ -59,7 +86,32 @@ function toNode(record: LocationRecord): LocationNode {
     sortOrder: record.sortOrder,
     isActive: record.isActive,
     archived: record.archived,
+    ...(record.extraLevelIds ? { extraLevelIds: record.extraLevelIds } : {}),
+    ...(record.levelId ? { levelId: record.levelId } : {}),
+    ...(record.structure ? { structure: record.structure } : {}),
+    ...(record.unitKind ? { unitKind: record.unitKind } : {}),
   };
+}
+
+function unitNameConflict(): ConflictError {
+  return new ConflictError('Unit number already used in this building', 'projectProfile.errors.unitNameTaken');
+}
+
+/** A unit number / name must be unique among the live units of its building (archived ones free theirs). */
+function assertUnitNameFree(
+  tree: readonly LocationRecord[],
+  parentId: string | null,
+  name: string,
+  excludeId: string | null,
+): void {
+  const index = buildLocationIndex(tree.map(toNode));
+  const building = parentId ? buildingOf(index, parentId) : null;
+  const wanted = name.trim().toLowerCase();
+  for (const node of tree) {
+    if (node.archived || node.id === excludeId || !isUnitType(node.type)) continue;
+    if (node.name.trim().toLowerCase() !== wanted) continue;
+    if ((node.parentId ? buildingOf(index, node.parentId) : null) === building) throw unitNameConflict();
+  }
 }
 
 async function emitLocationEvent(
@@ -163,6 +215,7 @@ export async function createProjectLocation(
     const codes = await listSiblingCodes(context.db, context.organizationId, input.projectId, input.parentId);
     if (codes.has(input.code.toLowerCase())) throw codeConflict();
   }
+  if (isUnitType(input.type)) assertUnitNameFree(tree, input.parentId, input.name, null);
 
   const id = randomUUID();
   try {
@@ -214,6 +267,14 @@ export async function updateProjectLocationDetails(
     const codes = await listSiblingCodes(context.db, context.organizationId, input.projectId, existing.parentId);
     if (codes.has(input.code.toLowerCase())) throw codeConflict();
   }
+  const nextType = input.type ?? existing.type;
+  if (isUnitType(nextType) && (input.name !== undefined || input.type !== undefined)) {
+    const nextName = input.name ?? existing.name;
+    if (nextName.trim().toLowerCase() !== existing.name.trim().toLowerCase() || !isUnitType(existing.type)) {
+      const tree = await listProjectLocations(context.db, context.organizationId, input.projectId, { includeArchived: true });
+      assertUnitNameFree(tree, existing.parentId, nextName, existing.id);
+    }
+  }
 
   let updated: LocationRecord | null;
   try {
@@ -261,12 +322,30 @@ export async function moveProjectLocation(context: OrgContext, rawInput: MoveLoc
     const codes = await listSiblingCodes(context.db, context.organizationId, input.projectId, input.parentId);
     if (codes.has(existing.code.toLowerCase())) throw codeConflict();
   }
+  if (isUnitType(existing.type)) assertUnitNameFree(tree, input.parentId, existing.name, existing.id);
 
   const updated = await updateProjectLocation(context.db, context.organizationId, input.projectId, input.locationId, {
     parentId: input.parentId,
     sortOrder: nextSiblingSortOrder(index, input.parentId),
   });
   if (!updated) throw new NotFoundError('Location');
+  if (isUnitType(existing.type) && (existing.extraLevelIds?.length ?? 0) > 0) {
+    // Changing the primary level keeps the unit (same id, same folder). Extra levels stay only while they
+    // are in the same building and differ from the new primary level.
+    const sameBuilding =
+      (existing.parentId ? buildingOf(index, existing.parentId) : null) ===
+      (input.parentId ? buildingOf(index, input.parentId) : null);
+    const keep = sameBuilding ? (existing.extraLevelIds ?? []).filter((id) => id !== input.parentId) : [];
+    if (keep.length !== existing.extraLevelIds?.length) {
+      await patchLocationMetadata(
+        context.db,
+        context.organizationId,
+        input.projectId,
+        input.locationId,
+        keep.length > 0 ? { set: { extraLevelIds: keep } } : { remove: ['extraLevelIds'] },
+      );
+    }
+  }
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.PROJECT_LOCATION_MOVED,
     entityType: 'project_location',
@@ -422,3 +501,243 @@ export async function generateProjectLocations(
   });
   return { createdCount: plan.length, rootIds };
 }
+
+// ── universal structure (wizard, units, levels) ────────────────────────────────────────────────────
+
+export interface CreateStructureResult extends GenerateLocationsResult {
+  readonly unitCount: number;
+}
+
+/**
+ * Creates the whole structure the wizard described: database rows only (site / buildings / levels / units /
+ * optional spaces). No cloud folder is created for any of them - folders appear on the first upload.
+ */
+export async function createProjectStructure(
+  context: OrgContext,
+  rawInput: CreateStructureInput,
+): Promise<CreateStructureResult> {
+  const input = parseInput(createStructureSchema, rawInput);
+  await requireProjectWith(context, input.projectId, CAP.MANAGE);
+  const spec = input.spec as unknown as WizardSpec;
+  const issues = validateWizardSpec(spec);
+  if (issues.length > 0) {
+    throw new DomainRuleError(`Invalid structure: ${issues.join(',')}`, 'projectProfile.errors.structureInvalid');
+  }
+  await loadParent(context, input.projectId, input.parentId);
+
+  const plan = planStructure(spec);
+  const existingCount = await countProjectLocations(context.db, context.organizationId, input.projectId);
+  if (existingCount + plan.length > MAX_LOCATIONS_PER_PROJECT) {
+    throw new DomainRuleError('Too many locations', 'projectProfile.errors.tooManyLocations');
+  }
+  const tree = await listProjectLocations(context.db, context.organizationId, input.projectId);
+  const index = buildLocationIndex(tree.map(toNode));
+  if (input.parentId && locationDepth(index, input.parentId) + 1 + Math.max(...plan.map((node) => node.depth), 0) + 2 >= MAX_LOCATION_DEPTH) {
+    throw new DomainRuleError('Hierarchy too deep', 'projectProfile.errors.tooDeep');
+  }
+  const rootSortStart = nextSiblingSortOrder(index, input.parentId);
+
+  const ids = new Map<string, string>();
+  for (const node of plan) ids.set(node.key, randomUUID());
+
+  const CHUNK = 500;
+  for (const level of planDepthLevels(plan)) {
+    const rows: NewLocationRow[] = level.map((node) => ({
+      id: ids.get(node.key)!,
+      organizationId: context.organizationId,
+      projectId: input.projectId,
+      parentId: node.parentKey ? ids.get(node.parentKey)! : input.parentId,
+      type: node.type,
+      name: node.name,
+      code: null,
+      sortOrder: node.parentKey ? node.sortOrder : rootSortStart + node.sortOrder,
+      createdByUserId: context.userId,
+      metadata: {
+        generated: true,
+        ...(node.unitKind ? { unitKind: node.unitKind } : {}),
+        ...(node.structure ? { structure: node.structure } : {}),
+        ...(node.extraLevelKeys && node.extraLevelKeys.length > 0
+          ? { extraLevelIds: node.extraLevelKeys.map((key) => ids.get(key)!).filter(Boolean) }
+          : {}),
+      },
+    }));
+    for (let offset = 0; offset < rows.length; offset += CHUNK) {
+      await insertLocations(context.db, rows.slice(offset, offset + CHUNK));
+    }
+  }
+
+  const rootIds = plan.filter((node) => node.parentKey === null).map((node) => ids.get(node.key)!);
+  const unitCount = plan.filter((node) => node.role === 'unit').length;
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.PROJECT_LOCATION_BULK_GENERATED,
+    entityType: 'project',
+    entityId: input.projectId,
+    after: { parentId: input.parentId, template: spec.template, createdCount: plan.length, unitCount },
+  });
+  await emitDomainEvent(context.db, {
+    organizationId: context.organizationId,
+    projectId: input.projectId,
+    type: DOMAIN_EVENTS.PROFILE_LOCATION_TREE_GENERATED,
+    entityType: 'project',
+    entityId: input.projectId,
+    actor: internalActor(context.userId),
+    payload: { parentId: input.parentId, createdCount: plan.length, unitCount, template: spec.template },
+  });
+  return { createdCount: plan.length, rootIds, unitCount };
+}
+
+/**
+ * Adds `count` units under a level (or any container), numbered after the highest number already used in the
+ * building. Existing units are never renumbered.
+ */
+export async function addProjectUnits(
+  context: OrgContext,
+  rawInput: AddUnitsInput,
+): Promise<{ createdIds: string[]; names: string[] }> {
+  const input = parseInput(addUnitsSchema, rawInput);
+  await requireProjectWith(context, input.projectId, CAP.MANAGE);
+  const parent = await loadParent(context, input.projectId, input.parentId);
+  if (!parent || isUnitType(parent.type)) {
+    throw new DomainRuleError('A unit cannot be placed under a unit', 'projectProfile.errors.structureInvalid');
+  }
+  const kind: UnitKind = input.kind;
+  const tree = await listProjectLocations(context.db, context.organizationId, input.projectId, { includeArchived: true });
+  if (tree.length + input.count * (1 + (input.rooms?.length ?? 0)) > MAX_LOCATIONS_PER_PROJECT) {
+    throw new DomainRuleError('Too many locations', 'projectProfile.errors.tooManyLocations');
+  }
+  const nodes = tree.map(toNode);
+  const index = buildLocationIndex(nodes);
+  const first = input.startNumber ?? suggestUnitNumber(nodes, input.parentId, kind);
+  const names = Array.from({ length: input.count }, (_, offset) => unitName(kind, first + offset));
+  for (const name of names) assertUnitNameFree(tree, input.parentId, name, null);
+
+  const sortStart = nextSiblingSortOrder(index, input.parentId);
+  const unitRows: NewLocationRow[] = [];
+  const roomRows: NewLocationRow[] = [];
+  const createdIds: string[] = [];
+  names.forEach((name, offset) => {
+    const id = randomUUID();
+    createdIds.push(id);
+    unitRows.push({
+      id,
+      organizationId: context.organizationId,
+      projectId: input.projectId,
+      parentId: input.parentId,
+      type: unitLocationType(kind),
+      name,
+      code: null,
+      sortOrder: sortStart + offset,
+      createdByUserId: context.userId,
+      metadata: { unitKind: kind },
+    });
+    (input.rooms ?? []).forEach((room, roomIndex) => {
+      roomRows.push({
+        organizationId: context.organizationId,
+        projectId: input.projectId,
+        parentId: id,
+        type: 'room',
+        name: room,
+        code: null,
+        sortOrder: roomIndex,
+        createdByUserId: context.userId,
+      });
+    });
+  });
+  await insertLocations(context.db, unitRows);
+  if (roomRows.length > 0) await insertLocations(context.db, roomRows);
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.PROJECT_LOCATION_CREATED,
+    entityType: 'project_location',
+    entityId: createdIds[0]!,
+    after: { projectId: input.projectId, parentId: input.parentId, kind, names },
+  });
+  await emitLocationEvent(context, input.projectId, DOMAIN_EVENTS.PROFILE_LOCATION_CREATED, createdIds[0]!, {
+    parentId: input.parentId,
+    type: unitLocationType(kind),
+    count: createdIds.length,
+  });
+  return { createdIds, names };
+}
+
+function levelLinkError(code: string): DomainRuleError {
+  return new DomainRuleError(`Invalid level link: ${code}`, 'projectProfile.errors.levelLink');
+}
+
+/** Sets the additional levels of a multi-level unit. The unit keeps its id; files and folders are untouched. */
+export async function setUnitLevels(context: OrgContext, rawInput: SetUnitLevelsInput): Promise<LocationNode> {
+  const input = parseInput(setUnitLevelsSchema, rawInput);
+  await requireProjectWith(context, input.projectId, CAP.MANAGE);
+  const tree = await listProjectLocations(context.db, context.organizationId, input.projectId, { includeArchived: true });
+  const index = buildLocationIndex(tree.map(toNode));
+  const unit = tree.find((row) => row.id === input.unitId);
+  if (!unit) throw new NotFoundError('Location');
+  if (unit.archived) throw new DomainRuleError('Archived location', 'projectProfile.errors.locationArchived');
+  const problem = validateExtraLevels(index, input.unitId, input.extraLevelIds);
+  if (problem) throw levelLinkError(problem);
+
+  await patchLocationMetadata(
+    context.db,
+    context.organizationId,
+    input.projectId,
+    input.unitId,
+    input.extraLevelIds.length > 0 ? { set: { extraLevelIds: input.extraLevelIds } } : { remove: ['extraLevelIds'] },
+  );
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.PROJECT_LOCATION_UPDATED,
+    entityType: 'project_location',
+    entityId: input.unitId,
+    before: { extraLevelIds: unit.extraLevelIds ?? [] },
+    after: { extraLevelIds: input.extraLevelIds },
+  });
+  await emitLocationEvent(context, input.projectId, DOMAIN_EVENTS.PROFILE_LOCATION_UPDATED, input.unitId, {
+    extraLevelCount: input.extraLevelIds.length,
+  });
+  const updated = await findProjectLocation(context.db, context.organizationId, input.projectId, input.unitId);
+  if (!updated) throw new NotFoundError('Location');
+  return toNode(updated);
+}
+
+/** Tags a space (room) with the level it is on - for example the upper floor of a duplex. */
+export async function setSpaceLevel(context: OrgContext, rawInput: SetSpaceLevelInput): Promise<LocationNode> {
+  const input = parseInput(setSpaceLevelSchema, rawInput);
+  await requireProjectWith(context, input.projectId, CAP.MANAGE);
+  const tree = await listProjectLocations(context.db, context.organizationId, input.projectId, { includeArchived: true });
+  const index = buildLocationIndex(tree.map(toNode));
+  const problem = validateSpaceLevel(index, input.spaceId, input.levelId);
+  if (problem) throw levelLinkError(problem);
+  await patchLocationMetadata(
+    context.db,
+    context.organizationId,
+    input.projectId,
+    input.spaceId,
+    input.levelId ? { set: { levelId: input.levelId } } : { remove: ['levelId'] },
+  );
+  await emitLocationEvent(context, input.projectId, DOMAIN_EVENTS.PROFILE_LOCATION_UPDATED, input.spaceId, {
+    levelId: input.levelId,
+  });
+  const updated = await findProjectLocation(context.db, context.organizationId, input.projectId, input.spaceId);
+  if (!updated) throw new NotFoundError('Location');
+  return toNode(updated);
+}
+
+/** Changes the kind of a unit (apartment / penthouse / shop / office ...). The row, its id and links stay. */
+export async function setUnitKind(context: OrgContext, rawInput: SetUnitKindInput): Promise<LocationNode> {
+  const input = parseInput(setUnitKindSchema, rawInput);
+  await requireProjectWith(context, input.projectId, CAP.MANAGE);
+  const existing = await findProjectLocation(context.db, context.organizationId, input.projectId, input.unitId);
+  if (!existing) throw new NotFoundError('Location');
+  if (!isUnitType(existing.type)) throw new DomainRuleError('Not a unit', 'projectProfile.errors.structureInvalid');
+  const updated = await updateProjectLocation(context.db, context.organizationId, input.projectId, input.unitId, {
+    type: unitLocationType(input.kind),
+  });
+  await patchLocationMetadata(context.db, context.organizationId, input.projectId, input.unitId, {
+    set: { unitKind: input.kind },
+  });
+  if (!updated) throw new NotFoundError('Location');
+  await emitLocationEvent(context, input.projectId, DOMAIN_EVENTS.PROFILE_LOCATION_UPDATED, input.unitId, {
+    unitKind: input.kind,
+  });
+  return toNode({ ...updated, unitKind: input.kind });
+}
+

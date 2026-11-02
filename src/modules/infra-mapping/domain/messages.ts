@@ -9,6 +9,13 @@ export const INFRA_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   'infraMapping.errors.uploadIncomplete': 'לא כל הקבצים הועלו לענן. נסו שוב.',
   'infraMapping.errors.comparisonRemoved': 'תוצאת האיתור הזו הוסרה.',
   'infraMapping.errors.folderInUse': 'התיקייה הזו כבר משמשת מיקום אחר.',
+  'infraMapping.errors.folderMissing':
+    'התיקייה של המיקום הזה נמחקה או הועברה בענן. הקובץ לא אבד - עברו למיקומים ובחרו לקשר תיקייה קיימת או ליצור תיקייה חדשה.',
+  'infraMapping.errors.folderCreate':
+    'לא הצלחנו ליצור את התיקייה בענן. שום דבר לא נשמר במקום אחר - נסו שוב בעוד רגע.',
+  'projectProfile.errors.unitNameTaken': 'המספר או השם כבר בשימוש בבניין הזה. בחרו מספר אחר.',
+  'projectProfile.errors.structureInvalid': 'המבנה שהוגדר אינו תקין. בדקו את הכמויות והשמות.',
+  'projectProfile.errors.levelLink': 'אי אפשר לשייך את היחידה למפלס הזה. בחרו מפלס פעיל באותו בניין.',
   'infraMapping.errors.projectFolder': 'תיקיית הפרויקט בענן עדיין לא מוכנה. נסו שוב בעוד רגע.',
   'infraMapping.errors.videoType': 'סוג הסרטון אינו נתמך. בחרו סרטון MP4, MOV, WEBM או 3GP.',
   'infraMapping.errors.videoEmpty': 'הסרטון ריק.',
@@ -28,9 +35,8 @@ export const INFRA_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   'projectPlans.evidence.errors.contentMismatch': 'תוכן הקובץ אינו תמונה תקינה.',
 };
 
-/** Adding a location needs the organization's cloud: the folder is created together with it. */
-export const INFRA_LOCATION_NEEDS_CLOUD = 'אי אפשר להוסיף מיקום בלי חיבור לענן הארגון. יש לחבר אחסון בהגדרות ולנסות שוב.';
-export const INFRA_LOCATION_FOLDER_FAILED = 'התיקייה בענן לא נוצרה, ולכן המיקום לא נוסף. נסו שוב.';
+/** Locations are virtual; only the first upload (or an explicit request) needs the organization's cloud. */
+export const INFRA_UPLOAD_NEEDS_CLOUD = 'כדי לצלם ולהעלות תמונות יש לחבר אחסון ענן של הארגון בהגדרות. אפשר להמשיך לנהל את המבנה גם בלי חיבור.';
 
 export const INFRA_DB_PENDING_MESSAGE = 'ממתין להפעלת מסד נתונים: מיפוי התשתיות עדיין לא הופעל בסביבה זו.';
 export const INFRA_GENERIC_ERROR = 'הפעולה נכשלה. נסו שוב.';

@@ -2,10 +2,11 @@ import type { ConstructionCategory, ConstructionMethod } from '../domain/charact
 import type { LocationGeneratorSpec } from '../domain/location-generator';
 import type { LocationType } from '../domain/locations';
 import type { OperatingRole, OwnershipModel } from '../domain/profile';
+import type { UnitKind, WizardSpec } from '../domain/structure-wizard';
 
 /** Serializable result of every structure server action. */
 export type StructureActionResult =
-  | { readonly ok: true; readonly count?: number; readonly locationId?: string }
+  | { readonly ok: true; readonly count?: number; readonly locationId?: string; readonly warning?: string }
   | { readonly ok: false; readonly error: string; readonly fieldErrors?: Record<string, string> };
 
 export interface SaveProfilePayload {
@@ -66,6 +67,39 @@ export interface GenerateLocationsPayload {
   readonly projectId: string;
   readonly parentId: string | null;
   readonly spec: LocationGeneratorSpec;
+}
+
+export interface CreateStructurePayload {
+  readonly projectId: string;
+  readonly parentId: string | null;
+  readonly spec: WizardSpec;
+}
+
+export interface AddUnitsPayload {
+  readonly projectId: string;
+  readonly parentId: string;
+  readonly kind: UnitKind;
+  readonly count: number;
+  readonly startNumber?: number | null;
+  readonly rooms?: string[];
+}
+
+export interface SetUnitLevelsPayload {
+  readonly projectId: string;
+  readonly unitId: string;
+  readonly extraLevelIds: string[];
+}
+
+export interface SetSpaceLevelPayload {
+  readonly projectId: string;
+  readonly spaceId: string;
+  readonly levelId: string | null;
+}
+
+export interface SetUnitKindPayload {
+  readonly projectId: string;
+  readonly unitId: string;
+  readonly kind: UnitKind;
 }
 
 export interface RecommendationKeysPayload {

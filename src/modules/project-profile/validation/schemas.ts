@@ -7,6 +7,7 @@ import {
 } from '../domain/characteristics';
 import { GENERATOR_LIMITS } from '../domain/location-generator';
 import { LOCATION_TYPES } from '../domain/locations';
+import { UNIT_KINDS, WIZARD_LIMITS, WIZARD_TEMPLATES } from '../domain/structure-wizard';
 import { OPERATING_ROLES, OWNERSHIP_MODELS } from '../domain/profile';
 
 const emptyToNull = (value: unknown) => {
@@ -130,6 +131,82 @@ export const generateLocationsSchema = z.object({
   }),
 });
 export type GenerateLocationsInput = z.input<typeof generateLocationsSchema>;
+
+const wizardName = z.string().trim().min(1).max(WIZARD_LIMITS.nameLength);
+
+const wizardLevelSchema = z.object({
+  key: z.string().min(1).max(20),
+  kind: z.enum(['basement', 'ground', 'floor', 'special', 'roof']),
+  number: z.number().int().min(0).max(200).optional(),
+  label: z.string().trim().max(WIZARD_LIMITS.nameLength).optional(),
+  units: z.partialRecord(z.enum(UNIT_KINDS), z.number().int().min(0).max(WIZARD_LIMITS.unitsPerCell)),
+});
+
+export const createStructureSchema = z.object({
+  projectId: projectIdSchema,
+  parentId: z.preprocess(emptyToNull, z.string().uuid().nullable()),
+  spec: z.object({
+    template: z.enum(WIZARD_TEMPLATES),
+    siteName: z.preprocess(emptyToNull, wizardName.nullable()),
+    buildings: z
+      .array(
+        z.object({
+          name: wizardName,
+          structure: z.enum(['building', 'house']),
+          levels: z.array(wizardLevelSchema).max(WIZARD_LIMITS.levelsPerBuilding),
+        }),
+      )
+      .max(WIZARD_LIMITS.buildings),
+    areas: z.array(wizardName).max(WIZARD_LIMITS.areas),
+    numbering: z.enum(['sequential', 'per_level']),
+    multiLevel: z
+      .array(
+        z.object({
+          buildingIndex: z.number().int().min(0).max(WIZARD_LIMITS.buildings),
+          levelKey: z.string().min(1).max(20),
+          kind: z.enum(UNIT_KINDS),
+          ordinal: z.number().int().min(1).max(WIZARD_LIMITS.unitsPerCell),
+          extraLevelKeys: z.array(z.string().min(1).max(20)).max(WIZARD_LIMITS.extraLevelsPerUnit),
+        }),
+      )
+      .max(WIZARD_LIMITS.multiLevelLinks),
+    rooms: z.array(wizardName).max(WIZARD_LIMITS.rooms),
+  }),
+});
+export type CreateStructureInput = z.input<typeof createStructureSchema>;
+
+export const addUnitsSchema = z.object({
+  projectId: projectIdSchema,
+  /** The primary level (or a building / area when there are no levels). */
+  parentId: z.string().uuid(),
+  kind: z.enum(UNIT_KINDS),
+  count: intRange(1, WIZARD_LIMITS.unitsPerCell),
+  /** Optional explicit first number; omitted = the next free number of the building. */
+  startNumber: z.preprocess(emptyToNull, z.number().int().min(1).max(99999).nullable()).optional(),
+  rooms: z.array(wizardName).max(WIZARD_LIMITS.rooms).optional(),
+});
+export type AddUnitsInput = z.input<typeof addUnitsSchema>;
+
+export const setUnitLevelsSchema = z.object({
+  projectId: projectIdSchema,
+  unitId: z.string().uuid(),
+  extraLevelIds: z.array(z.string().uuid()).max(WIZARD_LIMITS.extraLevelsPerUnit),
+});
+export type SetUnitLevelsInput = z.input<typeof setUnitLevelsSchema>;
+
+export const setSpaceLevelSchema = z.object({
+  projectId: projectIdSchema,
+  spaceId: z.string().uuid(),
+  levelId: z.preprocess(emptyToNull, z.string().uuid().nullable()),
+});
+export type SetSpaceLevelInput = z.input<typeof setSpaceLevelSchema>;
+
+export const setUnitKindSchema = z.object({
+  projectId: projectIdSchema,
+  unitId: z.string().uuid(),
+  kind: z.enum(UNIT_KINDS),
+});
+export type SetUnitKindInput = z.input<typeof setUnitKindSchema>;
 
 const recommendationKey = z.string().regex(/^[a-z][a-z_]*:[a-z0-9_:]+$/).max(120);
 

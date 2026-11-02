@@ -109,6 +109,8 @@ export const listCapturesSchema = z.object({
   organizationId: uuid.nullish(),
   locationId: uuid.nullish(),
   includeSubLocations: z.boolean().default(true),
+  /** Level filter (floor / basement / roof): units on it, multi-level units that reach it, and their spaces. */
+  levelId: uuid.nullish(),
   text: z.string().trim().max(120).nullish(),
   room: z.string().trim().max(120).nullish(),
   wall: z.string().trim().max(120).nullish(),

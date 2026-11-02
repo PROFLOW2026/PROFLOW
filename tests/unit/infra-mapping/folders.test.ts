@@ -1,15 +1,21 @@
 /**
- * Folder service against an in-memory provider tree and mapping store (no database, no network).
- * Proves: location tree == cloud folder tree, bulk creation, idempotency, rename / move keep the
- * photo<->folder link, linking an existing folder, and recovery from a deleted folder.
+ * Lazy folder service against an in-memory provider tree and mapping store (no database, no network - the real
+ * cloud providers are NOT exercised here). Proves: creating a structure makes no folders, the first upload
+ * creates only the needed chain, later uploads reuse it, levels / rooms never get folders, rename / move keep the
+ * photo<->folder link, renames done in the cloud are detected on demand, and a deleted folder is never silently
+ * replaced.
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  ensureInfraRoot,
+  FOLDER_MISSING,
+  ensureInfraRootFolder,
   ensureLocationFolder,
+  inspectLocationFolder,
   linkExistingFolder,
   moveLocationFolder,
+  recreateMissingFolder,
   renameLocationFolder,
+  resolveFolderDrift,
   syncLocationFolders,
   type FolderAdapter,
   type FolderContext,
@@ -17,8 +23,9 @@ import {
   type FolderMappingStore,
 } from '@/modules/infra-mapping/application/folders';
 import type { FolderMappingRow } from '@/modules/infra-mapping/data/infra.repository';
+import type { PlacementNode } from '@/modules/infra-mapping/domain/folder-placement';
 
-type Node = { id: string; parentId: string | null; name: string; code: string | null; archived?: boolean };
+type Node = PlacementNode & { code: string | null };
 
 class FakeProvider implements FolderAdapter {
   folders = new Map<string, FolderItem>();
@@ -31,7 +38,6 @@ class FakeProvider implements FolderAdapter {
     this.folders.set(folder.id, folder);
     return folder;
   }
-
   async getFolder(folderId: string) {
     return this.folders.get(folderId) ?? null;
   }
@@ -62,6 +68,9 @@ class FakeProvider implements FolderAdapter {
     }
     return parts.join('/');
   }
+  namesAnywhere(): string[] {
+    return [...this.folders.values()].map((f) => f.name);
+  }
 }
 
 class FakeStore implements FolderMappingStore {
@@ -86,112 +95,213 @@ class FakeStore implements FolderMappingStore {
   }
 }
 
-describe('infrastructure folders in the customer cloud', () => {
+const ROOT = 'פרויקט א/תיעוד תשתיות';
+
+describe('lazy infrastructure folders in the customer cloud', () => {
   let provider: FakeProvider;
   let store: FakeStore;
   let projectFolder: FolderItem;
   let tree: Node[];
-  const context = (): FolderContext => ({ adapter: provider, store, projectFolderId: projectFolder.id, tree });
+  let projectFolderCalls: number;
+  const context = (): FolderContext => ({
+    adapter: provider,
+    store,
+    tree,
+    getProjectFolderId: async () => {
+      projectFolderCalls += 1;
+      return projectFolder.id;
+    },
+  });
 
   beforeEach(() => {
     provider = new FakeProvider();
     store = new FakeStore();
     projectFolder = provider.seed('פרויקט א', null);
+    projectFolderCalls = 0;
     tree = [
-      { id: 'bldA', parentId: null, name: 'בניין א', code: null },
-      { id: 'fl3', parentId: 'bldA', name: 'קומה 3', code: null },
-      { id: 'ap12', parentId: 'fl3', name: 'דירה 12', code: null },
-      { id: 'bldB', parentId: null, name: 'בניין ב', code: null },
+      { id: 'bldA', parentId: null, name: 'בניין א', code: null, type: 'building' },
+      { id: 'fl3', parentId: 'bldA', name: 'קומה 3', code: null, type: 'floor' },
+      { id: 'fl4', parentId: 'bldA', name: 'קומה 4', code: null, type: 'floor' },
+      { id: 'ap12', parentId: 'fl3', name: 'דירה 12', code: null, type: 'apartment' },
+      { id: 'ap13', parentId: 'fl3', name: 'דירה 13', code: null, type: 'apartment' },
+      { id: 'room1', parentId: 'ap12', name: 'סלון', code: null, type: 'room' },
+      { id: 'lobby', parentId: 'bldA', name: 'לובי', code: null, type: 'area' },
+      { id: 'bldB', parentId: null, name: 'בניין ב', code: null, type: 'building' },
     ];
   });
 
-  it('creates the root and the full ancestor chain as real nested folders', async () => {
+  it('a large structure creates no folders and no provider calls by itself', async () => {
+    for (let i = 0; i < 300; i += 1) {
+      tree.push({ id: `bulk${i}`, parentId: 'fl4', name: `דירה ${100 + i}`, code: null, type: 'apartment' });
+    }
+    // Nothing runs on creation; a repair pass over an untouched structure finds nothing to do.
+    const result = await syncLocationFolders(context(), { batchSize: 40 });
+    expect(result).toMatchObject({ processed: 0, created: 0, remaining: 0 });
+    expect(provider.created).toBe(0);
+    expect(projectFolderCalls).toBe(0);
+    expect(store.rows).toHaveLength(0);
+  });
+
+  it('the first upload creates only the needed chain (no level, no room, no sibling units)', async () => {
     const folderId = await ensureLocationFolder(context(), 'ap12');
-    expect(provider.pathOf(folderId)).toBe('פרויקט א/תיעוד תשתיות/בניין א/קומה 3/דירה 12');
+    expect(provider.pathOf(folderId)).toBe(`${ROOT}/בניין א/יחידות/דירה 12`);
+    expect(provider.created).toBe(4); // infra root, building, units group, unit
+    expect(provider.namesAnywhere()).not.toContain('קומה 3');
+    expect(provider.namesAnywhere()).not.toContain('סלון');
+    expect(provider.namesAnywhere()).not.toContain('דירה 13');
     expect(store.forLocation(null)?.status).toBe('ready');
+    expect(store.forLocation('bldA')?.status).toBe('ready');
     expect(store.forLocation('ap12')?.externalFolderId).toBe(folderId);
   });
 
-  it('is idempotent: running it again creates nothing', async () => {
+  it('the second upload reuses the saved folder and makes no provider call at all', async () => {
+    const first = await ensureLocationFolder(context(), 'ap12');
+    const created = provider.created;
+    const calls = projectFolderCalls;
+    const second = await ensureLocationFolder(context(), 'ap12');
+    expect(second).toBe(first);
+    expect(provider.created).toBe(created);
+    expect(projectFolderCalls).toBe(calls);
+  });
+
+  it('another unit reuses the building and the units group - only its own folder is created', async () => {
     await ensureLocationFolder(context(), 'ap12');
     const before = provider.created;
-    await ensureLocationFolder(context(), 'ap12');
+    const other = await ensureLocationFolder(context(), 'ap13');
+    expect(provider.created).toBe(before + 1);
+    expect(provider.pathOf(other)).toBe(`${ROOT}/בניין א/יחידות/דירה 13`);
+    expect(provider.namesAnywhere().filter((name) => name === 'יחידות')).toHaveLength(1);
+  });
+
+  it('a level and a room resolve to the existing folder and never create their own', async () => {
+    const unit = await ensureLocationFolder(context(), 'ap12');
+    const before = provider.created;
+    expect(await ensureLocationFolder(context(), 'room1')).toBe(unit);
     expect(provider.created).toBe(before);
-    expect(store.rows).toHaveLength(4);
+    const building = store.forLocation('bldA')!.externalFolderId;
+    expect(await ensureLocationFolder(context(), 'fl3')).toBe(building);
+    expect(provider.created).toBe(before);
   });
 
-  it('bulk sync builds the whole tree in paced batches, parents first', async () => {
+  it('common areas go under a "שטחים משותפים" group only when used', async () => {
+    const folderId = await ensureLocationFolder(context(), 'lobby');
+    expect(provider.pathOf(folderId)).toBe(`${ROOT}/בניין א/שטחים משותפים/לובי`);
+    expect(provider.namesAnywhere()).not.toContain('יחידות');
+  });
+
+  it('a private house has no "יחידות" folder and keeps its rooms inside it', async () => {
     tree.push(
-      ...Array.from({ length: 6 }, (_, i) => ({ id: `ap-${i}`, parentId: 'fl3', name: `דירה ${i + 20}`, code: null })),
+      { id: 'villa', parentId: null, name: 'וילה 1', code: null, type: 'building', structure: 'house' },
+      { id: 'kitchen', parentId: 'villa', name: 'מטבח', code: null, type: 'room' },
     );
-    const total = tree.length;
-    let result = await syncLocationFolders(context(), { batchSize: 3 });
-    expect(result.processed).toBe(3);
-    expect(result.remaining).toBe(total - 3);
-    let guard = 0;
-    while (result.remaining > 0 && guard < 20) {
-      result = await syncLocationFolders(context(), { batchSize: 3 });
-      guard += 1;
-    }
-    expect(result.remaining).toBe(0);
-    for (const node of tree) expect(store.forLocation(node.id)?.status).toBe('ready');
-    expect(provider.pathOf(store.forLocation('ap-5')!.externalFolderId)).toBe('פרויקט א/תיעוד תשתיות/בניין א/קומה 3/דירה 25');
+    const villa = await ensureLocationFolder(context(), 'villa');
+    expect(provider.pathOf(villa)).toBe(`${ROOT}/וילה 1`);
+    expect(await ensureLocationFolder(context(), 'kitchen')).toBe(villa);
+    expect(provider.namesAnywhere()).not.toContain('יחידות');
   });
 
-  it('a failing location is reported and retried, never silently dropped', async () => {
-    provider.failCreateFor.add('בניין ב');
-    const first = await syncLocationFolders(context(), { batchSize: 20 });
-    expect(first.failed.map((item) => item.locationId)).toEqual(['bldB']);
+  it('an infrastructure project without buildings mirrors its areas', async () => {
+    tree.push(
+      { id: 'road', parentId: null, name: 'כביש 1', code: null, type: 'area' },
+      { id: 'seg', parentId: 'road', name: 'קטע 1', code: null, type: 'area' },
+    );
+    const folderId = await ensureLocationFolder(context(), 'seg');
+    expect(provider.pathOf(folderId)).toBe(`${ROOT}/כביש 1/קטע 1`);
+  });
+
+  it('the project folder is only asked for when something really has to be created', async () => {
+    await ensureInfraRootFolder(context());
+    expect(projectFolderCalls).toBe(1);
+    await ensureInfraRootFolder(context());
+    expect(projectFolderCalls).toBe(1);
+  });
+
+  it('explicit creation for a building makes real folders only for units / areas, not for levels or rooms', async () => {
+    const result = await syncLocationFolders(context(), { locationIds: ['bldA'], batchSize: 40 });
+    expect(result.remaining).toBe(0);
+    expect(result.failed).toEqual([]);
+    const names = provider.namesAnywhere();
+    expect(names).toEqual(expect.arrayContaining(['בניין א', 'דירה 12', 'דירה 13', 'לובי']));
+    expect(names).not.toContain('קומה 3');
+    expect(names).not.toContain('קומה 4');
+    expect(names).not.toContain('סלון');
+    const again = await syncLocationFolders(context(), { locationIds: ['bldA'], batchSize: 40 });
+    expect(again).toMatchObject({ processed: 0, remaining: 0 });
+  });
+
+  it('archived locations are not created by an explicit branch creation', async () => {
+    tree = tree.map((node) => (node.id === 'ap13' ? { ...node, archived: true } : node));
+    await syncLocationFolders(context(), { locationIds: ['bldA'], batchSize: 40 });
+    expect(provider.namesAnywhere()).not.toContain('דירה 13');
+  });
+
+  it('a failing creation is reported and retried, never silently dropped', async () => {
+    provider.failCreateFor.add('דירה 12');
+    const first = await syncLocationFolders(context(), { locationIds: ['ap12'], batchSize: 20 });
+    expect(first.failed.map((item) => item.locationId)).toEqual(['ap12']);
     expect(first.remaining).toBe(1);
     provider.failCreateFor.clear();
-    const second = await syncLocationFolders(context(), { batchSize: 20 });
+    const second = await syncLocationFolders(context(), { locationIds: ['ap12'], batchSize: 20 });
     expect(second.remaining).toBe(0);
-    expect(store.forLocation('bldB')?.status).toBe('ready');
+    expect(store.forLocation('ap12')?.status).toBe('ready');
   });
 
-  it('archived locations are not synced', async () => {
-    tree.push({ id: 'old', parentId: null, name: 'ישן', code: null, archived: true });
-    await syncLocationFolders(context(), { batchSize: 40 });
-    expect(store.forLocation('old')).toBeUndefined();
+  it('repair (no ids) retries failed rows only and leaves a missing folder for the user to decide', async () => {
+    const a = await ensureLocationFolder(context(), 'ap12');
+    const b = await ensureLocationFolder(context(), 'ap13');
+    provider.folders.delete(a);
+    await inspectLocationFolder(context(), 'ap12'); // flags it as missing
+    const brokenRow = store.forLocation('ap13')!;
+    await store.update(brokenRow.id, { status: 'error', lastError: 'boom' });
+    const before = provider.created;
+    const result = await syncLocationFolders(context(), { batchSize: 20 });
+    expect(result.remaining).toBe(0);
+    expect(store.forLocation('ap13')?.externalFolderId).toBe(b);
+    expect(store.forLocation('ap12')?.lastError).toBe(FOLDER_MISSING); // untouched
+    expect(provider.created).toBe(before);
   });
 
-  it('two siblings with the same name get distinct folders', async () => {
-    tree.push({ id: 'dup1', parentId: 'bldB', name: 'חדר', code: null }, { id: 'dup2', parentId: 'bldB', name: 'חדר', code: null });
+  it('two sibling units with the same name get distinct folders', async () => {
+    tree.push({ id: 'dup1', parentId: 'fl4', name: 'חנות', code: null, type: 'apartment' }, { id: 'dup2', parentId: 'fl4', name: 'חנות', code: null, type: 'apartment' });
     const a = await ensureLocationFolder(context(), 'dup1');
     const b = await ensureLocationFolder(context(), 'dup2');
     expect(a).not.toBe(b);
-    expect(provider.pathOf(b)).toMatch(/חדר \(2\)$/);
+    expect(provider.pathOf(b)).toMatch(/חנות \(2\)$/);
   });
 
-  it('renaming a location renames its folder but keeps the same folder id (photos stay linked)', async () => {
-    const folderId = await ensureLocationFolder(context(), 'fl3');
-    tree = tree.map((node) => (node.id === 'fl3' ? { ...node, name: 'קומה שלישית' } : node));
-    expect(await renameLocationFolder(context(), 'fl3')).toBe('renamed');
-    expect(store.forLocation('fl3')?.externalFolderId).toBe(folderId);
-    expect(provider.pathOf(folderId)).toMatch(/קומה שלישית$/);
-    expect(await renameLocationFolder(context(), 'fl3')).toBe('unchanged');
+  it('renaming a unit renames its folder but keeps the folder id (photos stay linked)', async () => {
+    const folderId = await ensureLocationFolder(context(), 'ap12');
+    tree = tree.map((node) => (node.id === 'ap12' ? { ...node, name: 'דירה 12א' } : node));
+    expect(await renameLocationFolder(context(), 'ap12')).toBe('renamed');
+    expect(store.forLocation('ap12')?.externalFolderId).toBe(folderId);
+    expect(provider.pathOf(folderId)).toMatch(/דירה 12א$/);
+    expect(await renameLocationFolder(context(), 'ap12')).toBe('unchanged');
   });
 
-  it('moving a location moves the folder (with its content) and keeps ids', async () => {
-    const apFolder = await ensureLocationFolder(context(), 'ap12');
-    const childMarker = provider.seed('photo.jpg-holder', apFolder);
-    await ensureLocationFolder(context(), 'bldB');
-    tree = tree.map((node) => (node.id === 'ap12' ? { ...node, parentId: 'bldB' } : node));
-    expect(await moveLocationFolder(context(), 'ap12')).toBe('moved');
-    expect(store.forLocation('ap12')?.externalFolderId).toBe(apFolder);
-    expect(provider.pathOf(apFolder)).toBe('פרויקט א/תיעוד תשתיות/בניין ב/דירה 12');
-    expect(provider.folders.get(childMarker.id)?.parentId).toBe(apFolder);
+  it('moving a unit to another level changes nothing in the cloud; to another building it moves the folder with its content', async () => {
+    const unit = await ensureLocationFolder(context(), 'ap12');
+    const marker = provider.seed('content', unit);
+    tree = tree.map((node) => (node.id === 'ap12' ? { ...node, parentId: 'fl4' } : node));
     expect(await moveLocationFolder(context(), 'ap12')).toBe('unchanged');
+    expect(provider.pathOf(unit)).toBe(`${ROOT}/בניין א/יחידות/דירה 12`);
+
+    tree = [
+      ...tree.map((node) => (node.id === 'ap12' ? { ...node, parentId: 'bldB' } : node)),
+    ];
+    expect(await moveLocationFolder(context(), 'ap12')).toBe('moved');
+    expect(store.forLocation('ap12')?.externalFolderId).toBe(unit);
+    expect(provider.pathOf(unit)).toBe(`${ROOT}/בניין ב/יחידות/דירה 12`);
+    expect(provider.folders.get(marker.id)?.parentId).toBe(unit);
   });
 
   it('a location without a folder yet is reported, not invented, by rename / move', async () => {
-    expect(await renameLocationFolder(context(), 'bldA')).toBe('no_folder');
-    expect(await moveLocationFolder(context(), 'bldA')).toBe('no_folder');
+    expect(await renameLocationFolder(context(), 'ap12')).toBe('no_folder');
+    expect(await moveLocationFolder(context(), 'ap12')).toBe('no_folder');
+    expect(provider.created).toBe(0);
   });
 
-  it('links a folder the customer already has and keeps its own name on rename / move', async () => {
+  it('links a folder the customer already has and keeps its own name', async () => {
     const existing = provider.seed('התיקייה הישנה של דירה 12', projectFolder.id);
-    await ensureInfraRoot(context());
     const row = await linkExistingFolder(context(), { locationId: 'ap12', externalFolderId: existing.id });
     expect(row.origin).toBe('linked_existing');
     tree = tree.map((node) => (node.id === 'ap12' ? { ...node, name: 'דירה 12 (שונה)' } : node));
@@ -200,25 +310,48 @@ describe('infrastructure folders in the customer cloud', () => {
     expect(await ensureLocationFolder(context(), 'ap12')).toBe(existing.id);
   });
 
-  it('one provider folder cannot serve two locations', async () => {
+  it('one provider folder cannot serve two locations; a missing folder or unknown location fails clearly', async () => {
     const existing = provider.seed('משותפת', projectFolder.id);
     await linkExistingFolder(context(), { locationId: 'bldA', externalFolderId: existing.id });
     await expect(linkExistingFolder(context(), { locationId: 'bldB', externalFolderId: existing.id })).rejects.toMatchObject({
       messageKey: 'infraMapping.errors.folderInUse',
     });
-  });
-
-  it('linking a missing folder or an unknown location fails clearly', async () => {
-    await expect(linkExistingFolder(context(), { locationId: 'bldA', externalFolderId: 'nope' })).rejects.toThrow();
-    const existing = provider.seed('x', projectFolder.id);
+    await expect(linkExistingFolder(context(), { locationId: 'bldB', externalFolderId: 'nope' })).rejects.toThrow();
     await expect(linkExistingFolder(context(), { locationId: 'ghost', externalFolderId: existing.id })).rejects.toThrow();
   });
 
-  it('rebuilds a folder the customer deleted in the cloud', async () => {
-    const folderId = await ensureLocationFolder(context(), 'fl3');
+  it('a folder renamed in the cloud is detected on demand; the user adopts the name or restores it; the unit is untouched', async () => {
+    const folderId = await ensureLocationFolder(context(), 'ap12');
+    await provider.renameFolder(folderId, 'דירה של הלקוח');
+    const inspected = await inspectLocationFolder(context(), 'ap12');
+    expect(inspected).toEqual({ state: 'renamed_outside', cloudName: 'דירה של הלקוח', systemName: 'דירה 12' });
+
+    expect(await resolveFolderDrift(context(), { locationId: 'ap12', choice: 'adopt_cloud_name' })).toBe('adopted');
+    expect(store.forLocation('ap12')?.displayName).toBe('דירה של הלקוח');
+    expect(tree.find((node) => node.id === 'ap12')?.name).toBe('דירה 12');
+    expect(store.forLocation('ap12')?.externalFolderId).toBe(folderId);
+    expect(await inspectLocationFolder(context(), 'ap12')).toMatchObject({ state: 'ok' });
+
+    await provider.renameFolder(folderId, 'שם אחר');
+    await resolveFolderDrift(context(), { locationId: 'ap12', choice: 'restore_name' });
+    expect(provider.folders.get(folderId)?.name).toBe('דירה 12');
+  });
+
+  it('a virtual location is not an error', async () => {
+    expect(await inspectLocationFolder(context(), 'ap12')).toEqual({ state: 'virtual' });
+  });
+
+  it('a deleted folder is flagged, never silently replaced, and is rebuilt only on request', async () => {
+    const folderId = await ensureLocationFolder(context(), 'ap12');
     provider.folders.delete(folderId);
-    const rebuilt = await ensureLocationFolder(context(), 'fl3');
+    expect(await inspectLocationFolder(context(), 'ap12')).toEqual({ state: 'missing' });
+    const created = provider.created;
+    await expect(ensureLocationFolder(context(), 'ap12')).rejects.toMatchObject({ messageKey: 'infraMapping.errors.folderMissing' });
+    expect(provider.created).toBe(created);
+
+    const rebuilt = await recreateMissingFolder(context(), 'ap12');
     expect(rebuilt).not.toBe(folderId);
-    expect(store.forLocation('fl3')?.externalFolderId).toBe(rebuilt);
+    expect(store.forLocation('ap12')?.externalFolderId).toBe(rebuilt);
+    expect(store.forLocation('ap12')?.status).toBe('ready');
   });
 });

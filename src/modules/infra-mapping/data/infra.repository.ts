@@ -12,6 +12,7 @@ import {
   tasks,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import { readLocationMeta } from '@/modules/project-profile/domain/unit-levels';
 import { escapeLikePattern } from '../domain/filters';
 import { readMarkingGeometry } from '../domain/markings';
 import type {
@@ -464,6 +465,10 @@ export interface LocationNodeRow {
   readonly sortOrder: number;
   readonly isActive: boolean;
   readonly archived: boolean;
+  readonly extraLevelIds?: readonly string[];
+  readonly levelId?: string | null;
+  readonly structure?: 'house' | 'building' | null;
+  readonly unitKind?: string | null;
 }
 
 export async function listLocationNodes(db: DbExecutor, organizationId: string, projectId: string): Promise<LocationNodeRow[]> {
@@ -477,20 +482,28 @@ export async function listLocationNodes(db: DbExecutor, organizationId: string, 
       sortOrder: projectLocations.sortOrder,
       isActive: projectLocations.isActive,
       archivedAt: projectLocations.archivedAt,
+      metadata: projectLocations.metadata,
     })
     .from(projectLocations)
     .where(and(eq(projectLocations.organizationId, organizationId), eq(projectLocations.projectId, projectId)))
     .orderBy(asc(projectLocations.parentId), asc(projectLocations.sortOrder), asc(projectLocations.name));
-  return rows.map((row) => ({
-    id: row.id,
-    parentId: row.parentId,
-    name: row.name,
-    code: row.code,
-    type: row.type,
-    sortOrder: row.sortOrder,
-    isActive: row.isActive,
-    archived: row.archivedAt !== null,
-  }));
+  return rows.map((row) => {
+    const meta = readLocationMeta(row.metadata);
+    return {
+      id: row.id,
+      parentId: row.parentId,
+      name: row.name,
+      code: row.code,
+      type: row.type,
+      sortOrder: row.sortOrder,
+      isActive: row.isActive,
+      archived: row.archivedAt !== null,
+      ...(meta.extraLevelIds.length > 0 ? { extraLevelIds: meta.extraLevelIds } : {}),
+      ...(meta.levelId ? { levelId: meta.levelId } : {}),
+      ...(meta.structure ? { structure: meta.structure } : {}),
+      ...(meta.unitKind ? { unitKind: meta.unitKind } : {}),
+    };
+  });
 }
 
 // ── versions + markings ────────────────────────────────────────────────────────────────────────

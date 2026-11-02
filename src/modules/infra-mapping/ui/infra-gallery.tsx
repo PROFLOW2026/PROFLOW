@@ -1,7 +1,7 @@
 'use client';
 
 import { Loader2, Search, SlidersHorizontal } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { listCapturesAction } from '../actions';
@@ -29,6 +29,7 @@ interface Filters {
   media: '' | 'photo' | 'video';
   text: string;
   locationId: string | null;
+  levelId: string | null;
   room: string;
   wall: string;
   infraType: InfraType | '';
@@ -42,6 +43,7 @@ const EMPTY_FILTERS: Filters = {
   media: '',
   text: '',
   locationId: null,
+  levelId: null,
   room: '',
   wall: '',
   infraType: '',
@@ -105,6 +107,7 @@ export function InfraGallery({
         projectId,
         organizationId,
         locationId: filters.locationId,
+        levelId: filters.levelId,
         text: debouncedText || null,
         room: filters.room.trim() || null,
         wall: filters.wall.trim() || null,
@@ -134,9 +137,18 @@ export function InfraGallery({
     void load(null);
   }, [load, refreshKey, localRefresh]);
 
+  const levelOptions = useMemo(() => {
+    const levelTypes = new Set(['floor', 'basement', 'roof', 'parking']);
+    return locations
+      .filter((node) => levelTypes.has(node.type) && !node.archived)
+      .map((node) => ({ id: node.id, label: locationLabel(locations, node.id) ?? node.name }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'he', { numeric: true }));
+  }, [locations]);
+
   const patch = (next: Partial<Filters>) => setFilters((current) => ({ ...current, ...next }));
   const filtered =
     filters.locationId !== null ||
+    filters.levelId !== null ||
     filters.text !== '' ||
     filters.room !== '' ||
     filters.wall !== '' ||
@@ -190,6 +202,24 @@ export function InfraGallery({
             emptyLabel={INFRA_TEXT.gallery.allLocations}
             testId="infra-filter-location"
           />
+          {levelOptions.length > 0 ? (
+            <label className="flex min-w-0 flex-col gap-1 text-sm">
+              <span className="font-medium">{INFRA_TEXT.gallery.level}</span>
+              <select
+                className={inputClass}
+                value={filters.levelId ?? ''}
+                onChange={(event) => patch({ levelId: event.target.value || null })}
+                data-testid="infra-filter-level"
+              >
+                <option value="">{INFRA_TEXT.gallery.allLevels}</option>
+                {levelOptions.map((level) => (
+                  <option key={level.id} value={level.id}>
+                    {level.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           <label className="flex min-w-0 flex-col gap-1 text-sm">
             <span className="font-medium">{INFRA_TEXT.gallery.room}</span>
             <input className={inputClass} list="infra-filter-rooms" value={filters.room} onChange={(event) => patch({ room: event.target.value })} />

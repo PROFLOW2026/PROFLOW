@@ -1,20 +1,29 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import { requireExternalContext } from '@/modules/contractor-access';
 import { isEmployeeAppUser } from '@/modules/employee-app/application/load-employee-app-context';
 import {
+  addUnitsAction,
   archiveLocationAction,
   createLocationAction,
-  generateLocationsAction,
+  createStructureAction,
   moveLocationAction,
   restoreLocationAction,
+  setSpaceLevelAction,
+  setUnitKindAction,
+  setUnitLevelsAction,
   updateLocationAction,
 } from '@/modules/project-profile/ui/structure-actions';
 import type {
+  AddUnitsPayload,
   CreateLocationPayload,
-  GenerateLocationsPayload,
+  CreateStructurePayload,
   LocationRefPayload,
+  SetSpaceLevelPayload,
+  SetUnitKindPayload,
+  SetUnitLevelsPayload,
   MoveLocationPayload,
   StructureActionResult,
   UpdateLocationPayload,
@@ -24,6 +33,7 @@ import {
   AppError,
   AuthorizationError,
   NotFoundError,
+  ServiceUnavailableError,
   ValidationError,
   mapServerActionError,
 } from '@/shared/errors';
@@ -51,14 +61,12 @@ import { beginVideoCapture, type BeginVideoCaptureResult } from './application/v
 import { assertCanManageLocations, organizationFor } from './application/access';
 import type { InfraActor } from './application/ports';
 import { loadInfraWorkspace, type InfraWorkspaceData } from './application/workspace';
-import type { SyncResult } from './application/folders';
+import type { FolderInspection, SyncResult } from './application/folders';
 import {
   INFRA_DB_PENDING_MESSAGE,
   INFRA_ERROR_MESSAGES,
   INFRA_FORBIDDEN,
   INFRA_GENERIC_ERROR,
-  INFRA_LOCATION_FOLDER_FAILED,
-  INFRA_LOCATION_NEEDS_CLOUD,
   INFRA_NOT_FOUND,
   isMissingInfraSchema,
 } from './domain/messages';
@@ -81,7 +89,8 @@ import {
   type SaveMarkingsInput,
   type UpdateCaptureInput,
 } from './domain/validation';
-import { createLocationWithFolder } from './application/location-create';
+import { listFolderMappingRows } from './data/infra.repository';
+import { logger } from '@/shared/observability/logger';
 import { infraDeps, isInfraStorageConnected } from './server';
 import { infraVideoPort } from './video-server';
 
@@ -256,42 +265,64 @@ export async function removeComparisonAction(
 
 const SYNC_BATCH = 20;
 
-async function bestEffortFolder(
+/** Shown when the structure change was saved but the matching cloud folder could not be updated. */
+const FOLDER_SYNC_WARNING =
+  'השינוי נשמר במערכת, אבל תיקיית המיקום בענן לא עודכנה. הקבצים לא נפגעו. פתחו את המיקום ובדקו את התיקייה, ואז נסו שוב.';
+
+/**
+ * Applies a rename / move to the location's cloud folder. A virtual location (no folder yet) has nothing to
+ * update. A real failure is NOT swallowed: it is logged and reported to the user as a warning next to the saved
+ * change, so a folder that was not renamed / moved is never presented as done.
+ */
+async function syncOwnFolder(
   projectId: string,
-  work: (actor: InfraActor, organizationId: string) => Promise<unknown>,
-): Promise<void> {
+  locationId: string,
+  apply: (organizationId: string) => Promise<unknown>,
+): Promise<string | null> {
   try {
     await withOrgContext(async (context) => {
-      const actor: InfraActor = { kind: 'internal', context };
-      await assertCanManageLocations(actor, projectId);
-      await work(actor, await organizationFor(actor, null));
+      const rows = await listFolderMappingRows(context.db, context.organizationId, projectId);
+      const owns = rows.some((row) => row.locationId === locationId && row.status === 'ready');
+      if (owns) await apply(context.organizationId);
     });
-  } catch {
-    // The location change itself already succeeded; the folder is reconciled on the next sync / upload.
+    return null;
+  } catch (error) {
+    logger.error('infra.folder_sync_failed', {
+      projectId,
+      locationId,
+      errorName: error instanceof Error ? error.name : typeof error,
+    });
+    const detail = error instanceof AppError && INFRA_ERROR_MESSAGES[error.messageKey] ? ` ${INFRA_ERROR_MESSAGES[error.messageKey]}` : '';
+    return `${FOLDER_SYNC_WARNING}${detail}`;
   }
+}
+
+function withWarning(result: StructureActionResult, warning: string | null): StructureActionResult {
+  return warning && result.ok ? { ...result, warning } : result;
 }
 
 /** Existing structure actions + the matching cloud-folder change (same signature, drop-in for LocationsCard). */
 export async function infraUpdateLocationAction(payload: UpdateLocationPayload): Promise<StructureActionResult> {
   const result = await updateLocationAction(payload);
-  if (result.ok && payload.name !== undefined) {
-    await bestEffortFolder(payload.projectId, (_actor, organizationId) =>
+  if (!result.ok || (payload.name === undefined && payload.code === undefined)) return result;
+  return withWarning(
+    result,
+    await syncOwnFolder(payload.projectId, payload.locationId, (organizationId) =>
       infraDeps.folders.renameFolder({ organizationId, projectId: payload.projectId, locationId: payload.locationId }),
-    );
-  }
-  return result;
+    ),
+  );
 }
 
 export async function infraMoveLocationAction(payload: MoveLocationPayload): Promise<StructureActionResult> {
   const result = await moveLocationAction(payload);
-  if (result.ok) {
-    await bestEffortFolder(payload.projectId, (_actor, organizationId) =>
+  if (!result.ok) return result;
+  return withWarning(
+    result,
+    await syncOwnFolder(payload.projectId, payload.locationId, (organizationId) =>
       infraDeps.folders.moveFolder({ organizationId, projectId: payload.projectId, locationId: payload.locationId }),
-    );
-  }
-  return result;
+    ),
+  );
 }
-
 /** Authorizes the caller and returns the organization that owns the cloud, or a failure result. */
 async function manageableOrganization(
   projectId: string,
@@ -309,49 +340,17 @@ async function manageableOrganization(
 }
 
 /**
- * Adds a location together with its real folder in the organization's cloud. Without an active cloud
- * connection nothing is created; if the folder cannot be created the location is taken back out.
+ * Adds a location. Locations are virtual: only a database row is written - no cloud connection is needed and no
+ * cloud folder is created. The folder appears on the first upload (or when the user explicitly asks for it).
  */
 export async function infraCreateLocationAction(payload: CreateLocationPayload): Promise<StructureActionResult> {
   const owner = await manageableOrganization(payload.projectId);
   if (!owner.ok) return owner;
-
-  const outcome = await createLocationWithFolder<{ error: string; fieldErrors?: Record<string, string> }>({
-    isCloudConnected: () => isInfraStorageConnected(owner.organizationId),
-    async createLocation() {
-      const result = await createLocationAction(payload);
-      if (result.ok && result.locationId) return { ok: true, locationId: result.locationId };
-      if (result.ok) return { ok: false, error: INFRA_GENERIC_ERROR };
-      return { ok: false, error: result.error, fieldErrors: result.fieldErrors };
-    },
-    async ensureFolder(locationId) {
-      const created = await infraDeps.folders.createLocationFolder({
-        organizationId: owner.organizationId,
-        projectId: payload.projectId,
-        locationId,
-      });
-      return created.ok ? { ok: true } : { ok: false, reason: `${created.stage}/${created.code}` };
-    },
-    async rollback(locationId) {
-      await archiveLocationAction({ projectId: payload.projectId, locationId });
-    },
-  });
-
-  switch (outcome.kind) {
-    case 'created':
-      revalidatePath('/', 'layout');
-      return { ok: true, locationId: outcome.locationId };
-    case 'no_cloud':
-      return { ok: false, error: INFRA_LOCATION_NEEDS_CLOUD };
-    case 'rejected':
-      return { ok: false, error: outcome.failure.error, fieldErrors: outcome.failure.fieldErrors };
-    case 'folder_failed':
-      revalidatePath('/', 'layout');
-      return { ok: false, error: `${INFRA_LOCATION_FOLDER_FAILED} (קוד תקלה: ${outcome.reason})` };
-  }
+  return createLocationAction(payload);
 }
 
 export async function infraArchiveLocationAction(payload: LocationRefPayload): Promise<StructureActionResult> {
+  // Archiving never touches the cloud: folders and files stay exactly where they are.
   return archiveLocationAction(payload);
 }
 
@@ -359,17 +358,114 @@ export async function infraRestoreLocationAction(payload: LocationRefPayload): P
   return restoreLocationAction(payload);
 }
 
-export async function infraGenerateLocationsAction(payload: GenerateLocationsPayload): Promise<StructureActionResult> {
-  // New locations on this screen need the organization's cloud (their folders are created by the sync).
+/** Structure wizard: rows only, no cloud folders (and no cloud connection required). */
+export async function infraCreateStructureAction(payload: CreateStructurePayload): Promise<StructureActionResult> {
   const owner = await manageableOrganization(payload.projectId);
   if (!owner.ok) return owner;
-  if (!(await isInfraStorageConnected(owner.organizationId))) return { ok: false, error: INFRA_LOCATION_NEEDS_CLOUD };
-  return generateLocationsAction(payload);
+  const result = await createStructureAction(payload);
+  if (result.ok) revalidatePath('/', 'layout');
+  return result;
+}
+
+export async function infraAddUnitsAction(payload: AddUnitsPayload): Promise<StructureActionResult> {
+  const owner = await manageableOrganization(payload.projectId);
+  if (!owner.ok) return owner;
+  return addUnitsAction(payload);
+}
+
+export async function infraSetUnitLevelsAction(payload: SetUnitLevelsPayload): Promise<StructureActionResult> {
+  const owner = await manageableOrganization(payload.projectId);
+  if (!owner.ok) return owner;
+  return setUnitLevelsAction(payload);
+}
+
+export async function infraSetSpaceLevelAction(payload: SetSpaceLevelPayload): Promise<StructureActionResult> {
+  const owner = await manageableOrganization(payload.projectId);
+  if (!owner.ok) return owner;
+  return setSpaceLevelAction(payload);
+}
+
+export async function infraSetUnitKindAction(payload: SetUnitKindPayload): Promise<StructureActionResult> {
+  const owner = await manageableOrganization(payload.projectId);
+  if (!owner.ok) return owner;
+  return setUnitKindAction(payload);
+}
+
+const locationFolderRefSchema = z.object({ projectId: z.string().uuid(), locationId: z.string().uuid() });
+const folderDriftSchema = locationFolderRefSchema.extend({ choice: z.enum(['adopt_cloud_name', 'restore_name']) });
+
+/**
+ * Explicit "create a cloud folder" for one chosen location. Only the needed chain is created (never one per
+ * level or room). A failure is reported with a short code and nothing is shown as created.
+ */
+export async function infraCreateFolderAction(input: { projectId: string; locationId: string }): Promise<InfraResult<{ folderId: string }>> {
+  return run('internal', async (actor) => {
+    const parsed = locationFolderRefSchema.parse(input);
+    await assertCanManageLocations(actor, parsed.projectId);
+    const result = await infraDeps.folders.createLocationFolder({
+      organizationId: await organizationFor(actor, null),
+      projectId: parsed.projectId,
+      locationId: parsed.locationId,
+    });
+    if (!result.ok) throw new ServiceUnavailableError(`Folder not created: ${result.stage}/${result.code}`, 'infraMapping.errors.folderCreate');
+    revalidatePath('/', 'layout');
+    return { folderId: result.folderId };
+  });
+}
+
+/** Checks the one known folder of a location (on demand): fine, renamed in the cloud, or gone. */
+export async function infraInspectFolderAction(input: { projectId: string; locationId: string }): Promise<InfraResult<FolderInspection>> {
+  return run('internal', async (actor) => {
+    const parsed = locationFolderRefSchema.parse(input);
+    await assertCanManageLocations(actor, parsed.projectId);
+    const result = await infraDeps.folders.inspectFolder({
+      organizationId: await organizationFor(actor, null),
+      projectId: parsed.projectId,
+      locationId: parsed.locationId,
+    });
+    if (result.state === 'missing') revalidatePath('/', 'layout');
+    return result;
+  });
+}
+
+/** A folder renamed in the cloud: take the cloud name over as the folder name, or rename the cloud folder back. */
+export async function infraResolveFolderDriftAction(input: {
+  projectId: string;
+  locationId: string;
+  choice: 'adopt_cloud_name' | 'restore_name';
+}): Promise<InfraResult> {
+  return run('internal', async (actor) => {
+    const parsed = folderDriftSchema.parse(input);
+    await assertCanManageLocations(actor, parsed.projectId);
+    await infraDeps.folders.resolveFolderDrift({
+      organizationId: await organizationFor(actor, null),
+      projectId: parsed.projectId,
+      locationId: parsed.locationId,
+      choice: parsed.choice,
+    });
+    revalidatePath('/', 'layout');
+    return undefined;
+  });
+}
+
+/** A folder that disappeared from the cloud is only replaced when the user asks for it here. */
+export async function infraRecreateFolderAction(input: { projectId: string; locationId: string }): Promise<InfraResult> {
+  return run('internal', async (actor) => {
+    const parsed = locationFolderRefSchema.parse(input);
+    await assertCanManageLocations(actor, parsed.projectId);
+    await infraDeps.folders.recreateFolder({
+      organizationId: await organizationFor(actor, null),
+      projectId: parsed.projectId,
+      locationId: parsed.locationId,
+    });
+    revalidatePath('/', 'layout');
+    return undefined;
+  });
 }
 
 /**
- * Creates the real cloud folders for the location tree in paced batches. The caller loops until
- * `remaining` is 0 (provider rate limits make one giant call unsafe for hundreds of apartments).
+ * Explicit, paced folder work. With location ids: real folders for those locations (only the needed ones).
+ * Without ids: REPAIR only (retries a failed creation); it never creates a folder for a virtual location.
  */
 export async function syncInfraFoldersAction(input: FolderSyncInput): Promise<InfraResult<SyncResult>> {
   return run('internal', async (actor) => {

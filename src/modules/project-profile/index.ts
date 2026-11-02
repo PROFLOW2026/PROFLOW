@@ -72,6 +72,7 @@ export {
   type ReasonCode,
 } from './domain/recommendations';
 
+export type { CreateStructureInput } from './validation/schemas';
 export { loadStructurePermissions, type StructurePermissions } from './application/authorize';
 export {
   getConstructionCharacteristics,
@@ -80,9 +81,59 @@ export {
   updateDeliveryProfile,
 } from './application/profile';
 export {
+  UNIT_KINDS,
+  UNIT_KIND_LABELS,
+  WIZARD_LIMITS,
+  WIZARD_TEMPLATES,
+  buildingName,
+  countPlannedNodes,
+  defaultAreas,
+  defaultBuilding,
+  emptySpec,
+  levelName,
+  makeLevels,
+  nextUnitNumber,
+  orderLevels,
+  planStructure,
+  roomTemplate,
+  summarizePlan,
+  unitLocationType,
+  unitName,
+  validateWizardSpec,
+  type BuildingStructure,
+  type LevelKind,
+  type PlanSummary,
+  type PlannedNode,
+  type UnitKind,
+  type WizardBuilding,
+  type WizardIssue,
+  type WizardLevel,
+  type WizardMultiLevel,
+  type WizardNumbering,
+  type WizardSpec,
+  type WizardTemplate,
+} from './domain/structure-wizard';
+export {
+  buildingOf,
+  isLevelType,
+  isUnitType,
+  levelScopeIds,
+  readLocationMeta,
+  suggestUnitNumber,
+  unitLevels,
+  validateExtraLevels,
+  validateSpaceLevel,
+} from './domain/unit-levels';
+export {
   MAX_LOCATIONS_PER_PROJECT,
+  addProjectUnits,
   archiveProjectLocation,
   createProjectLocation,
+  createProjectStructure,
+  setSpaceLevel,
+  setUnitKind,
+  setUnitLevels,
+  type CreateStructureResult,
   generateProjectLocations,
   listLocationOptions,
   listLocationTree,

@@ -7,12 +7,10 @@ import {
   runCommittedStorageWrite,
 } from '@/modules/external-storage/server';
 import { openStorageSecret, sealStorageSecret } from '@/modules/external-storage/application/token-seal';
-import { resolveProjectScopedUploadFolderId } from '@/modules/external-storage/application/project-upload-folder';
-import type { OrgContext } from '@/shared/auth/context';
-import { ServiceUnavailableError } from '@/shared/errors';
-import { tryEnsureLocationFolder } from './application/folders';
+import { DomainRuleError, NotFoundError, ServiceUnavailableError } from '@/shared/errors';
+import { ensureLocationFolder } from './application/folders';
 import { createVideoRelay } from './application/video-relay';
-import { buildRuntime, infraFileStore, usableConnection } from './server';
+import { buildRuntime, infraFileStore, usableConnection, withFolderLock } from './server';
 
 /**
  * Production wiring of the video relay: the organization's primary storage connection, reached
@@ -43,19 +41,17 @@ export const infraVideoPort = createVideoRelay({
 
   startTarget(input) {
     return runCommittedStorageWrite(async (db) => {
-      const runtime = await buildRuntime(db, { organizationId: input.organizationId, projectId: input.projectId });
-      let parentFolderId = await tryEnsureLocationFolder(runtime.context, input.locationId).catch(() => null);
-      if (!parentFolderId) {
-        parentFolderId = await resolveProjectScopedUploadFolderId(
-          { db, organizationId: input.organizationId } as unknown as OrgContext,
-          {
-            connection: runtime.connection,
-            accessToken: runtime.accessToken,
-            projectId: input.projectId,
-            semanticFolderType: 'photos',
-          },
-        );
-      }
+      const scope = { organizationId: input.organizationId, projectId: input.projectId };
+      const runtime = await buildRuntime(db, scope);
+      // Lazy, strict: the location's folder is created on the first upload; a failure surfaces (no other folder).
+      const parentFolderId = await withFolderLock(db, scope, () => ensureLocationFolder(runtime.context, input.locationId)).catch(
+        (error: unknown) => {
+          if (error instanceof DomainRuleError || error instanceof ServiceUnavailableError || error instanceof NotFoundError) {
+            throw error;
+          }
+          throw new ServiceUnavailableError('Location folder could not be created', 'infraMapping.errors.folderCreate');
+        },
+      );
       return {
         connectionId: runtime.connection.id,
         provider: runtime.connection.provider,

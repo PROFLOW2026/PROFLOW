@@ -2,6 +2,7 @@ import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { projectLocations } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { isLocationType, type LocationNode, type LocationType } from '../domain/locations';
+import { readLocationMeta } from '../domain/unit-levels';
 
 export interface LocationRecord extends LocationNode {
   readonly organizationId: string;
@@ -20,6 +21,7 @@ const LOCATION_COLUMNS = {
   sortOrder: projectLocations.sortOrder,
   isActive: projectLocations.isActive,
   archivedAt: projectLocations.archivedAt,
+  metadata: projectLocations.metadata,
 };
 
 type LocationRow = {
@@ -33,9 +35,11 @@ type LocationRow = {
   sortOrder: number;
   isActive: boolean;
   archivedAt: Date | null;
+  metadata: unknown;
 };
 
 function mapLocation(row: LocationRow): LocationRecord {
+  const meta = readLocationMeta(row.metadata);
   return {
     id: row.id,
     organizationId: row.organizationId,
@@ -48,6 +52,10 @@ function mapLocation(row: LocationRow): LocationRecord {
     isActive: row.isActive,
     archived: row.archivedAt !== null,
     archivedAt: row.archivedAt,
+    ...(meta.extraLevelIds.length > 0 ? { extraLevelIds: meta.extraLevelIds } : {}),
+    ...(meta.levelId ? { levelId: meta.levelId } : {}),
+    ...(meta.structure ? { structure: meta.structure } : {}),
+    ...(meta.unitKind ? { unitKind: meta.unitKind } : {}),
   };
 }
 
@@ -207,6 +215,34 @@ export async function setLocationsArchived(
     )
     .returning({ id: projectLocations.id });
   return rows.length;
+}
+
+/**
+ * Merges `set` into the location's metadata and drops the keys in `remove` (one statement; other
+ * metadata keys such as `generated` are kept). The row keeps its id, parent and folder links.
+ */
+export async function patchLocationMetadata(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  locationId: string,
+  patch: { readonly set?: Readonly<Record<string, unknown>>; readonly remove?: readonly string[] },
+): Promise<void> {
+  let expression = sql`coalesce(${projectLocations.metadata}, '{}'::jsonb)`;
+  for (const key of patch.remove ?? []) expression = sql`(${expression}) - ${key}::text`;
+  if (patch.set && Object.keys(patch.set).length > 0) {
+    expression = sql`(${expression}) || ${JSON.stringify(patch.set)}::jsonb`;
+  }
+  await db
+    .update(projectLocations)
+    .set({ metadata: expression, updatedAt: new Date() })
+    .where(
+      and(
+        eq(projectLocations.id, locationId),
+        eq(projectLocations.organizationId, organizationId),
+        eq(projectLocations.projectId, projectId),
+      ),
+    );
 }
 
 /** Lower-cased active codes among the children of `parentId` (null = roots). */

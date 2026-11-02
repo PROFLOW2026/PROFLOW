@@ -4,23 +4,34 @@ import { refresh } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
 import {
   acceptRecommendations,
+  addProjectUnits,
   archiveProjectLocation,
   createProjectLocation,
+  createProjectStructure,
   dismissRecommendations,
   generateProjectLocations,
+  setSpaceLevel,
+  setUnitKind,
+  setUnitLevels,
   moveProjectLocation,
   restoreProjectLocation,
   restoreRecommendations,
   updateConstructionCharacteristics,
   updateDeliveryProfile,
   updateProjectLocationDetails,
+  type CreateStructureInput,
   type LocationGeneratorLabels,
   type Recommendation,
 } from '@/modules/project-profile';
 import { withOrgContext } from '@/shared/auth/session';
 import { mapServerActionError } from '@/shared/errors';
 import type {
+  AddUnitsPayload,
   CreateLocationPayload,
+  CreateStructurePayload,
+  SetSpaceLevelPayload,
+  SetUnitKindPayload,
+  SetUnitLevelsPayload,
   GenerateLocationsPayload,
   LocationRefPayload,
   MoveLocationPayload,
@@ -123,6 +134,40 @@ export async function generateLocationsAction(payload: GenerateLocationsPayload)
     const labels = await generatorLabels();
     const result = await withOrgContext((context) => generateProjectLocations(context, payload, labels));
     return result.createdCount;
+  });
+}
+
+/** Universal structure wizard: database rows only, no cloud folder is created. */
+export async function createStructureAction(payload: CreateStructurePayload): Promise<StructureActionResult> {
+  return run(async () => {
+    const result = await withOrgContext((context) => createProjectStructure(context, payload as unknown as CreateStructureInput));
+    return result.createdCount;
+  });
+}
+
+/** Adds numbered units under a level; existing units keep their numbers. */
+export async function addUnitsAction(payload: AddUnitsPayload): Promise<StructureActionResult> {
+  return run(async () => {
+    const result = await withOrgContext((context) => addProjectUnits(context, payload));
+    return result.createdIds.length;
+  });
+}
+
+export async function setUnitLevelsAction(payload: SetUnitLevelsPayload): Promise<StructureActionResult> {
+  return run(async () => {
+    await withOrgContext((context) => setUnitLevels(context, payload));
+  });
+}
+
+export async function setSpaceLevelAction(payload: SetSpaceLevelPayload): Promise<StructureActionResult> {
+  return run(async () => {
+    await withOrgContext((context) => setSpaceLevel(context, payload));
+  });
+}
+
+export async function setUnitKindAction(payload: SetUnitKindPayload): Promise<StructureActionResult> {
+  return run(async () => {
+    await withOrgContext((context) => setUnitKind(context, payload));
   });
 }
 

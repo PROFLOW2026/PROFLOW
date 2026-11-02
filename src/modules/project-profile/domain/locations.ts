@@ -41,6 +41,13 @@ export interface LocationNode {
   readonly sortOrder: number;
   readonly isActive: boolean;
   readonly archived: boolean;
+  /** Additional levels of a multi-level unit (primary level = parent). From `metadata.extraLevelIds`. */
+  readonly extraLevelIds?: readonly string[];
+  /** Level a space belongs to when it is not its parent (rooms of a multi-level unit). */
+  readonly levelId?: string | null;
+  /** `house` for a villa / private house (no units grouping). */
+  readonly structure?: 'house' | 'building' | null;
+  readonly unitKind?: string | null;
 }
 
 export interface LocationIndex {

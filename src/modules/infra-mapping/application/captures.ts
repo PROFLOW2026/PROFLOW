@@ -6,6 +6,8 @@ import {
   removeInternalEvidence,
   type EvidenceUploadTicket,
 } from '@/modules/evidence';
+import { buildLocationIndex, isLocationType } from '@/modules/project-profile/domain/locations';
+import { levelScopeIds } from '@/modules/project-profile/domain/unit-levels';
 import { AuthorizationError, ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import {
   captureEvidenceIds,
@@ -248,6 +250,12 @@ export async function listCaptures(actor: InfraActor, raw: ListCapturesInput): P
   if (input.locationId) {
     if (!nodes.some((node) => node.id === input.locationId)) throw new NotFoundError('Location');
     locationIds = input.includeSubLocations ? subtreeIds(tree, input.locationId) : [input.locationId];
+  }
+  if (input.levelId) {
+    if (!nodes.some((node) => node.id === input.levelId)) throw new NotFoundError('Location');
+    // Levels are metadata (no folder per level): the scope comes from the location tree, never from the cloud.
+    const scope = new Set(levelScopeIds(buildLocationIndex(nodes.map((node) => ({ ...node, type: isLocationType(node.type) ? node.type : 'other' }))), input.levelId));
+    locationIds = locationIds ? locationIds.filter((id) => scope.has(id)) : [...scope];
   }
   const text = input.text?.trim() || undefined;
   const range = dayRange(input.from, input.to);

@@ -382,6 +382,9 @@
   },
   "errors": {
     "codeConflict": "This code already exists at the same level. Choose another code.",
+    "unitNameTaken": "This number or name is already used in this building. Choose another one.",
+    "structureInvalid": "The structure is not valid. Check the counts and names.",
+    "levelLink": "The unit cannot be linked to this level. Choose an active level of the same building.",
     "parentArchived": "The parent location is archived.",
     "locationArchived": "The location is archived. Restore it first.",
     "cycle": "A location cannot be moved into itself.",

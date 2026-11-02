@@ -53,6 +53,12 @@ export interface InfraLocationOption {
   readonly sortOrder: number;
   readonly isActive: boolean;
   readonly archived: boolean;
+  /** Other levels a multi-level unit occupies (its primary level is its parent). */
+  readonly extraLevelIds?: readonly string[];
+  /** Level a space (room) is tagged with. */
+  readonly levelId?: string | null;
+  readonly structure?: 'house' | 'building' | null;
+  readonly unitKind?: string | null;
 }
 
 export interface InfraActorDto {
