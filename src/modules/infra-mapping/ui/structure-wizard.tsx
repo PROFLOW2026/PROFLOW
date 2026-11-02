@@ -336,7 +336,7 @@ export function StructureWizard({
                 className={cn(
                   'flex min-h-14 min-w-0 flex-col items-start gap-0.5 rounded-md border p-3 text-start',
                   template === key
-                    ? 'border-[var(--pf-brand-500,#2563eb)] bg-[var(--pf-bg-muted)]'
+                    ? 'border-[var(--pf-border-brand)] bg-[var(--pf-bg-muted)]'
                     : 'border-[var(--pf-border-default)] hover:bg-[var(--pf-bg-muted)]',
                 )}
               >
