@@ -5,7 +5,7 @@ import { useRef, useState, type ReactNode } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { locationLabel } from '../domain/filters';
-import type { InfraLocationOption } from '../domain/types';
+import { INFRA_TYPES, INFRA_TYPE_LABELS, type InfraLocationOption, type InfraType } from '../domain/types';
 import { canApprove, canRetry, type QueueItem } from '../domain/upload-queue';
 import { InfraCamera } from './infra-camera';
 import { InfraDetailsForm } from './infra-details-form';
@@ -180,10 +180,15 @@ export function InfraCapturePanel({
   storagePicker,
   canDocument,
   canCaptureVideo = false,
+  workDomain = null,
+  onWorkDomainChange = () => undefined,
 }: {
   readonly locations: readonly InfraLocationOption[];
   readonly locationId: string | null;
   readonly onLocationChange: (locationId: string | null) => void;
+  /** Work domain applied to what is shot next (a default for the business profile; never a lock). */
+  readonly workDomain?: InfraType | null;
+  readonly onWorkDomainChange?: (workDomain: InfraType | null) => void;
   readonly uploads: Uploads;
   readonly suggestions: { readonly rooms: readonly string[]; readonly walls: readonly string[] };
   readonly taskTitle: string | null;
@@ -204,7 +209,7 @@ export function InfraCapturePanel({
   const addRecordedVideo = (file: File, durationMs: number, autoStopped: boolean) => {
     setVideoOpen(false);
     setVideoMessage(autoStopped ? { tone: 'info', text: INFRA_TEXT.video.autoStopped } : null);
-    uploads.addVideo(file, { locationId, source: 'camera', durationMs });
+    uploads.addVideo(file, { locationId, source: 'camera', durationMs, details: { infraType: workDomain ?? '' } });
   };
 
   const addPickedVideo = async (file: File) => {
@@ -214,7 +219,12 @@ export function InfraCapturePanel({
       return;
     }
     setVideoMessage(null);
-    uploads.addVideo(picked.file, { locationId, source: 'gallery', durationMs: picked.durationMs });
+    uploads.addVideo(picked.file, {
+      locationId,
+      source: 'gallery',
+      durationMs: picked.durationMs,
+      details: { infraType: workDomain ?? '' },
+    });
   };
 
   const addPhoto = (file: File, source: QueueItem['source']) => {
@@ -223,7 +233,7 @@ export function InfraCapturePanel({
     uploads.add(file, {
       locationId,
       source,
-      details: { room: last?.details.room ?? '', wall: last?.details.wall ?? '' },
+      details: { room: last?.details.room ?? '', wall: last?.details.wall ?? '', infraType: workDomain ?? '' },
     });
   };
 
@@ -249,21 +259,50 @@ export function InfraCapturePanel({
     }
   };
 
+  /** A work domain is only a default: items still waiting for approval that carried the old one follow the change. */
+  const changeWorkDomain = (next: InfraType | null) => {
+    const previous = workDomain ?? '';
+    onWorkDomainChange(next);
+    for (const item of items) {
+      if (item.status === 'pending_approval' && item.details.infraType === previous) {
+        uploads.edit(item.clientId, { details: { infraType: next ?? '' } });
+      }
+    }
+  };
+
   if (!canDocument) {
     return <Alert tone="info">{INFRA_TEXT.noLocationsManage}</Alert>;
   }
 
   return (
     <div className="flex min-w-0 flex-col gap-4" data-testid="infra-capture-panel">
-      <InfraLocationSelect
-        locations={locations}
-        value={locationId}
-        onChange={changeLocation}
-        label={INFRA_TEXT.capture.location}
-        placeholder={INFRA_TEXT.capture.locationPlaceholder}
-        required
-        testId="infra-capture-location"
-      />
+      <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <InfraLocationSelect
+          locations={locations}
+          value={locationId}
+          onChange={changeLocation}
+          label={INFRA_TEXT.capture.location}
+          placeholder={INFRA_TEXT.capture.locationPlaceholder}
+          required
+          testId="infra-capture-location"
+        />
+        <label className="flex min-w-0 flex-col gap-1 text-sm">
+          <span className="font-medium">{INFRA_TEXT.capture.workDomain}</span>
+          <select
+            className="min-h-11 w-full min-w-0 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface,white)] px-3 text-sm"
+            value={workDomain ?? ''}
+            onChange={(event) => changeWorkDomain((event.target.value || null) as InfraType | null)}
+            data-testid="infra-capture-work-domain"
+          >
+            <option value="">{INFRA_TEXT.capture.workDomainNone}</option>
+            {INFRA_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {INFRA_TYPE_LABELS[type]}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
       {taskTitle ? (
         <p className="text-sm text-[var(--pf-text-secondary)]">
           {INFRA_TEXT.task}: <span className="font-medium text-[var(--pf-text-primary)]">{taskTitle}</span>
@@ -290,7 +329,6 @@ export function InfraCapturePanel({
             <Button
               type="button"
               variant="secondary"
-              disabled={!locationId}
               onClick={() => {
                 setCameraOpen(false);
                 setVideoOpen((open) => !open);
@@ -304,7 +342,6 @@ export function InfraCapturePanel({
             <Button
               type="button"
               variant="secondary"
-              disabled={!locationId}
               onClick={() => nativeVideoPick.current?.click()}
               data-testid="infra-pick-video"
             >

@@ -15,8 +15,8 @@ export const INFRA_TYPE_LABELS: Readonly<Record<InfraType, string>> = {
   hvac: 'מיזוג',
   comms: 'תקשורת',
   gas: 'גז',
-  fire: 'כיבוי אש',
-  drywall: 'גבס',
+  fire: 'בטיחות וכיבוי אש',
+  drywall: 'גבס וגמר',
   other: 'אחר',
 };
 

@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ProjectCloudFileBrowserActions } from '@/modules/external-storage/client/project-cloud-file-picker-types';
 import type { InfraTrialPreset } from '@/modules/project-workspace/ui/infra-trial-integration';
 import { loadDescriptorSuggestionsAction, loadInfraWorkspaceAction, type InfraWorkspaceData } from '../actions';
-import type { InfraCaptureDto, InfraViewer } from '../domain/types';
+import type { InfraCaptureDto, InfraType, InfraViewer } from '../domain/types';
 import type { LocateSlot } from './infra-capture-dialog';
 import { InfraCapturePanel } from './infra-capture-panel';
 import { evidenceFileUrl } from './infra-client';
@@ -95,7 +95,13 @@ function InfraWorkspaceLoaded({
 }) {
   const { organizationId, permissions } = data;
   const [tab, setTab] = useState<InfraTab>(initialTab ?? 'capture');
-  const [locationId, setLocationId] = useState<string | null>(null);
+  const [locationId, setLocationId] = useState<string | null>(() => {
+    // With a single location there is nothing to choose: start on it.
+    const usable = data.locations.filter((node) => !node.archived && node.isActive);
+    return usable.length === 1 ? usable[0]!.id : null;
+  });
+  // The business profile pre-selects a work domain; the user can change it any time (never locked).
+  const [workDomain, setWorkDomain] = useState<InfraType | null>(data.defaultWorkDomain ?? null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [preset, setPreset] = useState<InfraTrialPreset | null>(null);
   const [selectError, setSelectError] = useState<string | null>(null);
@@ -186,6 +192,8 @@ function InfraWorkspaceLoaded({
               locations={data.locations}
               locationId={locationId}
               onLocationChange={setLocationId}
+              workDomain={workDomain}
+              onWorkDomainChange={setWorkDomain}
               uploads={uploads}
               suggestions={suggestions}
               taskTitle={data.task?.title ?? null}

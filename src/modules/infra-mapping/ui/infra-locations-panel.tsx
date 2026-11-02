@@ -66,6 +66,7 @@ export function InfraLocationsPanel({
   }, [folders]);
   const rootFolder = folders.find((folder) => folder.locationId === null) ?? null;
   const readyCount = flat.filter((item) => folderByLocation.get(item.id)?.status === 'ready').length;
+  const missingCount = flat.length - readyCount;
 
   const wrap = (action: (payload: never) => Promise<StructureActionResult>) => async (payload: never) => {
     const result = await action(payload);
@@ -82,12 +83,21 @@ export function InfraLocationsPanel({
     moveLocation: wrap(infraMoveLocationAction as never) as ProjectStructureActions['moveLocation'],
     archiveLocation: wrap(infraArchiveLocationAction as never) as ProjectStructureActions['archiveLocation'],
     restoreLocation: wrap(infraRestoreLocationAction as never) as ProjectStructureActions['restoreLocation'],
-    generateLocations: wrap(infraGenerateLocationsAction as never) as ProjectStructureActions['generateLocations'],
+    // Bulk creation behaves like single creation: the cloud folders of the new locations are created right away.
+    generateLocations: (async (payload: never) => {
+      const result = await infraGenerateLocationsAction(payload);
+      if (result.ok) {
+        onChanged();
+        void syncAll('afterCreate');
+      }
+      return result;
+    }) as ProjectStructureActions['generateLocations'],
   };
 
-  async function syncAll() {
+  async function syncAll(mode: 'repair' | 'afterCreate' = 'repair') {
+    const failedText = mode === 'afterCreate' ? INFRA_TEXT.locations.syncAfterCreateFailed : INFRA_TEXT.locations.syncFailed;
     setSyncing(true);
-    setMessage(null);
+    setMessage(mode === 'afterCreate' ? { tone: 'info', text: INFRA_TEXT.locations.syncAfterCreate } : null);
     let previous = Number.POSITIVE_INFINITY;
     try {
       for (let round = 0; round < MAX_SYNC_ROUNDS; round += 1) {
@@ -102,13 +112,13 @@ export function InfraLocationsPanel({
           return;
         }
         if (remaining >= previous && failed.length > 0) {
-          setMessage({ tone: 'danger', text: INFRA_TEXT.locations.syncFailed });
+          setMessage({ tone: 'danger', text: failedText });
           return;
         }
         previous = remaining;
         setMessage({ tone: 'info', text: INFRA_TEXT.locations.syncProgress.replace('{n}', String(remaining)) });
       }
-      setMessage({ tone: 'danger', text: INFRA_TEXT.locations.syncFailed });
+      setMessage({ tone: 'danger', text: failedText });
     } finally {
       setSyncing(false);
       onChanged();
@@ -143,7 +153,7 @@ export function InfraLocationsPanel({
         ) : null}
         {canManage ? (
           <div className="flex flex-wrap items-center gap-2">
-            <Button type="button" onClick={() => void syncAll()} disabled={syncing || flat.length === 0} data-testid="infra-sync-folders">
+            <Button type="button" onClick={() => void syncAll()} disabled={syncing || missingCount === 0} data-testid="infra-sync-folders">
               {syncing ? <Loader2 className="animate-spin" aria-hidden /> : <FolderSync aria-hidden />}
               {syncing ? INFRA_TEXT.locations.syncing : INFRA_TEXT.locations.sync}
             </Button>
@@ -157,6 +167,9 @@ export function InfraLocationsPanel({
               {INFRA_TEXT.locations.ready}: {readyCount}/{flat.length}
             </span>
           </div>
+        ) : null}
+        {canManage && flat.length > 0 && missingCount === 0 && !message ? (
+          <p className="text-xs text-[var(--pf-text-secondary)]">{INFRA_TEXT.locations.syncNothing}</p>
         ) : null}
         {message ? <Alert tone={message.tone}>{message.text}</Alert> : null}
         {rootFolder ? (

@@ -7,7 +7,9 @@ import {
   listLocationNodes,
   toFolderDto,
 } from '../data/infra.repository';
-import type { InfraFolderStatusDto, InfraLocationOption, InfraPermissions } from '../domain/types';
+import { loadShellOrgSettings } from '@/modules/tenancy';
+import type { InfraFolderStatusDto, InfraLocationOption, InfraPermissions, InfraType } from '../domain/types';
+import { defaultWorkDomain } from '../domain/work-domain';
 import {
   actorDb,
   authorizeProject,
@@ -27,6 +29,19 @@ export interface InfraWorkspaceData {
   readonly task: { readonly id: string; readonly title: string } | null;
   /** Set for location managers: whether the organization's cloud is connected (new locations need it). */
   readonly storageConnected?: boolean;
+  /** Work domain pre-selected for this business profile (a default only; null = show every domain). */
+  readonly defaultWorkDomain?: InfraType | null;
+}
+
+/** The organization's business profile decides the pre-selected work domain; any failure means "none". */
+async function resolveDefaultWorkDomain(actor: InfraActor, organizationId: string): Promise<InfraType | null> {
+  if (actor.kind !== 'internal') return null;
+  try {
+    const settings = await loadShellOrgSettings(actor.context.db, organizationId);
+    return defaultWorkDomain(settings.businessProfileKey);
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -97,5 +112,6 @@ export async function loadInfraWorkspace(
       canCaptureVideo: actor.kind === 'internal' && !raw.employeeApp && canDocument,
     },
     task,
+    defaultWorkDomain: await resolveDefaultWorkDomain(actor, organizationId),
   };
 }
