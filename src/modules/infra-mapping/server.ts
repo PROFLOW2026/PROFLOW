@@ -14,7 +14,6 @@ import {
   updateStorageFile,
   type StorageConnectionRecord,
 } from '@/modules/external-storage/server';
-import { ensureProjectFolderTree } from '@/modules/external-storage/application/folder-provisioning';
 import { provisionStoredProjectFolder } from '@/modules/external-storage/application/project-provision';
 import { resolveProjectScopedUploadFolderId } from '@/modules/external-storage/application/project-upload-folder';
 import type { OrgContext } from '@/shared/auth/context';
@@ -41,8 +40,7 @@ import {
   type FolderMappingStore,
 } from './application/folders';
 import type { InfraDeps, InfraFolderPort } from './application/ports';
-import { resolveProjectFolderId, type InfraProjectSnapshot } from './application/project-folder';
-import { describeFolderFailure, type FolderStage } from './domain/folder-failure';
+import { describeErrorMessages, describeFolderFailure, type FolderStage } from './domain/folder-failure';
 import { logger } from '@/shared/observability/logger';
 
 /**
@@ -140,7 +138,7 @@ interface FolderRuntime {
 
 export async function buildRuntime(
   db: DbExecutor,
-  input: { organizationId: string; projectId: string; userId?: string | null; project?: InfraProjectSnapshot | null },
+  input: { organizationId: string; projectId: string; userId?: string | null },
   onStage?: (stage: FolderStage) => void,
 ): Promise<FolderRuntime> {
   onStage?.('connection');
@@ -148,43 +146,13 @@ export async function buildRuntime(
   onStage?.('token');
   const accessToken = await resolveValidAccessToken(db, input.organizationId, connection);
   onStage?.('project_folder');
-  const resolved = await resolveProjectFolderId({
-    provision: () =>
-      provisionStoredProjectFolder(db, {
-        organizationId: input.organizationId,
-        connection,
-        accessToken,
-        projectId: input.projectId,
-      }),
-    snapshot: input.project,
-    ensureFromSnapshot: (project) =>
-      ensureProjectFolderTree(db, {
-        organizationId: input.organizationId,
-        connection,
-        accessToken,
-        projectId: project.id,
-        projectName: project.name,
-        documentNumber: project.documentNumber,
-        clientId: project.clientId,
-        clientName: project.clientName,
-      }),
+  const projectFolderId = await provisionStoredProjectFolder(db, {
+    organizationId: input.organizationId,
+    connection,
+    accessToken,
+    projectId: input.projectId,
   });
-  if (!resolved) {
-    logger.error('infra.project_folder_unresolved', {
-      organizationId: input.organizationId,
-      projectId: input.projectId,
-      hadSnapshot: Boolean(input.project),
-    });
-    throw new DomainRuleError('Project folder is unavailable', 'infraMapping.errors.projectFolder');
-  }
-  if (resolved.source === 'snapshot') {
-    // The trusted read of the project row came back empty; worth knowing if it ever repeats.
-    logger.warn('infra.project_read_empty_under_service_role', {
-      organizationId: input.organizationId,
-      projectId: input.projectId,
-    });
-  }
-  const projectFolderId = resolved.folderId;
+  if (!projectFolderId) throw new DomainRuleError('Project folder is unavailable', 'infraMapping.errors.projectFolder');
   onStage?.('locations');
   const nodes = await listLocationNodes(db, input.organizationId, input.projectId);
   return {
@@ -226,6 +194,7 @@ export const infraFolderPort: InfraFolderPort = {
         projectId: input.projectId,
         locationId: input.locationId,
         errorName: error instanceof Error ? error.name : typeof error,
+        ...describeErrorMessages(error),
         providerStatus:
           error instanceof Error && error.name === 'ProviderHttpError' ? (error as { status?: number }).status : undefined,
         providerBody:

@@ -82,10 +82,6 @@ import {
   type UpdateCaptureInput,
 } from './domain/validation';
 import { createLocationWithFolder } from './application/location-create';
-import type { InfraProjectSnapshot } from './application/project-folder';
-import { findClientById } from '@/modules/clients';
-import { findProjectById } from '@/modules/projects';
-import type { OrgContext } from '@/shared/auth/context';
 import { infraDeps, isInfraStorageConnected } from './server';
 import { infraVideoPort } from './video-server';
 
@@ -299,38 +295,17 @@ export async function infraMoveLocationAction(payload: MoveLocationPayload): Pro
 /** Authorizes the caller and returns the organization that owns the cloud, or a failure result. */
 async function manageableOrganization(
   projectId: string,
-): Promise<{ ok: true; organizationId: string; project: InfraProjectSnapshot | null } | { ok: false; error: string }> {
+): Promise<{ ok: true; organizationId: string } | { ok: false; error: string }> {
   try {
-    return await withOrgContext(async (context) => {
+    const organizationId = await withOrgContext(async (context) => {
       const actor: InfraActor = { kind: 'internal', context };
       await assertCanManageLocations(actor, projectId);
-      const organizationId = await organizationFor(actor, null);
-      return { ok: true as const, organizationId, project: await loadProjectSnapshot(context, organizationId, projectId) };
+      return organizationFor(actor, null);
     });
+    return { ok: true, organizationId };
   } catch (error) {
     return failure(error);
   }
-}
-
-/**
- * The project facts the signed-in, authorized caller can read under their own session. The trusted
- * connection that creates cloud folders falls back to them if its own read of the project is empty.
- */
-async function loadProjectSnapshot(
-  context: OrgContext,
-  organizationId: string,
-  projectId: string,
-): Promise<InfraProjectSnapshot | null> {
-  const project = await findProjectById(context.db, organizationId, projectId);
-  if (!project) return null;
-  const client = project.clientId ? await findClientById(context.db, organizationId, project.clientId) : null;
-  return {
-    id: project.id,
-    name: project.name,
-    documentNumber: project.documentNumber ?? null,
-    clientId: project.clientId ?? null,
-    clientName: client?.name ?? null,
-  };
 }
 
 /**
@@ -354,7 +329,6 @@ export async function infraCreateLocationAction(payload: CreateLocationPayload):
         organizationId: owner.organizationId,
         projectId: payload.projectId,
         locationId,
-        project: owner.project,
       });
       return created.ok ? { ok: true } : { ok: false, reason: `${created.stage}/${created.code}` };
     },
@@ -401,11 +375,8 @@ export async function syncInfraFoldersAction(input: FolderSyncInput): Promise<In
   return run('internal', async (actor) => {
     const parsed = folderSyncSchema.parse(input);
     await assertCanManageLocations(actor, parsed.projectId);
-    const organizationId = await organizationFor(actor, null);
     const result = await infraDeps.folders.syncFolders({
-      organizationId,
-      project:
-        actor.kind === 'internal' ? await loadProjectSnapshot(actor.context, organizationId, parsed.projectId) : null,
+      organizationId: await organizationFor(actor, null),
       projectId: parsed.projectId,
       locationIds: parsed.locationIds ?? null,
       batchSize: Math.min(parsed.batchSize, SYNC_BATCH),

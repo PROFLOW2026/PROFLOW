@@ -2,7 +2,6 @@ import type { OrgContext } from '@/shared/auth/context';
 import type { ExternalContext } from '@/shared/external';
 import type { ProjectFileDeps } from '@/modules/evidence';
 import type { SyncResult } from './folders';
-import type { InfraProjectSnapshot } from './project-folder';
 
 /**
  * Who is calling. Internal users (owner app, employee app) carry an OrgContext; contractors carry an
@@ -38,8 +37,6 @@ export interface InfraFolderPort {
     organizationId: string;
     projectId: string;
     locationId: string;
-    /** Project facts read by the authorized caller; used when the trusted read of the project is empty. */
-    project?: InfraProjectSnapshot | null;
   }): Promise<{ ok: true; folderId: string } | { ok: false; stage: string; code: string }>;
   /** The cloud folder of a location (creating real folders as needed); null when it cannot be resolved. */
   resolveLocationFolder(input: { organizationId: string; projectId: string; locationId: string }): Promise<string | null>;
@@ -49,7 +46,6 @@ export interface InfraFolderPort {
     locationIds?: readonly string[] | null;
     batchSize: number;
     createdByUserId: string | null;
-    project?: InfraProjectSnapshot | null;
   }): Promise<SyncResult>;
   renameFolder(input: { organizationId: string; projectId: string; locationId: string }): Promise<'renamed' | 'unchanged' | 'no_folder'>;
   moveFolder(input: { organizationId: string; projectId: string; locationId: string }): Promise<'moved' | 'unchanged' | 'no_folder'>;

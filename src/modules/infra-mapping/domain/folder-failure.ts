@@ -30,6 +30,22 @@ function safeToken(value: string): string {
   return value.replace(/[^A-Za-z0-9_.:-]/g, '').slice(0, 60);
 }
 
+function firstLine(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const line = value.split(/\r?\n/)[0]!.trim().slice(0, 160);
+  return line || undefined;
+}
+
+/** First line of the error message and of its cause, for logs only (no stack, no query parameters). */
+export function describeErrorMessages(error: unknown): { errorMessage?: string; causeName?: string; causeMessage?: string } {
+  const [first, cause] = chain(error);
+  return {
+    errorMessage: firstLine(first?.message),
+    causeName: typeof cause?.name === 'string' ? safeToken(cause.name) : undefined,
+    causeMessage: firstLine(cause?.message),
+  };
+}
+
 export function describeFolderFailure(stage: FolderStage, error: unknown): FolderFailureInfo {
   const items = chain(error);
   for (const item of items) {

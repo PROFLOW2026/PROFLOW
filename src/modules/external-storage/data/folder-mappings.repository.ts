@@ -1,5 +1,6 @@
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { storageFolderMappings } from '@drizzle/schema';
+import { elevateToServiceRole, restoreRole } from '@/shared/db/role-elevation';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import type { SemanticFolderType } from '../domain/types';
 import type { DbExecutor } from '@/shared/db/types';
@@ -14,14 +15,14 @@ async function asServiceRoleWritePreservingError<T>(
   db: DbExecutor,
   fn: () => Promise<T>,
 ): Promise<T> {
-  await db.execute(sql`set local role service_role`);
+  const back = await elevateToServiceRole(db);
   try {
     const result = await fn();
-    await db.execute(sql`set local role authenticated`);
+    await restoreRole(db, back);
     return result;
   } catch (error) {
     try {
-      await db.execute(sql`set local role authenticated`);
+      await restoreRole(db, back);
     } catch {
       // The statement aborted the transaction. Role reset runs after savepoint rollback.
     }
