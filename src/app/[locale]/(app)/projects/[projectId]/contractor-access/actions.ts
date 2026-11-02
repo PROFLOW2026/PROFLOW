@@ -119,7 +119,13 @@ export async function updateContractorGrantAction(
     return { error: t('errors.validation') };
   }
   return run(async (t) => {
-    await withOrgContext((context) => updateContractorGrantCapabilities(context, parsed.data));
+    const { locationsEdited, allowedLocationIds, ...rest } = parsed.data;
+    await withOrgContext((context) =>
+      updateContractorGrantCapabilities(context, {
+        ...rest,
+        ...(locationsEdited ? { allowedLocationIds: allowedLocationIds ?? [] } : {}),
+      }),
+    );
     return { success: t('manage.actions.saved') };
   });
 }

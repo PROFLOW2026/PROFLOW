@@ -5,10 +5,12 @@ import { useRef, useState, type ReactNode } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { locationLabel } from '../domain/filters';
+import { captureLevelChoices } from '../domain/location-scope';
 import { INFRA_TYPES, INFRA_TYPE_LABELS, type InfraLocationOption, type InfraType } from '../domain/types';
 import { canApprove, canRetry, type QueueItem } from '../domain/upload-queue';
 import { InfraCamera } from './infra-camera';
 import { InfraDetailsForm } from './infra-details-form';
+import { InfraLevelSelect } from './infra-level-select';
 import { InfraLocationSelect } from './infra-location-select';
 import { inspectPickedVideo } from './infra-video-file';
 import { InfraVideoRecorder } from './infra-video-recorder';
@@ -105,6 +107,14 @@ function QueueCard({
             required
             testId="infra-item-location"
           />
+          <InfraLevelSelect
+            locations={locations}
+            locationId={item.locationId}
+            value={item.levelId ?? null}
+            onChange={(next) => uploads.edit(item.clientId, { levelId: next })}
+            emptyLabel="—"
+            testId="infra-item-level"
+          />
           <button
             type="button"
             className="inline-flex min-h-11 w-fit items-center gap-1 text-sm text-[var(--pf-text-brand)]"
@@ -199,6 +209,10 @@ export function InfraCapturePanel({
   readonly canCaptureVideo?: boolean;
 }) {
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [pickedLevelId, setPickedLevelId] = useState<string | null>(null);
+  const levelChoices = captureLevelChoices(locations, locationId);
+  // A multi-level unit defaults to its primary level; the choice never outlives the unit it was made for.
+  const levelId = pickedLevelId && levelChoices.some((choice) => choice.id === pickedLevelId) ? pickedLevelId : (levelChoices[0]?.id ?? null);
   const [videoOpen, setVideoOpen] = useState(false);
   const [videoMessage, setVideoMessage] = useState<{ tone: 'info' | 'danger'; text: string } | null>(null);
   const nativeCapture = useRef<HTMLInputElement>(null);
@@ -209,7 +223,7 @@ export function InfraCapturePanel({
   const addRecordedVideo = (file: File, durationMs: number, autoStopped: boolean) => {
     setVideoOpen(false);
     setVideoMessage(autoStopped ? { tone: 'info', text: INFRA_TEXT.video.autoStopped } : null);
-    uploads.addVideo(file, { locationId, source: 'camera', durationMs, details: { infraType: workDomain ?? '' } });
+    uploads.addVideo(file, { locationId, levelId, source: 'camera', durationMs, details: { infraType: workDomain ?? '' } });
   };
 
   const addPickedVideo = async (file: File) => {
@@ -221,6 +235,7 @@ export function InfraCapturePanel({
     setVideoMessage(null);
     uploads.addVideo(picked.file, {
       locationId,
+      levelId,
       source: 'gallery',
       durationMs: picked.durationMs,
       details: { infraType: workDomain ?? '' },
@@ -232,6 +247,7 @@ export function InfraCapturePanel({
     const last = [...items].reverse().find((item) => item.details.room || item.details.wall);
     uploads.add(file, {
       locationId,
+      levelId,
       source,
       details: { room: last?.details.room ?? '', wall: last?.details.wall ?? '', infraType: workDomain ?? '' },
     });
@@ -255,7 +271,7 @@ export function InfraCapturePanel({
     onLocationChange(next);
     if (!next) return;
     for (const item of items) {
-      if (item.status === 'pending_approval' && !item.locationId) uploads.edit(item.clientId, { locationId: next });
+      if (item.status === 'pending_approval' && !item.locationId) uploads.edit(item.clientId, { locationId: next, levelId });
     }
   };
 
@@ -303,6 +319,7 @@ export function InfraCapturePanel({
           </select>
         </label>
       </div>
+      <InfraLevelSelect locations={locations} locationId={locationId} value={levelId} onChange={setPickedLevelId} testId="infra-capture-level" />
       {taskTitle ? (
         <p className="text-sm text-[var(--pf-text-secondary)]">
           {INFRA_TEXT.task}: <span className="font-medium text-[var(--pf-text-primary)]">{taskTitle}</span>

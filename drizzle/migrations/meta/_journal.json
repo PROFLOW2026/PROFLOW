@@ -1359,6 +1359,13 @@
             "when": 1789715880000,
             "tag": "0195_infra_mapping",
             "breakpoints": true
+        },
+        {
+            "idx": 194,
+            "version": "7",
+            "when": 1789715940000,
+            "tag": "0196_infra_capture_level_and_grant_locations",
+            "breakpoints": true
         }
     ]
 }

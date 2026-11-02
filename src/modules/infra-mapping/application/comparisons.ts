@@ -294,6 +294,10 @@ export async function listComparisons(
       raw.locationId,
     );
   }
+  if (access.allowedLocationIds) {
+    const allowed = access.allowedLocationIds;
+    locationIds = locationIds ? locationIds.filter((id) => allowed.has(id)) : [...allowed];
+  }
   const items = await listComparisonRows(db, {
     organizationId,
     projectId: access.projectId,

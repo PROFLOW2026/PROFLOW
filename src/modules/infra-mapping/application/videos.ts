@@ -26,7 +26,7 @@ import {
   isAuthor,
   organizationFor,
 } from './access';
-import { assertLocationUsable, assertTaskUsable, beginEvidence, type BeginCaptureResult } from './captures';
+import { assertLevelUsable, assertLocationUsable, assertTaskUsable, beginEvidence, type BeginCaptureResult } from './captures';
 import type { InfraActor, InfraDeps } from './ports';
 
 /**
@@ -137,6 +137,7 @@ export async function beginVideoCapture(
 
   await assertLocationUsable(actor, { organizationId, projectId: access.projectId, locationId: input.locationId });
   await assertTaskUsable(actor, { organizationId, projectId: access.projectId, taskId: input.taskId });
+  await assertLevelUsable(actor, { organizationId, projectId: access.projectId, locationId: input.locationId, levelId: input.levelId });
   await port.assertCanStore({ organizationId, sizeBytes: input.file.sizeBytes });
 
   const capturedAt = input.capturedAt ? new Date(input.capturedAt) : new Date();
@@ -167,6 +168,7 @@ export async function beginVideoCapture(
     organizationId,
     projectId: access.projectId,
     locationId: input.locationId,
+    levelId: input.levelId ?? null,
     evidenceId: ticket.evidenceId,
     taskId: input.taskId ?? null,
     clientCaptureId: input.clientCaptureId,

@@ -9,6 +9,7 @@ import {
 } from '../data/infra.repository';
 import { loadShellOrgSettings } from '@/modules/tenancy';
 import type { InfraFolderStatusDto, InfraLocationOption, InfraPermissions, InfraType } from '../domain/types';
+import { visibleLocationSet } from '../domain/location-scope';
 import { defaultWorkDomain } from '../domain/work-domain';
 import {
   actorDb,
@@ -63,7 +64,10 @@ export async function loadInfraWorkspace(
   const access = await authorizeProject(actor, { organizationId, projectId, need: 'view' });
   const db = actorDb(actor);
 
-  const nodes = await listLocationNodes(db, organizationId, access.projectId);
+  const allNodes = await listLocationNodes(db, organizationId, access.projectId);
+  // A contractor limited to specific units sees only those and the path above them.
+  const visible = access.allowedLocationIds ? visibleLocationSet(access.allowedLocationIds, allNodes) : null;
+  const nodes = visible ? allNodes.filter((node) => visible.has(node.id)) : allNodes;
   const locations: InfraLocationOption[] = nodes.map((node) => ({
     id: node.id,
     parentId: node.parentId,

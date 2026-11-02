@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import type { ReactNode } from 'react';
 import { ChevronDown, KeyRound, UserPlus } from 'lucide-react';
@@ -307,6 +307,9 @@ function GrantRow({
         </span>
         {active ? null : <Badge tone="neutral">{t('manage.list.revoked')}</Badge>}
         {grant.templateKey ? <Badge tone="brand">{t(`manage.templates.${grant.templateKey}.name`)}</Badge> : null}
+        {grant.allowedLocationIds ? (
+          <Badge tone="neutral">{t('manage.list.limitedLocations', { count: grant.allowedLocationIds.length })}</Badge>
+        ) : null}
         <span className="text-xs text-[var(--pf-text-secondary)]">
           {grant.expiresAt
             ? t('manage.list.expires', { date: format.dateTime(grant.expiresAt, { dateStyle: 'medium' }) })
@@ -360,6 +363,26 @@ function GrantRow({
             initialTemplate={grant.templateKey ?? 'custom'}
             initialCapabilities={grant.capabilities}
           />
+          {grant.projectId && overview.locations.length > 0 ? (
+            <fieldset className="flex min-w-0 flex-col gap-2" data-testid="grant-locations">
+              <legend className="text-sm font-medium">{t('manage.list.locationsTitle')}</legend>
+              <p className="text-xs text-[var(--pf-text-secondary)]">{t('manage.list.locationsHint')}</p>
+              <input type="hidden" name="locationsEdited" value="1" />
+              <div className="max-h-48 overflow-y-auto rounded-md border border-[var(--pf-border-default)] p-2">
+                {overview.locations.map((location) => (
+                  <label key={location.id} className="flex min-h-9 items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      name="allowedLocationIds"
+                      value={location.id}
+                      defaultChecked={grant.allowedLocationIds?.includes(location.id) ?? false}
+                    />
+                    <span className="min-w-0 truncate">{location.label}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          ) : null}
           <Field id={`edit-${grant.grantId}-expires`} label={t('manage.invite.expiresAt')}>
             {(control) => (
               <Input

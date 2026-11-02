@@ -24,6 +24,8 @@ export interface ExternalGrantView {
   readonly subcontractAgreementId: string | null;
   readonly capabilities: ReadonlySet<string>;
   readonly expiresAt: Date | null;
+  /** Restricts the grant to these locations (and everything below them); null / absent = the whole project. */
+  readonly allowedLocationIds?: readonly string[] | null;
 }
 
 export interface ExternalContext {
@@ -63,6 +65,19 @@ export function externalGrantCovers(
     return false;
   }
   return true;
+}
+
+/**
+ * Location restriction of a grant. `path` is the location itself followed by its ancestors; an unrestricted grant
+ * (no `allowedLocationIds`) and a target that is not a location (`path` absent) are always allowed.
+ */
+export function externalGrantAllowsLocationPath(
+  grant: Pick<ExternalGrantView, 'allowedLocationIds'>,
+  path: readonly string[] | null | undefined,
+): boolean {
+  const allowed = grant.allowedLocationIds;
+  if (!allowed || allowed.length === 0 || !path) return true;
+  return path.some((id) => allowed.includes(id));
 }
 
 /** Returns the covering grant or throws AuthorizationError. No existence oracle: callers map to NotFound where needed. */

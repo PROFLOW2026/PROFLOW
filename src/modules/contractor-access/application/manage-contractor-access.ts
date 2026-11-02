@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
-import { and, asc, eq, isNull, ne } from 'drizzle-orm';
-import { profiles, projects, subcontractAgreements, vendors } from '@drizzle/schema';
+import { and, asc, eq, inArray, isNull, ne } from 'drizzle-orm';
+import { profiles, projectLocations, projects, subcontractAgreements, vendors } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import { recordAuditEvent } from '@/shared/audit';
 import { AUDIT_ACTIONS } from '@/shared/audit/actions';
@@ -197,6 +197,8 @@ export interface ContractorGrantSummary {
   readonly agreementTitle: string | null;
   readonly templateKey: string | null;
   readonly capabilities: readonly string[];
+  /** Locations the contractor is limited to (with everything below them); null = the whole project. */
+  readonly allowedLocationIds: readonly string[] | null;
   readonly status: string;
   readonly expiresAt: Date | null;
   readonly revokedAt: Date | null;
@@ -223,6 +225,8 @@ export interface ContractorAccessOverview {
   readonly authority: ContractorAccessAuthority;
   readonly vendors: ReadonlyArray<{ id: string; name: string }>;
   readonly agreements: ReadonlyArray<{ id: string; title: string; vendorId: string }>;
+  /** The project's live locations (path labels) a grant can be limited to. */
+  readonly locations: ReadonlyArray<{ id: string; label: string }>;
   readonly accounts: readonly ContractorAccountSummary[];
   readonly existingPrincipals: ReadonlyArray<{ principalId: string; vendorId: string; label: string }>;
 }
@@ -326,6 +330,28 @@ export async function getContractorAccessOverview(
       .orderBy(asc(subcontractAgreements.title))
       .limit(500);
     const grantRows = await listProjectContractorGrants(context.db, context.organizationId, projectId);
+    const locationRows = await context.db
+      .select({ id: projectLocations.id, parentId: projectLocations.parentId, name: projectLocations.name })
+      .from(projectLocations)
+      .where(
+        and(
+          eq(projectLocations.organizationId, context.organizationId),
+          eq(projectLocations.projectId, projectId),
+          eq(projectLocations.isActive, true),
+          isNull(projectLocations.archivedAt),
+        ),
+      )
+      .orderBy(asc(projectLocations.sortOrder), asc(projectLocations.name))
+      .limit(500);
+    const locationById = new Map(locationRows.map((row) => [row.id, row]));
+    const locationOptions = locationRows.map((row) => {
+      const parts: string[] = [];
+      for (let cursor: typeof row | undefined = row, guard = 0; cursor && guard < 40; guard += 1) {
+        parts.unshift(cursor.name);
+        cursor = cursor.parentId ? locationById.get(cursor.parentId) : undefined;
+      }
+      return { id: row.id, label: parts.join(' › ') };
+    });
 
     const byPrincipal = new Map<string, { principal: ContractorPrincipalRow; grants: ContractorGrantSummary[] }>();
     for (const row of grantRows) {
@@ -339,6 +365,7 @@ export async function getContractorAccessOverview(
         agreementTitle: row.agreementTitle,
         templateKey: row.grant.templateKey,
         capabilities: row.grant.scopes,
+        allowedLocationIds: row.grant.allowedLocationIds && row.grant.allowedLocationIds.length > 0 ? row.grant.allowedLocationIds : null,
         status: row.grant.status,
         expiresAt: row.grant.expiresAt,
         revokedAt: row.grant.revokedAt,
@@ -373,6 +400,7 @@ export async function getContractorAccessOverview(
       authority,
       vendors: vendorRows,
       agreements: agreementRows,
+      locations: locationOptions,
       accounts,
       existingPrincipals: existing.map((row) => ({
         principalId: row.principalId,
@@ -690,6 +718,8 @@ export interface UpdateContractorGrantInput {
   readonly template: string;
   readonly capabilities?: readonly string[];
   readonly expiresAt?: Date | null;
+  /** undefined = leave as is; [] = the whole project; ids = limit the contractor to these locations (and below). */
+  readonly allowedLocationIds?: readonly string[];
 }
 
 export async function updateContractorGrantCapabilities(
@@ -710,18 +740,52 @@ export async function updateContractorGrantCapabilities(
   } catch (error) {
     mapGrantRule(error);
   }
+  let allowedLocationIds: string[] | null | undefined;
+  if (input.allowedLocationIds !== undefined) {
+    const requested = [...new Set(input.allowedLocationIds)];
+    if (requested.length === 0) {
+      allowedLocationIds = null;
+    } else {
+      // Only a project-bound grant can be limited, and only to live locations of THAT project.
+      if (!grant.projectId) throw err('locations_need_project');
+      const found = await context.db
+        .select({ id: projectLocations.id })
+        .from(projectLocations)
+        .where(
+          and(
+            eq(projectLocations.organizationId, context.organizationId),
+            eq(projectLocations.projectId, grant.projectId),
+            isNull(projectLocations.archivedAt),
+            inArray(projectLocations.id, requested),
+          ),
+        );
+      if (found.length !== requested.length) throw new NotFoundError('Location');
+      allowedLocationIds = requested;
+    }
+  }
   await updateContractorGrant(context.db, context.organizationId, grant.id, {
     scopes: [...capabilities],
     templateKey: input.template,
     expiresAt: input.expiresAt ?? null,
+    ...(allowedLocationIds !== undefined ? { allowedLocationIds } : {}),
     updatedByUserId: context.userId,
   });
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.EXTERNAL_GRANT_UPDATED,
     entityType: 'external_access_grant',
     entityId: grant.id,
-    before: { capabilities: grant.scopes, templateKey: grant.templateKey, expiresAt: grant.expiresAt },
-    after: { capabilities, templateKey: input.template, expiresAt: input.expiresAt ?? null },
+    before: {
+      capabilities: grant.scopes,
+      templateKey: grant.templateKey,
+      expiresAt: grant.expiresAt,
+      allowedLocationIds: grant.allowedLocationIds ?? null,
+    },
+    after: {
+      capabilities,
+      templateKey: input.template,
+      expiresAt: input.expiresAt ?? null,
+      allowedLocationIds: allowedLocationIds === undefined ? (grant.allowedLocationIds ?? null) : allowedLocationIds,
+    },
   });
   await emitDomainEvent(context.db, {
     organizationId: context.organizationId,

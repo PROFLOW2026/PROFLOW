@@ -58,7 +58,7 @@ export function useInfraUploads(context: Context) {
   }, []);
 
   const add = useCallback(
-    (file: File, input: { locationId: string | null; source: QueueItem['source']; details?: Partial<QueueDetails> }) => {
+    (file: File, input: { locationId: string | null; levelId?: string | null; source: QueueItem['source']; details?: Partial<QueueDetails> }) => {
       const clientId = newClientId();
       files.current.set(clientId, file);
       capturedAt.current.set(clientId, new Date().toISOString());
@@ -75,7 +75,13 @@ export function useInfraUploads(context: Context) {
   const addVideo = useCallback(
     (
       file: File,
-      input: { locationId: string | null; source: QueueItem['source']; durationMs: number; details?: Partial<QueueDetails> },
+      input: {
+        locationId: string | null;
+        levelId?: string | null;
+        source: QueueItem['source'];
+        durationMs: number;
+        details?: Partial<QueueDetails>;
+      },
     ) => {
       const { durationMs, ...rest } = input;
       const clientId = add(file, rest);
@@ -109,12 +115,15 @@ export function useInfraUploads(context: Context) {
 
   /** Edits details / location of a photo that is still waiting for approval. */
   const edit = useCallback(
-    (clientId: string, update: { locationId?: string | null; details?: Partial<QueueDetails> }) => {
+    (clientId: string, update: { locationId?: string | null; levelId?: string | null; details?: Partial<QueueDetails> }) => {
       patch(clientId, (item) =>
         item.status === 'pending_approval'
           ? {
               ...item,
               locationId: update.locationId === undefined ? item.locationId : update.locationId,
+              // A level belongs to the unit it was picked for: a new location clears it unless one is sent too.
+              levelId:
+                update.levelId !== undefined ? update.levelId : update.locationId !== undefined ? null : (item.levelId ?? null),
               details: { ...item.details, ...update.details },
             }
           : item,
@@ -164,6 +173,7 @@ export function useInfraUploads(context: Context) {
         projectId: ctx.projectId,
         organizationId: ctx.viewer === 'external' ? ctx.organizationId : null,
         locationId,
+        levelId: item.levelId ?? null,
         clientCaptureId: item.clientId,
         taskId: ctx.taskId,
         source: item.source,
@@ -225,6 +235,7 @@ export function useInfraUploads(context: Context) {
         projectId: ctx.projectId,
         organizationId: ctx.viewer === 'external' ? ctx.organizationId : null,
         locationId: item.locationId,
+        levelId: item.levelId ?? null,
         clientCaptureId: item.clientId,
         taskId: ctx.taskId,
         source: item.source,

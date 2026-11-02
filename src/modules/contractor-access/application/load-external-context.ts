@@ -44,6 +44,7 @@ export function grantRowToView(row: ContractorGrantRow): ExternalGrantView | nul
     subcontractAgreementId: row.subcontractAgreementId,
     capabilities: new Set(row.scopes),
     expiresAt: row.expiresAt,
+    allowedLocationIds: row.allowedLocationIds && row.allowedLocationIds.length > 0 ? row.allowedLocationIds : null,
   };
 }
 

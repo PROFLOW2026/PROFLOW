@@ -12,6 +12,11 @@ export interface EntityScope {
   readonly subcontractAgreementId?: string | null;
   /** true = never visible to external principals regardless of grant. */
   readonly internalOnly?: boolean;
+  /**
+   * Only for location entities: the location itself followed by its ancestors. Lets a contractor grant that is
+   * restricted to specific units / locations be enforced wherever the entity is resolved.
+   */
+  readonly locationPath?: readonly string[];
 }
 
 export interface EntityAccessResolver {

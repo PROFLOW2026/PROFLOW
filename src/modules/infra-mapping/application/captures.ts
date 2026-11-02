@@ -7,7 +7,7 @@ import {
   type EvidenceUploadTicket,
 } from '@/modules/evidence';
 import { buildLocationIndex, isLocationType } from '@/modules/project-profile/domain/locations';
-import { levelScopeIds } from '@/modules/project-profile/domain/unit-levels';
+import { levelScopeIds, validateSpaceLevel } from '@/modules/project-profile/domain/unit-levels';
 import { AuthorizationError, ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import {
   captureEvidenceIds,
@@ -100,6 +100,22 @@ export async function assertLocationUsable(
   }
 }
 
+/**
+ * A capture may carry the level of a multi-level unit it belongs to. The level must be a live level of the same
+ * building as the location (null / undefined = no level: the location tree decides, as for older captures).
+ */
+export async function assertLevelUsable(
+  actor: InfraActor,
+  input: { organizationId: string; projectId: string; locationId: string; levelId: string | null | undefined },
+): Promise<void> {
+  if (!input.levelId) return;
+  const nodes = await listLocationNodes(actorDb(actor), input.organizationId, input.projectId);
+  const index = buildLocationIndex(nodes.map((node) => ({ ...node, type: isLocationType(node.type) ? node.type : 'other' })));
+  if (validateSpaceLevel(index, input.locationId, input.levelId) !== null) {
+    throw new DomainRuleError('Level does not belong to this location', 'projectProfile.errors.levelLink');
+  }
+}
+
 /** The task must belong to this organization AND project (the DB trigger enforces the same rule). */
 export async function assertTaskUsable(
   actor: InfraActor,
@@ -182,6 +198,7 @@ export async function beginCapture(actor: InfraActor, raw: BeginCaptureInput, de
 
   await assertLocationUsable(actor, { organizationId, projectId: access.projectId, locationId: input.locationId });
   await assertTaskUsable(actor, { organizationId, projectId: access.projectId, taskId: input.taskId });
+  await assertLevelUsable(actor, { organizationId, projectId: access.projectId, locationId: input.locationId, levelId: input.levelId });
 
   const mimeType = normalizeMime(input.file.mimeType);
   const capturedAt = input.capturedAt ? new Date(input.capturedAt) : new Date();
@@ -210,6 +227,7 @@ export async function beginCapture(actor: InfraActor, raw: BeginCaptureInput, de
     organizationId,
     projectId: access.projectId,
     locationId: input.locationId,
+    levelId: input.levelId ?? null,
     evidenceId: ticket.evidenceId,
     taskId: input.taskId ?? null,
     clientCaptureId: input.clientCaptureId,
@@ -251,11 +269,18 @@ export async function listCaptures(actor: InfraActor, raw: ListCapturesInput): P
     if (!nodes.some((node) => node.id === input.locationId)) throw new NotFoundError('Location');
     locationIds = input.includeSubLocations ? subtreeIds(tree, input.locationId) : [input.locationId];
   }
+  let level: { id: string; fallbackLocationIds: string[] } | undefined;
   if (input.levelId) {
     if (!nodes.some((node) => node.id === input.levelId)) throw new NotFoundError('Location');
-    // Levels are metadata (no folder per level): the scope comes from the location tree, never from the cloud.
-    const scope = new Set(levelScopeIds(buildLocationIndex(nodes.map((node) => ({ ...node, type: isLocationType(node.type) ? node.type : 'other' }))), input.levelId));
-    locationIds = locationIds ? locationIds.filter((id) => scope.has(id)) : [...scope];
+    // Levels are metadata (no folder per level). A capture saved with a level belongs to exactly that level; older
+    // captures (no level saved) fall back to the location tree, as before.
+    const scope = levelScopeIds(buildLocationIndex(nodes.map((node) => ({ ...node, type: isLocationType(node.type) ? node.type : 'other' }))), input.levelId);
+    level = { id: input.levelId, fallbackLocationIds: scope };
+  }
+  // A contractor limited to specific units only ever lists captures of those locations.
+  if (access.allowedLocationIds) {
+    const allowed = access.allowedLocationIds;
+    locationIds = locationIds ? locationIds.filter((id) => allowed.has(id)) : [...allowed];
   }
   const text = input.text?.trim() || undefined;
   const range = dayRange(input.from, input.to);
@@ -265,6 +290,7 @@ export async function listCaptures(actor: InfraActor, raw: ListCapturesInput): P
     organizationId,
     projectId: access.projectId,
     locationIds,
+    level,
     text,
     textLocationIds: text ? locationIdsMatchingText(tree, text) : undefined,
     textInfraTypes: text ? infraTypesMatchingText(text) : undefined,
@@ -370,6 +396,17 @@ export async function updateCapture(actor: InfraActor, raw: UpdateCaptureInput, 
     });
     await syncEvidenceLocation(db, organizationId, evidenceIds, input.locationId);
     patch.locationId = input.locationId;
+    // A level belongs to the unit it was chosen for: a moved capture starts without one unless a new one is sent.
+    if (input.levelId === undefined) patch.levelId = null;
+  }
+  if (input.levelId !== undefined) {
+    await assertLevelUsable(actor, {
+      organizationId,
+      projectId: row.projectId,
+      locationId: input.locationId ?? row.locationId,
+      levelId: input.levelId,
+    });
+    patch.levelId = input.levelId ?? null;
   }
 
   if (Object.keys(patch).length === 0) return;

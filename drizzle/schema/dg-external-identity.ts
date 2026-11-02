@@ -70,6 +70,8 @@ export const contractorGrants = pgTable('external_access_grants', {
   vendorId: uuid('vendor_id'),
   subcontractAgreementId: uuid('subcontract_agreement_id'),
   scopes: jsonb('scopes').$type<string[]>().notNull().default([]),
+  /** Restricts the grant to these locations (0196). null = the whole project. */
+  allowedLocationIds: uuid('allowed_location_ids').array(),
   status: text('status').notNull().default('active'),
   expiresAt: ts('expires_at'),
   revokedAt: ts('revoked_at'),

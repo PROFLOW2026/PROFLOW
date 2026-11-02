@@ -81,6 +81,9 @@ export const updateGrantSchema = z.object({
   template: z.string().min(1).max(40),
   capabilities: z.array(z.string().max(60)).max(64).default([]),
   expiresAt: optionalDate,
+  /** Sent by the edit form whenever it offers the location limit; the checked ids are in llowedLocationIds. */
+  locationsEdited: z.string().optional(),
+  allowedLocationIds: z.array(uuid).max(200).optional(),
 });
 
 export const grantRefSchema = z.object({ projectId: uuid, grantId: uuid, reason: optionalText(500) });
@@ -123,7 +126,11 @@ export function formToObject(formData: FormData): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   for (const [key, value] of formData.entries()) {
     if (typeof value !== 'string') continue;
-    if (key === 'capabilities') {
+    if (key === 'allowedLocationIds') {
+      const list = (result.allowedLocationIds as string[] | undefined) ?? [];
+      list.push(value);
+      result.allowedLocationIds = list;
+    } else if (key === 'capabilities') {
       const list = (result.capabilities as string[] | undefined) ?? [];
       list.push(value);
       result.capabilities = list;

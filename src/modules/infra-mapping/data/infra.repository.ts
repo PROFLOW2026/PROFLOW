@@ -85,6 +85,7 @@ export async function findCaptureByEvidenceId(
 
 export interface CapturePatch {
   readonly locationId?: string;
+  readonly levelId?: string | null;
   readonly taskId?: string | null;
   readonly role?: InfraCaptureRole;
   readonly description?: string | null;
@@ -131,6 +132,7 @@ const CAPTURE_SELECT = {
   evidenceId: infraCaptures.evidenceId,
   projectId: infraCaptures.projectId,
   locationId: infraCaptures.locationId,
+  levelId: infraCaptures.levelId,
   taskId: infraCaptures.taskId,
   role: infraCaptures.role,
   source: infraCaptures.source,
@@ -159,6 +161,7 @@ export type CaptureJoinRow = {
   evidenceId: string;
   projectId: string;
   locationId: string;
+  levelId: string | null;
   taskId: string | null;
   role: InfraCaptureRole;
   source: InfraCaptureSource;
@@ -195,6 +198,7 @@ export function toCaptureDto(row: CaptureJoinRow, latestAnnotatedEvidenceId: str
     evidenceId: row.evidenceId,
     projectId: row.projectId,
     locationId: row.locationId,
+    levelId: row.levelId,
     taskId: row.taskId,
     role: row.role,
     source: row.source,
@@ -239,6 +243,8 @@ export interface ListCapturesQuery {
   readonly organizationId: string;
   readonly projectId: string;
   readonly locationIds?: readonly string[];
+  /** Level filter: captures saved with this level, plus older captures (no level) of the fallback locations. */
+  readonly level?: { readonly id: string; readonly fallbackLocationIds: readonly string[] };
   readonly text?: string;
   /** Locations whose name matched the free text. */
   readonly textLocationIds?: readonly string[];
@@ -269,6 +275,14 @@ export async function listCaptureRows(db: DbExecutor, query: ListCapturesQuery):
   if (query.locationIds) {
     if (query.locationIds.length === 0) return [];
     conditions.push(inArray(infraCaptures.locationId, [...query.locationIds]));
+  }
+  if (query.level) {
+    const { id, fallbackLocationIds } = query.level;
+    conditions.push(
+      fallbackLocationIds.length > 0
+        ? or(eq(infraCaptures.levelId, id), and(isNull(infraCaptures.levelId), inArray(infraCaptures.locationId, [...fallbackLocationIds])))
+        : eq(infraCaptures.levelId, id),
+    );
   }
   if (query.text) {
     const pattern = `%${escapeLikePattern(query.text)}%`;

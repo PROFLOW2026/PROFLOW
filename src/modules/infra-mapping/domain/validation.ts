@@ -42,6 +42,8 @@ export type FileMetaInput = z.input<typeof fileMetaSchema>;
 export const beginCaptureSchema = z.object({
   projectId: uuid,
   locationId: uuid,
+  /** Optional level of a multi-level unit this photo / video belongs to (0196). */
+  levelId: uuid.nullish(),
   organizationId: uuid.nullish(),
   clientCaptureId: uuid,
   taskId: uuid.nullish(),
@@ -89,6 +91,8 @@ export const updateCaptureSchema = z.object({
   organizationId: uuid.nullish(),
   /** Moves the capture to another location of the same project (cloud file follows). */
   locationId: uuid.nullish(),
+  /** Level of a multi-level unit; null clears it (the location tree is used again). */
+  levelId: uuid.nullish(),
   taskId: uuid.nullish(),
   details: updateDetailsSchema,
 });

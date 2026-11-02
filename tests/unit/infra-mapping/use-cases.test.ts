@@ -289,7 +289,7 @@ describe('late editing and permissions', () => {
       locationId: LOCATION_2,
       documentIds: ['doc1'],
     });
-    expect(repo.updateCaptureRow).toHaveBeenCalledWith({}, ORG, CAPTURE, { locationId: LOCATION_2 });
+    expect(repo.updateCaptureRow).toHaveBeenCalledWith({}, ORG, CAPTURE, { locationId: LOCATION_2, levelId: null });
   });
 
   it('cannot move into an archived location (nothing is relocated)', async () => {

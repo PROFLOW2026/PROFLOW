@@ -27,6 +27,7 @@ import {
 import type { QueueDetails } from '../domain/upload-queue';
 import { InfraDetailsForm } from './infra-details-form';
 import { evidenceFileUrl, formatDateTime, uploadBytes } from './infra-client';
+import { InfraLevelSelect } from './infra-level-select';
 import { InfraLocationSelect } from './infra-location-select';
 import { InfraMarkingEditor, type MarkingEditorSave } from './infra-marking-editor';
 import { InfraVideoPlayer } from './infra-video-player';
@@ -77,6 +78,7 @@ export function InfraCaptureDialog({
   const [mode, setMode] = useState<'view' | 'edit' | 'marks'>('view');
   const [showMarked, setShowMarked] = useState(Boolean(capture.latestAnnotatedEvidenceId));
   const [locationId, setLocationId] = useState<string | null>(capture.locationId);
+  const [levelId, setLevelId] = useState<string | null>(capture.levelId ?? null);
   const [details, setDetails] = useState<QueueDetails>(() => detailsOf(capture));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -118,6 +120,7 @@ export function InfraCaptureDialog({
       captureId: capture.id,
       organizationId,
       locationId: locationId && locationId !== capture.locationId ? locationId : null,
+      ...(levelId !== (capture.levelId ?? null) ? { levelId } : {}),
       details: {
         description: details.description,
         room: details.room,
@@ -239,11 +242,22 @@ export function InfraCaptureDialog({
                   <InfraLocationSelect
                     locations={locations}
                     value={locationId}
-                    onChange={setLocationId}
+                    onChange={(next) => {
+                      setLocationId(next);
+                      setLevelId(null);
+                    }}
                     label={INFRA_TEXT.gallery.moveTo}
                     placeholder={INFRA_TEXT.capture.locationPlaceholder}
                     required
                     testId="infra-edit-location"
+                  />
+                  <InfraLevelSelect
+                    locations={locations}
+                    locationId={locationId}
+                    value={levelId}
+                    onChange={setLevelId}
+                    emptyLabel="—"
+                    testId="infra-edit-level"
                   />
                   <InfraDetailsForm value={details} suggestions={suggestions} onChange={(patch) => setDetails((value) => ({ ...value, ...patch }))} />
                 </div>

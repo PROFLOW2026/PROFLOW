@@ -3,6 +3,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { resolveEntityScope, type EntityScope } from '@/shared/entity-access';
 import { AuthorizationError, NotFoundError } from '@/shared/errors';
 import {
+  externalGrantAllowsLocationPath,
   externalGrantCovers,
   requireExternalScope,
   type ExternalCapability,
@@ -69,6 +70,7 @@ export function pickExternalGrant(
       },
       capability,
     );
+    if (!externalGrantAllowsLocationPath(grant, scope.locationPath)) throw new NotFoundError('Entity');
     return {
       scope,
       grant,
@@ -76,22 +78,35 @@ export function pickExternalGrant(
       subcontractAgreementId: scope.subcontractAgreementId ?? null,
     };
   }
-  const candidates = context.grants.filter((grant) =>
-    externalGrantCovers(
-      grant,
-      {
-        organizationId: scope.organizationId,
-        projectId: scope.projectId,
-        vendorId: grant.vendorId,
-        subcontractAgreementId: grant.subcontractAgreementId,
-      },
-      capability,
-    ),
+  const candidates = context.grants.filter(
+    (grant) =>
+      externalGrantCovers(
+        grant,
+        {
+          organizationId: scope.organizationId,
+          projectId: scope.projectId,
+          vendorId: grant.vendorId,
+          subcontractAgreementId: grant.subcontractAgreementId,
+        },
+        capability,
+      ) &&
+      // A grant restricted to specific units / locations only reaches those (and everything below them).
+      externalGrantAllowsLocationPath(grant, scope.locationPath),
   );
   const grant =
     candidates.find((candidate) => candidate.projectId === scope.projectId) ?? candidates[0] ?? null;
   if (!grant) throw new AuthorizationError(`external:${capability}`);
   return { scope, grant, vendorId: grant.vendorId, subcontractAgreementId: grant.subcontractAgreementId };
+}
+
+/** Whether a live grant of the principal for the entity's project reaches the entity's location (restriction-aware). */
+export function contractorMayReachLocation(context: ExternalContext, scope: EntityScope): boolean {
+  return context.grants.some(
+    (grant) =>
+      grant.organizationId === scope.organizationId &&
+      (grant.projectId === null || grant.projectId === scope.projectId) &&
+      externalGrantAllowsLocationPath(grant, scope.locationPath),
+  );
 }
 
 export async function authorizeExternalEntity(

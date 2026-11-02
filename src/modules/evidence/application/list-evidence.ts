@@ -5,7 +5,7 @@ import { NotFoundError } from '@/shared/errors';
 import { EXTERNAL_CAPABILITIES, type ExternalContext } from '@/shared/external';
 import { countEntityEvidence, findEvidenceById, findVisibleEvidence, listEntityEvidence } from '../data/evidence.repository';
 import type { EvidenceItem, ListEvidenceInput } from '../domain/types';
-import { authorizeExternalEntity, authorizeInternalEntity } from './access';
+import { authorizeExternalEntity, authorizeInternalEntity, contractorMayReachLocation } from './access';
 import type { OpenedFile, ProjectFileDeps } from './file-store';
 
 /** Caller must already be authorized for the entity; `db` is the caller's RLS-bound executor. */
@@ -95,6 +95,8 @@ export async function openExternalEvidenceFile(
   const scope = await resolveEntityScope(context.db, row.entityType, row.organizationId, row.entityId);
   const ownUpload = row.uploadedByPrincipalId === context.principalId;
   if (!ownUpload && (!scope || scope.internalOnly)) throw new NotFoundError('Evidence');
+  // Files of a location outside the unit(s) the contractor is restricted to stay closed, even its own uploads.
+  if (scope?.locationPath && !contractorMayReachLocation(context, scope)) throw new NotFoundError('Evidence');
   const opened = await deps.store.open({
     organizationId: row.organizationId,
     documentId: row.documentId,

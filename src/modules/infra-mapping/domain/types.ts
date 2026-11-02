@@ -90,6 +90,8 @@ export interface InfraCaptureDto {
   readonly evidenceId: string;
   readonly projectId: string;
   readonly locationId: string;
+  /** Level the capture was documented on (multi-level units); null = derived from the location. */
+  readonly levelId: string | null;
   readonly taskId: string | null;
   readonly role: InfraCaptureRole;
   readonly source: InfraCaptureSource;

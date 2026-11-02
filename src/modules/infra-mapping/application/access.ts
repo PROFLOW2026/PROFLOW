@@ -4,7 +4,8 @@ import { authorizeExternalEntity, authorizeInternalEntity } from '@/modules/evid
 import { AuthorizationError, NotFoundError } from '@/shared/errors';
 import { EXTERNAL_CAPABILITIES, externalGrantCovers } from '@/shared/external';
 import type { DbExecutor } from '@/shared/db/types';
-import type { CaptureJoinRow, CaptureRow } from '../data/infra.repository';
+import { listLocationNodes, type CaptureJoinRow, type CaptureRow } from '../data/infra.repository';
+import { allowedLocationSet } from '../domain/location-scope';
 import { INFRA_ENTITY_TYPE, type InfraActor } from './ports';
 
 /**
@@ -23,6 +24,8 @@ export interface InfraAccess {
   readonly vendorId: string | null;
   /** May edit / remove other people's captures. */
   readonly canManageCaptures: boolean;
+  /** Contractor limited to specific units: every location it may reach. null / absent = the whole project. */
+  readonly allowedLocationIds?: ReadonlySet<string> | null;
 }
 
 export async function organizationFor(actor: InfraActor, requested: string | null | undefined): Promise<string> {
@@ -77,7 +80,7 @@ export async function authorizeProject(
     };
   }
   const capability = input.need === 'view' ? EXTERNAL_CAPABILITIES.DOCUMENT_VIEW : EXTERNAL_CAPABILITIES.DOCUMENT_UPLOAD;
-  const grant = actor.context.grants.find((candidate) =>
+  const covering = actor.context.grants.filter((candidate) =>
     externalGrantCovers(
       candidate,
       {
@@ -89,8 +92,20 @@ export async function authorizeProject(
       capability,
     ),
   );
+  const grant = covering[0];
   if (!grant) throw new AuthorizationError(`external:${capability}`);
-  return { organizationId: input.organizationId, projectId: input.projectId, vendorId: grant.vendorId, canManageCaptures: false };
+  // A contractor limited to specific units only reaches those (and everything below them).
+  const restricted = covering.some((candidate) => (candidate.allowedLocationIds?.length ?? 0) > 0);
+  const allowedLocationIds = restricted
+    ? allowedLocationSet(covering, await listLocationNodes(actorDb(actor), input.organizationId, input.projectId))
+    : null;
+  return {
+    organizationId: input.organizationId,
+    projectId: input.projectId,
+    vendorId: grant.vendorId,
+    canManageCaptures: false,
+    allowedLocationIds,
+  };
 }
 
 async function canManage(actor: InfraActor, projectId: string): Promise<boolean> {

@@ -192,7 +192,7 @@ export async function updateContractorGrant(
   patch: Partial<
     Pick<
       typeof contractorGrants.$inferInsert,
-      'scopes' | 'templateKey' | 'expiresAt' | 'status' | 'revokedAt' | 'revokedByUserId' | 'revokeReason' | 'updatedByUserId'
+      'scopes' | 'templateKey' | 'expiresAt' | 'allowedLocationIds' | 'status' | 'revokedAt' | 'revokedByUserId' | 'revokeReason' | 'updatedByUserId'
     >
   >,
 ): Promise<void> {

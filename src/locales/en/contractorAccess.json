@@ -74,6 +74,7 @@
     "invalid_username": "Username: 3-32 characters, lowercase letters, digits, dot, dash or underscore, starting with a letter or digit.",
     "username_taken": "This username is already taken. Choose another one.",
     "grant_exists": "This account already has active access with exactly this scope. Edit it instead.",
+    "locations_need_project": "Locations can only be limited on a grant for a specific project.",
     "grant_not_active": "This access is no longer active.",
     "not_invited": "The account was already activated.",
     "forbidden": "You do not have permission for this action.",
@@ -288,6 +289,10 @@
       "revoked": "Revoked",
       "expires": "Until {date}",
       "noExpiry": "No expiry",
+      "allLocations": "Whole project",
+      "limitedLocations": "Limited to {count} locations",
+      "locationsTitle": "Limit to locations",
+      "locationsHint": "Nothing checked - the contractor sees the whole project. A checked location includes everything below it.",
       "permissionCount": "{count} permissions",
       "expandAccount": "Show account details",
       "homeOrgOnly": "This account belongs to another organization: you can manage its access here, not the account itself."

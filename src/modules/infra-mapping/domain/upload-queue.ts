@@ -40,6 +40,8 @@ export interface QueueItem {
   readonly clientId: string;
   readonly status: QueueStatus;
   readonly locationId: string | null;
+  /** Level of a multi-level unit (optional; null = the location decides). */
+  readonly levelId?: string | null;
   readonly details: QueueDetails;
   readonly source: 'camera' | 'gallery' | 'storage';
   readonly attempts: number;
@@ -53,6 +55,7 @@ export const MAX_UPLOAD_ATTEMPTS = 5;
 export function newQueueItem(input: {
   clientId: string;
   locationId: string | null;
+  levelId?: string | null;
   source: QueueItem['source'];
   details?: Partial<QueueDetails>;
 }): QueueItem {
@@ -60,6 +63,7 @@ export function newQueueItem(input: {
     clientId: input.clientId,
     status: 'pending_approval',
     locationId: input.locationId,
+    levelId: input.levelId ?? null,
     details: { ...EMPTY_QUEUE_DETAILS, ...input.details },
     source: input.source,
     attempts: 0,

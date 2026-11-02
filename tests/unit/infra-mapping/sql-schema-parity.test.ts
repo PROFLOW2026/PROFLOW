@@ -9,6 +9,8 @@ import { describe, expect, it } from 'vitest';
 const root = process.cwd();
 const sql = readFileSync(join(root, 'drizzle/migrations/0195_infra_mapping.sql'), 'utf8');
 const schema = readFileSync(join(root, 'drizzle/schema/infra-mapping.ts'), 'utf8');
+/** Columns added later by additive migrations (0196: optional level of a multi-level unit). */
+const ADDED_LATER: Record<string, string[]> = { infra_captures: ['level_id'] };
 
 const TABLES: Array<{ sql: string; ts: string }> = [
   { sql: 'infra_folder_mappings', ts: 'infraFolderMappings' },
@@ -50,7 +52,7 @@ function tsColumns(exportName: string): string[] {
 describe('migration 0195 matches the drizzle schema (static)', () => {
   for (const table of TABLES) {
     it(`${table.sql}: same columns`, () => {
-      expect(tsColumns(table.ts)).toEqual(sqlColumns(table.sql));
+      expect(tsColumns(table.ts)).toEqual([...sqlColumns(table.sql), ...(ADDED_LATER[table.sql] ?? [])].sort());
     });
   }
 

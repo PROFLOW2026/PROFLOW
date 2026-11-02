@@ -25,6 +25,7 @@ export const INFRA_TEXT = {
   capture: {
     location: 'מיקום',
     locationPlaceholder: 'חיפוש מיקום…',
+    level: 'קומה',
     locationRequired: 'בחרו מיקום - זה השדה היחיד שחובה, ואפשר לבחור אותו גם אחרי הצילום, לפני האישור.',
     workDomain: 'תחום עבודה',
     workDomainNone: 'כל התחומים',

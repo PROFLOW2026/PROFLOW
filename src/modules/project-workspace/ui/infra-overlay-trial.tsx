@@ -88,6 +88,8 @@ const TEXT = {
   choose: 'בחירת תמונה',
   loadError: 'לא ניתן לקרוא את התמונה',
   markHint: 'סמנו 4 נקודות קבועות, מפוזרות על פני הקיר',
+  markOrderNote: 'יש לבחור את הנקודות לפי הסדר המסומן בתמונת המקור (1–4).',
+  alignFailed: 'ההתאמה לא הצליחה. בדקו שהנקודות מסומנות לפי הסדר 1–4 כמו בתמונת המקור, וגררו נקודה כדי לתקן.',
   next: 'המשך',
   back: 'חזרה',
   undo: 'ביטול נקודה אחרונה',
@@ -747,7 +749,7 @@ function MarkStep({
         >
           <Undo2 className="size-5" />
         </button>
-        <span className="min-w-0 flex-1 truncate px-1 text-center text-xs text-white/80">{hint}</span>
+        <span className="line-clamp-2 min-w-0 flex-1 px-1 text-center text-xs text-white/80">{hint}</span>
         <span className="text-xs tabular-nums text-white/70" dir="ltr">
           {pins.length}/{MAX_PINS}
         </span>
@@ -993,7 +995,27 @@ function LiveStep({
         </PinSurface>
       ) : null}
 
-      {complete ? null : <ReferenceThumb photo={photo} pins={photoPins} nextIndex={livePins.length} />}
+      {complete && alignment ? null : <ReferenceThumb photo={photo} pins={photoPins} nextIndex={livePins.length} />}
+
+      {complete ? null : (
+        <div
+          className="pointer-events-none absolute left-28 right-2 top-[max(0.5rem,env(safe-area-inset-top))] rounded bg-black/70 px-2 py-1 text-center text-[11px] leading-4 text-white"
+          dir="rtl"
+        >
+          {TEXT.markOrderNote}
+        </div>
+      )}
+
+      {complete && !alignment ? (
+        <div
+          className="pointer-events-none absolute inset-x-2 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] mx-auto w-fit max-w-full rounded bg-black/70 px-2 py-1 text-center text-[11px] text-white"
+          dir="rtl"
+          role="status"
+          data-testid="infra-align-failed"
+        >
+          {TEXT.alignFailed}
+        </div>
+      ) : null}
 
       {cameraFailed ? (
         <div className="pointer-events-none absolute inset-x-0 top-1/3 text-center text-sm text-white/80" dir="rtl">
@@ -1054,6 +1076,7 @@ function CompareStep({
   beforePins,
   after,
   afterPins,
+  onAfterPinsChange,
   onBack,
   onRealign,
   integration,
@@ -1064,6 +1087,8 @@ function CompareStep({
   readonly beforePins: readonly Pt[];
   readonly after: PhotoAsset;
   readonly afterPins: readonly Pt[];
+  /** Lets the user fix the "after" points right here when the alignment fails. */
+  readonly onAfterPinsChange: (pins: Pt[]) => void;
   readonly onBack: () => void;
   readonly onRealign: () => void;
   readonly integration?: InfraTrialIntegration;
@@ -1136,6 +1161,34 @@ function CompareStep({
   );
 
   const matrix = alignment ? multiplyMat3(adjust, alignment.fit.matrix) : null;
+
+  // When the alignment fails the "after" points are shown on the comparison so they can be dragged into place
+  // (no going back, no re-choosing photos). They live in the after photo's coordinates; the stage shows them
+  // through the same base + view transforms as the photo.
+  const alignFailed = !alignment && size.w > 0 && afterPins.length >= MAX_PINS;
+  const pinsToStage = useMemo(() => multiplyMat3(view, base), [view, base]);
+  const stagePins = useMemo(
+    () =>
+      alignFailed
+        ? afterPins.map((p) => {
+            const q = applyMat3(pinsToStage, { x: p.x * after.width, y: p.y * after.height });
+            return { x: q.x / size.w, y: q.y / size.h };
+          })
+        : [],
+    [alignFailed, afterPins, pinsToStage, after.width, after.height, size.w, size.h],
+  );
+  const changeStagePins = useCallback(
+    (next: Pt[]) => {
+      const back = invertMat3(pinsToStage);
+      onAfterPinsChange(
+        next.map((p) => {
+          const q = applyMat3(back, { x: p.x * size.w, y: p.y * size.h });
+          return { x: clamp01(q.x / after.width), y: clamp01(q.y / after.height) };
+        }),
+      );
+    },
+    [pinsToStage, size.w, size.h, after.width, after.height, onAfterPinsChange],
+  );
 
   const onGesture = useCallback(
     (incremental: Mat3, parts: GestureParts) => {
@@ -1263,9 +1316,9 @@ function CompareStep({
         <PinSurface
           width={size.w}
           height={size.h}
-          pins={[]}
-          maxPins={0}
-          onPinsChange={() => undefined}
+          pins={stagePins}
+          maxPins={stagePins.length}
+          onPinsChange={changeStagePins}
           onAdjust={onGesture}
         >
           <div
@@ -1304,6 +1357,20 @@ function CompareStep({
         >
           {TEXT.perspectiveRejected}
         </div>
+      ) : null}
+
+      {alignFailed ? (
+        <>
+          <ReferenceThumb photo={before} pins={beforePins} nextIndex={beforePins.length} />
+          <div
+            className="pointer-events-none absolute inset-x-2 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] mx-auto w-fit max-w-full rounded bg-black/70 px-2 py-1 text-center text-[11px] text-white"
+            dir="rtl"
+            role="status"
+            data-testid="infra-align-failed"
+          >
+            {TEXT.alignFailed}
+          </div>
+        </>
       ) : null}
 
       <OverlayBar
@@ -1532,7 +1599,7 @@ export function InfraOverlayTrial({
       <MarkStep
         photo={after}
         pins={afterPins}
-        hint={TEXT.markAfterHint}
+        hint={`${TEXT.markAfterHint}. ${TEXT.markOrderNote}`}
         reference={{ photo: before, pins: beforePins }}
         onPinsChange={setAfterPins}
         onBack={() => setPhase('markBefore')}
@@ -1557,6 +1624,7 @@ export function InfraOverlayTrial({
         beforePins={beforePins}
         after={after}
         afterPins={afterPins}
+        onAfterPinsChange={setAfterPins}
         integration={integration}
         initial={reopened}
         onBack={() => {

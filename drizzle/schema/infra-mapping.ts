@@ -83,6 +83,8 @@ export const infraCaptures = pgTable(
       .references(() => organizations.id, { onDelete: 'cascade' }),
     projectId: uuid('project_id').notNull(),
     locationId: uuid('location_id').notNull(),
+    /** Optional level the capture belongs to (0196); null = derived from the location tree. */
+    levelId: uuid('level_id'),
     evidenceId: uuid('evidence_id').notNull(),
     taskId: uuid('task_id'),
     clientCaptureId: uuid('client_capture_id'),
