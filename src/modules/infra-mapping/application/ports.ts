@@ -29,6 +29,15 @@ export interface SidecarInput {
 
 /** Trusted (service-role) operations against the organization's storage provider. */
 export interface InfraFolderPort {
+  /**
+   * Creates (or finds) the real cloud folder of a location and its mapping. Never throws and never
+   * swallows: a failure comes back with the stage and a short safe code (logged server-side too).
+   */
+  createLocationFolder(input: {
+    organizationId: string;
+    projectId: string;
+    locationId: string;
+  }): Promise<{ ok: true; folderId: string } | { ok: false; stage: string; code: string }>;
   /** The cloud folder of a location (creating real folders as needed); null when it cannot be resolved. */
   resolveLocationFolder(input: { organizationId: string; projectId: string; locationId: string }): Promise<string | null>;
   syncFolders(input: {

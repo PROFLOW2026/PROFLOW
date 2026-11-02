@@ -40,6 +40,8 @@ import {
   type FolderMappingStore,
 } from './application/folders';
 import type { InfraDeps, InfraFolderPort } from './application/ports';
+import { describeFolderFailure, type FolderStage } from './domain/folder-failure';
+import { logger } from '@/shared/observability/logger';
 
 /**
  * Production wiring for infrastructure mapping: the organization's primary external storage
@@ -64,13 +66,17 @@ function adapterFor(connection: StorageConnectionRecord, accessToken: string): F
       return folder ? { id: folder.id, name: folder.name, parentId: folder.parentId } : null;
     },
     async findChildByName(parentId, name) {
+      // The folder listing is the proven path (same as project folder provisioning) and is matched on the
+      // exact name. A provider-side name filter is only a fallback, and its answer is verified: some
+      // providers ignore the filter and return an unrelated folder, which must never be adopted.
+      const listing = await provider.listFolder(accessToken, parentId);
+      const listed = listing.folders.find((folder) => folder.name === name);
+      if (listed) return { id: listed.id, name: listed.name, parentId: listed.parentId ?? parentId };
       if (provider.getChildFolderByName) {
         const found = await provider.getChildFolderByName(accessToken, parentId, name);
-        return found ? { id: found.id, name: found.name, parentId: found.parentId ?? parentId } : null;
+        if (found && found.name === name) return { id: found.id, name: found.name, parentId: found.parentId ?? parentId };
       }
-      const listing = await provider.listFolder(accessToken, parentId);
-      const found = listing.folders.find((folder) => folder.name === name);
-      return found ? { id: found.id, name: found.name, parentId: found.parentId ?? parentId } : null;
+      return null;
     },
     async createFolder(input) {
       const created = await provider.createFolder(accessToken, { name: input.name, parentId: input.parentId });
@@ -133,9 +139,13 @@ interface FolderRuntime {
 export async function buildRuntime(
   db: DbExecutor,
   input: { organizationId: string; projectId: string; userId?: string | null },
+  onStage?: (stage: FolderStage) => void,
 ): Promise<FolderRuntime> {
+  onStage?.('connection');
   const connection = await usableConnection(db, input.organizationId);
+  onStage?.('token');
   const accessToken = await resolveValidAccessToken(db, input.organizationId, connection);
+  onStage?.('project_folder');
   const projectFolderId = await provisionStoredProjectFolder(db, {
     organizationId: input.organizationId,
     connection,
@@ -143,6 +153,7 @@ export async function buildRuntime(
     projectId: input.projectId,
   });
   if (!projectFolderId) throw new DomainRuleError('Project folder is unavailable', 'infraMapping.errors.projectFolder');
+  onStage?.('locations');
   const nodes = await listLocationNodes(db, input.organizationId, input.projectId);
   return {
     connection,
@@ -162,6 +173,38 @@ export async function buildRuntime(
 }
 
 export const infraFolderPort: InfraFolderPort = {
+  async createLocationFolder(input) {
+    let stage: FolderStage = 'connection';
+    try {
+      const folderId = await runCommittedStorageWrite(async (db) => {
+        const runtime = await buildRuntime(db, input, (next) => {
+          stage = next;
+        });
+        stage = 'folder';
+        // Strict: unlike the upload path, a failure here must surface (nothing may look synced).
+        return ensureLocationFolder(runtime.context, input.locationId);
+      });
+      return { ok: true, folderId };
+    } catch (error) {
+      const failure = describeFolderFailure(stage, error);
+      logger.error('infra.location_folder_failed', {
+        stage: failure.stage,
+        code: failure.code,
+        organizationId: input.organizationId,
+        projectId: input.projectId,
+        locationId: input.locationId,
+        errorName: error instanceof Error ? error.name : typeof error,
+        providerStatus:
+          error instanceof Error && error.name === 'ProviderHttpError' ? (error as { status?: number }).status : undefined,
+        providerBody:
+          error instanceof Error && error.name === 'ProviderHttpError'
+            ? String((error as { bodySnippet?: string }).bodySnippet ?? '').slice(0, 200)
+            : undefined,
+      });
+      return { ok: false, stage: failure.stage, code: failure.code };
+    }
+  },
+
   resolveLocationFolder(input) {
     return runCommittedStorageWrite(async (db) => {
       const runtime = await buildRuntime(db, input);

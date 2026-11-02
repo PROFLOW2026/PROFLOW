@@ -325,12 +325,12 @@ export async function infraCreateLocationAction(payload: CreateLocationPayload):
       return { ok: false, error: result.error, fieldErrors: result.fieldErrors };
     },
     async ensureFolder(locationId) {
-      const folderId = await infraDeps.folders.resolveLocationFolder({
+      const created = await infraDeps.folders.createLocationFolder({
         organizationId: owner.organizationId,
         projectId: payload.projectId,
         locationId,
       });
-      return Boolean(folderId);
+      return created.ok ? { ok: true } : { ok: false, reason: `${created.stage}/${created.code}` };
     },
     async rollback(locationId) {
       await archiveLocationAction({ projectId: payload.projectId, locationId });
@@ -347,7 +347,7 @@ export async function infraCreateLocationAction(payload: CreateLocationPayload):
       return { ok: false, error: outcome.failure.error, fieldErrors: outcome.failure.fieldErrors };
     case 'folder_failed':
       revalidatePath('/', 'layout');
-      return { ok: false, error: INFRA_LOCATION_FOLDER_FAILED };
+      return { ok: false, error: `${INFRA_LOCATION_FOLDER_FAILED} (קוד תקלה: ${outcome.reason})` };
   }
 }
 
