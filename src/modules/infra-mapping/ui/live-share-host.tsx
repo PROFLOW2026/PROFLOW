@@ -17,7 +17,7 @@ import { createPortal } from 'react-dom';
 import type { InfraLiveShareSource } from '@/modules/project-workspace/ui/infra-trial-integration';
 import { endLiveShareAction, startLiveShareAction } from '../actions';
 import type { InfraViewer } from '../domain/types';
-import { LIVE_SHARE_TEXT } from './live-share-texts';
+import { LIVE_SHARE_TEXT, liveBadgeText } from './live-share-texts';
 
 /** Longest side of the broadcast picture, and its frame rate: enough to read the overlay, light on a phone. */
 const MAX_SIDE = 1280;
@@ -158,7 +158,11 @@ export function LiveShareHost({
       const started: Session = { room, track, shareToken, frame: 0 };
       session.current = started;
 
-      room.on(RoomEvent.ParticipantConnected, () => setViewerJoined(true));
+      room.on(RoomEvent.ParticipantConnected, () => {
+        setViewerJoined(true);
+        // The viewer is in: close the QR window so the camera and overlay stay clear (it can be reopened).
+        setSheetOpen(false);
+      });
       room.on(RoomEvent.ParticipantDisconnected, () => setViewerJoined(room.remoteParticipants.size > 0));
       room.on(RoomEvent.Disconnected, () => {
         if (session.current?.room !== room) return; // we ended it ourselves
@@ -197,7 +201,7 @@ export function LiveShareHost({
       setViewerJoined(room.remoteParticipants.size > 0);
       setCopied(false);
       setPhase('live');
-      setSheetOpen(true);
+      setSheetOpen(room.remoteParticipants.size === 0);
       void import('qrcode')
         .then((qrcode) => qrcode.toDataURL(shareLink, { margin: 1, width: 280, errorCorrectionLevel: 'M' }))
         .then((dataUrl) => {
@@ -308,6 +312,25 @@ export function LiveShareHost({
         )
       : null;
 
+  // A small, non-interactive chip while the sheet is closed: it never blocks the camera or the overlay.
+  const badge =
+    phase === 'live' && !sheetOpen && typeof document !== 'undefined'
+      ? createPortal(
+          <div
+            className="pointer-events-none fixed inset-x-0 top-[max(0.5rem,env(safe-area-inset-top))] z-[1040] flex justify-center"
+            dir="rtl"
+            role="status"
+            data-testid="live-share-badge"
+          >
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white backdrop-blur">
+              <span className="size-2 rounded-full bg-red-500" aria-hidden />
+              {liveBadgeText(viewerJoined)}
+            </span>
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
     <>
       <button
@@ -322,6 +345,7 @@ export function LiveShareHost({
         {phase === 'starting' ? <Loader2 className="size-5 animate-spin" /> : <Cast className="size-5" />}
       </button>
       {errorNotice}
+      {badge}
       {sheet}
     </>
   );

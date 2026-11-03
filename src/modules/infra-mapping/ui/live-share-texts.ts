@@ -1,3 +1,8 @@
+/** The small status chip on the broadcasting phone. */
+export function liveBadgeText(viewerJoined: boolean): string {
+  return viewerJoined ? LIVE_SHARE_TEXT.liveBadgeViewer : LIVE_SHARE_TEXT.liveBadgeWaiting;
+}
+
 export const LIVE_SHARE_TEXT = {
   share: 'שתף שידור',
   title: 'שידור חי לטלפון נוסף',
@@ -13,6 +18,8 @@ export const LIVE_SHARE_TEXT = {
   cameraNotReady: 'המצלמה עדיין לא מוכנה. נסו שוב בעוד רגע.',
   connectionLost: 'החיבור לשידור נותק.',
   liveBadge: 'משדר',
+  liveBadgeViewer: 'משדר · צופה מחובר',
+  liveBadgeWaiting: 'משדר · ממתין לצופה',
 
   viewerTitle: 'צפייה בשידור חי',
   viewerConnecting: 'מתחבר לשידור…',
