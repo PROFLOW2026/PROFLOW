@@ -35,6 +35,55 @@ function sign(payload: string, secret: string): Buffer {
   return createHmac('sha256', signingKey(secret)).update(payload).digest();
 }
 
+/**
+ * The PUBLIC viewer-link token (QR / link). It names only the random session and its expiry, signed with a
+ * different derived key than the broadcaster's token, so it can neither be turned into one nor reveal the
+ * organization or project. It grants nothing but the right to ask for a subscribe-only video token.
+ */
+const viewerClaimsSchema = z.object({
+  v: z.literal(1),
+  s: z.string().regex(/^[a-f0-9]{32}$/),
+  exp: z.number().int().positive(),
+});
+
+export type LiveShareViewerClaims = z.infer<typeof viewerClaimsSchema>;
+
+export type LiveShareViewerTokenCheck =
+  | { readonly ok: true; readonly claims: LiveShareViewerClaims }
+  | { readonly ok: false; readonly reason: 'invalid' | 'expired' };
+
+const VIEWER_KEY_LABEL = 'projectflow.infra.live-share.viewer-link.v1';
+
+function viewerSign(payload: string, secret: string): Buffer {
+  const key = createHmac('sha256', secret).update(VIEWER_KEY_LABEL).digest();
+  return createHmac('sha256', key).update(payload).digest();
+}
+
+export function signLiveShareViewerToken(claims: LiveShareViewerClaims, secret: string): string {
+  const payload = Buffer.from(JSON.stringify(claims), 'utf8').toString('base64url');
+  return `${payload}.${viewerSign(payload, secret).toString('base64url')}`;
+}
+
+export function verifyLiveShareViewerToken(token: string, secret: string, nowSeconds: number): LiveShareViewerTokenCheck {
+  if (typeof token !== 'string' || token.length > 512) return { ok: false, reason: 'invalid' };
+  const parts = token.split('.');
+  if (parts.length !== 2) return { ok: false, reason: 'invalid' };
+  const [payload, signature] = parts as [string, string];
+  const expected = viewerSign(payload, secret);
+  const given = Buffer.from(signature, 'base64url');
+  if (given.length !== expected.length || !timingSafeEqual(given, expected)) return { ok: false, reason: 'invalid' };
+  let json: unknown;
+  try {
+    json = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+  } catch {
+    return { ok: false, reason: 'invalid' };
+  }
+  const parsed = viewerClaimsSchema.safeParse(json);
+  if (!parsed.success) return { ok: false, reason: 'invalid' };
+  if (parsed.data.exp <= nowSeconds) return { ok: false, reason: 'expired' };
+  return { ok: true, claims: parsed.data };
+}
+
 export function newLiveShareSessionId(): string {
   return randomBytes(16).toString('hex');
 }

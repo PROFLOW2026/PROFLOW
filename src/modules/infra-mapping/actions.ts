@@ -92,13 +92,8 @@ import {
 import { listFolderMappingRows } from './data/infra.repository';
 import { logger } from '@/shared/observability/logger';
 import { infraDeps, isInfraStorageConnected } from './server';
-import { endLiveShare, joinLiveShare, LiveShareError, startLiveShare } from './application/live-share';
-import {
-  LIVE_SHARE_MESSAGES,
-  type LiveShareHostSession,
-  type LiveShareResult,
-  type LiveShareViewerSession,
-} from './domain/live-share';
+import { endLiveShare, LiveShareError, startLiveShare } from './application/live-share';
+import { LIVE_SHARE_MESSAGES, type LiveShareHostSession, type LiveShareResult } from './domain/live-share';
 import { liveShareDeps } from './live-share-server';
 import { infraVideoPort } from './video-server';
 
@@ -530,10 +525,7 @@ export async function startLiveShareAction(
   return liveRun(viewer, (actor) => startLiveShare(actor, liveShareStartSchema.parse(input), liveShareDeps));
 }
 
-/** The second phone: only signed-in members of the project may watch (the link alone is not enough). */
-export async function joinLiveShareAction(input: { shareToken: string }): Promise<LiveShareResult<LiveShareViewerSession>> {
-  return liveRun('internal', (actor) => joinLiveShare(actor, liveShareTokenSchema.parse(input), liveShareDeps));
-}
+// The second phone needs no account: it joins through the public `/api/live-share/join` route, not an action.
 
 export async function endLiveShareAction(viewer: InfraViewer, input: { shareToken: string }): Promise<LiveShareResult<undefined>> {
   return liveRun(viewer, async (actor) => {

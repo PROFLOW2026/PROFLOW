@@ -5,14 +5,20 @@ import type { InfraActor } from './ports';
 import {
   liveShareRoomName,
   signLiveShareToken,
+  signLiveShareViewerToken,
   verifyLiveShareToken,
+  verifyLiveShareViewerToken,
   type LiveShareClaims,
+  type LiveShareViewerClaims,
 } from './live-share-token';
 
 /**
- * Live camera sharing use-cases. Authorization reuses the infrastructure rules:
- *  - broadcasting needs the right to DOCUMENT on the project (the same right the live camera needs);
- *  - watching needs the right to VIEW the project, plus a valid, unexpired share token.
+ * Live camera sharing use-cases.
+ *  - broadcasting needs the right to DOCUMENT on the project (the same right the live camera needs) and is
+ *    the only place an account is involved; so is ending the stream;
+ *  - watching needs NO account: the public viewer link is a signed, random, short-lived token that names
+ *    only the session. It yields nothing but a subscribe-only video token for that one room, one viewer at
+ *    a time, and only while the broadcaster is connected. It grants no access to projects, files or data.
  * No data is stored: the room exists only in LiveKit, video-only, with no recording.
  */
 
@@ -40,8 +46,8 @@ export interface LiveShareGateway {
     role: 'host' | 'viewer';
     ttlSeconds: number;
   }): Promise<string>;
-  /** Identities of the viewers currently in the room. */
-  roomState(room: string): Promise<{ exists: boolean; viewerIdentities: readonly string[] }>;
+  /** Whether the room exists, whether the broadcaster is connected, and the viewers currently in it. */
+  roomState(room: string): Promise<{ exists: boolean; hostPresent: boolean; viewerIdentities: readonly string[] }>;
   deleteRoom(room: string): Promise<void>;
 }
 
@@ -52,12 +58,11 @@ export interface LiveShareDeps {
 }
 
 /**
- * A viewer's LiveKit identity is derived from who they are, so reopening the link (page refresh)
- * replaces their own earlier connection instead of being refused as "a second viewer".
+ * A viewer's LiveKit identity is derived from the random key its browser keeps, so reopening the link
+ * (page refresh) replaces its own earlier connection instead of being refused as "a second viewer".
  */
-function viewerIdentity(actor: InfraActor): string {
-  const id = actor.kind === 'internal' ? actor.context.userId : actor.context.principalId;
-  return `${LIVE_SHARE.viewerIdentityPrefix}${actor.kind === 'internal' ? 'u' : 'x'}-${id}`;
+function viewerIdentity(viewerKey: string): string {
+  return `${LIVE_SHARE.viewerIdentityPrefix}${viewerKey}`;
 }
 
 function requireConfigured(deps: LiveShareDeps): void {
@@ -72,10 +77,19 @@ export function readLiveShareClaims(shareToken: string, deps: LiveShareDeps): Li
   return checked.claims;
 }
 
+/** Verifies the public viewer link (signature and expiry only; it carries no identity or project). */
+export function readLiveShareViewerClaims(viewerToken: string, deps: LiveShareDeps): LiveShareViewerClaims {
+  requireConfigured(deps);
+  const checked = verifyLiveShareViewerToken(viewerToken, deps.gateway.signingSecret(), deps.nowSeconds());
+  if (!checked.ok) throw new LiveShareError(checked.reason === 'expired' ? 'expired' : 'invalid_link');
+  return checked.claims;
+}
+
 export interface StartLiveShareResult {
   readonly url: string;
   readonly token: string;
   readonly shareToken: string;
+  readonly viewerToken: string;
 }
 
 /** Host: creates the room and returns a publish-only (video) token plus the signed share token. */
@@ -109,6 +123,7 @@ export async function startLiveShare(
       url: deps.gateway.serverUrl(),
       token,
       shareToken: signLiveShareToken(claims, deps.gateway.signingSecret()),
+      viewerToken: signLiveShareViewerToken({ v: 1, s: sessionId, exp: claims.exp }, deps.gateway.signingSecret()),
     };
   } catch {
     throw new LiveShareError('unavailable');
@@ -120,22 +135,21 @@ export interface JoinLiveShareResult {
   readonly token: string;
 }
 
-/** Viewer: a subscribe-only token, only for an authorized viewer of the project, only for one viewer. */
+/**
+ * Viewer (no account): a subscribe-only video token, for one room, for one viewer at a time, and only while
+ * the broadcaster is connected. Once the broadcaster ends the stream the room is gone and nobody can join again.
+ */
 export async function joinLiveShare(
-  actor: InfraActor,
-  input: { shareToken: string },
+  input: { viewerToken: string; viewerKey: string },
   deps: LiveShareDeps,
 ): Promise<JoinLiveShareResult> {
-  const claims = readLiveShareClaims(input.shareToken, deps);
-  // The viewer's active organization must be the one the stream belongs to.
-  if (actor.kind === 'internal' && actor.context.organizationId !== claims.o) throw new NotFoundError('Organization');
-  await authorizeProject(actor, { organizationId: claims.o, projectId: claims.p, need: 'view' });
+  const claims = readLiveShareViewerClaims(input.viewerToken, deps);
 
   const room = liveShareRoomName(claims.s);
   try {
     const state = await deps.gateway.roomState(room);
-    if (!state.exists) throw new LiveShareError('ended');
-    const identity = viewerIdentity(actor);
+    if (!state.exists || !state.hostPresent) throw new LiveShareError('ended');
+    const identity = viewerIdentity(input.viewerKey);
     if (state.viewerIdentities.some((other) => other !== identity)) throw new LiveShareError('viewer_taken');
     const token = await deps.gateway.issueToken({
       room,

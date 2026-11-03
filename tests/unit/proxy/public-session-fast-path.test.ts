@@ -39,6 +39,21 @@ describe('proxy public session fast path', () => {
     expect(shouldSkipProxySessionRefresh(request, '/he-IL/legal/privacy')).toBe(true);
   });
 
+  it('treats exactly /live/<token> as the public live-share viewer, and nothing deeper or elsewhere', () => {
+    expect(isPublicSessionFastPathCandidate('/he-IL/live/abc.def')).toBe(true);
+    expect(isPublicSessionFastPathCandidate('/en/live/abc')).toBe(true);
+    expect(isPublicSessionFastPathCandidate('/he-IL/live')).toBe(false);
+    expect(isPublicSessionFastPathCandidate('/he-IL/live/abc/more')).toBe(false);
+    expect(isPublicSessionFastPathCandidate('/he-IL/livestock/abc')).toBe(false);
+    expect(isPublicSessionFastPathCandidate('/live/abc')).toBe(false);
+  });
+
+  it('never refreshes or reads the session on the live viewer, even with auth cookies', () => {
+    const request = req('/he-IL/live/abc.def', { 'sb-test-auth-token': 'x' });
+    expect(shouldSkipProxySessionRefresh(request, '/he-IL/live/abc.def')).toBe(true);
+    expect(shouldSkipProxySessionRefresh(req('/he-IL/live/abc.def'), '/he-IL/live/abc.def')).toBe(true);
+  });
+
   it('skips org auth pages only for anonymous visitors', () => {
     expect(shouldSkipProxySessionRefresh(req('/he-IL/sign-in'), '/he-IL/sign-in')).toBe(true);
     expect(

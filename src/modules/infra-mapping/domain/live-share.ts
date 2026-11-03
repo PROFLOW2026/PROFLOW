@@ -12,12 +12,13 @@ export const LIVE_SHARE = {
   viewerIdentityPrefix: 'viewer-',
   /** Exactly one host and one viewer. */
   maxParticipants: 2,
-  /** How long a share link stays usable. */
-  shareTtlSeconds: 2 * 60 * 60,
+  /** How long a share link stays usable (short-lived: the viewer opens it right after it is shown). */
+  shareTtlSeconds: 30 * 60,
   /** Room stays open this long before the host joins / after the last participant leaves (seconds). */
   emptyTimeoutSeconds: 60,
   departureTimeoutSeconds: 20,
-  viewerTokenTtlSeconds: 60 * 60,
+  /** The subscribe-only LiveKit token is only needed to connect; keep it short so it cannot be replayed later. */
+  viewerTokenTtlSeconds: 5 * 60,
 } as const;
 
 export type LiveShareErrorCode =
@@ -43,9 +44,14 @@ export interface LiveShareHostSession {
   readonly url: string;
   /** Short-lived, publish-only (video) token for this one room. */
   readonly token: string;
-  /** Opaque signed token carried by the QR / link; also used to end the stream. */
+  /** Opaque signed token kept by the broadcaster only; used to end the stream. */
   readonly shareToken: string;
+  /** Opaque signed token carried by the QR / link. Public: it reveals nothing about the project or organization. */
+  readonly viewerToken: string;
 }
+
+/** The viewer's own random id (a browser keeps it), so reopening the link replaces its own connection. */
+export const LIVE_VIEWER_KEY_PATTERN = /^[a-f0-9]{32}$/;
 
 /** What the watching phone needs to subscribe. */
 export interface LiveShareViewerSession {

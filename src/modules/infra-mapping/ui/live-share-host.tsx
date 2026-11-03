@@ -110,7 +110,7 @@ export function LiveShareHost({
         setPhase('idle');
         return;
       }
-      const { url, token, shareToken } = response.data;
+      const { url, token, shareToken, viewerToken } = response.data;
 
       // Paint the composed picture (camera + overlay) on a canvas and stream the canvas.
       const canvas = document.createElement('canvas');
@@ -192,7 +192,7 @@ export function LiveShareHost({
       };
       started.frame = requestAnimationFrame(loop);
 
-      const shareLink = `${window.location.origin}/${locale}/live/${shareToken}`;
+      const shareLink = `${window.location.origin}/${locale}/live/${viewerToken}`;
       setLink(shareLink);
       setViewerJoined(room.remoteParticipants.size > 0);
       setCopied(false);

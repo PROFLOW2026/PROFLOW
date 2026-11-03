@@ -2,22 +2,58 @@
 
 /**
  * The watching phone: shows the broadcast picture (camera + infrastructure overlay, already composed
- * by the broadcaster). Subscribe-only, no audio, nothing recorded or stored. Joining is checked on the
- * server (signed link + signed-in member of the project + one viewer only).
+ * by the broadcaster). Subscribe-only, no audio, nothing recorded or stored. No account is needed: joining is a
+ * single call to the public join route (signed short-lived link, one viewer only, only while the broadcaster is live).
+ * This screen touches nothing else of the app.
  */
 
 import { Loader2, X } from 'lucide-react';
 import { Room, RoomEvent, Track, type RemoteTrack } from 'livekit-client';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
-import { joinLiveShareAction } from '../actions';
+import type { LiveShareResult, LiveShareViewerSession } from '../domain/live-share';
 import { LIVE_SHARE_TEXT } from './live-share-texts';
 
 type Status = 'connecting' | 'waiting' | 'watching' | 'ended' | 'left' | 'error';
 
 const subscribeNoop = () => () => undefined;
 
-export function LiveShareViewer({ shareToken }: { readonly shareToken: string }) {
+const VIEWER_KEY_STORAGE = 'pf-live-viewer-key';
+
+/** A random id this browser keeps, so a refresh replaces its own connection instead of counting as a second viewer. */
+function viewerKey(): string {
+  const fresh = () => {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  };
+  try {
+    const stored = sessionStorage.getItem(VIEWER_KEY_STORAGE);
+    if (stored && /^[a-f0-9]{32}$/.test(stored)) return stored;
+    const created = fresh();
+    sessionStorage.setItem(VIEWER_KEY_STORAGE, created);
+    return created;
+  } catch {
+    return fresh();
+  }
+}
+
+async function join(viewerToken: string): Promise<LiveShareResult<LiveShareViewerSession>> {
+  try {
+    const response = await fetch('/api/live-share/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ viewerToken, viewerKey: viewerKey() }),
+      cache: 'no-store',
+      credentials: 'omit',
+    });
+    return (await response.json()) as LiveShareResult<LiveShareViewerSession>;
+  } catch {
+    return { ok: false, error: LIVE_SHARE_TEXT.connectionLost };
+  }
+}
+
+export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string }) {
   const mounted = useSyncExternalStore(
     subscribeNoop,
     () => true,
@@ -53,7 +89,7 @@ export function LiveShareViewer({ shareToken }: { readonly shareToken: string })
     });
 
     (async () => {
-      const joined = await joinLiveShareAction({ shareToken });
+      const joined = await join(viewerToken);
       if (cancelled) return;
       if (!joined.ok) {
         setError(joined.error);
@@ -81,7 +117,7 @@ export function LiveShareViewer({ shareToken }: { readonly shareToken: string })
       void room.disconnect();
       roomRef.current = null;
     };
-  }, [shareToken]);
+  }, [viewerToken]);
 
   function leave() {
     leaving.current = true;

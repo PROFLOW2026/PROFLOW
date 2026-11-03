@@ -26,6 +26,14 @@ export function isLegalPublicPath(segments: readonly string[]): boolean {
   return segments[0] === 'legal';
 }
 
+/**
+ * Live camera share viewer: exactly `/live/<token>`. Public and account-free by design, so it never needs
+ * (or touches) a session. Any deeper path is not part of this exception.
+ */
+export function isLiveSharePublicPath(segments: readonly string[]): boolean {
+  return segments[0] === 'live' && segments.length === 2;
+}
+
 export function isOrgPublicAuthPath(segments: readonly string[]): boolean {
   const first = segments[0];
   return (
@@ -55,6 +63,7 @@ export function isPublicSessionFastPathCandidate(pathname: string): boolean {
   if (!locale) return false;
   return (
     isLegalPublicPath(segments) ||
+    isLiveSharePublicPath(segments) ||
     isOrgPublicAuthPath(segments) ||
     isEmployeePublicLoginPath(segments) ||
     isContractorPublicAuthPath(segments)
@@ -71,7 +80,8 @@ export function requestHasSupabaseAuthCookies(request: NextRequest): boolean {
 
 /**
  * Skip `refreshSupabaseSession` when safe:
- * - Legal: always (contractor surface allows legal without redirect).
+ * - Legal and the live share viewer: always (no session is needed, and a signed-in
+ *   account must not be redirected away from a link it was handed).
  * - Public auth pages (org / employee login / contractor auth): only for
  *   anonymous visitors (no auth cookies). When cookies exist, refresh still
  *   runs so principals are redirected to the correct surface.
@@ -82,6 +92,6 @@ export function shouldSkipProxySessionRefresh(
 ): boolean {
   if (!isPublicSessionFastPathCandidate(pathname)) return false;
   const { segments } = splitLocalizedPathname(pathname);
-  if (isLegalPublicPath(segments)) return true;
+  if (isLegalPublicPath(segments) || isLiveSharePublicPath(segments)) return true;
   return !requestHasSupabaseAuthCookies(request);
 }

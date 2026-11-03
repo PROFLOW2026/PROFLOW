@@ -6,8 +6,11 @@ export const metadata: Metadata = {
   referrer: 'no-referrer',
 };
 
-/** The second phone: opens the shared live camera (camera + infrastructure overlay). */
+/**
+ * PUBLIC, isolated route: it sits outside the `(app)` group, so there is no sign-in gate, no app shell and no
+ * project data here. It only renders the video of one live share, identified by a signed short-lived link.
+ */
 export default async function LiveShareViewerPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  return <LiveShareViewer shareToken={decodeURIComponent(token)} />;
+  return <LiveShareViewer viewerToken={decodeURIComponent(token)} />;
 }

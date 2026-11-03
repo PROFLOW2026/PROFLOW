@@ -78,10 +78,11 @@ export const liveShareGateway: LiveShareGateway = {
   async roomState(room) {
     const client = roomClient();
     const rooms = await client.listRooms([room]);
-    if (rooms.length === 0) return { exists: false, viewerIdentities: [] };
+    if (rooms.length === 0) return { exists: false, hostPresent: false, viewerIdentities: [] };
     const participants = await client.listParticipants(room);
     return {
       exists: true,
+      hostPresent: participants.some((participant) => participant.identity === LIVE_SHARE.hostIdentity),
       viewerIdentities: participants
         .map((participant) => participant.identity)
         .filter((identity) => identity.startsWith(LIVE_SHARE.viewerIdentityPrefix)),
