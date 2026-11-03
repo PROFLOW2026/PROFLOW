@@ -118,6 +118,11 @@ const serverEnvSchema = z.object({
    * production stays off unless explicitly set to 1/true for staging Owners.
    */
   PF_EXPERIENCE_PREVIEW: z.preprocess(emptyToUndefined, z.string().optional()),
+
+  /** Live camera sharing (LiveKit). Server-side only; all three must be set to enable it. */
+  LIVEKIT_URL: optionalNonEmpty,
+  LIVEKIT_API_KEY: optionalNonEmpty,
+  LIVEKIT_API_SECRET: optionalNonEmpty,
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -229,4 +234,7 @@ export const SERVER_ENV_EXAMPLE_KEYS = [
   'BOX_STORAGE_CLIENT_ID',
   'BOX_STORAGE_CLIENT_SECRET',
   'PF_EXPERIENCE_PREVIEW',
+  'LIVEKIT_URL',
+  'LIVEKIT_API_KEY',
+  'LIVEKIT_API_SECRET',
 ] as const;

@@ -50,6 +50,8 @@ import {
 } from '../domain/infra-overlay-geometry';
 import { InfraSaveSheet } from './infra-save-sheet';
 import type {
+  InfraLiveComposition,
+  InfraLiveShareSource,
   InfraTrialAlignment,
   InfraTrialIntegration,
   InfraTrialSaveInput,
@@ -880,6 +882,24 @@ function LiveStep({
 
   const matrix = alignment ? multiplyMat3(adjust, alignment.fit.matrix) : null;
 
+  // What a broadcast needs, read fresh on every frame (so alignment / opacity changes are streamed live).
+  const composition = useRef<InfraLiveComposition | null>(null);
+  useLayoutEffect(() => {
+    const video = videoRef.current;
+    composition.current =
+      video && size.w > 0
+        ? {
+            video,
+            stageW: size.w,
+            stageH: size.h,
+            overlay: matrix ? { url: photo.url, width: photo.width, height: photo.height } : null,
+            matrix: matrix ? canvasMatrix(matrix, photo.width, photo.height) : null,
+            opacity,
+          }
+        : null;
+  });
+  const [liveShareSource] = useState<InfraLiveShareSource>(() => ({ getComposition: () => composition.current }));
+
   const changePins = useCallback((next: Pt[]) => {
     setLivePins(next);
     setAdjust(IDENTITY);
@@ -1040,6 +1060,7 @@ function LiveStep({
         showPerspectiveToggle={showPerspectiveToggle}
         perspective={perspective}
         onTogglePerspective={() => setPerspective((v) => !v)}
+        extra={integration?.renderLiveShare?.(liveShareSource)}
         onSave={save}
         canSave={Boolean(alignment) && !preparing}
       />

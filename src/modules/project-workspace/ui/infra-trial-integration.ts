@@ -69,8 +69,27 @@ export interface InfraTrialPreset {
   readonly photo: InfraTrialPhoto;
 }
 
+/** The composed live picture (camera + transparent "before" layer), read fresh for every broadcast frame. */
+export interface InfraLiveComposition {
+  readonly video: HTMLVideoElement;
+  /** Size of the on-screen stage; the video is cropped to it exactly like `object-cover`. */
+  readonly stageW: number;
+  readonly stageH: number;
+  /** The "before" layer; null until it is aligned (then only the camera is shown, as on screen). */
+  readonly overlay: { readonly url: string; readonly width: number; readonly height: number } | null;
+  /** Overlay pixels -> stage pixels, as a canvas-compatible affine 3x3 (row-major). */
+  readonly matrix: readonly number[] | null;
+  readonly opacity: number;
+}
+
+export interface InfraLiveShareSource {
+  readonly getComposition: () => InfraLiveComposition | null;
+}
+
 export interface InfraTrialIntegration {
   readonly preset?: InfraTrialPreset | null;
+  /** Live camera only: a "share broadcast" control that receives the composed picture. */
+  readonly renderLiveShare?: (source: InfraLiveShareSource) => ReactNode;
   readonly locations: readonly InfraTrialLocation[];
   readonly defaultLocationId: string | null;
   /** Extra pickers rendered next to camera / choose (project gallery, connected storage). */

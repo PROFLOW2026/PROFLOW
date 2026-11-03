@@ -92,6 +92,14 @@ import {
 import { listFolderMappingRows } from './data/infra.repository';
 import { logger } from '@/shared/observability/logger';
 import { infraDeps, isInfraStorageConnected } from './server';
+import { endLiveShare, joinLiveShare, LiveShareError, startLiveShare } from './application/live-share';
+import {
+  LIVE_SHARE_MESSAGES,
+  type LiveShareHostSession,
+  type LiveShareResult,
+  type LiveShareViewerSession,
+} from './domain/live-share';
+import { liveShareDeps } from './live-share-server';
 import { infraVideoPort } from './video-server';
 
 export type InfraResult<T = undefined> =
@@ -496,6 +504,40 @@ export async function linkInfraFolderAction(input: FolderLinkInput): Promise<Inf
       createdByUserId: actor.kind === 'internal' ? actor.context.userId : null,
     });
     revalidatePath('/', 'layout');
+    return undefined;
+  });
+}
+
+// ── live camera sharing (one broadcaster, one viewer; nothing stored) ─────────────────────────────
+
+const liveShareStartSchema = z.object({ projectId: z.string().uuid(), organizationId: z.string().uuid().nullish() });
+const liveShareTokenSchema = z.object({ shareToken: z.string().min(1).max(1024) });
+
+async function liveRun<T>(viewer: InfraViewer, work: (actor: InfraActor) => Promise<T>): Promise<LiveShareResult<T>> {
+  try {
+    return { ok: true, data: await withActor(viewer, work) };
+  } catch (error) {
+    if (error instanceof LiveShareError) return { ok: false, error: LIVE_SHARE_MESSAGES[error.code], code: error.code };
+    const failed = await failure(error);
+    return { ok: false, error: failed.error };
+  }
+}
+
+export async function startLiveShareAction(
+  viewer: InfraViewer,
+  input: { projectId: string; organizationId?: string | null },
+): Promise<LiveShareResult<LiveShareHostSession>> {
+  return liveRun(viewer, (actor) => startLiveShare(actor, liveShareStartSchema.parse(input), liveShareDeps));
+}
+
+/** The second phone: only signed-in members of the project may watch (the link alone is not enough). */
+export async function joinLiveShareAction(input: { shareToken: string }): Promise<LiveShareResult<LiveShareViewerSession>> {
+  return liveRun('internal', (actor) => joinLiveShare(actor, liveShareTokenSchema.parse(input), liveShareDeps));
+}
+
+export async function endLiveShareAction(viewer: InfraViewer, input: { shareToken: string }): Promise<LiveShareResult<undefined>> {
+  return liveRun(viewer, async (actor) => {
+    await endLiveShare(actor, liveShareTokenSchema.parse(input), liveShareDeps);
     return undefined;
   });
 }

@@ -24,6 +24,7 @@ import type { BeginComparisonInput } from '../domain/validation';
 import { InfraGalleryPicker } from './infra-gallery-picker';
 import { evidenceFileUrl, formatDateTime, newClientId, normalizeUploadMime, storageFileUrl, uploadBytes } from './infra-client';
 import { flattenLocations } from './infra-location-select';
+import { LiveShareHost } from './live-share-host';
 import { INFRA_TEXT } from './texts';
 
 function meta(file: File) {
@@ -174,6 +175,9 @@ export function InfraLocatePanel({
       locations: flat.map((item) => ({ id: item.id, label: item.label })),
       defaultLocationId,
       preset,
+      renderLiveShare: (source) => (
+        <LiveShareHost viewer={viewer} projectId={projectId} organizationId={organizationId} source={source} />
+      ),
       renderPhotoSources: (_slot, onPhoto): ReactNode => (
         <>
           <InfraGalleryPicker
