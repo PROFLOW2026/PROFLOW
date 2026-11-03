@@ -197,8 +197,8 @@ Then:
 2. Push to `origin/main`
 3. Confirm local HEAD = `origin/main`
 4. Monitor GitHub CI until **SUCCESS** (do not stop while pending)
-5. Monitor Vercel Production until **READY** (do not stop while pending)
-6. Require deployment commit == GitHub HEAD
+5. **Temporary process:** a push does **not** deploy (automatic Git deployments for `main` are disabled). Production is deployed only on Owner approval via the Linux/Docker prebuilt route - see [deployment.md](./deployment.md)
+6. After an approved prebuilt deployment: the deployed code must be the commit that was `HEAD` when the script ran
 
 ---
 
@@ -222,10 +222,10 @@ Do **not** commit one tiny CI fix at a time without checking whether additional 
 
 ## 10. Vercel
 
-After GitHub CI is green:
+**Temporary process (see [deployment.md](./deployment.md)):** automatic Git deployments for `main` are disabled on purpose (`vercel.json` `git.deploymentEnabled`). Do not expect or wait for a Vercel build after a push. After an Owner-approved Linux/Docker prebuilt deployment:
 
-- Require Vercel Production = **READY** / **SUCCESS**
-- Confirm **deployment commit == GitHub HEAD**
+- Require Vercel Production = **READY**, the domain aliased, and the change verified
+- Confirm the deployed code is the commit that was `HEAD` when the deploy script ran
 
 ### Infrastructure (proven for ProjectFlow)
 
@@ -250,7 +250,7 @@ Configuration: `vercel.json` → `"regions": ["dub1"]`.
 |-------|------------|
 | Normal development | Targeted tests only |
 | Final Owner-approved release | One comprehensive local CI-equivalent preflight |
-| After push | GitHub CI + Vercel confirmation |
+| After push | GitHub CI (a push does not deploy; see deployment.md) |
 
 Fast iteration during development; one strong preflight before release; one clean push when possible.
 

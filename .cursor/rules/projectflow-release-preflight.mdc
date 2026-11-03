@@ -71,8 +71,8 @@ When the Owner explicitly approves release/push/deploy (e.g. “תדחוף”, �
 3. **Run ONE complete local CI-equivalent preflight** (all current CI gates) **before the first push**.
 4. **Fix ALL failures locally** — no push-until-green push loops.
 5. **One final green preflight**, then commit → push → monitor GitHub CI.
-6. **Verify Vercel Production deployment** — confirm a real deployment exists for the exact pushed commit SHA; state **BUILDING** or **READY** is sufficient. **Do not wait for READY** unless the Owner explicitly requested production smoke.
-7. Confirm deployment commit == GitHub HEAD.
+6. **A push does NOT deploy** (automatic Git deployments for `main` are disabled on purpose). Do not wait for or expect a Vercel build. Production is deployed only on Owner approval, via the Linux/Docker prebuilt route in `.cursor/rules/production-deployment.mdc` / `docs/deployment.md`.
+7. After an approved prebuilt deployment, confirm the deployed code is the commit that was `HEAD` when the deploy script ran.
 
 ## Non-negotiables
 

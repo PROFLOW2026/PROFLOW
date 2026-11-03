@@ -83,3 +83,6 @@ next-start-out.txt
 .cursor/tmp-vercel-*
 .cursor/.tmp-vercel-*
 scripts/.tmp-*
+
+# Linux/Docker production deploy work dir (docs/deployment.md)
+.deploy-linux/

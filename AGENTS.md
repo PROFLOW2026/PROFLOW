@@ -12,8 +12,12 @@ These rules apply to all agents working in this repository.
 
 ## Release / Vercel
 
-- After push, verify a real Vercel Production deployment exists for the exact commit SHA.
-- **BUILDING** or **READY** is sufficient — do not wait for READY unless the Owner explicitly requested production smoke.
+**Temporary mandatory process — until the Owner explicitly decides to return to automatic deployments.**
+
+- **A push to GitHub does NOT deploy.** Automatic Git deployments for `main` are **disabled on purpose** (`vercel.json` → `git.deploymentEnabled.main = false`) because the production build needs about 10 GB and the Vercel Hobby builder has 8 GB. Do not wait for, expect, or "verify" a Vercel build after a push.
+- Production is deployed **only on explicit Owner approval**, **only** via the Linux/Docker build + `vercel deploy --prebuilt --prod` route (`scripts/deploy/linux-prebuilt.ps1`), as documented in `docs/deployment.md`. **Never run a Production build on Windows.** Do not re-invent the scripts.
+- After such a deployment, verify READY, the active domain, and the changed behavior. No duplicate builds, no automatic retry loops.
+- Full rule: `.cursor/rules/production-deployment.mdc`. Release gate: `docs/RELEASE-PREFLIGHT.md`.
 
 ## Local databases
 

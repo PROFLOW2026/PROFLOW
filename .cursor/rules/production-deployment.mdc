@@ -1,0 +1,31 @@
+---
+description: Mandatory Production deployment process (temporary) — push does not deploy; Production only via Linux/Docker build + Vercel prebuilt; never a Windows Production build; no SQL without separate approval
+alwaysApply: true
+---
+
+# Production deployment (mandatory, temporary)
+
+**In force until the Owner explicitly decides to return to automatic Git deployments** (the Vercel 8 GB build-memory limit is not solved yet). Full details, exact commands and Windows pitfalls: [docs/deployment.md](../../docs/deployment.md).
+
+## Facts every agent must know
+
+- Automatic Git deployments for `main` are **disabled on purpose** (`vercel.json` → `git.deploymentEnabled.main = false`).
+- **A push to GitHub does NOT deploy to Production.** Do not wait for, expect, or look for a Vercel build after a push.
+- The production build needs about 10 GB; the Vercel builder has 8 GB, so Vercel-side builds fail.
+
+## Rules
+
+1. **Local checks first:** run focused local checks matching the change (touched tests, `tsc`, `eslint` on touched files) **before any push**. No broad suites unless the Owner asked.
+2. **Commit and push to GitHub only after those checks pass.** Never push failing code to "see what happens".
+3. **Production deployment only on explicit Owner approval**, and **only** through the Linux/Docker build plus Vercel prebuilt route: `scripts/deploy/linux-prebuilt.ps1` (container script `scripts/deploy/linux-prebuilt.sh`). The Owner's approval of a push is not approval to deploy.
+4. **Never run a Production build (`vercel build`, `next build` for release) directly on Windows.** Windows output is unusable (backslash symlinks, Windows paths in route transforms).
+5. **Use the existing proven scripts.** Do not write new build/deploy scripts or ad-hoc docker commands each time; if the scripts need a fix, fix them in the repository and document it.
+6. **Never deploy an artifact that was not verified:** valid Production variables (the launcher checks them without printing), complete functions (no missing/dangling links), no Windows paths or local-env references, and no secrets or tokens in the output. The script performs these checks; a `FAILED_*` status means **stop and report**.
+7. **After a deployment verify:** state **READY**, target production, the domain (`proflow-two-bice.vercel.app`) aliased to it, and the changed behavior working. Report the commit SHA that was `HEAD` when the script ran.
+8. **No duplicate builds and no automatic retry loops.** One build, one deploy. On failure: read the logs, report the exact error, and wait for the Owner. Never start a second build while one is running.
+9. **No SQL and no migrations** (Production or any shared database) **without separate, explicit Owner approval** given after the SQL was prepared and reviewed. Approval to implement, commit, push or deploy never includes SQL. See `AGENTS.md` and `projectflow-release-preflight.mdc`.
+10. Never print, log, commit or bake secrets (Vercel token, Supabase keys, env files) into scripts, docs, logs or build output.
+
+## Conflicts
+
+The Owner's current explicit instruction wins over this rule, except that it never grants SQL execution implicitly. Changing this process (re-enabling Git deployments) requires an explicit Owner decision and a same-change update of `vercel.json`, `AGENTS.md`, this rule and `docs/deployment.md`.
