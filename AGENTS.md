@@ -10,6 +10,13 @@ These rules apply to all agents working in this repository.
 - If SQL is required: **prepare → report → STOP** and wait for explicit Owner approval to run/apply.
 - Never modify an already-applied migration; add the next additive migration only when required.
 
+## Validation policy (Owner decision, supersedes any earlier CI-before-push/deploy requirement)
+
+- Use **targeted checks only**: `npx tsc --noEmit -p .`, `eslint` on touched files, focused unit tests of the touched logic.
+- **Do not** run a full CI / CI-equivalent preflight, all unit tests, wide E2E, UI sweeps, audits or migration tests before a push or deploy, and do not loop on CI after a push — unless the Owner explicitly asks in the current message.
+- The production build made by the Linux/Docker deploy script is the deployment artifact, not a CI check. `.github/workflows` is unchanged.
+- Details: `docs/RELEASE-PREFLIGHT.md`, `.cursor/rules/projectflow-release-preflight.mdc`.
+
 ## Release / Vercel
 
 **Temporary mandatory process — until the Owner explicitly decides to return to automatic deployments.**

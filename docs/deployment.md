@@ -17,7 +17,7 @@ Rule file for agents: `.cursor/rules/production-deployment.mdc`. SQL / migration
 
 1. Implement; run **focused local checks matching the change** (the touched unit tests, `npx tsc --noEmit -p .`,
    `npx eslint <touched files>`). No broad suites unless the Owner asked.
-2. Commit. Push to GitHub **only after the checks pass** (see `docs/RELEASE-PREFLIGHT.md` for the Owner-approved release gate).
+2. Commit. Push to GitHub **only after those targeted checks pass** (see `docs/RELEASE-PREFLIGHT.md`; no full CI-equivalent preflight is required).
    The push only syncs code; it does not deploy.
 3. If the Owner approved a Production deployment: run the script below **once**.
 4. Verify (section "Verification"). Report the commit SHA and the Production state.

@@ -23,7 +23,8 @@ import type { InfraComparisonDto, InfraLocationOption, InfraViewer } from '../do
 import type { BeginComparisonInput } from '../domain/validation';
 import { InfraGalleryPicker } from './infra-gallery-picker';
 import { evidenceFileUrl, formatDateTime, newClientId, normalizeUploadMime, storageFileUrl, uploadBytes } from './infra-client';
-import { flattenLocations } from './infra-location-select';
+import { InfraLocationSelect, flattenLocations } from './infra-location-select';
+import { InfraRecentPhotos } from './infra-recent-photos';
 import { LiveShareHost } from './live-share-host';
 import { INFRA_TEXT } from './texts';
 
@@ -87,6 +88,7 @@ export function InfraLocatePanel({
   canManageCaptures,
   browserActions,
   preset,
+  onLocationChange,
   onSaved,
 }: {
   readonly viewer: InfraViewer;
@@ -99,6 +101,8 @@ export function InfraLocatePanel({
   readonly canManageCaptures: boolean;
   readonly browserActions?: ProjectCloudFileBrowserActions;
   readonly preset: InfraTrialPreset | null;
+  /** The location chosen here is kept for the other infrastructure screens. */
+  readonly onLocationChange: (locationId: string | null) => void;
   readonly onSaved: () => void;
 }) {
   const [comparisons, setComparisons] = useState<InfraComparisonDto[]>([]);
@@ -186,12 +190,23 @@ export function InfraLocatePanel({
             organizationId={organizationId}
             locations={locations}
             defaultLocationId={defaultLocationId}
+            onLocationChange={onLocationChange}
             onPick={(photo) => onPhoto(photo)}
           />
           {browserActions ? (
             <StoragePickButton projectId={projectId} browserActions={browserActions} onFile={(file) => onPhoto({ file })} />
           ) : null}
         </>
+      ),
+      renderRecentPhotos: (onPhoto): ReactNode => (
+        <InfraRecentPhotos
+          viewer={viewer}
+          projectId={projectId}
+          organizationId={organizationId}
+          locations={locations}
+          locationId={defaultLocationId}
+          onPick={(photo) => onPhoto(photo)}
+        />
       ),
       onSave,
       initial: reopen?.initial ?? null,
@@ -200,7 +215,7 @@ export function InfraLocatePanel({
         setTrialKey((value) => value + 1);
       },
     }),
-    [flat, defaultLocationId, preset, viewer, projectId, organizationId, locations, browserActions, onSave, reopen],
+    [flat, defaultLocationId, preset, viewer, projectId, organizationId, locations, browserActions, onSave, reopen, onLocationChange],
   );
 
   function open(comparison: InfraComparisonDto) {
@@ -221,6 +236,8 @@ export function InfraLocatePanel({
       opacity: record.opacity,
       view: record.view ?? null,
     };
+    // Reopening keeps the other screens on the location the result belongs to.
+    onLocationChange(comparison.locationId);
     reopenCounter.current += 1;
     setReopen({
       key: reopenCounter.current,
@@ -247,6 +264,18 @@ export function InfraLocatePanel({
 
   return (
     <div className="flex min-w-0 flex-col gap-6" data-testid="infra-locate-panel">
+      <div className="max-w-2xl">
+        <InfraLocationSelect
+          locations={locations}
+          value={defaultLocationId}
+          onChange={onLocationChange}
+          label={INFRA_TEXT.locate.location}
+          placeholder={INFRA_TEXT.gallery.allLocations}
+          emptyLabel={INFRA_TEXT.gallery.allLocations}
+          testId="infra-locate-location"
+        />
+      </div>
+
       <InfraOverlayTrial key={`${trialKey}-${reopen?.key ?? 0}`} projectId={projectId} integration={integration} />
 
       <section className="flex min-w-0 flex-col gap-2" aria-label={INFRA_TEXT.locate.saved}>

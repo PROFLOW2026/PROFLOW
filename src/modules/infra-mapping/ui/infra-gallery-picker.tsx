@@ -19,6 +19,7 @@ export function InfraGalleryPicker({
   organizationId,
   locations,
   defaultLocationId,
+  onLocationChange,
   onPick,
   disabled,
 }: {
@@ -27,6 +28,8 @@ export function InfraGalleryPicker({
   readonly organizationId: string;
   readonly locations: readonly InfraLocationOption[];
   readonly defaultLocationId: string | null;
+  /** Reports a location chosen in the dialog so the other screens follow it. */
+  readonly onLocationChange?: (locationId: string | null) => void;
   readonly onPick: (photo: { file: File; captureId: string }) => void;
   readonly disabled?: boolean;
 }) {
@@ -112,7 +115,10 @@ export function InfraGalleryPicker({
             <InfraLocationSelect
               locations={locations}
               value={locationId}
-              onChange={setLocationId}
+              onChange={(next) => {
+                setLocationId(next);
+                onLocationChange?.(next);
+              }}
               label={INFRA_TEXT.gallery.location}
               placeholder={INFRA_TEXT.gallery.allLocations}
               emptyLabel={INFRA_TEXT.gallery.allLocations}

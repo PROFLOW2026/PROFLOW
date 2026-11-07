@@ -1,6 +1,10 @@
-/** The small status chip on the broadcasting phone. */
-export function liveBadgeText(viewerJoined: boolean): string {
-  return viewerJoined ? LIVE_SHARE_TEXT.liveBadgeViewer : LIVE_SHARE_TEXT.liveBadgeWaiting;
+/**
+ * The small status chip on the broadcasting phone. `viewerLeft` is true after a viewer had joined and then
+ * disconnected, so the broadcaster sees the difference between "nobody yet" and "the viewer dropped".
+ */
+export function liveBadgeText(viewerJoined: boolean, viewerLeft = false): string {
+  if (viewerJoined) return LIVE_SHARE_TEXT.liveBadgeViewer;
+  return viewerLeft ? LIVE_SHARE_TEXT.liveBadgeViewerLeft : LIVE_SHARE_TEXT.liveBadgeWaiting;
 }
 
 export const LIVE_SHARE_TEXT = {
@@ -20,6 +24,7 @@ export const LIVE_SHARE_TEXT = {
   liveBadge: 'משדר',
   liveBadgeViewer: 'משדר · צופה מחובר',
   liveBadgeWaiting: 'משדר · ממתין לצופה',
+  liveBadgeViewerLeft: 'משדר · הצופה התנתק',
 
   viewerTitle: 'צפייה בשידור חי',
   viewerConnecting: 'מתחבר לשידור…',
@@ -27,4 +32,10 @@ export const LIVE_SHARE_TEXT = {
   viewerEnded: 'השידור הסתיים.',
   viewerLeft: 'יצאת מהשידור.',
   viewerLeave: 'יציאה',
+  viewerConnected: 'מחובר',
+  viewerReconnecting: 'מתחבר מחדש…',
+  viewerDisconnected: 'מנותק',
+  viewerFullscreen: 'תצוגה מלאה',
+  viewerExitFullscreen: 'יציאה מתצוגה מלאה',
+  viewerResetZoom: 'איפוס הזום',
 } as const;

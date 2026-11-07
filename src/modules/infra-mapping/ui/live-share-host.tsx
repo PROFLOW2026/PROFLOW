@@ -14,6 +14,7 @@ import { Room, RoomEvent, Track } from 'livekit-client';
 import { useLocale } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { paintComposition } from '@/modules/project-workspace/ui/infra-overlay-render';
 import type { InfraLiveShareSource } from '@/modules/project-workspace/ui/infra-trial-integration';
 import { endLiveShareAction, startLiveShareAction } from '../actions';
 import type { InfraViewer } from '../domain/types';
@@ -55,6 +56,8 @@ export function LiveShareHost({
   const [phase, setPhase] = useState<'idle' | 'starting' | 'live'>('idle');
   const [sheetOpen, setSheetOpen] = useState(false);
   const [viewerJoined, setViewerJoined] = useState(false);
+  /** A viewer was connected and then dropped (shown in the small status chip). */
+  const [viewerLeft, setViewerLeft] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [link, setLink] = useState<string | null>(null);
   const [qr, setQr] = useState<string | null>(null);
@@ -129,26 +132,14 @@ export function LiveShareHost({
           canvas.height = h;
         }
         ctx.setTransform(k, 0, 0, k, 0, 0);
-        // The camera, cropped exactly like the on-screen `object-cover` video.
-        const cover = Math.max(c.stageW / c.video.videoWidth, c.stageH / c.video.videoHeight);
-        const dw = c.video.videoWidth * cover;
-        const dh = c.video.videoHeight * cover;
-        ctx.drawImage(c.video, (c.stageW - dw) / 2, (c.stageH - dh) / 2, dw, dh);
-        // The transparent "before" layer, through the same alignment as on screen.
-        if (c.overlay && c.matrix) {
-          if (overlayUrl !== c.overlay.url) {
-            overlayUrl = c.overlay.url;
-            overlayImage = loadImage(c.overlay.url);
-          }
-          if (overlayImage?.complete && overlayImage.naturalWidth > 0) {
-            const m = c.matrix;
-            ctx.save();
-            ctx.globalAlpha = c.opacity;
-            ctx.setTransform(m[0]! * k, m[3]! * k, m[1]! * k, m[4]! * k, m[2]! * k, m[5]! * k);
-            ctx.drawImage(overlayImage, 0, 0, c.overlay.width, c.overlay.height);
-            ctx.restore();
-          }
+        if (c.overlay && overlayUrl !== c.overlay.url) {
+          overlayUrl = c.overlay.url;
+          overlayImage = loadImage(c.overlay.url);
         }
+        const ready = c.overlay && overlayImage?.complete && overlayImage.naturalWidth > 0 ? overlayImage : null;
+        // The very same drawing as the saved picture: the camera cropped like the on-screen video, then the
+        // transparent layer through the same alignment matrix (perspective included) the screen uses.
+        paintComposition(ctx, c, ready);
       };
       paint();
 
@@ -160,10 +151,15 @@ export function LiveShareHost({
 
       room.on(RoomEvent.ParticipantConnected, () => {
         setViewerJoined(true);
+        setViewerLeft(false);
         // The viewer is in: close the QR window so the camera and overlay stay clear (it can be reopened).
         setSheetOpen(false);
       });
-      room.on(RoomEvent.ParticipantDisconnected, () => setViewerJoined(room.remoteParticipants.size > 0));
+      room.on(RoomEvent.ParticipantDisconnected, () => {
+        const stillThere = room.remoteParticipants.size > 0;
+        setViewerJoined(stillThere);
+        if (!stillThere) setViewerLeft(true);
+      });
       room.on(RoomEvent.Disconnected, () => {
         if (session.current?.room !== room) return; // we ended it ourselves
         const lostToken = teardown();
@@ -172,6 +168,7 @@ export function LiveShareHost({
           setPhase('idle');
           setSheetOpen(false);
           setViewerJoined(false);
+          setViewerLeft(false);
           setError(LIVE_SHARE_TEXT.connectionLost);
         }
       });
@@ -223,6 +220,7 @@ export function LiveShareHost({
     setPhase('idle');
     setSheetOpen(false);
     setViewerJoined(false);
+    setViewerLeft(false);
     setLink(null);
     setQr(null);
   }
@@ -324,7 +322,7 @@ export function LiveShareHost({
           >
             <span className="inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white backdrop-blur">
               <span className="size-2 rounded-full bg-red-500" aria-hidden />
-              {liveBadgeText(viewerJoined)}
+              {liveBadgeText(viewerJoined, viewerLeft)}
             </span>
           </div>,
           document.body,

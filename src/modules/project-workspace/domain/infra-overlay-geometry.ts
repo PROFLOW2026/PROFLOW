@@ -244,6 +244,13 @@ export interface AlignmentResult {
   readonly fit: FitResult;
   /** True when perspective was requested but rejected by the sanity gate. */
   readonly perspectiveRejected: boolean;
+  /**
+   * How badly the 4 taps disagree with a rigid (similarity) fit, as a fraction of the landmark spread.
+   * Always measured on the similarity fit, because an exact homography has no residual by construction.
+   */
+  readonly residualFraction: number;
+  /** Rotation (radians) of the similarity fit. */
+  readonly rotation: number;
 }
 
 /** Landmarks the user must mark (same order on the photo and on the camera). */
@@ -299,22 +306,154 @@ function isReliableSimilarity(fit: FitResult, live: readonly Pt[]): boolean {
   return spread > 0 && fit.rms <= MAX_RESIDUAL_FRACTION * spread;
 }
 
+function landmarkSpread(live: readonly Pt[]): number {
+  const xs = live.map((p) => p.x);
+  const ys = live.map((p) => p.y);
+  return Math.hypot(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+}
+
 export function computeAlignment(input: AlignmentInput): AlignmentResult | null {
   const n = Math.min(input.photo.length, input.live.length);
   if (n < 2) return null;
-  const sim = fitSimilarity(input.photo.slice(0, n), input.live.slice(0, n));
+  const live = input.live.slice(0, n);
+  const sim = fitSimilarity(input.photo.slice(0, n), live);
   if (!sim) return null;
   // Never present an implausible result as if the alignment had succeeded.
-  if (!isReliableSimilarity(sim, input.live.slice(0, n))) return null;
-  if (!input.perspective || n < 3) return { fit: sim, perspectiveRejected: false };
+  if (!isReliableSimilarity(sim, live)) return null;
+  const spread = landmarkSpread(live);
+  const quality = {
+    residualFraction: spread > 0 ? sim.rms / spread : 1,
+    rotation: Math.atan2(sim.matrix[3], sim.matrix[0]),
+  };
+  if (!input.perspective || n < 3) return { fit: sim, perspectiveRejected: false, ...quality };
   const warp =
     n >= 4
       ? fitHomography(input.photo.slice(0, 4), input.live.slice(0, 4))
       : fitAffine(input.photo.slice(0, 3), input.live.slice(0, 3));
   if (warp && isPlausibleWarp(warp.matrix, input.photoW, input.photoH, sim.matrix)) {
-    return { fit: warp, perspectiveRejected: false };
+    return { fit: warp, perspectiveRejected: false, ...quality };
   }
-  return { fit: sim, perspectiveRejected: true };
+  return { fit: sim, perspectiveRejected: true, ...quality };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Simple, honest fit status (never a measurement in centimetres)               */
+/* -------------------------------------------------------------------------- */
+
+/** ok = taps agree with each other; needsFix = usable but suspicious; failed = no trustworthy fit. */
+export type AlignmentQuality = 'good' | 'needsFix' | 'failed';
+
+/** Below this share of the landmark spread the 4 taps are consistent with each other. */
+export const QUALITY_GOOD_RESIDUAL_FRACTION = 0.025;
+/** Beyond this rotation the old photo is probably marked in the wrong order or is a different view. */
+export const QUALITY_GOOD_ROTATION_RAD = (15 * Math.PI) / 180;
+
+/**
+ * Classifies a computed alignment for display only. It describes how consistent the taps are, not how close
+ * the layer is to the real wall: without a real calibration no distance may be claimed.
+ */
+export function classifyAlignment(result: AlignmentResult | null): AlignmentQuality {
+  if (!result) return 'failed';
+  if (result.perspectiveRejected) return 'needsFix';
+  if (result.residualFraction > QUALITY_GOOD_RESIDUAL_FRACTION) return 'needsFix';
+  if (Math.abs(result.rotation) > QUALITY_GOOD_ROTATION_RAD) return 'needsFix';
+  return 'good';
+}
+
+/* -------------------------------------------------------------------------- */
+/* Small, controlled corrections of the aligned layer                           */
+/* -------------------------------------------------------------------------- */
+
+export interface NudgeStep {
+  /** Stage pixels. */
+  readonly dx?: number;
+  readonly dy?: number;
+  /** Multiplicative factor, 1 = unchanged. */
+  readonly scale?: number;
+  /** Radians. */
+  readonly rotation?: number;
+}
+
+/** Largest total manual correction (about the stage centre) that the fine controls may accumulate. */
+export const NUDGE_MAX_SCALE = 1.5;
+export const NUDGE_MIN_SCALE = 1 / NUDGE_MAX_SCALE;
+
+/**
+ * One small step of the fine-tune controls, composed after the current manual adjustment.
+ * Scale/rotation pivot on the stage centre so the layer does not drift away while it is nudged.
+ * Returns the previous adjustment unchanged when the step would push the total scale out of bounds.
+ */
+export function nudgeAdjust(current: Mat3, step: NudgeStep, stageW: number, stageH: number): Mat3 {
+  const incremental = userAdjustMatrix(
+    { x: stageW / 2, y: stageH / 2 },
+    { tx: step.dx ?? 0, ty: step.dy ?? 0, scale: step.scale ?? 1, rotation: step.rotation ?? 0 },
+  );
+  const next = multiplyMat3(incremental, current);
+  const total = Math.hypot(next[0], next[3]);
+  return total < NUDGE_MIN_SCALE || total > NUDGE_MAX_SCALE ? current : next;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Perspective on a canvas (2D canvas has no homography: draw a triangle mesh)  */
+/* -------------------------------------------------------------------------- */
+
+export interface WarpTriangle {
+  /** Source triangle corners (image pixels). */
+  readonly src: readonly [Pt, Pt, Pt];
+  /** Destination triangle corners (stage pixels). */
+  readonly dst: readonly [Pt, Pt, Pt];
+}
+
+/** True when the matrix is a plain affine map (no perspective division). */
+export function isAffineMat3(m: Mat3): boolean {
+  return Math.abs(m[6]) < 1e-9 && Math.abs(m[7]) < 1e-9 && Math.abs(m[8] - 1) < 1e-9;
+}
+
+/**
+ * Splits an image into a grid of triangles, each mapped through the (possibly perspective) matrix. Drawing every
+ * triangle with its own exact affine map reproduces the CSS `matrix3d` result on a canvas, so the screen, the
+ * broadcast and the saved picture all show the same alignment.
+ */
+export function warpTriangles(m: Mat3, width: number, height: number, divisions: number): WarpTriangle[] {
+  const n = Math.max(1, Math.floor(divisions));
+  const grid: Pt[][] = [];
+  const mapped: Pt[][] = [];
+  for (let j = 0; j <= n; j += 1) {
+    const row: Pt[] = [];
+    const mappedRow: Pt[] = [];
+    for (let i = 0; i <= n; i += 1) {
+      const p = { x: (width * i) / n, y: (height * j) / n };
+      row.push(p);
+      mappedRow.push(applyMat3(m, p));
+    }
+    grid.push(row);
+    mapped.push(mappedRow);
+  }
+  const triangles: WarpTriangle[] = [];
+  for (let j = 0; j < n; j += 1) {
+    for (let i = 0; i < n; i += 1) {
+      const s00 = grid[j]![i]!;
+      const s10 = grid[j]![i + 1]!;
+      const s01 = grid[j + 1]![i]!;
+      const s11 = grid[j + 1]![i + 1]!;
+      const d00 = mapped[j]![i]!;
+      const d10 = mapped[j]![i + 1]!;
+      const d01 = mapped[j + 1]![i]!;
+      const d11 = mapped[j + 1]![i + 1]!;
+      triangles.push({ src: [s00, s10, s01], dst: [d00, d10, d01] });
+      triangles.push({ src: [s10, s11, s01], dst: [d10, d11, d01] });
+    }
+  }
+  return triangles;
+}
+
+/** The exact affine map taking a source triangle to a destination triangle (row-major 3x3), or null if degenerate. */
+export function triangleAffine(src: readonly [Pt, Pt, Pt], dst: readonly [Pt, Pt, Pt]): Mat3 | null {
+  const rows = src.map((p) => [p.x, p.y, 1]);
+  const ex = solveLinear(rows, dst.map((p) => p.x));
+  const ey = solveLinear(rows, dst.map((p) => p.y));
+  if (!ex || !ey) return null;
+  return [ex[0]!, ex[1]!, ex[2]!, ey[0]!, ey[1]!, ey[2]!, 0, 0, 1];
 }
 
 /** User fine-tune (about a pivot, screen space) composed after a fit. */

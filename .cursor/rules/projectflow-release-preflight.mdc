@@ -1,9 +1,9 @@
 ---
-description: Mandatory release preflight — targeted dev checks; full CI-equivalent preflight before Owner-approved push/deploy; separate Owner approval required for any SQL/migration execution
+description: ProjectFlow release policy - targeted checks only, SQL never without separate approval
 alwaysApply: true
 ---
 
-# ProjectFlow Release Preflight (mandatory)
+# ProjectFlow Release Policy (mandatory)
 
 Read and obey this before any release, push, deploy, or database work in ProjectFlow.
 
@@ -58,31 +58,33 @@ Local disposable test databases may be used only when clearly isolated and canno
 
 Never modify an already-applied migration. Prepare only the next additive migration when required. **Preparing a migration does not authorize applying it.**
 
-## Development (default)
+## Validation (development and release): targeted checks only
 
-Use **targeted validation only** for normal fixes — not full build, full E2E, full audit, all tests, migration hardening, or full Hebrew/runtime suite after every small change.
+The previous "complete CI-equivalent preflight before push/deploy" requirement is **cancelled** (Owner decision). Use only targeted, necessary checks for what changed:
+
+- `npx tsc --noEmit -p .`
+- `eslint` on the touched files
+- focused unit tests of the touched logic (alignment, permissions, money, ...)
+
+Do **not** run, unless the Owner explicitly asks in the current message: full CI / CI-equivalent preflight, all unit tests, wide E2E / Playwright sweeps, UI sweeps, audits, migration hardening tests, or CI retries after a push.
+
+The production build produced by the Linux/Docker deployment script is the deployment artifact, **not** a CI check, and is allowed (never on Windows). `.github/workflows/ci.yml` itself is unchanged; do not wait for it or loop on it.
 
 ## Owner-approved release
 
 When the Owner explicitly approves release/push/deploy (e.g. “תדחוף”, “שחרר”, “deploy”, “commit/push”, “הכל תקין מבחינתי”):
 
-1. **Inspect** `.github/workflows/ci.yml` (and scripts it calls) — do not invent gates from memory.
+1. Run the targeted checks above for the change.
 2. **Scope check** — intended files only; no secrets (`.env`, keys, credentials); no temp diagnostics; no accidental artifacts.
-3. **Run ONE complete local CI-equivalent preflight** (all current CI gates) **before the first push**.
-4. **Fix ALL failures locally** — no push-until-green push loops.
-5. **One final green preflight**, then commit → push → monitor GitHub CI.
-6. **A push does NOT deploy** (automatic Git deployments for `main` are disabled on purpose). Do not wait for or expect a Vercel build. Production is deployed only on Owner approval, via the Linux/Docker prebuilt route in `.cursor/rules/production-deployment.mdc` / `docs/deployment.md`.
-7. After an approved prebuilt deployment, confirm the deployed code is the commit that was `HEAD` when the deploy script ran.
+3. Commit and push intended files.
+4. **A push does NOT deploy** (automatic Git deployments for `main` are disabled on purpose). Production is deployed only on Owner approval, via the Linux/Docker prebuilt route in `.cursor/rules/production-deployment.mdc` / `docs/deployment.md`.
+5. After an approved prebuilt deployment, confirm the deployed code is the commit that was `HEAD` when the deploy script ran. No extra CI afterwards.
 
 ## Non-negotiables
 
-- **Migrations:** Agent prepares/reviews SQL and may update Drizzle schema/journal; **never applies SQL to Production or shared DB without separate explicit Owner approval** (see above). Applied migrations are immutable — do not modify them; add the next additive migration only when required.
+- **Migrations:** Agent prepares/reviews SQL and may update Drizzle schema/journal; **never applies SQL to Production or shared DB without separate explicit Owner approval**. Applied migrations are immutable — add the next additive migration only when required.
 - **Infrastructure:** Vercel functions stay **`dub1`**; Supabase stays **`eu-west-1`**. Do not change region/pooler/DATABASE_URL without explicit Owner approval.
-
-## If GitHub CI fails after push
-
-Inspect failed job/logs → reproduce locally → fix **all visible failures together** → rerun relevant gates → full preflight if release code changed materially → **one** corrective push. No blind one-fix-at-a-time loops.
 
 ## Conflict resolution
 
-Owner’s **current explicit instruction** wins over this rule. This rule is **not** permission to run broad validation during ordinary development, and **not** permission to execute SQL without separate explicit Owner approval.
+Owner’s **current explicit instruction** wins over this rule. This rule is **not** permission to execute SQL without separate explicit Owner approval.

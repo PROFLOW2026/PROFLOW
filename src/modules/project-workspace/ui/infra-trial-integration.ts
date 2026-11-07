@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { Mat3 } from '../domain/infra-overlay-geometry';
 
 /**
  * Optional wiring between the locating experiment (`InfraOverlayTrial`) and the infrastructure
@@ -29,7 +30,8 @@ export interface InfraTrialAlignment {
   readonly adjust: { tx: number; ty: number; scale: number; rotation: number } | null;
   readonly stage: { w: number; h: number };
   readonly opacity: number;
-  readonly view: 'overlay' | 'sideBySide' | 'after' | null;
+  /** Comparison view the user was in: combined layer / split with a divider / after only / before only. */
+  readonly view: 'overlay' | 'sideBySide' | 'after' | 'before' | null;
 }
 
 export interface InfraTrialSaveInput {
@@ -77,8 +79,8 @@ export interface InfraLiveComposition {
   readonly stageH: number;
   /** The "before" layer; null until it is aligned (then only the camera is shown, as on screen). */
   readonly overlay: { readonly url: string; readonly width: number; readonly height: number } | null;
-  /** Overlay pixels -> stage pixels, as a canvas-compatible affine 3x3 (row-major). */
-  readonly matrix: readonly number[] | null;
+  /** Overlay pixels -> stage pixels: the SAME (possibly perspective) 3x3 as on screen (row-major). */
+  readonly matrix: Mat3 | null;
   readonly opacity: number;
 }
 
@@ -94,6 +96,8 @@ export interface InfraTrialIntegration {
   readonly defaultLocationId: string | null;
   /** Extra pickers rendered next to camera / choose (project gallery, connected storage). */
   readonly renderPhotoSources?: (slot: InfraTrialSlot, onPhoto: (photo: InfraTrialPhoto) => void) => ReactNode;
+  /** The latest photos of the chosen location as one-tap choices (nothing is uploaded or saved by choosing). */
+  readonly renderRecentPhotos?: (onPhoto: (photo: InfraTrialPhoto) => void) => ReactNode;
   /** Called only after the user confirmed the save sheet. */
   readonly onSave: (input: InfraTrialSaveInput, options: InfraTrialSaveOptions) => Promise<InfraTrialSaveOutcome>;
   /** Reopen a saved result straight into the comparison view. */

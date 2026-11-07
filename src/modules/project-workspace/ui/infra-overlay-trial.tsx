@@ -1,8 +1,12 @@
 'use client';
 
 /**
- * Temporary experiment: overlay a "before the wall was closed" photo on the live camera.
- * Everything stays in the browser (nothing is uploaded or stored).
+ * Infrastructure locating: overlay a "before the wall was closed" photo on the live camera, or compare it
+ * with an "after" photo, from 4 hand-marked reference points.
+ *
+ * Everything stays in the browser. Nothing is uploaded or stored unless the workspace integration is present
+ * AND the user explicitly confirms the save sheet. The alignment is a visual aid only - it is never an
+ * engineering measurement and must not be used to decide where to drill.
  */
 
 import {
@@ -13,7 +17,6 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
-  type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -22,11 +25,17 @@ import {
   Camera,
   Check,
   Copy,
+  Crosshair,
   ImageUp,
   Images,
+  LockOpen,
+  Loader2,
+  Lock,
+  MapPin,
   Move,
-  RotateCcw,
   Rotate3d,
+  Snowflake,
+  SlidersHorizontal,
   Undo2,
   Video,
   X,
@@ -36,8 +45,8 @@ import {
   IDENTITY,
   REQUIRED_LANDMARKS,
   applyMat3,
+  classifyAlignment,
   computeStageAlignment,
-  fitAffine,
   fitContain,
   invertMat3,
   landmarksAreSpread,
@@ -48,6 +57,28 @@ import {
   type Mat3,
   type Pt,
 } from '../domain/infra-overlay-geometry';
+import {
+  BlinkButton,
+  FineTuneTray,
+  OVERLAY_TEXT,
+  OverlayBar,
+  QualityChip,
+  SplitDivider,
+  ViewModeBar,
+  activeButtonClass,
+  barButtonClass,
+  useAdjustHistory,
+  type CompareDisplay,
+} from './infra-overlay-controls';
+import {
+  ImageLoupe,
+  PinSurface,
+  ReferenceThumb,
+  VideoLoupe,
+  clamp01,
+  type GestureParts,
+} from './infra-overlay-pins';
+import { drawThroughMatrix, drawVideoCover } from './infra-overlay-render';
 import { InfraSaveSheet } from './infra-save-sheet';
 import type {
   InfraLiveComposition,
@@ -60,7 +91,6 @@ import type {
 const MAX_PHOTO_SIDE = 1600;
 /** A pin is placed exactly where the finger touches (no offset). */
 const MAX_PINS = REQUIRED_LANDMARKS;
-const PIN_HIT_RADIUS_PX = 24;
 
 const TEXT = {
   title: 'זיהוי תשתיות',
@@ -69,9 +99,9 @@ const TEXT = {
   introTwo:
     'ניסוי: בוחרים תמונת לפני סגירה ותמונת אחרי סגירה, מסמנים בשתיהן אותן 4 נקודות, ומשווים בעזרת שקיפות. שום דבר לא נשמר או נשלח.',
   introLiveSaved:
-    'בוחרים תמונה מלפני סגירת הקיר (מהמצלמה, מהגלריה של הפרויקט, מהאחסון המחובר או מהטלפון), מסמנים 4 נקודות זיהוי, ואז מציגים אותה שקופה מעל המצלמה החיה. שום דבר לא נשמר אלא אם תבחרו לשמור.',
+    'בוחרים תמונה מלפני סגירת הקיר, מסמנים 4 נקודות זיהוי ומציגים אותה שקופה מעל המצלמה החיה. שום דבר לא נשמר אלא אם תבחרו לשמור. היישור הוא עזר חזותי בלבד ואינו מדידה הנדסית.',
   introTwoSaved:
-    'בוחרים תמונת לפני סגירה ותמונת אחרי סגירה (מהמצלמה, מהגלריה של הפרויקט, מהאחסון המחובר או מהטלפון), מסמנים בשתיהן אותן 4 נקודות, ומשווים בעזרת שקיפות. שום דבר לא נשמר אלא אם תבחרו לשמור.',
+    'בוחרים תמונת לפני ותמונת אחרי, מסמנים בשתיהן אותן 4 נקודות ומשווים. שום דבר לא נשמר אלא אם תבחרו לשמור. היישור הוא עזר חזותי בלבד ואינו מדידה הנדסית.',
   modeTwo: '2 תמונות',
   modeLiveDesc: 'תמונת לפני + מצלמה חיה בשטח, עם התשתיות שקופות מעל הקיר.',
   modeTwoDesc: 'השוואה בין תמונת לפני סגירה לתמונת אחרי סגירה.',
@@ -84,27 +114,35 @@ const TEXT = {
   slotAfter: 'אחרי סגירה',
   start: 'המשך',
   markAfterHint: 'סמנו את אותן 4 נקודות, באותו סדר',
-  moveLayer: 'התאמת השכבה',
-  zoomView: 'הגדלת תצוגה',
   capture: 'צילום תמונה',
   choose: 'בחירת תמונה',
   loadError: 'לא ניתן לקרוא את התמונה',
-  markHint: 'סמנו 4 נקודות קבועות, מפוזרות על פני הקיר',
-  markOrderNote: 'יש לבחור את הנקודות לפי הסדר המסומן בתמונת המקור (1–4).',
-  alignFailed: 'ההתאמה לא הצליחה. בדקו שהנקודות מסומנות לפי הסדר 1–4 כמו בתמונת המקור, וגררו נקודה כדי לתקן.',
+  loadingPhoto: 'טוען תמונה…',
+  markHint: 'סמנו 4 נקודות קבועות על הקיר',
+  editHint: 'גררו נקודה לתיקון',
+  referenceLabel: 'תמונת המקור',
+  alignFailed: 'ההתאמה נכשלה. גררו נקודה לתיקון או סמנו מחדש.',
   next: 'המשך',
   back: 'חזרה',
   undo: 'ביטול נקודה אחרונה',
-  opacity: 'שקיפות',
-  realign: 'יישור מחדש',
-  perspective: 'פרספקטיבה',
   save: 'שמירת תוצאת הניסוי',
   copied: 'התוצאה הועתקה',
   close: 'סגירה',
   copy: 'העתקה',
   cameraError: 'אין גישה למצלמה',
   perspectiveRejected: 'פרספקטיבה לא סבירה – נשארה התאמה ישרה',
+  moveLayer: 'התאמת השכבה',
+  zoomView: 'הגדלת תצוגה',
+  pointsBefore: 'נקודות לפני',
+  pointsAfter: 'נקודות אחרי',
+  frozen: 'קפוא',
+  switchToTwo: 'השוואה עם תמונת אחרי',
+  switchToLive: 'מעבר למצלמה חיה',
 } as const;
+
+function pointLabel(n: number): string {
+  return `נקודה ${Math.min(Math.max(n, 1), MAX_PINS)}/${MAX_PINS}`;
+}
 
 interface PhotoAsset {
   readonly url: string;
@@ -119,14 +157,6 @@ interface PhotoAsset {
 type Phase = 'idle' | 'markBefore' | 'markAfter' | 'live' | 'compare';
 type Mode = 'two' | 'live';
 type Slot = 'before' | 'after';
-
-interface GestureParts {
-  readonly pivot: Pt;
-  readonly tx: number;
-  readonly ty: number;
-  readonly scale: number;
-  readonly rotation: number;
-}
 
 async function preparePhoto(file: File): Promise<PhotoAsset> {
   let source: CanvasImageSource;
@@ -185,19 +215,6 @@ function pinsToTuples(pins: readonly Pt[]): [number, number][] {
   return pins.map((pin) => [round4(clamp01(pin.x)), round4(clamp01(pin.y))]);
 }
 
-/** Canvas 2D has no perspective: for the snapshot only, a homography is replaced by its best affine fit. */
-function canvasMatrix(matrix: Mat3, photoW: number, photoH: number): Mat3 {
-  if (Math.abs(matrix[6]) < 1e-9 && Math.abs(matrix[7]) < 1e-9) return matrix;
-  const src: Pt[] = [
-    { x: 0, y: 0 },
-    { x: photoW, y: 0 },
-    { x: photoW, y: photoH },
-    { x: 0, y: photoH },
-  ];
-  const dst = src.map((p) => applyMat3(matrix, p));
-  return fitAffine(src, dst)?.matrix ?? matrix;
-}
-
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -228,15 +245,15 @@ function grabFrameCanvas(video: HTMLVideoElement, stageW: number, stageH: number
   canvas.height = Math.max(1, Math.round(stageH * k));
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
-  const cover = Math.max(stageW / vw, stageH / vh);
-  const dw = vw * cover;
-  const dh = vh * cover;
   ctx.scale(k, k);
-  ctx.drawImage(video, (stageW - dw) / 2, (stageH - dh) / 2, dw, dh);
+  drawVideoCover(ctx, video, stageW, stageH);
   return canvas;
 }
 
-/** Overlay snapshot in stage coordinates: backdrop first, then the transparent "before" layer. */
+/**
+ * Overlay snapshot in stage coordinates: backdrop first, then the transparent "before" layer drawn through
+ * the very same matrix (perspective included) as on screen and in the broadcast.
+ */
 async function renderResultFile(input: {
   readonly stageW: number;
   readonly stageH: number;
@@ -254,12 +271,7 @@ async function renderResultFile(input: {
   const overlay = await loadImage(input.overlay.url);
   ctx.scale(k, k);
   input.drawBackdrop(ctx);
-  const m = canvasMatrix(input.overlayMatrix, input.overlay.width, input.overlay.height);
-  ctx.save();
-  ctx.globalAlpha = input.opacity;
-  ctx.setTransform(m[0] * k, m[3] * k, m[1] * k, m[4] * k, m[2] * k, m[5] * k);
-  ctx.drawImage(overlay, 0, 0, input.overlay.width, input.overlay.height);
-  ctx.restore();
+  drawThroughMatrix(ctx, overlay, input.overlay.width, input.overlay.height, input.overlayMatrix, input.opacity);
   return canvasToFile(canvas, 'result.jpg');
 }
 
@@ -296,362 +308,33 @@ function subscribeNoop(): () => void {
   return () => undefined;
 }
 
-function clamp01(v: number): number {
-  return Math.min(1, Math.max(0, v));
+function recordView(display: CompareDisplay): NonNullable<InfraTrialAlignment['view']> {
+  return display === 'split' ? 'sideBySide' : display;
 }
 
-const barButtonClass =
-  'inline-flex size-9 shrink-0 items-center justify-center rounded-full text-white transition-colors hover:bg-white/15 active:bg-white/25 disabled:opacity-40';
-
-/* -------------------------------------------------------------------------- */
-/* Pin surface: places / drags landmarks, optionally pans & pinches otherwise  */
-/* -------------------------------------------------------------------------- */
-
-interface PinSurfaceProps {
-  readonly width: number;
-  readonly height: number;
-  /** Normalised (0..1) pin positions. */
-  readonly pins: readonly Pt[];
-  readonly maxPins: number;
-  readonly onPinsChange: (pins: Pt[]) => void;
-  /** When set, a drag on empty space (1 finger) / pinch (2 fingers) fine-tunes the overlay. */
-  readonly onAdjust?: (incremental: Mat3, parts: GestureParts) => void;
-  readonly highlightIndex?: number;
-  readonly children?: ReactNode;
+function displayFromRecord(view: InfraTrialAlignment['view'] | undefined): CompareDisplay {
+  if (view === 'sideBySide') return 'split';
+  if (view === 'after' || view === 'before') return view;
+  return 'overlay';
 }
 
-type PointerMode = 'none' | 'pin' | 'gesture';
-
-function PinSurface({
-  width,
-  height,
-  pins,
-  maxPins,
-  onPinsChange,
-  onAdjust,
-  highlightIndex,
-  children,
-}: PinSurfaceProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const latest = useRef({ width, height, pins, maxPins, onPinsChange, onAdjust });
-  useLayoutEffect(() => {
-    latest.current = { width, height, pins, maxPins, onPinsChange, onAdjust };
-  });
-  const pointers = useRef(new Map<number, Pt>());
-  const mode = useRef<PointerMode>('none');
-  const activeIndex = useRef(-1);
-  const primaryId = useRef(-1);
-  const grab = useRef<Pt>({ x: 0, y: 0 });
-
-  function local(e: ReactPointerEvent): Pt {
-    const r = ref.current!.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
-  }
-
-  function onPointerDown(e: ReactPointerEvent<HTMLDivElement>) {
-    const { width: w, height: h, pins: current, maxPins: max, onAdjust: adjust } = latest.current;
-    if (w <= 0 || h <= 0) return;
-    const p = local(e);
-    pointers.current.set(e.pointerId, p);
-    ref.current!.setPointerCapture(e.pointerId);
-    if (pointers.current.size !== 1) return; // second finger: only meaningful for gestures
-    primaryId.current = e.pointerId;
-
-    let hit = -1;
-    let best = PIN_HIT_RADIUS_PX;
-    current.forEach((q, i) => {
-      const d = Math.hypot(q.x * w - p.x, q.y * h - p.y);
-      if (d < best) {
-        best = d;
-        hit = i;
-      }
-    });
-    if (hit >= 0) {
-      mode.current = 'pin';
-      activeIndex.current = hit;
-      grab.current = { x: current[hit]!.x * w - p.x, y: current[hit]!.y * h - p.y };
-      return;
-    }
-    if (current.length < max) {
-      grab.current = { x: 0, y: 0 };
-      activeIndex.current = current.length;
-      mode.current = 'pin';
-      latest.current.onPinsChange([
-        ...current,
-        { x: clamp01(p.x / w), y: clamp01(p.y / h) },
-      ]);
-      return;
-    }
-    mode.current = adjust ? 'gesture' : 'none';
-  }
-
-  function onPointerMove(e: ReactPointerEvent<HTMLDivElement>) {
-    const prev = new Map(pointers.current);
-    if (!prev.has(e.pointerId)) return;
-    const p = local(e);
-    pointers.current.set(e.pointerId, p);
-    const { width: w, height: h, pins: current, onPinsChange: change, onAdjust: adjust } = latest.current;
-
-    if (mode.current === 'pin') {
-      if (e.pointerId !== primaryId.current) return;
-      const i = activeIndex.current;
-      if (i < 0 || i >= current.length) return;
-      const next = current.slice();
-      next[i] = {
-        x: clamp01((p.x + grab.current.x) / w),
-        y: clamp01((p.y + grab.current.y) / h),
-      };
-      change(next);
-      return;
-    }
-
-    if (mode.current === 'gesture' && adjust) {
-      const ids = [...pointers.current.keys()];
-      if (ids.length === 1) {
-        const before = prev.get(e.pointerId)!;
-        const parts: GestureParts = {
-          pivot: { x: 0, y: 0 },
-          tx: p.x - before.x,
-          ty: p.y - before.y,
-          scale: 1,
-          rotation: 0,
-        };
-        adjust(userAdjustMatrix(parts.pivot, parts), parts);
-      } else if (ids.length >= 2) {
-        const [a, b] = ids as [number, number];
-        const p0 = prev.get(a)!;
-        const p1 = prev.get(b)!;
-        const c0 = pointers.current.get(a)!;
-        const c1 = pointers.current.get(b)!;
-        const d0 = Math.hypot(p1.x - p0.x, p1.y - p0.y);
-        const d1 = Math.hypot(c1.x - c0.x, c1.y - c0.y);
-        if (d0 < 8) return;
-        const scale = d1 / d0;
-        const rotation = Math.atan2(c1.y - c0.y, c1.x - c0.x) - Math.atan2(p1.y - p0.y, p1.x - p0.x);
-        const midPrev = { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 };
-        const midCur = { x: (c0.x + c1.x) / 2, y: (c0.y + c1.y) / 2 };
-        const parts: GestureParts = {
-          pivot: midPrev,
-          tx: midCur.x - midPrev.x,
-          ty: midCur.y - midPrev.y,
-          scale,
-          rotation,
-        };
-        adjust(userAdjustMatrix(parts.pivot, parts), parts);
-      }
-    }
-  }
-
-  function onPointerEnd(e: ReactPointerEvent<HTMLDivElement>) {
-    pointers.current.delete(e.pointerId);
-    if (pointers.current.size === 0) {
-      mode.current = 'none';
-      activeIndex.current = -1;
-      primaryId.current = -1;
-    }
-  }
-
+/** A short line above the action bar; never covers the picture. */
+function Notice({ children, testId }: { readonly children: ReactNode; readonly testId?: string }) {
   return (
     <div
-      ref={ref}
-      className="relative select-none overflow-hidden"
-      style={{ width, height, touchAction: 'none' }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerEnd}
-      onPointerCancel={onPointerEnd}
+      className="pointer-events-none w-fit max-w-full rounded bg-black/70 px-2 py-1 text-center text-[11px] text-white"
+      dir="rtl"
+      role="status"
+      data-testid={testId}
     >
       {children}
-      {pins.map((pin, i) => (
-        <PinMark
-          key={i}
-          x={pin.x * width}
-          y={pin.y * height}
-          label={i + 1}
-          highlighted={i === highlightIndex}
-        />
-      ))}
-    </div>
-  );
-}
-
-function PinMark({
-  x,
-  y,
-  label,
-  highlighted,
-  small,
-}: {
-  readonly x: number;
-  readonly y: number;
-  readonly label: number;
-  readonly highlighted?: boolean;
-  readonly small?: boolean;
-}) {
-  const size = small ? 14 : 26;
-  const ring = highlighted ? '#fb923c' : '#22d3ee';
-  return (
-    <div
-      className="pointer-events-none absolute"
-      style={{ left: x, top: y, width: size, height: size, transform: 'translate(-50%,-50%)' }}
-    >
-      <svg viewBox="0 0 26 26" width={size} height={size} aria-hidden="true">
-        <circle cx="13" cy="13" r="9" fill="none" stroke="#000" strokeOpacity="0.7" strokeWidth="4" />
-        <circle cx="13" cy="13" r="9" fill="none" stroke={ring} strokeWidth="2" />
-        <circle cx="13" cy="13" r="1.6" fill={ring} />
-      </svg>
-      {small ? null : (
-        <span
-          className="absolute -end-1 -top-3 rounded bg-black/70 px-1 text-[10px] font-semibold leading-4 text-white"
-          dir="ltr"
-        >
-          {label}
-        </span>
-      )}
     </div>
   );
 }
 
 /* -------------------------------------------------------------------------- */
-/* Shared pieces                                                               */
+/* Stand-alone result sheet (only when there is no workspace integration)       */
 /* -------------------------------------------------------------------------- */
-
-/** Small copy of the "before" photo showing which landmark to mark next. */
-function ReferenceThumb({
-  photo,
-  pins,
-  nextIndex,
-}: {
-  readonly photo: PhotoAsset;
-  readonly pins: readonly Pt[];
-  readonly nextIndex: number;
-}) {
-  return (
-    <div
-      className="pointer-events-none absolute start-2 top-[max(0.5rem,env(safe-area-inset-top))] w-24 overflow-hidden rounded-md border border-white/40 bg-black/60 shadow"
-      aria-hidden="true"
-    >
-      <div className="relative" style={{ aspectRatio: `${photo.width} / ${photo.height}` }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={photo.url} alt="" className="absolute inset-0 size-full" draggable={false} />
-        {pins.map((p, i) => (
-          <PinMark
-            key={i}
-            x={p.x * 96}
-            y={p.y * (96 * (photo.height / photo.width))}
-            label={i + 1}
-            small
-            highlighted={i === nextIndex}
-          />
-        ))}
-      </div>
-      <div className="bg-black/70 text-center text-[11px] leading-4 text-white" dir="ltr">
-        {Math.min(nextIndex + 1, pins.length)}/{pins.length}
-      </div>
-    </div>
-  );
-}
-
-/** The old photo drawn through the alignment matrix (stage pixels). */
-function OverlayImage({
-  photo,
-  matrix,
-  opacity,
-}: {
-  readonly photo: PhotoAsset;
-  readonly matrix: Mat3;
-  readonly opacity: number;
-}) {
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={photo.url}
-      alt=""
-      draggable={false}
-      className="pointer-events-none absolute left-0 top-0 max-w-none select-none"
-      data-testid="infra-overlay-layer"
-      style={{
-        width: photo.width,
-        height: photo.height,
-        transformOrigin: '0 0',
-        transform: toCssMatrix3d(matrix),
-        opacity,
-        willChange: 'transform',
-      }}
-    />
-  );
-}
-
-function OverlayBar({
-  opacity,
-  onOpacity,
-  onBack,
-  onRealign,
-  showPerspectiveToggle,
-  perspective,
-  onTogglePerspective,
-  extra,
-  onSave,
-  canSave,
-}: {
-  readonly opacity: number;
-  readonly onOpacity: (v: number) => void;
-  readonly onBack: () => void;
-  readonly onRealign: () => void;
-  readonly showPerspectiveToggle: boolean;
-  readonly perspective: boolean;
-  readonly onTogglePerspective: () => void;
-  readonly extra?: ReactNode;
-  readonly onSave: () => void;
-  readonly canSave: boolean;
-}) {
-  return (
-    <div
-      className="absolute inset-x-0 bottom-[max(0.5rem,env(safe-area-inset-bottom))] flex justify-center px-2"
-      onPointerDown={(e) => e.stopPropagation()}
-    >
-      <div className="flex max-w-full items-center gap-1 rounded-full bg-black/60 px-1.5 py-1 backdrop-blur">
-        <button type="button" className={barButtonClass} onClick={onBack} aria-label={TEXT.back}>
-          <X className="size-5" />
-        </button>
-        <input
-          type="range"
-          min={0.1}
-          max={1}
-          step={0.05}
-          value={opacity}
-          onChange={(e) => onOpacity(Number(e.target.value))}
-          aria-label={TEXT.opacity}
-          className="mx-1 h-6 w-24 min-w-0 shrink accent-cyan-400 sm:w-40"
-        />
-        <button type="button" className={barButtonClass} onClick={onRealign} aria-label={TEXT.realign}>
-          <RotateCcw className="size-5" />
-        </button>
-        {showPerspectiveToggle ? (
-          <button
-            type="button"
-            className={`${barButtonClass} ${perspective ? 'bg-cyan-500/90' : ''}`}
-            onClick={onTogglePerspective}
-            aria-pressed={perspective}
-            aria-label={TEXT.perspective}
-          >
-            <Rotate3d className="size-5" />
-          </button>
-        ) : null}
-        {extra}
-        <button
-          type="button"
-          className={barButtonClass}
-          onClick={onSave}
-          disabled={!canSave}
-          aria-label={TEXT.save}
-        >
-          <Check className="size-5" />
-        </button>
-      </div>
-    </div>
-  );
-}
 
 function useSavedResult() {
   const [result, setResult] = useState<string | null>(null);
@@ -705,6 +388,38 @@ function ResultSheet({
   );
 }
 
+/** The old photo drawn through the alignment matrix (stage pixels). */
+function OverlayImage({
+  photo,
+  matrix,
+  opacity,
+  testId = 'infra-overlay-layer',
+}: {
+  readonly photo: PhotoAsset;
+  readonly matrix: Mat3;
+  readonly opacity: number;
+  readonly testId?: string;
+}) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={photo.url}
+      alt=""
+      draggable={false}
+      className="pointer-events-none absolute left-0 top-0 max-w-none select-none"
+      data-testid={testId}
+      style={{
+        width: photo.width,
+        height: photo.height,
+        transformOrigin: '0 0',
+        transform: toCssMatrix3d(matrix),
+        opacity,
+        willChange: 'transform',
+      }}
+    />
+  );
+}
+
 /* -------------------------------------------------------------------------- */
 /* Landmarks on a photo (before, or after in two-photo mode)                    */
 /* -------------------------------------------------------------------------- */
@@ -721,7 +436,7 @@ function MarkStep({
   readonly photo: PhotoAsset;
   readonly pins: readonly Pt[];
   readonly hint: string;
-  /** "Before" photo + its landmarks, shown while marking the same points on the "after" photo. */
+  /** The other photo + its landmarks, shown while marking the same points here. */
   readonly reference?: { readonly photo: PhotoAsset; readonly pins: readonly Pt[] };
   readonly onPinsChange: (pins: Pt[]) => void;
   readonly onBack: () => void;
@@ -736,6 +451,10 @@ function MarkStep({
     w = h * aspect;
   }
   const ready = area.w > 0 && area.h > 0;
+  const toSurface = useMemo<Mat3>(
+    () => [w / photo.width, 0, 0, 0, h / photo.height, 0, 0, 0, 1],
+    [w, h, photo.width, photo.height],
+  );
   return (
     <div className="flex h-full w-full flex-col" dir="rtl">
       <div className="flex min-h-11 items-center gap-1 bg-black/80 px-2 pt-[env(safe-area-inset-top)]">
@@ -751,7 +470,7 @@ function MarkStep({
         >
           <Undo2 className="size-5" />
         </button>
-        <span className="line-clamp-2 min-w-0 flex-1 px-1 text-center text-xs text-white/80">{hint}</span>
+        <span className="line-clamp-1 min-w-0 flex-1 px-1 text-center text-xs text-white/80">{hint}</span>
         <span className="text-xs tabular-nums text-white/70" dir="ltr">
           {pins.length}/{MAX_PINS}
         </span>
@@ -770,7 +489,15 @@ function MarkStep({
         className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-neutral-900"
       >
         {ready ? (
-          <PinSurface width={w} height={h} pins={pins} maxPins={MAX_PINS} onPinsChange={onPinsChange}>
+          <PinSurface
+            width={w}
+            height={h}
+            pins={pins}
+            maxPins={MAX_PINS}
+            onPinsChange={onPinsChange}
+            highlightIndex={pins.length < MAX_PINS ? pins.length : undefined}
+            renderLoupe={(center) => <ImageLoupe photo={photo} toSurface={toSurface} center={center} />}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={photo.url}
@@ -781,8 +508,13 @@ function MarkStep({
             />
           </PinSurface>
         ) : null}
-        {reference && pins.length < MAX_PINS ? (
-          <ReferenceThumb photo={reference.photo} pins={reference.pins} nextIndex={pins.length} />
+        {reference ? (
+          <ReferenceThumb
+            photo={reference.photo}
+            pins={reference.pins}
+            nextIndex={pins.length < MAX_PINS ? pins.length : -1}
+            label={pins.length < MAX_PINS ? pointLabel(pins.length + 1) : TEXT.referenceLabel}
+          />
         ) : null}
       </div>
     </div>
@@ -813,9 +545,12 @@ function LiveStep({
   const trackSettings = useRef<MediaTrackSettings>({});
   const [cameraFailed, setCameraFailed] = useState(false);
   const [livePins, setLivePins] = useState<Pt[]>([]);
-  const [adjust, setAdjust] = useState<Mat3>(IDENTITY);
+  const adj = useAdjustHistory();
   const [opacity, setOpacity] = useState(0.55);
   const [perspective, setPerspective] = useState(false);
+  const [locked, setLocked] = useState(false);
+  const [frozen, setFrozen] = useState(false);
+  const [tuneOpen, setTuneOpen] = useState(false);
   const saved = useSavedResult();
 
   // Camera (rear camera preferred), released on exit.
@@ -856,15 +591,18 @@ function LiveStep({
   const orientation = size.w >= size.h ? 'landscape' : 'portrait';
   const lastOrientation = useRef<string | null>(null);
   const { clear: clearSaved } = saved;
+  const { clear: clearAdjust } = adj;
   useEffect(() => {
     if (size.w === 0) return;
     if (lastOrientation.current && lastOrientation.current !== orientation) {
       setLivePins([]);
-      setAdjust(IDENTITY);
+      clearAdjust();
+      setLocked(false);
+      setTuneOpen(false);
       clearSaved();
     }
     lastOrientation.current = orientation;
-  }, [orientation, size.w, clearSaved]);
+  }, [orientation, size.w, clearSaved, clearAdjust]);
 
   const alignment = useMemo(() => {
     if (size.w === 0 || livePins.length < MAX_PINS) return null;
@@ -880,9 +618,10 @@ function LiveStep({
     });
   }, [livePins, photoPins, photo.width, photo.height, size.w, size.h, perspective]);
 
-  const matrix = alignment ? multiplyMat3(adjust, alignment.fit.matrix) : null;
+  const matrix = alignment ? multiplyMat3(adj.adjust, alignment.fit.matrix) : null;
 
   // What a broadcast needs, read fresh on every frame (so alignment / opacity changes are streamed live).
+  // The matrix is the same full (perspective) one the screen uses.
   const composition = useRef<InfraLiveComposition | null>(null);
   useLayoutEffect(() => {
     const video = videoRef.current;
@@ -893,25 +632,44 @@ function LiveStep({
             stageW: size.w,
             stageH: size.h,
             overlay: matrix ? { url: photo.url, width: photo.width, height: photo.height } : null,
-            matrix: matrix ? canvasMatrix(matrix, photo.width, photo.height) : null,
+            matrix,
             opacity,
           }
         : null;
   });
   const [liveShareSource] = useState<InfraLiveShareSource>(() => ({ getComposition: () => composition.current }));
 
-  const changePins = useCallback((next: Pt[]) => {
-    setLivePins(next);
-    setAdjust(IDENTITY);
-  }, []);
-  const applyAdjust = useCallback((incremental: Mat3) => {
-    setAdjust((prev) => multiplyMat3(incremental, prev));
-  }, []);
+  const changePins = useCallback(
+    (next: Pt[]) => {
+      setLivePins(next);
+      clearAdjust();
+    },
+    [clearAdjust],
+  );
 
   function realign() {
     setLivePins([]);
-    setAdjust(IDENTITY);
+    clearAdjust();
+    setLocked(false);
+    setTuneOpen(false);
     clearSaved();
+  }
+
+  function toggleFreeze() {
+    const video = videoRef.current;
+    if (!video) return;
+    if (frozen) {
+      void video.play().catch(() => undefined);
+      setFrozen(false);
+    } else {
+      video.pause();
+      setFrozen(true);
+    }
+  }
+
+  function toggleLock() {
+    setLocked((value) => !value);
+    setTuneOpen(false);
   }
 
   /** Workspace integration: freeze the current frame + overlay, then let the user choose what to keep. */
@@ -936,7 +694,7 @@ function LiveStep({
         kind: alignment.fit.kind === 'homography' ? 'perspective' : 'similarity',
         beforePins: pinsToTuples(photoPins),
         afterPins: pinsToTuples(livePins),
-        adjust: isIdentityAdjust(adjust) ? null : matrixToAdjust(adjust),
+        adjust: isIdentityAdjust(adj.adjust) ? null : matrixToAdjust(adj.adjust),
         stage: { w: Math.round(size.w), h: Math.round(size.h) },
         opacity: round4(opacity),
         view: 'overlay',
@@ -982,7 +740,7 @@ function LiveStep({
       photo: { width: photo.width, height: photo.height },
       photoLandmarksPx: photoPins.map((p) => [Math.round(p.x * photo.width), Math.round(p.y * photo.height)]),
       liveLandmarksPx: livePins.map((p) => [Math.round(p.x * size.w), Math.round(p.y * size.h)]),
-      manualAdjustment: adjust.map((v) => Number(v.toFixed(5))),
+      manualAdjustment: adj.adjust.map((v) => Number(v.toFixed(2))),
       opacity: Number(opacity.toFixed(2)),
       camera: trackSettings.current,
       userAgent: navigator.userAgent,
@@ -991,6 +749,16 @@ function LiveStep({
 
   const complete = livePins.length >= photoPins.length;
   const showPerspectiveToggle = photoPins.length >= 3 && livePins.length >= 3;
+  const topClass = 'top-[max(0.5rem,env(safe-area-inset-top))]';
+
+  const notice =
+    complete && !alignment ? (
+      <Notice testId="infra-align-failed">{TEXT.alignFailed}</Notice>
+    ) : perspective && alignment?.perspectiveRejected ? (
+      <Notice>{TEXT.perspectiveRejected}</Notice>
+    ) : cameraFailed ? (
+      <Notice>{TEXT.cameraError}</Notice>
+    ) : null;
 
   return (
     <div ref={rootRef} className="relative h-full w-full overflow-hidden bg-black" dir="ltr">
@@ -1001,8 +769,11 @@ function LiveStep({
           pins={livePins}
           maxPins={photoPins.length}
           onPinsChange={changePins}
-          onAdjust={applyAdjust}
+          onAdjust={(incremental) => adj.apply(incremental)}
+          onGestureStart={adj.begin}
+          locked={locked}
           highlightIndex={livePins.length < photoPins.length ? livePins.length : undefined}
+          renderLoupe={(center) => <VideoLoupe videoRef={videoRef} stageW={size.w} stageH={size.h} center={center} />}
         >
           <video
             ref={videoRef}
@@ -1015,40 +786,24 @@ function LiveStep({
         </PinSurface>
       ) : null}
 
-      {complete && alignment ? null : <ReferenceThumb photo={photo} pins={photoPins} nextIndex={livePins.length} />}
-
-      {complete ? null : (
-        <div
-          className="pointer-events-none absolute left-28 right-2 top-[max(0.5rem,env(safe-area-inset-top))] rounded bg-black/70 px-2 py-1 text-center text-[11px] leading-4 text-white"
-          dir="rtl"
-        >
-          {TEXT.markOrderNote}
-        </div>
+      {complete && alignment ? null : (
+        <ReferenceThumb
+          photo={photo}
+          pins={photoPins}
+          nextIndex={complete ? -1 : livePins.length}
+          label={complete ? TEXT.referenceLabel : pointLabel(livePins.length + 1)}
+        />
       )}
 
-      {complete && !alignment ? (
-        <div
-          className="pointer-events-none absolute inset-x-2 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] mx-auto w-fit max-w-full rounded bg-black/70 px-2 py-1 text-center text-[11px] text-white"
-          dir="rtl"
-          role="status"
-          data-testid="infra-align-failed"
-        >
-          {TEXT.alignFailed}
-        </div>
-      ) : null}
-
-      {cameraFailed ? (
-        <div className="pointer-events-none absolute inset-x-0 top-1/3 text-center text-sm text-white/80" dir="rtl">
-          {TEXT.cameraError}
-        </div>
-      ) : null}
-
-      {perspective && alignment?.perspectiveRejected ? (
-        <div
-          className="pointer-events-none absolute inset-x-2 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] mx-auto w-fit rounded bg-black/70 px-2 py-1 text-[11px] text-white"
-          dir="rtl"
-        >
-          {TEXT.perspectiveRejected}
+      {complete ? (
+        <QualityChip
+          quality={classifyAlignment(alignment)}
+          prefix={frozen ? TEXT.frozen : null}
+          className={topClass}
+        />
+      ) : frozen ? (
+        <div className={`pointer-events-none absolute inset-x-0 ${topClass} flex justify-center`} dir="rtl">
+          <span className="rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white backdrop-blur">{TEXT.frozen}</span>
         </div>
       ) : null}
 
@@ -1057,12 +812,68 @@ function LiveStep({
         onOpacity={setOpacity}
         onBack={onBack}
         onRealign={realign}
+        realignIcon={<Crosshair className="size-5" />}
         showPerspectiveToggle={showPerspectiveToggle}
         perspective={perspective}
         onTogglePerspective={() => setPerspective((v) => !v)}
-        extra={integration?.renderLiveShare?.(liveShareSource)}
+        perspectiveIcon={<Rotate3d className="size-5" />}
+        notice={notice}
+        tray={
+          tuneOpen && alignment && !locked ? (
+            <FineTuneTray
+              disabled={locked}
+              canUndo={adj.canUndo}
+              canReset={adj.canUndo || !isIdentityAdjust(adj.adjust)}
+              onBegin={adj.begin}
+              onNudge={(step) => adj.nudge(step, size.w, size.h)}
+              onUndo={adj.undo}
+              onReset={adj.reset}
+            />
+          ) : null
+        }
+        extra={
+          <>
+            <button
+              type="button"
+              className={`${barButtonClass} ${frozen ? activeButtonClass : ''}`}
+              onClick={toggleFreeze}
+              aria-pressed={frozen}
+              aria-label={frozen ? OVERLAY_TEXT.unfreeze : OVERLAY_TEXT.freeze}
+              title={frozen ? OVERLAY_TEXT.unfreeze : OVERLAY_TEXT.freeze}
+              data-testid="infra-freeze"
+            >
+              <Snowflake className="size-5" />
+            </button>
+            <button
+              type="button"
+              className={`${barButtonClass} ${tuneOpen && !locked ? activeButtonClass : ''}`}
+              onClick={() => setTuneOpen((v) => !v)}
+              disabled={!alignment || locked}
+              aria-pressed={tuneOpen}
+              aria-label={OVERLAY_TEXT.fineTune}
+              title={OVERLAY_TEXT.fineTune}
+              data-testid="infra-fine-tune-toggle"
+            >
+              <SlidersHorizontal className="size-5" />
+            </button>
+            <button
+              type="button"
+              className={`${barButtonClass} ${locked ? activeButtonClass : ''}`}
+              onClick={toggleLock}
+              disabled={!alignment}
+              aria-pressed={locked}
+              aria-label={locked ? OVERLAY_TEXT.unlock : OVERLAY_TEXT.lock}
+              title={locked ? OVERLAY_TEXT.unlock : OVERLAY_TEXT.lock}
+              data-testid="infra-lock"
+            >
+              {locked ? <Lock className="size-5" /> : <LockOpen className="size-5" />}
+            </button>
+            {integration?.renderLiveShare?.(liveShareSource)}
+          </>
+        }
         onSave={save}
         canSave={Boolean(alignment) && !preparing}
+        saving={preparing}
       />
 
       {saved.result ? (
@@ -1086,10 +897,13 @@ function LiveStep({
 
 const VIEW_MIN_SCALE = 1;
 const VIEW_MAX_SCALE = 10;
+const BLINK_MS = 600;
 
 function matrixScale(m: Mat3): number {
   return Math.hypot(m[0], m[3]);
 }
+
+type PointsTray = 'none' | 'fine' | 'points';
 
 function CompareStep({
   projectId,
@@ -1097,6 +911,7 @@ function CompareStep({
   beforePins,
   after,
   afterPins,
+  onBeforePinsChange,
   onAfterPinsChange,
   onBack,
   onRealign,
@@ -1108,24 +923,36 @@ function CompareStep({
   readonly beforePins: readonly Pt[];
   readonly after: PhotoAsset;
   readonly afterPins: readonly Pt[];
-  /** Lets the user fix the "after" points right here when the alignment fails. */
+  /** Lets the user fix the "before" points right here, without starting over. */
+  readonly onBeforePinsChange: (pins: Pt[]) => void;
+  /** Lets the user fix the "after" points right here, without starting over. */
   readonly onAfterPinsChange: (pins: Pt[]) => void;
   readonly onBack: () => void;
   readonly onRealign: () => void;
   readonly integration?: InfraTrialIntegration;
-  /** A saved result being reopened: restores the stored adjustment / opacity / fit kind. */
+  /** A saved result being reopened: restores the stored adjustment / opacity / fit kind / view. */
   readonly initial?: InfraTrialAlignment | null;
 }) {
   const [rootRef, size] = useElementSize<HTMLDivElement>();
   const [saveRequest, setSaveRequest] = useState<{ input: InfraTrialSaveInput; previewUrl: string | null } | null>(null);
   const [preparing, setPreparing] = useState(false);
-  const [adjust, setAdjust] = useState<Mat3>(IDENTITY);
+  const adj = useAdjustHistory();
   const [view, setView] = useState<Mat3>(IDENTITY);
   const [viewMode, setViewMode] = useState<'layer' | 'view'>('layer');
   const [opacity, setOpacity] = useState(0.55);
   const [perspective, setPerspective] = useState(false);
+  const [display, setDisplay] = useState<CompareDisplay>(() => displayFromRecord(initial?.view));
+  const [split, setSplit] = useState(0.5);
+  const [blink, setBlink] = useState(false);
+  const [blinkPhase, setBlinkPhase] = useState(false);
+  const [hold, setHold] = useState(false);
+  const [locked, setLocked] = useState(false);
+  const [tray, setTray] = useState<PointsTray>('none');
+  const [editing, setEditing] = useState<Slot | null>(null);
+  const editSnapshot = useRef<{ before: Pt[]; after: Pt[] } | null>(null);
   const saved = useSavedResult();
   const { clear: clearSaved } = saved;
+  const { clear: clearAdjust, restore: restoreAdjust, apply: applyAdjust } = adj;
 
   // "after" photo (its own pixels) -> stage pixels, aspect ratio preserved.
   const base = useMemo(
@@ -1133,20 +960,20 @@ function CompareStep({
     [after.width, after.height, size.w, size.h],
   );
 
-  // A different stage shape invalidates manual tweaks and zoom.
+  // A different stage shape invalidates manual tweaks and zoom (the display mode, split and opacity survive).
   const stageKey = `${Math.round(size.w)}x${Math.round(size.h)}`;
   const lastStage = useRef<string | null>(null);
   useEffect(() => {
     if (size.w === 0) return;
     if (lastStage.current && lastStage.current !== stageKey) {
-      setAdjust(IDENTITY);
+      clearAdjust();
       setView(IDENTITY);
       clearSaved();
     }
     lastStage.current = stageKey;
-  }, [stageKey, size.w, clearSaved]);
+  }, [stageKey, size.w, clearSaved, clearAdjust]);
 
-  // Reopening a saved result: restore its manual adjustment (scaled to this stage), opacity and fit kind.
+  // Reopening a saved result: restore its manual adjustment (scaled to this stage), opacity, fit kind and view.
   const appliedInitial = useRef(false);
   useEffect(() => {
     if (!initial || appliedInitial.current || size.w === 0) return;
@@ -1154,12 +981,21 @@ function CompareStep({
     if (initial.adjust) {
       const sx = initial.stage.w > 0 ? size.w / initial.stage.w : 1;
       const sy = initial.stage.h > 0 ? size.h / initial.stage.h : 1;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- restores a saved alignment once
-      setAdjust(userAdjustMatrix({ x: 0, y: 0 }, { ...initial.adjust, tx: initial.adjust.tx * sx, ty: initial.adjust.ty * sy }));
+      restoreAdjust(
+        userAdjustMatrix({ x: 0, y: 0 }, { ...initial.adjust, tx: initial.adjust.tx * sx, ty: initial.adjust.ty * sy }),
+      );
     }
     setOpacity(initial.opacity);
     setPerspective(initial.kind === 'perspective');
-  }, [initial, size.w, size.h]);
+    setDisplay(displayFromRecord(initial.view));
+  }, [initial, size.w, size.h, restoreAdjust]);
+
+  // Automatic blinking between the two photos.
+  useEffect(() => {
+    if (!blink) return undefined;
+    const timer = window.setInterval(() => setBlinkPhase((phase) => !phase), BLINK_MS);
+    return () => window.clearInterval(timer);
+  }, [blink]);
 
   const targetPx = useMemo(
     () => afterPins.map((p) => applyMat3(base, { x: p.x * after.width, y: p.y * after.height })),
@@ -1181,7 +1017,8 @@ function CompareStep({
     [before.width, before.height, beforePins, targetPx, size.w, size.h, perspective],
   );
 
-  const matrix = alignment ? multiplyMat3(adjust, alignment.fit.matrix) : null;
+  const matrix = alignment ? multiplyMat3(adj.adjust, alignment.fit.matrix) : null;
+  const quality = classifyAlignment(alignment);
 
   // When the alignment fails the "after" points are shown on the comparison so they can be dragged into place
   // (no going back, no re-choosing photos). They live in the after photo's coordinates; the stage shows them
@@ -1214,9 +1051,9 @@ function CompareStep({
   const onGesture = useCallback(
     (incremental: Mat3, parts: GestureParts) => {
       if (viewMode === 'layer') {
+        if (locked) return;
         // Gesture coordinates are screen pixels; the layer lives under the view transform.
-        const inView = multiplyMat3(invertMat3(view), multiplyMat3(incremental, view));
-        setAdjust((prev) => multiplyMat3(inView, prev));
+        applyAdjust(multiplyMat3(invertMat3(view), multiplyMat3(incremental, view)));
         return;
       }
       // Zoom/pan the whole comparison (both images together); never rotate the view.
@@ -1227,8 +1064,52 @@ function CompareStep({
         return s < VIEW_MIN_SCALE || s > VIEW_MAX_SCALE ? prev : next;
       });
     },
-    [view, viewMode],
+    [view, viewMode, locked, applyAdjust],
   );
+
+  // What is on screen right now. The mode itself, the alignment, the zoom and the split position never change
+  // by switching: only which layer is visible does (so switching is instant, nothing reloads).
+  const hasLayer = Boolean(matrix);
+  let shown: CompareDisplay = hasLayer ? display : 'after';
+  if (hasLayer) {
+    if (blink) shown = blinkPhase ? 'before' : 'after';
+    else if (hold) shown = display === 'before' ? 'after' : 'before';
+  }
+  const temporaryShown = hasLayer && (blink || hold);
+
+  function toggleBlink() {
+    setBlink((value) => !value);
+    setBlinkPhase(false);
+  }
+
+  function startEdit(slot: Slot) {
+    editSnapshot.current = { before: [...beforePins], after: [...afterPins] };
+    setTray('none');
+    setEditing(slot);
+  }
+
+  function cancelEdit() {
+    const snapshot = editSnapshot.current;
+    if (snapshot) {
+      onBeforePinsChange(snapshot.before);
+      onAfterPinsChange(snapshot.after);
+    }
+    setEditing(null);
+  }
+
+  function confirmEdit() {
+    const snapshot = editSnapshot.current;
+    const same = (a: readonly Pt[], b: readonly Pt[]) =>
+      a.length === b.length && a.every((p, i) => p.x === b[i]!.x && p.y === b[i]!.y);
+    // The manual correction is relative to the fit: new points mean a new fit, so it starts from zero.
+    if (snapshot && (!same(snapshot.before, beforePins) || !same(snapshot.after, afterPins))) clearAdjust();
+    setEditing(null);
+  }
+
+  function toggleLock() {
+    setLocked((value) => !value);
+    setTray('none');
+  }
 
   async function requestSave() {
     if (!alignment || !matrix || preparing || size.w === 0) return;
@@ -1240,14 +1121,7 @@ function CompareStep({
         stageH: size.h,
         drawBackdrop: (ctx) => {
           ctx.save();
-          ctx.setTransform(
-            base[0] * snapshotScale(size.w, size.h),
-            base[3] * snapshotScale(size.w, size.h),
-            base[1] * snapshotScale(size.w, size.h),
-            base[4] * snapshotScale(size.w, size.h),
-            base[2] * snapshotScale(size.w, size.h),
-            base[5] * snapshotScale(size.w, size.h),
-          );
+          ctx.transform(base[0], base[3], base[1], base[4], base[2], base[5]);
           ctx.drawImage(afterImage, 0, 0, after.width, after.height);
           ctx.restore();
         },
@@ -1260,10 +1134,10 @@ function CompareStep({
         kind: alignment.fit.kind === 'homography' ? 'perspective' : 'similarity',
         beforePins: pinsToTuples(beforePins),
         afterPins: pinsToTuples(afterPins),
-        adjust: isIdentityAdjust(adjust) ? null : matrixToAdjust(adjust),
+        adjust: isIdentityAdjust(adj.adjust) ? null : matrixToAdjust(adj.adjust),
         stage: { w: Math.round(size.w), h: Math.round(size.h) },
         opacity: round4(opacity),
-        view: 'overlay',
+        view: recordView(display),
       };
       setSaveRequest({
         input: {
@@ -1307,12 +1181,35 @@ function CompareStep({
       after: { width: after.width, height: after.height },
       beforeLandmarksPx: beforePins.map((p) => [Math.round(p.x * before.width), Math.round(p.y * before.height)]),
       afterLandmarksPx: afterPins.map((p) => [Math.round(p.x * after.width), Math.round(p.y * after.height)]),
-      manualAdjustment: adjust.map((v) => Number(v.toFixed(5))),
-      view: view.map((v) => Number(v.toFixed(5))),
+      manualAdjustment: adj.adjust.map((v) => Number(v.toFixed(2))),
+      view: view.map((v) => Number(v.toFixed(2))),
       opacity: Number(opacity.toFixed(2)),
       userAgent: navigator.userAgent,
     });
   }
+
+  const topClass = 'top-[max(0.5rem,env(safe-area-inset-top))]';
+  const layerView = (children: ReactNode) => (
+    <div
+      className="absolute left-0 top-0"
+      style={{
+        width: size.w,
+        height: size.h,
+        transformOrigin: '0 0',
+        transform: toCssMatrix3d(view),
+        willChange: 'transform',
+      }}
+    >
+      {children}
+    </div>
+  );
+
+  const notice =
+    perspective && alignment?.perspectiveRejected ? (
+      <Notice>{TEXT.perspectiveRejected}</Notice>
+    ) : alignFailed ? (
+      <Notice testId="infra-align-failed">{TEXT.alignFailed}</Notice>
+    ) : null;
 
   return (
     <div
@@ -1320,6 +1217,7 @@ function CompareStep({
       className="relative h-full w-full overflow-hidden bg-neutral-900"
       dir="ltr"
       data-testid="infra-compare"
+      data-display={shown}
       onWheel={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         const zoom = userAdjustMatrix(
@@ -1341,57 +1239,74 @@ function CompareStep({
           maxPins={stagePins.length}
           onPinsChange={changeStagePins}
           onAdjust={onGesture}
+          onGestureStart={() => {
+            if (viewMode === 'layer' && !locked) adj.begin();
+          }}
+          renderLoupe={(center) => <ImageLoupe photo={after} toSurface={pinsToStage} center={center} />}
         >
-          <div
-            className="absolute left-0 top-0"
-            style={{
-              width: size.w,
-              height: size.h,
-              transformOrigin: '0 0',
-              transform: toCssMatrix3d(view),
-              willChange: 'transform',
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={after.url}
-              alt=""
-              draggable={false}
-              className="pointer-events-none absolute left-0 top-0 max-w-none select-none"
-              data-testid="infra-after-image"
+          {layerView(
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={after.url}
+                alt=""
+                draggable={false}
+                className="pointer-events-none absolute left-0 top-0 max-w-none select-none"
+                data-testid="infra-after-image"
+                style={{
+                  width: after.width,
+                  height: after.height,
+                  transformOrigin: '0 0',
+                  transform: toCssMatrix3d(base),
+                  opacity: shown === 'before' ? 0 : 1,
+                }}
+              />
+              {matrix ? (
+                <OverlayImage
+                  photo={before}
+                  matrix={matrix}
+                  opacity={shown === 'overlay' ? opacity : shown === 'before' ? 1 : 0}
+                />
+              ) : null}
+            </>,
+          )}
+          {matrix ? (
+            <div
+              className="pointer-events-none absolute inset-0"
               style={{
-                width: after.width,
-                height: after.height,
-                transformOrigin: '0 0',
-                transform: toCssMatrix3d(base),
+                clipPath: `inset(0 ${(1 - split) * 100}% 0 0)`,
+                visibility: shown === 'split' ? 'visible' : 'hidden',
               }}
-            />
-            {matrix ? <OverlayImage photo={before} matrix={matrix} opacity={opacity} /> : null}
-          </div>
+            >
+              {layerView(<OverlayImage photo={before} matrix={matrix} opacity={1} testId="infra-split-before" />)}
+            </div>
+          ) : null}
         </PinSurface>
       ) : null}
 
-      {perspective && alignment?.perspectiveRejected ? (
-        <div
-          className="pointer-events-none absolute inset-x-2 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] mx-auto w-fit rounded bg-black/70 px-2 py-1 text-[11px] text-white"
-          dir="rtl"
-        >
-          {TEXT.perspectiveRejected}
-        </div>
+      {matrix && shown === 'split' ? (
+        <SplitDivider
+          position={split}
+          onPosition={setSplit}
+          beforeLabel={OVERLAY_TEXT.viewBefore}
+          afterLabel={OVERLAY_TEXT.viewAfter}
+        />
+      ) : null}
+
+      {matrix ? (
+        <ViewModeBar mode={display} onMode={setDisplay} className={topClass} />
+      ) : null}
+
+      {afterPins.length >= MAX_PINS ? (
+        <QualityChip
+          quality={quality}
+          prefix={temporaryShown ? (shown === 'before' ? OVERLAY_TEXT.viewBefore : OVERLAY_TEXT.viewAfter) : null}
+          className={matrix ? 'top-[calc(max(0.5rem,env(safe-area-inset-top))+2.5rem)]' : topClass}
+        />
       ) : null}
 
       {alignFailed ? (
-        <>
-          <ReferenceThumb photo={before} pins={beforePins} nextIndex={beforePins.length} />
-          <div
-            className="pointer-events-none absolute inset-x-2 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] mx-auto w-fit max-w-full rounded bg-black/70 px-2 py-1 text-center text-[11px] text-white"
-            dir="rtl"
-            role="status"
-            data-testid="infra-align-failed"
-          >
-            {TEXT.alignFailed}
-          </div>
-        </>
+        <ReferenceThumb photo={before} pins={beforePins} nextIndex={-1} label={TEXT.referenceLabel} />
       ) : null}
 
       <OverlayBar
@@ -1399,24 +1314,117 @@ function CompareStep({
         onOpacity={setOpacity}
         onBack={onBack}
         onRealign={onRealign}
+        realignIcon={<Crosshair className="size-5" />}
         showPerspectiveToggle
         perspective={perspective}
         onTogglePerspective={() => setPerspective((v) => !v)}
+        perspectiveIcon={<Rotate3d className="size-5" />}
+        notice={notice}
+        tray={
+          tray === 'fine' && alignment && !locked ? (
+            <FineTuneTray
+              disabled={locked}
+              canUndo={adj.canUndo}
+              canReset={adj.canUndo || !isIdentityAdjust(adj.adjust)}
+              onBegin={adj.begin}
+              onNudge={(step) => adj.nudge(step, size.w, size.h)}
+              onUndo={adj.undo}
+              onReset={adj.reset}
+            />
+          ) : tray === 'points' ? (
+            <div
+              className="flex items-center gap-1 rounded-full bg-black/65 p-0.5 backdrop-blur"
+              onPointerDown={(e) => e.stopPropagation()}
+              dir="rtl"
+              data-testid="infra-points-tray"
+            >
+              {(['before', 'after'] as const).map((slot) => (
+                <button
+                  key={slot}
+                  type="button"
+                  className="min-h-8 rounded-full px-3 text-xs font-medium text-white hover:bg-white/15"
+                  onClick={() => startEdit(slot)}
+                  data-testid={`infra-edit-points-${slot}`}
+                >
+                  {slot === 'before' ? TEXT.pointsBefore : TEXT.pointsAfter}
+                </button>
+              ))}
+            </div>
+          ) : null
+        }
         extra={
-          <button
-            type="button"
-            className={`${barButtonClass} ${viewMode === 'view' ? 'bg-cyan-500/90' : ''}`}
-            onClick={() => setViewMode((m) => (m === 'layer' ? 'view' : 'layer'))}
-            aria-pressed={viewMode === 'view'}
-            aria-label={viewMode === 'view' ? TEXT.moveLayer : TEXT.zoomView}
-            data-testid="infra-view-mode"
-          >
-            {viewMode === 'view' ? <ZoomIn className="size-5" /> : <Move className="size-5" />}
-          </button>
+          <>
+            <button
+              type="button"
+              className={`${barButtonClass} ${viewMode === 'view' ? activeButtonClass : ''}`}
+              onClick={() => setViewMode((m) => (m === 'layer' ? 'view' : 'layer'))}
+              aria-pressed={viewMode === 'view'}
+              aria-label={viewMode === 'view' ? TEXT.moveLayer : TEXT.zoomView}
+              title={viewMode === 'view' ? TEXT.moveLayer : TEXT.zoomView}
+              data-testid="infra-view-mode"
+            >
+              {viewMode === 'view' ? <ZoomIn className="size-5" /> : <Move className="size-5" />}
+            </button>
+            <BlinkButton active={blink} onToggle={toggleBlink} onHold={setHold} disabled={!matrix} />
+            <button
+              type="button"
+              className={`${barButtonClass} ${tray === 'fine' && !locked ? activeButtonClass : ''}`}
+              onClick={() => setTray((t) => (t === 'fine' ? 'none' : 'fine'))}
+              disabled={!alignment || locked}
+              aria-pressed={tray === 'fine'}
+              aria-label={OVERLAY_TEXT.fineTune}
+              title={OVERLAY_TEXT.fineTune}
+              data-testid="infra-fine-tune-toggle"
+            >
+              <SlidersHorizontal className="size-5" />
+            </button>
+            <button
+              type="button"
+              className={`${barButtonClass} ${locked ? activeButtonClass : ''}`}
+              onClick={toggleLock}
+              disabled={!alignment}
+              aria-pressed={locked}
+              aria-label={locked ? OVERLAY_TEXT.unlock : OVERLAY_TEXT.lock}
+              title={locked ? OVERLAY_TEXT.unlock : OVERLAY_TEXT.lock}
+              data-testid="infra-lock"
+            >
+              {locked ? <Lock className="size-5" /> : <LockOpen className="size-5" />}
+            </button>
+            <button
+              type="button"
+              className={`${barButtonClass} ${tray === 'points' ? activeButtonClass : ''}`}
+              onClick={() => setTray((t) => (t === 'points' ? 'none' : 'points'))}
+              aria-pressed={tray === 'points'}
+              aria-label={OVERLAY_TEXT.editPoints}
+              title={OVERLAY_TEXT.editPoints}
+              data-testid="infra-edit-points"
+            >
+              <MapPin className="size-5" />
+            </button>
+          </>
         }
         onSave={save}
         canSave={Boolean(alignment) && !preparing && !initial}
+        saving={preparing}
       />
+
+      {editing ? (
+        <div className="absolute inset-0 z-20 bg-neutral-900" data-testid="infra-edit-points-step">
+          <MarkStep
+            photo={editing === 'before' ? before : after}
+            pins={editing === 'before' ? beforePins : afterPins}
+            hint={TEXT.editHint}
+            reference={
+              editing === 'before'
+                ? { photo: after, pins: afterPins }
+                : { photo: before, pins: beforePins }
+            }
+            onPinsChange={editing === 'before' ? onBeforePinsChange : onAfterPinsChange}
+            onBack={cancelEdit}
+            onNext={confirmEdit}
+          />
+        </div>
+      ) : null}
 
       {saved.result ? (
         <ResultSheet result={saved.result} copied={saved.copied} onCopy={saved.copy} onClose={saved.clear} />
@@ -1446,19 +1454,22 @@ function PhotoPicker({
   testIdPrefix,
   onFile,
   compact,
+  busy,
   captureLabel,
   chooseLabel,
 }: {
   readonly testIdPrefix: string;
   readonly onFile: (file: File | undefined) => void;
   readonly compact?: boolean;
+  readonly busy?: boolean;
   readonly captureLabel?: string;
   readonly chooseLabel?: string;
 }) {
   const size = compact ? 'px-3 py-1.5' : '';
+  const disabled = busy ? 'pointer-events-none opacity-60' : '';
   return (
     <>
-      <label className={`${pickButtonPrimary} ${size}`}>
+      <label className={`${pickButtonPrimary} ${size} ${disabled}`}>
         <Camera className="size-4" />
         {captureLabel ?? TEXT.capture}
         <input
@@ -1466,6 +1477,7 @@ function PhotoPicker({
           accept="image/*"
           capture="environment"
           className="sr-only"
+          disabled={busy}
           data-testid={`${testIdPrefix}-capture`}
           onChange={(e) => {
             onFile(e.target.files?.[0]);
@@ -1473,13 +1485,14 @@ function PhotoPicker({
           }}
         />
       </label>
-      <label className={`${pickButtonSecondary} ${size}`}>
+      <label className={`${pickButtonSecondary} ${size} ${disabled}`}>
         <ImageUp className="size-4" />
         {chooseLabel ?? TEXT.choose}
         <input
           type="file"
           accept="image/*"
           className="sr-only"
+          disabled={busy}
           data-testid={`${testIdPrefix}-choose`}
           onChange={(e) => {
             onFile(e.target.files?.[0]);
@@ -1506,6 +1519,7 @@ export function InfraOverlayTrial({
   const [beforePins, setBeforePins] = useState<Pt[]>([]);
   const [afterPins, setAfterPins] = useState<Pt[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loadingPhoto, setLoadingPhoto] = useState(false);
   const [reopened, setReopened] = useState<InfraTrialAlignment | null>(null);
   const initialRef = useRef(integration?.initial ?? null);
 
@@ -1571,6 +1585,7 @@ export function InfraOverlayTrial({
   async function onFile(slot: Slot, file: File | undefined, captureId?: string | null) {
     if (!file) return;
     setError(null);
+    setLoadingPhoto(true);
     try {
       const prepared = { ...(await preparePhoto(file)), file, captureId: captureId ?? null };
       if (slot === 'before') {
@@ -1586,6 +1601,8 @@ export function InfraOverlayTrial({
       }
     } catch {
       setError(TEXT.loadError);
+    } finally {
+      setLoadingPhoto(false);
     }
   }
 
@@ -1620,7 +1637,7 @@ export function InfraOverlayTrial({
       <MarkStep
         photo={after}
         pins={afterPins}
-        hint={`${TEXT.markAfterHint}. ${TEXT.markOrderNote}`}
+        hint={TEXT.markAfterHint}
         reference={{ photo: before, pins: beforePins }}
         onPinsChange={setAfterPins}
         onBack={() => setPhase('markBefore')}
@@ -1645,6 +1662,7 @@ export function InfraOverlayTrial({
         beforePins={beforePins}
         after={after}
         afterPins={afterPins}
+        onBeforePinsChange={setBeforePins}
         onAfterPinsChange={setAfterPins}
         integration={integration}
         initial={reopened}
@@ -1692,8 +1710,26 @@ export function InfraOverlayTrial({
     setError(null);
   }
 
+  /** Moves to the other mode keeping only the chosen "before" photo (its points are marked again for the new flow). */
+  function switchKeepingBefore(next: Mode) {
+    setMode(next);
+    setPhase('idle');
+    setAfter(null);
+    setBeforePins([]);
+    setAfterPins([]);
+    setReopened(null);
+    setError(null);
+  }
+
   const modeCardClass =
     'flex flex-1 flex-col items-start gap-1 rounded-lg border border-[var(--pf-border-default)] p-4 text-start hover:bg-[var(--pf-action-subtle-active)]';
+
+  const loadingNotice = loadingPhoto ? (
+    <p className="flex items-center gap-2 text-sm text-[var(--pf-text-secondary)]" role="status" data-testid="infra-photo-loading">
+      <Loader2 className="size-4 animate-spin" aria-hidden />
+      {TEXT.loadingPhoto}
+    </p>
+  ) : null;
 
   return (
     <div className="flex max-w-2xl flex-col gap-3 pt-2" data-testid="infra-overlay-trial">
@@ -1745,12 +1781,15 @@ export function InfraOverlayTrial({
               testIdPrefix="infra-photo"
               captureLabel={TEXT.liveCapture}
               chooseLabel={TEXT.liveChoose}
+              busy={loadingPhoto}
               onFile={(f) => void onFile('before', f)}
             />
             {integration?.renderPhotoSources?.('before', (photo) => void onFile('before', photo.file, photo.captureId))}
           </div>
+          {integration?.renderRecentPhotos?.((photo) => void onFile('before', photo.file, photo.captureId))}
+          {loadingNotice}
           {before ? (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={before.url}
@@ -1766,6 +1805,14 @@ export function InfraOverlayTrial({
               >
                 {TEXT.useSelected}
               </button>
+              <button
+                type="button"
+                data-testid="infra-switch-to-two"
+                onClick={() => switchKeepingBefore('two')}
+                className={pickButtonSecondary}
+              >
+                {TEXT.switchToTwo}
+              </button>
             </div>
           ) : null}
         </div>
@@ -1778,34 +1825,55 @@ export function InfraOverlayTrial({
           {(['before', 'after'] as const).map((slot) => {
             const asset = slot === 'before' ? before : after;
             return (
-              <div key={slot} className="flex flex-wrap items-center gap-2" data-testid={`infra-slot-${slot}`}>
-                <span className="w-24 text-sm font-medium">
-                  {slot === 'before' ? TEXT.slotBefore : TEXT.slotAfter}
-                </span>
-                <PhotoPicker testIdPrefix={`infra-${slot}`} onFile={(f) => void onFile(slot, f)} compact />
-                {integration?.renderPhotoSources?.(slot, (photo) => void onFile(slot, photo.file, photo.captureId))}
-                {asset ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={asset.url}
-                    alt=""
-                    className="h-10 w-10 rounded border border-[var(--pf-border-default)] object-cover"
-                    data-testid={`infra-thumb-${slot}`}
+              <div key={slot} className="flex flex-col gap-2">
+                <div className="flex flex-wrap items-center gap-2" data-testid={`infra-slot-${slot}`}>
+                  <span className="w-24 text-sm font-medium">
+                    {slot === 'before' ? TEXT.slotBefore : TEXT.slotAfter}
+                  </span>
+                  <PhotoPicker
+                    testIdPrefix={`infra-${slot}`}
+                    onFile={(f) => void onFile(slot, f)}
+                    busy={loadingPhoto}
+                    compact
                   />
-                ) : null}
+                  {integration?.renderPhotoSources?.(slot, (photo) => void onFile(slot, photo.file, photo.captureId))}
+                  {asset ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={asset.url}
+                      alt=""
+                      className="h-10 w-10 rounded border border-[var(--pf-border-default)] object-cover"
+                      data-testid={`infra-thumb-${slot}`}
+                    />
+                  ) : null}
+                </div>
+                {slot === 'before'
+                  ? integration?.renderRecentPhotos?.((photo) => void onFile('before', photo.file, photo.captureId))
+                  : null}
               </div>
             );
           })}
-          <div>
+          {loadingNotice}
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              disabled={!canStartTwo}
+              disabled={!canStartTwo || loadingPhoto}
               data-testid="infra-two-start"
               onClick={() => setPhase('markBefore')}
               className={`${pickButtonPrimary} disabled:cursor-not-allowed disabled:opacity-50`}
             >
               {TEXT.start}
             </button>
+            {before ? (
+              <button
+                type="button"
+                data-testid="infra-switch-to-live"
+                onClick={() => switchKeepingBefore('live')}
+                className={pickButtonSecondary}
+              >
+                {TEXT.switchToLive}
+              </button>
+            ) : null}
           </div>
         </div>
       ) : null}

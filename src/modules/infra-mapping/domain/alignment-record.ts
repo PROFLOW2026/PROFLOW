@@ -31,7 +31,7 @@ export const alignmentRecordSchema = z.object({
     .nullish(),
   opacity: z.number().finite().min(0).max(1).default(0.6),
   /** Which view the user was in. */
-  view: z.enum(['overlay', 'sideBySide', 'after']).nullish(),
+  view: z.enum(['overlay', 'sideBySide', 'after', 'before']).nullish(),
 });
 
 export type AlignmentRecord = z.output<typeof alignmentRecordSchema>;

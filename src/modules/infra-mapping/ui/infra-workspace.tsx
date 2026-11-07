@@ -13,6 +13,7 @@ import type { LocateSlot } from './infra-capture-dialog';
 import { InfraCapturePanel } from './infra-capture-panel';
 import { evidenceFileUrl } from './infra-client';
 import { InfraGallery } from './infra-gallery';
+import { readRememberedLocation, rememberLocation } from './infra-location-memory';
 import { InfraLocatePanel } from './infra-locate-panel';
 import { InfraLocationsPanel } from './infra-locations-panel';
 import { ProjectStoragePickButton } from './infra-storage-pick-button';
@@ -95,11 +96,20 @@ function InfraWorkspaceLoaded({
 }) {
   const { organizationId, permissions } = data;
   const [tab, setTab] = useState<InfraTab>(initialTab ?? 'capture');
-  const [locationId, setLocationId] = useState<string | null>(() => {
+  const [locationId, setLocationState] = useState<string | null>(() => {
     // With a single location there is nothing to choose: start on it.
     const usable = data.locations.filter((node) => !node.archived && node.isActive);
-    return usable.length === 1 ? usable[0]!.id : null;
+    if (usable.length === 1) return usable[0]!.id;
+    // Otherwise start where the user last was in this project (this browser session only).
+    return readRememberedLocation(projectId, (id) => usable.some((node) => node.id === id));
   });
+  const setLocationId = useCallback(
+    (next: string | null) => {
+      setLocationState(next);
+      rememberLocation(projectId, next);
+    },
+    [projectId],
+  );
   // The business profile pre-selects a work domain; the user can change it any time (never locked).
   const [workDomain, setWorkDomain] = useState<InfraType | null>(data.defaultWorkDomain ?? null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -219,7 +229,8 @@ function InfraWorkspaceLoaded({
             permissions={permissions}
             suggestions={suggestions}
             refreshKey={refreshKey}
-            initialLocationId={null}
+            initialLocationId={locationId}
+            onLocationChange={setLocationId}
             allowCloudLink={viewer === 'internal' && permissions.canBrowseStorage}
             onSelectForLocate={(capture, slot) => void selectForLocate(capture, slot)}
             onUseVideoFrame={(frame, slot) => openVideoFrameInLocate(frame, slot)}
@@ -238,6 +249,7 @@ function InfraWorkspaceLoaded({
             canManageCaptures={permissions.canManageCaptures}
             browserActions={activeStorage}
             preset={preset}
+            onLocationChange={setLocationId}
             onSaved={() => setRefreshKey((value) => value + 1)}
           />
         </TabsContent>

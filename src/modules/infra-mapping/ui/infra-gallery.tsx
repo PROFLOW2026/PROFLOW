@@ -65,6 +65,7 @@ export function InfraGallery({
   suggestions,
   refreshKey,
   initialLocationId,
+  onLocationChange,
   onSelectForLocate,
   onUseVideoFrame,
   allowCloudLink,
@@ -78,6 +79,8 @@ export function InfraGallery({
   /** Bumped by the workspace when uploads finish so the list reloads. */
   readonly refreshKey: number;
   readonly initialLocationId?: string | null;
+  /** Reports the location filter so the other infrastructure screens can start on the same location. */
+  readonly onLocationChange?: (locationId: string | null) => void;
   readonly onSelectForLocate: (capture: InfraCaptureDto, slot: LocateSlot) => void;
   readonly onUseVideoFrame: (frame: File, slot: LocateSlot, capture: InfraCaptureDto) => void;
   readonly allowCloudLink: boolean;
@@ -145,7 +148,11 @@ export function InfraGallery({
       .sort((a, b) => a.label.localeCompare(b.label, 'he', { numeric: true }));
   }, [locations]);
 
-  const patch = (next: Partial<Filters>) => setFilters((current) => ({ ...current, ...next }));
+  const patch = (next: Partial<Filters>) => {
+    setFilters((current) => ({ ...current, ...next }));
+    // The chosen location is remembered across the infrastructure screens (capture, gallery, locating).
+    if ('locationId' in next) onLocationChange?.(next.locationId ?? null);
+  };
   const filtered =
     filters.locationId !== null ||
     filters.levelId !== null ||
