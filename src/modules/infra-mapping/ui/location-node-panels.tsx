@@ -19,7 +19,8 @@ import { cn } from '@/shared/ui/cn';
 import type { InfraFolderStatusDto } from '../domain/types';
 import type { FolderInspection } from '../application/folders';
 import { placementPath, type PlacementNode } from '../domain/folder-placement';
-import { TREE_TEXT as T } from './structure-texts';
+import { CountField, sanitizeCountDraft } from './count-field';
+import { STRUCTURE_TEXT, TREE_TEXT as T } from './structure-texts';
 
 export const LOCATION_TYPE_LABELS: Readonly<Record<LocationType, string>> = {
   site: 'אתר / מתחם',
@@ -123,6 +124,7 @@ export function AddChildForm({
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    if (pending) return;
     setPending(true);
     setError(null);
     try {
@@ -184,26 +186,23 @@ export function AddChildForm({
               ))}
             </select>
           </label>
-          <label className="flex min-w-0 flex-col gap-1 text-sm">
-            <span className="text-[var(--pf-text-secondary)]">{T.count}</span>
-            <Input
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={WIZARD_LIMITS.unitsPerCell}
-              value={count}
-              onChange={(event) => setCount(Math.min(Math.max(Math.trunc(Number(event.target.value)) || 1, 1), WIZARD_LIMITS.unitsPerCell))}
-            />
-          </label>
+          <CountField
+            label={T.count}
+            value={count}
+            min={1}
+            max={WIZARD_LIMITS.unitsPerCell}
+            hint={STRUCTURE_TEXT.fieldRequired.replace('{n}', '1')}
+            onChange={setCount}
+          />
           <label className="flex min-w-0 flex-col gap-1 text-sm">
             <span className="text-[var(--pf-text-secondary)]">{T.firstNumber}</span>
             <Input
-              type="number"
+              type="text"
               inputMode="numeric"
-              min={1}
+              pattern="[0-9]*"
               value={first}
               placeholder={`${T.suggested}: ${suggested}`}
-              onChange={(event) => setFirst(event.target.value)}
+              onChange={(event) => setFirst(sanitizeCountDraft(event.target.value, 5))}
             />
           </label>
           <p className="col-span-full text-xs text-[var(--pf-text-secondary)]">

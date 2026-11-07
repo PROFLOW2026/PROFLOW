@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -25,6 +25,7 @@ import {
   validateWizardSpec,
   type UnitKind,
   type WizardBuilding,
+  type WizardIssue,
   type WizardLevel,
   type WizardMultiLevel,
   type WizardSpec,
@@ -32,6 +33,7 @@ import {
 } from '@/modules/project-profile/domain/structure-wizard';
 import type { CreateStructurePayload, StructureActionResult } from '@/modules/project-profile/ui/types';
 import { cn } from '@/shared/ui/cn';
+import { CountField } from './count-field';
 import { STRUCTURE_TEXT as T } from './structure-texts';
 
 interface LevelForm {
@@ -87,38 +89,24 @@ function applyForm(building: WizardBuilding, form: LevelForm, fallback: WizardLe
   return { ...building, levels };
 }
 
-function clampCount(raw: string, max: number): number {
-  const value = Math.trunc(Number(raw));
-  return Number.isFinite(value) ? Math.min(Math.max(value, 0), max) : 0;
+/**
+ * Plain-language reasons the wizard cannot move on. Every blocked "continue" / "create" shows these next to
+ * the button, so a disabled button is never unexplained. `multiProblem` carries the multi-level detail.
+ */
+function issueMessages(issues: readonly WizardIssue[]): string[] {
+  return issues.map((issue) => T.issues[issue]);
 }
 
-function NumberInput({
-  label,
-  value,
-  max,
-  onChange,
-  id,
-}: {
-  readonly label: string;
-  readonly value: number;
-  readonly max: number;
-  readonly onChange: (value: number) => void;
-  readonly id: string;
-}) {
-  return (
-    <label htmlFor={id} className="flex min-w-0 flex-col gap-1 text-sm">
-      <span className="text-[var(--pf-text-secondary)]">{label}</span>
-      <Input
-        id={id}
-        type="number"
-        inputMode="numeric"
-        min={0}
-        max={max}
-        value={value}
-        onChange={(event) => onChange(clampCount(event.target.value, max))}
-      />
-    </label>
-  );
+/** Why one multi-level unit cannot be built (shown inside its own row), or null when it is fine. */
+function multiProblem(spec: WizardSpec, link: WizardMultiLevel): string | null {
+  const building = spec.buildings[link.buildingIndex];
+  const primary = building?.levels.find((level) => level.key === link.levelKey);
+  if (!building || !primary) return T.multiProblemLevel;
+  const count = primary.units[link.kind] ?? 0;
+  if (count === 0) return T.multiProblemNone;
+  if (link.ordinal > count) return T.multiProblemOrdinal.replace('{n}', String(count));
+  if (link.extraLevelKeys.length === 0) return T.multiProblemExtra;
+  return null;
 }
 
 function splitList(text: string): string[] {
@@ -291,21 +279,28 @@ export function StructureWizard({
       multiLevel: current.multiLevel.map((link, i) => (i === index ? { ...link, ...patch } : link)),
     }));
 
+  // Set synchronously so a fast double tap can never start a second creation before React re-renders.
+  const submitting = useRef(false);
   const create = async () => {
+    if (submitting.current || issues.length > 0) return;
+    submitting.current = true;
     setPending(true);
     setError(null);
     try {
       const result = await createStructure({ projectId, parentId, spec: fullSpec });
       if (result.ok) onCreated(result.count ?? plannedCount);
       else setError(result.error);
+    } catch {
+      setError(T.createFailed);
     } finally {
+      submitting.current = false;
       setPending(false);
     }
   };
 
-  const issueText =
-    issues.length === 0 ? null : issues.includes('too_many_nodes') ? T.tooMany : issues.includes('nothing_to_create') ? T.nothing : T.invalid;
-  const canContinue = step !== 2 || issues.length === 0;
+  // The wizard only moves on when the definition is valid, and always says why it cannot.
+  const blockers = issueMessages(issues);
+  const canContinue = issues.length === 0;
 
   return (
     <section
@@ -349,11 +344,13 @@ export function StructureWizard({
           {template !== 'infrastructure' ? (
             <div className="flex min-w-0 flex-col gap-3">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <NumberInput
+                <CountField
                   id="wizard-building-count"
                   label={isHouse ? T.houseCount : T.buildingCount}
                   value={spec.buildings.length}
+                  min={template === 'custom' ? 0 : 1}
                   max={WIZARD_LIMITS.buildings}
+                  hint={T.fieldRequired.replace('{n}', '1')}
                   onChange={changeBuildingCount}
                 />
                 {spec.buildings.length > 1 || spec.siteName ? (
@@ -380,7 +377,7 @@ export function StructureWizard({
                 const index = sameForAll ? 0 : shown;
                 const form = formOf(building);
                 return (
-                  <fieldset key={`${index}-${building.name}`} className="flex min-w-0 flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-3">
+                  <fieldset key={index} className="flex min-w-0 flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-3">
                     {!sameForAll || spec.buildings.length === 1 ? (
                       <label className="flex min-w-0 flex-col gap-1 text-sm" htmlFor={`wizard-bname-${index}`}>
                         <span className="text-[var(--pf-text-secondary)]">{T.buildingName}</span>
@@ -393,14 +390,14 @@ export function StructureWizard({
                       </label>
                     ) : null}
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                      <NumberInput
+                      <CountField
                         id={`wizard-floors-${index}`}
                         label={T.floors}
                         value={form.floors}
                         max={99}
                         onChange={(value) => changeForm(index, { floors: value })}
                       />
-                      <NumberInput
+                      <CountField
                         id={`wizard-basements-${index}`}
                         label={T.basements}
                         value={form.basements}
@@ -461,6 +458,7 @@ export function StructureWizard({
           <div>
             <h4 className="text-sm font-medium">{T.step2Title}</h4>
             {!isHouse && spec.buildings.length > 0 ? <p className="text-xs text-[var(--pf-text-secondary)]">{T.unitsHint}</p> : null}
+            {isHouse ? <p className="text-xs text-[var(--pf-text-secondary)]">{T.houseNote}</p> : null}
           </div>
 
           {spec.buildings.length > 1 && !sameForAll ? (
@@ -494,15 +492,12 @@ export function StructureWizard({
                     </option>
                   ))}
                 </select>
-                <Input
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  max={WIZARD_LIMITS.unitsPerCell}
+                <CountField
                   className="w-20"
                   aria-label={T.sameCount}
                   value={quickCount}
-                  onChange={(event) => setQuickCount(clampCount(event.target.value, WIZARD_LIMITS.unitsPerCell))}
+                  max={WIZARD_LIMITS.unitsPerCell}
+                  onChange={setQuickCount}
                 />
                 <Button type="button" variant="secondary" size="sm" onClick={applyQuick}>
                   {T.apply}
@@ -520,16 +515,12 @@ export function StructureWizard({
                     {kinds.map((kind) => (
                       <label key={kind} className="flex w-20 min-w-0 flex-col gap-0.5 text-xs" htmlFor={`wizard-u-${level.key}-${kind}`}>
                         <span className="truncate text-[var(--pf-text-secondary)]">{T.unitKinds[kind]}</span>
-                        <Input
+                        <CountField
                           id={`wizard-u-${level.key}-${kind}`}
-                          type="number"
-                          inputMode="numeric"
-                          min={0}
+                          aria-label={`${levelName(level)} - ${T.unitKinds[kind]}`}
                           max={WIZARD_LIMITS.unitsPerCell}
                           value={level.units[kind] ?? 0}
-                          onChange={(event) =>
-                            setUnits(buildingIndex, level.key, kind, clampCount(event.target.value, WIZARD_LIMITS.unitsPerCell))
-                          }
+                          onChange={(value) => setUnits(buildingIndex, level.key, kind, value)}
                         />
                       </label>
                     ))}
@@ -571,8 +562,14 @@ export function StructureWizard({
                   if (!building) return null;
                   const primary = building.levels.find((level) => level.key === link.levelKey);
                   const count = primary?.units[link.kind] ?? 0;
+                  const problem = multiProblem(spec, link);
                   return (
                     <div key={index} className="flex min-w-0 flex-col gap-2 rounded-md bg-[var(--pf-bg-muted)] p-2" data-testid="wizard-multi-row">
+                      {problem ? (
+                        <p role="alert" className="text-xs text-[var(--pf-text-danger)]" data-testid="wizard-multi-problem">
+                          {problem}
+                        </p>
+                      ) : null}
                       <div className="flex flex-wrap items-end gap-2">
                         {spec.buildings.length > 1 ? (
                           <select
@@ -621,17 +618,14 @@ export function StructureWizard({
                             </option>
                           ))}
                         </select>
-                        <label className="flex w-20 flex-col gap-0.5 text-xs">
-                          <span className="text-[var(--pf-text-secondary)]">{T.multiOrdinal}</span>
-                          <Input
-                            type="number"
-                            inputMode="numeric"
-                            min={1}
-                            max={Math.max(count, 1)}
-                            value={link.ordinal}
-                            onChange={(event) => updateMulti(index, { ordinal: Math.max(1, clampCount(event.target.value, 60)) })}
-                          />
-                        </label>
+                        <CountField
+                          className="w-24 text-xs"
+                          label={T.multiOrdinal}
+                          min={1}
+                          max={Math.max(count, 1)}
+                          value={link.ordinal}
+                          onChange={(value) => updateMulti(index, { ordinal: value })}
+                        />
                         <Button
                           type="button"
                           variant="ghost"
@@ -725,7 +719,6 @@ export function StructureWizard({
       {step === 3 ? (
         <div className="flex min-w-0 flex-col gap-3" data-testid="wizard-preview">
           <h4 className="text-sm font-medium">{T.step3Title}</h4>
-          {issueText ? <Alert tone="danger">{issueText}</Alert> : null}
           {summary ? (
             <>
               <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
@@ -767,6 +760,17 @@ export function StructureWizard({
           ) : null}
           {error ? <Alert tone="danger">{error}</Alert> : null}
         </div>
+      ) : null}
+
+      {blockers.length > 0 ? (
+        <Alert tone="danger" data-testid="wizard-blockers">
+          <p className="font-medium">{T.blockedTitle}</p>
+          <ul className="list-disc ps-5">
+            {blockers.map((text) => (
+              <li key={text}>{text}</li>
+            ))}
+          </ul>
+        </Alert>
       ) : null}
 
       <div className="flex flex-wrap justify-between gap-2">
