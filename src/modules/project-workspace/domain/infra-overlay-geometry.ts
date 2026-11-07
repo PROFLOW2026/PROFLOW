@@ -394,43 +394,72 @@ export function nudgeAdjust(current: Mat3, step: NudgeStep, stageW: number, stag
 }
 
 /* -------------------------------------------------------------------------- */
-/* Magnifier placement: a fixed spot at the top, chosen once per touch           */
+/* Magnifier placement: top centre by default, movable by the user, never by the finger */
 /* -------------------------------------------------------------------------- */
 
-/** Where the magnifier sits along the top edge. `end` is the side opposite the source-photo thumbnail. */
-export type LoupeAnchor = 'end' | 'center' | 'start';
-
 export const LOUPE_EDGE_PX = 8;
+/** Room kept under the bottom-centre spot for the action bar. */
+export const LOUPE_BOTTOM_CLEARANCE_PX = 168;
 
-/** Physical left edge of the magnifier (surface pixels) for an anchor. */
-export function loupeLeft(anchor: LoupeAnchor, surfaceW: number, size: number, rtl: boolean): number {
-  const endLeft = rtl ? LOUPE_EDGE_PX : surfaceW - LOUPE_EDGE_PX - size;
-  const startLeft = rtl ? surfaceW - LOUPE_EDGE_PX - size : LOUPE_EDGE_PX;
-  if (anchor === 'end') return endLeft;
-  if (anchor === 'start') return startLeft;
-  return (surfaceW - size) / 2;
+/** The magnifier's top-left corner in surface pixels, once the user has moved it. `null` means the default. */
+export interface LoupePlacement {
+  readonly left: number;
+  readonly top: number;
+}
+
+/** Default spot: the top centre of the surface. Left edge only (the top follows the safe area in CSS). */
+export function defaultLoupeLeft(surfaceW: number, size: number): number {
+  return Math.max(0, (surfaceW - size) / 2);
+}
+
+/** Keeps the whole magnifier inside the surface. */
+export function clampLoupePlacement(
+  placement: LoupePlacement,
+  surfaceW: number,
+  surfaceH: number,
+  size: number,
+): LoupePlacement {
+  const maxLeft = Math.max(0, surfaceW - size - LOUPE_EDGE_PX);
+  const maxTop = Math.max(0, surfaceH - size - LOUPE_EDGE_PX);
+  return {
+    left: Math.min(maxLeft, Math.max(LOUPE_EDGE_PX, placement.left)),
+    top: Math.min(maxTop, Math.max(LOUPE_EDGE_PX, placement.top)),
+  };
+}
+
+/** The frame follows the finger that drags the FRAME (never the reference point). */
+export function dragLoupePlacement(
+  start: LoupePlacement,
+  dx: number,
+  dy: number,
+  surfaceW: number,
+  surfaceH: number,
+  size: number,
+): LoupePlacement {
+  return clampLoupePlacement({ left: start.left + dx, top: start.top + dy }, surfaceW, surfaceH, size);
+}
+
+/** Bottom centre, above the action bar. */
+export function bottomLoupePlacement(surfaceW: number, surfaceH: number, size: number): LoupePlacement {
+  return clampLoupePlacement(
+    { left: defaultLoupeLeft(surfaceW, size), top: surfaceH - size - LOUPE_BOTTOM_CLEARANCE_PX },
+    surfaceW,
+    surfaceH,
+    size,
+  );
 }
 
 /**
- * Picks the magnifier's spot when a touch begins and keeps it for the whole gesture, so it never jumps
- * from side to side while the finger drags. The first of end / centre / start whose box (plus a finger-sized
- * margin) does not contain the touch wins; if the surface is too small for any, the centre is used.
+ * A tap on the magnifier hops it between the top centre and the bottom centre. From the top (or anywhere in
+ * the upper half) it goes to the bottom; from the lower half it returns to the default (`null`).
  */
-export function chooseLoupeAnchor(
-  touch: Pt,
+export function toggleLoupePlacement(
+  currentTop: number,
   surfaceW: number,
+  surfaceH: number,
   size: number,
-  rtl: boolean,
-  clearance: number,
-): LoupeAnchor {
-  const bottom = LOUPE_EDGE_PX + size + clearance;
-  for (const anchor of ['end', 'center', 'start'] as const) {
-    const left = loupeLeft(anchor, surfaceW, size, rtl);
-    const covers =
-      touch.x >= left - clearance && touch.x <= left + size + clearance && touch.y <= bottom;
-    if (!covers && left >= 0 && left + size <= surfaceW) return anchor;
-  }
-  return 'center';
+): LoupePlacement | null {
+  return currentTop + size / 2 < surfaceH / 2 ? bottomLoupePlacement(surfaceW, surfaceH, size) : null;
 }
 
 /**

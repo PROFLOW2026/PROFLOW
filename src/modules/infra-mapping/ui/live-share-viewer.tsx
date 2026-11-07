@@ -560,7 +560,13 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
 
       {controlActive && remoteState ? (
         <>
-          {marking.loupe ? <RemoteLoupe loupe={marking.loupe} video={videoEl} tick={marking.tick} /> : null}
+          {marking.loupe ? <RemoteLoupe
+              loupe={marking.loupe}
+              video={videoEl}
+              tick={marking.tick}
+              placement={marking.loupePlacement}
+              onPlacementChange={marking.setLoupePlacement}
+            /> : null}
           {markMode && snapshot?.reference && remoteState.refPins.length > 0 && !(remoteState.aligned && shownPins.length >= LIVE_CONTROL.maxPins) ? (
             <div className="pointer-events-none absolute inset-0 top-10 [&>*]:pointer-events-auto">
               <ReferenceThumb

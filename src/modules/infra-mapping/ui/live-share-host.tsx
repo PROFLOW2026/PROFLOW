@@ -276,7 +276,11 @@ export function LiveShareHost({
         if (session.current !== started) return;
         if (now - last >= 1000 / FPS - 2) {
           last = now;
-          paint();
+          try {
+            paint();
+          } catch {
+            // One bad frame (a camera that is momentarily not drawable) must never end the broadcast.
+          }
         }
         started.frame = requestAnimationFrame(loop);
       };

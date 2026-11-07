@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   FINE_DRAG_GAIN,
-  chooseLoupeAnchor,
-  loupeLeft,
+  LOUPE_BOTTOM_CLEARANCE_PX,
+  LOUPE_EDGE_PX,
+  bottomLoupePlacement,
+  clampLoupePlacement,
+  defaultLoupeLeft,
+  dragLoupePlacement,
+  toggleLoupePlacement,
 } from '@/modules/project-workspace/domain/infra-overlay-geometry';
 import {
   IDENTITY_VIEW,
@@ -130,40 +135,41 @@ describe('fine drag', () => {
   });
 });
 
-describe('fixed magnifier position', () => {
+describe('magnifier placement', () => {
   const SIZE = 104;
-  const CLEARANCE = 44;
+  const W = 390;
+  const H = 844;
 
-  it('stays at the top and never covers the touch', () => {
-    for (const rtl of [false, true]) {
-      for (const surfaceW of [320, 390, 844]) {
-        for (let x = 0; x <= surfaceW; x += 10) {
-          for (const y of [0, 60, 150, 400, 700]) {
-            const anchor = chooseLoupeAnchor({ x, y }, surfaceW, SIZE, rtl, CLEARANCE);
-            const left = loupeLeft(anchor, surfaceW, SIZE, rtl);
-            const covers = x >= left - CLEARANCE && x <= left + SIZE + CLEARANCE && y <= 8 + SIZE + CLEARANCE;
-            // It may only cover the finger when the screen is too narrow for any other spot (never on a normal phone).
-            if (surfaceW >= 390) expect(covers).toBe(false);
-          }
-        }
-      }
+  it('defaults to the top centre, never a corner', () => {
+    for (const w of [320, 390, 844, 1024]) {
+      const left = defaultLoupeLeft(w, SIZE);
+      expect(left).toBe((w - SIZE) / 2);
+      // Equal room on both sides: not left, not right.
+      expect(left).toBe(w - SIZE - left);
     }
   });
 
-  it('is decided from the touch start only: a drag cannot move it', () => {
-    // The anchor is a pure function of the first touch; the same start always gives the same side.
-    const start = { x: 300, y: 500 };
-    const first = chooseLoupeAnchor(start, 390, SIZE, false, CLEARANCE);
-    for (let i = 0; i < 5; i += 1) expect(chooseLoupeAnchor(start, 390, SIZE, false, CLEARANCE)).toBe(first);
-    // And each anchor is a fixed box along the top edge of the surface.
-    expect(loupeLeft('end', 390, SIZE, false)).toBe(390 - 8 - SIZE);
-    expect(loupeLeft('start', 390, SIZE, false)).toBe(8);
-    expect(loupeLeft('end', 390, SIZE, true)).toBe(8);
-    expect(loupeLeft('center', 390, SIZE, false)).toBe((390 - SIZE) / 2);
+  it('moving the frame follows the dragging finger and stays inside the surface', () => {
+    const start = { left: defaultLoupeLeft(W, SIZE), top: 8 };
+    expect(dragLoupePlacement(start, 30, 200, W, H, SIZE)).toEqual({ left: start.left + 30, top: 208 });
+    const far = dragLoupePlacement(start, 5000, 5000, W, H, SIZE);
+    expect(far).toEqual({ left: W - SIZE - LOUPE_EDGE_PX, top: H - SIZE - LOUPE_EDGE_PX });
+    const near = dragLoupePlacement(start, -5000, -5000, W, H, SIZE);
+    expect(near).toEqual({ left: LOUPE_EDGE_PX, top: LOUPE_EDGE_PX });
   });
 
-  it('moves to another fixed spot when the touch starts right under the first choice', () => {
-    const underEnd = { x: 390 - 8 - SIZE / 2, y: 40 };
-    expect(chooseLoupeAnchor(underEnd, 390, SIZE, false, CLEARANCE)).not.toBe('end');
+  it('keeps a stored placement valid when the surface shrinks', () => {
+    const shrunk = clampLoupePlacement({ left: 300, top: 700 }, 320, 600, SIZE);
+    expect(shrunk.left + SIZE).toBeLessThanOrEqual(320);
+    expect(shrunk.top + SIZE).toBeLessThanOrEqual(600);
+  });
+
+  it('hops between top centre and bottom centre, above the action bar', () => {
+    const bottom = bottomLoupePlacement(W, H, SIZE);
+    expect(bottom.left).toBe(defaultLoupeLeft(W, SIZE));
+    expect(bottom.top).toBe(H - SIZE - LOUPE_BOTTOM_CLEARANCE_PX);
+    // From the top: to the bottom. From the lower half: back to the default (null).
+    expect(toggleLoupePlacement(8, W, H, SIZE)).toEqual(bottom);
+    expect(toggleLoupePlacement(bottom.top, W, H, SIZE)).toBeNull();
   });
 });

@@ -26,7 +26,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type RefObject,
 } from 'react';
-import { FINE_DRAG_GAIN, chooseLoupeAnchor, type LoupeAnchor } from '@/modules/project-workspace/domain/infra-overlay-geometry';
+import { FINE_DRAG_GAIN, type LoupePlacement } from '@/modules/project-workspace/domain/infra-overlay-geometry';
 import {
   BarButton,
   BarHintContext,
@@ -34,9 +34,7 @@ import {
   OVERLAY_TEXT,
 } from '@/modules/project-workspace/ui/infra-overlay-controls';
 import {
-  FixedLoupe,
-  LOUPE_CLEARANCE,
-  LOUPE_SIZE,
+  MovableLoupe,
   PIN_HIT_RADIUS_PX,
   PinMark,
   RegionLoupe,
@@ -78,9 +76,8 @@ interface PinDragState {
 }
 
 export interface LoupeView {
-  readonly anchor: LoupeAnchor;
-  readonly rtl: boolean;
   readonly surfaceW: number;
+  readonly surfaceH: number;
   readonly point: NormalizedPoint;
   /** How wide the picture is on screen (zoom included): keeps the magnification steady. */
   readonly screenWidth: number;
@@ -98,6 +95,8 @@ export function useRemoteMarking(params: MarkingParams) {
   });
   const drag = useRef<PinDragState | null>(null);
   const [loupe, setLoupe] = useState<LoupeView | null>(null);
+  /** Where the user moved the magnifier frame; kept for the whole marking session. */
+  const [loupePlacement, setLoupePlacement] = useState<LoupePlacement | null>(null);
   const [tick, setTick] = useState(0);
 
   const pinning = loupe !== null;
@@ -142,13 +141,10 @@ export function useRemoteMarking(params: MarkingParams) {
     }
 
     drag.current = { pointerId: event.pointerId, index, finger, start, working };
-    const rtl = getComputedStyle(geo.stage).direction === 'rtl';
     const rect = containedRect(geo.dims.w, geo.dims.h, geo.aspect);
     setLoupe({
-      // Chosen once, away from the finger, and kept for the whole gesture.
-      anchor: chooseLoupeAnchor(finger, geo.dims.w, LOUPE_SIZE, rtl, LOUPE_CLEARANCE),
-      rtl,
       surfaceW: geo.dims.w,
+      surfaceH: geo.dims.h,
       point: start,
       screenWidth: rect.width * geo.view.scale,
     });
@@ -181,7 +177,7 @@ export function useRemoteMarking(params: MarkingParams) {
     return true;
   }
 
-  return { begin, move, end, loupe, tick, pinning, isDragging: () => drag.current !== null };
+  return { begin, move, end, loupe, loupePlacement, setLoupePlacement, tick, pinning, isDragging: () => drag.current !== null };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -227,20 +223,24 @@ export function RemotePinLayer({
   );
 }
 
-/** The fixed magnifier of the viewer. */
+/** The viewer's magnifier: the same movable frame as everywhere else (top centre unless the user moved it). */
 export function RemoteLoupe({
   loupe,
   video,
   tick,
+  placement,
+  onPlacementChange,
 }: {
   readonly loupe: LoupeView;
   readonly video: HTMLVideoElement | null;
   readonly tick: number;
+  readonly placement: LoupePlacement | null;
+  readonly onPlacementChange: (next: LoupePlacement | null) => void;
 }) {
   return (
-    <FixedLoupe anchor={loupe.anchor} surfaceW={loupe.surfaceW} rtl={loupe.rtl}>
+    <MovableLoupe surfaceW={loupe.surfaceW} surfaceH={loupe.surfaceH} placement={placement} onPlacementChange={onPlacementChange}>
       <RegionLoupe video={video} point={loupe.point} screenWidth={loupe.screenWidth} frameTick={tick} />
-    </FixedLoupe>
+    </MovableLoupe>
   );
 }
 

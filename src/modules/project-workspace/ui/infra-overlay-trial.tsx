@@ -81,6 +81,7 @@ import {
 } from './infra-overlay-pins';
 import { drawThroughMatrix, drawVideoCover } from './infra-overlay-render';
 import { InfraSaveSheet } from './infra-save-sheet';
+import { useLiveCamera } from './use-live-camera';
 import type {
   InfraLiveComposition,
   InfraLiveRemote,
@@ -134,6 +135,8 @@ const TEXT = {
   close: 'סגירה',
   copy: 'העתקה',
   cameraError: 'אין גישה למצלמה',
+  cameraResumeError: 'המצלמה לא חזרה לשידור חי',
+  cameraRetry: 'נסו שוב',
   perspectiveRejected: 'פרספקטיבה לא סבירה – נשארה התאמה ישרה',
   moveLayer: 'התאמת השכבה',
   zoomView: 'הגדלת תצוגה',
@@ -325,15 +328,34 @@ function displayFromRecord(view: InfraTrialAlignment['view'] | undefined): Compa
 }
 
 /** A short line above the action bar; never covers the picture. */
-function Notice({ children, testId }: { readonly children: ReactNode; readonly testId?: string }) {
+function Notice({
+  children,
+  testId,
+  action,
+}: {
+  readonly children: ReactNode;
+  readonly testId?: string;
+  /** An optional tap target inside the line (e.g. retrying the camera). */
+  readonly action?: { readonly label: string; readonly onClick: () => void; readonly testId?: string };
+}) {
   return (
     <div
-      className="pointer-events-none w-fit max-w-full rounded bg-black/70 px-2 py-1 text-center text-[11px] text-white"
+      className="pointer-events-none flex w-fit max-w-full items-center gap-2 rounded bg-black/70 px-2 py-1 text-center text-[11px] text-white"
       dir="rtl"
       role="status"
       data-testid={testId}
     >
-      {children}
+      <span>{children}</span>
+      {action ? (
+        <button
+          type="button"
+          onClick={action.onClick}
+          className="pointer-events-auto min-h-8 rounded bg-white/90 px-2.5 text-[11px] font-medium text-black"
+          data-testid={action.testId}
+        >
+          {action.label}
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -547,9 +569,10 @@ function LiveStep({
   const [rootRef, size] = useElementSize<HTMLDivElement>();
   const [saveRequest, setSaveRequest] = useState<{ input: InfraTrialSaveInput; previewUrl: string | null } | null>(null);
   const [preparing, setPreparing] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const trackSettings = useRef<MediaTrackSettings>({});
-  const [cameraFailed, setCameraFailed] = useState(false);
+  // The camera lives in one hook: the stream outlives any `<video>` element and is re-bound to whichever is mounted.
+  const [cameraState, attachCamera, freezeCamera, resumeCamera, retryCamera, { videoRef, settings: trackSettings }] =
+    useLiveCamera();
+  const cameraFailed = cameraState === 'failed' || cameraState === 'stalled';
   const [livePins, setLivePins] = useState<Pt[]>([]);
   const adj = useAdjustHistory();
   const [opacity, setOpacity] = useState(0.55);
@@ -564,40 +587,6 @@ function LiveStep({
   /** Shown after leaving a frozen frame: the camera may have moved, and a frozen fit does not follow it. */
   const [movedNotice, setMovedNotice] = useState(false);
   const saved = useSavedResult();
-
-  // Camera (rear camera preferred), released on exit.
-  useEffect(() => {
-    let cancelled = false;
-    let stream: MediaStream | null = null;
-    (async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: {
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-          },
-        });
-        if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
-          return;
-        }
-        trackSettings.current = stream.getVideoTracks()[0]?.getSettings() ?? {};
-        const video = videoRef.current;
-        if (video) {
-          video.srcObject = stream;
-          await video.play().catch(() => undefined);
-        }
-      } catch {
-        if (!cancelled) setCameraFailed(true);
-      }
-    })();
-    return () => {
-      cancelled = true;
-      stream?.getTracks().forEach((t) => t.stop());
-    };
-  }, []);
 
   // Rotating the phone changes the stage shape: old taps no longer match the scene.
   const orientation = size.w >= size.h ? 'landscape' : 'portrait';
@@ -676,17 +665,18 @@ function LiveStep({
     clearSaved();
   }
 
+  /** Freezing is deliberate and temporary; leaving it proves that new frames arrive (or reports it). */
   function freezeTo(on: boolean) {
-    const video = videoRef.current;
-    if (!video || on === frozen) return;
+    if (on === frozen) return;
     if (on) {
-      video.pause();
+      if (!videoRef.current) return;
+      freezeCamera();
       setFrozen(true);
     } else {
-      void video.play().catch(() => undefined);
       setFrozen(false);
       // A fit made on a frozen frame says nothing about where the camera is now.
       if (alignment) setMovedNotice(true);
+      void resumeCamera();
     }
   }
 
@@ -884,7 +874,9 @@ function LiveStep({
     ) : perspective && alignment?.perspectiveRejected ? (
       <Notice>{TEXT.perspectiveRejected}</Notice>
     ) : cameraFailed ? (
-      <Notice>{TEXT.cameraError}</Notice>
+      <Notice testId="infra-camera-failed" action={{ label: TEXT.cameraRetry, onClick: retryCamera, testId: 'infra-camera-retry' }}>
+        {cameraState === 'stalled' ? TEXT.cameraResumeError : TEXT.cameraError}
+      </Notice>
     ) : movedNotice ? (
       <Notice testId="infra-moved-notice">{TEXT.movedNotice}</Notice>
     ) : null;
@@ -905,7 +897,7 @@ function LiveStep({
           renderLoupe={(center) => <VideoLoupe videoRef={videoRef} stageW={size.w} stageH={size.h} center={center} />}
         >
           <video
-            ref={videoRef}
+            ref={attachCamera}
             autoPlay
             playsInline
             muted
@@ -931,7 +923,10 @@ function LiveStep({
           className={topClass}
         />
       ) : frozen ? (
-        <div className={`pointer-events-none absolute inset-x-0 ${topClass} flex justify-center`} dir="rtl">
+        <div
+          className={`pointer-events-none absolute inset-x-0 ${topClass} flex justify-center [body[data-infra-pinning]_&]:invisible`}
+          dir="rtl"
+        >
           <span className="rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white backdrop-blur">{TEXT.frozen}</span>
         </div>
       ) : null}

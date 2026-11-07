@@ -345,7 +345,11 @@ export function QualityChip({
 }) {
   const view = QUALITY_VIEW[quality];
   return (
-    <div className={`pointer-events-none absolute inset-x-0 flex justify-center ${className ?? ''}`} dir="rtl">
+    // Steps aside while a point is being placed: the magnifier takes the top centre then.
+    <div
+      className={`pointer-events-none absolute inset-x-0 flex justify-center [body[data-infra-pinning]_&]:invisible ${className ?? ''}`}
+      dir="rtl"
+    >
       <span
         className="inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white backdrop-blur"
         role="status"
