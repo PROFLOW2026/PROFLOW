@@ -57,7 +57,13 @@ Remove-Item (Join-Path $Out '*') -Force -ErrorAction SilentlyContinue
 docker rm -f $Container 2>$null | Out-Null
 
 # --- Token: refresh the CLI login first (the saved token expires within hours), then hand it over via a temporary env-file ---
+# The CLI prints its version banner on stderr; with 'Stop' that would abort the script, so relax it for this call only.
+# A real failure is still caught: the exit code is checked right after.
+$ErrorActionPreference = 'Continue'
 vercel whoami *> $null
+$whoamiExit = $LASTEXITCODE
+$ErrorActionPreference = 'Stop'
+if ($whoamiExit -ne 0) { throw "vercel whoami failed (exit code $whoamiExit): not logged in to Vercel. Run 'vercel login' and retry." }
 $tok = (Get-Content (Join-Path $env:APPDATA 'com.vercel.cli/Data/auth.json') -Raw | ConvertFrom-Json).token
 $pj = Get-Content .vercel/project.json -Raw | ConvertFrom-Json
 $tokenEnv = Join-Path $Work 'token.env'
