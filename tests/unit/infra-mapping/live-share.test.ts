@@ -14,6 +14,7 @@ import {
   LiveShareError,
   endLiveShare,
   joinLiveShare,
+  setLiveShareControl,
   startLiveShare,
   type LiveShareDeps,
   type LiveShareGateway,
@@ -46,7 +47,8 @@ function fakeGateway(overrides: Partial<LiveShareGateway> = {}) {
       issued.push({ room: input.room, identity: input.identity, role: input.role });
       return `jwt-${input.role}`;
     }),
-    roomState: vi.fn(async () => ({ exists: true, hostPresent: true, viewerIdentities: [] })),
+    roomState: vi.fn(async () => ({ exists: true, hostPresent: true, viewerIdentities: [], controlEnabled: false })),
+    setControl: vi.fn(async () => undefined),
     deleteRoom: vi.fn(async () => undefined),
     ...overrides,
   };
@@ -109,7 +111,7 @@ describe('join (viewer, no account)', () => {
     const host = fakeGateway();
     return (await startLiveShare(actor('host-user'), { projectId: PROJECT }, host.deps)).viewerToken;
   }
-  const live = { exists: true, hostPresent: true, viewerIdentities: [] as string[] };
+  const live = { exists: true, hostPresent: true, viewerIdentities: [] as string[], controlEnabled: false };
 
   it('needs no actor or project rights and gives a subscribe-only token for the one room', async () => {
     const viewerToken = await link();
@@ -172,11 +174,15 @@ describe('join (viewer, no account)', () => {
 
   it('cannot join once the broadcast has ended (room gone) or while the broadcaster is not connected', async () => {
     const viewerToken = await link();
-    const gone = fakeGateway({ roomState: async () => ({ exists: false, hostPresent: false, viewerIdentities: [] }) });
+    const gone = fakeGateway({
+      roomState: async () => ({ exists: false, hostPresent: false, viewerIdentities: [], controlEnabled: false }),
+    });
     const error = await joinLiveShare({ viewerToken, viewerKey: KEY_A }, gone.deps).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(LiveShareError);
     expect((error as LiveShareError).code).toBe('ended');
-    const hostless = fakeGateway({ roomState: async () => ({ exists: true, hostPresent: false, viewerIdentities: [] }) });
+    const hostless = fakeGateway({
+      roomState: async () => ({ exists: true, hostPresent: false, viewerIdentities: [], controlEnabled: false }),
+    });
     await expect(joinLiveShare({ viewerToken, viewerKey: KEY_A }, hostless.deps)).rejects.toMatchObject({ code: 'ended' });
     expect(hostless.gateway.issueToken).not.toHaveBeenCalled();
   });
@@ -194,5 +200,53 @@ describe('end', () => {
     expect(host.gateway.deleteRoom).toHaveBeenCalledWith(`pf-live-${'a'.repeat(32)}`);
     const gone = fakeGateway({ deleteRoom: async () => Promise.reject(new Error('not found')) });
     await expect(endLiveShare(actor('u1'), { shareToken }, gone.deps)).resolves.toBeUndefined();
+  });
+});
+
+describe('remote marking approval', () => {
+  const KEY_A = 'a1'.repeat(16);
+  const ROOM = `pf-live-${'a'.repeat(32)}`;
+
+  it('is view-only by default: the viewer token carries no data right until the broadcaster approves', async () => {
+    const host = fakeGateway();
+    const { viewerToken } = await startLiveShare(actor('u1'), { projectId: PROJECT }, host.deps);
+    const off = fakeGateway();
+    await joinLiveShare({ viewerToken, viewerKey: KEY_A }, off.deps);
+    expect(off.gateway.issueToken).toHaveBeenCalledWith(expect.objectContaining({ role: 'viewer', controlEnabled: false }));
+    const on = fakeGateway({
+      roomState: async () => ({ exists: true, hostPresent: true, viewerIdentities: [], controlEnabled: true }),
+    });
+    await joinLiveShare({ viewerToken, viewerKey: KEY_A }, on.deps);
+    expect(on.gateway.issueToken).toHaveBeenCalledWith(expect.objectContaining({ role: 'viewer', controlEnabled: true }));
+  });
+
+  it('only the broadcaster (signed token + the right to document) can approve or withdraw it', async () => {
+    const host = fakeGateway();
+    const { shareToken, viewerToken } = await startLiveShare(actor('u1'), { projectId: PROJECT }, host.deps);
+    await setLiveShareControl(actor('u1'), { shareToken, enabled: true }, host.deps);
+    expect(host.gateway.setControl).toHaveBeenCalledWith(ROOM, true);
+    await setLiveShareControl(actor('u1'), { shareToken, enabled: false }, host.deps);
+    expect(host.gateway.setControl).toHaveBeenLastCalledWith(ROOM, false);
+
+    // The public viewer link can never grant it, and neither can someone without the right or from another organization.
+    await expect(setLiveShareControl(actor('u1'), { shareToken: viewerToken, enabled: true }, host.deps)).rejects.toMatchObject({
+      code: 'invalid_link',
+    });
+    authorizeProject.mockRejectedValueOnce(new AuthorizationError('project:document'));
+    await expect(setLiveShareControl(actor('u2'), { shareToken, enabled: true }, host.deps)).rejects.toBeInstanceOf(AuthorizationError);
+    await expect(
+      setLiveShareControl(actor('u1', '33333333-3333-4333-8333-333333333333'), { shareToken, enabled: true }, host.deps),
+    ).rejects.toThrow();
+    expect(host.gateway.setControl).toHaveBeenCalledTimes(2);
+  });
+
+  it('refuses once the broadcast ended or the broadcaster is gone', async () => {
+    const host = fakeGateway();
+    const { shareToken } = await startLiveShare(actor('u1'), { projectId: PROJECT }, host.deps);
+    const gone = fakeGateway({
+      roomState: async () => ({ exists: false, hostPresent: false, viewerIdentities: [], controlEnabled: false }),
+    });
+    await expect(setLiveShareControl(actor('u1'), { shareToken, enabled: true }, gone.deps)).rejects.toMatchObject({ code: 'ended' });
+    expect(gone.gateway.setControl).not.toHaveBeenCalled();
   });
 });

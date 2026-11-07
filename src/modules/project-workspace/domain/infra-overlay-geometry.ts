@@ -394,6 +394,52 @@ export function nudgeAdjust(current: Mat3, step: NudgeStep, stageW: number, stag
 }
 
 /* -------------------------------------------------------------------------- */
+/* Magnifier placement: a fixed spot at the top, chosen once per touch           */
+/* -------------------------------------------------------------------------- */
+
+/** Where the magnifier sits along the top edge. `end` is the side opposite the source-photo thumbnail. */
+export type LoupeAnchor = 'end' | 'center' | 'start';
+
+export const LOUPE_EDGE_PX = 8;
+
+/** Physical left edge of the magnifier (surface pixels) for an anchor. */
+export function loupeLeft(anchor: LoupeAnchor, surfaceW: number, size: number, rtl: boolean): number {
+  const endLeft = rtl ? LOUPE_EDGE_PX : surfaceW - LOUPE_EDGE_PX - size;
+  const startLeft = rtl ? surfaceW - LOUPE_EDGE_PX - size : LOUPE_EDGE_PX;
+  if (anchor === 'end') return endLeft;
+  if (anchor === 'start') return startLeft;
+  return (surfaceW - size) / 2;
+}
+
+/**
+ * Picks the magnifier's spot when a touch begins and keeps it for the whole gesture, so it never jumps
+ * from side to side while the finger drags. The first of end / centre / start whose box (plus a finger-sized
+ * margin) does not contain the touch wins; if the surface is too small for any, the centre is used.
+ */
+export function chooseLoupeAnchor(
+  touch: Pt,
+  surfaceW: number,
+  size: number,
+  rtl: boolean,
+  clearance: number,
+): LoupeAnchor {
+  const bottom = LOUPE_EDGE_PX + size + clearance;
+  for (const anchor of ['end', 'center', 'start'] as const) {
+    const left = loupeLeft(anchor, surfaceW, size, rtl);
+    const covers =
+      touch.x >= left - clearance && touch.x <= left + size + clearance && touch.y <= bottom;
+    if (!covers && left >= 0 && left + size <= surfaceW) return anchor;
+  }
+  return 'center';
+}
+
+/**
+ * Fine drag: a point moves by this share of the finger's travel after the touch, so it can be settled
+ * precisely. The point still lands exactly where it was touched.
+ */
+export const FINE_DRAG_GAIN = 0.5;
+
+/* -------------------------------------------------------------------------- */
 /* Perspective on a canvas (2D canvas has no homography: draw a triangle mesh)  */
 /* -------------------------------------------------------------------------- */
 

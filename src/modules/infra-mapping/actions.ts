@@ -92,7 +92,7 @@ import {
 import { listFolderMappingRows } from './data/infra.repository';
 import { logger } from '@/shared/observability/logger';
 import { infraDeps, isInfraStorageConnected } from './server';
-import { endLiveShare, LiveShareError, startLiveShare } from './application/live-share';
+import { endLiveShare, LiveShareError, setLiveShareControl, startLiveShare } from './application/live-share';
 import { LIVE_SHARE_MESSAGES, type LiveShareHostSession, type LiveShareResult } from './domain/live-share';
 import { liveShareDeps } from './live-share-server';
 import { infraVideoPort } from './video-server';
@@ -526,6 +526,21 @@ export async function startLiveShareAction(
 }
 
 // The second phone needs no account: it joins through the public `/api/live-share/join` route, not an action.
+
+/** Approves / withdraws remote marking (the second phone placing the points) for the active stream. */
+export async function setLiveShareControlAction(
+  viewer: InfraViewer,
+  input: { shareToken: string; enabled: boolean },
+): Promise<LiveShareResult<undefined>> {
+  return liveRun(viewer, async (actor) => {
+    await setLiveShareControl(
+      actor,
+      { ...liveShareTokenSchema.parse({ shareToken: input.shareToken }), enabled: z.boolean().parse(input.enabled) },
+      liveShareDeps,
+    );
+    return undefined;
+  });
+}
 
 export async function endLiveShareAction(viewer: InfraViewer, input: { shareToken: string }): Promise<LiveShareResult<undefined>> {
   return liveRun(viewer, async (actor) => {

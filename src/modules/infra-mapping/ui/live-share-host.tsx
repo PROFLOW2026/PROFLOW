@@ -9,16 +9,21 @@
  * a short-lived publish-only token and a signed share token (carried by the QR / link).
  */
 
-import { Cast, Copy, Loader2, X } from 'lucide-react';
+import { Cast, Copy, Hand, Loader2, X } from 'lucide-react';
 import { Room, RoomEvent, Track } from 'livekit-client';
 import { useLocale } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { BarButton, OVERLAY_TEXT } from '@/modules/project-workspace/ui/infra-overlay-controls';
 import { paintComposition } from '@/modules/project-workspace/ui/infra-overlay-render';
 import type { InfraLiveShareSource } from '@/modules/project-workspace/ui/infra-trial-integration';
-import { endLiveShareAction, startLiveShareAction } from '../actions';
+import { endLiveShareAction, setLiveShareControlAction, startLiveShareAction } from '../actions';
+import { LIVE_CONTROL } from '../domain/live-control';
 import type { InfraViewer } from '../domain/types';
-import { LIVE_SHARE_TEXT, liveBadgeText } from './live-share-texts';
+import { RemoteHostController } from './live-remote-host';
+import { buildReferenceDataUrl } from './live-remote-reference';
+import { LIVE_SHARE_TEXT, liveBadgeExtras, liveBadgeText } from './live-share-texts';
+import { useWakeLock } from './use-wake-lock';
 
 /** Longest side of the broadcast picture, and its frame rate: enough to read the overlay, light on a phone. */
 const MAX_SIDE = 1280;
@@ -32,7 +37,58 @@ interface Session {
   readonly room: Room;
   readonly track: MediaStreamTrack;
   readonly shareToken: string;
+  /** Created once the room is joined (its name is the session id every control packet carries). */
+  controller: RemoteHostController | null;
   frame: number;
+}
+
+/** A labelled on / off switch row of the share sheet. */
+function SwitchRow({
+  label,
+  hint,
+  checked,
+  busy,
+  onChange,
+  testId,
+}: {
+  readonly label: string;
+  readonly hint: string;
+  readonly checked: boolean;
+  readonly busy?: boolean;
+  readonly onChange: (next: boolean) => void;
+  readonly testId: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-lg bg-neutral-800/80 p-2.5">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium">{label}</p>
+        <p className="mt-0.5 text-[11px] leading-4 text-white/70">{hint}</p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        aria-busy={busy || undefined}
+        disabled={busy}
+        onClick={() => onChange(!checked)}
+        className={`relative mt-0.5 inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-60 ${
+          checked ? 'bg-cyan-500' : 'bg-neutral-600'
+        }`}
+        data-testid={testId}
+      >
+        {busy ? (
+          <Loader2 className="mx-auto size-4 animate-spin text-white" aria-hidden />
+        ) : (
+          <span
+            className={`absolute top-0.5 size-6 rounded-full bg-white shadow transition-all ${checked ? 'left-[1.5rem]' : 'left-0.5'}`}
+            aria-hidden
+          />
+        )}
+        <span className="sr-only">{checked ? LIVE_SHARE_TEXT.switchOn : LIVE_SHARE_TEXT.switchOff}</span>
+      </button>
+    </div>
+  );
 }
 
 function loadImage(url: string): HTMLImageElement {
@@ -62,6 +118,11 @@ export function LiveShareHost({
   const [link, setLink] = useState<string | null>(null);
   const [qr, setQr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  /** The broadcaster approved remote marking for this session (the second phone may place points). */
+  const [controlOn, setControlOn] = useState(false);
+  const [controlBusy, setControlBusy] = useState(false);
+  const [tripod, setTripod] = useState(false);
+  const wakeLock = useWakeLock(phase === 'live' && tripod);
   const session = useRef<Session | null>(null);
   const mounted = useRef(false);
 
@@ -70,6 +131,7 @@ export function LiveShareHost({
     const current = session.current;
     session.current = null;
     if (!current) return null;
+    current.controller?.dispose();
     cancelAnimationFrame(current.frame);
     current.track.stop();
     void current.room.disconnect();
@@ -146,12 +208,13 @@ export function LiveShareHost({
       const track = canvas.captureStream(FPS).getVideoTracks()[0];
       if (!track) throw new Error('track');
       const room = new Room();
-      const started: Session = { room, track, shareToken, frame: 0 };
+      const started: Session = { room, track, shareToken, controller: null, frame: 0 };
       session.current = started;
 
       room.on(RoomEvent.ParticipantConnected, () => {
         setViewerJoined(true);
         setViewerLeft(false);
+        started.controller?.setViewerPresent(true);
         // The viewer is in: close the QR window so the camera and overlay stay clear (it can be reopened).
         setSheetOpen(false);
       });
@@ -159,7 +222,14 @@ export function LiveShareHost({
         const stillThere = room.remoteParticipants.size > 0;
         setViewerJoined(stillThere);
         if (!stillThere) setViewerLeft(true);
+        // The alignment stays exactly as it is: the broadcaster simply carries on on its own.
+        started.controller?.setViewerPresent(stillThere);
       });
+      room.on(RoomEvent.DataReceived, (payload, participant, _kind, topic) => {
+        if (topic !== LIVE_CONTROL.topic) return;
+        started.controller?.receive(payload, participant?.identity);
+      });
+      room.on(RoomEvent.Reconnected, () => started.controller?.republish());
       room.on(RoomEvent.Disconnected, () => {
         if (session.current?.room !== room) return; // we ended it ourselves
         const lostToken = teardown();
@@ -169,6 +239,7 @@ export function LiveShareHost({
           setSheetOpen(false);
           setViewerJoined(false);
           setViewerLeft(false);
+          resetRemote();
           setError(LIVE_SHARE_TEXT.connectionLost);
         }
       });
@@ -181,6 +252,24 @@ export function LiveShareHost({
         videoEncoding: { maxBitrate: MAX_BITRATE, maxFramerate: FPS },
       });
       if (!mounted.current || session.current !== started) return; // closed while connecting
+
+      // The door for the second phone: closed until the broadcaster approves remote marking.
+      const controller = new RemoteHostController({
+        sessionId: room.name,
+        remote: source.remote,
+        send: (bytes) => {
+          void room.localParticipant.publishData(bytes, { reliable: true, topic: LIVE_CONTROL.topic }).catch(() => undefined);
+        },
+        loadReference: () => buildReferenceDataUrl(source.remote.getReference()),
+        onReleased: () => {
+          if (session.current !== started) return;
+          setControlOn(false);
+          void setLiveShareControlAction(viewer, { shareToken, enabled: false }).catch(() => undefined);
+        },
+      });
+      started.controller = controller;
+      controller.start();
+      controller.setViewerPresent(room.remoteParticipants.size > 0);
 
       let last = 0;
       const loop = (now: number) => {
@@ -215,8 +304,59 @@ export function LiveShareHost({
     }
   }
 
+  /** Back to the local-only state: no remote control, no tripod bar. */
+  function resetRemote() {
+    setControlOn(false);
+    setControlBusy(false);
+    setTripod(false);
+    source.remote.setTripod(false);
+  }
+
+  /**
+   * Approves / withdraws remote marking. Withdrawing closes the local door first (nothing more is accepted at
+   * once) and then removes the server-side permission; approving needs the server grant first.
+   */
+  async function changeControl(next: boolean): Promise<boolean> {
+    const current = session.current;
+    if (!current?.controller || controlBusy) return false;
+    setControlBusy(true);
+    setError(null);
+    try {
+      if (!next) {
+        current.controller.setControl(false);
+        setControlOn(false);
+      }
+      const response = await setLiveShareControlAction(viewer, { shareToken: current.shareToken, enabled: next });
+      if (session.current !== current) return false;
+      if (!response.ok) {
+        setError(LIVE_SHARE_TEXT.controlFailed);
+        return false;
+      }
+      if (next) {
+        current.controller.setControl(true);
+        setControlOn(true);
+      }
+      return true;
+    } catch {
+      if (mounted.current) setError(LIVE_SHARE_TEXT.controlFailed);
+      return false;
+    } finally {
+      if (mounted.current) setControlBusy(false);
+    }
+  }
+
+  /** Tripod mode: the screen stays awake, the bar shrinks, and the second phone does the marking. */
+  async function changeTripod(next: boolean) {
+    const current = session.current;
+    if (!current?.controller) return;
+    setTripod(next);
+    current.controller.setTripod(next);
+    if (next && !controlOn) await changeControl(true);
+  }
+
   function end() {
     finish();
+    resetRemote();
     setPhase('idle');
     setSheetOpen(false);
     setViewerJoined(false);
@@ -264,7 +404,7 @@ export function LiveShareHost({
             dir="rtl"
             data-testid="live-share-sheet"
           >
-            <div className="flex w-full max-w-sm flex-col gap-3 rounded-xl bg-neutral-900 p-4 text-white shadow-xl">
+            <div className="flex max-h-[92dvh] w-full max-w-sm flex-col gap-3 overflow-y-auto rounded-xl bg-neutral-900 p-4 text-white shadow-xl">
               <div className="flex items-center gap-2">
                 <h2 className="flex-1 text-base font-semibold">{LIVE_SHARE_TEXT.title}</h2>
                 <button type="button" className={barButtonClass} onClick={() => setSheetOpen(false)} aria-label={LIVE_SHARE_TEXT.hide}>
@@ -296,6 +436,33 @@ export function LiveShareHost({
               <p className="text-center text-xs text-white/80" role="status">
                 {copied ? LIVE_SHARE_TEXT.copied : viewerJoined ? LIVE_SHARE_TEXT.viewerJoined : LIVE_SHARE_TEXT.waitingViewer}
               </p>
+              <SwitchRow
+                label={LIVE_SHARE_TEXT.controlSwitch}
+                hint={controlBusy ? LIVE_SHARE_TEXT.controlBusy : LIVE_SHARE_TEXT.controlSwitchHint}
+                checked={controlOn}
+                busy={controlBusy}
+                onChange={(next) => void changeControl(next)}
+                testId="live-share-control-switch"
+              />
+              <SwitchRow
+                label={LIVE_SHARE_TEXT.tripodSwitch}
+                hint={LIVE_SHARE_TEXT.tripodHint}
+                checked={tripod}
+                onChange={(next) => void changeTripod(next)}
+                testId="live-share-tripod-switch"
+              />
+              {tripod ? (
+                <p className="text-center text-[11px] text-white/75" role="status" data-testid="live-share-wake-status">
+                  {wakeLock === 'held'
+                    ? LIVE_SHARE_TEXT.tripodWakeHeld
+                    : wakeLock === 'unsupported'
+                      ? LIVE_SHARE_TEXT.tripodWakeUnsupported
+                      : wakeLock === 'denied'
+                        ? LIVE_SHARE_TEXT.tripodWakeDenied
+                        : LIVE_SHARE_TEXT.tripodWakePending}
+                </p>
+              ) : null}
+              <p className="text-center text-[11px] leading-4 text-amber-200/90">{LIVE_SHARE_TEXT.visualOnly}</p>
               <button
                 type="button"
                 onClick={end}
@@ -315,14 +482,17 @@ export function LiveShareHost({
     phase === 'live' && !sheetOpen && typeof document !== 'undefined'
       ? createPortal(
           <div
-            className="pointer-events-none fixed inset-x-0 top-[max(0.5rem,env(safe-area-inset-top))] z-[1040] flex justify-center"
+            className="pointer-events-none fixed inset-x-0 top-[calc(max(0.5rem,env(safe-area-inset-top))+2.25rem)] z-[1040] flex justify-center [body[data-infra-pinning]_&]:hidden"
             dir="rtl"
             role="status"
             data-testid="live-share-badge"
           >
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white backdrop-blur">
-              <span className="size-2 rounded-full bg-red-500" aria-hidden />
-              {liveBadgeText(viewerJoined, viewerLeft)}
+            <span className="inline-flex max-w-[92%] items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white backdrop-blur">
+              <span className="size-2 shrink-0 rounded-full bg-red-500" aria-hidden />
+              <span className="truncate">
+                {liveBadgeText(viewerJoined, viewerLeft)}
+                {liveBadgeExtras(controlOn, tripod)}
+              </span>
             </span>
           </div>,
           document.body,
@@ -331,17 +501,26 @@ export function LiveShareHost({
 
   return (
     <>
-      <button
-        type="button"
-        className={`${barButtonClass} ${phase === 'live' ? 'bg-red-600/90' : ''}`}
+      <BarButton
+        icon={<Cast className="size-5" />}
+        label={OVERLAY_TEXT.shareShort}
+        description={phase === 'live' ? LIVE_SHARE_TEXT.title : LIVE_SHARE_TEXT.share}
+        active={phase === 'live'}
+        busy={phase === 'starting'}
         onClick={onButton}
-        disabled={phase === 'starting'}
-        aria-label={LIVE_SHARE_TEXT.share}
-        title={phase === 'live' ? LIVE_SHARE_TEXT.liveBadge : LIVE_SHARE_TEXT.share}
-        data-testid="live-share-button"
-      >
-        {phase === 'starting' ? <Loader2 className="size-5 animate-spin" /> : <Cast className="size-5" />}
-      </button>
+        testId="live-share-button"
+      />
+      {phase === 'live' ? (
+        <BarButton
+          icon={<Hand className="size-5" />}
+          label={LIVE_SHARE_TEXT.controlBar}
+          description={controlOn ? LIVE_SHARE_TEXT.controlBarOn : LIVE_SHARE_TEXT.controlBarOff}
+          active={controlOn}
+          busy={controlBusy}
+          onClick={() => void changeControl(!controlOn)}
+          testId="live-share-control-button"
+        />
+      ) : null}
       {errorNotice}
       {badge}
       {sheet}

@@ -8,6 +8,7 @@
 
 import { X } from 'lucide-react';
 import {
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -15,13 +16,24 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
-import { applyMat3, invertMat3, userAdjustMatrix, type Mat3, type Pt } from '../domain/infra-overlay-geometry';
+import {
+  FINE_DRAG_GAIN,
+  applyMat3,
+  chooseLoupeAnchor,
+  invertMat3,
+  loupeLeft,
+  userAdjustMatrix,
+  type LoupeAnchor,
+  type Mat3,
+  type Pt,
+} from '../domain/infra-overlay-geometry';
 
 /** A finger covers about this radius, so a pin counts as touched inside it. */
-const PIN_HIT_RADIUS_PX = 28;
-const LOUPE_SIZE = 104;
-const LOUPE_ZOOM = 3;
-const LOUPE_GAP = 22;
+export const PIN_HIT_RADIUS_PX = 28;
+export const LOUPE_SIZE = 104;
+export const LOUPE_ZOOM = 3;
+/** Margin kept around the magnifier's fixed box when it is chosen: a finger-sized clearance. */
+export const LOUPE_CLEARANCE = 44;
 
 export interface PhotoLike {
   readonly url: string;
@@ -45,7 +57,7 @@ export function clamp01(v: number): number {
 /* Magnifiers                                                                  */
 /* -------------------------------------------------------------------------- */
 
-function LoupeFrame({ children }: { readonly children: ReactNode }) {
+export function LoupeFrame({ children }: { readonly children: ReactNode }) {
   return (
     <div
       className="relative overflow-hidden rounded-full border-2 border-white bg-black shadow-lg"
@@ -131,6 +143,48 @@ export function VideoLoupe({
   );
 }
 
+/**
+ * Magnified view of a whole video picture (no cropping: the picture IS the marking surface), centred on a
+ * normalised point. `screenWidth` is how wide the picture is shown on screen right now (zoom included), so the
+ * magnification stays LOUPE_ZOOM times what the user sees.
+ */
+export function RegionLoupe({
+  video,
+  point,
+  screenWidth,
+  frameTick,
+}: {
+  readonly video: HTMLVideoElement | null;
+  /** Normalised (0..1) point of the picture. */
+  readonly point: Pt;
+  readonly screenWidth: number;
+  /** Changes whenever a new video frame may be there, so the content stays current while the finger rests. */
+  readonly frameTick?: number;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useLayoutEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !video || !video.videoWidth || !video.videoHeight || screenWidth <= 0) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const perVideoPx = screenWidth / video.videoWidth;
+    const half = LOUPE_SIZE / (2 * LOUPE_ZOOM) / perVideoPx;
+    const cx = point.x * video.videoWidth;
+    const cy = point.y * video.videoHeight;
+    try {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(video, cx - half, cy - half, half * 2, half * 2, 0, 0, canvas.width, canvas.height);
+    } catch {
+      // A frame that is not ready yet simply leaves the magnifier empty for a moment.
+    }
+  }, [video, point.x, point.y, screenWidth, frameTick]);
+  return (
+    <LoupeFrame>
+      <canvas ref={canvasRef} width={LOUPE_SIZE * 2} height={LOUPE_SIZE * 2} className="absolute inset-0 size-full" />
+    </LoupeFrame>
+  );
+}
+
 /* -------------------------------------------------------------------------- */
 /* Pin marks                                                                   */
 /* -------------------------------------------------------------------------- */
@@ -192,12 +246,41 @@ interface PinSurfaceProps {
 
 type PointerMode = 'none' | 'pin' | 'gesture';
 
-function loupePosition(center: Pt, width: number, height: number): { left: number; top: number } {
-  const half = LOUPE_SIZE / 2;
-  const left = Math.min(width - half - 4, Math.max(half + 4, center.x));
-  const above = center.y - LOUPE_GAP - half;
-  const top = above >= half + 4 ? above : Math.min(height - half - 4, center.y + LOUPE_GAP + half);
-  return { left, top };
+/**
+ * The magnifier lives in a FIXED spot along the top of the touch surface. The spot is chosen once, when the
+ * touch begins (away from the finger), and never changes during the drag; only its content follows the point.
+ */
+export function FixedLoupe({
+  anchor,
+  surfaceW,
+  rtl,
+  children,
+}: {
+  readonly anchor: LoupeAnchor;
+  readonly surfaceW: number;
+  readonly rtl: boolean;
+  readonly children: ReactNode;
+}) {
+  return (
+    <div
+      className="pointer-events-none absolute z-20"
+      style={{
+        left: loupeLeft(anchor, surfaceW, LOUPE_SIZE, rtl),
+        top: 'max(0.5rem, env(safe-area-inset-top))',
+      }}
+      data-testid="infra-pin-loupe"
+      data-anchor={anchor}
+      aria-hidden="true"
+    >
+      {children}
+    </div>
+  );
+}
+
+/** Where the touch of the current gesture began and where its point was then (surface pixels). */
+interface PinDrag {
+  readonly finger: Pt;
+  readonly pin: Pt;
 }
 
 export function PinSurface({
@@ -222,8 +305,28 @@ export function PinSurface({
   const mode = useRef<PointerMode>('none');
   const activeIndex = useRef(-1);
   const primaryId = useRef(-1);
-  const grab = useRef<Pt>({ x: 0, y: 0 });
-  const [loupeAt, setLoupeAt] = useState<Pt | null>(null);
+  const drag = useRef<PinDrag>({ finger: { x: 0, y: 0 }, pin: { x: 0, y: 0 } });
+  /** `anchor` / `rtl` are fixed when the touch begins; only `at` (the spot being magnified) follows the point. */
+  const [loupe, setLoupe] = useState<{ anchor: LoupeAnchor; rtl: boolean; at: Pt } | null>(null);
+  const pinning = loupe !== null;
+  // Lets passive status chips elsewhere on the page step aside while a point is being placed.
+  useEffect(() => {
+    if (!pinning) return undefined;
+    document.body.dataset.infraPinning = '1';
+    return () => {
+      delete document.body.dataset.infraPinning;
+    };
+  }, [pinning]);
+
+  /** Fixes the magnifier's spot for this gesture, away from where the finger landed. */
+  function startLoupe(touch: Pt, content: Pt) {
+    const isRtl = ref.current ? getComputedStyle(ref.current).direction === 'rtl' : false;
+    setLoupe({
+      anchor: chooseLoupeAnchor(touch, latest.current.width, LOUPE_SIZE, isRtl, LOUPE_CLEARANCE),
+      rtl: isRtl,
+      at: content,
+    });
+  }
 
   function local(e: ReactPointerEvent): Pt {
     const r = ref.current!.getBoundingClientRect();
@@ -251,18 +354,21 @@ export function PinSurface({
     if (hit >= 0) {
       mode.current = 'pin';
       activeIndex.current = hit;
-      // The pin keeps its distance from the finger, so touching it never makes it jump.
-      grab.current = { x: current[hit]!.x * w - p.x, y: current[hit]!.y * h - p.y };
-      setLoupeAt({ x: current[hit]!.x * w, y: current[hit]!.y * h });
+      // Touching a point never makes it jump: it moves only by the (fine) travel of the finger from here.
+      const at = { x: current[hit]!.x * w, y: current[hit]!.y * h };
+      drag.current = { finger: p, pin: at };
+      startLoupe(p, at);
       return;
     }
     if (current.length < max) {
-      // A new point lands exactly where the finger touches.
-      grab.current = { x: 0, y: 0 };
+      // A new point lands exactly where the finger touches, with no offset.
+      const placed = { x: clamp01(p.x / w), y: clamp01(p.y / h) };
+      const at = { x: placed.x * w, y: placed.y * h };
+      drag.current = { finger: p, pin: at };
       activeIndex.current = current.length;
       mode.current = 'pin';
-      latest.current.onPinsChange([...current, { x: clamp01(p.x / w), y: clamp01(p.y / h) }]);
-      setLoupeAt({ x: clamp01(p.x / w) * w, y: clamp01(p.y / h) * h });
+      latest.current.onPinsChange([...current, placed]);
+      startLoupe(p, at);
       return;
     }
     mode.current = adjust ? 'gesture' : 'none';
@@ -281,12 +387,14 @@ export function PinSurface({
       const i = activeIndex.current;
       if (i < 0 || i >= current.length) return;
       const next = current.slice();
+      // Fine drag: the point travels only a part of the finger's travel, so it can be settled precisely.
       next[i] = {
-        x: clamp01((p.x + grab.current.x) / w),
-        y: clamp01((p.y + grab.current.y) / h),
+        x: clamp01((drag.current.pin.x + (p.x - drag.current.finger.x) * FINE_DRAG_GAIN) / w),
+        y: clamp01((drag.current.pin.y + (p.y - drag.current.finger.y) * FINE_DRAG_GAIN) / h),
       };
       change(next);
-      setLoupeAt({ x: next[i]!.x * w, y: next[i]!.y * h });
+      const at = { x: next[i]!.x * w, y: next[i]!.y * h };
+      setLoupe((current) => (current ? { ...current, at } : current));
       return;
     }
 
@@ -333,11 +441,9 @@ export function PinSurface({
       mode.current = 'none';
       activeIndex.current = -1;
       primaryId.current = -1;
-      setLoupeAt(null);
+      setLoupe(null);
     }
   }
-
-  const loupe = loupeAt && renderLoupe ? loupePosition(loupeAt, width, height) : null;
 
   return (
     <div
@@ -353,15 +459,10 @@ export function PinSurface({
       {pins.map((pin, i) => (
         <PinMark key={i} x={pin.x * width} y={pin.y * height} label={i + 1} highlighted={i === highlightIndex} />
       ))}
-      {loupe && loupeAt && renderLoupe ? (
-        <div
-          className="pointer-events-none absolute"
-          style={{ left: loupe.left, top: loupe.top, transform: 'translate(-50%,-50%)' }}
-          data-testid="infra-pin-loupe"
-          aria-hidden="true"
-        >
-          {renderLoupe(loupeAt)}
-        </div>
+      {loupe && renderLoupe ? (
+        <FixedLoupe anchor={loupe.anchor} surfaceW={width} rtl={loupe.rtl}>
+          {renderLoupe(loupe.at)}
+        </FixedLoupe>
       ) : null}
     </div>
   );

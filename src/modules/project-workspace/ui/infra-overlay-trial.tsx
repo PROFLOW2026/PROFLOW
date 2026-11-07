@@ -58,14 +58,15 @@ import {
   type Pt,
 } from '../domain/infra-overlay-geometry';
 import {
+  BarButton,
   BlinkButton,
   FineTuneTray,
+  NUDGE_STEPS,
   OVERLAY_TEXT,
   OverlayBar,
   QualityChip,
   SplitDivider,
   ViewModeBar,
-  activeButtonClass,
   barButtonClass,
   useAdjustHistory,
   type CompareDisplay,
@@ -82,7 +83,10 @@ import { drawThroughMatrix, drawVideoCover } from './infra-overlay-render';
 import { InfraSaveSheet } from './infra-save-sheet';
 import type {
   InfraLiveComposition,
+  InfraLiveRemote,
   InfraLiveShareSource,
+  InfraRemoteCommand,
+  InfraRemoteState,
   InfraTrialAlignment,
   InfraTrialIntegration,
   InfraTrialSaveInput,
@@ -138,6 +142,8 @@ const TEXT = {
   frozen: 'קפוא',
   switchToTwo: 'השוואה עם תמונת אחרי',
   switchToLive: 'מעבר למצלמה חיה',
+  alreadySaved: 'התוצאה הזו כבר שמורה',
+  movedNotice: 'חזרנו לתצוגה חיה. אם הטלפון זז – סמנו מחדש.',
 } as const;
 
 function pointLabel(n: number): string {
@@ -551,6 +557,12 @@ function LiveStep({
   const [locked, setLocked] = useState(false);
   const [frozen, setFrozen] = useState(false);
   const [tuneOpen, setTuneOpen] = useState(false);
+  /** Tripod mode (set by the share control): a compact bar, so the phone standing alone hides little of the wall. */
+  const [tripod, setTripod] = useState(false);
+  /** Changes whenever the picture shape changes or the points are cleared: remote commands made for an older one are dropped. */
+  const [epoch, setEpoch] = useState(0);
+  /** Shown after leaving a frozen frame: the camera may have moved, and a frozen fit does not follow it. */
+  const [movedNotice, setMovedNotice] = useState(false);
   const saved = useSavedResult();
 
   // Camera (rear camera preferred), released on exit.
@@ -599,10 +611,18 @@ function LiveStep({
       clearAdjust();
       setLocked(false);
       setTuneOpen(false);
+      setMovedNotice(false);
+      setEpoch((value) => value + 1);
       clearSaved();
     }
     lastOrientation.current = orientation;
   }, [orientation, size.w, clearSaved, clearAdjust]);
+
+  useEffect(() => {
+    if (!movedNotice) return undefined;
+    const timer = window.setTimeout(() => setMovedNotice(false), 9000);
+    return () => window.clearTimeout(timer);
+  }, [movedNotice]);
 
   const alignment = useMemo(() => {
     if (size.w === 0 || livePins.length < MAX_PINS) return null;
@@ -637,11 +657,10 @@ function LiveStep({
           }
         : null;
   });
-  const [liveShareSource] = useState<InfraLiveShareSource>(() => ({ getComposition: () => composition.current }));
-
   const changePins = useCallback(
     (next: Pt[]) => {
       setLivePins(next);
+      setMovedNotice(false);
       clearAdjust();
     },
     [clearAdjust],
@@ -652,25 +671,133 @@ function LiveStep({
     clearAdjust();
     setLocked(false);
     setTuneOpen(false);
+    setMovedNotice(false);
+    setEpoch((value) => value + 1);
     clearSaved();
   }
 
-  function toggleFreeze() {
+  function freezeTo(on: boolean) {
     const video = videoRef.current;
-    if (!video) return;
-    if (frozen) {
-      void video.play().catch(() => undefined);
-      setFrozen(false);
-    } else {
+    if (!video || on === frozen) return;
+    if (on) {
       video.pause();
       setFrozen(true);
+    } else {
+      void video.play().catch(() => undefined);
+      setFrozen(false);
+      // A fit made on a frozen frame says nothing about where the camera is now.
+      if (alignment) setMovedNotice(true);
     }
   }
 
-  function toggleLock() {
-    setLocked((value) => !value);
+  function toggleFreeze() {
+    freezeTo(!frozen);
+  }
+
+  function lockTo(on: boolean) {
+    if (on && !alignment) return;
+    setLocked(on);
     setTuneOpen(false);
   }
+
+  function toggleLock() {
+    lockTo(!locked);
+  }
+
+  /* ---- The second phone (remote marking): the same actions, by name, applied to this screen ---- */
+  const remoteState = useMemo<InfraRemoteState | null>(
+    () =>
+      size.w > 0
+        ? {
+            aligned: Boolean(alignment),
+            pins: livePins.map((pin) => ({ x: clamp01(pin.x), y: clamp01(pin.y) })),
+            refPins: photoPins.map((pin) => ({ x: clamp01(pin.x), y: clamp01(pin.y) })),
+            opacity,
+            perspective,
+            canPerspective: photoPins.length >= 3 && livePins.length >= 3,
+            locked,
+            frozen,
+            quality: livePins.length >= photoPins.length ? classifyAlignment(alignment) : null,
+            canUndoAdjust: adj.canUndo,
+            canResetAdjust: adj.canUndo || !isIdentityAdjust(adj.adjust),
+            stage: { w: Math.round(size.w), h: Math.round(size.h) },
+            epoch,
+          }
+        : null,
+    [alignment, livePins, photoPins, opacity, perspective, locked, frozen, adj.canUndo, adj.adjust, size.w, size.h, epoch],
+  );
+
+  function applyRemote(command: InfraRemoteCommand) {
+    if (size.w <= 0) return;
+    switch (command.t) {
+      case 'pins':
+        // A locked fit is never changed from afar; the points are limited to the number the source photo has.
+        if (locked) return;
+        changePins(command.pins.slice(0, photoPins.length).map((pin) => ({ x: clamp01(pin.x), y: clamp01(pin.y) })));
+        return;
+      case 'nudge':
+        if (locked || !alignment) return;
+        // A held button arrives as a burst of steps: remember the position before the burst once.
+        if (Date.now() - lastRemoteNudge.current > 400) adj.begin();
+        lastRemoteNudge.current = Date.now();
+        adj.nudge(NUDGE_STEPS[command.dir], size.w, size.h);
+        return;
+      case 'adjustUndo':
+        if (!locked) adj.undo();
+        return;
+      case 'adjustReset':
+        if (!locked) adj.reset();
+        return;
+      case 'opacity':
+        setOpacity(Math.min(1, Math.max(0.1, command.value)));
+        return;
+      case 'perspective':
+        setPerspective(command.on);
+        return;
+      case 'lock':
+        lockTo(command.on);
+        return;
+      case 'freeze':
+        freezeTo(command.on);
+        return;
+      case 'realign':
+        realign();
+        return;
+    }
+  }
+
+  const lastRemoteNudge = useRef(0);
+  const remoteListeners = useRef(new Set<() => void>());
+  const remoteLatest = useRef<{
+    state: InfraRemoteState | null;
+    apply: (command: InfraRemoteCommand) => void;
+    setTripod: (on: boolean) => void;
+  }>({ state: null, apply: () => undefined, setTripod: () => undefined });
+  useLayoutEffect(() => {
+    remoteLatest.current = { state: remoteState, apply: applyRemote, setTripod: (on) => setTripod(on) };
+  });
+  useEffect(() => {
+    remoteListeners.current.forEach((listener) => listener());
+  }, [remoteState, tripod]);
+  const referenceRef = useRef<{ url: string; width: number; height: number } | null>(null);
+  const [liveShareSource] = useState<InfraLiveShareSource>(() => {
+    const remote: InfraLiveRemote = {
+      getState: () => remoteLatest.current.state,
+      subscribe: (listener) => {
+        remoteListeners.current.add(listener);
+        return () => {
+          remoteListeners.current.delete(listener);
+        };
+      },
+      apply: (command) => remoteLatest.current.apply(command),
+      getReference: () => referenceRef.current,
+      setTripod: (on) => remoteLatest.current.setTripod(on),
+    };
+    return { getComposition: () => composition.current, remote };
+  });
+  useLayoutEffect(() => {
+    referenceRef.current = { url: photo.url, width: photo.width, height: photo.height };
+  }, [photo.url, photo.width, photo.height]);
 
   /** Workspace integration: freeze the current frame + overlay, then let the user choose what to keep. */
   async function requestSave() {
@@ -748,7 +875,7 @@ function LiveStep({
   }
 
   const complete = livePins.length >= photoPins.length;
-  const showPerspectiveToggle = photoPins.length >= 3 && livePins.length >= 3;
+  const canPerspective = photoPins.length >= 3 && livePins.length >= 3;
   const topClass = 'top-[max(0.5rem,env(safe-area-inset-top))]';
 
   const notice =
@@ -758,6 +885,8 @@ function LiveStep({
       <Notice>{TEXT.perspectiveRejected}</Notice>
     ) : cameraFailed ? (
       <Notice>{TEXT.cameraError}</Notice>
+    ) : movedNotice ? (
+      <Notice testId="infra-moved-notice">{TEXT.movedNotice}</Notice>
     ) : null;
 
   return (
@@ -813,19 +942,21 @@ function LiveStep({
         onBack={onBack}
         onRealign={realign}
         realignIcon={<Crosshair className="size-5" />}
-        showPerspectiveToggle={showPerspectiveToggle}
+        realignUnavailable={livePins.length === 0 ? OVERLAY_TEXT.needPoints : null}
         perspective={perspective}
+        perspectiveUnavailable={canPerspective ? null : OVERLAY_TEXT.needPerspective}
         onTogglePerspective={() => setPerspective((v) => !v)}
         perspectiveIcon={<Rotate3d className="size-5" />}
         notice={notice}
+        compact={tripod}
         tray={
-          tuneOpen && alignment && !locked ? (
+          tuneOpen && alignment && !locked && !tripod ? (
             <FineTuneTray
               disabled={locked}
               canUndo={adj.canUndo}
               canReset={adj.canUndo || !isIdentityAdjust(adj.adjust)}
               onBegin={adj.begin}
-              onNudge={(step) => adj.nudge(step, size.w, size.h)}
+              onNudge={(direction) => adj.nudge(NUDGE_STEPS[direction], size.w, size.h)}
               onUndo={adj.undo}
               onReset={adj.reset}
             />
@@ -833,46 +964,39 @@ function LiveStep({
         }
         extra={
           <>
-            <button
-              type="button"
-              className={`${barButtonClass} ${frozen ? activeButtonClass : ''}`}
+            <BarButton
+              icon={<Snowflake className="size-5" />}
+              label={frozen ? OVERLAY_TEXT.unfreezeShort : OVERLAY_TEXT.freezeShort}
+              description={frozen ? OVERLAY_TEXT.unfreeze : OVERLAY_TEXT.freeze}
+              active={frozen}
               onClick={toggleFreeze}
-              aria-pressed={frozen}
-              aria-label={frozen ? OVERLAY_TEXT.unfreeze : OVERLAY_TEXT.freeze}
-              title={frozen ? OVERLAY_TEXT.unfreeze : OVERLAY_TEXT.freeze}
-              data-testid="infra-freeze"
-            >
-              <Snowflake className="size-5" />
-            </button>
-            <button
-              type="button"
-              className={`${barButtonClass} ${tuneOpen && !locked ? activeButtonClass : ''}`}
-              onClick={() => setTuneOpen((v) => !v)}
-              disabled={!alignment || locked}
-              aria-pressed={tuneOpen}
-              aria-label={OVERLAY_TEXT.fineTune}
-              title={OVERLAY_TEXT.fineTune}
-              data-testid="infra-fine-tune-toggle"
-            >
-              <SlidersHorizontal className="size-5" />
-            </button>
-            <button
-              type="button"
-              className={`${barButtonClass} ${locked ? activeButtonClass : ''}`}
+              testId="infra-freeze"
+            />
+            {tripod ? null : (
+              <BarButton
+                icon={<SlidersHorizontal className="size-5" />}
+                label={OVERLAY_TEXT.fineTuneShort}
+                description={OVERLAY_TEXT.fineTune}
+                active={tuneOpen && !locked}
+                unavailable={!alignment ? OVERLAY_TEXT.needPoints : locked ? OVERLAY_TEXT.needUnlocked : null}
+                onClick={() => setTuneOpen((v) => !v)}
+                testId="infra-fine-tune-toggle"
+              />
+            )}
+            <BarButton
+              icon={locked ? <Lock className="size-5" /> : <LockOpen className="size-5" />}
+              label={locked ? OVERLAY_TEXT.unlockShort : OVERLAY_TEXT.lockShort}
+              description={locked ? OVERLAY_TEXT.unlock : OVERLAY_TEXT.lock}
+              active={locked}
+              unavailable={!alignment ? OVERLAY_TEXT.needPoints : null}
               onClick={toggleLock}
-              disabled={!alignment}
-              aria-pressed={locked}
-              aria-label={locked ? OVERLAY_TEXT.unlock : OVERLAY_TEXT.lock}
-              title={locked ? OVERLAY_TEXT.unlock : OVERLAY_TEXT.lock}
-              data-testid="infra-lock"
-            >
-              {locked ? <Lock className="size-5" /> : <LockOpen className="size-5" />}
-            </button>
+              testId="infra-lock"
+            />
             {integration?.renderLiveShare?.(liveShareSource)}
           </>
         }
         onSave={save}
-        canSave={Boolean(alignment) && !preparing}
+        saveUnavailable={!alignment ? OVERLAY_TEXT.needPoints : null}
         saving={preparing}
       />
 
@@ -1315,8 +1439,8 @@ function CompareStep({
         onBack={onBack}
         onRealign={onRealign}
         realignIcon={<Crosshair className="size-5" />}
-        showPerspectiveToggle
         perspective={perspective}
+        perspectiveUnavailable={!alignment ? OVERLAY_TEXT.needPoints : null}
         onTogglePerspective={() => setPerspective((v) => !v)}
         perspectiveIcon={<Rotate3d className="size-5" />}
         notice={notice}
@@ -1327,7 +1451,7 @@ function CompareStep({
               canUndo={adj.canUndo}
               canReset={adj.canUndo || !isIdentityAdjust(adj.adjust)}
               onBegin={adj.begin}
-              onNudge={(step) => adj.nudge(step, size.w, size.h)}
+              onNudge={(direction) => adj.nudge(NUDGE_STEPS[direction], size.w, size.h)}
               onUndo={adj.undo}
               onReset={adj.reset}
             />
@@ -1354,57 +1478,45 @@ function CompareStep({
         }
         extra={
           <>
-            <button
-              type="button"
-              className={`${barButtonClass} ${viewMode === 'view' ? activeButtonClass : ''}`}
+            <BarButton
+              icon={viewMode === 'view' ? <ZoomIn className="size-5" /> : <Move className="size-5" />}
+              label={viewMode === 'view' ? OVERLAY_TEXT.zoomViewShort : OVERLAY_TEXT.moveLayerShort}
+              description={viewMode === 'view' ? TEXT.zoomView : TEXT.moveLayer}
+              active={viewMode === 'view'}
               onClick={() => setViewMode((m) => (m === 'layer' ? 'view' : 'layer'))}
-              aria-pressed={viewMode === 'view'}
-              aria-label={viewMode === 'view' ? TEXT.moveLayer : TEXT.zoomView}
-              title={viewMode === 'view' ? TEXT.moveLayer : TEXT.zoomView}
-              data-testid="infra-view-mode"
-            >
-              {viewMode === 'view' ? <ZoomIn className="size-5" /> : <Move className="size-5" />}
-            </button>
+              testId="infra-view-mode"
+            />
             <BlinkButton active={blink} onToggle={toggleBlink} onHold={setHold} disabled={!matrix} />
-            <button
-              type="button"
-              className={`${barButtonClass} ${tray === 'fine' && !locked ? activeButtonClass : ''}`}
+            <BarButton
+              icon={<SlidersHorizontal className="size-5" />}
+              label={OVERLAY_TEXT.fineTuneShort}
+              description={OVERLAY_TEXT.fineTune}
+              active={tray === 'fine' && !locked}
+              unavailable={!alignment ? OVERLAY_TEXT.needPoints : locked ? OVERLAY_TEXT.needUnlocked : null}
               onClick={() => setTray((t) => (t === 'fine' ? 'none' : 'fine'))}
-              disabled={!alignment || locked}
-              aria-pressed={tray === 'fine'}
-              aria-label={OVERLAY_TEXT.fineTune}
-              title={OVERLAY_TEXT.fineTune}
-              data-testid="infra-fine-tune-toggle"
-            >
-              <SlidersHorizontal className="size-5" />
-            </button>
-            <button
-              type="button"
-              className={`${barButtonClass} ${locked ? activeButtonClass : ''}`}
+              testId="infra-fine-tune-toggle"
+            />
+            <BarButton
+              icon={locked ? <Lock className="size-5" /> : <LockOpen className="size-5" />}
+              label={locked ? OVERLAY_TEXT.unlockShort : OVERLAY_TEXT.lockShort}
+              description={locked ? OVERLAY_TEXT.unlock : OVERLAY_TEXT.lock}
+              active={locked}
+              unavailable={!alignment ? OVERLAY_TEXT.needPoints : null}
               onClick={toggleLock}
-              disabled={!alignment}
-              aria-pressed={locked}
-              aria-label={locked ? OVERLAY_TEXT.unlock : OVERLAY_TEXT.lock}
-              title={locked ? OVERLAY_TEXT.unlock : OVERLAY_TEXT.lock}
-              data-testid="infra-lock"
-            >
-              {locked ? <Lock className="size-5" /> : <LockOpen className="size-5" />}
-            </button>
-            <button
-              type="button"
-              className={`${barButtonClass} ${tray === 'points' ? activeButtonClass : ''}`}
+              testId="infra-lock"
+            />
+            <BarButton
+              icon={<MapPin className="size-5" />}
+              label={OVERLAY_TEXT.editPointsShort}
+              description={OVERLAY_TEXT.editPoints}
+              active={tray === 'points'}
               onClick={() => setTray((t) => (t === 'points' ? 'none' : 'points'))}
-              aria-pressed={tray === 'points'}
-              aria-label={OVERLAY_TEXT.editPoints}
-              title={OVERLAY_TEXT.editPoints}
-              data-testid="infra-edit-points"
-            >
-              <MapPin className="size-5" />
-            </button>
+              testId="infra-edit-points"
+            />
           </>
         }
         onSave={save}
-        canSave={Boolean(alignment) && !preparing && !initial}
+        saveUnavailable={!alignment ? OVERLAY_TEXT.needPoints : initial ? TEXT.alreadySaved : null}
         saving={preparing}
       />
 

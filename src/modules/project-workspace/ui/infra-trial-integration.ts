@@ -84,8 +84,76 @@ export interface InfraLiveComposition {
   readonly opacity: number;
 }
 
+/** A point of the live picture, normalised to the PICTURE (0..1 of its width / height), never to a screen. */
+export interface InfraRemotePoint {
+  readonly x: number;
+  readonly y: number;
+}
+
+export type InfraRemoteNudge =
+  | 'left'
+  | 'right'
+  | 'up'
+  | 'down'
+  | 'rotateLeft'
+  | 'rotateRight'
+  | 'smaller'
+  | 'larger';
+
+/** What the second phone may ask the live camera screen to do. The screen stays the source of truth. */
+export type InfraRemoteCommand =
+  | { readonly t: 'pins'; readonly pins: readonly InfraRemotePoint[] }
+  | { readonly t: 'nudge'; readonly dir: InfraRemoteNudge }
+  | { readonly t: 'adjustUndo' }
+  | { readonly t: 'adjustReset' }
+  | { readonly t: 'opacity'; readonly value: number }
+  | { readonly t: 'perspective'; readonly on: boolean }
+  | { readonly t: 'lock'; readonly on: boolean }
+  | { readonly t: 'freeze'; readonly on: boolean }
+  | { readonly t: 'realign' };
+
+/** The alignment state of the live camera screen, as shown on the second phone. */
+export interface InfraRemoteState {
+  /** Both source and live points are placed and an alignment exists. */
+  readonly aligned: boolean;
+  readonly pins: readonly InfraRemotePoint[];
+  /** Landmarks of the source photo (numbered reference). */
+  readonly refPins: readonly InfraRemotePoint[];
+  readonly opacity: number;
+  readonly perspective: boolean;
+  readonly canPerspective: boolean;
+  readonly locked: boolean;
+  readonly frozen: boolean;
+  readonly quality: 'good' | 'needsFix' | 'failed' | null;
+  readonly canUndoAdjust: boolean;
+  readonly canResetAdjust: boolean;
+  /** Shape of the picture the points refer to. */
+  readonly stage: { readonly w: number; readonly h: number } | null;
+  /** Changes whenever the picture shape changes (the old points no longer fit the scene). */
+  readonly epoch: number;
+}
+
+/** The small source photo (with its landmarks) the second phone needs to know which points to mark. */
+export interface InfraLiveReference {
+  readonly url: string;
+  readonly width: number;
+  readonly height: number;
+}
+
+export interface InfraLiveRemote {
+  readonly getState: () => InfraRemoteState | null;
+  /** Called after every change of the state (may be bursty: callers throttle). Returns an unsubscribe. */
+  readonly subscribe: (listener: () => void) => () => void;
+  /** Applies one command that the broadcaster side already checked and range-limited. */
+  readonly apply: (command: InfraRemoteCommand) => void;
+  readonly getReference: () => InfraLiveReference | null;
+  /** Tripod mode: a compact bar, so a phone standing on a tripod hides as little of the wall as possible. */
+  readonly setTripod: (on: boolean) => void;
+}
+
 export interface InfraLiveShareSource {
   readonly getComposition: () => InfraLiveComposition | null;
+  readonly remote: InfraLiveRemote;
 }
 
 export interface InfraTrialIntegration {

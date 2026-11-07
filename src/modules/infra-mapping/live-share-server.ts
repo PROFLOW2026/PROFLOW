@@ -11,8 +11,9 @@ import type { LiveShareDeps, LiveShareGateway } from './application/live-share';
  * variables (`LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`). The API key / secret never reach
  * the browser: the browser only ever gets the WebSocket URL and a short-lived, room-scoped token.
  *
- * Tokens are least-privilege: the host may publish a camera-source video track and nothing else (no
- * audio source, no data); the viewer may only subscribe. No egress / recording is ever started.
+ * Tokens are least-privilege: the host may publish a camera-source video track (no audio source) plus its small
+ * control messages; the viewer may only subscribe and is view-only until the broadcaster approves remote
+ * marking (then it may also send small control messages, never tracks). No egress / recording is ever started.
  */
 
 interface LiveKitConfig {
@@ -43,6 +44,16 @@ function roomClient(): RoomServiceClient {
   return new RoomServiceClient(httpUrl(url), apiKey, apiSecret);
 }
 
+/** The room metadata is `{"control":true}` while remote marking is approved; anything else means view-only. */
+function readControlFlag(metadata: string | undefined): boolean {
+  if (!metadata) return false;
+  try {
+    return (JSON.parse(metadata) as { control?: unknown }).control === true;
+  } catch {
+    return false;
+  }
+}
+
 export const liveShareGateway: LiveShareGateway = {
   isConfigured: () => config() !== null,
   serverUrl: () => required().url,
@@ -57,7 +68,7 @@ export const liveShareGateway: LiveShareGateway = {
     });
   },
 
-  async issueToken({ room, identity, role, ttlSeconds }) {
+  async issueToken({ room, identity, role, ttlSeconds, controlEnabled }) {
     const { apiKey, apiSecret } = required();
     const token = new AccessToken(apiKey, apiSecret, { identity, ttl: ttlSeconds });
     token.addGrant(
@@ -67,10 +78,18 @@ export const liveShareGateway: LiveShareGateway = {
             room,
             canPublish: true,
             canPublishSources: [TrackSource.CAMERA],
-            canSubscribe: false,
-            canPublishData: false,
+            // The broadcaster sends its small state messages and listens for the viewer's control messages.
+            canSubscribe: true,
+            canPublishData: true,
           }
-        : { roomJoin: true, room, canPublish: false, canSubscribe: true, canPublishData: false },
+        : {
+            roomJoin: true,
+            room,
+            canPublish: false,
+            canSubscribe: true,
+            // View-only unless the broadcaster approved remote marking for this session.
+            canPublishData: controlEnabled === true,
+          },
     );
     return token.toJwt();
   },
@@ -78,15 +97,30 @@ export const liveShareGateway: LiveShareGateway = {
   async roomState(room) {
     const client = roomClient();
     const rooms = await client.listRooms([room]);
-    if (rooms.length === 0) return { exists: false, hostPresent: false, viewerIdentities: [] };
+    if (rooms.length === 0) return { exists: false, hostPresent: false, viewerIdentities: [], controlEnabled: false };
     const participants = await client.listParticipants(room);
     return {
       exists: true,
+      controlEnabled: readControlFlag(rooms[0]?.metadata),
       hostPresent: participants.some((participant) => participant.identity === LIVE_SHARE.hostIdentity),
       viewerIdentities: participants
         .map((participant) => participant.identity)
         .filter((identity) => identity.startsWith(LIVE_SHARE.viewerIdentityPrefix)),
     };
+  },
+
+  async setControl(room, enabled) {
+    const client = roomClient();
+    // The grant is remembered in the room itself (a viewer that reconnects gets a token that matches it)...
+    await client.updateRoomMetadata(room, JSON.stringify({ control: enabled }));
+    // ...and applied at once to a viewer that is already inside. Permissions are replaced atomically.
+    const participants = await client.listParticipants(room);
+    for (const participant of participants) {
+      if (!participant.identity.startsWith(LIVE_SHARE.viewerIdentityPrefix)) continue;
+      await client.updateParticipant(room, participant.identity, {
+        permission: { canSubscribe: true, canPublish: false, canPublishData: enabled, canPublishSources: [] },
+      });
+    }
   },
 
   async deleteRoom(room) {

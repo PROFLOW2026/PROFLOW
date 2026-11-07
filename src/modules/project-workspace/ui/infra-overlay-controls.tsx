@@ -21,7 +21,9 @@ import {
   Zap,
 } from 'lucide-react';
 import {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useRef,
   useState,
@@ -37,18 +39,32 @@ import {
   type Mat3,
   type NudgeStep,
 } from '../domain/infra-overlay-geometry';
+import type { InfraRemoteNudge } from './infra-trial-integration';
 
 export const OVERLAY_TEXT = {
   back: 'חזרה',
   opacity: 'שקיפות',
-  realign: 'יישור מחדש',
+  realign: 'איפוס יישור וסימון מחדש של 4 הנקודות',
+  realignShort: 'סימון מחדש',
   perspective: 'פרספקטיבה',
+  perspectiveLong: 'התאמת פרספקטיבה (במקום התאמה ישרה)',
   save: 'שמירת תוצאת הניסוי',
+  saveShort: 'שמירה',
   lock: 'נעילת היישור',
+  lockShort: 'נעילה',
   unlock: 'שחרור הנעילה',
+  unlockShort: 'נעול',
   freeze: 'הקפאת פריים',
+  freezeShort: 'הקפאה',
   unfreeze: 'חזרה לתצוגה חיה',
-  fineTune: 'תיקון עדין',
+  unfreezeShort: 'חזרה לחי',
+  fineTune: 'כוונון עדין של השכבה',
+  fineTuneShort: 'כוונון',
+  share: 'שיתוף שידור לטלפון נוסף',
+  shareShort: 'שיתוף',
+  needPoints: 'צריך לסמן 4 נקודות',
+  needPerspective: 'פרספקטיבה דורשת לפחות 3 נקודות',
+  needUnlocked: 'היישור נעול – שחררו את הנעילה',
   editPoints: 'תיקון נקודות',
   moveUp: 'הזזה למעלה',
   moveDown: 'הזזה למטה',
@@ -58,10 +74,10 @@ export const OVERLAY_TEXT = {
   rotateRight: 'סיבוב עם כיוון השעון',
   smaller: 'הקטנת השכבה',
   larger: 'הגדלת השכבה',
-  undoNudge: 'קודם',
-  undoNudgeLong: 'החזרת המיקום הקודם',
-  resetNudge: 'איפוס',
-  resetNudgeLong: 'איפוס התיקונים',
+  undoNudge: 'חזרה',
+  undoNudgeLong: 'חזרה לשינוי הקודם בכוונון',
+  resetNudge: 'איפוס כוונון',
+  resetNudgeLong: 'איפוס כל תיקוני הכוונון (הנקודות נשארות)',
   qualityGood: 'התאמה תקינה',
   qualityNeedsFix: 'דורשת תיקון',
   qualityFailed: 'נכשלה',
@@ -71,6 +87,11 @@ export const OVERLAY_TEXT = {
   viewSplit: 'חצי',
   viewGroup: 'מצב תצוגה',
   blink: 'הבהוב בין התמונות (לחיצה להפעלה, החזקה להצגה זמנית)',
+  blinkShort: 'הבהוב',
+  editPointsShort: 'נקודות',
+  viewModeShort: 'תצוגה',
+  moveLayerShort: 'הזזה',
+  zoomViewShort: 'זום',
   splitHandle: 'פס השוואה',
 } as const;
 
@@ -213,6 +234,18 @@ const NUDGE_PX = 2;
 const NUDGE_ROTATION = (0.25 * Math.PI) / 180;
 const NUDGE_SCALE = 1.005;
 
+/** The small steps of the fine-tune controls, by name (the second phone sends only the name, never a size). */
+export const NUDGE_STEPS: Record<InfraRemoteNudge, NudgeStep> = {
+  left: { dx: -NUDGE_PX },
+  right: { dx: NUDGE_PX },
+  up: { dy: -NUDGE_PX },
+  down: { dy: NUDGE_PX },
+  rotateLeft: { rotation: -NUDGE_ROTATION },
+  rotateRight: { rotation: NUDGE_ROTATION },
+  smaller: { scale: 1 / NUDGE_SCALE },
+  larger: { scale: NUDGE_SCALE },
+};
+
 /** Small, controlled corrections of the aligned layer, with "previous position" and "reset". */
 export function FineTuneTray({
   disabled,
@@ -227,13 +260,13 @@ export function FineTuneTray({
   readonly canUndo: boolean;
   readonly canReset: boolean;
   readonly onBegin: () => void;
-  readonly onNudge: (step: NudgeStep) => void;
+  readonly onNudge: (direction: InfraRemoteNudge) => void;
   readonly onUndo: () => void;
   readonly onReset: () => void;
 }) {
   const separator = <span className="mx-0.5 h-5 w-px bg-white/25" aria-hidden />;
-  const move = (label: string, step: NudgeStep, icon: ReactNode) => (
-    <RepeatButton label={label} disabled={disabled} onStart={onBegin} onStep={() => onNudge(step)}>
+  const move = (label: string, direction: InfraRemoteNudge, icon: ReactNode) => (
+    <RepeatButton label={label} disabled={disabled} onStart={onBegin} onStep={() => onNudge(direction)}>
       {icon}
     </RepeatButton>
   );
@@ -245,20 +278,20 @@ export function FineTuneTray({
       dir="rtl"
     >
       <div className="flex items-center gap-0.5" dir="ltr">
-        {move(OVERLAY_TEXT.moveLeft, { dx: -NUDGE_PX }, <ChevronLeft className="size-5" />)}
-        {move(OVERLAY_TEXT.moveUp, { dy: -NUDGE_PX }, <ChevronUp className="size-5" />)}
-        {move(OVERLAY_TEXT.moveDown, { dy: NUDGE_PX }, <ChevronDown className="size-5" />)}
-        {move(OVERLAY_TEXT.moveRight, { dx: NUDGE_PX }, <ChevronRight className="size-5" />)}
+        {move(OVERLAY_TEXT.moveLeft, 'left', <ChevronLeft className="size-5" />)}
+        {move(OVERLAY_TEXT.moveUp, 'up', <ChevronUp className="size-5" />)}
+        {move(OVERLAY_TEXT.moveDown, 'down', <ChevronDown className="size-5" />)}
+        {move(OVERLAY_TEXT.moveRight, 'right', <ChevronRight className="size-5" />)}
       </div>
       {separator}
       <div className="flex items-center gap-0.5" dir="ltr">
-        {move(OVERLAY_TEXT.rotateLeft, { rotation: -NUDGE_ROTATION }, <RotateCcw className="size-4" />)}
-        {move(OVERLAY_TEXT.rotateRight, { rotation: NUDGE_ROTATION }, <RotateCw className="size-4" />)}
+        {move(OVERLAY_TEXT.rotateLeft, 'rotateLeft', <RotateCcw className="size-4" />)}
+        {move(OVERLAY_TEXT.rotateRight, 'rotateRight', <RotateCw className="size-4" />)}
       </div>
       {separator}
       <div className="flex items-center gap-0.5" dir="ltr">
-        {move(OVERLAY_TEXT.smaller, { scale: 1 / NUDGE_SCALE }, <Minus className="size-4" />)}
-        {move(OVERLAY_TEXT.larger, { scale: NUDGE_SCALE }, <Plus className="size-4" />)}
+        {move(OVERLAY_TEXT.smaller, 'smaller', <Minus className="size-4" />)}
+        {move(OVERLAY_TEXT.larger, 'larger', <Plus className="size-4" />)}
       </div>
       {separator}
       <button
@@ -420,7 +453,7 @@ export function BlinkButton({
   return (
     <button
       type="button"
-      className={`${barButtonClass} ${active ? activeButtonClass : ''}`}
+      className={`${labeledButtonClass} ${active ? activeButtonClass : ''} ${disabled ? 'opacity-45' : ''}`}
       disabled={disabled}
       aria-pressed={active}
       aria-label={OVERLAY_TEXT.blink}
@@ -444,6 +477,7 @@ export function BlinkButton({
       }}
     >
       <Zap className="size-5" />
+      <span className="max-w-14 truncate text-[10px] leading-3 text-white/90">{OVERLAY_TEXT.blinkShort}</span>
     </button>
   );
 }
@@ -518,9 +552,76 @@ export function SplitDivider({
 
 export { activeButtonClass };
 
+/* -------------------------------------------------------------------------- */
+/* Labelled bar buttons                                                          */
+/* -------------------------------------------------------------------------- */
+
+export const BarHintContext = createContext<((message: string) => void) | null>(null);
+
+const labeledButtonClass =
+  'inline-flex min-h-11 min-w-11 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 pb-0.5 pt-1 text-white transition-colors hover:bg-white/15 active:bg-white/25';
+
 /**
- * The one bar of actions: opacity on top, buttons below (wrapping, never a horizontal scroll). A short notice
- * and the fine-tune tray stack just above it.
+ * One action of the bar: an icon with a one-word label under it (so no icon has to be guessed), a clearly
+ * highlighted active state, a spinner while it works, and - when it cannot be used right now - a tap that says why
+ * instead of doing nothing.
+ */
+export function BarButton({
+  icon,
+  label,
+  description,
+  onClick,
+  active,
+  busy,
+  unavailable,
+  tone,
+  testId,
+}: {
+  readonly icon: ReactNode;
+  /** One short word under the icon. */
+  readonly label: string;
+  /** The full name (tooltip and screen readers). Defaults to the label. */
+  readonly description?: string;
+  readonly onClick: () => void;
+  /** For toggles: whether it is on. Leave undefined for plain actions. */
+  readonly active?: boolean;
+  readonly busy?: boolean;
+  /** Why it cannot be used right now (shown when tapped). */
+  readonly unavailable?: string | null;
+  readonly tone?: 'primary';
+  readonly testId?: string;
+}) {
+  const hint = useContext(BarHintContext);
+  const blocked = Boolean(unavailable);
+  const full = description ?? label;
+  return (
+    <button
+      type="button"
+      className={`${labeledButtonClass} ${active ? activeButtonClass : ''} ${
+        tone === 'primary' && !blocked && !active ? 'bg-cyan-500/90 hover:bg-cyan-400' : ''
+      } ${blocked ? 'opacity-45' : ''}`}
+      onClick={() => {
+        if (busy) return;
+        if (unavailable) hint?.(unavailable);
+        else onClick();
+      }}
+      aria-pressed={active}
+      aria-disabled={blocked || busy ? true : undefined}
+      aria-busy={busy ? true : undefined}
+      aria-label={unavailable ? `${full} – ${unavailable}` : full}
+      title={unavailable ?? full}
+      data-testid={testId}
+      data-active={active ? 'true' : undefined}
+    >
+      {busy ? <Loader2 className="size-5 animate-spin" aria-hidden /> : icon}
+      <span className="max-w-14 truncate text-[10px] leading-3 text-white/90">{label}</span>
+    </button>
+  );
+}
+
+/**
+ * The one bar of actions: opacity on top, labelled buttons below (wrapping, never a horizontal scroll). A short
+ * notice and the fine-tune tray stack just above it. `compact` (tripod mode) keeps only the critical actions.
  */
 export function OverlayBar({
   opacity,
@@ -528,89 +629,129 @@ export function OverlayBar({
   onBack,
   onRealign,
   realignIcon,
-  showPerspectiveToggle,
+  realignUnavailable,
   perspective,
+  perspectiveUnavailable,
   onTogglePerspective,
   perspectiveIcon,
   extra,
   onSave,
-  canSave,
+  saveUnavailable,
   saving,
   tray,
   notice,
+  compact,
 }: {
   readonly opacity: number;
   readonly onOpacity: (v: number) => void;
   readonly onBack: () => void;
   readonly onRealign: () => void;
   readonly realignIcon: ReactNode;
-  readonly showPerspectiveToggle: boolean;
+  readonly realignUnavailable?: string | null;
   readonly perspective: boolean;
+  readonly perspectiveUnavailable?: string | null;
   readonly onTogglePerspective: () => void;
   readonly perspectiveIcon: ReactNode;
   readonly extra?: ReactNode;
   readonly onSave: () => void;
-  readonly canSave: boolean;
+  readonly saveUnavailable?: string | null;
   readonly saving?: boolean;
   readonly tray?: ReactNode;
   readonly notice?: ReactNode;
+  readonly compact?: boolean;
 }) {
+  const [hint, setHint] = useState<string | null>(null);
+  const hintTimer = useRef<number | null>(null);
+  const showHint = useCallback((message: string) => {
+    setHint(message);
+    if (hintTimer.current !== null) window.clearTimeout(hintTimer.current);
+    hintTimer.current = window.setTimeout(() => setHint(null), 2600);
+  }, []);
+  useEffect(
+    () => () => {
+      if (hintTimer.current !== null) window.clearTimeout(hintTimer.current);
+    },
+    [],
+  );
+
   return (
-    <div
-      className="pointer-events-none absolute inset-x-0 bottom-[max(0.5rem,env(safe-area-inset-bottom))] flex flex-col items-center gap-1 px-2"
-      onPointerDown={(e) => e.stopPropagation()}
-    >
-      {notice}
-      {tray ? <div className="pointer-events-auto max-w-full">{tray}</div> : null}
-      <div className="pointer-events-auto flex max-w-full flex-col gap-0.5 rounded-3xl bg-black/60 px-1.5 py-1 backdrop-blur">
-        <label className="flex items-center gap-2 px-2 text-[11px] text-white/80" dir="rtl">
-          <span className="shrink-0">{OVERLAY_TEXT.opacity}</span>
-          <input
-            type="range"
-            min={0.1}
-            max={1}
-            step={0.05}
-            value={opacity}
-            onChange={(e) => onOpacity(Number(e.target.value))}
-            aria-label={OVERLAY_TEXT.opacity}
-            className="h-6 min-w-0 flex-1 accent-cyan-400"
-          />
-          <span className="w-9 shrink-0 text-end tabular-nums" dir="ltr">
-            {Math.round(opacity * 100)}%
-          </span>
-        </label>
-        <div className="flex flex-wrap items-center justify-center gap-0.5">
-          <button type="button" className={barButtonClass} onClick={onBack} aria-label={OVERLAY_TEXT.back}>
-            <X className="size-5" />
-          </button>
-          <button type="button" className={barButtonClass} onClick={onRealign} aria-label={OVERLAY_TEXT.realign}>
-            {realignIcon}
-          </button>
-          {showPerspectiveToggle ? (
-            <button
-              type="button"
-              className={`${barButtonClass} ${perspective ? activeButtonClass : ''}`}
-              onClick={onTogglePerspective}
-              aria-pressed={perspective}
-              aria-label={OVERLAY_TEXT.perspective}
-            >
-              {perspectiveIcon}
-            </button>
-          ) : null}
-          {extra}
-          <button
-            type="button"
-            className={barButtonClass}
-            onClick={onSave}
-            disabled={!canSave}
-            aria-label={OVERLAY_TEXT.save}
-            aria-busy={saving ? true : undefined}
-            data-testid="infra-overlay-save"
+    <BarHintContext.Provider value={showHint}>
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-[max(0.5rem,env(safe-area-inset-bottom))] flex flex-col items-center gap-1 px-2"
+        onPointerDown={(e) => e.stopPropagation()}
+        data-testid="infra-overlay-bar"
+        data-compact={compact ? 'true' : undefined}
+      >
+        {hint ? (
+          <div
+            className="pointer-events-none w-fit max-w-full rounded bg-black/75 px-2 py-1 text-center text-[11px] text-white"
+            dir="rtl"
+            role="status"
+            data-testid="infra-bar-hint"
           >
-            {saving ? <Loader2 className="size-5 animate-spin" /> : <Check className="size-5" />}
-          </button>
+            {hint}
+          </div>
+        ) : null}
+        {notice}
+        {tray ? <div className="pointer-events-auto max-w-full">{tray}</div> : null}
+        <div className="pointer-events-auto flex max-w-full flex-col gap-0.5 rounded-3xl bg-black/60 px-1.5 py-1 backdrop-blur">
+          {compact ? null : (
+            <label className="flex items-center gap-2 px-2 text-[11px] text-white/80" dir="rtl">
+              <span className="shrink-0">{OVERLAY_TEXT.opacity}</span>
+              <input
+                type="range"
+                min={0.1}
+                max={1}
+                step={0.05}
+                value={opacity}
+                onChange={(e) => onOpacity(Number(e.target.value))}
+                aria-label={OVERLAY_TEXT.opacity}
+                className="h-6 min-w-0 flex-1 accent-cyan-400"
+              />
+              <span className="w-9 shrink-0 text-end tabular-nums" dir="ltr">
+                {Math.round(opacity * 100)}%
+              </span>
+            </label>
+          )}
+          <div className="flex flex-wrap items-stretch justify-center gap-0.5" dir="rtl">
+            <BarButton icon={<X className="size-5" />} label={OVERLAY_TEXT.back} onClick={onBack} testId="infra-bar-back" />
+            {compact ? null : (
+              <>
+                <BarButton
+                  icon={realignIcon}
+                  label={OVERLAY_TEXT.realignShort}
+                  description={OVERLAY_TEXT.realign}
+                  onClick={onRealign}
+                  unavailable={realignUnavailable}
+                  testId="infra-realign"
+                />
+                <BarButton
+                  icon={perspectiveIcon}
+                  label={OVERLAY_TEXT.perspective}
+                  description={OVERLAY_TEXT.perspectiveLong}
+                  onClick={onTogglePerspective}
+                  active={perspective}
+                  unavailable={perspectiveUnavailable}
+                  testId="infra-perspective"
+                />
+              </>
+            )}
+            {extra}
+            {compact ? null : (
+              <BarButton
+                icon={saving ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <Check className="size-5" />}
+                label={OVERLAY_TEXT.saveShort}
+                description={OVERLAY_TEXT.save}
+                onClick={onSave}
+                busy={saving}
+                unavailable={saveUnavailable}
+                tone="primary"
+                testId="infra-overlay-save"
+              />
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </BarHintContext.Provider>
   );
 }

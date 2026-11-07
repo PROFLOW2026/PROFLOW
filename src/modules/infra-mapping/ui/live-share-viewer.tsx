@@ -21,7 +21,12 @@ import {
   type WheelEvent as ReactWheelEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { QualityChip } from '@/modules/project-workspace/ui/infra-overlay-controls';
+import { ReferenceThumb } from '@/modules/project-workspace/ui/infra-overlay-pins';
+import { LIVE_CONTROL, type NormalizedPoint } from '../domain/live-control';
 import type { LiveShareResult, LiveShareViewerSession } from '../domain/live-share';
+import { RemoteViewerClient, type RemoteViewerSnapshot, type ViewerCommandNoSync } from './live-remote-client';
+import { RemoteControlBar, RemoteLoupe, RemotePinLayer, useRemoteMarking } from './live-remote-marking';
 import { LIVE_SHARE_TEXT } from './live-share-texts';
 import {
   DOUBLE_TAP_SCALE,
@@ -40,6 +45,11 @@ const DOUBLE_TAP_MS = 300;
 const TAP_SLOP_PX = 10;
 /** How long the connection chip stays readable after a change before it shrinks to a dot. */
 const CHIP_VISIBLE_MS = 3500;
+/** Point positions are sent at most this often while a finger drags (a final one always follows on release). */
+const PIN_SEND_MS = 60;
+/** A draft the broadcaster never confirmed is dropped after this long: the broadcaster's own state wins. */
+const DRAFT_TTL_MS = 2500;
+const HINT_MS = 2600;
 
 /** A random id this browser keeps, so a refresh replaces its own connection instead of counting as a second viewer. */
 function viewerKey(): string {
@@ -105,6 +115,25 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
   const [canFullscreen, setCanFullscreen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
 
+  /* Remote marking: the broadcaster's state, and what this phone is editing right now */
+  const clientRef = useRef<RemoteViewerClient | null>(null);
+  const [snapshot, setSnapshot] = useState<RemoteViewerSnapshot | null>(null);
+  const [canData, setCanData] = useState(false);
+  const [markPref, setMarkPref] = useState<boolean | null>(null);
+  const [draft, setDraft] = useState<{ pins: NormalizedPoint[]; n: number | null } | null>(null);
+  const [tuneOpen, setTuneOpen] = useState(false);
+  const [hint, setHint] = useState<string | null>(null);
+  const hintTimer = useRef<number | null>(null);
+  const [aspect, setAspect] = useState(16 / 9);
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
+  const [referenceSize, setReferenceSize] = useState<{ url: string; w: number; h: number } | null>(null);
+  const pinSend = useRef<{ at: number; timer: number | null }>({ at: 0, timer: null });
+  const setVideo = useCallback((element: HTMLVideoElement | null) => {
+    videoRef.current = element;
+    setVideoEl(element);
+  }, []);
+
   const writeView = useCallback((next: ViewTransform) => {
     viewRef.current = next;
     setView(next);
@@ -115,6 +144,7 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
     leaving.current = false;
     const room = new Room();
     roomRef.current = room;
+    let client: RemoteViewerClient | null = null;
 
     const attach = (track: RemoteTrack) => {
       if (track.kind !== Track.Kind.Video || !videoRef.current) return;
@@ -130,9 +160,25 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
     });
     room.on(RoomEvent.ParticipantDisconnected, () => setStatus('ended'));
     room.on(RoomEvent.Reconnecting, () => setReconnecting(true));
-    room.on(RoomEvent.Reconnected, () => setReconnecting(false));
+    room.on(RoomEvent.Reconnected, () => {
+      setReconnecting(false);
+      // The broadcaster keeps the alignment: ask for its latest state instead of trusting anything we had.
+      client?.sync();
+    });
     room.on(RoomEvent.Disconnected, () => {
       if (!cancelled && !leaving.current) setStatus('ended');
+    });
+
+    // Remote marking: the broadcaster's state arrives on the control topic; commands go back on it, and only
+    // once LiveKit lets this phone publish data (the broadcaster approved it).
+    room.on(RoomEvent.DataReceived, (payload, _participant, _kind, topic) => {
+      if (topic === LIVE_CONTROL.topic) client?.receive(payload);
+    });
+    room.on(RoomEvent.ParticipantPermissionsChanged, (_previous, participant) => {
+      if (participant !== room.localParticipant) return;
+      const allowed = room.localParticipant.permissions?.canPublishData === true;
+      setCanData(allowed);
+      if (allowed) client?.sync();
     });
 
     (async () => {
@@ -150,6 +196,19 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
           return;
         }
         setStatus((current) => (current === 'connecting' ? 'waiting' : current));
+        setCanData(room.localParticipant.permissions?.canPublishData === true);
+        client = new RemoteViewerClient({
+          sessionId: room.name,
+          send: (bytes) => {
+            void room.localParticipant.publishData(bytes, { reliable: true, topic: LIVE_CONTROL.topic }).catch(() => undefined);
+          },
+          canSend: () => room.localParticipant.permissions?.canPublishData === true,
+          onChange: (next) => {
+            if (!cancelled) setSnapshot(next);
+          },
+        });
+        clientRef.current = client;
+        client.sync();
       } catch {
         if (!cancelled) {
           setError(LIVE_SHARE_TEXT.connectionLost);
@@ -163,8 +222,43 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
       leaving.current = true;
       void room.disconnect();
       roomRef.current = null;
+      clientRef.current = null;
     };
   }, [viewerToken]);
+
+  // The picture's shape (the stream's own size), for mapping touches to picture points.
+  useEffect(() => {
+    if (!videoEl) return undefined;
+    const read = () => {
+      if (videoEl.videoWidth > 0 && videoEl.videoHeight > 0) setAspect(videoEl.videoWidth / videoEl.videoHeight);
+    };
+    videoEl.addEventListener('loadedmetadata', read);
+    videoEl.addEventListener('resize', read);
+    return () => {
+      videoEl.removeEventListener('loadedmetadata', read);
+      videoEl.removeEventListener('resize', read);
+    };
+  }, [videoEl]);
+
+  // Size of the touch surface (for the picture rectangle inside it).
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(() => setBox({ w: stage.clientWidth, h: stage.clientHeight }));
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, [mounted]);
+
+  const referenceUrl = snapshot?.reference ?? null;
+  useEffect(() => {
+    if (!referenceUrl) return undefined;
+    const image = new Image();
+    image.onload = () => setReferenceSize({ url: referenceUrl, w: image.naturalWidth, h: image.naturalHeight });
+    image.src = referenceUrl;
+    return () => {
+      image.onload = null;
+    };
+  }, [referenceUrl]);
 
   // Full view (where the browser supports it; not on every phone).
   useEffect(() => {
@@ -205,6 +299,90 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
   const tap = useRef<{ at: number; x: number; y: number; moved: boolean }>({ at: 0, x: 0, y: 0, moved: false });
   const lastTap = useRef<{ at: number; x: number; y: number } | null>(null);
 
+  /* Remote marking: what the broadcaster says, and the points this phone is editing right now */
+  const remoteState = snapshot?.state ?? null;
+  const controlActive = Boolean(remoteState?.control && snapshot?.token && canData);
+  const markMode = controlActive && (markPref ?? true);
+  const shownPins = draft?.pins ?? remoteState?.pins ?? [];
+
+  function sendCommand(command: ViewerCommandNoSync): number | null {
+    return clientRef.current?.command(command) ?? null;
+  }
+
+  function flushPins(pins: NormalizedPoint[]) {
+    const n = sendCommand({ t: 'pins', pins });
+    pinSend.current.at = Date.now();
+    setDraft({ pins, n });
+  }
+
+  function handlePinsChange(pins: NormalizedPoint[], final: boolean) {
+    const sender = pinSend.current;
+    if (sender.timer !== null) {
+      window.clearTimeout(sender.timer);
+      sender.timer = null;
+    }
+    if (final || Date.now() - sender.at >= PIN_SEND_MS) {
+      flushPins(pins);
+      return;
+    }
+    setDraft((current) => ({ pins, n: current?.n ?? null }));
+    sender.timer = window.setTimeout(() => {
+      sender.timer = null;
+      flushPins(pins);
+    }, PIN_SEND_MS);
+  }
+
+  const marking = useRemoteMarking({
+    enabled: markMode && !remoteState?.locked,
+    stageRef,
+    videoRef,
+    viewRef,
+    aspect,
+    pins: shownPins,
+    onChange: handlePinsChange,
+  });
+
+  // The broadcaster is the source of truth: our draft lasts only until it confirms (or a moment, if it never does).
+  const pinning = marking.pinning;
+  useEffect(() => {
+    if (!draft || pinning) return undefined;
+    if (draft.n !== null && remoteState && remoteState.ack >= draft.n) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- confirmed by the broadcaster: show its state again
+      setDraft(null);
+      return undefined;
+    }
+    const timer = window.setTimeout(() => setDraft(null), DRAFT_TTL_MS);
+    return () => window.clearTimeout(timer);
+  }, [draft, pinning, remoteState]);
+
+  useEffect(
+    () => () => {
+      const sender = pinSend.current;
+      if (sender.timer !== null) window.clearTimeout(sender.timer);
+      if (hintTimer.current !== null) window.clearTimeout(hintTimer.current);
+    },
+    [],
+  );
+
+  function showHint(message: string) {
+    setHint(message);
+    if (hintTimer.current !== null) window.clearTimeout(hintTimer.current);
+    hintTimer.current = window.setTimeout(() => setHint(null), HINT_MS);
+  }
+
+  function undoPoint() {
+    const base = draft?.pins ?? remoteState?.pins ?? [];
+    if (base.length === 0) return;
+    handlePinsChange(base.slice(0, -1), true);
+  }
+
+  function release() {
+    sendCommand({ t: 'release' });
+    setMarkPref(false);
+    setTuneOpen(false);
+    showHint(LIVE_SHARE_TEXT.viewerReleased);
+  }
+
   function stageBox() {
     const r = stageRef.current?.getBoundingClientRect();
     return r ? { left: r.left, top: r.top, width: r.width, height: r.height } : null;
@@ -213,11 +391,22 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
   function onPointerDown(e: ReactPointerEvent<HTMLDivElement>) {
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     e.currentTarget.setPointerCapture(e.pointerId);
-    if (pointers.current.size === 1) tap.current = { at: Date.now(), x: e.clientX, y: e.clientY, moved: false };
-    else tap.current.moved = true;
+    if (pointers.current.size === 1) {
+      tap.current = { at: Date.now(), x: e.clientX, y: e.clientY, moved: false };
+      // One finger in mark mode places / picks up a point; it never pans or zooms.
+      if (marking.begin(e)) tap.current.moved = true;
+    } else {
+      // A second finger: finish the point being placed, and zoom / pan with the two fingers.
+      tap.current.moved = true;
+      marking.end(null);
+    }
   }
 
   function onPointerMove(e: ReactPointerEvent<HTMLDivElement>) {
+    if (marking.move(e)) {
+      pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      return;
+    }
     const previous = pointers.current.get(e.pointerId);
     const box = stageBox();
     if (!previous || !box) return;
@@ -248,6 +437,10 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
   }
 
   function onPointerEnd(e: ReactPointerEvent<HTMLDivElement>) {
+    if (marking.end(e)) {
+      pointers.current.delete(e.pointerId);
+      return;
+    }
     const wasSingle = pointers.current.size === 1;
     pointers.current.delete(e.pointerId);
     if (!wasSingle || tap.current.moved || e.type === 'pointercancel') return;
@@ -341,7 +534,7 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
         data-testid="live-share-stage"
       >
         <video
-          ref={videoRef}
+          ref={setVideo}
           autoPlay
           playsInline
           muted
@@ -354,7 +547,68 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
           data-testid="live-share-video"
           data-zoom={view.scale.toFixed(2)}
         />
+        {controlActive && box.w > 0 ? (
+          <RemotePinLayer
+            pins={shownPins}
+            box={box}
+            view={view}
+            aspect={aspect}
+            nextIndex={shownPins.length < LIVE_CONTROL.maxPins ? shownPins.length : -1}
+          />
+        ) : null}
       </div>
+
+      {controlActive && remoteState ? (
+        <>
+          {marking.loupe ? <RemoteLoupe loupe={marking.loupe} video={videoEl} tick={marking.tick} /> : null}
+          {markMode && snapshot?.reference && remoteState.refPins.length > 0 && !(remoteState.aligned && shownPins.length >= LIVE_CONTROL.maxPins) ? (
+            <div className="pointer-events-none absolute inset-0 top-10 [&>*]:pointer-events-auto">
+              <ReferenceThumb
+                photo={{
+                  url: snapshot.reference,
+                  width: referenceSize?.url === snapshot.reference ? referenceSize.w : 4,
+                  height: referenceSize?.url === snapshot.reference ? referenceSize.h : 3,
+                }}
+                pins={remoteState.refPins}
+                nextIndex={shownPins.length < remoteState.refPins.length ? shownPins.length : -1}
+                label={
+                  shownPins.length < remoteState.refPins.length
+                    ? LIVE_SHARE_TEXT.viewerNextPoint(shownPins.length + 1)
+                    : LIVE_SHARE_TEXT.viewerPointOrder
+                }
+              />
+            </div>
+          ) : null}
+          {remoteState.quality && !pinning ? (
+            <QualityChip
+              quality={remoteState.quality}
+              prefix={[remoteState.frozen ? LIVE_SHARE_TEXT.viewerFrozen : null, remoteState.locked ? LIVE_SHARE_TEXT.viewerLocked : null]
+                .filter(Boolean)
+                .join(' · ') || null}
+              className="top-[calc(max(0.5rem,env(safe-area-inset-top))+2.5rem)]"
+            />
+          ) : null}
+          <RemoteControlBar
+            state={remoteState}
+            markMode={markMode}
+            onMarkMode={(on) => {
+              setMarkPref(on);
+              if (on) setTuneOpen(false);
+            }}
+            pinCount={shownPins.length}
+            maxPins={LIVE_CONTROL.maxPins}
+            onCommand={(command) => {
+              sendCommand(command);
+            }}
+            onUndoPoint={undoPoint}
+            onRelease={release}
+            tuneOpen={tuneOpen}
+            onTuneOpen={setTuneOpen}
+            hint={hint}
+            onHint={showHint}
+          />
+        </>
+      ) : null}
       {message ? (
         <div
           className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center text-sm text-white/85"
@@ -366,7 +620,7 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
       ) : null}
 
       <div
-        className="pointer-events-none absolute start-2 top-[max(0.5rem,env(safe-area-inset-top))]"
+        className={`pointer-events-none absolute start-2 top-[max(0.5rem,env(safe-area-inset-top))] ${pinning ? 'invisible' : ''}`}
         role="status"
         data-testid="live-share-link-chip"
       >
@@ -377,7 +631,9 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
       </div>
 
       {status === 'watching' || status === 'waiting' || status === 'connecting' ? (
-        <div className="absolute end-2 top-[max(0.5rem,env(safe-area-inset-top))] flex items-center gap-1.5">
+        <div
+          className={`absolute end-2 top-[max(0.5rem,env(safe-area-inset-top))] flex items-center gap-1.5 ${pinning ? 'invisible' : ''}`}
+        >
           {zoomed ? (
             <button
               type="button"

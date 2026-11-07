@@ -19,6 +19,8 @@ import {
  *  - watching needs NO account: the public viewer link is a signed, random, short-lived token that names
  *    only the session. It yields nothing but a subscribe-only video token for that one room, one viewer at
  *    a time, and only while the broadcaster is connected. It grants no access to projects, files or data.
+ *    The viewer may send small control messages (remote marking) ONLY after the broadcaster approved that for
+ *    the active session (`setLiveShareControl`); the broadcaster checks every message again.
  * No data is stored: the room exists only in LiveKit, video-only, with no recording.
  */
 
@@ -45,9 +47,19 @@ export interface LiveShareGateway {
     identity: string;
     role: 'host' | 'viewer';
     ttlSeconds: number;
+    /** Viewer only: may it send data (remote marking)? Always false unless the broadcaster approved it. */
+    controlEnabled?: boolean;
   }): Promise<string>;
   /** Whether the room exists, whether the broadcaster is connected, and the viewers currently in it. */
-  roomState(room: string): Promise<{ exists: boolean; hostPresent: boolean; viewerIdentities: readonly string[] }>;
+  roomState(room: string): Promise<{
+    exists: boolean;
+    hostPresent: boolean;
+    viewerIdentities: readonly string[];
+    /** The broadcaster approved remote marking for this session (kept in the room, no database). */
+    controlEnabled: boolean;
+  }>;
+  /** Approves / withdraws the viewer's right to send data, for the room and for a viewer already in it. */
+  setControl(room: string, enabled: boolean): Promise<void>;
   deleteRoom(room: string): Promise<void>;
 }
 
@@ -156,8 +168,34 @@ export async function joinLiveShare(
       identity,
       role: 'viewer',
       ttlSeconds: Math.min(LIVE_SHARE.viewerTokenTtlSeconds, Math.max(60, claims.exp - deps.nowSeconds())),
+      // View-only by default; data (remote marking) only while the broadcaster has approved it for this session.
+      controlEnabled: state.controlEnabled,
     });
     return { url: deps.gateway.serverUrl(), token };
+  } catch (error) {
+    if (error instanceof LiveShareError) throw error;
+    throw new LiveShareError('unavailable');
+  }
+}
+
+/**
+ * Host: approves or withdraws remote marking for the ACTIVE session. Needs the same right as starting the
+ * stream and the broadcaster's own signed token, so a viewer can never grant it to itself. The grant lives
+ * only in the LiveKit room (its metadata and the viewer's permissions): nothing is stored.
+ */
+export async function setLiveShareControl(
+  actor: InfraActor,
+  input: { shareToken: string; enabled: boolean },
+  deps: LiveShareDeps,
+): Promise<void> {
+  const claims = readLiveShareClaims(input.shareToken, deps);
+  if (actor.kind === 'internal' && actor.context.organizationId !== claims.o) throw new NotFoundError('Organization');
+  await authorizeProject(actor, { organizationId: claims.o, projectId: claims.p, need: 'document' });
+  const room = liveShareRoomName(claims.s);
+  try {
+    const state = await deps.gateway.roomState(room);
+    if (!state.exists || !state.hostPresent) throw new LiveShareError('ended');
+    await deps.gateway.setControl(room, input.enabled);
   } catch (error) {
     if (error instanceof LiveShareError) throw error;
     throw new LiveShareError('unavailable');
