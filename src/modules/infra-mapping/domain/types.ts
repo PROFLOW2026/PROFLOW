@@ -158,10 +158,12 @@ export interface InfraPermissions {
   readonly canManageCaptures: boolean;
   /** Create / rename / move / generate locations and manage cloud folders. */
   readonly canManageLocations: boolean;
-  /** Browse the connected storage (project files). */
+  /** Browse the connected storage (project files) through the system - owner and employee, by documents.view. */
   readonly canBrowseStorage: boolean;
-  /** Record / upload short videos (trial: owner / office accounts only, not employees or contractors). */
+  /** Record / upload short videos - follows `canDocument` for every surface. */
   readonly canCaptureVideo: boolean;
+  /** Open a stored file in the provider's own web UI (needs a provider login: owner-side accounts only). */
+  readonly canOpenInCloud: boolean;
 }
 
 export interface InfraListPage<T> {

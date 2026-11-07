@@ -250,3 +250,30 @@ describe('remote marking approval', () => {
     expect(gone.gateway.setControl).not.toHaveBeenCalled();
   });
 });
+
+describe('same broadcast for every surface (employee and contractor)', () => {
+  const contractorActor = (): InfraActor =>
+    ({ kind: 'external', context: { principalId: 'p1', grants: [] } }) as unknown as InfraActor;
+
+  it('lets a contractor broadcast, approve remote marking and end it, under the same document right', async () => {
+    const { gateway, deps } = fakeGateway();
+    const started = await startLiveShare(contractorActor(), { projectId: PROJECT }, deps);
+    expect(authorizeProject).toHaveBeenLastCalledWith(expect.objectContaining({ kind: 'external' }), expect.objectContaining({ need: 'document' }));
+    await setLiveShareControl(contractorActor(), { shareToken: started.shareToken, enabled: true }, deps);
+    expect(gateway.setControl).toHaveBeenCalledWith(`pf-live-${'a'.repeat(32)}`, true);
+    await endLiveShare(contractorActor(), { shareToken: started.shareToken }, deps);
+    expect(gateway.deleteRoom).toHaveBeenCalled();
+    expect(authorizeProject).toHaveBeenCalledTimes(3);
+  });
+
+  it('never lets a contractor without the document grant on the project\'s organization start, control or end a stream', async () => {
+    const { gateway, deps } = fakeGateway();
+    const started = await startLiveShare(actor('u1'), { projectId: PROJECT }, deps);
+    authorizeProject.mockRejectedValue(new AuthorizationError('external:ext.document.upload'));
+    await expect(startLiveShare(contractorActor(), { projectId: PROJECT }, deps)).rejects.toBeInstanceOf(AuthorizationError);
+    await expect(setLiveShareControl(contractorActor(), { shareToken: started.shareToken, enabled: true }, deps)).rejects.toBeInstanceOf(AuthorizationError);
+    await expect(endLiveShare(contractorActor(), { shareToken: started.shareToken }, deps)).rejects.toBeInstanceOf(AuthorizationError);
+    expect(gateway.setControl).not.toHaveBeenCalled();
+    expect(gateway.deleteRoom).not.toHaveBeenCalled();
+  });
+});

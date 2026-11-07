@@ -10,6 +10,7 @@ import {
 import { loadShellOrgSettings } from '@/modules/tenancy';
 import type { InfraFolderStatusDto, InfraLocationOption, InfraPermissions, InfraType } from '../domain/types';
 import { visibleLocationSet } from '../domain/location-scope';
+import { resolveInfraPermissions } from '../domain/permissions';
 import { defaultWorkDomain } from '../domain/work-domain';
 import {
   actorDb,
@@ -55,8 +56,10 @@ export async function loadInfraWorkspace(
     projectId: string;
     organizationId?: string | null;
     taskId?: string | null;
-    /** The viewer is an employee-app account: no direct provider links / storage browsing. */
+    /** The viewer is an employee-app account (no personal provider login, so no provider deep links). */
     employeeApp?: boolean;
+    /** Employee accounts only: the documents.read permission and an openable folder (same gate as the files screen). */
+    employeeStorageAllowed?: boolean;
   },
 ): Promise<InfraWorkspaceData> {
   const projectId = z.string().uuid().parse(raw.projectId);
@@ -98,10 +101,18 @@ export async function loadInfraWorkspace(
         grant.capabilities.has(EXTERNAL_CAPABILITIES.DOCUMENT_UPLOAD),
     );
   }
-  const canBrowseStorage =
+  const hasDocumentsView =
     actor.kind === 'internal' &&
-    !raw.employeeApp &&
     (await hasProjectCapability(actor.context, access.projectId, PROJECT_CAPABILITIES.DOCUMENTS_VIEW));
+  const permissions = resolveInfraPermissions({
+    external: actor.kind === 'external',
+    canDocument,
+    canManageCaptures: await viewerCanManageCaptures(actor, access.projectId),
+    canManageLocations,
+    hasDocumentsView,
+    storageGateOpen: raw.employeeStorageAllowed ?? true,
+    employeeApp: Boolean(raw.employeeApp),
+  });
 
   const taskId = raw.taskId && z.string().uuid().safeParse(raw.taskId).success ? raw.taskId : null;
   const task = taskId ? await findTaskBrief(db, organizationId, access.projectId, taskId) : null;
@@ -112,13 +123,7 @@ export async function loadInfraWorkspace(
     viewer: actor.kind,
     locations,
     folders,
-    permissions: {
-      canDocument,
-      canManageCaptures: await viewerCanManageCaptures(actor, access.projectId),
-      canManageLocations,
-      canBrowseStorage,
-      canCaptureVideo: actor.kind === 'internal' && !raw.employeeApp && canDocument,
-    },
+    permissions,
     task,
     defaultWorkDomain: await resolveDefaultWorkDomain(actor, organizationId),
   };

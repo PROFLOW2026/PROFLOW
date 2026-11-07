@@ -52,6 +52,7 @@ export {
   beginInternalEvidenceUpload,
   completeExternalEvidenceUpload,
   completeInternalEvidenceUpload,
+  finalizeExternalEvidenceUpload,
   finalizeInternalEvidenceUpload,
   removeExternalEvidence,
   removeInternalEvidence,

@@ -393,6 +393,43 @@ export async function completeExternalEvidenceUpload(
     mimeType: row.mimeType,
     bytes: input.bytes,
   });
+  return recordExternalEvidenceStored(context, row, stored, deps);
+}
+
+/**
+ * Step 2 (contractor, chunked): the bytes already reached the provider over several requests, so only the
+ * bookkeeping remains - the same document / evidence / event / audit result as the single-request path,
+ * and the same ownership checks (only the uploading principal, only inside its own vendor grant).
+ */
+export async function finalizeExternalEvidenceUpload(
+  context: ExternalContext,
+  input: { readonly evidenceId: string; readonly stored: StoredFile },
+  deps: Pick<ProjectFileDeps, 'elevated'>,
+): Promise<{ evidenceId: string }> {
+  const row = await findVisibleEvidence(context.db, input.evidenceId);
+  if (!row || row.uploadedByActorType !== 'external' || row.uploadedByPrincipalId !== context.principalId) {
+    throw new NotFoundError('Evidence');
+  }
+  if (!context.grants.some((grant) => grant.organizationId === row.organizationId && grant.vendorId === row.vendorId)) {
+    throw new NotFoundError('Evidence');
+  }
+  if (row.status !== 'pending') {
+    throw new DomainRuleError('Evidence is not awaiting upload', 'projectPlans.evidence.errors.notPending');
+  }
+  const { stored } = input;
+  if (stored.sizeBytes <= 0) throw new DomainRuleError('Empty upload', 'projectPlans.evidence.errors.empty');
+  if (stored.sizeBytes > EVIDENCE_SIZE_LIMITS[row.kind]) {
+    throw new DomainRuleError('Upload too large', 'projectPlans.evidence.errors.tooLarge');
+  }
+  return recordExternalEvidenceStored(context, row, stored, deps);
+}
+
+async function recordExternalEvidenceStored(
+  context: ExternalContext,
+  row: EvidenceRow,
+  stored: StoredFile,
+  deps: Pick<ProjectFileDeps, 'elevated'>,
+): Promise<{ evidenceId: string }> {
   await deps.elevated(async (db) => {
     await markProjectDocumentStored(db, {
       organizationId: row.organizationId,

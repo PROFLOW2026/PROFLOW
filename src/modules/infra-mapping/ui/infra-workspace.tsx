@@ -231,7 +231,7 @@ function InfraWorkspaceLoaded({
             refreshKey={refreshKey}
             initialLocationId={locationId}
             onLocationChange={setLocationId}
-            allowCloudLink={viewer === 'internal' && permissions.canBrowseStorage}
+            allowCloudLink={permissions.canOpenInCloud}
             onSelectForLocate={(capture, slot) => void selectForLocate(capture, slot)}
             onUseVideoFrame={(frame, slot) => openVideoFrameInLocate(frame, slot)}
           />

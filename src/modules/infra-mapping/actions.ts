@@ -3,7 +3,13 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requireExternalContext } from '@/modules/contractor-access';
-import { isEmployeeAppUser } from '@/modules/employee-app/application/load-employee-app-context';
+import {
+  employeeHasPermission,
+  isEmployeeAppUser,
+} from '@/modules/employee-app/application/load-employee-app-context';
+import { employeeHasAnyAllowedSemanticFolder } from '@/modules/external-storage/domain/semantic-folder-access';
+import type { OrgContext } from '@/shared/auth/context';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   addUnitsAction,
   archiveLocationAction,
@@ -140,6 +146,15 @@ async function run<T>(viewer: InfraViewer, work: (actor: InfraActor) => Promise<
 
 // ── workspace ───────────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Same gate the employee "project files" screen applies: the employee needs the documents.read permission
+ * and at least one semantic folder they may open. Non-employee accounts are not affected by it.
+ */
+function employeeMayBrowseOrganizationStorage(context: OrgContext): boolean {
+  if (!isEmployeeAppUser(context)) return true;
+  return employeeHasPermission(context, PERMISSIONS.DOCUMENTS_READ) && employeeHasAnyAllowedSemanticFolder(context);
+}
+
 export async function loadInfraWorkspaceAction(input: {
   viewer: InfraViewer;
   projectId: string;
@@ -152,6 +167,7 @@ export async function loadInfraWorkspaceAction(input: {
       organizationId: input.organizationId,
       taskId: input.taskId,
       employeeApp: actor.kind === 'internal' && isEmployeeAppUser(actor.context),
+      employeeStorageAllowed: actor.kind === 'internal' && employeeMayBrowseOrganizationStorage(actor.context),
     });
     // Only the locations screen needs to know whether the cloud is connected.
     if (actor.kind === 'internal' && data.permissions.canManageLocations) {
@@ -168,17 +184,16 @@ export async function beginCaptureAction(viewer: InfraViewer, input: BeginCaptur
 }
 
 /**
- * Registers an approved short video (owner / office accounts only) and returns the chunked-upload
- * ticket. The bytes follow through `/api/infra/video-upload/:evidenceId`.
+ * Registers an approved short video and returns the chunked-upload ticket. Same rule for every surface:
+ * whoever may document at the location (owner / office, employee or contractor with the matching
+ * grant) may record a video. The bytes follow through `/api/infra/video-upload/:evidenceId`
+ * (owner / employee app) or `/api/contractor/infra/video-upload/:evidenceId` (contractor portal).
  */
 export async function beginVideoCaptureAction(
   viewer: InfraViewer,
   input: BeginVideoCaptureInput,
 ): Promise<InfraResult<BeginVideoCaptureResult>> {
-  return run(viewer, async (actor) => {
-    if (actor.kind !== 'internal' || isEmployeeAppUser(actor.context)) throw new AuthorizationError('infra:video');
-    return beginVideoCapture(actor, input, infraDeps, infraVideoPort);
-  });
+  return run(viewer, (actor) => beginVideoCapture(actor, input, infraDeps, infraVideoPort));
 }
 
 export async function listCapturesAction(

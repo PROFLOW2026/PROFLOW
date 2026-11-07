@@ -370,6 +370,7 @@ export interface EvidenceBrief {
   readonly mimeType: string;
   readonly uploadedByActorType: 'internal' | 'external';
   readonly uploadedByUserId?: string | null;
+  readonly uploadedByPrincipalId?: string | null;
   /** Declared size (bytes) registered when the upload began. */
   readonly sizeBytes?: number;
   readonly kind?: 'photo' | 'video' | 'document';
@@ -393,6 +394,7 @@ export async function listEvidenceBriefs(
       mimeType: evidenceItems.mimeType,
       uploadedByActorType: evidenceItems.uploadedByActorType,
       uploadedByUserId: evidenceItems.uploadedByUserId,
+      uploadedByPrincipalId: evidenceItems.uploadedByPrincipalId,
       sizeBytes: evidenceItems.sizeBytes,
       kind: evidenceItems.kind,
     })

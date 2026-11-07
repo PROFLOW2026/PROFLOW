@@ -18,6 +18,7 @@ const evidence = vi.hoisted(() => ({
   authorizeInternalEntity: vi.fn(),
   beginExternalEvidenceUpload: vi.fn(),
   beginInternalEvidenceUpload: vi.fn(),
+  finalizeExternalEvidenceUpload: vi.fn(),
   finalizeInternalEvidenceUpload: vi.fn(),
   removeExternalEvidence: vi.fn(),
   removeInternalEvidence: vi.fn(),
@@ -78,6 +79,7 @@ beforeEach(() => {
   repo.taskBelongsToProject.mockResolvedValue(true);
   repo.listEvidenceBriefs.mockResolvedValue([]);
   evidence.authorizeInternalEntity.mockResolvedValue({ projectId: PROJECT });
+  evidence.authorizeExternalEntity.mockResolvedValue({ scope: { projectId: PROJECT }, vendorId: 'v1' });
   evidence.beginInternalEvidenceUpload.mockResolvedValue({ evidenceId: EVIDENCE });
   team.hasProjectCapability.mockResolvedValue(true);
 });
@@ -104,9 +106,25 @@ describe('beginVideoCapture', () => {
     expect(repo.insertCapture).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ locationId: LOCATION, evidenceId: EVIDENCE, clientCaptureId: CLIENT_ID }));
   });
 
-  it('is limited to internal (office) accounts - a contractor is refused before anything is written', async () => {
-    await expect(beginVideoCapture(contractor(), baseInput, deps, port())).rejects.toBeInstanceOf(AuthorizationError);
+  it('gives a contractor with the document-upload grant the same video capture, on its own upload route', async () => {
+    evidence.beginExternalEvidenceUpload.mockResolvedValue({ evidenceId: EVIDENCE });
+    const result = await beginVideoCapture(contractor(), { ...baseInput, organizationId: ORG }, deps, port());
+    expect(result).toMatchObject({
+      evidenceId: EVIDENCE,
+      uploadUrl: `/api/contractor/infra/video-upload/${EVIDENCE}`,
+      chunkBytes: INFRA_VIDEO_CHUNK_BYTES,
+    });
+    const [, ticketInput] = evidence.beginExternalEvidenceUpload.mock.calls[0]!;
+    expect(ticketInput).toMatchObject({ organizationId: ORG, accept: ['video'], locationId: LOCATION });
     expect(evidence.beginInternalEvidenceUpload).not.toHaveBeenCalled();
+    expect(repo.insertCapture).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ createdByActorType: 'external' }));
+  });
+
+  it('writes nothing when the evidence module refuses the contractor (no upload grant / other project or vendor)', async () => {
+    // The grant itself (capability, project, vendor, location) is decided and tested in the evidence module.
+    evidence.authorizeExternalEntity.mockRejectedValue(new AuthorizationError('external:ext.document.upload'));
+    await expect(beginVideoCapture(contractor(), { ...baseInput, organizationId: ORG }, deps, port())).rejects.toBeInstanceOf(AuthorizationError);
+    expect(evidence.beginExternalEvidenceUpload).not.toHaveBeenCalled();
     expect(repo.insertCapture).not.toHaveBeenCalled();
   });
 
@@ -175,7 +193,38 @@ describe('uploadVideoChunk', () => {
     expect(evidence.finalizeInternalEvidenceUpload).toHaveBeenCalledWith(expect.anything(), { evidenceId: EVIDENCE, stored }, deps.files);
   });
 
-  it('refuses bytes that are not a video, other people\'s uploads, photos and contractors', async () => {
+  it('relays a contractor chunk and finalizes through the external evidence path, bound to the principal', async () => {
+    const extBrief = brief({ uploadedByActorType: 'external', uploadedByUserId: null, uploadedByPrincipalId: PRINCIPAL });
+    repo.listEvidenceBriefs.mockResolvedValue([extBrief]);
+    const stored = { connectionId: 'c1', provider: 'onedrive', externalFileId: 'f1', externalParentFolderId: 'folder-loc', etag: null, sizeBytes: total, checksum: null };
+    const uploadChunk = vi.fn().mockResolvedValue({ kind: 'complete', stored });
+    const last = { evidenceId: EVIDENCE, offset: INFRA_VIDEO_CHUNK_BYTES * 2, totalBytes: total, session: 'sealed-2', bytes: new Uint8Array(total - INFRA_VIDEO_CHUNK_BYTES * 2) };
+    const answer = await uploadVideoChunk(contractor(), last, { uploadChunk }, deps);
+    expect(answer).toEqual({ done: true, nextOffset: total, session: null });
+    expect(uploadChunk).toHaveBeenCalledWith(expect.objectContaining({ userId: PRINCIPAL, organizationId: ORG }));
+    expect(evidence.finalizeExternalEvidenceUpload).toHaveBeenCalledWith(expect.anything(), { evidenceId: EVIDENCE, stored }, deps.files);
+    expect(evidence.finalizeInternalEvidenceUpload).not.toHaveBeenCalled();
+  });
+
+  it('never lets a contractor touch another principal\'s or an internal user\'s video', async () => {
+    const uploadChunk = vi.fn();
+    repo.listEvidenceBriefs.mockResolvedValue([brief({ uploadedByActorType: 'external', uploadedByUserId: null, uploadedByPrincipalId: OTHER_USER })]);
+    await expect(uploadVideoChunk(contractor(), chunk(0, INFRA_VIDEO_CHUNK_BYTES), { uploadChunk }, deps)).rejects.toBeInstanceOf(NotFoundError);
+    repo.listEvidenceBriefs.mockResolvedValue([brief()]);
+    await expect(uploadVideoChunk(contractor(), chunk(0, INFRA_VIDEO_CHUNK_BYTES), { uploadChunk }, deps)).rejects.toBeInstanceOf(NotFoundError);
+    expect(uploadChunk).not.toHaveBeenCalled();
+  });
+
+  it('stops a contractor whose upload grant was withdrawn mid-transfer', async () => {
+    const uploadChunk = vi.fn();
+    repo.listEvidenceBriefs.mockResolvedValue([brief({ uploadedByActorType: 'external', uploadedByUserId: null, uploadedByPrincipalId: PRINCIPAL })]);
+    // The evidence module re-checks the grant on every chunk and now refuses.
+    evidence.authorizeExternalEntity.mockRejectedValue(new AuthorizationError('external:ext.document.upload'));
+    await expect(uploadVideoChunk(contractor(), chunk(0, INFRA_VIDEO_CHUNK_BYTES), { uploadChunk }, deps)).rejects.toBeInstanceOf(AuthorizationError);
+    expect(uploadChunk).not.toHaveBeenCalled();
+  });
+
+  it('refuses bytes that are not a video, other people\'s uploads and photos', async () => {
     const uploadChunk = vi.fn();
     repo.listEvidenceBriefs.mockResolvedValue([brief()]);
     const notVideo = chunk(0, INFRA_VIDEO_CHUNK_BYTES, new Uint8Array(64).fill(7));
@@ -183,7 +232,6 @@ describe('uploadVideoChunk', () => {
     await expect(uploadVideoChunk(internal(OTHER_USER), chunk(0, INFRA_VIDEO_CHUNK_BYTES), { uploadChunk }, deps)).rejects.toBeInstanceOf(NotFoundError);
     repo.listEvidenceBriefs.mockResolvedValue([brief({ kind: 'photo' })]);
     await expect(uploadVideoChunk(internal(), chunk(0, INFRA_VIDEO_CHUNK_BYTES), { uploadChunk }, deps)).rejects.toBeInstanceOf(NotFoundError);
-    await expect(uploadVideoChunk(contractor(), chunk(0, INFRA_VIDEO_CHUNK_BYTES), { uploadChunk }, deps)).rejects.toBeInstanceOf(AuthorizationError);
     expect(uploadChunk).not.toHaveBeenCalled();
   });
 

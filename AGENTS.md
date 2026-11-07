@@ -26,6 +26,17 @@ These rules apply to all agents working in this repository.
 - After such a deployment, verify READY, the active domain, and the changed behavior. No duplicate builds, no automatic retry loops.
 - Full rule: `.cursor/rules/production-deployment.mdc`. Release gate: `docs/RELEASE-PREFLIGHT.md`.
 
+## Three-surface parity (permanent, all EXLFY features)
+
+Every new feature or improvement to an existing feature in the main app **must be evaluated for, and support, the employee app and the contractor app** whenever the feature is relevant to them and they hold matching permissions.
+
+- Default is **parity of capabilities** between the main app, the employee app and the contractor app.
+- Do **not** restrict an employee or contractor merely because of the app type (`employeeApp`, `external`). The same permission gives the same capability on every surface.
+- A capability difference is allowed only on a **permission** basis or a **documented essential need** (e.g. a provider web login that employees/contractors do not have). Document every intentional limitation next to the feature (see `docs/product/infra-three-surface-parity-matrix.md`).
+- Prefer **shared components, logic and server actions** over per-surface copies. Surface wrappers should only wire the surface-specific transport (routes, browse actions), never decide capabilities.
+- Never fix a blanket restriction by opening unrestricted access: add or reuse a proper capability permission, keep RLS, org isolation and project/vendor scoping intact, grant nothing automatically.
+- Check the impact on all three surfaces on every relevant change. Full rule: `.cursor/rules/three-surface-parity.mdc`.
+
 ## Local databases
 
 - Use local disposable test databases only when clearly isolated from Production/shared business data.

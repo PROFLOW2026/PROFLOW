@@ -1,11 +1,12 @@
 import { z } from 'zod';
-import { finalizeInternalEvidenceUpload, type StoredFile } from '@/modules/evidence';
+import { finalizeExternalEvidenceUpload, finalizeInternalEvidenceUpload, type StoredFile } from '@/modules/evidence';
 import { contentMatchesMime } from '@/modules/evidence/domain/file-policy';
-import { AuthorizationError, ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
+import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import {
   findCaptureByClientId,
   insertCapture,
   listEvidenceBriefs,
+  type EvidenceBrief,
 } from '../data/infra.repository';
 import {
   INFRA_VIDEO_MAX_MS,
@@ -37,6 +38,7 @@ import type { InfraActor, InfraDeps } from './ports';
  */
 
 export const INFRA_VIDEO_UPLOAD_PATH = '/api/infra/video-upload';
+export const INFRA_EXTERNAL_VIDEO_UPLOAD_PATH = '/api/contractor/infra/video-upload';
 
 export interface VideoChunkIn {
   readonly organizationId: string;
@@ -78,9 +80,30 @@ function parse<S extends z.ZodTypeAny>(schema: S, raw: unknown): z.output<S> {
   return result.data;
 }
 
-function assertInternal(actor: InfraActor): asserts actor is Extract<InfraActor, { kind: 'internal' }> {
-  // Trial scope: videos are an owner/office capability. Contractors never reach this code.
-  if (actor.kind !== 'internal') throw new AuthorizationError('infra:video');
+/** Chunk endpoint per surface: the same use-case behind the owner / employee route and the contractor route. */
+export function videoUploadUrlFor(actor: InfraActor, evidenceId: string): string {
+  return `${actor.kind === 'internal' ? INFRA_VIDEO_UPLOAD_PATH : INFRA_EXTERNAL_VIDEO_UPLOAD_PATH}/${evidenceId}`;
+}
+
+/**
+ * Finds the pending video evidence this actor uploaded. The owner / employee app looks inside its own
+ * organization; a contractor looks inside the organizations of its own grants (RLS shows it only its
+ * vendor's rows, and the uploader check below makes it strictly its own upload).
+ */
+async function findOwnVideoBrief(actor: InfraActor, evidenceId: string): Promise<EvidenceBrief | null> {
+  const db = actorDb(actor);
+  if (actor.kind === 'internal') {
+    const [brief] = await listEvidenceBriefs(db, actor.context.organizationId, [evidenceId]);
+    return brief && brief.uploadedByActorType === 'internal' && brief.uploadedByUserId === actor.context.userId ? brief : null;
+  }
+  const organizations = [...new Set(actor.context.grants.map((grant) => grant.organizationId))];
+  for (const organizationId of organizations) {
+    const [brief] = await listEvidenceBriefs(db, organizationId, [evidenceId]);
+    if (brief) {
+      return brief.uploadedByActorType === 'external' && brief.uploadedByPrincipalId === actor.context.principalId ? brief : null;
+    }
+  }
+  return null;
 }
 
 const VIDEO_REJECTION_KEYS = {
@@ -101,7 +124,6 @@ export async function beginVideoCapture(
   deps: InfraDeps,
   port: Pick<InfraVideoPort, 'assertCanStore'>,
 ): Promise<BeginVideoCaptureResult> {
-  assertInternal(actor);
   const input = parse(beginVideoCaptureSchema, raw);
   const organizationId = await organizationFor(actor, input.organizationId);
   const access = await authorizeLocation(actor, {
@@ -121,7 +143,7 @@ export async function beginVideoCapture(
     return {
       captureId: existing.id,
       evidenceId: existing.evidenceId,
-      uploadUrl: `${INFRA_VIDEO_UPLOAD_PATH}/${existing.evidenceId}`,
+      uploadUrl: videoUploadUrlFor(actor, existing.evidenceId),
       alreadyUploaded: brief.status === 'available',
       ...tuning,
     };
@@ -189,7 +211,7 @@ export async function beginVideoCapture(
   return {
     captureId,
     evidenceId: ticket.evidenceId,
-    uploadUrl: `${INFRA_VIDEO_UPLOAD_PATH}/${ticket.evidenceId}`,
+    uploadUrl: videoUploadUrlFor(actor, ticket.evidenceId),
     alreadyUploaded: false,
     ...tuning,
   };
@@ -220,16 +242,17 @@ export async function uploadVideoChunk(
   port: Pick<InfraVideoPort, 'uploadChunk'>,
   deps: Pick<InfraDeps, 'files'>,
 ): Promise<VideoChunkResponse> {
-  assertInternal(actor);
   const input = parse(chunkSchema, raw);
   const bytes = raw.bytes;
   if (!isValidChunkRequest({ totalBytes: input.totalBytes, offset: input.offset, length: bytes.length })) {
     throw new DomainRuleError('Invalid video chunk', 'infraMapping.errors.videoChunk');
   }
-  const { organizationId, userId } = actor.context;
-  const [brief] = await listEvidenceBriefs(actorDb(actor), organizationId, [input.evidenceId]);
-  if (!brief || brief.kind !== 'video' || brief.uploadedByActorType !== 'internal' || brief.uploadedByUserId !== userId) {
-    throw new NotFoundError('Evidence');
+  const brief = await findOwnVideoBrief(actor, input.evidenceId);
+  if (!brief || brief.kind !== 'video') throw new NotFoundError('Evidence');
+  const { organizationId } = brief;
+  // The uploader (employee, office user or contractor) must still hold the right to document here.
+  if (brief.locationId) {
+    await authorizeLocation(actor, { organizationId, projectId: brief.projectId, locationId: brief.locationId, need: 'document' });
   }
   if (brief.status === 'available') return { done: true, nextOffset: input.totalBytes, session: null };
   if (brief.status !== 'pending') throw new ConflictError('Evidence is not awaiting upload', 'infraMapping.errors.captureRemoved');
@@ -250,7 +273,8 @@ export async function uploadVideoChunk(
     locationId: brief.locationId,
     documentId: brief.documentId,
     evidenceId: brief.id,
-    userId,
+    // Binds the sealed session to its uploader: a user id for the owner / employee app, a principal id for a contractor.
+    userId: actor.kind === 'internal' ? actor.context.userId : actor.context.principalId,
     fileName: brief.fileName,
     mimeType: brief.mimeType,
     totalBytes: input.totalBytes,
@@ -260,7 +284,11 @@ export async function uploadVideoChunk(
   });
 
   if (result.kind === 'complete') {
-    await finalizeInternalEvidenceUpload(actor.context, { evidenceId: brief.id, stored: result.stored }, deps.files);
+    if (actor.kind === 'internal') {
+      await finalizeInternalEvidenceUpload(actor.context, { evidenceId: brief.id, stored: result.stored }, deps.files);
+    } else {
+      await finalizeExternalEvidenceUpload(actor.context, { evidenceId: brief.id, stored: result.stored }, deps.files);
+    }
     return { done: true, nextOffset: input.totalBytes, session: null };
   }
   return { done: false, nextOffset: Math.min(result.nextOffset, input.totalBytes), session: result.session };

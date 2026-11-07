@@ -1,0 +1,32 @@
+---
+description: Binding parity of every EXLFY feature across the main app, the employee app and the contractor app
+alwaysApply: true
+---
+
+# Three-surface parity (mandatory)
+
+כל פיצ'ר חדש או שיפור לפיצ'ר קיים באפליקציה הראשית חייב להיבחן ולתמוך גם באפליקציית העובדים
+ובאפליקציית הקבלנים, כאשר הפיצ'ר רלוונטי להם ויש להם הרשאות מתאימות.
+
+Every new feature or improvement in the main app must be evaluated for the **employee app** and the
+**contractor app**, and supported there when it is relevant and the user holds matching permissions.
+
+## Rules
+
+1. **Default = parity.** The same permission gives the same capability on every surface.
+2. **No app-type restrictions.** Never gate a capability on `employeeApp` / `external` alone. A blanket
+   restriction that blocks an authorized user is fixed with a proper capability permission - never by
+   opening unrestricted access.
+3. **Differences only by permission or a documented essential need** (for example: a provider web login
+   employees/contractors do not have; a contractor has no read grant on raw project folders). Document every
+   intentional limitation next to the feature (matrix doc, code comment on the resolver).
+4. **Share, do not copy.** One component, one use-case, one server action. Surface wrappers wire transport only
+   (route, browse actions, session kind) and must not decide capabilities. Derive capability flags in one pure
+   resolver (see `src/modules/infra-mapping/domain/permissions.ts`).
+5. **Security stays intact.** RLS, organization isolation, project / vendor / location scoping are never bypassed;
+   permissions are never auto-granted; employees and contractors need no personal cloud account (uploads go to
+   the organization storage through the system, within permissions).
+6. **Check all three surfaces on every relevant change** and add focused tests for the permission rule and the
+   isolation (not wide suites).
+
+Reference matrix: `docs/product/infra-three-surface-parity-matrix.md`.
