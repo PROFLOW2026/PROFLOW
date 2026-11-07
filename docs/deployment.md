@@ -80,7 +80,10 @@ What the launcher (`scripts/deploy/linux-prebuilt.ps1`) does:
    starts the container, and **deletes `token.env` three seconds later**.
 6. The container (`scripts/deploy/linux-prebuilt.sh`, `node:22-bookworm`, `--cpuset-cpus 0-5`, `--max-old-space-size=12288`):
    extract -> `npm i -g vercel@65.2.0` -> `vercel build --prod` (about 8 minutes) -> output checks -> **one**
-   `vercel deploy --prebuilt --prod --yes`.
+   `vercel deploy --prebuilt --prod --archive=tgz --yes`. **`--archive=tgz` is the default for every deployment**: it
+   uploads one compressed archive instead of thousands of files, so the Vercel per-file upload quota
+   (`Too many requests - try again in 24 hours (more than 5000, code: "api-upload-free")`) is not consumed.
+   If the upload is still refused for quota reasons, stop and report; never retry in a loop.
 
 Output checks (the deploy is skipped and the status is `FAILED_*` when any of them fails):
 
@@ -90,9 +93,13 @@ Output checks (the deploy is skipped and the status is `FAILED_*` when any of th
 - the requested route functions exist;
 - no `.env*` file and no occurrence of the Vercel token anywhere in `.vercel/output`.
 
-### If only the deploy step failed (for example "token is not valid")
+### If only the deploy step failed (for example "token is not valid" or an upload quota error)
 
-The build is still inside the stopped container; do not rebuild:
+The build is still inside the stopped container; do not rebuild. First prove it is the right build: the
+`Building committed HEAD <sha>` line printed by the launcher must be the commit you mean to ship, and
+`git archive -o <tmp>.tar <sha>` must hash identically to `.deploy-linux/src.tar` (the archive is deterministic).
+Copy the current container script (LF endings) to `.deploy-linux/linux-prebuilt.sh` so the deploy step uses
+`--archive=tgz`, then:
 
 ```powershell
 vercel whoami                                   # refreshes the saved login

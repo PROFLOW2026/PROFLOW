@@ -113,8 +113,10 @@ step "checks exit=$crc"
 [ "$(find .vercel/output \( -name '.env*' -o -name '*.env' \) | wc -l)" = "0" ] || fail "FAILED_ENV_FILES_IN_OUTPUT"
 [ "$(grep -rlF "$VERCEL_TOKEN" .vercel/output 2>/dev/null | wc -l)" = "0" ] || fail "FAILED_TOKEN_IN_OUTPUT"
 
-step "vercel deploy --prebuilt --prod"
-vercel deploy --prebuilt --prod --yes > "$OUT/deploy.log" 2>&1
+# --archive=tgz uploads ONE compressed archive instead of thousands of files: the per-file upload quota of the
+# Vercel plan ("api-upload-free", 5000 files / 24 h) is no longer consumed by every deployment.
+step "vercel deploy --prebuilt --prod --archive=tgz"
+vercel deploy --prebuilt --prod --archive=tgz --yes > "$OUT/deploy.log" 2>&1
 drc=$?
 echo $drc > "$OUT/deploy.exit"
 step "deploy exit=$drc"
