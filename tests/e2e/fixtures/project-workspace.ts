@@ -30,8 +30,25 @@ export async function clickProjectSection(page: Page, sectionLabel: string): Pro
   await page.getByRole('link', { name: sectionLabel, exact: true }).click();
 }
 
+/** Default project workspace URL (money / financials hub). */
+export function projectWorkspaceUrl(projectId: string, tab?: string): string {
+  const key = tab?.trim() || 'financials';
+  if (key === 'overview' || key === 'financials') {
+    return `/he-IL/projects/${projectId}`;
+  }
+  return `/he-IL/projects/${projectId}?tab=${key}`;
+}
+
+export const EXPECTED_PROJECT_HUBS: readonly string[] = [
+  projectHubs.money,
+  projectHubs.work,
+  projectHubs.documents,
+  projectHubs.infra,
+  projectHubs.details,
+];
+
 export async function gotoProjectTab(page: Page, projectId: string, tab: string): Promise<void> {
-  await page.goto(`/he-IL/projects/${projectId}?tab=${tab}`, { waitUntil: 'domcontentloaded' });
+  await page.goto(projectWorkspaceUrl(projectId, tab), { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('tablist')).toBeVisible({ timeout: 30_000 });
 }
 
@@ -50,7 +67,7 @@ const SECTION_HUB_LABEL: Readonly<Record<string, string>> = {
   [projectSections.schedule]: projectHubs.work,
   [projectSections.usage]: projectHubs.work,
   [projectSections.documents]: projectHubs.documents,
-  [projectSections.infra]: projectHubs.documents,
+  [projectSections.infra]: projectHubs.infra,
   [projectSections.details]: projectHubs.details,
   [projectSections.closeout]: projectHubs.details,
   [projectSections.warranty]: projectHubs.details,

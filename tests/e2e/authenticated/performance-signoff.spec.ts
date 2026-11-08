@@ -46,7 +46,7 @@ async function expectProjectTabsInteractive(page: Page) {
 
 async function gotoProjectTab(page: Page, projectId: string, tabKey: string) {
   const url =
-    tabKey === 'overview'
+    tabKey === 'overview' || tabKey === 'financials'
       ? `/he-IL/projects/${projectId}`
       : `/he-IL/projects/${projectId}?tab=${tabKey}`;
   await page.goto(url);
@@ -104,9 +104,9 @@ test('performance sign-off — five project tab hops', async ({ page }) => {
     await measureHop(
       page,
       projectId,
-      'Overview → Billing Plan',
-      'overview',
-      he.projects.workspace.tabs.overview,
+      'Money → Billing Plan',
+      'financials',
+      he.projects.workspace.hubs.money,
       'billingPlan',
       he.projects.workspace.tabs.billingPlan,
       async () => {
@@ -171,11 +171,11 @@ test('performance sign-off — five project tab hops', async ({ page }) => {
     await measureHop(
       page,
       projectId,
-      'Schedule → Overview',
+      'Schedule → Money',
       'schedule',
       he.projects.workspace.tabs.schedule,
-      'overview',
-      he.projects.workspace.tabs.overview,
+      'financials',
+      he.projects.workspace.hubs.money,
     ),
   );
 

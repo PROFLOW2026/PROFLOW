@@ -255,7 +255,7 @@ test('production navigation performance verification', async ({ page }) => {
     async () => {
       await expect(page).toHaveURL(new RegExp(`/he-IL/projects/${world.projectId}`));
       await expect(page.getByRole('heading', { name: seededProjectName })).toBeVisible({ timeout: 30_000 });
-      await expectTabSelected(page, he.projects.workspace.tabs.overview);
+      await expectTabSelected(page, he.projects.workspace.hubs.money);
     },
   );
   await page.goto('/he-IL/projects');
@@ -270,7 +270,7 @@ test('production navigation performance verification', async ({ page }) => {
     },
     async () => {
       await expect(page.getByRole('heading', { name: seededProjectName })).toBeVisible();
-      await expectTabSelected(page, he.projects.workspace.tabs.overview);
+      await expectTabSelected(page, he.projects.workspace.hubs.money);
     },
   );
   push({
@@ -285,7 +285,7 @@ test('production navigation performance verification', async ({ page }) => {
 
   async function gotoProjectTab(tabKey: string) {
     const url =
-      tabKey === 'overview'
+      tabKey === 'overview' || tabKey === 'financials'
         ? `/he-IL/projects/${world.projectId}`
         : `/he-IL/projects/${world.projectId}?tab=${tabKey}`;
     await page.goto(url);
@@ -294,7 +294,7 @@ test('production navigation performance verification', async ({ page }) => {
   }
 
   // Modules changes/billing/documents are enabled in e2e seed.
-  await gotoProjectTab('overview');
+  await gotoProjectTab('financials');
   await expect(page.getByRole('tab', { name: he.projects.workspace.hubs.work })).toBeVisible({
     timeout: 30_000,
   });
@@ -350,9 +350,9 @@ test('production navigation performance verification', async ({ page }) => {
 
   // --- D ---
   await hop(
-    'D. Project Overview → Financials',
-    'overview',
-    he.projects.workspace.tabs.overview,
+    'D. Money hub → Financials',
+    'financials',
+    he.projects.workspace.hubs.money,
     'financials',
     he.projects.workspace.tabs.financials,
     async () => {
@@ -402,11 +402,11 @@ test('production navigation performance verification', async ({ page }) => {
 
   // --- H ---
   await hop(
-    'H. Project → Documents',
-    'overview',
-    he.projects.workspace.tabs.overview,
+    'H. Money hub → Documents hub',
+    'financials',
+    he.projects.workspace.hubs.money,
     'documents',
-    he.projects.workspace.tabs.documents,
+    he.projects.workspace.hubs.documents,
     async () => {
       await expect(page.getByText(/מסמכים|אין מסמכים|לא צורפו/).first()).toBeVisible({
         timeout: 30_000,
@@ -416,9 +416,9 @@ test('production navigation performance verification', async ({ page }) => {
 
   // --- K. Owner wave: billing plan + schedule hops ---
   await hop(
-    'K. Overview → Billing Plan',
-    'overview',
-    he.projects.workspace.tabs.overview,
+    'K. Money hub → Billing Plan',
+    'financials',
+    he.projects.workspace.hubs.money,
     'billingPlan',
     he.projects.workspace.tabs.billingPlan,
     async () => {
@@ -462,13 +462,13 @@ test('production navigation performance verification', async ({ page }) => {
   );
 
   await hop(
-    'O. Schedule → Overview',
+    'O. Schedule → Money hub',
     'schedule',
     he.projects.workspace.tabs.schedule,
-    'overview',
-    he.projects.workspace.tabs.overview,
+    'financials',
+    he.projects.workspace.hubs.money,
     async () => {
-      await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.overview })).toBeVisible();
+      await expect(page.getByRole('tab', { name: he.projects.workspace.hubs.money })).toBeVisible();
     },
   );
 
@@ -504,14 +504,14 @@ test('production navigation performance verification', async ({ page }) => {
   });
 
   // --- J. Warm tab cycle ---
-  await gotoProjectTab('overview');
+  await gotoProjectTab('financials');
   const cycleLabels = [
     he.projects.workspace.tabs.financials,
     he.projects.workspace.tabs.expenses,
     he.projects.workspace.tabs.changes,
     he.projects.workspace.tabs.billing,
     he.projects.workspace.tabs.documents,
-    he.projects.workspace.tabs.overview,
+    he.projects.workspace.hubs.money,
   ];
   // prime
   for (const label of cycleLabels) {
@@ -524,7 +524,7 @@ test('production navigation performance verification', async ({ page }) => {
     he.projects.workspace.tabs.expenses,
     he.projects.workspace.tabs.changes,
     he.projects.workspace.tabs.billing,
-    he.projects.workspace.tabs.overview,
+    he.projects.workspace.hubs.money,
   ]) {
     cycleSamples.push(
       await measureClickNav(

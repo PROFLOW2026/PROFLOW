@@ -48,9 +48,9 @@ test.describe('signed-in owner', () => {
     await expectProjectHeading(page, seededProjectName);
     await expectProjectHubTabs(page, [
       projectHubs.money,
-      projectHubs.money,
       projectHubs.work,
       projectHubs.documents,
+      projectHubs.infra,
       projectHubs.details,
     ]);
 
@@ -68,7 +68,15 @@ test.describe('signed-in owner', () => {
     await expect(page.getByText(seededExpenseDescription).first()).toBeVisible();
     await expect(page.getByText(seededExpenseFormatted).first()).toBeVisible();
 
+    await clickProjectHub(page, projectHubs.work);
+    await expect(page.getByRole('tab', { name: projectHubs.work })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByText(/משהו השתבש/).first()).toHaveCount(0);
+
+    await clickProjectHub(page, projectHubs.infra);
+    await expect(page.getByRole('tab', { name: projectHubs.infra })).toHaveAttribute('aria-selected', 'true');
+
     await clickProjectHub(page, projectHubs.details);
+    await expect(page.getByText(/משהו השתבש/).first()).toHaveCount(0);
     await expect(page.getByRole('textbox', { name: he.common.labels.name, exact: true })).toHaveValue(
       seededProjectName,
     );

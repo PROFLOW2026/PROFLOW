@@ -166,10 +166,16 @@ export function StructureWizard({
     return [...roomTemplate(roomCount).core, ...optionalRooms, ...splitList(customRooms)];
   }, [roomCount, optionalRooms, customRooms, template]);
 
-  const fullSpec: WizardSpec = useMemo(
-    () => ({ ...spec, areas: template === 'infrastructure' || template === 'custom' ? splitList(areasText) : [], rooms }),
-    [spec, areasText, rooms, template],
-  );
+  const fullSpec: WizardSpec = useMemo(() => {
+    const unitNumberStarts =
+      distributeStart > 1 ? { ...spec.unitNumberStarts, [quickKind]: distributeStart } : spec.unitNumberStarts;
+    return {
+      ...spec,
+      unitNumberStarts,
+      areas: template === 'infrastructure' || template === 'custom' ? splitList(areasText) : [],
+      rooms,
+    };
+  }, [spec, areasText, rooms, template, distributeStart, quickKind]);
   const issues = useMemo(() => validateWizardSpec(fullSpec), [fullSpec]);
   const plan = useMemo(() => (issues.length === 0 ? planStructure(fullSpec) : null), [issues, fullSpec]);
   const summary = useMemo(() => (plan ? summarizePlan(plan) : null), [plan]);
@@ -276,7 +282,10 @@ export function StructureWizard({
         };
       }),
     );
-    void distributeStart;
+    setSpec((current) => ({
+      ...current,
+      unitNumberStarts: distributeStart > 1 ? { ...current.unitNumberStarts, [quickKind]: distributeStart } : current.unitNumberStarts,
+    }));
   };
 
   const active = spec.buildings[Math.min(buildingIndex, Math.max(spec.buildings.length - 1, 0))];

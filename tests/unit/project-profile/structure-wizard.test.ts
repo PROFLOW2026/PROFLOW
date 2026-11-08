@@ -51,6 +51,16 @@ describe('wizard plan', () => {
     expect(names.join(' ')).not.toMatch(/זמני/);
   });
 
+  it('honors unitNumberStarts for sequential numbering', () => {
+    const plan = planStructure(
+      spec({
+        unitNumberStarts: { apartment: 5 },
+        buildings: [{ name: 'א', structure: 'building', levels: levels({ f1: { apartment: 2 }, f2: { apartment: 1 } }) }],
+      }),
+    );
+    expect(plan.filter((n) => n.role === 'unit').map((n) => n.name)).toEqual(['דירה 5', 'דירה 6', 'דירה 7']);
+  });
+
   it('supports per-level numbering', () => {
     const plan = planStructure(
       spec({ numbering: 'per_level', buildings: [{ name: 'א', structure: 'building', levels: levels({ f1: { apartment: 2 }, f2: { apartment: 2 } }) }] }),

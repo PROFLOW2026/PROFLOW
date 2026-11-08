@@ -57,6 +57,9 @@ describe('project hub order', () => {
 });
 
 describe('distributeUnitsAcrossFloors', () => {
+  it('handles uneven totals', () => {
+    expect(distributeUnitsAcrossFloors(3, 10)).toEqual([4, 3, 3]);
+  });
   it('splits 30 units across 8 floors with minimal imbalance', () => {
     expect(distributeUnitsAcrossFloors(8, 30)).toEqual([4, 4, 4, 4, 4, 4, 3, 3]);
   });

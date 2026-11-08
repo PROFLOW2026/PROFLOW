@@ -91,6 +91,8 @@ export interface WizardSpec {
   readonly multiLevel: readonly WizardMultiLevel[];
   /** Optional spaces added under every residential unit (suggested by the user, never automatic). */
   readonly rooms: readonly string[];
+  /** First number to assign per unit kind when numbering sequentially (default 1). */
+  readonly unitNumberStarts?: Readonly<Partial<Record<UnitKind, number>>>;
 }
 
 // ── levels ─────────────────────────────────────────────────────────────────────────────────────────
@@ -446,6 +448,14 @@ export function planStructure(spec: WizardSpec): PlannedNode[] {
 
     const used = new Map<UnitKind, Set<number>>();
     const counters = new Map<UnitKind, number>();
+    if (spec.unitNumberStarts) {
+      for (const kind of UNIT_KINDS) {
+        const start = spec.unitNumberStarts[kind];
+        if (typeof start === 'number' && Number.isInteger(start) && start >= 1) {
+          counters.set(kind, start - 1);
+        }
+      }
+    }
     const claim = (kind: UnitKind, wanted: number): number => {
       const taken = used.get(kind) ?? new Set<number>();
       let candidate = wanted;

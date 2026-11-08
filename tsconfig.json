@@ -51,6 +51,7 @@
     ".next",
     "playwright-report",
     "test-results",
-    "scripts"
+    "scripts",
+    "docs/audits"
   ]
 }
