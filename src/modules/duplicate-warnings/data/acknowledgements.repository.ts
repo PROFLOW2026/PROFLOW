@@ -29,6 +29,22 @@ function asStored(row: AckRow): StoredDuplicateWarning {
   };
 }
 
+
+async function readExistingWarning(
+  db: DbExecutor,
+  input: { organizationId: string; caseKey: string; warningType: string; snapshotHash: string },
+): Promise<{ id: string; status: string } | undefined> {
+  const result = await db.execute(sql`
+    select id, status
+    from public.duplicate_warning_acknowledgements
+    where organization_id = ${input.organizationId}::uuid
+      and case_key = ${input.caseKey}
+      and warning_type = ${input.warningType}
+      and snapshot_hash = ${input.snapshotHash}
+  `);
+  return rowsOf<{ id: string; status: string }>(result)[0];
+}
+
 export function duplicateWarningRepository(db: DbExecutor): DuplicateWarningRepository {
   return {
     async listForCase(organizationId, caseKey) {
@@ -55,9 +71,11 @@ export function duplicateWarningRepository(db: DbExecutor): DuplicateWarningRepo
         )
         on conflict (organization_id, case_key, warning_type, snapshot_hash)
         do update set record_id = excluded.record_id
+        where duplicate_warning_acknowledgements.status = 'pending'
         returning id, status
       `);
-      const row = rowsOf<{ id: string; status: string }>(result)[0];
+      const row = rowsOf<{ id: string; status: string }>(result)[0]
+        ?? await readExistingWarning(db, input);
       if (!row) throw new Error('duplicate warning pending row was not stored');
       return {
         id: row.id,
@@ -79,9 +97,11 @@ export function duplicateWarningRepository(db: DbExecutor): DuplicateWarningRepo
         )
         on conflict (organization_id, case_key, warning_type, snapshot_hash)
         do update set record_id = excluded.record_id
+        where duplicate_warning_acknowledgements.status = 'pending'
         returning id, status
       `);
-      const existing = rowsOf<{ id: string; status: string }>(inserted)[0];
+      const existing = rowsOf<{ id: string; status: string }>(inserted)[0]
+        ?? await readExistingWarning(db, input);
       if (!existing) throw new Error('duplicate warning acknowledgement row was not stored');
       if (existing.status === 'acknowledged') {
         return { id: existing.id, status: 'acknowledged' as const };
@@ -90,11 +110,12 @@ export function duplicateWarningRepository(db: DbExecutor): DuplicateWarningRepo
       const updated = await db.execute(sql`
         update public.duplicate_warning_acknowledgements
         set status = 'acknowledged',
-            approver_user_id = ${input.approverUserId}::uuid,
+            approver_user_id = app.current_user_id(),
             acknowledged_at = now()
         where id = ${existing.id}::uuid
           and organization_id = ${input.organizationId}::uuid
           and status = 'pending'
+          and app.current_user_id() = ${input.approverUserId}::uuid
         returning id, status
       `);
       const row = rowsOf<{ id: string; status: string }>(updated)[0];

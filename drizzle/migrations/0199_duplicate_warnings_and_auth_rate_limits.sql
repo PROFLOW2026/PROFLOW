@@ -50,7 +50,8 @@ CREATE POLICY duplicate_warning_acknowledgements_ack ON public.duplicate_warning
   FOR UPDATE TO authenticated
   USING (
     app.is_org_member(organization_id)
-    AND status IN ('pending', 'acknowledged')
+    AND status = 'pending'
+    AND approver_user_id IS NULL
   )
   WITH CHECK (
     app.is_org_member(organization_id)
@@ -62,7 +63,7 @@ CREATE POLICY duplicate_warning_acknowledgements_ack ON public.duplicate_warning
       )
       OR (
         status = 'acknowledged'
-        AND approver_user_id IS NOT NULL
+        AND approver_user_id = app.current_user_id()
         AND acknowledged_at IS NOT NULL
       )
     )

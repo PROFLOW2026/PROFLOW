@@ -20,6 +20,14 @@ describe('prepared closed-period and warning migrations', () => {
     expect(warnings).toContain("status IN ('pending', 'acknowledged')");
     expect(warnings).toContain("status = 'pending'");
     expect(warnings).toContain('approver_user_id IS NULL');
+    const ackPolicy = warnings.slice(
+      warnings.indexOf('CREATE POLICY duplicate_warning_acknowledgements_ack'),
+      warnings.indexOf('DROP POLICY IF EXISTS duplicate_warning_acknowledgements_service'),
+    );
+    const using = ackPolicy.slice(ackPolicy.indexOf('USING'), ackPolicy.indexOf('WITH CHECK'));
+    expect(using).toContain("status = 'pending'");
+    expect(using).not.toContain('acknowledged');
+    expect(ackPolicy).toContain('approver_user_id = app.current_user_id()');
     expect(warnings).toContain('REVOKE DELETE ON public.duplicate_warning_acknowledgements FROM authenticated');
     expect(warnings).toContain('CREATE OR REPLACE FUNCTION app.consume_auth_rate_limit');
     expect(warnings).toContain("position('@' in p_key_hash)");
