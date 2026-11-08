@@ -84,7 +84,7 @@ function customPropertiesInBlock(block: string): Set<string> {
   const props = new Set<string>();
   for (const line of stripComments(block).split("\n")) {
     const m = line.trim().match(/^(--[\w-]+)\s*:/);
-    if (m) props.add(m[1]);
+    if (m?.[1]) props.add(m[1]);
   }
   return props;
 }
@@ -93,7 +93,7 @@ function parseCustomPropertyDeclarations(block: string): Map<string, string> {
   const map = new Map<string, string>();
   for (const line of stripComments(block).split("\n")) {
     const m = line.trim().match(/^(--[\w-]+)\s*:\s*(.+?)\s*;?\s*$/);
-    if (m) map.set(m[1], m[2]);
+    if (m?.[1] && m[2]) map.set(m[1], m[2]);
   }
   return map;
 }
@@ -165,7 +165,7 @@ function statusHueRedeclarations(css: string): string[] {
   const names: string[] = [];
   for (const line of stripComments(css).split("\n")) {
     const m = line.trim().match(/^(--pf-status-[\w-]+)\s*:/);
-    if (m && !DARK_NEUTRAL_STATUS.has(m[1])) names.push(m[1]);
+    if (m?.[1] && !DARK_NEUTRAL_STATUS.has(m[1])) names.push(m[1]);
   }
   return names;
 }

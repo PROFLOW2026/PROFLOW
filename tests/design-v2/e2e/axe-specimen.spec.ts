@@ -122,7 +122,7 @@ function seriousOrCritical(violations: { impact?: string | null; id: string }[])
   return violations.filter((v) => v.impact === "serious" || v.impact === "critical");
 }
 
-function formatBlocking(violations: { id: string; impact?: string | null; description: string }[]) {
+function formatBlocking(violations: { id: string; impact?: string | null; description?: string }[]) {
   return violations
     .map((v) => `[${v.impact ?? "?"}] ${v.id}: ${v.description}`)
   .join("\n");

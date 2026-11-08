@@ -10,7 +10,7 @@ const DENSE_NUMERIC_SOURCES = [
   { label: "BOQ measure UI (numeric cells)", relPath: "src/modules/boq/ui/boq-measure-client.tsx" },
 ];
 
-function readUtf8(relPath) {
+function readUtf8(relPath: string) {
   const abs = path.join(REPO_ROOT, relPath);
   expect(fs.existsSync(abs), "missing source file: " + relPath).toBe(true);
   return fs.readFileSync(abs, "utf8");

@@ -79,7 +79,7 @@ describeSpecimen("EXLFY Design V2 — style switch specimen", () => {
       await assertStyleOnHtml(page, style);
       const cookieValue = await page.evaluate(() => {
         const match = document.cookie.match(/(?:^|; )pf-ui-style=([^;]*)/);
-        return match ? decodeURIComponent(match[1]) : "";
+        return match?.[1] ? decodeURIComponent(match[1]) : "";
       });
       expect(cookieValue).toBe(style);
     });
