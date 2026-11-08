@@ -7,10 +7,10 @@ import {
 } from '@/modules/projects';
 import { ProjectContractsPanel } from '@/modules/projects/ui/project-contracts-panel';
 import { isOrganizationOwner } from '@/shared/business-change/org-owner';
-import { withProjectOrgContext } from '@/shared/auth/session';
+import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { ProjectManagementModePanel } from '@/modules/project-profile/ui/project-management-mode-panel';
-import { loadProjectDetailInContext } from './load-project-detail';
+import { loadProjectDetail } from './load-project-detail';
 import { customFieldValuesForClient, projectDetailForClient } from './project-detail-client';
 import { DetailsTab } from './details-tab';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
@@ -22,15 +22,13 @@ export async function ProjectDetailsWorkspace({
   readonly projectId: string;
   readonly locale: string;
 }) {
-  return withProjectOrgContext(projectId, async (context) => {
+  return withOrgContext(async (context) => {
     const can = (permission: PermissionKey) => context.permissions.has(permission);
     const canEditProjects = can(PERMISSIONS.PROJECTS_UPDATE);
     const canManageContract = can(PERMISSIONS.CONTRACTS_MANAGE);
     const isOwner = isOrganizationOwner(context);
 
-    const detail = projectDetailForClient(
-      await loadProjectDetailInContext(context, projectId, false),
-    );
+    const detail = projectDetailForClient(await loadProjectDetail(projectId, false));
     const uiLocale = locale === 'he-IL' ? 'he-IL' : 'en';
     const baseCurrency =
       detail.contract?.currency ?? detail.project.currency ?? context.organization.baseCurrency ?? 'ILS';

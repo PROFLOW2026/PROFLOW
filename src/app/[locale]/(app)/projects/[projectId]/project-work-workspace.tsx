@@ -4,9 +4,9 @@ import {
   listOrgProjectTemplatesForApply,
   listOrgWorkPackagePacks,
 } from '@/modules/tenancy';
-import { withProjectOrgContext } from '@/shared/auth/session';
+import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { loadProjectDetailInContext } from './load-project-detail';
+import { loadProjectDetail } from './load-project-detail';
 import { projectDetailForClient } from './project-detail-client';
 import { WorkTab } from './work-tab';
 
@@ -17,11 +17,9 @@ export async function ProjectWorkWorkspace({
   readonly projectId: string;
   readonly locale: string;
 }) {
-  return withProjectOrgContext(projectId, async (context) => {
+  return withOrgContext(async (context) => {
     const canEditProjects = context.permissions.has(PERMISSIONS.PROJECTS_UPDATE);
-    const detail = projectDetailForClient(
-      await loadProjectDetailInContext(context, projectId, true),
-    );
+    const detail = projectDetailForClient(await loadProjectDetail(projectId, true));
     const uiLocale = locale === 'he-IL' ? 'he-IL' : 'en';
 
     const [orgTemplates, phasePacks, workPackagePacks, projects] = canEditProjects
