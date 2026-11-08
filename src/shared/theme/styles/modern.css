@@ -102,7 +102,7 @@
     --pf-status-disabled-bg: #1b232c;
     --pf-status-neutral-border: #2a3541;
     --pf-status-disabled-border: #2a3541;
-    --pf-hero-bg: color-mix(in srgb, #5fd3c4 14%, var(--pf-bg-surface));
+    --pf-hero-bg: color-mix(in srgb, #5fd3c4 6%, var(--pf-bg-surface));
     --pf-teal-50: #effcf9;
     --pf-teal-100: #d2f5ee;
     --pf-teal-200: #a6e9dd;
