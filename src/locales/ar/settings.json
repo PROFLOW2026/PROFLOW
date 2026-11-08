@@ -706,7 +706,8 @@
         "allocated": "خصّصت الدفعة لسجلات الفوترة",
         "voided": "أُلغيت الدفعة",
         "date_corrected": "تصحيح تاريخ الدفعة",
-        "corrected": "تصحيح الدفعة"
+        "corrected": "تصحيح الدفعة",
+        "restored": "استُعيدت الدفعة"
       },
       "employee": {
         "created": "تم إنشاء الموظف",
@@ -859,6 +860,7 @@
         "match_rejected": "رُفضت مطابقة حساب مورد",
         "payment_recorded": "سُجّلت دفعة مورد",
         "payment_voided": "أُلغيت دفعة مورد",
+        "payment_restored": "استُعيدت دفعة مورد",
         "credit_created": "تم إنشاء إشعار دائن مورد",
         "credit_updated": "تم تحديث إشعار دائن مورد",
         "credit_posted": "رُحّل إشعار دائن مورد",

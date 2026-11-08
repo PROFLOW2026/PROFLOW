@@ -163,12 +163,15 @@ function assertDraftPermission(context: OrgContext, draftTarget: OcrDraftTarget)
   assertPermission(context, PERMISSIONS.EXPENSES_CREATE);
 }
 
+function dbCanReadRows(db: OrgContext['db']): boolean {
+  return Boolean(db && typeof (db as { select?: unknown }).select === 'function');
+}
+
 async function assertExpenseSameOrg(
   context: OrgContext,
   expenseId: string,
 ): Promise<void> {
-  // Skip when unit tests inject a stub db without repository methods.
-  if (!context.db || typeof (context.db as { select?: unknown }).select !== 'function') {
+  if (!dbCanReadRows(context.db)) {
     return;
   }
   const expense = await findExpenseById(context.db, context.organizationId, expenseId);
@@ -181,7 +184,7 @@ async function assertVendorBillSameOrg(
   context: OrgContext,
   billId: string,
 ): Promise<void> {
-  if (!context.db || typeof (context.db as { select?: unknown }).select !== 'function') {
+  if (!dbCanReadRows(context.db)) {
     return;
   }
   const bill = await findApBillById(context.db, context.organizationId, billId);
@@ -380,7 +383,7 @@ export async function confirmOcrCandidate(
     );
 
     let pendingDuplicateWarning = created.pendingDuplicateWarning ?? null;
-    if (!pendingDuplicateWarning) {
+    if (!pendingDuplicateWarning && dbCanReadRows(context.db)) {
       const storedBill = await findApBillById(context.db, context.organizationId, created.id);
       if (storedBill) {
         pendingDuplicateWarning = await holdApBillDuplicateWarnings(context, {
@@ -504,7 +507,9 @@ export async function confirmOcrCandidate(
     }),
   );
 
-  const storedExpense = await findExpenseById(context.db, context.organizationId, created.id);
+  const storedExpense = dbCanReadRows(context.db)
+    ? await findExpenseById(context.db, context.organizationId, created.id)
+    : null;
   const pendingDuplicateWarning = storedExpense
     ? await holdExpenseDuplicateWarnings(context, {
         id: storedExpense.id,

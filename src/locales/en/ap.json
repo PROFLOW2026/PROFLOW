@@ -201,6 +201,7 @@
     "submit": "Record payment",
     "recorded": "Payment recorded.",
     "void": "Void",
+    "restore": "Restore",
     "columns": {
       "date": "Date",
       "amount": "Amount",

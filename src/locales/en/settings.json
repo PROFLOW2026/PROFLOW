@@ -706,7 +706,8 @@
         "allocated": "Payment allocated to billing records",
         "voided": "Payment voided",
         "date_corrected": "Payment date corrected",
-        "corrected": "Payment corrected"
+        "corrected": "Payment corrected",
+        "restored": "Payment restored"
       },
       "employee": {
         "created": "Employee created",
@@ -859,6 +860,7 @@
         "match_rejected": "Vendor bill match rejected",
         "payment_recorded": "Vendor payment recorded",
         "payment_voided": "Vendor payment voided",
+        "payment_restored": "Vendor payment restored",
         "credit_created": "Vendor credit created",
         "credit_updated": "Vendor credit updated",
         "credit_posted": "Vendor credit posted",

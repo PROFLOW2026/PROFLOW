@@ -84,7 +84,7 @@ describe('command center collection cost', () => {
     );
     const result = await getOrganizationEarlyWarnings(
       { permissions: new Set([PERMISSIONS.PROJECT_FINANCIALS_READ]) } as never,
-      { rollup: { rows: [] } as never },
+      { rollup: { rows: [], eligibleRows: [] } as never },
     );
     expect(result).toEqual([]);
     expect(rollupMock).not.toHaveBeenCalled();

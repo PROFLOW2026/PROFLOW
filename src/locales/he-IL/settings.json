@@ -616,7 +616,8 @@
         "allocated": "הקצאת תקבול לחיובים",
         "voided": "ביטול תשלום",
         "date_corrected": "תיקון תאריך תשלום",
-        "corrected": "תיקון תשלום"
+        "corrected": "תיקון תשלום",
+        "restored": "שחזור תשלום"
       },
       "employee": {
         "created": "יצירת עובד",
@@ -769,6 +770,7 @@
         "match_rejected": "דחיית התאמת חשבונית ספק",
         "payment_recorded": "רישום תשלום ספק",
         "payment_voided": "ביטול תשלום ספק",
+        "payment_restored": "שחזור תשלום ספק",
         "credit_created": "יצירת זיכוי ספק",
         "credit_updated": "עדכון זיכוי ספק",
         "credit_posted": "רישום זיכוי ספק",

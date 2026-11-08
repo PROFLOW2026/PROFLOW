@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createHash } from "node:crypto";
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium } from "playwright";
@@ -124,7 +124,7 @@ function buildStaticPages() {
   return { baselineHtml, litHtml };
 }
 
-async function captureSpecimenShot(browser, { theme, viewport, runId, outPath }) {
+async function captureSpecimenShot(browser, { theme, viewport, outPath }) {
   const context = await browser.newContext({
     viewport: { width: viewport.width, height: viewport.height },
     deviceScaleFactor: 1,

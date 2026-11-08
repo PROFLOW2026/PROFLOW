@@ -20,16 +20,6 @@ function parseColor(value) {
   if (parts.length < 3 || parts.some((n) => Number.isNaN(n))) return null;
   return [parts[0], parts[1], parts[2], parts[3] ?? 1];
 }
-function resolveDeclared(value, map, seen = new Set()) {
-  let current = String(value).trim();
-  for (let i = 0; i < 8; i += 1) {
-    const match = current.match(/^var\(\s*(--pf-[a-z0-9-]+)\s*\)$/i);
-    if (!match || seen.has(match[1]) || !map[match[1]]) return current;
-    seen.add(match[1]);
-    current = String(map[match[1]]).trim();
-  }
-  return current;
-}
 function colorsEqual(a, b) {
   if (!a || !b) return false;
   return a.every((n, i) => Math.abs(n - b[i]) <= (i === 3 ? 0.02 : 1));
