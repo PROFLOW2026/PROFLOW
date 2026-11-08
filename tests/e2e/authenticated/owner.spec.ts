@@ -57,7 +57,7 @@ test.describe('signed-in owner', () => {
     await expect(page.getByText(contractValueFormatted).first()).toBeVisible();
 
     await gotoProjectTab(page, world.projectId, 'financials');
-    await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 3 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 2 })).toBeVisible();
     await expect(
       page.getByRole('button', { name: new RegExp(he.financial.kpis.currentContract) }),
     ).toBeVisible();
@@ -102,7 +102,7 @@ test.describe('signed-in owner', () => {
       name: he.expenses.fields.description,
     });
     await descriptionField.fill(description);
-    await page.getByRole('button', { name: he.expenses.actions.saveDraft }).click();
+    await page.getByRole('button', { name: he.expenses.actions.saveAsDraft }).click();
 
     await expect(page).toHaveURL(new RegExp(`/he-IL/expenses/[0-9a-f-]+$`), { timeout: 30_000 });
     await expect(

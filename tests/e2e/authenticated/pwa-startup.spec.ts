@@ -105,7 +105,7 @@ test.describe('installed-app / PWA startup', () => {
     expect(source).toContain('navigationPreload.enable');
     expect(source).toContain('preloadResponse');
     expect(source).toContain('/documents');
-    expect(source).toContain('projectflow-shell-v4');
+    expect(source).toContain('projectflow-shell-v8');
   });
 
   test('cold then warm launch from start_url paints a usable authenticated screen', async ({

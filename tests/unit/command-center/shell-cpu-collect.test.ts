@@ -3,7 +3,7 @@ import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 
-const rollupMock = vi.hoisted(() => vi.fn(async () => ({ rows: [] })));
+const rollupMock = vi.hoisted(() => vi.fn(async () => ({ rows: [], eligibleRows: [] })));
 const reconcileMock = vi.hoisted(() => vi.fn(async () => 0));
 const actionableMock = vi.hoisted(() =>
   vi.fn(async () => ({ items: [{ itemKey: 'today' }], totalActive: 1, hiddenByState: 0 })),

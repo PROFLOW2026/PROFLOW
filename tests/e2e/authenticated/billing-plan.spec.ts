@@ -34,11 +34,12 @@ async function runBillingPlanJourney(page: Page, world: SeededWorld) {
   const panel = page.getByTestId('billing-plan-panel');
   await expect(panel).toBeVisible({ timeout: 30_000 });
 
-  const emptyAction = page.getByRole('button', { name: /יצירת תוכנית חיובים/i });
+  const emptyAction = page.getByRole('button', { name: 'יצירת תוכנית', exact: true });
   if (await emptyAction.isVisible()) {
     await emptyAction.click();
-    await page.getByTestId('billing-plan-create-mode-simple').click();
-    await page.getByRole('button', { name: /יצירת תוכנית/i }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByTestId('billing-plan-create-mode-simple').click();
+    await dialog.getByRole('button', { name: 'יצירת תוכנית', exact: true }).click();
     await expect(panel.getByText(/טיוטה|פעילה|active|draft/i).first()).toBeVisible({
       timeout: 30_000,
     });

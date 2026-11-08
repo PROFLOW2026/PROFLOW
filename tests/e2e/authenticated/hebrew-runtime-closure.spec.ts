@@ -144,7 +144,7 @@ test.describe('Hebrew runtime closure (mobile)', () => {
     await openFirstComboboxAndScanOptions(page, 'expense form');
 
     // Empty submit should surface Hebrew validation, never raw error keys.
-    await page.getByRole('button', { name: he.expenses.actions.saveDraft }).click();
+    await page.getByRole('button', { name: he.expenses.actions.saveAsDraft }).click();
     await expect(page.locator('main')).toContainText(/בדקו|שדה|סכום|חובה|נדרש/, {
       timeout: 15_000,
     });
@@ -162,14 +162,22 @@ test.describe('Hebrew runtime closure (mobile)', () => {
     await page.goto(`/he-IL/projects/${world!.projectId}`);
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
 
-    const usageTab = page.getByRole('tab', { name: he.projects.workspace.tabs.usage });
+    const usageTab = page.getByRole('link', { name: he.projects.workspace.tabs.usage, exact: true });
+    if ((await usageTab.count()) === 0) {
+      const workHub = page.getByRole('tab', { name: he.projects.workspace.hubs.work });
+      if ((await workHub.count()) > 0) await workHub.click();
+    }
     if ((await usageTab.count()) > 0) {
       await usageTab.click();
       assertNoForbiddenCopy(await collectMainVisibleText(page), 'project usage tab');
       await expect(page.getByText(/assets\.usage\./)).toHaveCount(0);
     }
 
-    const expensesTab = page.getByRole('tab', { name: he.projects.workspace.tabs.expenses });
+    const expensesTab = page.getByRole('link', { name: he.projects.workspace.tabs.expenses, exact: true });
+    if ((await expensesTab.count()) === 0) {
+      const moneyHub = page.getByRole('tab', { name: he.projects.workspace.hubs.money });
+      if ((await moneyHub.count()) > 0) await moneyHub.click();
+    }
     if ((await expensesTab.count()) > 0) {
       await expensesTab.click();
       assertNoForbiddenCopy(await collectMainVisibleText(page), 'project expenses tab');

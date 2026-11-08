@@ -23,6 +23,15 @@ describe('contractor surface separation (proxy)', () => {
     expect(decide('/en/legal/privacy', contractor)).toEqual({ kind: 'pass' });
   });
 
+  it('routes a contractor app_metadata session to the portal and leaves live share and the legacy portal public', () => {
+    expect(decide('/he-IL/dashboard', contractor)).toEqual({ kind: 'redirect', pathname: '/he-IL/contractor' });
+    expect(decide('/he-IL/live/share-token', null)).toEqual({ kind: 'pass' });
+    expect(decide('/he-IL/portal/vendor', null)).toEqual({ kind: 'pass' });
+    expect(decide('/he-IL/portal/customer', internal)).toEqual({ kind: 'pass' });
+    expect(readFileSync('src/app/[locale]/portal/vendor/page.tsx', 'utf8').length).toBeGreaterThan(0);
+    expect(readFileSync('src/app/[locale]/portal/customer/page.tsx', 'utf8').length).toBeGreaterThan(0);
+  });
+
   it('never requires org membership on /contractor and sends anonymous users to contractor sign-in', () => {
     expect(decide('/en/contractor/sign-in', null)).toEqual({ kind: 'pass' });
     expect(decide('/en/contractor/activate', null, '?token=x')).toEqual({ kind: 'pass' });

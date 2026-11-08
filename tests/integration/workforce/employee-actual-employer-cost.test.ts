@@ -226,6 +226,7 @@ describe('employee actual monthly employer cost', () => {
         .from(employeeMonthCosts)
         .where(eq(employeeMonthCosts.employeeId, employeeId));
       expect(monthRows.filter((row) => row.status === 'applied')).toHaveLength(1);
+      expect(monthRows.filter((row) => row.status === 'superseded')).toHaveLength(0);
       expect(monthRows.find((row) => row.status === 'applied')?.knownAmount).toBe('14800.000000');
     });
   });
@@ -306,6 +307,7 @@ describe('employee actual monthly employer cost', () => {
         .from(employeeMonthCosts)
         .where(eq(employeeMonthCosts.employeeId, employeeId));
       expect(monthRows.filter((row) => row.status === 'applied')).toHaveLength(1);
+      expect(monthRows.filter((row) => row.status === 'superseded')).toHaveLength(0);
     });
   });
 

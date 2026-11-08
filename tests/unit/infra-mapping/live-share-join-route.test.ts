@@ -4,7 +4,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const joinLiveShare = vi.hoisted(() => vi.fn());
+const permitScopedAuthAttempt = vi.hoisted(() => vi.fn(async () => true));
 vi.mock('@/modules/infra-mapping/live-share-server', () => ({ liveShareDeps: {} }));
+vi.mock('@/shared/auth/consume-auth-rate-limit', () => ({ permitScopedAuthAttempt }));
 vi.mock('@/modules/infra-mapping/application/live-share', async () => {
   const actual = await vi.importActual<Record<string, unknown>>('@/modules/infra-mapping/application/live-share');
   return { ...actual, joinLiveShare };
@@ -23,7 +25,11 @@ function post(body: unknown, raw?: string): Request {
   });
 }
 
-beforeEach(() => joinLiveShare.mockReset());
+beforeEach(() => {
+  joinLiveShare.mockReset();
+  permitScopedAuthAttempt.mockReset();
+  permitScopedAuthAttempt.mockResolvedValue(true);
+});
 
 describe('POST /api/live-share/join', () => {
   it('returns only the url and the subscribe-only token, never cached', async () => {
@@ -66,6 +72,14 @@ describe('POST /api/live-share/join', () => {
       expect(body).toMatchObject({ ok: false, code });
       expect(body.error.length).toBeGreaterThan(0);
     }
+  });
+
+  it('stays public and blocks the join when the durable limiter denies', async () => {
+    permitScopedAuthAttempt.mockResolvedValueOnce(false);
+    const response = await POST(post({ viewerToken: 'tok-limited', viewerKey: KEY }));
+    expect(response.status).toBe(429);
+    expect(joinLiveShare).not.toHaveBeenCalled();
+    expect(await response.json()).toMatchObject({ ok: false, code: 'unavailable' });
   });
 
   it('hides unexpected errors behind a generic message', async () => {

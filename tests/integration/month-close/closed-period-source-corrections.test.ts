@@ -24,7 +24,6 @@ import {
   listNonProjectCodes,
 } from '@/modules/workforce';
 import { businessDate } from '@/shared/dates';
-import { ConflictError, type DomainRuleError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
 import { createTestUser, seedSystem, type TestUser } from '@tests/setup/fixtures';
@@ -118,8 +117,13 @@ describe('closed-period source corrections (coherence)', () => {
       await closeMonth(context, '2026-03');
 
       await expect(voidExpense(context, closedExpense.id)).rejects.toMatchObject({
-        messageKey: 'monthClose.errors.useCorrectionNotRewrite',
-      } satisfies Partial<DomainRuleError>);
+        issues: [
+          {
+            path: 'changeAcknowledged',
+            message: 'expenses.errors.confirmRequired',
+          },
+        ],
+      });
       const stillFinal = await getExpense(context, closedExpense.id);
       expect(stillFinal.status).toBe('finalized');
     });
@@ -172,8 +176,13 @@ describe('closed-period source corrections (coherence)', () => {
       await closeMonth(context, '2026-05');
 
       await expect(voidApBill(context, { billId: closedBill.id })).rejects.toMatchObject({
-        messageKey: 'monthClose.errors.useCorrectionNotRewrite',
-      } satisfies Partial<DomainRuleError>);
+        issues: [
+          {
+            path: 'changeAcknowledged',
+            message: 'ap.errors.confirmRequired',
+          },
+        ],
+      });
     });
   });
 
@@ -277,7 +286,7 @@ describe('closed-period source corrections (coherence)', () => {
         status: 'draft',
       });
 
-      const period = await closeMonth(context, '2026-07');
+      await closeMonth(context, '2026-07');
       const closedCorrection = await correctTimeEntry(context, {
         correctsEntryId: closedEntry.id,
         employeeId: closedEmployee.id,
@@ -287,29 +296,21 @@ describe('closed-period source corrections (coherence)', () => {
         projectId,
         changeAcknowledged: true,
       });
-      expect(closedCorrection.mode).toBe('closed_period_adjustment');
-      if (closedCorrection.mode !== 'closed_period_adjustment') {
-        throw new Error('expected closed_period_adjustment');
+      expect(closedCorrection.mode).toBe('source_edit');
+      if (closedCorrection.mode !== 'source_edit') {
+        throw new Error('expected source_edit');
       }
 
       const originalAfter = await findTimeEntryById(tx, orgId, closedEntry.id);
+      expect(originalAfter?.id).toBe(closedEntry.id);
       expect(originalAfter?.status).toBe('recorded');
-      expect(originalAfter?.hours).toBe(closedEntry.hours);
+      expect(Number(originalAfter?.hours)).toBe(6);
+      expect(originalAfter?.workDate).toBe(closedEntry.workDate);
       expect(originalAfter?.voidedAt).toBeNull();
-
-      const detail = await getMonthClosePeriodDetail(context, period.id);
-      const adjustment = detail.adjustments.find(
-        (row) => row.id === closedCorrection.adjustmentId,
-      );
-      expect(adjustment?.effectSide).toBe('cost');
-      expect(adjustment?.entityType).toBe('time_entry');
-      expect(adjustment?.entityId).toBe(closedEntry.id);
-      expect(adjustment?.amount).toBe('-200.000000');
-      expect(adjustment?.projectId).toBe(projectId);
     });
   });
 
-  it('refuses a closed-month time correction without a project', async () => {
+  it('lets the owner correct closed-month time without a project after acknowledgement', async () => {
     await database.asUser(owner.id, async (tx) => {
       const context = await resolveOrgContext(tx, {
         userId: owner.id,
@@ -347,17 +348,20 @@ describe('closed-period source corrections (coherence)', () => {
       });
       await closeMonth(context, '2026-08');
 
-      await expect(
-        correctTimeEntry(context, {
-          correctsEntryId: entry.id,
-          employeeId: employee.id,
-          workDate: businessDate('2026-08-04'),
-          hours: '2',
-          kind: 'non_project',
-          timeCodeId,
-          changeAcknowledged: true,
-        }),
-      ).rejects.toBeInstanceOf(ConflictError);
+      const corrected = await correctTimeEntry(context, {
+        correctsEntryId: entry.id,
+        employeeId: employee.id,
+        workDate: businessDate('2026-08-04'),
+        hours: '2',
+        kind: 'non_project',
+        timeCodeId,
+        changeAcknowledged: true,
+      });
+      expect(corrected.mode).toBe('source_edit');
+      if (corrected.mode !== 'source_edit') throw new Error('expected source_edit');
+      expect(corrected.updated.id).toBe(entry.id);
+      expect(corrected.updated.workDate).toBe(entry.workDate);
+      expect(Number(corrected.updated.hours)).toBe(2);
     });
   });
 });

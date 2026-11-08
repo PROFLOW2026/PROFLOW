@@ -14,6 +14,7 @@ import type marketing from '../../../src/locales/he-IL/marketing.json';
 import type nav from '../../../src/locales/he-IL/nav.json';
 import type organization from '../../../src/locales/he-IL/organization.json';
 import type projects from '../../../src/locales/he-IL/projects.json';
+import type scheduling from '../../../src/locales/he-IL/scheduling.json';
 import type settings from '../../../src/locales/he-IL/settings.json';
 
 function loadLocale<T>(name: string): T {
@@ -41,6 +42,7 @@ export const he = {
   nav: loadLocale<typeof nav>('nav'),
   organization: loadLocale<typeof organization>('organization'),
   projects: loadLocale<typeof projects>('projects'),
+  scheduling: loadLocale<typeof scheduling>('scheduling'),
   settings: loadLocale<typeof settings>('settings'),
 };
 

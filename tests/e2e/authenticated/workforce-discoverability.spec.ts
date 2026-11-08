@@ -25,15 +25,8 @@ test.describe('workforce discoverability (mobile owner)', () => {
 
     const more = page.getByRole('dialog');
     await expect(more).toBeVisible();
-    const workforce = more.getByRole('link', { name: he.nav.workforce });
-    if ((await workforce.count()) === 0) {
-      const groupButtons = more.locator('button[aria-controls^="pf-nav-group-"]');
-      const groupCount = await groupButtons.count();
-      for (let i = 0; i < groupCount; i += 1) {
-        await groupButtons.nth(i).click();
-        if ((await workforce.count()) > 0) break;
-      }
-    }
+    await more.getByRole('button', { name: he.nav.moreGroups.people }).click();
+    const workforce = more.getByRole('link', { name: he.nav.people });
     await expect(workforce).toBeVisible();
     await workforce.click();
 
@@ -53,7 +46,7 @@ test.describe('workforce discoverability (mobile owner)', () => {
 
     await expect(page).toHaveURL(/\/he-IL\/workforce\/employees\/[0-9a-f-]+$/, { timeout: 30_000 });
     await expect(page.getByRole('heading', { name: employeeName })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /שיוכים/ })).toBeVisible();
+    await expect(page.getByText(/שיוכים/).first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'הוסף שיוך' })).toBeVisible();
 
     await page.getByRole('button', { name: 'הוסף שיוך' }).click();
@@ -72,9 +65,10 @@ test.describe('workforce discoverability (mobile owner)', () => {
     await page.getByRole('link', { name: 'שיפוץ דירה ברמת גן' }).first().click();
     await expect(page).toHaveURL(new RegExp(`/he-IL/projects/${world.projectId}`));
 
-    const teamTab = page.getByRole('tab', { name: he.projects.workspace.tabs.team });
-    await expect(teamTab).toBeVisible();
-    await teamTab.click();
+    await page.getByRole('tab', { name: he.projects.workspace.hubs.work }).click();
+    const teamLink = page.getByRole('link', { name: he.projects.workspace.tabs.team, exact: true });
+    await expect(teamLink).toBeVisible();
+    await teamLink.click();
 
     await expect(page.getByRole('heading', { name: 'צוות' })).toBeVisible();
     await expect(page.getByText('הוסף עובד').first()).toBeVisible();

@@ -54,6 +54,7 @@ export async function signInThroughForm(
   email: string,
   { expectDashboard = true }: { expectDashboard?: boolean } = {},
 ): Promise<void> {
+  await page.context().clearCookies();
   await page.setViewportSize(E2E_DESKTOP_VIEWPORT);
   await page.goto('/he-IL/sign-in');
   await expect(page.locator('#sign-in-email')).toBeVisible();

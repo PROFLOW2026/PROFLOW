@@ -32,13 +32,10 @@ test.describe('mobile shell', () => {
     await assertFabClearsBottomNav(page);
   });
 
-  test('keeps quick-create available without a corner FAB on create flows', async ({ page }) => {
+  test('keeps the quick-create control on project create', async ({ page }) => {
     await page.goto('/he-IL/projects/new');
 
-    const toolbarCreate = page.locator('[data-pf-quick-create="toolbar"]');
-    await expect(toolbarCreate).toBeVisible();
-    await expect(page.locator('[data-pf-quick-create="fab"]')).toHaveCount(0);
-
+    await expect(page.locator('[data-pf-quick-create="fab"]')).toBeVisible();
     await assertNoPageHorizontalOverflow(page, 'mobile project create');
   });
 

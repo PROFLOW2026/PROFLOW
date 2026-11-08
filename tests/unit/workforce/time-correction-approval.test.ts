@@ -473,8 +473,7 @@ describe('correctTimeEntry approval gate', () => {
     expect(voidTimeEntryRow).not.toHaveBeenCalled();
   });
 
-  it('does not void the original when the work-date month is closed; posts a cost adjustment instead', async () => {
-    const ADJUSTMENT_ID = '88888888-8888-4888-8888-888888888888';
+  it('rejects a non-owner before writing a closed-month time entry', async () => {
     isMonthClosed.mockResolvedValue(true);
     findTimeEntryById.mockResolvedValue(
       originalEntry({ costAmount: '800.000000', costCurrency: 'ILS' }),
@@ -496,32 +495,16 @@ describe('correctTimeEntry approval gate', () => {
         updatedAt: new Date('2026-01-01T00:00:00.000Z'),
       },
     ]);
-    createClosedPeriodSourceCorrection.mockResolvedValue({ id: ADJUSTMENT_ID });
 
-    const result = await correctTimeEntry(context, correctionInput);
-
-    expect(result).toEqual({
-      mode: 'closed_period_adjustment',
-      original: expect.objectContaining({ id: ENTRY_ID, status: 'recorded' }),
-      adjustmentId: ADJUSTMENT_ID,
+    await expect(correctTimeEntry(context, correctionInput)).rejects.toMatchObject({
+      messageKey: 'monthClose.errors.useCorrectionNotRewrite',
     });
     expect(voidTimeEntryRow).not.toHaveBeenCalled();
     expect(insertTimeEntry).not.toHaveBeenCalled();
-    expect(createClosedPeriodSourceCorrection).toHaveBeenCalledWith(
-      context,
-      expect.objectContaining({
-        yearMonth: '2026-08',
-        effectSide: 'cost',
-        projectId: PROJECT_ID,
-        entityType: 'time_entry',
-        entityId: ENTRY_ID,
-        amount: '-200.000000',
-        currency: 'ILS',
-      }),
-    );
+    expect(createClosedPeriodSourceCorrection).not.toHaveBeenCalled();
   });
 
-  it('refuses a closed-month correction without a project', async () => {
+  it('rejects a non-owner closed-month correction before write, including without a project', async () => {
     const TIME_CODE_ID = '99999999-9999-4999-8999-999999999999';
     isMonthClosed.mockResolvedValue(true);
     findTimeEntryById.mockResolvedValue(
@@ -537,9 +520,10 @@ describe('correctTimeEntry approval gate', () => {
         timeCodeId: TIME_CODE_ID,
       }),
     ).rejects.toMatchObject({
-      messageKey: 'workforce.errors.closedMonthNeedsProject',
+      messageKey: 'monthClose.errors.useCorrectionNotRewrite',
     });
     expect(voidTimeEntryRow).not.toHaveBeenCalled();
+    expect(insertTimeEntry).not.toHaveBeenCalled();
     expect(createClosedPeriodSourceCorrection).not.toHaveBeenCalled();
   });
 });

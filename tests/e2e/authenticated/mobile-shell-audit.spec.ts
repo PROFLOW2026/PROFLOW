@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
-import { auditMobileShellOnPage, readMobileNavGeometry } from './fixtures/mobile-shell-audit';
-import { assertFabClearsBottomNav, assertNoPageHorizontalOverflow, MOBILE_NAV } from './fixtures/layout';
-import { loadWorld, type SeededWorld } from './fixtures/world';
+import { auditMobileShellOnPage, readMobileNavGeometry } from '../fixtures/mobile-shell-audit';
+import { assertFabClearsBottomNav, assertNoPageHorizontalOverflow, MOBILE_NAV } from '../fixtures/layout';
+import { loadWorld, type SeededWorld } from '../fixtures/world';
 
 type AuditRoute = {
   name: string;

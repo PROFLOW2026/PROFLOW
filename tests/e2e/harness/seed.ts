@@ -36,6 +36,7 @@ import { createEmployee } from '@/modules/workforce/application/employees';
 import { insertEmployeeProjectAssignment } from '@/modules/workforce/data/project-team.repository';
 import { setActiveOrganizationPreference } from '@/modules/identity';
 import { registerStubAuthUser } from './auth-stub';
+import { seedE2eOrganizationStorage } from './seed-organization-storage';
 import {
   DUAL_ORG_USER,
   E2E_DUAL_EMPLOYEE,
@@ -732,6 +733,8 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
   });
 
   const gcWorld = await seedGcBrowserWorld(db, gcOrganizationId);
+
+  await seedE2eOrganizationStorage(db, primary.organization.id, OWNER.id);
 
   return {
     organizationId: primary.organization.id,

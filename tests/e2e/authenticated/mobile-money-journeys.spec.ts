@@ -26,7 +26,7 @@ test.describe('core mobile money journeys (R-035)', () => {
     await expectProjectHeading(page, seededProjectName);
 
     await expect(page.getByText(contractValueFormatted).first()).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'סיכום כספי' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.financial.ownerStory.title })).toBeVisible();
     await expect(page.getByText('סכום חוזה נוכחי').first()).toBeVisible();
 
     await assertNoPageHorizontalOverflow(page, 'project overview mobile');
@@ -44,7 +44,7 @@ test.describe('core mobile money journeys (R-035)', () => {
 
     await page.locator('form').getByRole('textbox', { name: he.expenses.fields.description }).fill(description);
 
-    const saveDraft = page.getByRole('button', { name: he.expenses.actions.saveDraft });
+    const saveDraft = page.getByRole('button', { name: he.expenses.actions.saveAsDraft });
     await expect(saveDraft).toBeVisible();
     const box = await saveDraft.boundingBox();
     expect(box?.width ?? 0).toBeGreaterThan(44);
@@ -70,13 +70,13 @@ test.describe('core mobile money journeys (R-035)', () => {
 
   test('4 · subcontract and vendor commitment surfaces are visible', async ({ page }) => {
     await page.goto(`/he-IL/vendors/${world.vendorId}`);
-    await page.getByRole('tab', { name: 'מסחרי' }).click();
+    await page.getByRole('tab', { name: 'הסכמים' }).click();
     await expect(page.getByRole('heading', { name: 'הסכמי קבלני משנה' })).toBeVisible({
       timeout: 20_000,
     });
 
     await page.goto(`/he-IL/projects/${world.projectId}?tab=financials`);
-    await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 3 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 2 })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'עלות ספקים בפרויקט זה' })).toBeVisible();
     await expect(
       page.getByRole('button', { name: new RegExp(he.financial.kpis.committed) }),
@@ -122,7 +122,7 @@ test.describe('core mobile money journeys (R-035)', () => {
 
   test('7 · profitability KPI panel is usable', async ({ page }) => {
     await page.goto(`/he-IL/projects/${world.projectId}?tab=financials`);
-    await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 3 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 2 })).toBeVisible();
 
     for (const label of [
       he.financial.kpis.currentContract,

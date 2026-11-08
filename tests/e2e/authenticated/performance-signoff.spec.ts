@@ -6,6 +6,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { he } from '../fixtures/locales';
+import { clickProjectDestination, expectProjectDestinationSelected } from '../fixtures/project-workspace';
 import { loadWorld } from '../fixtures/world';
 
 type HopResult = {
@@ -32,15 +33,7 @@ async function wallMs(page: Page): Promise<number> {
 }
 
 async function expectTabSelected(page: Page, tabName: string) {
-  const tab = page.getByRole('tab', { name: tabName });
-  await expect(tab).toBeVisible({ timeout: 30_000 });
-  await expect
-    .poll(async () => {
-      const state = await tab.getAttribute('data-state');
-      const aria = await tab.getAttribute('aria-selected');
-      return state === 'active' || aria === 'true';
-    }, { timeout: 30_000 })
-    .toBe(true);
+  await expectProjectDestinationSelected(page, tabName);
 }
 
 async function expectProjectTabsInteractive(page: Page) {
@@ -75,15 +68,15 @@ async function measureHop(
   await expectTabSelected(page, fromLabel);
 
   // Prime target tab, return to source, then measure warm repeated hop.
-  await page.getByRole('tab', { name: toLabel }).click();
+  await clickProjectDestination(page, toLabel);
   await expectTabSelected(page, toLabel);
   if (readyExtra) await readyExtra();
 
-  await page.getByRole('tab', { name: fromLabel }).click();
+  await clickProjectDestination(page, fromLabel);
   await expectTabSelected(page, fromLabel);
 
   await clearPerf(page);
-  await page.getByRole('tab', { name: toLabel }).click();
+  await clickProjectDestination(page, toLabel);
   await expectTabSelected(page, toLabel);
   if (readyExtra) await readyExtra();
   await page.waitForTimeout(50);

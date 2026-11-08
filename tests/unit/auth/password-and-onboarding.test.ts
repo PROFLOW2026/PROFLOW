@@ -4,8 +4,12 @@ import {
   isPasswordLongEnough,
   passwordsMatch,
 } from '@/shared/auth/password-policy';
+import { filterModulesByComplexity } from '@/modules/tenancy/domain/experience-complexity';
+import { personaForBusinessProfile } from '@/modules/tenancy/domain/experience-persona';
 import {
+  DEFAULT_ONBOARDING_COMPLEXITY,
   modulesForManageOptions,
+  resolveOnboardingComplexity,
   resolveOnboardingProfileKey,
   workMixForOnboardingStyle,
 } from '@/modules/tenancy/domain/onboarding-experience';
@@ -62,5 +66,30 @@ describe('first-run onboarding experience mapping', () => {
     const modules = modulesForManageOptions(['employees', 'boq', 'field']);
     expect(modules).toEqual(expect.arrayContaining(['workforce', 'boq', 'field_ops']));
     expect(modules).not.toContain('portal');
+  });
+
+  it('defaults complexity to simple and keeps consulting tasks visible', () => {
+    expect(DEFAULT_ONBOARDING_COMPLEXITY).toBe('simple');
+    expect(resolveOnboardingComplexity({ profileKey: 'GENERAL_CONTRACTOR' })).toBe('simple');
+    expect(resolveOnboardingComplexity({ profileKey: null })).toBe('simple');
+    expect(
+      resolveOnboardingComplexity({ profileKey: 'ELECTRICAL', selected: 'advanced' }),
+    ).toBe('advanced');
+    expect(
+      resolveOnboardingComplexity({ profileKey: 'ALL_CAPABILITIES', selected: 'simple' }),
+    ).toBe('full');
+
+    const consulting = resolveOnboardingComplexity({
+      profileKey: 'ENGINEERING_CONSULTANT',
+      selected: 'simple',
+    });
+    const recommended = getBusinessProfile('ENGINEERING_CONSULTANT')?.visibleModules ?? [];
+    const persona = personaForBusinessProfile('ENGINEERING_CONSULTANT');
+    expect(filterModulesByComplexity(recommended, consulting, persona)).toContain(
+      'work_management',
+    );
+    expect(filterModulesByComplexity(recommended, 'simple', persona)).not.toContain(
+      'work_management',
+    );
   });
 });

@@ -195,6 +195,10 @@ async function confirmDraftTarget(
 }
 
 test.describe('OCR authenticated journey (mocked provider)', () => {
+  // Storage comes from seedE2eOrganizationStorage (same row shape as
+  // tests/setup/external-storage-fixture.ts) and the Graph stand-in loaded
+  // by start-app-for-playwright.mjs. These four journeys run on
+  // desktop-he-authenticated and mobile-he. A skip is not a result.
   test('Hebrew desktop/mobile: upload → review → expense/AP/credit drafts; original attached; no auto-finalize', async ({
     page,
   }, testInfo) => {

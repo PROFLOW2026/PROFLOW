@@ -111,7 +111,7 @@ test.describe('project-centric money chain QA', () => {
     await page.getByLabel(he.projects.create.nameLabel).fill(projectName);
     await selectOption(page, he.projects.create.clientLabel, he.projects.create.clientNew);
     await page.getByLabel(he.projects.create.clientNew).fill(clientName);
-    await page.getByLabel(he.projects.create.contractValueLabel).fill(contractAmount);
+    await page.getByRole('textbox', { name: he.projects.create.contractValueLabel }).first().fill(contractAmount);
     await page.getByRole('button', { name: he.projects.create.submit }).click();
     await expect(page).toHaveURL(/\/he-IL\/projects\/[0-9a-f-]+$/, { timeout: 30_000 });
     await expect(page.getByRole('heading', { name: projectName })).toBeVisible();
@@ -154,10 +154,10 @@ test.describe('project-centric money chain QA', () => {
       .locator('form')
       .getByRole('textbox', { name: he.expenses.fields.description })
       .fill(expenseDescription);
-    await page.getByRole('button', { name: /אפשרויות נוספים|פרטים נוספים|show more/i }).click();
+    await page.getByRole('button', { name: /אפשרויות נוספות|פרטים נוספים|show more/i }).click();
     await selectOption(page, he.expenses.fields.linkedVendor, seededVendorName);
     await selectOption(page, he.expenses.fields.category, he.expenses.costCategories.materials);
-    await page.getByRole('button', { name: he.expenses.actions.saveDraft }).click();
+    await page.getByRole('button', { name: he.expenses.actions.saveAsDraft }).click();
     await expect(page).toHaveURL(/\/he-IL\/expenses\/[0-9a-f-]+$/, { timeout: 30_000 });
 
     await page.getByRole('button', { name: he.expenses.actions.finalize }).click();
@@ -200,7 +200,7 @@ test.describe('project-centric money chain QA', () => {
 
     // --- Subcontract (forecast commitment) ---
     await page.goto(`/he-IL/vendors/${world.vendorId}`);
-    await page.getByRole('tab', { name: 'מסחרי' }).click();
+    await page.getByRole('tab', { name: 'הסכמים' }).click();
     await expect(page.getByRole('heading', { name: 'הסכמי קבלני משנה' })).toBeVisible({
       timeout: 20_000,
     });
@@ -247,12 +247,12 @@ test.describe('project-centric money chain QA', () => {
 
     // --- Profitability surfaces ---
     await page.goto(`/he-IL/projects/${projectId}`);
-    await expect(page.getByRole('heading', { name: 'סיכום כספי', level: 3 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.financial.ownerStory.title, level: 3 })).toBeVisible();
     await expect(page.getByText(contractFormatted).first()).toBeVisible();
     await expect(page.getByTestId('price-not-set-snapshot')).toHaveCount(0);
     const overviewSnapshot = page
       .locator('div')
-      .filter({ has: page.getByRole('heading', { name: 'סיכום כספי', level: 3 }) })
+      .filter({ has: page.getByRole('heading', { name: he.financial.ownerStory.title, level: 3 }) })
       .first();
     const overviewActual = await moneyInContainer(overviewSnapshot, he.financial.kpis.actualCost);
     // Actual is net ex-VAT; card expense amount is gross — prove cost flowed, not exact card total.
@@ -260,7 +260,7 @@ test.describe('project-centric money chain QA', () => {
     expect(overviewActual).toBeLessThanOrEqual(Number(expenseAmount));
 
     await gotoProjectTab(page, projectId!, 'financials');
-    await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 3 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 2 })).toBeVisible();
     const financialsContract = await moneyFromKpiButton(page, he.financial.kpis.currentContract);
     const financialsActual = await moneyFromKpiButton(page, he.financial.kpis.actualCost);
     expect(financialsContract).toBe(Number(contractAmount));
@@ -288,10 +288,10 @@ test.describe('project-centric money chain QA', () => {
       .locator('form')
       .getByRole('textbox', { name: he.expenses.fields.description })
       .fill(description);
-    await page.getByRole('button', { name: /אפשרויות נוספים|פרטים נוספים/ }).click();
+    await page.getByRole('button', { name: /אפשרויות נוספות|פרטים נוספים/ }).click();
     await selectOption(page, he.expenses.fields.linkedVendor, seededVendorName);
     await selectOption(page, he.expenses.fields.category, he.expenses.costCategories.materials);
-    await page.getByRole('button', { name: he.expenses.actions.saveDraft }).click();
+    await page.getByRole('button', { name: he.expenses.actions.saveAsDraft }).click();
     await expect(page).toHaveURL(/\/he-IL\/expenses\/[0-9a-f-]+$/, { timeout: 30_000 });
     await page.getByRole('button', { name: he.expenses.actions.finalize }).click();
     await page.getByRole('button', { name: he.expenses.actions.finalize }).last().click();
@@ -321,8 +321,8 @@ test.describe('project-centric money chain QA', () => {
     await page.getByRole('button', { name: he.projects.create.submit }).click();
     await expect(page).toHaveURL(/\/he-IL\/projects\/[0-9a-f-]+$/, { timeout: 30_000 });
 
-    await expect(page.getByText('טרם נרשם סכום חוזה').first()).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'סיימו להקים את הפרויקט' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.financial.ownerStory.title, level: 3 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'סיימו להקים את הפרויקט' })).toHaveCount(0);
 
     const noContractProjectId = page.url().match(/\/projects\/([0-9a-f-]+)/)?.[1];
     expect(noContractProjectId).toBeTruthy();
@@ -335,7 +335,7 @@ test.describe('project-centric money chain QA', () => {
     ).toHaveCount(0);
   });
 
-  test('5 · subcontract remaining surfaces in financials commitments/forecast', async ({ page }) => {
+  test('5 · subcontract remaining surfaces on the vendor agreements tab', async ({ page }) => {
     test.setTimeout(120_000);
     const stamp = Date.now();
     const title = `תחזית קבלן ${stamp}`;
@@ -343,7 +343,7 @@ test.describe('project-centric money chain QA', () => {
     const amountFormatted = formatMoney({ amount, currency: 'ILS' }, 'he-IL');
 
     await page.goto(`/he-IL/vendors/${world.vendorId}`);
-    await page.getByRole('tab', { name: 'מסחרי' }).click();
+    await page.getByRole('tab', { name: 'הסכמים' }).click();
     await page.getByRole('button', { name: 'הוספת הסכם' }).click();
     await page.getByRole('textbox', { name: /כותרת|title/i }).fill(title);
     await selectOption(page, /פרויקט/, seededProjectName);
@@ -359,8 +359,7 @@ test.describe('project-centric money chain QA', () => {
       await page.getByRole('button', { name: /^הפעלה$/ }).last().click();
     }
 
-    await page.goto(`/he-IL/projects/${world.projectId}`);
-    await expect(page.getByRole('heading', { name: 'הסכמי קבלני משנה', level: 3 })).toBeVisible({
+    await expect(page.getByRole('heading', { name: 'הסכמי קבלני משנה', level: 2 })).toBeVisible({
       timeout: 20_000,
     });
     await expect(page.getByText('התחייבות שנותרה').first()).toBeVisible();
@@ -374,8 +373,9 @@ test.describe('project-centric money chain QA', () => {
     await page.getByLabel(he.projects.create.nameLabel).fill(projectName);
     await page.getByRole('button', { name: he.projects.create.submit }).click();
     await expect(page).toHaveURL(/\/he-IL\/projects\/[0-9a-f-]+$/, { timeout: 30_000 });
-    await expect(page.getByText('סיימו להקים את הפרויקט')).toBeVisible();
-    await expect(page.getByText('הגדרת סכום חוזה')).toBeVisible();
+    await expect(page.getByRole('heading', { name: projectName })).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.financial.ownerStory.title, level: 3 })).toBeVisible();
+    await expect(page.getByText('סיימו להקים את הפרויקט')).toHaveCount(0);
 
     await page.goto('/he-IL/sales');
     await expect(page).toHaveURL(/\/he-IL\/quotes\/?$/, { timeout: 20_000 });
@@ -411,11 +411,11 @@ test.describe('project-centric money chain QA', () => {
     await page.goto(`/he-IL/projects/${world.projectId}`);
     await expect(page.getByRole('heading', { name: seededProjectName })).toBeVisible();
     await expect(page.getByText(contractValueFormatted).first()).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'סיכום כספי' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.financial.ownerStory.title })).toBeVisible();
     await expect(page.getByText('סכום חוזה נוכחי').or(page.getByText('סכום החוזה הנוכחי')).first()).toBeVisible();
 
     await page.goto(`/he-IL/projects/${world.projectId}?tab=financials`);
-    await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 3 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 2 })).toBeVisible();
     await expect(
       page.getByRole('button', { name: new RegExp(he.financial.kpis.actualCost) }).first(),
     ).toBeVisible();
@@ -429,7 +429,7 @@ test.describe('project-centric money chain QA', () => {
     await page.goto(`/he-IL/projects/${world.projectId}`);
     const overviewSnapshot = page
       .locator('div')
-      .filter({ has: page.getByRole('heading', { name: 'סיכום כספי', level: 3 }) })
+      .filter({ has: page.getByRole('heading', { name: he.financial.ownerStory.title, level: 3 }) })
       .first();
     await expect(overviewSnapshot.getByText(contractValueFormatted).first()).toBeVisible({
       timeout: 30_000,
@@ -437,7 +437,7 @@ test.describe('project-centric money chain QA', () => {
     const overviewActual = await moneyInContainer(overviewSnapshot, he.financial.kpis.actualCost);
 
     await gotoProjectTab(page, world.projectId, 'financials');
-    await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 3 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 2 })).toBeVisible();
     await expect(page.getByText(contractValueFormatted).first()).toBeVisible();
     const financialsContract = await moneyFromKpiButton(page, he.financial.kpis.currentContract);
     const financialsActual = await moneyFromKpiButton(page, he.financial.kpis.actualCost);

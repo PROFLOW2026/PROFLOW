@@ -7,6 +7,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { OWNER } from '../harness/config';
 import { he } from '../fixtures/locales';
+import { clickProjectDestination, expectProjectDestinationSelected } from '../fixtures/project-workspace';
 import { clickNavLink } from '../fixtures/nav';
 import { loadWorld } from '../fixtures/world';
 
@@ -143,17 +144,7 @@ async function measureClickNav(page: Page, click: () => Promise<void>, ready: ()
 }
 
 async function expectTabSelected(page: Page, tabName: string) {
-  const tab = page.getByRole('tab', { name: tabName });
-  await expect(tab).toBeVisible({ timeout: 30_000 });
-  await expect(tab).toBeEnabled();
-  // Radix: data-state=active; also aria-selected=true
-  await expect
-    .poll(async () => {
-      const state = await tab.getAttribute('data-state');
-      const aria = await tab.getAttribute('aria-selected');
-      return state === 'active' || aria === 'true';
-    }, { timeout: 30_000 })
-    .toBe(true);
+  await expectProjectDestinationSelected(page, tabName);
 }
 
 /** Wait until project tab soft-nav interceptors are attached (after SSR chrome). */
@@ -304,11 +295,11 @@ test('production navigation performance verification', async ({ page }) => {
 
   // Modules changes/billing/documents are enabled in e2e seed.
   await gotoProjectTab('overview');
-  await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.changes })).toBeVisible({
+  await expect(page.getByRole('tab', { name: he.projects.workspace.hubs.work })).toBeVisible({
     timeout: 30_000,
   });
-  await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.billing })).toBeVisible();
-  await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.documents })).toBeVisible();
+  await expect(page.getByRole('tab', { name: he.projects.workspace.hubs.money })).toBeVisible();
+  await expect(page.getByRole('tab', { name: he.projects.workspace.hubs.documents })).toBeVisible();
 
   async function hop(
     flow: string,
@@ -324,7 +315,7 @@ test('production navigation performance verification', async ({ page }) => {
     const first = await measureClickNav(
       page,
       async () => {
-        await page.getByRole('tab', { name: toLabel }).click();
+        await clickProjectDestination(page, toLabel);
       },
       async () => {
         await expectTabSelected(page, toLabel);
@@ -332,13 +323,13 @@ test('production navigation performance verification', async ({ page }) => {
       },
     );
 
-    await page.getByRole('tab', { name: fromLabel }).click();
+    await clickProjectDestination(page, fromLabel);
     await expectTabSelected(page, fromLabel);
 
     const repeated = await measureClickNav(
       page,
       async () => {
-        await page.getByRole('tab', { name: toLabel }).click();
+        await clickProjectDestination(page, toLabel);
       },
       async () => {
         await expectTabSelected(page, toLabel);
@@ -365,7 +356,7 @@ test('production navigation performance verification', async ({ page }) => {
     'financials',
     he.projects.workspace.tabs.financials,
     async () => {
-      await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 3 })).toBeVisible({
+      await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 2 })).toBeVisible({
         timeout: 30_000,
       });
     },
@@ -524,7 +515,7 @@ test('production navigation performance verification', async ({ page }) => {
   ];
   // prime
   for (const label of cycleLabels) {
-    await page.getByRole('tab', { name: label }).click();
+    await clickProjectDestination(page, label);
     await expectTabSelected(page, label);
   }
   const cycleSamples: Sample[] = [];
@@ -539,7 +530,7 @@ test('production navigation performance verification', async ({ page }) => {
       await measureClickNav(
         page,
         async () => {
-          await page.getByRole('tab', { name: label }).click();
+          await clickProjectDestination(page, label);
         },
         async () => {
           await expectTabSelected(page, label);

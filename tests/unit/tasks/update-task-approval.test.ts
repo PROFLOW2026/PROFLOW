@@ -45,6 +45,16 @@ vi.mock('@/modules/tasks/application/notify-task-followers', () => ({
 
 const { findTaskById, updateTaskById, assertTaskCompletionApprovalSatisfied } = mocks;
 
+vi.mock('@/modules/tasks/application/assert-task-access', () => ({
+  assertCanAccessTask: vi.fn(async () => {
+    const task = await mocks.findTaskById();
+    if (!task) {
+      throw new Error('Task not found');
+    }
+    return task;
+  }),
+}));
+
 import { updateTask } from '@/modules/tasks/application/update-task';
 
 function orgContext(): OrgContext {

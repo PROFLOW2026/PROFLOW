@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { businessDate } from '@/shared/dates';
-import { money } from '@/shared/money';
+import { money, splitMoneyEvenly, sumMoney, type MoneyValue } from '@/shared/money';
 import type { InstallmentPaymentSlice } from '@/modules/expenses/domain/expense-installment-payment-evidence';
 import {
   recognizedExpenseNetInYearMonth,
@@ -161,5 +161,82 @@ describe('installment payment recognition (owner policy)', () => {
       paidAt: '2026-03-01',
     });
     expect(Number(recognizedExpenseNetInYearMonth(row, '2026-03')?.amount)).toBeCloseTo(400, 2);
+  });
+});
+
+function verifiedEvenPayments(grossTotal: string, count: number): InstallmentPaymentSlice[] {
+  return splitMoneyEvenly(money(grossTotal, ILS), count).map((share, index) => {
+    const month = String(index + 1).padStart(2, '0');
+    const date = `2026-${month}-15`;
+    return verifiedLine(index, date, date, share.amount);
+  });
+}
+
+function sumRecognizedNet(fields: ExpensePaymentRecognitionFields, count: number): MoneyValue {
+  const parts: MoneyValue[] = [];
+  for (let index = 0; index < count; index += 1) {
+    const month = String(index + 1).padStart(2, '0');
+    const slice = recognizedExpenseNetInYearMonth(fields, `2026-${month}`);
+    if (slice) parts.push(slice);
+  }
+  return sumMoney(parts, ILS);
+}
+
+describe('installment net remainder on the last slice', () => {
+  it('117.00 gross / 100.00 net in 3 slices of 39 sums to 100.00, not 99.99', () => {
+    const payments = [0, 1, 2].map((index) => {
+      const month = String(index + 1).padStart(2, '0');
+      const date = `2026-${month}-15`;
+      return verifiedLine(index, date, date, '39.000000');
+    });
+    const row = base({
+      netAmount: '100.000000',
+      grossAmount: '117.000000',
+      taxAmount: '17.000000',
+      installmentCount: 3,
+      verifiedInstallmentPayments: payments,
+    });
+
+    expect(recognizedExpenseNetInYearMonth(row, '2026-01')?.amount).toBe('33.330000');
+    expect(recognizedExpenseNetInYearMonth(row, '2026-02')?.amount).toBe('33.330000');
+    expect(recognizedExpenseNetInYearMonth(row, '2026-03')?.amount).toBe('33.340000');
+    expect(sumRecognizedNet(row, 3).amount).toBe('100.000000');
+  });
+
+  it('does not park the unpaid residue on a partial cover', () => {
+    const row = base({
+      netAmount: '100.000000',
+      grossAmount: '117.000000',
+      taxAmount: '17.000000',
+      installmentCount: 3,
+      verifiedInstallmentPayments: [0, 1].map((index) => {
+        const month = String(index + 1).padStart(2, '0');
+        const date = `2026-${month}-15`;
+        return verifiedLine(index, date, date, '39.000000');
+      }),
+    });
+    expect(recognizedExpenseNetInYearMonth(row, '2026-01')?.amount).toBe('33.330000');
+    expect(recognizedExpenseNetInYearMonth(row, '2026-02')?.amount).toBe('33.330000');
+    expect(sumRecognizedNet(row, 2).amount).toBe('66.660000');
+  });
+
+  it('1000 / 847.46 in 7 payments sums to 847.46, not 847.47', () => {
+    const row = base({
+      netAmount: '847.460000',
+      grossAmount: '1000.000000',
+      installmentCount: 7,
+      verifiedInstallmentPayments: verifiedEvenPayments('1000.000000', 7),
+    });
+    expect(sumRecognizedNet(row, 7).amount).toBe('847.460000');
+  });
+
+  it('3333.33 / 2825.70 in 12 payments sums to 2825.70, not 2825.73', () => {
+    const row = base({
+      netAmount: '2825.700000',
+      grossAmount: '3333.330000',
+      installmentCount: 12,
+      verifiedInstallmentPayments: verifiedEvenPayments('3333.330000', 12),
+    });
+    expect(sumRecognizedNet(row, 12).amount).toBe('2825.700000');
   });
 });

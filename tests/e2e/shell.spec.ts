@@ -75,7 +75,7 @@ test.describe('sign-in form', () => {
     const email = page.getByLabel(/אימייל/);
     await expect(email).toHaveAttribute('required', '');
     await expect(email).toHaveAttribute('dir', 'ltr');
-    await expect(page.getByLabel(/סיסמה/)).toHaveAttribute('required', '');
+    await expect(page.locator('#sign-in-password')).toHaveAttribute('required', '');
   });
 
   test('offers account recovery and account creation', async ({ page }) => {

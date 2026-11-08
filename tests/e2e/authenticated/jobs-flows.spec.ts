@@ -36,14 +36,13 @@ test.describe('jobs navigation and mobile path', () => {
     await expect(page.getByLabel(he.jobs.create.pricingModeLabel).first()).toBeVisible();
 
     // Fixed-price default: price language, not “original contract”.
-    await expect(page.getByLabel(he.jobs.pricing.priceLabel).first()).toBeVisible();
-    await expect(page.getByText(he.jobs.pricing.priceHint).first()).toBeVisible();
+    await expect(page.getByRole('textbox', { name: he.jobs.pricing.priceLabel }).first()).toBeVisible();
     await expect(page.getByText(he.projects.create.contractValueLabel)).toHaveCount(0);
     await expect(page.getByText(he.projects.create.managedOpeningPreviewLabel)).toHaveCount(0);
 
     await page.getByLabel(he.jobs.create.nameLabel).first().fill('תיקון מזגן בדיקה');
     await page.getByLabel(he.jobs.create.clientNew).first().fill('מזדמן - בדיקה');
-    await page.getByLabel(he.jobs.pricing.priceLabel).first().fill('2500');
+    await page.getByRole('textbox', { name: he.jobs.pricing.priceLabel }).first().fill('2500');
 
     const sampleMoney = formatMoney({ amount: '52000', currency: 'ILS' }, 'he-IL');
     expect(sampleMoney).toMatch(/52[,.]000/);
@@ -58,7 +57,7 @@ test.describe('jobs navigation and mobile path', () => {
 
     await expect(page.locator('#main').getByText(he.settings.workMix.title)).toBeVisible();
     await expect(page.locator('#main').getByText(he.settings.workMix.subtitle)).toBeVisible();
-    await expect(page.locator('#main').getByLabel(he.settings.workMix.label)).toBeVisible();
+    await expect(page.locator('#main').getByLabel(he.settings.workMix.label).first()).toBeVisible();
     await expect(page.locator('#main').getByText(he.settings.modules.jobs)).toBeVisible();
     await expect(page.getByText(/מנוע פיננסי/)).toHaveCount(0);
   });

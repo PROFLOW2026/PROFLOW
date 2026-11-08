@@ -25,8 +25,8 @@ test.describe('worker permission gating', () => {
     await expect(nav.getByRole('link', { name: he.nav.projects })).toBeVisible();
     await expectNavLinkVisible(page, he.nav.expenses);
     await expect(nav.getByRole('link', { name: he.nav.settings })).toBeVisible();
-    // R-008: attendance demoted from shell chrome; workers still reach it by URL (next test).
-    await expectNavLinkAbsent(page, he.nav.attendance);
+    // Attendance is in the shell for workers who can open it.
+    await expectNavLinkVisible(page, he.nav.attendance);
 
     await expectNavLinkAbsent(page, he.nav.billing);
     await expectNavLinkAbsent(page, he.nav.changes);
@@ -54,9 +54,12 @@ test.describe('worker permission gating', () => {
 
     await expectProjectHeading(page, seededProjectName);
     await expect(page.getByRole('tablist')).toBeVisible();
-    await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.financials })).toHaveCount(0);
-    await expect(page.getByRole('tab', { name: he.projects.workspace.hubs.money })).toBeVisible();
+    await expect(page.getByRole('tab', { name: he.projects.workspace.hubs.overview })).toBeVisible();
     await expect(page.getByRole('tab', { name: he.projects.workspace.hubs.details })).toBeVisible();
+    await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.financials })).toHaveCount(0);
+    await expect(
+      page.getByRole('link', { name: he.projects.workspace.tabs.financials, exact: true }),
+    ).toHaveCount(0);
     await gotoProjectTab(page, world.projectId, 'expenses');
     await expect(page.getByText('כבלים וחומרי חשמל').first()).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText(contractValueFormatted)).toHaveCount(0);

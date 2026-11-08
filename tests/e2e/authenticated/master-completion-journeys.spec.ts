@@ -23,8 +23,9 @@ test.describe('master completion owner journeys', () => {
     await expect(page).toHaveURL(/\/he-IL\/workforce\/employees\/[0-9a-f-]+$/, { timeout: 30_000 });
     await expect(page.getByRole('heading', { name: employeeName })).toBeVisible();
 
-    await expect(page.getByRole('heading', { name: 'עריכת עובד' })).toBeVisible();
-    const nameField = page.locator('form').getByRole('textbox', { name: 'שם' }).first();
+    await page.getByRole('button', { name: 'עריכת עובד' }).click();
+    const nameField = page.locator('#employee-edit').getByRole('textbox', { name: 'שם' }).first();
+    await expect(nameField).toBeVisible();
     await nameField.fill(editedName);
     await page.getByRole('button', { name: 'שמירת שינויים' }).click();
     await expect(page.getByRole('heading', { name: editedName })).toBeVisible({ timeout: 30_000 });
@@ -82,6 +83,7 @@ test.describe('master completion owner journeys', () => {
       await main.getByRole('link').filter({ hasText: /./ }).first().click();
     }
     await expect(page).toHaveURL(/\/he-IL\/clients\/[0-9a-f-]+/);
+    await page.goto(`${page.url().split('?')[0]}?tab=details`);
     await expect(
       page.getByRole('button', { name: 'העברה לארכיון' }).or(page.getByRole('button', { name: 'החזר לפעיל' })),
     ).toBeVisible();

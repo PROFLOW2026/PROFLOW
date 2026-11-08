@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Route } from '@playwright/test';
+import { formatMoney } from '@/shared/money/format';
 import {
   assertFabClearsBottomNav,
   assertNoPageHorizontalOverflow,
@@ -10,6 +11,19 @@ import {
   withViewport,
 } from '../fixtures/layout';
 import { EN_UI_RESIDUE, he } from '../fixtures/locales';
+import { clickNavLink, expectNavLinkVisible } from '../fixtures/nav';
+import { signInThroughForm } from '../fixtures/sign-in';
+import {
+  ELECTRICAL_OWNER,
+  FIELD_OWNER,
+  FINANCE,
+  GC_OWNER,
+  MAINTENANCE_OWNER,
+  MANAGER,
+  MIXED_OWNER,
+  OWNER,
+  PLUMBING_OWNER,
+} from '../harness/config';
 import { loadWorld } from '../fixtures/world';
 
 const world = loadWorld();
@@ -19,11 +33,14 @@ test.describe.configure({ timeout: 180_000 });
 async function openHebrewFinancials(page: Page): Promise<void> {
   await page.goto(`/he-IL/projects/${world.projectId}?tab=financials`);
   await expect(page.getByRole('heading', { name: 'שיפוץ דירה ברמת גן' })).toBeVisible();
-  await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.financials })).toHaveAttribute(
-    'data-state',
-    'active',
+  await expect(page.getByRole('tab', { name: he.projects.workspace.hubs.money })).toHaveAttribute(
+    'aria-selected',
+    'true',
   );
-  await expect(page.getByRole('heading', { name: he.financial.panelTitle })).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: he.projects.workspace.tabs.financials, exact: true }),
+  ).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 2 })).toBeVisible();
   await expect(
     page.getByRole('button', { name: new RegExp(he.financial.kpis.currentContract) }),
   ).toBeVisible();
@@ -243,10 +260,10 @@ test.describe('polish: dashboard loading + export pending', () => {
     await page.goto(projectPath);
     await expect(page.getByRole('heading', { name: 'שיפוץ דירה ברמת גן' })).toBeVisible();
 
-    const overviewTab = page.getByRole('tab', { name: he.projects.workspace.tabs.overview });
-    const financialsTab = page.getByRole('tab', { name: he.projects.workspace.tabs.financials });
-    await expect(overviewTab).toHaveAttribute('data-state', 'active');
-    await expect(financialsTab).not.toHaveAttribute('data-state', 'active');
+    const overviewTab = page.getByRole('tab', { name: he.projects.workspace.hubs.overview });
+    const moneyTab = page.getByRole('tab', { name: he.projects.workspace.hubs.money });
+    await expect(overviewTab).toHaveAttribute('aria-selected', 'true');
+    await expect(moneyTab).toHaveAttribute('aria-selected', 'false');
 
     // Soft-nav via ?tab= can finish before paint; delay project RSC so pending chrome can show.
     const delayProjectTab = async (route: Route) => {
@@ -267,6 +284,7 @@ test.describe('polish: dashboard loading + export pending', () => {
         .locator(
           [
             '[role="tab"][data-pending]',
+            '[data-pf-slot="tab"][data-pending]',
             '[role="tablist"][aria-busy="true"]',
             '[aria-busy="true"] .animate-spin',
             '[aria-busy="true"]',
@@ -278,13 +296,16 @@ test.describe('polish: dashboard loading + export pending', () => {
         () => false,
       );
 
-      await financialsTab.click();
+      await moneyTab.click();
       const sawPending = await pendingSeen;
 
       await expect(page).toHaveURL(new RegExp(`${projectPath}\\?tab=financials`), {
         timeout: 30_000,
       });
-      await expect(financialsTab).toHaveAttribute('data-state', 'active');
+      await expect(moneyTab).toHaveAttribute('aria-selected', 'true');
+      await expect(
+        page.getByRole('link', { name: he.projects.workspace.tabs.financials, exact: true }),
+      ).toHaveAttribute('aria-current', 'page');
       expect(
         sawPending || (await page.url()).includes('tab=financials'),
         'expected project tab click to show data-pending/aria-busy/spinner or settle URL',
@@ -384,5 +405,115 @@ test.describe('bottom nav / FAB overlap heuristics', () => {
         ).toBe(true);
       });
     }
+  });
+});
+
+const seededProjectName = 'שיפוץ דירה ברמת גן';
+const contractValueFormatted = formatMoney({ amount: '150000', currency: 'ILS' }, 'he-IL');
+
+
+async function expectQuickCreateHas(page: Page, label: string): Promise<void> {
+  await page.getByRole('button', { name: he.nav.newMenu.trigger }).click();
+  await expect(page.getByRole('menuitem').first()).toHaveText(he.nav.newMenu.quickCapture);
+  await expect(page.getByRole('menuitem', { name: label })).toBeVisible();
+}
+
+async function expectActualExplainability(page: Page): Promise<void> {
+  const actual = page.getByRole('button', { name: new RegExp(he.financial.kpis.actualCost) }).first();
+  await expect(actual).toBeVisible();
+  await actual.click();
+  await expect(page.getByText(he.financial.explain.whyThisNumber).first()).toBeVisible();
+  await expect(page.getByText(he.financial.kpis.recognizedOriginal).first()).toBeVisible();
+  await expect(page.getByText(he.financial.kpis.monthCloseCost).first()).toBeVisible();
+}
+
+test.describe('simple organization (seeded, no business profile)', () => {
+  test('owner dashboard and project financial Actual remain usable', async ({ page }) => {
+    await signInThroughForm(page, OWNER.email);
+    await expect(page.getByRole('heading', { name: `שלום ${OWNER.displayName}` })).toBeVisible();
+    await page.goto(`/he-IL/projects/${world.projectId}?tab=financials`);
+    await expect(page.getByRole('heading', { name: seededProjectName })).toBeVisible();
+    await expectActualExplainability(page);
+    await expect(page.getByText(contractValueFormatted).first()).toBeVisible();
+  });
+});
+
+test.describe('manager persona', () => {
+  test('runs projects and costs without profit or people admin', async ({ page }) => {
+    await signInThroughForm(page, MANAGER.email);
+    await expectNavLinkVisible(page, he.nav.projects);
+    await expectNavLinkVisible(page, he.nav.expenses);
+
+    await page.goto(`/he-IL/projects/${world.projectId}?tab=financials`);
+    await expect(page.getByRole('heading', { name: seededProjectName })).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: he.projects.workspace.tabs.financials, exact: true }),
+    ).toBeVisible();
+    await expectActualExplainability(page);
+    await expect(page.getByText(he.financial.kpis.actualMargin)).toHaveCount(0);
+
+    await page.goto('/he-IL/settings/people');
+    await expect(page.getByRole('heading', { name: he.organization.members.title }).first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.organization.invitations.title })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: he.organization.invitations.send })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: he.organization.members.remove })).toHaveCount(0);
+  });
+});
+
+test.describe('finance persona', () => {
+  test('reaches billing, expenses, month close and profit', async ({ page }) => {
+    await signInThroughForm(page, FINANCE.email);
+    await expectNavLinkVisible(page, he.nav.billing);
+    await expectNavLinkVisible(page, he.nav.expenses);
+
+    await clickNavLink(page, he.nav.billing);
+    await expect(page).toHaveURL(/\/he-IL\/billing/);
+
+    await page.goto('/he-IL/month-close');
+    await expect(page.getByRole('heading', { name: he.nav.monthClose }).first()).toBeVisible();
+
+    await page.goto(`/he-IL/projects/${world.projectId}?tab=financials`);
+    await expectActualExplainability(page);
+    await expect(
+      page.getByRole('button', { name: new RegExp(he.financial.kpis.actualMargin) }).first(),
+    ).toBeVisible();
+  });
+});
+
+test.describe('business-profile Quick Create defaults', () => {
+  test('general contractor keeps project in the new menu after quick capture', async ({ page }) => {
+    await signInThroughForm(page, GC_OWNER.email);
+    await expectQuickCreateHas(page, he.nav.newMenu.project);
+  });
+
+  test('electrical keeps job in the new menu after quick capture', async ({ page }) => {
+    await signInThroughForm(page, ELECTRICAL_OWNER.email);
+    await expectQuickCreateHas(page, he.nav.newMenu.job);
+    await page.goto('/he-IL/projects/new');
+    await expect(page.getByText(he.projects.create.usualKind.jobTitle)).toBeVisible();
+  });
+
+  test('plumbing keeps job in the new menu after quick capture', async ({ page }) => {
+    await signInThroughForm(page, PLUMBING_OWNER.email);
+    await expectQuickCreateHas(page, he.nav.newMenu.job);
+  });
+
+  test('maintenance keeps work orders in the new menu after quick capture', async ({ page }) => {
+    await signInThroughForm(page, MAINTENANCE_OWNER.email);
+    await expectQuickCreateHas(page, he.nav.newMenu.service);
+    await page.goto('/he-IL/projects/new');
+    await expect(page.getByText(he.projects.create.usualKind.workOrderTitle)).toBeVisible();
+  });
+
+  test('field service keeps work orders in the new menu after quick capture', async ({ page }) => {
+    await signInThroughForm(page, FIELD_OWNER.email);
+    await expectQuickCreateHas(page, he.nav.newMenu.service);
+  });
+
+  test('mixed organization keeps project, job, and service in the new menu', async ({ page }) => {
+    await signInThroughForm(page, MIXED_OWNER.email);
+    await expectQuickCreateHas(page, he.nav.newMenu.project);
+    await expect(page.getByRole('menuitem', { name: he.nav.newMenu.service })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: he.nav.newMenu.job })).toBeVisible();
   });
 });

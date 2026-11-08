@@ -8,7 +8,7 @@ test.describe('overnight 3-wave surfaces (hebrew owner)', () => {
   test('scheduling, safety, notifications and timesheet approvals load RTL', async ({ page }) => {
     await page.goto('/he-IL/scheduling');
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-    await expect(page.getByRole('heading', { name: he.nav.scheduling, level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.scheduling.title, level: 1 })).toBeVisible();
     await assertNoPageHorizontalOverflow(page, 'scheduling mobile');
 
     await page.goto('/he-IL/safety');
