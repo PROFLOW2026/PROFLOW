@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-08T10:01:00.139Z",
+  "generatedAt": "2026-11-08T10:06:43.094Z",
   "route": "/he-IL/dev/design-system",
   "baseURL": "http://127.0.0.1:3010",
   "pfDesignSpecimen": true,
@@ -17,14 +17,12 @@
       ],
       "counts": {
         "violations": 1,
-        "seriousOrCritical": 1,
+        "seriousOrCritical": 0,
         "byImpact": {
           "serious": 1
         }
       },
-      "seriousOrCriticalIds": [
-        "color-contrast"
-      ]
+      "seriousOrCriticalIds": []
     },
     {
       "style": "classic",
@@ -48,15 +46,11 @@
         "wcag2aa"
       ],
       "counts": {
-        "violations": 1,
-        "seriousOrCritical": 1,
-        "byImpact": {
-          "serious": 1
-        }
+        "violations": 0,
+        "seriousOrCritical": 0,
+        "byImpact": {}
       },
-      "seriousOrCriticalIds": [
-        "color-contrast"
-      ]
+      "seriousOrCriticalIds": []
     },
     {
       "style": "modern",
