@@ -196,6 +196,7 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
     schedule: false,
     time: showTimeTab,
     documents: showDocumentsTab,
+    infra: false,
     usage: showUsageTab,
     work: false,
     closeout: false,

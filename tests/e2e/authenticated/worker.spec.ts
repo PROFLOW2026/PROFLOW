@@ -54,7 +54,7 @@ test.describe('worker permission gating', () => {
 
     await expectProjectHeading(page, seededProjectName);
     await expect(page.getByRole('tablist')).toBeVisible();
-    await expect(page.getByRole('tab', { name: he.projects.workspace.hubs.overview })).toBeVisible();
+    await expect(page.getByRole('tab', { name: he.projects.workspace.hubs.money })).toBeVisible();
     await expect(page.getByRole('tab', { name: he.projects.workspace.hubs.details })).toBeVisible();
     await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.financials })).toHaveCount(0);
     await expect(

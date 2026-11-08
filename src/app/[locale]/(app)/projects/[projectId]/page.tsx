@@ -20,10 +20,6 @@ import { isOrganizationOwner } from '@/shared/business-change/org-owner';
 import { ProjectContractsPanel } from '@/modules/projects/ui/project-contracts-panel';
 import { getModuleVisibility } from '@/modules/tenancy';
 import { loadProjectDetailInContext, loadProjectDetail } from './load-project-detail';
-import {
-  OverviewFinancialSnapshotFallback,
-  OverviewFinancialSnapshotPanel,
-} from './overview-financial-snapshot-panel';
 import { formatMoney } from '@/shared/money/format';
 import { zeroMoney } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
@@ -31,9 +27,8 @@ import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { WorkTab } from './work-tab';
 import { DetailsTab } from './details-tab';
 import { ProjectManagementModePanel } from '@/modules/project-profile/ui/project-management-mode-panel';
-import { OverviewTab } from './overview-tab';
 import { type ProjectTabKey } from './project-tabs-shell';
-import { resolveHubFromTabParam } from './project-hub-order';
+import { DEFAULT_PROJECT_TAB, resolveHubFromTabParam } from './project-hub-order';
 import { resolveProjectFilesTabVisible } from './project-tab-order';
 import {
   hubSectionsForDisplay,
@@ -76,8 +71,8 @@ const MODULE_PANEL_TABS = new Set<ProjectTabKey>([
 ]);
 
 function tabFromSearchParams(raw: string | string[] | undefined): string {
-  if (Array.isArray(raw)) return raw[0] ?? 'overview';
-  return raw ?? 'overview';
+  if (Array.isArray(raw)) return raw[0] ?? DEFAULT_PROJECT_TAB;
+  return raw ?? DEFAULT_PROJECT_TAB;
 }
 
 function experienceShowHiddenFromSearchParams(raw: string | string[] | undefined): boolean {
@@ -146,34 +141,8 @@ async function ProjectStructuredTabPanel({
       can(PERMISSIONS.PROJECT_FINANCIALS_READ) || can(PERMISSIONS.CONTRACTS_READ);
     const canEditProjects = can(PERMISSIONS.PROJECTS_UPDATE);
 
-    if (activeTab === 'overview') {
-      const detail = await loadProjectDetail(projectId, false);
-      const organizationTimezone = context.organization.timezone ?? 'Asia/Jerusalem';
-
-      return (
-        <div className="pt-4">
-          <OverviewTab
-            detail={detail}
-            locale={locale}
-            canReadFinancials={canReadFinancials}
-            canEdit={canEditProjects}
-            organizationTimezone={organizationTimezone}
-            financialSnapshotSlot={
-              canReadFinancials ? (
-                <Suspense fallback={<OverviewFinancialSnapshotFallback />}>
-                  <OverviewFinancialSnapshotPanel projectId={projectId} />
-                </Suspense>
-              ) : null
-            }
-          />
-        </div>
-      );
-    }
-
-    const includeStructure = true;
+    const includeStructure = activeTab === 'work' || activeTab === 'details';
     const detail = await loadProjectDetailInContext(context, projectId, includeStructure);
-    const showWorkTab = detail.showWorkPackages;
-
     const uiLocale = locale === 'he-IL' ? 'he-IL' : 'en';
     const canManageContract = can(PERMISSIONS.CONTRACTS_MANAGE);
     const isOwner = isOrganizationOwner(context);
@@ -254,7 +223,7 @@ async function ProjectStructuredTabPanel({
 
     return (
       <>
-        {activeTab === 'work' && showWorkTab ? (
+        {activeTab === 'work' ? (
           <div className="pt-4">
             <WorkTab
               detail={detail}
@@ -271,6 +240,7 @@ async function ProjectStructuredTabPanel({
         {activeTab === 'details' ? (
           <div className="pt-4">
             <ProjectManagementModePanel projectId={projectId} />
+            <Suspense fallback={<TabPanelSkeleton />}>
             <DetailsTab
               detail={detail}
               clients={clients}
@@ -285,6 +255,7 @@ async function ProjectStructuredTabPanel({
               coverStorageConfigured={coverAvailability?.storageConfigured ?? false}
               canEditCover={canEditProjects}
             />
+            </Suspense>
             {canManageContract ? (
               <div className="mt-4">
                 <ProjectContractsPanel projectId={projectId} currency={baseCurrency} />
@@ -356,6 +327,7 @@ async function ModuleTabWithHubNav(input: {
         schedule: can(PERMISSIONS.PLANNING_READ),
         time: can(PERMISSIONS.WORKFORCE_READ),
         documents: resolveProjectFilesTabVisible(can(PERMISSIONS.DOCUMENTS_READ)),
+        infra: resolveProjectFilesTabVisible(can(PERMISSIONS.DOCUMENTS_READ)),
         usage: can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ),
         work: detail.showWorkPackages,
         closeout: true,

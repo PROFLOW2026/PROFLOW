@@ -65,6 +65,7 @@ describe('job tab priority', () => {
         schedule: true,
         time: true,
         documents: true,
+        infra: true,
         usage: true,
         work: true,
         closeout: true,

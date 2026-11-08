@@ -39,7 +39,7 @@ test.describe('release smoke', () => {
     await expect(page.getByRole('tablist')).toBeVisible({ timeout: 30_000 });
     await expectProjectHeading(page, seededProjectName);
     await expectProjectHubTabs(page, [
-      projectHubs.overview,
+      projectHubs.money,
       projectHubs.money,
       projectHubs.work,
       projectHubs.documents,

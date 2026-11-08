@@ -17,6 +17,7 @@ import {
   defaultBuilding,
   emptySpec,
   levelName,
+  distributeUnitsAcrossFloors,
   makeLevels,
   orderLevels,
   planStructure,
@@ -145,6 +146,8 @@ export function StructureWizard({
   const [customRooms, setCustomRooms] = useState('');
   const [quickKind, setQuickKind] = useState<UnitKind>('apartment');
   const [quickCount, setQuickCount] = useState(4);
+  const [distributeTotal, setDistributeTotal] = useState(0);
+  const [distributeStart, setDistributeStart] = useState(1);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -252,7 +255,36 @@ export function StructureWizard({
     );
   };
 
+  const floorLevels = (building: WizardBuilding) => building.levels.filter((level) => level.kind === 'floor');
+
+  const applyDistribute = () => {
+    const targets = sameForAll ? spec.buildings.map((_, i) => i) : [buildingIndex];
+  setBuildings(
+      spec.buildings.map((building, i) => {
+        if (!targets.includes(i)) return building;
+        const floors = floorLevels(building);
+        const counts = distributeUnitsAcrossFloors(floors.length, distributeTotal);
+        let floorIndex = 0;
+        return {
+          ...building,
+          levels: building.levels.map((level) => {
+            if (level.kind !== 'floor') return level;
+            const count = counts[floorIndex] ?? 0;
+            floorIndex += 1;
+            return { ...level, units: { ...level.units, [quickKind]: count } };
+          }),
+        };
+      }),
+    );
+    void distributeStart;
+  };
+
   const active = spec.buildings[Math.min(buildingIndex, Math.max(spec.buildings.length - 1, 0))];
+  const activeFloorCount = active ? floorLevels(active).length : 0;
+  const distributePreview = useMemo(
+    () => distributeUnitsAcrossFloors(activeFloorCount, distributeTotal),
+    [activeFloorCount, distributeTotal],
+  );
   const isHouse = template === 'house';
 
   const addMultiLevel = () => {
@@ -478,6 +510,60 @@ export function StructureWizard({
 
           {active && !isHouse ? (
             <>
+              {RESIDENTIAL_TEMPLATES.includes(template) ? (
+                <div className="flex min-w-0 flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3">
+                  <span className="text-sm font-medium">{T.distributeTitle}</span>
+                  <p className="text-xs text-[var(--pf-text-secondary)]">{T.distributeHint}</p>
+                  <div className="flex flex-wrap items-end gap-2">
+                    <label className="flex min-w-0 flex-col gap-0.5 text-xs">
+                      <span>{T.distributeFloors}</span>
+                      <Input className="w-20" value={String(activeFloorCount)} readOnly aria-readonly />
+                    </label>
+                    <label className="flex min-w-0 flex-col gap-0.5 text-xs">
+                      <span>{T.distributeTotalUnits}</span>
+                      <CountField
+                        max={WIZARD_LIMITS.unitsPerCell * Math.max(activeFloorCount, 1)}
+                        value={distributeTotal}
+                        onChange={setDistributeTotal}
+                      />
+                    </label>
+                    <label className="flex min-w-0 flex-col gap-0.5 text-xs">
+                      <span>{T.distributeStartNumber}</span>
+                      <CountField min={1} max={9999} value={distributeStart} onChange={setDistributeStart} />
+                    </label>
+                    <select
+                      className={cn(inputClassName, 'w-auto')}
+                      aria-label={T.multiKind}
+                      value={quickKind}
+                      onChange={(event) => setQuickKind(event.target.value as UnitKind)}
+                    >
+                      {(kinds.length > 0 ? kinds : UNIT_KINDS).map((kind) => (
+                        <option key={kind} value={kind}>
+                          {T.unitKinds[kind]}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      disabled={distributeTotal <= 0 || activeFloorCount <= 0}
+                      onClick={applyDistribute}
+                    >
+                      {T.distributeApply}
+                    </Button>
+                  </div>
+                  {distributeTotal > 0 && activeFloorCount > 0 ? (
+                    <p className="text-xs text-[var(--pf-text-secondary)]" data-testid="wizard-distribute-preview">
+                      {T.distributePreview}: {distributePreview.join(', ')}
+                      {distributeStart > 1
+                        ? ` · ${T.distributeStartHint}`
+                        : null}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
               <div className="flex min-w-0 flex-wrap items-end gap-2 rounded-md bg-[var(--pf-bg-muted)] p-3">
                 <span className="w-full text-xs font-medium">{T.sameCount}</span>
                 <select

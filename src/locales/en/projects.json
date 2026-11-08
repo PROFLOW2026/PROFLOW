@@ -164,10 +164,10 @@
       "details": "Details"
     },
     "hubs": {
-      "overview": "Overview",
       "money": "Money",
       "work": "Work",
       "documents": "Files",
+      "infra": "Infrastructure",
       "details": "Details"
     },
     "links": {

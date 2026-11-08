@@ -18,7 +18,7 @@ interface ProjectHubSectionNavProps {
 }
 
 function sectionHref(projectHref: string, section: ProjectTabKey): string {
-  if (section === 'overview') return projectHref;
+  if (section === 'overview' || section === 'financials') return projectHref;
   return `${projectHref}?tab=${section}`;
 }
 

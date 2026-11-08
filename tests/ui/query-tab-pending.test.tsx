@@ -16,6 +16,14 @@ const navState = vi.hoisted(() => ({
   replace: vi.fn(),
 }));
 
+const searchTab = vi.hoisted(() => ({ value: 'work' as string | null }));
+
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => ({
+    get: (key: string) => (key === 'tab' ? searchTab.value : null),
+  }),
+}));
+
 vi.mock('@/shared/i18n/navigation', () => ({
   usePathname: () => navState.pathname,
   useRouter: () => ({ replace: navState.replace }),
@@ -39,9 +47,10 @@ vi.mock('@/shared/i18n/direction', () => ({
 }));
 
 const HUB_LABELS: Partial<Record<ProjectHubKey, string>> = {
-  overview: 'Overview',
   money: 'Money',
   work: 'Work',
+  documents: 'Files',
+  infra: 'Infrastructure',
   details: 'Details',
 };
 
@@ -127,30 +136,32 @@ describe('ProjectTabsShell pending behavior', () => {
   beforeEach(() => {
     navState.pathname = '/projects/proj-1';
     navState.replace.mockReset();
+    searchTab.value = 'work';
   });
 
   it('shows a panel skeleton and pending tab chrome while soft-navigating', async () => {
     const user = userEvent.setup();
     const { rerender } = renderWithMessages(
-      <Shell tabs={['overview', 'money', 'details']} activeHub="overview">
-        <div>Overview body</div>
+      <Shell tabs={['money', 'work', 'details']} activeHub="work">
+        <div>Work body</div>
       </Shell>,
     );
 
-    expect(screen.getByText('Overview body')).toBeVisible();
+    expect(screen.getByText('Work body')).toBeVisible();
 
     await user.click(screen.getByRole('tab', { name: 'Money' }));
 
-    expect(navState.replace).toHaveBeenCalledWith('/projects/proj-1?tab=financials', { scroll: false });
-    expect(screen.queryByText('Overview body')).toBeNull();
+    expect(navState.replace).toHaveBeenCalledWith('/projects/proj-1', { scroll: false });
+    expect(screen.queryByText('Work body')).toBeNull();
     expect(screen.getByRole('status')).toBeVisible();
     expect(screen.getByRole('tablist')).toHaveAttribute('aria-busy', 'true');
 
     const moneyTab = screen.getByRole('tab', { name: /Money/ });
     expect(moneyTab).toHaveAttribute('data-pending', '');
 
+    searchTab.value = null;
     rerender(
-      <Shell tabs={['overview', 'money', 'details']} activeHub="money">
+      <Shell tabs={['money', 'work', 'details']} activeHub="money">
         <div>Money body</div>
       </Shell>,
     );
@@ -159,15 +170,15 @@ describe('ProjectTabsShell pending behavior', () => {
     expect(screen.getByRole('tablist')).not.toHaveAttribute('aria-busy');
   });
 
-  it('clears the tab query when returning to overview', async () => {
+  it('clears the tab query when returning to the money hub', async () => {
     const user = userEvent.setup();
     renderWithMessages(
-      <Shell tabs={['overview', 'work']} activeHub="work">
+      <Shell tabs={['money', 'work']} activeHub="work">
         <div>Work body</div>
       </Shell>,
     );
 
-    await user.click(screen.getByRole('tab', { name: 'Overview' }));
+    await user.click(screen.getByRole('tab', { name: 'Money' }));
     expect(navState.replace).toHaveBeenCalledWith('/projects/proj-1', { scroll: false });
   });
 });

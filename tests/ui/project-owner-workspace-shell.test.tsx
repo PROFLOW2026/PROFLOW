@@ -55,8 +55,8 @@ describe('ProjectOwnerWorkspaceShell client navigation', () => {
         commercialTop={<div data-testid="commercial-top">commercial</div>}
         workChrome={<div data-testid="work-chrome">work</div>}
         executionChrome={<div data-testid="execution-chrome">execution</div>}
-        tabs={['overview']}
-        tabLabels={{ overview: 'Overview' }}
+        tabs={['money']}
+        tabLabels={{ money: 'Money' }}
       >
         <div data-testid="page-body">body</div>
       </ProjectOwnerWorkspaceShell>,
@@ -81,8 +81,8 @@ describe('ProjectOwnerWorkspaceShell client navigation', () => {
         commercialTop={<div data-testid="commercial-top">commercial</div>}
         workChrome={<div data-testid="work-chrome">work</div>}
         executionChrome={<div data-testid="execution-chrome">execution</div>}
-        tabs={['overview']}
-        tabLabels={{ overview: 'Overview' }}
+        tabs={['money']}
+        tabLabels={{ money: 'Money' }}
       >
         <div data-testid="page-body">body</div>
       </ProjectOwnerWorkspaceShell>,
@@ -99,8 +99,8 @@ describe('ProjectOwnerWorkspaceShell client navigation', () => {
       commercialTop: <div data-testid="commercial-top">commercial</div>,
       workChrome: <div data-testid="work-chrome">work</div>,
       executionChrome: <div data-testid="execution-chrome">execution</div>,
-      tabs: ['overview'] as const,
-      tabLabels: { overview: 'Overview' },
+      tabs: ['money'] as const,
+      tabLabels: { money: 'Money' },
       children: <div data-testid="page-body">body</div>,
     };
 

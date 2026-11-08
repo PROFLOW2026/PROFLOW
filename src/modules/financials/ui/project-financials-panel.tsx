@@ -22,6 +22,7 @@ import { BillingPlanStatusStrip } from '@/modules/billing-plan/ui/billing-plan-s
 import { ProjectVendorActualPanel } from './project-vendor-actual-panel';
 import { ProjectApPaymentStatusPanel } from './project-ap-payment-status-panel';
 import { resolveDisplayedForecastFinalCost } from './resolve-displayed-forecast-cost';
+import { ProjectFinancialsWorkspaceExtras } from '@/app/[locale]/(app)/projects/[projectId]/project-financials-workspace-extras';
 
 export interface ProjectFinancialsPanelProps {
   readonly projectId: string;
@@ -75,6 +76,7 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-4">
+      <ProjectFinancialsWorkspaceExtras projectId={projectId} />
       <MainAppSection title={t('panelTitle')} description={t('profitVsCash')}>
         {canReadBilling ? <BillingPlanStatusStrip projectId={projectId} /> : null}
       </MainAppSection>

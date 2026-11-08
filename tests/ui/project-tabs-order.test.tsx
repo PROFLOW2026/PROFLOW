@@ -57,15 +57,15 @@ function Shell({
     <div className="min-w-0 max-w-full" dir={navState.dir}>
       <ProjectTabsList
         tabs={ALL_HUBS}
-        activeHub="overview"
+        activeHub="money"
         labels={hubLabels(locale)}
         projectHref="/projects/proj-1"
         dir={navState.dir}
       />
       <ProjectTabsEnhancer
         tabs={ALL_HUBS}
-        serverActiveHub="overview"
-        activeHub="overview"
+        serverActiveHub="money"
+        activeHub="money"
       >
         {children}
       </ProjectTabsEnhancer>
@@ -109,10 +109,10 @@ describe('ProjectTabsShell encounter order', () => {
 
     const labels = screen.getAllByRole('tab').map((tab) => tab.textContent?.trim());
     expect(labels).toEqual([
-      'סקירה',
       'כספים',
       'עבודה',
       'קבצים',
+      'תשתיות',
       'פרטים',
     ]);
   });
@@ -130,8 +130,8 @@ describe('ProjectTabsShell encounter order', () => {
     expect(root).toHaveAttribute('dir', 'ltr');
 
     const labels = screen.getAllByRole('tab').map((tab) => tab.textContent?.trim());
-    expect(labels[0]).toMatch(/overview/i);
-    expect(labels[1]).toMatch(/money|financial/i);
+    expect(labels[0]).toMatch(/money|financial/i);
+    expect(labels[1]).toMatch(/work/i);
     expect(labels[labels.length - 1]).toMatch(/detail/i);
     expect(labels).toHaveLength(ALL_HUBS.length);
   });

@@ -67,6 +67,7 @@ export interface ProjectTabVisibility {
   readonly schedule: boolean;
   readonly time: boolean;
   readonly documents: boolean;
+  readonly infra: boolean;
   readonly usage: boolean;
   readonly work: boolean;
   readonly closeout: boolean;
@@ -102,6 +103,8 @@ export function resolveProjectTabs(visibility: ProjectTabVisibility): ProjectTab
         return visibility.time;
       case 'documents':
         return visibility.documents;
+      case 'infra':
+        return visibility.infra;
       case 'usage':
         return visibility.usage;
       case 'work':
@@ -133,6 +136,7 @@ export function applyProjectProfileToTabVisibility(
     schedule: visibility.schedule && projectProfileAllowsTab(profile, 'schedule'),
     time: visibility.time && projectProfileAllowsTab(profile, 'time'),
     documents: visibility.documents && projectProfileAllowsTab(profile, 'documents'),
+    infra: visibility.infra,
     usage: visibility.usage && projectProfileAllowsTab(profile, 'usage'),
     work: visibility.work && projectProfileAllowsTab(profile, 'work'),
     closeout: visibility.closeout && projectProfileAllowsTab(profile, 'closeout'),

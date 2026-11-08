@@ -1,14 +1,14 @@
 import type { ProjectTabKey } from './project-tab-order';
 import type { ProjectTabVisibility } from './project-tab-order';
 
-/** Top-level project workspace hubs (owner-facing). */
-export type ProjectHubKey = 'overview' | 'money' | 'work' | 'documents' | 'details';
+/** Top-level project workspace hubs (owner-facing). Overview retired — money is first. */
+export type ProjectHubKey = 'money' | 'work' | 'documents' | 'infra' | 'details';
 
 export const PROJECT_HUB_PRIORITY: readonly ProjectHubKey[] = [
-  'overview',
   'money',
   'work',
   'documents',
+  'infra',
   'details',
 ] as const;
 
@@ -16,7 +16,7 @@ export const PROJECT_HUB_PRIORITY: readonly ProjectHubKey[] = [
 export const LEGACY_TAB_TO_HUB: Readonly<
   Record<ProjectTabKey, { readonly hub: ProjectHubKey; readonly section: ProjectTabKey }>
 > = {
-  overview: { hub: 'overview', section: 'overview' },
+  overview: { hub: 'money', section: 'financials' },
   financials: { hub: 'money', section: 'financials' },
   expenses: { hub: 'money', section: 'expenses' },
   budgets: { hub: 'money', section: 'budgets' },
@@ -30,7 +30,7 @@ export const LEGACY_TAB_TO_HUB: Readonly<
   schedule: { hub: 'work', section: 'schedule' },
   usage: { hub: 'work', section: 'usage' },
   documents: { hub: 'documents', section: 'documents' },
-  infra: { hub: 'documents', section: 'infra' },
+  infra: { hub: 'infra', section: 'infra' },
   closeout: { hub: 'details', section: 'closeout' },
   warranty: { hub: 'details', section: 'warranty' },
   details: { hub: 'details', section: 'details' },
@@ -38,10 +38,10 @@ export const LEGACY_TAB_TO_HUB: Readonly<
 
 /** Inner sections per hub, in display order. */
 export const HUB_SECTION_PRIORITY: Readonly<Record<ProjectHubKey, readonly ProjectTabKey[]>> = {
-  overview: ['overview'],
   money: ['financials', 'expenses', 'billing', 'billingPlan', 'budgets'],
   work: ['work', 'boq', 'changes', 'team', 'time', 'schedule', 'usage'],
-  documents: ['documents', 'infra'],
+  documents: ['documents'],
+  infra: ['infra'],
   details: ['details', 'closeout', 'warranty'],
 };
 
@@ -51,16 +51,18 @@ export const PROJECT_TAB_ALIASES: Readonly<Record<string, ProjectTabKey>> = {
   files: 'documents',
 };
 
+export const DEFAULT_PROJECT_TAB: ProjectTabKey = 'financials';
+
 export function resolveHubFromTabParam(rawTab: string | undefined): {
   hub: ProjectHubKey;
   section: ProjectTabKey;
 } {
-  const normalized = rawTab?.trim() || 'overview';
+  const normalized = rawTab?.trim() || DEFAULT_PROJECT_TAB;
   const aliased = PROJECT_TAB_ALIASES[normalized] ?? normalized;
   const tab = aliased as ProjectTabKey;
   const mapped = LEGACY_TAB_TO_HUB[tab];
   if (mapped) return mapped;
-  return { hub: 'overview', section: 'overview' };
+  return { hub: 'money', section: DEFAULT_PROJECT_TAB };
 }
 
 export function shouldFocusProjectContracts(rawTab: string | undefined): boolean {
@@ -69,7 +71,7 @@ export function shouldFocusProjectContracts(rawTab: string | undefined): boolean
 
 /** Which hubs are visible given module/permission flags. */
 export function resolveProjectHubs(visibility: ProjectTabVisibility): ProjectHubKey[] {
-  const hubs: ProjectHubKey[] = ['overview'];
+  const hubs: ProjectHubKey[] = [];
 
   const moneySections = HUB_SECTION_PRIORITY.money.filter((section) =>
     isSectionVisible(section, visibility),
@@ -82,6 +84,8 @@ export function resolveProjectHubs(visibility: ProjectTabVisibility): ProjectHub
   if (workSections.length > 0) hubs.push('work');
 
   if (visibility.documents) hubs.push('documents');
+
+  if (visibility.infra) hubs.push('infra');
 
   hubs.push('details');
 
@@ -123,8 +127,9 @@ function isSectionVisible(section: ProjectTabKey, visibility: ProjectTabVisibili
     case 'time':
       return visibility.time;
     case 'documents':
-    case 'infra':
       return visibility.documents;
+    case 'infra':
+      return visibility.infra;
     case 'usage':
       return visibility.usage;
     case 'work':
@@ -141,5 +146,16 @@ export function activeHubFromParams(rawTab: string | undefined): ProjectHubKey {
 
 /** Default legacy tab when entering a hub from top-level nav. */
 export function defaultSectionForHub(hub: ProjectHubKey): ProjectTabKey {
-  return HUB_SECTION_PRIORITY[hub][0] ?? 'overview';
+  return HUB_SECTION_PRIORITY[hub][0] ?? DEFAULT_PROJECT_TAB;
+}
+
+/** Canonical project workspace href for the primary (money) hub. */
+export function primaryProjectHubHref(projectHref: string): string {
+  return projectHref;
+}
+
+export function hubNavigationHref(projectHref: string, hub: ProjectHubKey): string {
+  if (hub === 'money') return primaryProjectHubHref(projectHref);
+  const section = defaultSectionForHub(hub);
+  return `${projectHref}?tab=${section}`;
 }

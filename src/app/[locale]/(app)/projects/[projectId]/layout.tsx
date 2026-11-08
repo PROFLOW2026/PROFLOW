@@ -77,6 +77,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const showScheduleTab = can(PERMISSIONS.PLANNING_READ);
   const showTimeTab = can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = resolveProjectFilesTabVisible(can(PERMISSIONS.DOCUMENTS_READ));
+  const showInfraTab = showDocumentsTab;
   const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
 
   const [
@@ -154,6 +155,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
       schedule: showScheduleTab,
       time: showTimeTab,
       documents: showDocumentsTab,
+      infra: showInfraTab,
       usage: showUsageTab,
       work: showWorkTab,
       closeout: true,

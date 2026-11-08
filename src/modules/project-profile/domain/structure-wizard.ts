@@ -166,6 +166,25 @@ export function makeLevels(
   return levels;
 }
 
+/**
+ * Splits a total unit count across residential floors as evenly as possible.
+ * Example: 30 units across 8 floors → six floors with 4 units and two with 3.
+ */
+export function distributeUnitsAcrossFloors(floorCount: number, totalUnits: number): number[] {
+  if (floorCount <= 0 || totalUnits <= 0) {
+    return Array.from({ length: Math.max(floorCount, 0) }, () => 0);
+  }
+  const base = Math.floor(totalUnits / floorCount);
+  let remainder = totalUnits % floorCount;
+  const counts: number[] = [];
+  for (let i = 0; i < floorCount; i += 1) {
+    const extra = remainder > 0 ? 1 : 0;
+    if (remainder > 0) remainder -= 1;
+    counts.push(base + extra);
+  }
+  return counts;
+}
+
 // ── templates (a starting point only, never a limit) ───────────────────────────────────────────────
 
 export function buildingName(template: WizardTemplate, index: number, housePrefix = 'וילה'): string {

@@ -260,7 +260,7 @@ test.describe('polish: dashboard loading + export pending', () => {
     await page.goto(projectPath);
     await expect(page.getByRole('heading', { name: 'שיפוץ דירה ברמת גן' })).toBeVisible();
 
-    const overviewTab = page.getByRole('tab', { name: he.projects.workspace.hubs.overview });
+    const overviewTab = page.getByRole('tab', { name: he.projects.workspace.hubs.money });
     const moneyTab = page.getByRole('tab', { name: he.projects.workspace.hubs.money });
     await expect(overviewTab).toHaveAttribute('aria-selected', 'true');
     await expect(moneyTab).toHaveAttribute('aria-selected', 'false');

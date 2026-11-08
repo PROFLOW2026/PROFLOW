@@ -7,7 +7,7 @@ import { pressableClassName } from '@/components/ui/pressable';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { type ProjectHubKey } from './project-hub-order';
-import { defaultSectionForHub } from './project-hub-order';
+import { hubNavigationHref } from './project-hub-order';
 
 export interface ProjectTabsListProps {
   tabs: readonly ProjectHubKey[];
@@ -17,11 +17,8 @@ export interface ProjectTabsListProps {
   dir?: 'rtl' | 'ltr';
 }
 
-function hubHref(projectHref: string, hub: ProjectHubKey): string {
-  if (hub === 'overview') return projectHref;
-  const section = defaultSectionForHub(hub);
-  return `${projectHref}?tab=${section}`;
-}
+const PROJECT_HUB_TABLIST_CLASS =
+  '[&:has([role=tab]:nth-child(5):last-child)]:max-sm:grid [&:has([role=tab]:nth-child(5):last-child)]:max-sm:grid-cols-5 [&:has([role=tab]:nth-child(5):last-child)]:max-sm:overflow-x-visible [&:has([role=tab]:nth-child(5):last-child)]:max-sm:gap-0';
 
 export function ProjectTabsList({
   tabs,
@@ -36,14 +33,14 @@ export function ProjectTabsList({
       data-pf-slot="tabs-list"
       data-pf-project-tabs=""
       dir={dir}
-      className={mainAppDetailRouteTabListClassName}
+      className={cn(mainAppDetailRouteTabListClassName, PROJECT_HUB_TABLIST_CLASS)}
     >
       {tabs.map((hub) => {
         const selected = hub === activeHub;
         return (
           <Link
             key={hub}
-            href={hubHref(projectHref, hub)}
+            href={hubNavigationHref(projectHref, hub)}
             role="tab"
             data-pf-slot="tab"
             data-tab={hub}
@@ -53,7 +50,7 @@ export function ProjectTabsList({
             scroll={false}
             prefetch={false}
             className={cn(
-              'relative shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-sm font-medium text-start',
+              'relative shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-sm font-medium text-start max-sm:px-1.5 max-sm:text-center max-sm:min-h-11',
               'min-h-11',
               pressableClassName,
               'text-[var(--pf-text-secondary)]',

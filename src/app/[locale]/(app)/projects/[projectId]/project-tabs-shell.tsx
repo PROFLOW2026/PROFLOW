@@ -34,7 +34,7 @@ export function ProjectTabsShell({
   children,
 }: ProjectTabsShellProps) {
   const resolvedActive =
-    activeHub && tabs.includes(activeHub) ? activeHub : (tabs[0] ?? 'overview');
+    activeHub && tabs.includes(activeHub) ? activeHub : (tabs[0] ?? 'money');
 
   return (
     <div className={mainAppDetailRouteTabsFrameClassName} dir={dir}>

@@ -7,7 +7,7 @@ import { usePathname, useRouter } from '@/shared/i18n/navigation';
 import { useSearchParams } from 'next/navigation';
 import {
   activeHubFromParams,
-  defaultSectionForHub,
+  hubNavigationHref,
   type ProjectHubKey,
 } from './project-hub-order';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
@@ -44,7 +44,7 @@ function ProjectTabsEnhancerWithParams({
   children,
 }: ProjectTabsEnhancerProps) {
   const searchParams = useSearchParams();
-  const urlTabRaw = searchParams?.get('tab') ?? 'overview';
+  const urlTabRaw = searchParams?.get('tab') ?? 'financials';
   const urlHub = activeHubFromParams(urlTabRaw);
   const activeHub: ProjectHubKey = tabs.includes(urlHub) ? urlHub : serverActiveHub;
 
@@ -154,12 +154,7 @@ function ProjectTabsEnhancerChrome({
     function softNavigate(hub: string) {
       navigateTabRef.current(hub, () => {
         const params = new URLSearchParams();
-        if (hub !== 'overview') {
-          params.set('tab', defaultSectionForHub(hub as ProjectHubKey));
-        }
-        const query = params.toString();
-        const path = pathnameRef.current;
-        router.replace(query ? `${path}?${query}` : path, { scroll: false });
+        router.replace(hubNavigationHref(pathnameRef.current, hub as ProjectHubKey), { scroll: false });
       });
     }
 
@@ -219,13 +214,7 @@ function ProjectTabsEnhancerChrome({
 
     const prefetched = new Set<string>();
     function hubHref(hub: string) {
-      const params = new URLSearchParams();
-      if (hub !== 'overview') {
-        params.set('tab', defaultSectionForHub(hub as ProjectHubKey));
-      }
-      const query = params.toString();
-      const path = pathnameRef.current;
-      return query ? `${path}?${query}` : path;
+      return hubNavigationHref(pathnameRef.current, hub as ProjectHubKey);
     }
     function prefetchHub(hub: string) {
       if (HUB_PREFETCH_SKIP.has(hub as ProjectHubKey)) return;

@@ -26,13 +26,16 @@ describe('resolveProjectHubs documents hub', () => {
       schedule: false,
       time: false,
       documents: resolveProjectFilesTabVisible(true),
+      infra: resolveProjectFilesTabVisible(true),
       usage: false,
       work: true,
       closeout: true,
       warranty: true,
     });
     expect(hubs).toContain('documents');
+    expect(hubs).toContain('infra');
     expect(hubs.indexOf('work')).toBeLessThan(hubs.indexOf('documents'));
-    expect(hubs.indexOf('documents')).toBeLessThan(hubs.indexOf('details'));
+    expect(hubs.indexOf('documents')).toBeLessThan(hubs.indexOf('infra'));
+    expect(hubs.indexOf('infra')).toBeLessThan(hubs.indexOf('details'));
   });
 });
