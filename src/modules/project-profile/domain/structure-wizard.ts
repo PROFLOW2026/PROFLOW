@@ -187,6 +187,47 @@ export function distributeUnitsAcrossFloors(floorCount: number, totalUnits: numb
   return counts;
 }
 
+/** Assign `totalApartments` across residential `floor` levels only (not ground, basement, roof, special). */
+export function applyApartmentDistributionToBuilding(
+  building: WizardBuilding,
+  totalApartments: number,
+  kind: UnitKind = 'apartment',
+): WizardBuilding {
+  const floors = building.levels.filter((level) => level.kind === 'floor');
+  if (totalApartments <= 0 || floors.length === 0) {
+    return {
+      ...building,
+      levels: building.levels.map((level) =>
+        level.kind === 'floor' ? { ...level, units: { ...level.units, [kind]: 0 } } : level,
+      ),
+    };
+  }
+  const counts = distributeUnitsAcrossFloors(floors.length, totalApartments);
+  let floorIndex = 0;
+  return {
+    ...building,
+    levels: building.levels.map((level) => {
+      if (level.kind !== 'floor') return level;
+      const count = counts[floorIndex] ?? 0;
+      floorIndex += 1;
+      return { ...level, units: { ...level.units, [kind]: count } };
+    }),
+  };
+}
+
+export function applyApartmentDistributionToSpec(
+  spec: WizardSpec,
+  totalsByBuilding: readonly number[],
+  kind: UnitKind = 'apartment',
+): WizardSpec {
+  return {
+    ...spec,
+    buildings: spec.buildings.map((building, index) =>
+      applyApartmentDistributionToBuilding(building, totalsByBuilding[index] ?? 0, kind),
+    ),
+  };
+}
+
 // ── templates (a starting point only, never a limit) ───────────────────────────────────────────────
 
 export function buildingName(template: WizardTemplate, index: number, housePrefix = 'וילה'): string {
@@ -219,7 +260,7 @@ export function defaultBuilding(template: WizardTemplate, index: number, housePr
         structure: 'building',
         levels: makeLevels(
           { basements: 1, ground: true, floorsAboveGround: 4, roof: true, special: [] },
-          (level) => (level.kind === 'ground' ? { shop: 2 } : level.kind === 'floor' ? { apartment: 4 } : {}),
+          (level) => (level.kind === 'ground' ? { shop: 2 } : {}),
         ),
       };
     case 'infrastructure':
@@ -234,10 +275,7 @@ export function defaultBuilding(template: WizardTemplate, index: number, housePr
       return {
         name,
         structure: 'building',
-        levels: makeLevels(
-          { basements: 0, ground: true, floorsAboveGround: 4, roof: false, special: [] },
-          (level) => (level.kind === 'floor' ? { apartment: 4 } : {}),
-        ),
+        levels: makeLevels({ basements: 0, ground: true, floorsAboveGround: 4, roof: false, special: [] }),
       };
   }
 }

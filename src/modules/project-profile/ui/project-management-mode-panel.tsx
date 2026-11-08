@@ -5,13 +5,13 @@ import { findProjectDeliveryProfile } from '@/modules/project-profile/applicatio
 import { MANAGEMENT_MODES, resolveManagementMode } from '@/modules/project-profile/domain/management-mode';
 import { loadProjectCapabilities } from '@/modules/project-team/application/capability-guard';
 import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities';
-import { withOrgContext } from '@/shared/auth/session';
+import { withProjectOrgContext } from '@/shared/auth/session';
 import { saveProjectManagementModeAction } from './management-mode-actions';
 
 /** Project edit asks for one management mode. Saving it does not create an Owner membership. */
 export async function ProjectManagementModePanel({ projectId }: { readonly projectId: string }) {
   const t = await getTranslations('projects');
-  const view = await withOrgContext(async (context) => {
+  const view = await withProjectOrgContext(projectId, async (context) => {
     const [profile, held] = await Promise.all([
       findProjectDeliveryProfile(context, projectId),
       loadProjectCapabilities(context, projectId),

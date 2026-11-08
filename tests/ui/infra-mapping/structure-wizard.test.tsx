@@ -28,6 +28,8 @@ describe('StructureWizard', () => {
 
   it('goes through the steps, shows a preview, and creates the structure with one call', async () => {
     const { createStructure, onCreated } = setup(vi.fn(async () => ({ ok: true as const, count: 20 })));
+    const apartments = screen.getByLabelText(STRUCTURE_TEXT.apartmentsInBuilding) as HTMLInputElement;
+    fireEvent.change(apartments, { target: { value: '12' } });
     fireEvent.click(screen.getByTestId('wizard-next'));
     expect(screen.getAllByTestId('wizard-level-row').length).toBeGreaterThan(0);
     fireEvent.click(screen.getByTestId('wizard-next'));
@@ -131,6 +133,8 @@ describe('StructureWizard', () => {
 
     it('never leaves "continue" disabled without saying why', () => {
       setup();
+      const apartments = screen.getByLabelText(STRUCTURE_TEXT.apartmentsInBuilding) as HTMLInputElement;
+      fireEvent.change(apartments, { target: { value: '2' } });
       fireEvent.click(screen.getByTestId('wizard-next'));
       fireEvent.click(screen.getByRole('button', { name: STRUCTURE_TEXT.multiAdd }));
       const row = screen.getByTestId('wizard-multi-row');

@@ -2,31 +2,14 @@ import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 ﻿import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { listClientsForOrg, listContactsForClients } from '@/modules/clients';
-import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
-import {
-  getProjectCoverImageAvailability,
-  getProjectCoverDisplayUrl,
-  listProjectsForOrg,
-} from '@/modules/projects';
-import {
-  listOrgPhasePacks,
-  listOrgProjectTemplatesForApply,
-  listOrgWorkPackagePacks,
-  titleWithDocumentNumber,
-} from '@/modules/tenancy';
+import { titleWithDocumentNumber } from '@/modules/tenancy';
 import { withOrgContext } from '@/shared/auth/session';
-import { isOrganizationOwner } from '@/shared/business-change/org-owner';
-import { ProjectContractsPanel } from '@/modules/projects/ui/project-contracts-panel';
 import { getModuleVisibility } from '@/modules/tenancy';
-import { loadProjectDetailInContext, loadProjectDetail } from './load-project-detail';
-import { formatMoney } from '@/shared/money/format';
-import { zeroMoney } from '@/shared/money';
+import { loadProjectDetail } from './load-project-detail';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
-import { WorkTab } from './work-tab';
-import { DetailsTab } from './details-tab';
-import { ProjectManagementModePanel } from '@/modules/project-profile/ui/project-management-mode-panel';
+import { ProjectDetailsWorkspace } from './project-details-workspace';
+import { ProjectWorkWorkspace } from './project-work-workspace';
 import { type ProjectTabKey } from './project-tabs-shell';
 import { DEFAULT_PROJECT_TAB, resolveHubFromTabParam } from './project-hub-order';
 import { resolveProjectFilesTabVisible } from './project-tab-order';
@@ -135,138 +118,27 @@ async function ProjectStructuredTabPanel({
   locale: string;
   activeTab: ProjectTabKey;
 }) {
-  return withOrgContext(async (context) => {
-    const can = (permission: PermissionKey) => context.permissions.has(permission);
-    const canReadFinancials =
-      can(PERMISSIONS.PROJECT_FINANCIALS_READ) || can(PERMISSIONS.CONTRACTS_READ);
-    const canEditProjects = can(PERMISSIONS.PROJECTS_UPDATE);
-
-    const includeStructure = activeTab === 'work' || activeTab === 'details';
-    const detail = await loadProjectDetailInContext(context, projectId, includeStructure);
-    const uiLocale = locale === 'he-IL' ? 'he-IL' : 'en';
-    const canManageContract = can(PERMISSIONS.CONTRACTS_MANAGE);
-    const isOwner = isOrganizationOwner(context);
-    const baseCurrency =
-      detail.contract?.currency ?? detail.project.currency ?? context.organization.baseCurrency ?? 'ILS';
-    const sample = formatMoney(zeroMoney(baseCurrency), locale, {
-      currencyDisplay: 'narrowSymbol',
-    });
-    const currencySymbol = sample.replace(/[\d\s.,\u2212+-]/g, '').trim() || '₪';
-
-    const needsDetailsExtras = activeTab === 'details';
-    const needsWorkExtras = canEditProjects && activeTab === 'work';
-
-    const coverAvailability =
-      needsDetailsExtras ? await getProjectCoverImageAvailability(context) : null;
-    const coverPreviewUrl =
-      needsDetailsExtras
-        ? await getProjectCoverDisplayUrl(context, projectId).catch(() => null)
-        : null;
-
-    let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
-    let orgTemplates: Awaited<ReturnType<typeof listOrgProjectTemplatesForApply>> = [];
-    let phasePacks: Awaited<ReturnType<typeof listOrgPhasePacks>> = [];
-    let workPackagePacks: Awaited<ReturnType<typeof listOrgWorkPackagePacks>> = [];
-    let cloneCandidates: { id: string; name: string }[] = [];
-    let clients: {
-      id: string;
-      name: string;
-      contacts: { id: string; name: string; phone: string | null; role: string }[];
-    }[] = [];
-
-    if (needsDetailsExtras || needsWorkExtras) {
-      const [fields, templates, phases, wpPacks, projects, clientRows] = await Promise.all([
-        needsDetailsExtras
-          ? listCustomFieldValuesForEntity(context, 'project', projectId).catch(() => [])
-          : Promise.resolve([]),
-        needsWorkExtras
-          ? listOrgProjectTemplatesForApply(context).catch(() => [])
-          : Promise.resolve([]),
-        needsWorkExtras ? listOrgPhasePacks(context).catch(() => []) : Promise.resolve([]),
-        needsWorkExtras ? listOrgWorkPackagePacks(context).catch(() => []) : Promise.resolve([]),
-        needsWorkExtras ? listProjectsForOrg(context, {}).catch(() => []) : Promise.resolve([]),
-        needsDetailsExtras ? listClientsForOrg(context, {}).catch(() => []) : Promise.resolve([]),
-      ]);
-      const contacts = needsDetailsExtras
-        ? await listContactsForClients(
-            context,
-            clientRows.map((client) => client.id),
-          ).catch(() => [])
-        : [];
-      const contactsByClient = new Map<
-        string,
-        { id: string; name: string; phone: string | null; role: string }[]
-      >();
-      for (const contact of contacts) {
-        const list = contactsByClient.get(contact.clientId) ?? [];
-        list.push({
-          id: contact.id,
-          name: contact.name,
-          phone: contact.phone,
-          role: contact.role,
-        });
-        contactsByClient.set(contact.clientId, list);
-      }
-      customFields = fields;
-      orgTemplates = templates;
-      phasePacks = phases;
-      workPackagePacks = wpPacks;
-      cloneCandidates = projects
-        .filter((row) => row.id !== projectId)
-        .map((row) => ({ id: row.id, name: row.name }));
-      clients = clientRows.map((client) => ({
-        id: client.id,
-        name: client.name,
-        contacts: contactsByClient.get(client.id) ?? [],
-      }));
-    }
-
+  if (activeTab === 'work') {
     return (
-      <>
-        {activeTab === 'work' ? (
-          <div className="pt-4">
-            <WorkTab
-              detail={detail}
-              canEdit={canEditProjects}
-              locale={uiLocale}
-              orgTemplates={orgTemplates}
-              phasePacks={phasePacks}
-              workPackagePacks={workPackagePacks}
-              cloneCandidates={cloneCandidates}
-            />
-          </div>
-        ) : null}
-
-        {activeTab === 'details' ? (
-          <div className="pt-4">
-            <ProjectManagementModePanel projectId={projectId} />
-            <Suspense fallback={<TabPanelSkeleton />}>
-            <DetailsTab
-              detail={detail}
-              clients={clients}
-              baseCurrency={baseCurrency}
-              currencySymbol={currencySymbol}
-              canManageContract={canManageContract}
-              isOwner={isOwner}
-              customFields={customFields}
-              taxRatePercent={detail.contract?.taxSnapshot?.ratePercent ?? null}
-              coverPreviewUrl={coverPreviewUrl}
-              coverSchemaReady={coverAvailability?.schemaReady ?? false}
-              coverStorageConfigured={coverAvailability?.storageConfigured ?? false}
-              canEditCover={canEditProjects}
-            />
-            </Suspense>
-            {canManageContract ? (
-              <div className="mt-4">
-                <ProjectContractsPanel projectId={projectId} currency={baseCurrency} />
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
-      </>
+      <div className="pt-4">
+        <Suspense fallback={<TabPanelSkeleton />}>
+          <ProjectWorkWorkspace projectId={projectId} locale={locale} />
+        </Suspense>
+      </div>
     );
-  });
+  }
+
+  if (activeTab === 'details') {
+    return (
+      <div className="pt-4">
+        <Suspense fallback={<TabPanelSkeleton />}>
+          <ProjectDetailsWorkspace projectId={projectId} locale={locale} />
+        </Suspense>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 function renderModuleTab(input: {
@@ -329,7 +201,7 @@ async function ModuleTabWithHubNav(input: {
         documents: resolveProjectFilesTabVisible(can(PERMISSIONS.DOCUMENTS_READ)),
         infra: resolveProjectFilesTabVisible(can(PERMISSIONS.DOCUMENTS_READ)),
         usage: can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ),
-        work: detail.showWorkPackages,
+        work: detail.project.workKind === 'project',
         closeout: true,
         warranty: true,
       },

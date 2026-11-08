@@ -157,7 +157,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
       documents: showDocumentsTab,
       infra: showInfraTab,
       usage: showUsageTab,
-      work: showWorkTab,
+      work: detail.project.workKind === 'project',
       closeout: true,
       warranty: true,
     },

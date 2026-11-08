@@ -5,6 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildLocationIndex, type LocationNode } from '@/modules/project-profile/domain/locations';
 import {
+  applyApartmentDistributionToBuilding,
   emptySpec,
   makeLevels,
   nextUnitNumber,
@@ -27,6 +28,18 @@ function levels(units: Record<string, Partial<Record<'apartment' | 'shop' | 'off
     (level) => units[level.key] ?? {},
   );
 }
+
+describe('applyApartmentDistributionToBuilding', () => {
+  it('spreads apartments only across floor levels, not basement or ground', () => {
+    const base = emptySpec('residential').buildings[0]!;
+    const adjusted = applyApartmentDistributionToBuilding(base, 10, 'apartment');
+    const floorUnits = adjusted.levels.filter((level) => level.kind === 'floor').map((level) => level.units.apartment ?? 0);
+    expect(floorUnits).toEqual([3, 3, 2, 2]);
+    for (const level of adjusted.levels) {
+      if (level.kind !== 'floor') expect(level.units.apartment ?? 0).toBe(0);
+    }
+  });
+});
 
 describe('wizard plan', () => {
   it('supports a different number of units on every level, including none on common floors', () => {

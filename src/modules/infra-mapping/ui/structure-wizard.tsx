@@ -17,6 +17,7 @@ import {
   defaultBuilding,
   emptySpec,
   levelName,
+  applyApartmentDistributionToSpec,
   distributeUnitsAcrossFloors,
   makeLevels,
   orderLevels,
@@ -145,8 +146,8 @@ export function StructureWizard({
   const [optionalRooms, setOptionalRooms] = useState<readonly string[]>([]);
   const [customRooms, setCustomRooms] = useState('');
   const [quickKind, setQuickKind] = useState<UnitKind>('apartment');
-  const [quickCount, setQuickCount] = useState(4);
-  const [distributeTotal, setDistributeTotal] = useState(0);
+  const [quickCount, setQuickCount] = useState(0);
+  const [apartmentTotals, setApartmentTotals] = useState<number[]>([0]);
   const [distributeStart, setDistributeStart] = useState(1);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -190,6 +191,18 @@ export function StructureWizard({
     setOptionalRooms([]);
     setCustomRooms('');
     setQuickKind(KINDS_BY_TEMPLATE[next][0] ?? 'apartment');
+    setApartmentTotals([0]);
+  };
+
+  const showsApartmentField =
+    RESIDENTIAL_TEMPLATES.includes(template) && template !== 'house' && template !== 'infrastructure';
+
+  const setApartmentTotal = (index: number, value: number) => {
+    setApartmentTotals((current) => {
+      const next = [...current];
+      next[index] = value;
+      return next;
+    });
   };
 
   const setBuildings = (buildings: readonly WizardBuilding[]) =>
@@ -203,13 +216,21 @@ export function StructureWizard({
     const wanted = Math.min(Math.max(count, 0), WIZARD_LIMITS.buildings);
     const current = spec.buildings;
     if (wanted === current.length) return;
-    if (wanted < current.length) return setBuildings(current.slice(0, wanted));
+    if (wanted < current.length) {
+      setBuildings(current.slice(0, wanted));
+      setApartmentTotals((totals) => totals.slice(0, wanted));
+      return;
+    }
     const source = current[0] ?? defaultBuilding(template, 0);
     const added = Array.from({ length: wanted - current.length }, (_, offset) => ({
       ...source,
       name: buildingName(template, current.length + offset),
     }));
     setBuildings([...current, ...added]);
+    setApartmentTotals((totals) => [
+      ...totals,
+      ...Array.from({ length: wanted - current.length }, () => (sameForAll ? totals[0] ?? 0 : 0)),
+    ]);
   };
 
   const fallbackUnits = (building: WizardBuilding): WizardLevel['units'] =>
@@ -263,37 +284,27 @@ export function StructureWizard({
 
   const floorLevels = (building: WizardBuilding) => building.levels.filter((level) => level.kind === 'floor');
 
-  const applyDistribute = () => {
-    const targets = sameForAll ? spec.buildings.map((_, i) => i) : [buildingIndex];
-  setBuildings(
-      spec.buildings.map((building, i) => {
-        if (!targets.includes(i)) return building;
-        const floors = floorLevels(building);
-        const counts = distributeUnitsAcrossFloors(floors.length, distributeTotal);
-        let floorIndex = 0;
-        return {
-          ...building,
-          levels: building.levels.map((level) => {
-            if (level.kind !== 'floor') return level;
-            const count = counts[floorIndex] ?? 0;
-            floorIndex += 1;
-            return { ...level, units: { ...level.units, [quickKind]: count } };
-          }),
-        };
-      }),
-    );
-    setSpec((current) => ({
-      ...current,
-      unitNumberStarts: distributeStart > 1 ? { ...current.unitNumberStarts, [quickKind]: distributeStart } : current.unitNumberStarts,
-    }));
-  };
-
   const active = spec.buildings[Math.min(buildingIndex, Math.max(spec.buildings.length - 1, 0))];
   const activeFloorCount = active ? floorLevels(active).length : 0;
+  const activeApartmentTotal = apartmentTotals[buildingIndex] ?? apartmentTotals[0] ?? 0;
   const distributePreview = useMemo(
-    () => distributeUnitsAcrossFloors(activeFloorCount, distributeTotal),
-    [activeFloorCount, distributeTotal],
+    () => distributeUnitsAcrossFloors(activeFloorCount, activeApartmentTotal),
+    [activeFloorCount, activeApartmentTotal],
   );
+
+  const advanceStep = () => {
+    if (step === 1 && showsApartmentField) {
+      const totals = sameForAll
+        ? spec.buildings.map(() => apartmentTotals[0] ?? 0)
+        : apartmentTotals.slice(0, spec.buildings.length);
+      if (totals.some((total) => total > 0)) {
+        setSpec((current) =>
+          applyApartmentDistributionToSpec(current, totals, 'apartment'),
+        );
+      }
+    }
+    setStep((step + 1) as 2 | 3);
+  };
   const isHouse = template === 'house';
 
   const addMultiLevel = () => {
@@ -473,6 +484,20 @@ export function StructureWizard({
                         onChange={(event) => changeForm(index, { special: event.target.value })}
                       />
                     </label>
+                    {showsApartmentField && (!sameForAll || index === 0) ? (
+                      <div className="flex min-w-0 flex-col gap-1">
+                        <CountField
+                          id={`wizard-apartments-${index}`}
+                          label={T.apartmentsInBuilding}
+                          value={sameForAll ? (apartmentTotals[0] ?? 0) : (apartmentTotals[index] ?? 0)}
+                          max={WIZARD_LIMITS.unitsPerCell * Math.max(form.floors, 1)}
+                          onChange={(value) =>
+                            sameForAll ? setApartmentTotals(spec.buildings.map(() => value)) : setApartmentTotal(index, value)
+                          }
+                        />
+                        <p className="text-xs text-[var(--pf-text-secondary)]">{T.apartmentsInBuildingHint}</p>
+                      </div>
+                    ) : null}
                   </fieldset>
                 );
               })}
@@ -519,57 +544,22 @@ export function StructureWizard({
 
           {active && !isHouse ? (
             <>
-              {RESIDENTIAL_TEMPLATES.includes(template) ? (
+              {showsApartmentField ? (
                 <div className="flex min-w-0 flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3">
-                  <span className="text-sm font-medium">{T.distributeTitle}</span>
-                  <p className="text-xs text-[var(--pf-text-secondary)]">{T.distributeHint}</p>
-                  <div className="flex flex-wrap items-end gap-2">
-                    <label className="flex min-w-0 flex-col gap-0.5 text-xs">
-                      <span>{T.distributeFloors}</span>
-                      <Input className="w-20" value={String(activeFloorCount)} readOnly aria-readonly />
-                    </label>
-                    <label className="flex min-w-0 flex-col gap-0.5 text-xs">
-                      <span>{T.distributeTotalUnits}</span>
-                      <CountField
-                        max={WIZARD_LIMITS.unitsPerCell * Math.max(activeFloorCount, 1)}
-                        value={distributeTotal}
-                        onChange={setDistributeTotal}
-                      />
-                    </label>
-                    <label className="flex min-w-0 flex-col gap-0.5 text-xs">
-                      <span>{T.distributeStartNumber}</span>
-                      <CountField min={1} max={9999} value={distributeStart} onChange={setDistributeStart} />
-                    </label>
-                    <select
-                      className={cn(inputClassName, 'w-auto')}
-                      aria-label={T.multiKind}
-                      value={quickKind}
-                      onChange={(event) => setQuickKind(event.target.value as UnitKind)}
-                    >
-                      {(kinds.length > 0 ? kinds : UNIT_KINDS).map((kind) => (
-                        <option key={kind} value={kind}>
-                          {T.unitKinds[kind]}
-                        </option>
-                      ))}
-                    </select>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      disabled={distributeTotal <= 0 || activeFloorCount <= 0}
-                      onClick={applyDistribute}
-                    >
-                      {T.distributeApply}
-                    </Button>
-                  </div>
-                  {distributeTotal > 0 && activeFloorCount > 0 ? (
+                  <p className="text-xs text-[var(--pf-text-secondary)]">{T.step2DistributedHint}</p>
+                  {activeApartmentTotal > 0 && activeFloorCount > 0 ? (
                     <p className="text-xs text-[var(--pf-text-secondary)]" data-testid="wizard-distribute-preview">
-                      {T.distributePreview}: {distributePreview.join(', ')}
-                      {distributeStart > 1
-                        ? ` · ${T.distributeStartHint}`
-                        : null}
+                      {T.distributeTotalUnits}: {activeApartmentTotal} · {T.distributePreview}:{' '}
+                      {distributePreview.join(', ')}
                     </p>
                   ) : null}
+                  <label className="flex min-w-0 max-w-xs flex-col gap-0.5 text-xs">
+                    <span>{T.distributeStartNumber}</span>
+                    <CountField min={1} max={9999} value={distributeStart} onChange={setDistributeStart} />
+                    {distributeStart > 1 ? (
+                      <span className="text-[var(--pf-text-secondary)]">{T.distributeStartHint}</span>
+                    ) : null}
+                  </label>
                 </div>
               ) : null}
 
@@ -873,7 +863,7 @@ export function StructureWizard({
           {step === 1 ? T.cancel : T.back}
         </Button>
         {step < 3 ? (
-          <Button type="button" onClick={() => setStep((step + 1) as 2 | 3)} disabled={!canContinue} data-testid="wizard-next">
+          <Button type="button" onClick={advanceStep} disabled={!canContinue} data-testid="wizard-next">
             {T.next}
           </Button>
         ) : (
