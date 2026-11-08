@@ -48,7 +48,7 @@ export function InfraVideoThumb({
   }, [near]);
 
   return (
-    <div ref={holder} className="relative size-full bg-black" data-testid="infra-video-thumb">
+    <div ref={holder} className="relative size-full bg-(--pf-lit-black)" data-testid="infra-video-thumb">
       {near && !broken ? (
         <video
           src={`${src}#t=0.1`}
@@ -61,16 +61,16 @@ export function InfraVideoThumb({
         />
       ) : null}
       <span className="absolute inset-0 flex items-center justify-center" aria-hidden>
-        <span className="flex size-10 items-center justify-center rounded-full bg-black/55 text-white">
+        <span className="flex size-10 items-center justify-center rounded-full bg-(--pf-lit-black)/55 text-(--pf-lit-white)">
           {broken || !near ? <Video className="size-5" /> : <Play className="size-5 fill-white" />}
         </span>
       </span>
-      <span className="absolute start-1 top-1 flex items-center gap-1 rounded bg-black/65 px-1.5 py-0.5 text-[10px] text-white">
+      <span className="absolute start-1 top-1 flex items-center gap-1 rounded bg-(--pf-lit-black)/65 px-1.5 py-0.5 text-[10px] text-(--pf-lit-white)">
         <Video className="size-3" aria-hidden />
         {INFRA_TEXT.video.badge}
       </span>
       {durationMs ? (
-        <span className="absolute end-1 bottom-1 rounded bg-black/65 px-1.5 py-0.5 text-[10px] tabular-nums text-white">
+        <span className="absolute end-1 bottom-1 rounded bg-(--pf-lit-black)/65 px-1.5 py-0.5 text-[10px] tabular-nums text-(--pf-lit-white)">
           {formatVideoDuration(durationMs)}
         </span>
       ) : null}
@@ -125,7 +125,7 @@ export function InfraVideoPlayer({
         controls
         playsInline
         preload="metadata"
-        className="max-h-[50dvh] w-full rounded-md bg-black object-contain"
+        className="max-h-[50dvh] w-full rounded-md bg-(--pf-lit-black) object-contain"
         onError={() => setFailed(true)}
         data-testid="infra-video-element"
       />

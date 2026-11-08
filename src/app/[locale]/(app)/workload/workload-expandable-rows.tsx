@@ -78,8 +78,8 @@ function dueDateClass(dueDate: string | null): string {
   const due = new Date(dueDate);
   due.setHours(0, 0, 0, 0);
   const diffDays = Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays < 0) return 'text-red-600 dark:text-red-400 font-semibold';
-  if (diffDays === 0) return 'text-amber-600 dark:text-amber-400 font-semibold';
+  if (diffDays < 0) return 'text-(--pf-lit-red-600) dark:text-(--pf-lit-red-400) font-semibold';
+  if (diffDays === 0) return 'text-(--pf-lit-amber-600) dark:text-(--pf-lit-amber-400) font-semibold';
   return 'text-[var(--pf-text-secondary)]';
 }
 
@@ -231,7 +231,7 @@ export function WorkloadExpandableRows({
                   {/* Overdue */}
                   <TableCell numeric>
                     {row.overdueTasks > 0 ? (
-                      <span className="font-semibold text-red-600 dark:text-red-400">
+                      <span className="font-semibold text-(--pf-lit-red-600) dark:text-(--pf-lit-red-400)">
                         {row.overdueTasks}
                       </span>
                     ) : (
@@ -242,7 +242,7 @@ export function WorkloadExpandableRows({
                   {/* Due this week */}
                   <TableCell numeric>
                     {row.dueThisWeek > 0 ? (
-                      <span className="font-semibold text-amber-600 dark:text-amber-400">
+                      <span className="font-semibold text-(--pf-lit-amber-600) dark:text-(--pf-lit-amber-400)">
                         {row.dueThisWeek}
                       </span>
                     ) : (
@@ -281,7 +281,7 @@ export function WorkloadExpandableRows({
                         ) : (
                           <>
                           {reassignError ? (
-                            <p className="mb-2 text-sm text-red-600 dark:text-red-400" role="alert">
+                            <p className="mb-2 text-sm text-(--pf-lit-red-600) dark:text-(--pf-lit-red-400)" role="alert">
                               {reassignError}
                             </p>
                           ) : null}

@@ -306,8 +306,8 @@ export function InfraMarkingEditor({
           />
         ))}
       </div>
-      <div className="relative w-full overflow-hidden rounded-md border border-[var(--pf-border-default)] bg-black">
-        {!ready ? <Loader2 className="absolute start-1/2 top-1/2 size-6 -translate-x-1/2 animate-spin text-white" aria-hidden /> : null}
+      <div className="relative w-full overflow-hidden rounded-md border border-[var(--pf-border-default)] bg-(--pf-lit-black)">
+        {!ready ? <Loader2 className="absolute start-1/2 top-1/2 size-6 -translate-x-1/2 animate-spin text-(--pf-lit-white)" aria-hidden /> : null}
         <canvas
           ref={canvasRef}
           className="block h-auto max-h-[65dvh] w-full object-contain"

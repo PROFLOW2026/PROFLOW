@@ -220,7 +220,7 @@ export function InfraCaptureDialog({
                 ) : (
                 <div className="flex flex-col gap-2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={shownUrl} alt={capture.description ?? capture.fileName} className="max-h-[50dvh] w-full rounded-md bg-black object-contain" />
+                  <img src={shownUrl} alt={capture.description ?? capture.fileName} className="max-h-[50dvh] w-full rounded-md bg-(--pf-lit-black) object-contain" />
                   {annotatedId ? (
                     <div className="flex gap-2" role="group">
                       <Button type="button" size="sm" variant={showMarked ? 'secondary' : 'primary'} aria-pressed={!showMarked} onClick={() => setShowMarked(false)}>

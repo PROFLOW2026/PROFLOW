@@ -84,10 +84,10 @@ export function InfraCamera({
   }
 
   return (
-    <div data-pf-style="classic" className="relative overflow-hidden rounded-lg bg-black" data-testid="infra-camera">
+    <div data-pf-style="classic" className="relative overflow-hidden rounded-lg bg-(--pf-lit-black)" data-testid="infra-camera">
       <video ref={videoRef} playsInline muted autoPlay className="aspect-[4/3] max-h-[60dvh] w-full object-cover" />
-      {flash ? <div className="pointer-events-none absolute inset-0 bg-white/70" /> : null}
-      <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 bg-gradient-to-t from-black/70 to-transparent p-3">
+      {flash ? <div className="pointer-events-none absolute inset-0 bg-(--pf-lit-white)/70" /> : null}
+      <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 bg-gradient-to-t from-(--pf-lit-black)/70 to-transparent p-3">
         <Button type="button" size="lg" onClick={shoot} disabled={!ready} data-testid="infra-camera-shoot">
           <Camera aria-hidden />
           {INFRA_TEXT.capture.shoot}

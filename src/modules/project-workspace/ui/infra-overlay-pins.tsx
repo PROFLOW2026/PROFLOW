@@ -60,14 +60,14 @@ export function clamp01(v: number): number {
 export function LoupeFrame({ children }: { readonly children: ReactNode }) {
   return (
     <div
-      className="relative overflow-hidden rounded-full border-2 border-white bg-black shadow-lg"
+      className="relative overflow-hidden rounded-full border-2 border-(--pf-lit-white) bg-(--pf-lit-black) shadow-lg"
       style={{ width: LOUPE_SIZE, height: LOUPE_SIZE }}
     >
       {children}
       <span className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-cyan-300/80" aria-hidden />
       <span className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-cyan-300/80" aria-hidden />
       <span
-        className="absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-black/70"
+        className="absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-(--pf-lit-black)/70"
         aria-hidden
       />
     </div>
@@ -212,7 +212,7 @@ export function PinMark({
         <circle cx="13" cy="13" r="1.6" fill={ring} />
       </svg>
       <span
-        className="absolute -end-1.5 -top-3.5 min-w-4 rounded bg-black/75 px-1 text-center text-[11px] font-bold leading-4 text-white"
+        className="absolute -end-1.5 -top-3.5 min-w-4 rounded bg-(--pf-lit-black)/75 px-1 text-center text-[11px] font-bold leading-4 text-(--pf-lit-white)"
         dir="ltr"
       >
         {label}
@@ -550,7 +550,7 @@ export function ReferenceThumb({
     return (
       <button
         type="button"
-        className={`${wrapperClass} inline-flex min-h-9 items-center gap-1 rounded-full bg-black/60 px-3 text-xs font-semibold text-white backdrop-blur`}
+        className={`${wrapperClass} inline-flex min-h-9 items-center gap-1 rounded-full bg-(--pf-lit-black)/60 px-3 text-xs font-semibold text-(--pf-lit-white) backdrop-blur`}
         onClick={() => setSize('small')}
         onPointerDown={stop}
         aria-label={label}
@@ -566,7 +566,7 @@ export function ReferenceThumb({
   return (
     <div className={wrapperClass} onPointerDown={stop} data-testid="infra-reference-thumb" dir="rtl">
       <div
-        className="relative overflow-hidden rounded-md border border-white/50 bg-black/50 opacity-90 shadow"
+        className="relative overflow-hidden rounded-md border border-(--pf-lit-white)/50 bg-(--pf-lit-black)/50 opacity-90 shadow"
         style={{ width }}
       >
         <button
@@ -583,8 +583,8 @@ export function ReferenceThumb({
             return (
               <span
                 key={i}
-                className={`absolute flex size-[18px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-[10px] font-bold leading-none text-black ${
-                  next ? 'animate-pulse border-black bg-orange-400' : 'border-black/70 bg-cyan-300'
+                className={`absolute flex size-[18px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-[10px] font-bold leading-none text-(--pf-lit-black) ${
+                  next ? 'animate-pulse border-(--pf-lit-black) bg-orange-400' : 'border-(--pf-lit-black)/70 bg-cyan-300'
                 }`}
                 style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}
                 dir="ltr"
@@ -596,7 +596,7 @@ export function ReferenceThumb({
         </button>
         <button
           type="button"
-          className="absolute end-0.5 top-0.5 inline-flex size-6 items-center justify-center rounded-full bg-black/60 text-white"
+          className="absolute end-0.5 top-0.5 inline-flex size-6 items-center justify-center rounded-full bg-(--pf-lit-black)/60 text-(--pf-lit-white)"
           onClick={() => setSize('hidden')}
           aria-label={label}
           data-testid="infra-reference-hide"
@@ -605,7 +605,7 @@ export function ReferenceThumb({
         </button>
       </div>
       {nextIndex >= 0 ? (
-        <div className="mt-0.5 rounded bg-black/60 px-1.5 text-center text-[11px] leading-4 text-white">{label}</div>
+        <div className="mt-0.5 rounded bg-(--pf-lit-black)/60 px-1.5 text-center text-[11px] leading-4 text-(--pf-lit-white)">{label}</div>
       ) : null}
     </div>
   );

@@ -1,0 +1,302 @@
+{
+  "tool": "classic-probes",
+  "capturedAt": "2026-11-08T10:00:54.528Z",
+  "base": "http://127.0.0.1:3010",
+  "harnessRoutes": {
+    "status": "not-run",
+    "reason": "Windows production build is not used for this proof"
+  },
+  "probes": {
+    "classic": {
+      "light": {
+        "desktop": {
+          "viewport": {
+            "width": 1280,
+            "height": 900
+          },
+          "httpStatus": 200,
+          "dataPfStyle": "classic",
+          "darkClass": false,
+          "tokens": {
+            "--pf-action-primary": "#0f766e",
+            "--pf-bg-page": "#f4f6f8",
+            "--pf-text-primary": "#1b2430",
+            "--pf-radius-md": ".5rem"
+          },
+          "button": {
+            "color": "rgb(255, 255, 255)",
+            "backgroundColor": "rgb(15, 118, 110)"
+          },
+          "sidebarBackground": "rgb(255, 255, 255)"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "httpStatus": 200,
+          "dataPfStyle": "classic",
+          "darkClass": false,
+          "tokens": {
+            "--pf-action-primary": "#0f766e",
+            "--pf-bg-page": "#f4f6f8",
+            "--pf-text-primary": "#1b2430",
+            "--pf-radius-md": ".5rem"
+          },
+          "button": {
+            "color": "rgb(255, 255, 255)",
+            "backgroundColor": "rgb(15, 118, 110)"
+          },
+          "sidebarBackground": "rgb(255, 255, 255)"
+        }
+      },
+      "dark": {
+        "desktop": {
+          "viewport": {
+            "width": 1280,
+            "height": 900
+          },
+          "httpStatus": 200,
+          "dataPfStyle": "classic",
+          "darkClass": true,
+          "tokens": {
+            "--pf-action-primary": "#228f88",
+            "--pf-bg-page": "#171c28",
+            "--pf-text-primary": "#eaeff6",
+            "--pf-radius-md": ".5rem"
+          },
+          "button": {
+            "color": "rgb(255, 255, 255)",
+            "backgroundColor": "rgb(34, 143, 136)"
+          },
+          "sidebarBackground": "rgb(37, 45, 61)"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "httpStatus": 200,
+          "dataPfStyle": "classic",
+          "darkClass": true,
+          "tokens": {
+            "--pf-action-primary": "#228f88",
+            "--pf-bg-page": "#171c28",
+            "--pf-text-primary": "#eaeff6",
+            "--pf-radius-md": ".5rem"
+          },
+          "button": {
+            "color": "rgb(255, 255, 255)",
+            "backgroundColor": "rgb(34, 143, 136)"
+          },
+          "sidebarBackground": "rgb(37, 45, 61)"
+        }
+      }
+    },
+    "modern": {
+      "light": {
+        "desktop": {
+          "viewport": {
+            "width": 1280,
+            "height": 900
+          },
+          "httpStatus": 200,
+          "dataPfStyle": "modern",
+          "darkClass": false,
+          "tokens": {
+            "--pf-action-primary": "#0a6b63",
+            "--pf-bg-page": "#f5f7f9",
+            "--pf-text-primary": "#0f1923",
+            "--pf-radius-md": ".625rem"
+          },
+          "button": {
+            "color": "rgb(255, 255, 255)",
+            "backgroundColor": "rgb(10, 107, 99)"
+          },
+          "sidebarBackground": "rgb(255, 255, 255)"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "httpStatus": 200,
+          "dataPfStyle": "modern",
+          "darkClass": false,
+          "tokens": {
+            "--pf-action-primary": "#0a6b63",
+            "--pf-bg-page": "#f5f7f9",
+            "--pf-text-primary": "#0f1923",
+            "--pf-radius-md": ".625rem"
+          },
+          "button": {
+            "color": "rgb(255, 255, 255)",
+            "backgroundColor": "rgb(10, 107, 99)"
+          },
+          "sidebarBackground": "rgb(255, 255, 255)"
+        }
+      },
+      "dark": {
+        "desktop": {
+          "viewport": {
+            "width": 1280,
+            "height": 900
+          },
+          "httpStatus": 200,
+          "dataPfStyle": "modern",
+          "darkClass": true,
+          "tokens": {
+            "--pf-action-primary": "#2bb3a3",
+            "--pf-bg-page": "#0e1318",
+            "--pf-text-primary": "#e8eef3",
+            "--pf-radius-md": ".625rem"
+          },
+          "button": {
+            "color": "rgb(4, 32, 29)",
+            "backgroundColor": "rgb(43, 179, 163)"
+          },
+          "sidebarBackground": "rgb(22, 29, 37)"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "httpStatus": 200,
+          "dataPfStyle": "modern",
+          "darkClass": true,
+          "tokens": {
+            "--pf-action-primary": "#2bb3a3",
+            "--pf-bg-page": "#0e1318",
+            "--pf-text-primary": "#e8eef3",
+            "--pf-radius-md": ".625rem"
+          },
+          "button": {
+            "color": "rgb(4, 32, 29)",
+            "backgroundColor": "rgb(43, 179, 163)"
+          },
+          "sidebarBackground": "rgb(22, 29, 37)"
+        }
+      }
+    },
+    "premium": {
+      "light": {
+        "desktop": {
+          "viewport": {
+            "width": 1280,
+            "height": 900
+          },
+          "httpStatus": 200,
+          "dataPfStyle": "premium",
+          "darkClass": false,
+          "tokens": {
+            "--pf-action-primary": "#0b665f",
+            "--pf-bg-page": "#eef0f1",
+            "--pf-text-primary": "#11181b",
+            "--pf-radius-md": ".375rem"
+          },
+          "button": {
+            "color": "rgb(255, 255, 255)",
+            "backgroundColor": "rgb(11, 102, 95)"
+          },
+          "sidebarBackground": "rgb(255, 255, 255)"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "httpStatus": 200,
+          "dataPfStyle": "premium",
+          "darkClass": false,
+          "tokens": {
+            "--pf-action-primary": "#0b665f",
+            "--pf-bg-page": "#eef0f1",
+            "--pf-text-primary": "#11181b",
+            "--pf-radius-md": ".375rem"
+          },
+          "button": {
+            "color": "rgb(255, 255, 255)",
+            "backgroundColor": "rgb(11, 102, 95)"
+          },
+          "sidebarBackground": "rgb(255, 255, 255)"
+        }
+      },
+      "dark": {
+        "desktop": {
+          "viewport": {
+            "width": 1280,
+            "height": 900
+          },
+          "httpStatus": 200,
+          "dataPfStyle": "premium",
+          "darkClass": true,
+          "tokens": {
+            "--pf-action-primary": "#36b8a8",
+            "--pf-bg-page": "#0c1012",
+            "--pf-text-primary": "#e9eef0",
+            "--pf-radius-md": ".375rem"
+          },
+          "button": {
+            "color": "rgb(4, 32, 29)",
+            "backgroundColor": "rgb(54, 184, 168)"
+          },
+          "sidebarBackground": "rgb(255, 255, 255)"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "httpStatus": 200,
+          "dataPfStyle": "premium",
+          "darkClass": true,
+          "tokens": {
+            "--pf-action-primary": "#36b8a8",
+            "--pf-bg-page": "#0c1012",
+            "--pf-text-primary": "#e9eef0",
+            "--pf-radius-md": ".375rem"
+          },
+          "button": {
+            "color": "rgb(4, 32, 29)",
+            "backgroundColor": "rgb(54, 184, 168)"
+          },
+          "sidebarBackground": "rgb(255, 255, 255)"
+        }
+      }
+    }
+  },
+  "samples": {
+    "classic": {
+      "light": {
+        "--pf-action-primary": "#0f766e"
+      },
+      "dark": {
+        "--pf-action-primary": "#228f88"
+      }
+    },
+    "premium": {
+      "light": {
+        "--pf-action-primary": "#0b665f"
+      },
+      "dark": {
+        "--pf-action-primary": "#36b8a8"
+      }
+    },
+    "modern": {
+      "light": {
+        "--pf-action-primary": "#0a6b63"
+      },
+      "dark": {
+        "--pf-action-primary": "#2bb3a3"
+      }
+    }
+  },
+  "checks": {
+    "classicLightProbesExist": true,
+    "classicDarkProbesExist": true,
+    "classicPrimaryDiffersFromPremium": true,
+    "classicLightNotPremiumHex": true
+  },
+  "pass": true
+}

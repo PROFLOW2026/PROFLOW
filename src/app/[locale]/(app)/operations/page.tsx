@@ -110,7 +110,7 @@ export default async function OperationsDashboardPage() {
                   </div>
                   <time
                     dateTime={m.dueDate}
-                    className={`shrink-0 text-xs font-mono ${m.dueDate <= today ? 'text-red-600' : 'text-[var(--pf-text-secondary)]'}`}
+                    className={`shrink-0 text-xs font-mono ${m.dueDate <= today ? 'text-(--pf-lit-red-600)' : 'text-[var(--pf-text-secondary)]'}`}
                   >
                     {m.dueDate}
                   </time>
@@ -127,7 +127,7 @@ export default async function OperationsDashboardPage() {
           </h2>
           <div className="flex items-center gap-4">
             <span
-              className={`text-3xl font-bold tabular-nums ${data.pendingApprovalCount > 0 ? 'text-amber-600' : 'text-[var(--pf-text-primary)]'}`}
+              className={`text-3xl font-bold tabular-nums ${data.pendingApprovalCount > 0 ? 'text-(--pf-lit-amber-600)' : 'text-[var(--pf-text-primary)]'}`}
             >
               {data.pendingApprovalCount}
             </span>
@@ -143,8 +143,8 @@ export default async function OperationsDashboardPage() {
       </div>
 
       {data.staleProjects.length > 0 && (
-        <section className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/20">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-amber-800 dark:text-amber-200">
+        <section className="rounded-lg border border-(--pf-lit-amber-200) bg-(--pf-lit-amber-50) p-4 dark:border-(--pf-lit-amber-800) dark:bg-(--pf-lit-amber-950)/20">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-(--pf-lit-amber-800) dark:text-(--pf-lit-amber-200)">
             <AlertTriangle className="h-4 w-4" />
             {t('sections.staleProjects')}
           </h2>
@@ -228,13 +228,13 @@ interface StatCardProps {
 function StatCard({ icon, label, value, href, variant = 'default' }: StatCardProps) {
   const valueClass =
     variant === 'danger'
-      ? 'text-red-600 dark:text-red-400'
+      ? 'text-(--pf-lit-red-600) dark:text-(--pf-lit-red-400)'
       : variant === 'warning'
-        ? 'text-amber-600 dark:text-amber-400'
+        ? 'text-(--pf-lit-amber-600) dark:text-(--pf-lit-amber-400)'
         : 'text-[var(--pf-text-primary)]';
 
   const content = (
-    <div className={cn(mainAppCardClass, 'p-3', variant === 'danger' && 'border-red-200', variant === 'warning' && 'border-amber-200')}>
+    <div className={cn(mainAppCardClass, 'p-3', variant === 'danger' && 'border-(--pf-lit-red-200)', variant === 'warning' && 'border-(--pf-lit-amber-200)')}>
       <div className="flex items-center gap-1.5 text-xs text-[var(--pf-text-secondary)]">
         {icon}
         <span>{label}</span>

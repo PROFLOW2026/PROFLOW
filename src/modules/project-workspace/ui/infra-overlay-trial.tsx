@@ -340,7 +340,7 @@ function Notice({
 }) {
   return (
     <div
-      className="pointer-events-none flex w-fit max-w-full items-center gap-2 rounded bg-black/70 px-2 py-1 text-center text-[11px] text-white"
+      className="pointer-events-none flex w-fit max-w-full items-center gap-2 rounded bg-(--pf-lit-black)/70 px-2 py-1 text-center text-[11px] text-(--pf-lit-white)"
       dir="rtl"
       role="status"
       data-testid={testId}
@@ -350,7 +350,7 @@ function Notice({
         <button
           type="button"
           onClick={action.onClick}
-          className="pointer-events-auto min-h-8 rounded bg-white/90 px-2.5 text-[11px] font-medium text-black"
+          className="pointer-events-auto min-h-8 rounded bg-(--pf-lit-white)/90 px-2.5 text-[11px] font-medium text-(--pf-lit-black)"
           data-testid={action.testId}
         >
           {action.label}
@@ -396,7 +396,7 @@ function ResultSheet({
 }) {
   return (
     <div
-      className="absolute inset-x-2 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] top-[max(0.5rem,env(safe-area-inset-top))] flex flex-col rounded-lg bg-black/85 p-2 text-white backdrop-blur"
+      className="absolute inset-x-2 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] top-[max(0.5rem,env(safe-area-inset-top))] flex flex-col rounded-lg bg-(--pf-lit-black)/85 p-2 text-(--pf-lit-white) backdrop-blur"
       onPointerDown={(e) => e.stopPropagation()}
       dir="rtl"
     >
@@ -485,7 +485,7 @@ function MarkStep({
   );
   return (
     <div className="flex h-full w-full flex-col" dir="rtl">
-      <div className="flex min-h-11 items-center gap-1 bg-black/80 px-2 pt-[env(safe-area-inset-top)]">
+      <div className="flex min-h-11 items-center gap-1 bg-(--pf-lit-black)/80 px-2 pt-[env(safe-area-inset-top)]">
         <button type="button" className={barButtonClass} onClick={onBack} aria-label={TEXT.back}>
           <X className="size-5" />
         </button>
@@ -498,8 +498,8 @@ function MarkStep({
         >
           <Undo2 className="size-5" />
         </button>
-        <span className="line-clamp-1 min-w-0 flex-1 px-1 text-center text-xs text-white/80">{hint}</span>
-        <span className="text-xs tabular-nums text-white/70" dir="ltr">
+        <span className="line-clamp-1 min-w-0 flex-1 px-1 text-center text-xs text-(--pf-lit-white)/80">{hint}</span>
+        <span className="text-xs tabular-nums text-(--pf-lit-white)/70" dir="ltr">
           {pins.length}/{MAX_PINS}
         </span>
         <button
@@ -514,7 +514,7 @@ function MarkStep({
       </div>
       <div
         ref={areaRef}
-        className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-neutral-900"
+        className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-(--pf-lit-neutral-900)"
       >
         {ready ? (
           <PinSurface
@@ -882,7 +882,7 @@ function LiveStep({
     ) : null;
 
   return (
-    <div ref={rootRef} className="relative h-full w-full overflow-hidden bg-black" dir="ltr">
+    <div ref={rootRef} className="relative h-full w-full overflow-hidden bg-(--pf-lit-black)" dir="ltr">
       {size.w > 0 ? (
         <PinSurface
           width={size.w}
@@ -927,7 +927,7 @@ function LiveStep({
           className={`pointer-events-none absolute inset-x-0 ${topClass} flex justify-center [body[data-infra-pinning]_&]:invisible`}
           dir="rtl"
         >
-          <span className="rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white backdrop-blur">{TEXT.frozen}</span>
+          <span className="rounded-full bg-(--pf-lit-black)/60 px-2.5 py-1 text-[11px] text-(--pf-lit-white) backdrop-blur">{TEXT.frozen}</span>
         </div>
       ) : null}
 
@@ -1333,7 +1333,7 @@ function CompareStep({
   return (
     <div
       ref={rootRef}
-      className="relative h-full w-full overflow-hidden bg-neutral-900"
+      className="relative h-full w-full overflow-hidden bg-(--pf-lit-neutral-900)"
       dir="ltr"
       data-testid="infra-compare"
       data-display={shown}
@@ -1452,7 +1452,7 @@ function CompareStep({
             />
           ) : tray === 'points' ? (
             <div
-              className="flex items-center gap-1 rounded-full bg-black/65 p-0.5 backdrop-blur"
+              className="flex items-center gap-1 rounded-full bg-(--pf-lit-black)/65 p-0.5 backdrop-blur"
               onPointerDown={(e) => e.stopPropagation()}
               dir="rtl"
               data-testid="infra-points-tray"
@@ -1461,7 +1461,7 @@ function CompareStep({
                 <button
                   key={slot}
                   type="button"
-                  className="min-h-8 rounded-full px-3 text-xs font-medium text-white hover:bg-white/15"
+                  className="min-h-8 rounded-full px-3 text-xs font-medium text-(--pf-lit-white) hover:bg-(--pf-lit-white)/15"
                   onClick={() => startEdit(slot)}
                   data-testid={`infra-edit-points-${slot}`}
                 >
@@ -1516,7 +1516,7 @@ function CompareStep({
       />
 
       {editing ? (
-        <div className="absolute inset-0 z-20 bg-neutral-900" data-testid="infra-edit-points-step">
+        <div className="absolute inset-0 z-20 bg-(--pf-lit-neutral-900)" data-testid="infra-edit-points-step">
           <MarkStep
             photo={editing === 'before' ? before : after}
             pins={editing === 'before' ? beforePins : afterPins}
@@ -1553,7 +1553,7 @@ function CompareStep({
 /* -------------------------------------------------------------------------- */
 
 const pickButtonPrimary =
-  'inline-flex cursor-pointer items-center gap-2 rounded-md bg-[var(--pf-action-primary,#0e7490)] px-4 py-2 text-sm font-medium text-white';
+  'inline-flex cursor-pointer items-center gap-2 rounded-md bg-[var(--pf-action-primary,#0e7490)] px-4 py-2 text-sm font-medium text-(--pf-lit-white)';
 const pickButtonSecondary =
   'inline-flex cursor-pointer items-center gap-2 rounded-md border border-[var(--pf-border-default)] px-4 py-2 text-sm font-medium';
 
@@ -1794,7 +1794,7 @@ export function InfraOverlayTrial({
     mounted && step
       ? createPortal(
           <div
-            className="fixed inset-0 z-[1000] bg-black text-white"
+            className="fixed inset-0 z-[1000] bg-(--pf-lit-black) text-(--pf-lit-white)"
             style={{ height: '100dvh', width: '100vw' }}
             role="dialog"
             aria-label={TEXT.title}
@@ -1984,7 +1984,7 @@ export function InfraOverlayTrial({
           </div>
         </div>
       ) : null}
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="text-sm text-(--pf-lit-red-600)">{error}</p> : null}
       {overlay}
     </div>
   );

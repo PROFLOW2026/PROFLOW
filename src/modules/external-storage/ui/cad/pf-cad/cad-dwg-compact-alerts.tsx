@@ -31,10 +31,10 @@ export function CadDwgCompactAlerts({
           return (
             <span
               key={banner.key}
-              className="inline-flex max-w-[min(100%,11rem)] items-center gap-1 rounded-md border border-amber-500/40 bg-amber-950/75 px-1.5 py-0.5 text-[11px] leading-tight text-amber-100 sm:max-w-[14rem] sm:text-xs"
+              className="inline-flex max-w-[min(100%,11rem)] items-center gap-1 rounded-md border border-(--pf-lit-amber-500)/40 bg-(--pf-lit-amber-950)/75 px-1.5 py-0.5 text-[11px] leading-tight text-(--pf-lit-amber-100) sm:max-w-[14rem] sm:text-xs"
               title={detail}
             >
-              <AlertTriangle className="size-3 shrink-0 text-amber-400" aria-hidden />
+              <AlertTriangle className="size-3 shrink-0 text-(--pf-lit-amber-400)" aria-hidden />
               <span className="truncate">{short}</span>
             </span>
           );
@@ -45,15 +45,15 @@ export function CadDwgCompactAlerts({
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className="inline-flex max-w-[min(100%,11rem)] items-center gap-1 rounded-md border border-amber-500/40 bg-amber-950/75 px-1.5 py-0.5 text-[11px] leading-tight text-amber-100 hover:bg-amber-900/80 sm:max-w-[14rem] sm:text-xs"
+                className="inline-flex max-w-[min(100%,11rem)] items-center gap-1 rounded-md border border-(--pf-lit-amber-500)/40 bg-(--pf-lit-amber-950)/75 px-1.5 py-0.5 text-[11px] leading-tight text-(--pf-lit-amber-100) hover:bg-(--pf-lit-amber-900)/80 sm:max-w-[14rem] sm:text-xs"
                 aria-label={detail}
               >
-                <AlertTriangle className="size-3 shrink-0 text-amber-400" aria-hidden />
+                <AlertTriangle className="size-3 shrink-0 text-(--pf-lit-amber-400)" aria-hidden />
                 <span className="truncate">{short}</span>
               </button>
             </PopoverTrigger>
             <PopoverContent
-              className="max-w-xs border-amber-500/30 bg-[#1a2332] p-3 text-xs leading-snug text-amber-50"
+              className="max-w-xs border-(--pf-lit-amber-500)/30 bg-[#1a2332] p-3 text-xs leading-snug text-(--pf-lit-amber-50)"
               align="start"
             >
               {detail}

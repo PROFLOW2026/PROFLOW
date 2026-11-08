@@ -29,7 +29,7 @@ function LabelRow({ label, canEdit }: { label: TaskLabel; canEdit: boolean }) {
     <div className={`flex flex-col gap-2 border-b border-[var(--pf-border-default)] py-3 last:border-0 ${label.isArchived ? 'opacity-50' : ''}`}>
       <div className="flex flex-wrap items-center gap-2">
         <span
-          className="inline-flex h-5 items-center rounded-full px-2 text-xs font-medium text-white"
+          className="inline-flex h-5 items-center rounded-full px-2 text-xs font-medium text-(--pf-lit-white)"
           style={{ backgroundColor: label.color ?? '#64748b' }}
         >
           {label.name}

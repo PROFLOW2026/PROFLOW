@@ -1,0 +1,23 @@
+{
+  "tool": "classic-computed",
+  "base": "http://127.0.0.1:3010",
+  "modes": {
+    "light": {
+      "status": 200,
+      "dataStyle": "classic",
+      "darkClass": false,
+      "compared": 168,
+      "mismatches": [],
+      "mismatchCount": 0
+    },
+    "dark": {
+      "status": 200,
+      "dataStyle": "classic",
+      "darkClass": true,
+      "compared": 168,
+      "mismatches": [],
+      "mismatchCount": 0
+    }
+  },
+  "pass": true
+}

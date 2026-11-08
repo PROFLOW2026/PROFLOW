@@ -1,0 +1,63 @@
+{
+  "capturedAt": "2026-11-08T09:49:00.158Z",
+  "specimenUrl": "http://127.0.0.1:3010/he-IL/dev/design-system",
+  "httpStatus": 200,
+  "shots": [
+    {
+      "fileName": "modern-light-desktop.png",
+      "style": "modern",
+      "appearance": "light",
+      "viewport": "desktop",
+      "byteSize": 30083
+    },
+    {
+      "fileName": "modern-light-mobile.png",
+      "style": "modern",
+      "appearance": "light",
+      "viewport": "mobile",
+      "byteSize": 24911
+    },
+    {
+      "fileName": "modern-dark-desktop.png",
+      "style": "modern",
+      "appearance": "dark",
+      "viewport": "desktop",
+      "byteSize": 29592
+    },
+    {
+      "fileName": "modern-dark-mobile.png",
+      "style": "modern",
+      "appearance": "dark",
+      "viewport": "mobile",
+      "byteSize": 26554
+    },
+    {
+      "fileName": "premium-light-desktop.png",
+      "style": "premium",
+      "appearance": "light",
+      "viewport": "desktop",
+      "byteSize": 23472
+    },
+    {
+      "fileName": "premium-light-mobile.png",
+      "style": "premium",
+      "appearance": "light",
+      "viewport": "mobile",
+      "byteSize": 24146
+    },
+    {
+      "fileName": "premium-dark-desktop.png",
+      "style": "premium",
+      "appearance": "dark",
+      "viewport": "desktop",
+      "byteSize": 22873
+    },
+    {
+      "fileName": "premium-dark-mobile.png",
+      "style": "premium",
+      "appearance": "dark",
+      "viewport": "mobile",
+      "byteSize": 21452
+    }
+  ]
+}

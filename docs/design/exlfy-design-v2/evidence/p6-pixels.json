@@ -1,0 +1,153 @@
+{
+  "tool": "classic-pixel-proof",
+  "capturedAt": "2026-11-08T10:00:07.449Z",
+  "specimenUrl": "http://127.0.0.1:3010/he-IL/dev/design-system",
+  "missingDependencies": [],
+  "headClassic": {
+    "proofKind": "stability",
+    "description": "Two consecutive Playwright runs of HEAD classic specimen (product page); not compared to pre-codemod baseline CSS.",
+    "runs": [
+      {
+        "runId": "run1",
+        "shots": [
+          {
+            "fileName": "p6-head-classic-light-desktop-run1.png",
+            "theme": "light",
+            "viewport": "desktop",
+            "sha256": "1d871d4740c45adccd46682686daafa427142825e996f525adfe2e9b4f46a80d",
+            "byteSize": 26597
+          },
+          {
+            "fileName": "p6-head-classic-light-mobile-run1.png",
+            "theme": "light",
+            "viewport": "mobile",
+            "sha256": "e1d34340113598190ec581c4274129d7c79bfb28650e9be870ef4ca22c1a9b3f",
+            "byteSize": 21787
+          },
+          {
+            "fileName": "p6-head-classic-dark-desktop-run1.png",
+            "theme": "dark",
+            "viewport": "desktop",
+            "sha256": "4b1e556964a4e60433580641d56ade03f2a252b32d41be2999cb8ad91a55e198",
+            "byteSize": 26203
+          },
+          {
+            "fileName": "p6-head-classic-dark-mobile-run1.png",
+            "theme": "dark",
+            "viewport": "mobile",
+            "sha256": "d062d317a9d5bde200cdcc492fe354708e6d3fc7b1fcdf11649299127adb72cc",
+            "byteSize": 21775
+          }
+        ]
+      },
+      {
+        "runId": "run2",
+        "shots": [
+          {
+            "fileName": "p6-head-classic-light-desktop-run2.png",
+            "theme": "light",
+            "viewport": "desktop",
+            "sha256": "1d871d4740c45adccd46682686daafa427142825e996f525adfe2e9b4f46a80d",
+            "byteSize": 26597
+          },
+          {
+            "fileName": "p6-head-classic-light-mobile-run2.png",
+            "theme": "light",
+            "viewport": "mobile",
+            "sha256": "e1d34340113598190ec581c4274129d7c79bfb28650e9be870ef4ca22c1a9b3f",
+            "byteSize": 21787
+          },
+          {
+            "fileName": "p6-head-classic-dark-desktop-run2.png",
+            "theme": "dark",
+            "viewport": "desktop",
+            "sha256": "4b1e556964a4e60433580641d56ade03f2a252b32d41be2999cb8ad91a55e198",
+            "byteSize": 26203
+          },
+          {
+            "fileName": "p6-head-classic-dark-mobile-run2.png",
+            "theme": "dark",
+            "viewport": "mobile",
+            "sha256": "d062d317a9d5bde200cdcc492fe354708e6d3fc7b1fcdf11649299127adb72cc",
+            "byteSize": 21775
+          }
+        ]
+      }
+    ],
+    "comparisons": [
+      {
+        "theme": "light",
+        "viewport": "desktop",
+        "run1Sha256": "1d871d4740c45adccd46682686daafa427142825e996f525adfe2e9b4f46a80d",
+        "run2Sha256": "1d871d4740c45adccd46682686daafa427142825e996f525adfe2e9b4f46a80d",
+        "sha256Equal": true,
+        "pass": true,
+        "differingPixels": 0,
+        "width": 1440,
+        "height": 900,
+        "tolerance": 0
+      },
+      {
+        "theme": "light",
+        "viewport": "mobile",
+        "run1Sha256": "e1d34340113598190ec581c4274129d7c79bfb28650e9be870ef4ca22c1a9b3f",
+        "run2Sha256": "e1d34340113598190ec581c4274129d7c79bfb28650e9be870ef4ca22c1a9b3f",
+        "sha256Equal": true,
+        "pass": true,
+        "differingPixels": 0,
+        "width": 390,
+        "height": 844,
+        "tolerance": 0
+      },
+      {
+        "theme": "dark",
+        "viewport": "desktop",
+        "run1Sha256": "4b1e556964a4e60433580641d56ade03f2a252b32d41be2999cb8ad91a55e198",
+        "run2Sha256": "4b1e556964a4e60433580641d56ade03f2a252b32d41be2999cb8ad91a55e198",
+        "sha256Equal": true,
+        "pass": true,
+        "differingPixels": 0,
+        "width": 1440,
+        "height": 900,
+        "tolerance": 0
+      },
+      {
+        "theme": "dark",
+        "viewport": "mobile",
+        "run1Sha256": "d062d317a9d5bde200cdcc492fe354708e6d3fc7b1fcdf11649299127adb72cc",
+        "run2Sha256": "d062d317a9d5bde200cdcc492fe354708e6d3fc7b1fcdf11649299127adb72cc",
+        "sha256Equal": true,
+        "pass": true,
+        "differingPixels": 0,
+        "width": 390,
+        "height": 844,
+        "tolerance": 0
+      }
+    ],
+    "pass": true,
+    "pixelDifferenceTotal": 0
+  },
+  "staticBaselineEquality": {
+    "proofKind": "baseline-css-vs-lit-token",
+    "description": "File URL static pages: baseline .text-red-600/.bg-white vars vs --pf-lit-red-600 equivalent colors from lit.css.",
+    "pass": true,
+    "pixelDifference": 0,
+    "baselineSha256": "0601c567faeda84e52ff0c83465453380ea6ac28614d6378517bdb29a1f7a025",
+    "litSha256": "0601c567faeda84e52ff0c83465453380ea6ac28614d6378517bdb29a1f7a025",
+    "byteHashEqual": true,
+    "comparison": {
+      "pass": true,
+      "differingPixels": 0,
+      "width": 800,
+      "height": 480,
+      "tolerance": 0
+    },
+    "files": {
+      "baselineHtml": "docs/design/exlfy-design-v2/evidence/p6-static-baseline.html",
+      "litHtml": "docs/design/exlfy-design-v2/evidence/p6-static-lit.html",
+      "baselinePng": "docs/design/exlfy-design-v2/evidence/pixels/p6-static-baseline.png",
+      "litPng": "docs/design/exlfy-design-v2/evidence/pixels/p6-static-lit.png"
+    }
+  },
+  "pixelDifferenceIsZero": true
+}

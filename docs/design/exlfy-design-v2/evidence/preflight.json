@@ -1,0 +1,13 @@
+{
+  "branch": "design/exlfy-v2",
+  "headSha": "adae59d6b8807a2d2642134ed295eb0e9c05830a",
+  "baseSha": "93e827c4cfb368c9f81b44465bf3cb6720113649",
+  "baseIsAncestor": true,
+  "worktreePath": "C:\\Users\\ERAN YOSEF\\Desktop\\final projects\\FINAL-WEB\\projectflow\\.worktrees\\design-v2",
+  "litCssExists": true,
+  "tokensV1JsonExists": true,
+  "npmTestCommandsRun": false,
+  "tag": null,
+  "freezeWaived": true,
+  "sqlExecution": false
+}

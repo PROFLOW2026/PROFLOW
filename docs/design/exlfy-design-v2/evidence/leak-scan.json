@@ -1,0 +1,25 @@
+{
+    "tool":  "scan-token-leaks",
+    "pass":  true,
+    "totalMatches":  0,
+    "filesWithLeaks":  0,
+    "filesScanned":  4338,
+    "files":  {
+
+              },
+    "allowlisted":  {
+                        "files":  {
+
+                                  },
+                        "matchCount":  0,
+                        "fileCount":  0
+                    },
+    "notAllowlisted":  {
+                           "files":  {
+
+                                     },
+                           "matchCount":  0,
+                           "fileCount":  0
+                       },
+    "scannedAt":  "2026-11-08T09:59:40.903Z"
+}

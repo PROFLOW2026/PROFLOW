@@ -186,7 +186,7 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
           <span className="inline-flex min-w-0 flex-wrap items-center gap-2">
             <CheckSquare className="h-4 w-4 shrink-0 text-[var(--pf-text-secondary)]" aria-hidden />
             {t('meetings.detail.decisionsHeading', { count: detail.decisions.length })}
-            <span className="rounded bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+            <span className="rounded bg-(--pf-lit-blue-50) px-1.5 py-0.5 text-xs font-medium text-(--pf-lit-blue-700) dark:bg-(--pf-lit-blue-950) dark:text-(--pf-lit-blue-300)">
               {t('meetings.detail.canonicalBadge')}
             </span>
           </span>

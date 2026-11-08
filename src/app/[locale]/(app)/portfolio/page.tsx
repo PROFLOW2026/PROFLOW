@@ -279,7 +279,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                     {/* Overdue tasks */}
                     <TableCell numeric>
                       {row.overdueTasks > 0 ? (
-                        <span className="font-semibold text-red-600 dark:text-red-400">
+                        <span className="font-semibold text-(--pf-lit-red-600) dark:text-(--pf-lit-red-400)">
                           {row.overdueTasks}
                         </span>
                       ) : (
@@ -290,7 +290,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                     {/* Blocked tasks */}
                     <TableCell numeric>
                       {row.blockedTasks > 0 ? (
-                        <span className="font-semibold text-amber-600 dark:text-amber-400">
+                        <span className="font-semibold text-(--pf-lit-amber-600) dark:text-(--pf-lit-amber-400)">
                           {row.blockedTasks}
                         </span>
                       ) : (

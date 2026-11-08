@@ -25,11 +25,11 @@ interface TradePressureCardProps {
 }
 
 const directionTone: Record<string, string> = {
-  strong_down: 'border-red-300 bg-red-50 dark:border-red-900 dark:bg-red-950/40',
+  strong_down: 'border-(--pf-lit-red-300) bg-(--pf-lit-red-50) dark:border-(--pf-lit-red-900) dark:bg-(--pf-lit-red-950)/40',
   down: 'border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/30',
   neutral: 'border-border bg-card',
-  up: 'border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30',
-  strong_up: 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/40',
+  up: 'border-(--pf-lit-amber-200) bg-(--pf-lit-amber-50) dark:border-(--pf-lit-amber-900) dark:bg-(--pf-lit-amber-950)/30',
+  strong_up: 'border-(--pf-lit-red-200) bg-(--pf-lit-red-50) dark:border-(--pf-lit-red-900) dark:bg-(--pf-lit-red-950)/40',
 };
 
 export function TradePressureCard({
@@ -92,7 +92,7 @@ export function TradePressureCard({
             )}
             <div className="space-y-1">
               {snapshot.driversUp.slice(0, 2).map((d) => (
-                <p key={`up-${d}`} className="text-emerald-700 dark:text-emerald-400">
+                <p key={`up-${d}`} className="text-(--pf-lit-emerald-700) dark:text-(--pf-lit-emerald-400)">
                   ↑ {driverLabel(componentLabelKeyForTrade(snapshot.trade, d as never))}
                 </p>
               ))}

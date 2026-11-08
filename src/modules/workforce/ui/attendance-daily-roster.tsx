@@ -56,21 +56,21 @@ export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterP
 
       <div className="mt-3 flex flex-wrap gap-4 text-sm">
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-500" />
+          <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-(--pf-lit-green-500)" />
           <span>
             <span className="font-semibold">{overview.reportedCount}</span> {t('dailyRoster.reported')}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <AlertCircle
-            className={`h-5 w-5 flex-shrink-0 ${overview.missingCount > 0 ? 'text-red-500' : 'text-green-500'}`}
+            className={`h-5 w-5 flex-shrink-0 ${overview.missingCount > 0 ? 'text-(--pf-lit-red-500)' : 'text-(--pf-lit-green-500)'}`}
           />
           <span>
             <span className="font-semibold">{overview.missingCount}</span> {t('dailyRoster.notReported')}
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Clock className="h-5 w-5 flex-shrink-0 text-amber-500" />
+          <Clock className="h-5 w-5 flex-shrink-0 text-(--pf-lit-amber-500)" />
           <span>
             <span className="font-semibold">{overview.awaitingCount}</span> {t('todayView.awaiting')}
           </span>
@@ -97,7 +97,7 @@ export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterP
                 className={
                   row.reported
                     ? undefined
-                    : 'bg-red-50/70 dark:bg-red-950/20'
+                    : 'bg-(--pf-lit-red-50)/70 dark:bg-(--pf-lit-red-950)/20'
                 }
               >
                 <TableCell className="font-medium whitespace-nowrap">{row.employeeName}</TableCell>
@@ -141,7 +141,7 @@ export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterP
                   ) : (
                     <Link
                       href={`/workforce/attendance?employeeId=${row.employeeId}&update=1&workDate=${overview.workDate}`}
-                      className="inline-flex items-center gap-1 text-sm font-medium text-red-700 underline-offset-2 hover:underline dark:text-red-300"
+                      className="inline-flex items-center gap-1 text-sm font-medium text-(--pf-lit-red-700) underline-offset-2 hover:underline dark:text-(--pf-lit-red-300)"
                     >
                       <UserPlus className="h-3.5 w-3.5" />
                       {t('dailyRoster.addAttendance')}

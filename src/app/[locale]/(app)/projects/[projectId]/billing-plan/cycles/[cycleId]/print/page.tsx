@@ -77,7 +77,7 @@ export default async function BillingCyclePrintPage({ params }: PrintPageProps) 
   return (
     <MainAppPage>
       <MainAppSection>
-    <div dir={dir} className="bg-white text-black">
+    <div dir={dir} className="bg-(--pf-lit-white) text-(--pf-lit-black)">
       <style dangerouslySetInnerHTML={{ __html: styles }} />
       <div className="toolbar">
         <button type="button">{t('print.printButton')}</button>

@@ -103,5 +103,28 @@
     --pf-status-neutral-border: #2a3541;
     --pf-status-disabled-border: #2a3541;
     --pf-hero-bg: color-mix(in srgb, #5fd3c4 14%, var(--pf-bg-surface));
+    --pf-teal-50: #effcf9;
+    --pf-teal-100: #d2f5ee;
+    --pf-teal-200: #a6e9dd;
+    --pf-teal-800: #0b5650;
+    --pf-teal-900: #0c4843;
+    --pf-teal-950: #032a27;
+    --pf-radius-sm: 0.375rem;
+    --pf-radius-md: 0.625rem;
+    --pf-radius-lg: 0.875rem;
+    --pf-radius-xl: 0.875rem;
+    --pf-radius-2xl: 0.875rem;
+    --pf-radius-3xl: 1.375rem;
+    --pf-radius-bare: 0.375rem;
+    --pf-ctl-h-md: 2.5rem;
+    --pf-row-py: 0.625rem;
+    --pf-card-px: 1.25rem;
+    --pf-fs-h1: 1.375rem;
+    --pf-fs-kpi: 1.5rem;
+    --pf-fw-numeric: 600;
+    --pf-shadow-sm: 0 1px 2px rgb(15 25 35 / 0.04);
+    --pf-shadow-md: 0 6px 16px -4px rgb(15 25 35 / 0.1), 0 2px 6px -2px rgb(15 25 35 / 0.06);
+    --pf-shadow-lg: 0 18px 40px -12px rgb(15 25 35 / 0.2);
+    --pf-shadow-panel: var(--pf-shadow-sm);
   }
 }

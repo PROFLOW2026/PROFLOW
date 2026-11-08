@@ -17,21 +17,21 @@ interface AttendanceMonthlyGridProps {
 
 const CELL_STYLES: Record<MonthlyCellKind, string> = {
   approved:
-    'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800',
+    'bg-(--pf-lit-green-100) text-(--pf-lit-green-800) border-(--pf-lit-green-200) dark:bg-(--pf-lit-green-900)/30 dark:text-(--pf-lit-green-300) dark:border-(--pf-lit-green-800)',
   pending:
-    'bg-amber-100 text-amber-900 border-amber-200 dark:bg-amber-900/30 dark:text-amber-200 dark:border-amber-700',
+    'bg-(--pf-lit-amber-100) text-(--pf-lit-amber-900) border-(--pf-lit-amber-200) dark:bg-(--pf-lit-amber-900)/30 dark:text-(--pf-lit-amber-200) dark:border-(--pf-lit-amber-700)',
   worked:
-    'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800',
+    'bg-(--pf-lit-emerald-50) text-(--pf-lit-emerald-800) border-(--pf-lit-emerald-200) dark:bg-(--pf-lit-emerald-900)/20 dark:text-(--pf-lit-emerald-300) dark:border-(--pf-lit-emerald-800)',
   absence:
     'bg-sky-100 text-sky-900 border-sky-200 dark:bg-sky-900/30 dark:text-sky-200 dark:border-sky-700',
   missing:
-    'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/40 dark:text-red-200 dark:border-red-700 font-semibold',
+    'bg-(--pf-lit-red-100) text-(--pf-lit-red-800) border-(--pf-lit-red-300) dark:bg-(--pf-lit-red-900)/40 dark:text-(--pf-lit-red-200) dark:border-(--pf-lit-red-700) font-semibold',
   exempt:
     'bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)] border-[var(--pf-border-default)]',
   dayOff:
-    'bg-gray-100 text-gray-400 border-gray-200 dark:bg-gray-800/50 dark:text-gray-500 dark:border-gray-700',
+    'bg-(--pf-lit-gray-100) text-(--pf-lit-gray-400) border-(--pf-lit-gray-200) dark:bg-(--pf-lit-gray-800)/50 dark:text-(--pf-lit-gray-500) dark:border-(--pf-lit-gray-700)',
   future: 'bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)] border-[var(--pf-border-default)]',
-  void: 'bg-gray-100 text-gray-400 border-gray-200 line-through dark:bg-gray-800/50 dark:text-gray-500',
+  void: 'bg-(--pf-lit-gray-100) text-(--pf-lit-gray-400) border-(--pf-lit-gray-200) line-through dark:bg-(--pf-lit-gray-800)/50 dark:text-(--pf-lit-gray-500)',
 };
 
 function prevMonthStr(yearMonth: string): string {
@@ -117,10 +117,10 @@ export async function AttendanceMonthlyGrid({
           </Link>
         </div>
         <div className="flex flex-wrap gap-3 text-xs text-[var(--pf-text-muted)]">
-          <Legend color="bg-green-100 dark:bg-green-900/30" label={t('legend.approved')} />
-          <Legend color="bg-amber-100 dark:bg-amber-900/30" label={t('legend.pending')} />
-          <Legend color="bg-red-100 dark:bg-red-900/40" label={t('legend.missing')} />
-          <Legend color="bg-gray-100 dark:bg-gray-800/50" label={t('legend.dayOff')} />
+          <Legend color="bg-(--pf-lit-green-100) dark:bg-(--pf-lit-green-900)/30" label={t('legend.approved')} />
+          <Legend color="bg-(--pf-lit-amber-100) dark:bg-(--pf-lit-amber-900)/30" label={t('legend.pending')} />
+          <Legend color="bg-(--pf-lit-red-100) dark:bg-(--pf-lit-red-900)/40" label={t('legend.missing')} />
+          <Legend color="bg-(--pf-lit-gray-100) dark:bg-(--pf-lit-gray-800)/50" label={t('legend.dayOff')} />
         </div>
       </div>
 
@@ -147,7 +147,7 @@ export async function AttendanceMonthlyGrid({
                   <td className="sticky start-0 z-10 bg-[var(--pf-bg-surface)] whitespace-nowrap px-2 py-1 font-medium">
                     <div>{row.employeeName}</div>
                     {row.missingCount > 0 ? (
-                      <div className="text-[10px] text-red-600 dark:text-red-400">
+                      <div className="text-[10px] text-(--pf-lit-red-600) dark:text-(--pf-lit-red-400)">
                         {t('missingCount', { count: row.missingCount })}
                       </div>
                     ) : null}

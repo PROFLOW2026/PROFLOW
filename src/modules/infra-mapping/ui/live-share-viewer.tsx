@@ -87,14 +87,14 @@ async function join(viewerToken: string): Promise<LiveShareResult<LiveShareViewe
 type LinkState = 'connecting' | 'connected' | 'reconnecting' | 'disconnected';
 
 const LINK_VIEW: Record<LinkState, { text: string; dot: string }> = {
-  connecting: { text: LIVE_SHARE_TEXT.viewerConnecting, dot: 'bg-amber-400' },
-  connected: { text: LIVE_SHARE_TEXT.viewerConnected, dot: 'bg-emerald-400' },
-  reconnecting: { text: LIVE_SHARE_TEXT.viewerReconnecting, dot: 'bg-amber-400' },
-  disconnected: { text: LIVE_SHARE_TEXT.viewerDisconnected, dot: 'bg-red-500' },
+  connecting: { text: LIVE_SHARE_TEXT.viewerConnecting, dot: 'bg-(--pf-lit-amber-400)' },
+  connected: { text: LIVE_SHARE_TEXT.viewerConnected, dot: 'bg-(--pf-lit-emerald-400)' },
+  reconnecting: { text: LIVE_SHARE_TEXT.viewerReconnecting, dot: 'bg-(--pf-lit-amber-400)' },
+  disconnected: { text: LIVE_SHARE_TEXT.viewerDisconnected, dot: 'bg-(--pf-lit-red-500)' },
 };
 
 const iconButtonClass =
-  'inline-flex size-9 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur hover:bg-black/80';
+  'inline-flex size-9 items-center justify-center rounded-full bg-(--pf-lit-black)/60 text-(--pf-lit-white) backdrop-blur hover:bg-(--pf-lit-black)/80';
 
 export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string }) {
   const mounted = useSyncExternalStore(
@@ -513,7 +513,7 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[1000] flex flex-col bg-black text-white"
+      className="fixed inset-0 z-[1000] flex flex-col bg-(--pf-lit-black) text-(--pf-lit-white)"
       style={{ height: '100dvh', width: '100vw' }}
       dir="rtl"
       role="dialog"
@@ -618,7 +618,7 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
       ) : null}
       {message ? (
         <div
-          className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center text-sm text-white/85"
+          className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center text-sm text-(--pf-lit-white)/85"
           role="status"
         >
           {status === 'connecting' || status === 'waiting' ? <Loader2 className="size-6 animate-spin" aria-hidden /> : null}
@@ -631,7 +631,7 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
         role="status"
         data-testid="live-share-link-chip"
       >
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-black/55 px-2 py-1 text-[11px] text-white backdrop-blur">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-(--pf-lit-black)/55 px-2 py-1 text-[11px] text-(--pf-lit-white) backdrop-blur">
           <span className={`size-2 rounded-full ${linkView.dot}`} aria-hidden />
           {chipOpen ? linkView.text : <span className="sr-only">{linkView.text}</span>}
         </span>
@@ -645,7 +645,7 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
             <button
               type="button"
               onClick={() => writeView(IDENTITY_VIEW)}
-              className="inline-flex h-9 items-center rounded-full bg-black/60 px-3 text-xs tabular-nums text-white backdrop-blur hover:bg-black/80"
+              className="inline-flex h-9 items-center rounded-full bg-(--pf-lit-black)/60 px-3 text-xs tabular-nums text-(--pf-lit-white) backdrop-blur hover:bg-(--pf-lit-black)/80"
               aria-label={LIVE_SHARE_TEXT.viewerResetZoom}
               data-testid="live-share-reset-zoom"
               dir="ltr"
@@ -667,7 +667,7 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
           <button
             type="button"
             onClick={leave}
-            className="inline-flex h-9 items-center gap-1 rounded-full bg-black/60 px-3 text-xs text-white backdrop-blur hover:bg-black/80"
+            className="inline-flex h-9 items-center gap-1 rounded-full bg-(--pf-lit-black)/60 px-3 text-xs text-(--pf-lit-white) backdrop-blur hover:bg-(--pf-lit-black)/80"
             data-testid="live-share-leave"
           >
             <X className="size-4" aria-hidden />

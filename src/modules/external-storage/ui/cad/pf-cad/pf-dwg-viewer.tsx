@@ -888,7 +888,7 @@ function PfDwgViewerInner({
     <div
       ref={hostRef}
       data-pf-style="classic"
-      className={`relative flex min-h-0 flex-1 flex-col ${plotView ? 'bg-white' : 'bg-[#0a0e14]'}`}
+      className={`relative flex min-h-0 flex-1 flex-col ${plotView ? 'bg-(--pf-lit-white)' : 'bg-[#0a0e14]'}`}
     >
       {loading ? (
         <StorageLoadingOverlay label={loadingLabel} progress={loadingProgress} blocking />

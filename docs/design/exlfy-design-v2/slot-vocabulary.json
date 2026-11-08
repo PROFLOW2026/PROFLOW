@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "slots": [
+    "bottom-nav",
+    "bottom-nav-item",
+    "control",
+    "hero",
+    "kpi-card",
+    "kpi-grid",
+    "sidebar",
+    "sidebar-group",
+    "sidebar-item",
+    "tab",
+    "table-shell",
+    "tabs-list",
+    "topbar"
+  ]
+}

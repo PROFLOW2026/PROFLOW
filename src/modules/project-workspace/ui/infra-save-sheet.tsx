@@ -81,14 +81,14 @@ export function InfraSaveSheet({
   const checkboxClass = 'flex items-center gap-2 text-sm';
   return (
     <div
-      className="absolute inset-0 z-10 flex items-end justify-center bg-black/60 p-2 sm:items-center"
+      className="absolute inset-0 z-10 flex items-end justify-center bg-(--pf-lit-black)/60 p-2 sm:items-center"
       onPointerDown={(event) => event.stopPropagation()}
       data-testid="infra-save-sheet"
     >
       <form
         id={formId}
         dir="rtl"
-        className="flex max-h-full w-full max-w-md flex-col gap-3 overflow-y-auto rounded-lg bg-white p-4 text-neutral-900 shadow-xl"
+        className="flex max-h-full w-full max-w-md flex-col gap-3 overflow-y-auto rounded-lg bg-(--pf-lit-white) p-4 text-(--pf-lit-neutral-900) shadow-xl"
         onSubmit={(event) => {
           event.preventDefault();
           void submit();
@@ -96,31 +96,31 @@ export function InfraSaveSheet({
       >
         <div className="flex items-center gap-2">
           <h2 className="min-w-0 flex-1 text-base font-semibold">{TEXT.title}</h2>
-          <button type="button" aria-label={TEXT.cancel} onClick={onClose} className="rounded p-1 hover:bg-neutral-100">
+          <button type="button" aria-label={TEXT.cancel} onClick={onClose} className="rounded p-1 hover:bg-(--pf-lit-neutral-100)">
             <X className="size-5" />
           </button>
         </div>
 
         {savedOk ? (
           <>
-            <p className="flex items-center gap-2 text-sm text-emerald-700" data-testid="infra-save-done">
+            <p className="flex items-center gap-2 text-sm text-(--pf-lit-emerald-700)" data-testid="infra-save-done">
               <Check className="size-4" />
               {TEXT.saved}
             </p>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md bg-[var(--pf-action-primary,#0e7490)] px-4 py-2 text-sm font-medium text-white"
+              className="rounded-md bg-[var(--pf-action-primary,#0e7490)] px-4 py-2 text-sm font-medium text-(--pf-lit-white)"
             >
               {TEXT.done}
             </button>
           </>
         ) : (
           <>
-            <p className="text-sm text-neutral-600">{TEXT.intro}</p>
+            <p className="text-sm text-(--pf-lit-neutral-600)">{TEXT.intro}</p>
             {previewUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={previewUrl} alt="" className="max-h-40 w-full rounded border border-neutral-200 object-contain" />
+              <img src={previewUrl} alt="" className="max-h-40 w-full rounded border border-(--pf-lit-neutral-200) object-contain" />
             ) : null}
 
             <label className="flex flex-col gap-1 text-sm">
@@ -128,7 +128,7 @@ export function InfraSaveSheet({
               <select
                 value={locationId}
                 onChange={(event) => setLocationId(event.target.value)}
-                className="min-h-10 rounded-md border border-neutral-300 bg-white px-2"
+                className="min-h-10 rounded-md border border-(--pf-lit-neutral-300) bg-(--pf-lit-white) px-2"
                 data-testid="infra-save-location"
               >
                 <option value="">—</option>
@@ -142,7 +142,7 @@ export function InfraSaveSheet({
 
             <div className="flex flex-col gap-2">
               {input.beforeCaptureId ? (
-                <p className="text-xs text-neutral-500">{TEXT.beforeKnown}</p>
+                <p className="text-xs text-(--pf-lit-neutral-500)">{TEXT.beforeKnown}</p>
               ) : input.beforeFile ? (
                 <label className={checkboxClass}>
                   <input type="checkbox" checked={saveBefore} onChange={(event) => setSaveBefore(event.target.checked)} />
@@ -170,14 +170,14 @@ export function InfraSaveSheet({
                 onChange={(event) => setNote(event.target.value)}
                 rows={2}
                 maxLength={1000}
-                className="rounded-md border border-neutral-300 px-2 py-1"
+                className="rounded-md border border-(--pf-lit-neutral-300) px-2 py-1"
               />
             </label>
 
-            {!anything ? <p className="text-xs text-amber-700">{TEXT.nothing}</p> : null}
-            {anything && !locationId ? <p className="text-xs text-amber-700">{TEXT.noLocation}</p> : null}
+            {!anything ? <p className="text-xs text-(--pf-lit-amber-700)">{TEXT.nothing}</p> : null}
+            {anything && !locationId ? <p className="text-xs text-(--pf-lit-amber-700)">{TEXT.noLocation}</p> : null}
             {error ? (
-              <p className="text-sm text-red-600" role="alert" data-testid="infra-save-error">
+              <p className="text-sm text-(--pf-lit-red-600)" role="alert" data-testid="infra-save-error">
                 {error}
               </p>
             ) : null}
@@ -187,7 +187,7 @@ export function InfraSaveSheet({
                 type="submit"
                 disabled={!canSave}
                 data-testid="infra-save-confirm"
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-[var(--pf-action-primary,#0e7490)] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-[var(--pf-action-primary,#0e7490)] px-4 py-2 text-sm font-medium text-(--pf-lit-white) disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {busy ? <Loader2 className="size-4 animate-spin" /> : null}
                 {busy ? TEXT.saving : error ? TEXT.retry : TEXT.save}
@@ -195,7 +195,7 @@ export function InfraSaveSheet({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium"
+                className="rounded-md border border-(--pf-lit-neutral-300) px-4 py-2 text-sm font-medium"
               >
                 {TEXT.cancel}
               </button>

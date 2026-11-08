@@ -63,7 +63,7 @@ function QueueCard({
             muted
             playsInline
             preload="metadata"
-            className={`rounded-md border border-[var(--pf-border-default)] bg-black object-cover ${pending ? 'h-36 w-44 sm:h-44 sm:w-56' : 'size-16'}`}
+            className={`rounded-md border border-[var(--pf-border-default)] bg-(--pf-lit-black) object-cover ${pending ? 'h-36 w-44 sm:h-44 sm:w-56' : 'size-16'}`}
             data-testid="infra-queue-video-preview"
           />
         ) : preview ? (

@@ -156,7 +156,7 @@ export function EmployeePostponeMenu({ taskId, dueDate, today, compact }: Employ
             </div>
           </form>
         ) : null}
-        {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : null}
+        {error ? <p className="mt-1 text-xs text-(--pf-lit-red-600)">{error}</p> : null}
       </div>
     );
   }
@@ -272,12 +272,12 @@ export function EmployeePostponeMenu({ taskId, dueDate, today, compact }: Employ
       )}
 
       {successMessage ? (
-        <p className="text-sm font-medium text-green-700" role="status">
+        <p className="text-sm font-medium text-(--pf-lit-green-700)" role="status">
           {successMessage}
         </p>
       ) : null}
       {error ? (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="text-sm text-(--pf-lit-red-600)" role="alert">
           {error}
         </p>
       ) : null}

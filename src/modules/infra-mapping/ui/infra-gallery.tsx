@@ -350,7 +350,7 @@ export function InfraGallery({
                     </span>
                   )}
                   {capture.latestAnnotatedEvidenceId ? (
-                    <span className="absolute start-1 top-1 rounded bg-black/65 px-1.5 py-0.5 text-[10px] text-white">
+                    <span className="absolute start-1 top-1 rounded bg-(--pf-lit-black)/65 px-1.5 py-0.5 text-[10px] text-(--pf-lit-white)">
                       {INFRA_TEXT.gallery.marked}
                     </span>
                   ) : null}

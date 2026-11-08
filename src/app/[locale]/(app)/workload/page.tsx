@@ -138,13 +138,13 @@ function StatChip({
 }) {
   const colorClass =
     tone === 'red'
-      ? 'text-red-600 dark:text-red-400'
+      ? 'text-(--pf-lit-red-600) dark:text-(--pf-lit-red-400)'
       : tone === 'amber'
-        ? 'text-amber-600 dark:text-amber-400'
+        ? 'text-(--pf-lit-amber-600) dark:text-(--pf-lit-amber-400)'
         : 'text-[var(--pf-text-primary)]';
 
   return (
-    <div className={cn(uwmStatCardClass, tone === 'red' && 'border-red-200', tone === 'amber' && 'border-amber-200')}>
+    <div className={cn(uwmStatCardClass, tone === 'red' && 'border-(--pf-lit-red-200)', tone === 'amber' && 'border-(--pf-lit-amber-200)')}>
       <span className={`text-xl font-semibold tabular-nums ${colorClass}`}>{value}</span>
       <span className="text-xs text-[var(--pf-text-muted)]">{label}</span>
     </div>

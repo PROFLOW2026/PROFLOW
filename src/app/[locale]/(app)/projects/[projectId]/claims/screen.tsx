@@ -78,7 +78,7 @@ export async function ProjectClaimsScreen({
                   {t('list.period')} (end)
                   <input type="date" name="periodEnd" required className="mt-1 w-full rounded-md border px-3 py-2" />
                 </label>
-                <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-md bg-[var(--pf-teal-600)] px-4 text-sm font-medium text-white">
+                <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-md bg-[var(--pf-teal-600)] px-4 text-sm font-medium text-(--pf-lit-white)">
                   {t('common.save')}
                 </button>
               </form>

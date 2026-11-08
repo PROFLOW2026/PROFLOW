@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600&display=swap');
 @import 'tailwindcss';
 @import '../shared/theme/styles/tokens-structure.css';
+@import '../shared/theme/styles/lit.css';
 @import '../shared/theme/styles/modern.css';
 @import '../shared/theme/styles/premium.css';
 @import '../shared/theme/styles/modern-hooks.css';

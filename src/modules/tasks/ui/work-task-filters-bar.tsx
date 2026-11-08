@@ -311,7 +311,7 @@ function WorkTaskFilterControls({
                 uwmFilterInputClass,
                 'justify-center text-start',
                 draft.overdue &&
-                  'border-red-300 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-950 dark:text-red-200',
+                  'border-(--pf-lit-red-300) bg-(--pf-lit-red-50) text-(--pf-lit-red-800) dark:border-(--pf-lit-red-700) dark:bg-(--pf-lit-red-950) dark:text-(--pf-lit-red-200)',
               )}
               onClick={() => setDraft((current) => ({ ...current, overdue: !current.overdue }))}
             >

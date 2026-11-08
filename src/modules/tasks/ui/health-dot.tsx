@@ -20,10 +20,10 @@ interface HealthDotProps {
 export function HealthDot({ level, score, label }: HealthDotProps) {
   const colorClass =
     level === 'green'
-      ? 'bg-green-500'
+      ? 'bg-(--pf-lit-green-500)'
       : level === 'amber'
-        ? 'bg-amber-400'
-        : 'bg-red-500';
+        ? 'bg-(--pf-lit-amber-400)'
+        : 'bg-(--pf-lit-red-500)';
 
   const title = label ?? String(score);
 

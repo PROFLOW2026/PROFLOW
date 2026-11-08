@@ -22,7 +22,7 @@ export function QuickCaptureVideoPreview({
         playsInline
         preload="metadata"
         src={src}
-        className="max-h-[min(60vh,28rem)] w-full rounded-md border border-[var(--pf-border-default)] bg-black"
+        className="max-h-[min(60vh,28rem)] w-full rounded-md border border-[var(--pf-border-default)] bg-(--pf-lit-black)"
         data-pf-video-mime={mimeType ?? ''}
       />
       <p className="mt-2 text-xs text-[var(--pf-text-muted)]">{t('inlineHint')}</p>

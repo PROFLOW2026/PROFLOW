@@ -9,6 +9,13 @@ const UI_RE = /\.(tsx|ts|css)$/;
 const INERT_ATTR_RE =
   /\sdata-pf-(?:slot|style)\s*=\s*(?:"[^"]*"|'[^']*'|\{[^}]*\})|\sdata-size\s*=\s*(?:"[^"]*"|'[^']*'|\{[^}]*\})/g;
 
+function undoLitTokens(line) {
+  return line.replace(
+    /\b((?:bg|text|border|ring|outline|decoration|divide|from|via|to)-)\(--pf-lit-([a-z]+(?:-\d+)?)\)(\/\d+)?/g,
+    (_, prefix, color, opacity) => prefix + color + (opacity ?? ""),
+  );
+}
+
 function stripInertAttrs(line) {
   return line.replace(INERT_ATTR_RE, "").replace(/\uFEFF/g, "");
 }
@@ -53,7 +60,7 @@ function hunkIsInertOnly(lines) {
   if (removals.length === 0 && additions.length === 0) return true;
   if (removals.length === additions.length) {
   for (let i = 0; i < removals.length; i += 1) {
-    if (stripInertAttrs(removals[i]) !== stripInertAttrs(additions[i])) return false;
+    if (undoLitTokens(stripInertAttrs(removals[i])) !== undoLitTokens(stripInertAttrs(additions[i]))) return false;
   }
     return true;
   }

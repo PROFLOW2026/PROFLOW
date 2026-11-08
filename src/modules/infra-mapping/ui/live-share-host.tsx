@@ -31,7 +31,7 @@ const FPS = 24;
 const MAX_BITRATE = 1_800_000;
 
 const barButtonClass =
-  'inline-flex size-9 shrink-0 items-center justify-center rounded-full text-white transition-colors hover:bg-white/15 active:bg-white/25 disabled:opacity-40';
+  'inline-flex size-9 shrink-0 items-center justify-center rounded-full text-(--pf-lit-white) transition-colors hover:bg-(--pf-lit-white)/15 active:bg-(--pf-lit-white)/25 disabled:opacity-40';
 
 interface Session {
   readonly room: Room;
@@ -59,10 +59,10 @@ function SwitchRow({
   readonly testId: string;
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-lg bg-neutral-800/80 p-2.5">
+    <div className="flex items-start gap-3 rounded-lg bg-(--pf-lit-neutral-800)/80 p-2.5">
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">{label}</p>
-        <p className="mt-0.5 text-[11px] leading-4 text-white/70">{hint}</p>
+        <p className="mt-0.5 text-[11px] leading-4 text-(--pf-lit-white)/70">{hint}</p>
       </div>
       <button
         type="button"
@@ -73,15 +73,15 @@ function SwitchRow({
         disabled={busy}
         onClick={() => onChange(!checked)}
         className={`relative mt-0.5 inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-60 ${
-          checked ? 'bg-cyan-500' : 'bg-neutral-600'
+          checked ? 'bg-cyan-500' : 'bg-(--pf-lit-neutral-600)'
         }`}
         data-testid={testId}
       >
         {busy ? (
-          <Loader2 className="mx-auto size-4 animate-spin text-white" aria-hidden />
+          <Loader2 className="mx-auto size-4 animate-spin text-(--pf-lit-white)" aria-hidden />
         ) : (
           <span
-            className={`absolute top-0.5 size-6 rounded-full bg-white shadow transition-all ${checked ? 'left-[1.5rem]' : 'left-0.5'}`}
+            className={`absolute top-0.5 size-6 rounded-full bg-(--pf-lit-white) shadow transition-all ${checked ? 'left-[1.5rem]' : 'left-0.5'}`}
             aria-hidden
           />
         )}
@@ -387,7 +387,7 @@ export function LiveShareHost({
     error && typeof document !== 'undefined'
       ? createPortal(
           <div
-            className="pointer-events-none fixed inset-x-2 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] z-[1050] mx-auto w-fit max-w-full rounded bg-black/80 px-2 py-1 text-center text-[11px] text-white"
+            className="pointer-events-none fixed inset-x-2 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] z-[1050] mx-auto w-fit max-w-full rounded bg-(--pf-lit-black)/80 px-2 py-1 text-center text-[11px] text-(--pf-lit-white)"
             dir="rtl"
             role="alert"
             data-testid="live-share-error"
@@ -402,27 +402,27 @@ export function LiveShareHost({
     phase === 'live' && sheetOpen && typeof document !== 'undefined'
       ? createPortal(
           <div
-            className="fixed inset-0 z-[1100] flex items-end justify-center bg-black/60 p-3 sm:items-center"
+            className="fixed inset-0 z-[1100] flex items-end justify-center bg-(--pf-lit-black)/60 p-3 sm:items-center"
             role="dialog"
             aria-label={LIVE_SHARE_TEXT.title}
             dir="rtl"
             data-pf-style="classic"
             data-testid="live-share-sheet"
           >
-            <div className="flex max-h-[92dvh] w-full max-w-sm flex-col gap-3 overflow-y-auto rounded-xl bg-neutral-900 p-4 text-white shadow-xl">
+            <div className="flex max-h-[92dvh] w-full max-w-sm flex-col gap-3 overflow-y-auto rounded-xl bg-(--pf-lit-neutral-900) p-4 text-(--pf-lit-white) shadow-xl">
               <div className="flex items-center gap-2">
                 <h2 className="flex-1 text-base font-semibold">{LIVE_SHARE_TEXT.title}</h2>
                 <button type="button" className={barButtonClass} onClick={() => setSheetOpen(false)} aria-label={LIVE_SHARE_TEXT.hide}>
                   <X className="size-5" />
                 </button>
               </div>
-              <p className="text-xs leading-5 text-white/75">{LIVE_SHARE_TEXT.hint}</p>
-              <div className="flex justify-center rounded-lg bg-white p-2">
+              <p className="text-xs leading-5 text-(--pf-lit-white)/75">{LIVE_SHARE_TEXT.hint}</p>
+              <div className="flex justify-center rounded-lg bg-(--pf-lit-white) p-2">
                 {qr ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={qr} alt={LIVE_SHARE_TEXT.qrAlt} className="size-56" data-testid="live-share-qr" />
                 ) : (
-                  <Loader2 className="size-56 animate-spin p-20 text-neutral-400" aria-hidden />
+                  <Loader2 className="size-56 animate-spin p-20 text-(--pf-lit-neutral-400)" aria-hidden />
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -431,14 +431,14 @@ export function LiveShareHost({
                   value={link ?? ''}
                   dir="ltr"
                   onFocus={(event) => event.currentTarget.select()}
-                  className="min-w-0 flex-1 rounded-md bg-neutral-800 px-2 py-1.5 text-xs text-white"
+                  className="min-w-0 flex-1 rounded-md bg-(--pf-lit-neutral-800) px-2 py-1.5 text-xs text-(--pf-lit-white)"
                   data-testid="live-share-link"
                 />
                 <button type="button" className={barButtonClass} onClick={copyLink} aria-label={LIVE_SHARE_TEXT.copyLink}>
                   <Copy className="size-4" />
                 </button>
               </div>
-              <p className="text-center text-xs text-white/80" role="status">
+              <p className="text-center text-xs text-(--pf-lit-white)/80" role="status">
                 {copied ? LIVE_SHARE_TEXT.copied : viewerJoined ? LIVE_SHARE_TEXT.viewerJoined : LIVE_SHARE_TEXT.waitingViewer}
               </p>
               <SwitchRow
@@ -457,7 +457,7 @@ export function LiveShareHost({
                 testId="live-share-tripod-switch"
               />
               {tripod ? (
-                <p className="text-center text-[11px] text-white/75" role="status" data-testid="live-share-wake-status">
+                <p className="text-center text-[11px] text-(--pf-lit-white)/75" role="status" data-testid="live-share-wake-status">
                   {wakeLock === 'held'
                     ? LIVE_SHARE_TEXT.tripodWakeHeld
                     : wakeLock === 'unsupported'
@@ -467,11 +467,11 @@ export function LiveShareHost({
                         : LIVE_SHARE_TEXT.tripodWakePending}
                 </p>
               ) : null}
-              <p className="text-center text-[11px] leading-4 text-amber-200/90">{LIVE_SHARE_TEXT.visualOnly}</p>
+              <p className="text-center text-[11px] leading-4 text-(--pf-lit-amber-200)/90">{LIVE_SHARE_TEXT.visualOnly}</p>
               <button
                 type="button"
                 onClick={end}
-                className="rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-500"
+                className="rounded-md bg-(--pf-lit-red-600) px-3 py-2 text-sm font-medium text-(--pf-lit-white) hover:bg-(--pf-lit-red-500)"
                 data-testid="live-share-end"
               >
                 {LIVE_SHARE_TEXT.end}
@@ -492,8 +492,8 @@ export function LiveShareHost({
             role="status"
             data-testid="live-share-badge"
           >
-            <span className="inline-flex max-w-[92%] items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white backdrop-blur">
-              <span className="size-2 shrink-0 rounded-full bg-red-500" aria-hidden />
+            <span className="inline-flex max-w-[92%] items-center gap-1.5 rounded-full bg-(--pf-lit-black)/60 px-2.5 py-1 text-[11px] text-(--pf-lit-white) backdrop-blur">
+              <span className="size-2 shrink-0 rounded-full bg-(--pf-lit-red-500)" aria-hidden />
               <span className="truncate">
                 {liveBadgeText(viewerJoined, viewerLeft)}
                 {liveBadgeExtras(controlOn, tripod)}

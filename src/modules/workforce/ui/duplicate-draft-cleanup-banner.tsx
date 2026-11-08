@@ -26,7 +26,7 @@ export function DuplicateDraftCleanupBanner({
   if (duplicateExtraCount <= 0 && !state.ok) return null;
 
   return (
-    <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm">
+    <div className="rounded-md border border-(--pf-lit-amber-500)/40 bg-(--pf-lit-amber-500)/10 px-4 py-3 text-sm">
       {state.ok ? (
         <p>{t('cleaned', { count: state.removedCount ?? 0 })}</p>
       ) : (

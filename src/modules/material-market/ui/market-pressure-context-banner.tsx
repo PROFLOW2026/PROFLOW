@@ -14,15 +14,15 @@ interface MarketPressureContextBannerProps {
 }
 
 function pressureColor(score: number): string {
-  if (score >= 70) return 'text-red-700 dark:text-red-400';
-  if (score >= 40) return 'text-amber-700 dark:text-amber-400';
-  return 'text-emerald-700 dark:text-emerald-400';
+  if (score >= 70) return 'text-(--pf-lit-red-700) dark:text-(--pf-lit-red-400)';
+  if (score >= 40) return 'text-(--pf-lit-amber-700) dark:text-(--pf-lit-amber-400)';
+  return 'text-(--pf-lit-emerald-700) dark:text-(--pf-lit-emerald-400)';
 }
 
 function pressureBg(score: number): string {
-  if (score >= 70) return 'border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-950/20';
-  if (score >= 40) return 'border-amber-200 bg-amber-50 dark:border-amber-900/40 dark:bg-amber-950/20';
-  return 'border-emerald-200 bg-emerald-50 dark:border-emerald-900/40 dark:bg-emerald-950/20';
+  if (score >= 70) return 'border-(--pf-lit-red-200) bg-(--pf-lit-red-50) dark:border-(--pf-lit-red-900)/40 dark:bg-(--pf-lit-red-950)/20';
+  if (score >= 40) return 'border-(--pf-lit-amber-200) bg-(--pf-lit-amber-50) dark:border-(--pf-lit-amber-900)/40 dark:bg-(--pf-lit-amber-950)/20';
+  return 'border-(--pf-lit-emerald-200) bg-(--pf-lit-emerald-50) dark:border-(--pf-lit-emerald-900)/40 dark:bg-(--pf-lit-emerald-950)/20';
 }
 
 function pressureLabel(
@@ -63,7 +63,7 @@ export function MarketPressureContextBanner({
   return (
     <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3">
       <div className="mb-2 flex items-center gap-1.5">
-        <AlertTriangle className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden />
+        <AlertTriangle className="size-3.5 shrink-0 text-(--pf-lit-amber-600) dark:text-(--pf-lit-amber-400)" aria-hidden />
         <span className="text-xs font-medium text-[var(--pf-text-secondary)]">{title}</span>
       </div>
       <div className="flex flex-wrap gap-2">

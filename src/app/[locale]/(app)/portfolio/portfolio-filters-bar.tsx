@@ -227,7 +227,7 @@ function PortfolioFilterControls({
                 uwmFilterInputClass,
                 'justify-center text-start',
                 draft.hasOverdue &&
-                  'border-red-300 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-950 dark:text-red-200',
+                  'border-(--pf-lit-red-300) bg-(--pf-lit-red-50) text-(--pf-lit-red-800) dark:border-(--pf-lit-red-700) dark:bg-(--pf-lit-red-950) dark:text-(--pf-lit-red-200)',
               )}
               onClick={() =>
                 setDraft((current) => ({ ...current, hasOverdue: !current.hasOverdue }))
@@ -245,7 +245,7 @@ function PortfolioFilterControls({
                 uwmFilterInputClass,
                 'justify-center text-start',
                 draft.stale &&
-                  'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200',
+                  'border-(--pf-lit-amber-300) bg-(--pf-lit-amber-50) text-(--pf-lit-amber-800) dark:border-(--pf-lit-amber-700) dark:bg-(--pf-lit-amber-950) dark:text-(--pf-lit-amber-200)',
               )}
               onClick={() => setDraft((current) => ({ ...current, stale: !current.stale }))}
             >

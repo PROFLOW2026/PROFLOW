@@ -53,7 +53,7 @@ export function BrandLivePreview({
         {t('preview.title')}
       </div>
       <div className="bg-[var(--pf-neutral-50)] p-3 sm:p-4">
-        <div className="mx-auto flex min-h-64 max-w-md flex-col bg-white text-slate-900 shadow-sm">
+        <div className="mx-auto flex min-h-64 max-w-md flex-col bg-(--pf-lit-white) text-(--pf-lit-slate-900) shadow-sm">
           <div
             className="h-1.5 w-full"
             style={{ backgroundColor: brand.primaryColor }}
@@ -83,15 +83,15 @@ export function BrandLivePreview({
                 </p>
               ) : null}
               {brand.showLegalName && legalName !== displayName ? (
-                <p className="text-xs text-slate-600">{legalName}</p>
+                <p className="text-xs text-(--pf-lit-slate-600)">{legalName}</p>
               ) : null}
               {brand.showRegistrationNumber && company.registrationNumber ? (
-                <p className="text-[10px] text-slate-500" dir="ltr">
+                <p className="text-[10px] text-(--pf-lit-slate-500)" dir="ltr">
                   {company.registrationNumber}
                 </p>
               ) : null}
               {brand.showVatTaxId && company.vatTaxId ? (
-                <p className="text-[10px] text-slate-500" dir="ltr">
+                <p className="text-[10px] text-(--pf-lit-slate-500)" dir="ltr">
                   {company.vatTaxId}
                 </p>
               ) : null}
@@ -102,11 +102,11 @@ export function BrandLivePreview({
             <p className="text-sm font-semibold" style={{ color: brand.secondaryColor }}>
               {t('preview.sampleTitle')}
             </p>
-            <div className="h-2 w-3/4 rounded bg-slate-100" aria-hidden />
-            <div className="h-2 w-full rounded bg-slate-100" aria-hidden />
-            <div className="h-2 w-5/6 rounded bg-slate-100" aria-hidden />
+            <div className="h-2 w-3/4 rounded bg-(--pf-lit-slate-100)" aria-hidden />
+            <div className="h-2 w-full rounded bg-(--pf-lit-slate-100)" aria-hidden />
+            <div className="h-2 w-5/6 rounded bg-(--pf-lit-slate-100)" aria-hidden />
             <div
-              className="mt-2 inline-flex self-start rounded px-2 py-1 text-[10px] font-medium text-white"
+              className="mt-2 inline-flex self-start rounded px-2 py-1 text-[10px] font-medium text-(--pf-lit-white)"
               style={{ backgroundColor: brand.primaryColor }}
             >
               {t('preview.accentChip')}
@@ -114,7 +114,7 @@ export function BrandLivePreview({
           </div>
 
           <div
-            className="mt-auto border-t px-4 py-3 text-[10px] text-slate-600"
+            className="mt-auto border-t px-4 py-3 text-[10px] text-(--pf-lit-slate-600)"
             style={{ borderColor: `${brand.secondaryColor}33` }}
           >
             {brand.footerStyle === 'minimal' ? (
@@ -133,7 +133,7 @@ export function BrandLivePreview({
                   <p dir="ltr">{company.website}</p>
                 ) : null}
                 {brand.footerStyle === 'legal' ? (
-                  <p className="mt-1 text-slate-400">{t('preview.legalFooterNote')}</p>
+                  <p className="mt-1 text-(--pf-lit-slate-400)">{t('preview.legalFooterNote')}</p>
                 ) : null}
               </div>
             )}

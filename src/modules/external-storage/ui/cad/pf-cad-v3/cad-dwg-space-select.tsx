@@ -12,8 +12,8 @@ import { cadSpaceSelectorAriaLabel, formatCadSpaceLabel } from './cad-space-labe
 
 const defaultTriggerClass = cn(
   'h-10 min-h-10 w-full max-w-full sm:max-w-xs',
-  'border border-white/30 bg-[#eef2f8] text-sm font-semibold text-[#0b1220]',
-  'shadow-md hover:bg-white',
+  'border border-(--pf-lit-white)/30 bg-[#eef2f8] text-sm font-semibold text-[#0b1220]',
+  'shadow-md hover:bg-(--pf-lit-white)',
   'focus:border-[var(--pf-border-focus)] focus:outline-2 focus:outline-[var(--pf-focus-ring)]',
   '[&_svg]:text-[#0b1220]',
 );

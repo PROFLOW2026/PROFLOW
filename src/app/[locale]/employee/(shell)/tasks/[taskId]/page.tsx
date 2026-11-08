@@ -306,7 +306,7 @@ export default async function EmployeePmTaskDetailPage({ params, searchParams }:
                   <SubmitButton
                     name="decision"
                     value="approved"
-                    className="min-h-[44px] rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-600/90"
+                    className="min-h-[44px] rounded-lg bg-(--pf-lit-green-600) px-3 py-2 text-sm font-medium text-(--pf-lit-white) hover:bg-(--pf-lit-green-600)/90"
                   >
                     {t('approveAction')}
                   </SubmitButton>
@@ -314,7 +314,7 @@ export default async function EmployeePmTaskDetailPage({ params, searchParams }:
                     name="decision"
                     value="rejected"
                     variant="secondary"
-                    className="min-h-[44px] rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+                    className="min-h-[44px] rounded-lg border border-(--pf-lit-red-300) bg-(--pf-lit-red-50) px-3 py-2 text-sm font-medium text-(--pf-lit-red-700) hover:bg-(--pf-lit-red-50)"
                   >
                     {t('rejectAction')}
                   </SubmitButton>
@@ -475,7 +475,7 @@ function ChecklistMark({ done }: { done: boolean }) {
     <span
       className={cn(
         'flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border text-xs',
-        done ? 'border-green-500 bg-green-500 text-white' : 'border-[var(--pf-border)] bg-[var(--pf-surface)]',
+        done ? 'border-(--pf-lit-green-500) bg-(--pf-lit-green-500) text-(--pf-lit-white)' : 'border-[var(--pf-border)] bg-[var(--pf-surface)]',
       )}
     >
       {done ? '✓' : null}

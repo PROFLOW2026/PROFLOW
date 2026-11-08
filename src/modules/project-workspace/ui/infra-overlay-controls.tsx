@@ -96,10 +96,10 @@ export const OVERLAY_TEXT = {
 } as const;
 
 export const barButtonClass =
-  'inline-flex size-9 shrink-0 items-center justify-center rounded-full text-white transition-colors hover:bg-white/15 active:bg-white/25 disabled:opacity-40';
+  'inline-flex size-9 shrink-0 items-center justify-center rounded-full text-(--pf-lit-white) transition-colors hover:bg-(--pf-lit-white)/15 active:bg-(--pf-lit-white)/25 disabled:opacity-40';
 const activeButtonClass = 'bg-cyan-500/90 hover:bg-cyan-400';
 const trayButtonClass =
-  'inline-flex size-8 shrink-0 items-center justify-center rounded-full text-white transition-colors hover:bg-white/15 active:bg-white/25 disabled:opacity-35';
+  'inline-flex size-8 shrink-0 items-center justify-center rounded-full text-(--pf-lit-white) transition-colors hover:bg-(--pf-lit-white)/15 active:bg-(--pf-lit-white)/25 disabled:opacity-35';
 
 /* -------------------------------------------------------------------------- */
 /* Manual correction with an undo trail                                         */
@@ -264,7 +264,7 @@ export function FineTuneTray({
   readonly onUndo: () => void;
   readonly onReset: () => void;
 }) {
-  const separator = <span className="mx-0.5 h-5 w-px bg-white/25" aria-hidden />;
+  const separator = <span className="mx-0.5 h-5 w-px bg-(--pf-lit-white)/25" aria-hidden />;
   const move = (label: string, direction: InfraRemoteNudge, icon: ReactNode) => (
     <RepeatButton label={label} disabled={disabled} onStart={onBegin} onStep={() => onNudge(direction)}>
       {icon}
@@ -272,7 +272,7 @@ export function FineTuneTray({
   );
   return (
     <div
-      className="flex max-w-full flex-wrap items-center justify-center gap-0.5 rounded-2xl bg-black/65 px-1.5 py-1 backdrop-blur"
+      className="flex max-w-full flex-wrap items-center justify-center gap-0.5 rounded-2xl bg-(--pf-lit-black)/65 px-1.5 py-1 backdrop-blur"
       onPointerDown={(e) => e.stopPropagation()}
       data-testid="infra-fine-tune"
       dir="rtl"
@@ -296,7 +296,7 @@ export function FineTuneTray({
       {separator}
       <button
         type="button"
-        className="min-h-8 rounded-full px-2.5 text-xs font-medium text-white hover:bg-white/15 disabled:opacity-35"
+        className="min-h-8 rounded-full px-2.5 text-xs font-medium text-(--pf-lit-white) hover:bg-(--pf-lit-white)/15 disabled:opacity-35"
         onClick={onUndo}
         disabled={disabled || !canUndo}
         title={OVERLAY_TEXT.undoNudgeLong}
@@ -307,7 +307,7 @@ export function FineTuneTray({
       </button>
       <button
         type="button"
-        className="min-h-8 rounded-full px-2.5 text-xs font-medium text-white hover:bg-white/15 disabled:opacity-35"
+        className="min-h-8 rounded-full px-2.5 text-xs font-medium text-(--pf-lit-white) hover:bg-(--pf-lit-white)/15 disabled:opacity-35"
         onClick={onReset}
         disabled={disabled || !canReset}
         title={OVERLAY_TEXT.resetNudgeLong}
@@ -325,9 +325,9 @@ export function FineTuneTray({
 /* -------------------------------------------------------------------------- */
 
 const QUALITY_VIEW: Record<AlignmentQuality, { text: string; dot: string }> = {
-  good: { text: OVERLAY_TEXT.qualityGood, dot: 'bg-emerald-400' },
-  needsFix: { text: OVERLAY_TEXT.qualityNeedsFix, dot: 'bg-amber-400' },
-  failed: { text: OVERLAY_TEXT.qualityFailed, dot: 'bg-red-500' },
+  good: { text: OVERLAY_TEXT.qualityGood, dot: 'bg-(--pf-lit-emerald-400)' },
+  needsFix: { text: OVERLAY_TEXT.qualityNeedsFix, dot: 'bg-(--pf-lit-amber-400)' },
+  failed: { text: OVERLAY_TEXT.qualityFailed, dot: 'bg-(--pf-lit-red-500)' },
 };
 
 /**
@@ -351,13 +351,13 @@ export function QualityChip({
       dir="rtl"
     >
       <span
-        className="inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white backdrop-blur"
+        className="inline-flex items-center gap-1.5 rounded-full bg-(--pf-lit-black)/60 px-2.5 py-1 text-[11px] text-(--pf-lit-white) backdrop-blur"
         role="status"
         data-testid="infra-quality"
         data-quality={quality}
       >
         <span className={`size-2 rounded-full ${view.dot}`} aria-hidden />
-        {prefix ? <span className="text-white/75">{prefix} ·</span> : null}
+        {prefix ? <span className="text-(--pf-lit-white)/75">{prefix} ·</span> : null}
         {view.text}
       </span>
     </div>
@@ -393,7 +393,7 @@ export function ViewModeBar({
       onPointerDown={(e) => e.stopPropagation()}
     >
       <div
-        className="flex items-center gap-0.5 rounded-full bg-black/60 p-0.5 backdrop-blur"
+        className="flex items-center gap-0.5 rounded-full bg-(--pf-lit-black)/60 p-0.5 backdrop-blur"
         role="group"
         aria-label={OVERLAY_TEXT.viewGroup}
         data-testid="infra-view-switch"
@@ -403,8 +403,8 @@ export function ViewModeBar({
           <button
             key={item.mode}
             type="button"
-            className={`min-h-8 rounded-full px-3 text-xs font-medium text-white transition-colors ${
-              mode === item.mode ? 'bg-cyan-500/90' : 'hover:bg-white/15'
+            className={`min-h-8 rounded-full px-3 text-xs font-medium text-(--pf-lit-white) transition-colors ${
+              mode === item.mode ? 'bg-cyan-500/90' : 'hover:bg-(--pf-lit-white)/15'
             }`}
             aria-pressed={mode === item.mode}
             onClick={() => onMode(item.mode)}
@@ -481,7 +481,7 @@ export function BlinkButton({
       }}
     >
       <Zap className="size-5" />
-      <span className="max-w-14 truncate text-[10px] leading-3 text-white/90">{OVERLAY_TEXT.blinkShort}</span>
+      <span className="max-w-14 truncate text-[10px] leading-3 text-(--pf-lit-white)/90">{OVERLAY_TEXT.blinkShort}</span>
     </button>
   );
 }
@@ -530,18 +530,18 @@ export function SplitDivider({
         dragging.current = false;
       }}
     >
-      <span className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-white shadow-[0_0_3px_rgba(0,0,0,0.8)]" />
-      <span className="absolute left-1/2 top-1/2 flex size-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-neutral-900 shadow-lg">
+      <span className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-(--pf-lit-white) shadow-[0_0_3px_rgba(0,0,0,0.8)]" />
+      <span className="absolute left-1/2 top-1/2 flex size-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-(--pf-lit-white) text-(--pf-lit-neutral-900) shadow-lg">
         <MoveHorizontal className="size-5" />
       </span>
       <span
-        className="absolute end-[calc(50%+1.5rem)] top-1/2 -translate-y-1/2 rounded bg-black/65 px-1.5 text-[11px] leading-4 text-white"
+        className="absolute end-[calc(50%+1.5rem)] top-1/2 -translate-y-1/2 rounded bg-(--pf-lit-black)/65 px-1.5 text-[11px] leading-4 text-(--pf-lit-white)"
         dir="rtl"
       >
         {beforeLabel}
       </span>
       <span
-        className="absolute start-[calc(50%+1.5rem)] top-1/2 -translate-y-1/2 rounded bg-black/65 px-1.5 text-[11px] leading-4 text-white"
+        className="absolute start-[calc(50%+1.5rem)] top-1/2 -translate-y-1/2 rounded bg-(--pf-lit-black)/65 px-1.5 text-[11px] leading-4 text-(--pf-lit-white)"
         dir="rtl"
       >
         {afterLabel}
@@ -563,7 +563,7 @@ export { activeButtonClass };
 export const BarHintContext = createContext<((message: string) => void) | null>(null);
 
 const labeledButtonClass =
-  'inline-flex min-h-11 min-w-11 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 pb-0.5 pt-1 text-white transition-colors hover:bg-white/15 active:bg-white/25';
+  'inline-flex min-h-11 min-w-11 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 pb-0.5 pt-1 text-(--pf-lit-white) transition-colors hover:bg-(--pf-lit-white)/15 active:bg-(--pf-lit-white)/25';
 
 /**
  * One action of the bar: an icon with a one-word label under it (so no icon has to be guessed), a clearly
@@ -618,7 +618,7 @@ export function BarButton({
       data-active={active ? 'true' : undefined}
     >
       {busy ? <Loader2 className="size-5 animate-spin" aria-hidden /> : icon}
-      <span className="max-w-14 truncate text-[10px] leading-3 text-white/90">{label}</span>
+      <span className="max-w-14 truncate text-[10px] leading-3 text-(--pf-lit-white)/90">{label}</span>
     </button>
   );
 }
@@ -688,7 +688,7 @@ export function OverlayBar({
       >
         {hint ? (
           <div
-            className="pointer-events-none w-fit max-w-full rounded bg-black/75 px-2 py-1 text-center text-[11px] text-white"
+            className="pointer-events-none w-fit max-w-full rounded bg-(--pf-lit-black)/75 px-2 py-1 text-center text-[11px] text-(--pf-lit-white)"
             dir="rtl"
             role="status"
             data-testid="infra-bar-hint"
@@ -698,9 +698,9 @@ export function OverlayBar({
         ) : null}
         {notice}
         {tray ? <div className="pointer-events-auto max-w-full">{tray}</div> : null}
-        <div className="pointer-events-auto flex max-w-full flex-col gap-0.5 rounded-3xl bg-black/60 px-1.5 py-1 backdrop-blur">
+        <div className="pointer-events-auto flex max-w-full flex-col gap-0.5 rounded-3xl bg-(--pf-lit-black)/60 px-1.5 py-1 backdrop-blur">
           {compact ? null : (
-            <label className="flex items-center gap-2 px-2 text-[11px] text-white/80" dir="rtl">
+            <label className="flex items-center gap-2 px-2 text-[11px] text-(--pf-lit-white)/80" dir="rtl">
               <span className="shrink-0">{OVERLAY_TEXT.opacity}</span>
               <input
                 type="range"

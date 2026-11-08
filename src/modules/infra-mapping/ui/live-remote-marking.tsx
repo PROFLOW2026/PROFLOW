@@ -314,7 +314,7 @@ export function RemoteControlBar({
       >
         {hint ? (
           <div
-            className="pointer-events-none w-fit max-w-full rounded bg-black/75 px-2 py-1 text-center text-[11px] text-white"
+            className="pointer-events-none w-fit max-w-full rounded bg-(--pf-lit-black)/75 px-2 py-1 text-center text-[11px] text-(--pf-lit-white)"
             role="status"
             data-testid="live-remote-hint"
           >
@@ -334,11 +334,11 @@ export function RemoteControlBar({
             />
           </div>
         ) : null}
-        <div className="pointer-events-auto flex max-w-full flex-col gap-0.5 rounded-3xl bg-black/65 px-1.5 py-1 backdrop-blur">
-          <p className="px-2 text-center text-[11px] text-white/85" role="status" data-testid="live-remote-status">
+        <div className="pointer-events-auto flex max-w-full flex-col gap-0.5 rounded-3xl bg-(--pf-lit-black)/65 px-1.5 py-1 backdrop-blur">
+          <p className="px-2 text-center text-[11px] text-(--pf-lit-white)/85" role="status" data-testid="live-remote-status">
             {status}
           </p>
-          <label className="flex items-center gap-2 px-2 text-[11px] text-white/80">
+          <label className="flex items-center gap-2 px-2 text-[11px] text-(--pf-lit-white)/80">
             <span className="shrink-0">{LIVE_SHARE_TEXT.viewerOpacity}</span>
             <input
               type="range"
@@ -430,7 +430,7 @@ export function RemoteControlBar({
               testId="live-remote-release"
             />
           </div>
-          <p className="px-2 pb-0.5 text-center text-[10px] leading-3 text-amber-200/90">{LIVE_SHARE_TEXT.visualOnly}</p>
+          <p className="px-2 pb-0.5 text-center text-[10px] leading-3 text-(--pf-lit-amber-200)/90">{LIVE_SHARE_TEXT.visualOnly}</p>
         </div>
       </div>
     </BarHintContext.Provider>
