@@ -1,0 +1,6 @@
+{
+    "sha256":  "ad1b038d9f784a046ea330a36c36097caad1e5bb7dabc082829a80662b4b2679",
+    "sourceCommit":  "93e827c4cfb368c9f81b44465bf3cb6720113649",
+    "bytes":  184393,
+    "note":  "Compiled globals.css from the isolated baseline worktree. Raw CSS stays out of git; this hash is the P2 baseline."
+}

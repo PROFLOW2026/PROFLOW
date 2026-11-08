@@ -52,11 +52,11 @@ export default async function ContractorTasksPage({
         <p className={portalPageSubtitleClass}>{t('portal.tasks.description')}</p>
       </header>
 
-      <nav className={portalSegmentBarClass} aria-label={t('portal.tasks.filterLabel')}>
-        <Link href={basePath} className={portalSegmentClass(scope === 'open')} aria-current={scope === 'open' ? 'page' : undefined}>
+      <nav data-pf-slot="tabs-list" className={portalSegmentBarClass} aria-label={t('portal.tasks.filterLabel')}>
+        <Link data-pf-slot="tab" href={basePath} className={portalSegmentClass(scope === 'open')} aria-current={scope === 'open' ? 'page' : undefined}>
           {t('portal.tasks.filters.open')}
         </Link>
-        <Link href={`${basePath}?scope=all`} className={portalSegmentClass(scope === 'all')} aria-current={scope === 'all' ? 'page' : undefined}>
+        <Link data-pf-slot="tab" href={`${basePath}?scope=all`} className={portalSegmentClass(scope === 'all')} aria-current={scope === 'all' ? 'page' : undefined}>
           {t('portal.tasks.filters.all')}
         </Link>
       </nav>

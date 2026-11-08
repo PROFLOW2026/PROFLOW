@@ -145,9 +145,10 @@ export function TaskTimelineView({
         />
       ) : null}
 
-      <nav aria-label={t('timeline.groupByLabel')} className={cn(uwmTabBarClass, 'w-fit')}>
+      <nav data-pf-slot="tabs-list" aria-label={t('timeline.groupByLabel')} className={cn(uwmTabBarClass, 'w-fit')}>
         {(['date', 'project', 'status'] as const).map((mode) => (
           <button
+            data-pf-slot="tab"
             key={mode}
             type="button"
             onClick={() => setGroupBy(mode)}

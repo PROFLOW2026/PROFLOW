@@ -67,11 +67,11 @@ export function VendorFinancialActivityView({
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+        <dl data-pf-slot="kpi-grid" className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
           <Metric label={metricLabels.recognized} amount={totals.recognized} currency={activity.totals.currency} />
           <Metric label={metricLabels.paid} amount={totals.paid} currency={activity.totals.currency} />
           <Metric label={metricLabels.outstanding} amount={totals.outstanding} currency={activity.totals.currency} />
-          <div>
+          <div data-pf-slot="kpi-card">
             <dt className="text-xs text-[var(--pf-text-muted)]">{t('expenseCount')}</dt>
             <dd className="font-medium">{activity.totals.expenseCount}</dd>
           </div>
@@ -177,7 +177,7 @@ function Metric({
   readonly currency: string;
 }) {
   return (
-    <div>
+    <div data-pf-slot="kpi-card">
       <dt className="text-xs text-[var(--pf-text-muted)]">{label}</dt>
       <dd>
         <MoneyText value={money(amount, currency)} />

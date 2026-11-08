@@ -47,11 +47,11 @@ export default async function ContractorSchedulePage({
         <h1 className={portalPageTitleClass}>{t('portal.scheduleTitle')}</h1>
         <p className={portalPageSubtitleClass}>{t('portal.scheduleDescription')}</p>
       </header>
-      <nav className={portalSegmentBarClass} aria-label={t('portal.scheduleTitle')}>
-        <Link href={base} className={portalSegmentClass(scope === 'upcoming')} aria-current={scope === 'upcoming' ? 'page' : undefined}>
+      <nav data-pf-slot="tabs-list" className={portalSegmentBarClass} aria-label={t('portal.scheduleTitle')}>
+        <Link data-pf-slot="tab" href={base} className={portalSegmentClass(scope === 'upcoming')} aria-current={scope === 'upcoming' ? 'page' : undefined}>
           {t('portal.upcoming')}
         </Link>
-        <Link href={`${base}?view=past`} className={portalSegmentClass(scope === 'past')} aria-current={scope === 'past' ? 'page' : undefined}>
+        <Link data-pf-slot="tab" href={`${base}?view=past`} className={portalSegmentClass(scope === 'past')} aria-current={scope === 'past' ? 'page' : undefined}>
           {t('portal.past')}
         </Link>
       </nav>

@@ -204,7 +204,7 @@ export function InfraVideoRecorder({
 
   if (phase === 'error') {
     return (
-      <div className="flex flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3 text-sm" role="alert" data-testid="infra-video-error">
+      <div data-pf-style="classic" className="flex flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3 text-sm" role="alert" data-testid="infra-video-error">
         <p>{error}</p>
         <Button type="button" variant="secondary" size="sm" onClick={onClose} className="w-fit">
           {INFRA_TEXT.close}
@@ -215,7 +215,7 @@ export function InfraVideoRecorder({
 
   const recording = phase === 'recording';
   return (
-    <div className="relative overflow-hidden rounded-lg bg-black" data-testid="infra-video-recorder" data-phase={phase}>
+    <div data-pf-style="classic" className="relative overflow-hidden rounded-lg bg-black" data-testid="infra-video-recorder" data-phase={phase}>
       <video ref={videoRef} playsInline muted autoPlay className="aspect-[4/3] max-h-[60dvh] w-full object-cover" />
       <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-2 bg-gradient-to-b from-black/70 to-transparent p-3 text-sm text-white">
         <span data-testid="infra-video-timer" className="tabular-nums">

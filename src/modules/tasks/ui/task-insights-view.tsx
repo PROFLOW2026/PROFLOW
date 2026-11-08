@@ -26,7 +26,7 @@ function StatCard({
   variant?: 'default' | 'warning' | 'danger' | 'success';
 }) {
   return (
-    <div
+    <div data-pf-slot="kpi-card"
       className={cn(
         uwmStatCardClass,
         variant === 'danger' && 'border-[var(--pf-status-danger-border)]',
@@ -72,7 +72,7 @@ export function TaskInsightsView({ insights }: { insights: TaskInsights }) {
     <MainAppPage>
       <section>
         <h2 className={cn('mb-3', uwmSectionHeadingClass)}>{t('insights.sections.summary')}</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div data-pf-slot="kpi-grid" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <StatCard
             icon={<Clock className="size-4" />}
             label={t('insights.stats.open')}

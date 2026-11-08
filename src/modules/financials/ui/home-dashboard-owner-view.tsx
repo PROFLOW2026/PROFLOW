@@ -107,7 +107,7 @@ function KpiTile({
       : undefined;
   const resolvedDetail = mergeDashboardDetailNotes(detail, title, [hint]);
   return (
-    <Card className="min-w-0 max-w-full">
+    <Card data-pf-slot="kpi-card" className="min-w-0 max-w-full">
       <CardContent className="flex min-w-0 flex-col gap-1 p-4">
         <div className="flex min-w-0 items-start justify-between gap-2">
           <p className="text-xs text-[var(--pf-text-muted)]">{title}</p>
@@ -420,7 +420,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
       ) : null}
 
       {data.forecast?.companyActual != null || data.businessCashPosition || data.billing ? (
-        <section className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <section data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {data.forecast?.companyActual != null ? (
             <KpiTile
               title={t('ownerHeadline.companyRecognizedCosts')}

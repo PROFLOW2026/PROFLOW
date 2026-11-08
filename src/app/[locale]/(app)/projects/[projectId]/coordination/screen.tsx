@@ -71,11 +71,11 @@ export async function ProjectCoordinationScreen({ surfaceRoot,
         </WithAppClientMessages>
       ) : null}
 
-      <nav className="flex gap-1" aria-label={t('list.pageTitle')}>
-        <Link href={base} className={tabClass(scope === 'open')} aria-current={scope === 'open' ? 'page' : undefined}>
+      <nav data-pf-slot="tabs-list" className="flex gap-1" aria-label={t('list.pageTitle')}>
+        <Link data-pf-slot="tab" href={base} className={tabClass(scope === 'open')} aria-current={scope === 'open' ? 'page' : undefined}>
           {t('list.open')}
         </Link>
-        <Link
+        <Link data-pf-slot="tab"
           href={`${base}?scope=closed`}
           className={tabClass(scope === 'closed')}
           aria-current={scope === 'closed' ? 'page' : undefined}

@@ -70,9 +70,9 @@ export async function ProjectSubmittalsScreen({ surfaceRoot,
         </WithAppClientMessages>
       ) : null}
 
-      <nav className="flex flex-wrap gap-1" aria-label={t('filters.label')}>
+      <nav data-pf-slot="tabs-list" className="flex flex-wrap gap-1" aria-label={t('filters.label')}>
         {FILTERS.map((filter) => (
-          <Link
+          <Link data-pf-slot="tab"
             key={filter}
             href={filter === 'pending' ? base : `${base}?status=${filter}`}
             className={tabClass(status === filter)}

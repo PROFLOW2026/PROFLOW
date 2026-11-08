@@ -183,14 +183,14 @@ export function ProjectBoardShell({
   return (
     <div className="flex flex-col gap-4">
       {activeBoards.length > 1 && (
-        <nav
+        <nav data-pf-slot="tabs-list"
           aria-label={t('boards.switcherLabel')}
           className={cn(uwmTabBarClass, 'overflow-x-auto')}
         >
           {activeBoards.map((board) => {
             const active = board.id === activeBoard.id;
             return (
-              <Link
+              <Link data-pf-slot="tab"
                 key={board.id}
                 href={`/projects/${projectId}/boards/${board.id}`}
                 className={cn(

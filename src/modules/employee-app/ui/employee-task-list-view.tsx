@@ -194,10 +194,11 @@ export function EmployeeTaskListView({
       ) : null}
 
       {canSeeCompanyScope && !hideScopeBar ? (
-        <div className={employeeScopeBarClass} role="tablist" aria-label={t('filters.scopeTitle')}>
+        <div data-pf-slot="tabs-list" className={employeeScopeBarClass} role="tablist" aria-label={t('filters.scopeTitle')}>
           <button
             type="button"
             role="tab"
+            data-pf-slot="tab"
             aria-selected={appliedFilters.scope === 'company'}
             className={employeeScopeTabClass(appliedFilters.scope === 'company')}
             onClick={() => pushFilters({ ...appliedFilters, scope: 'company', assignee: 'all' })}
@@ -207,6 +208,7 @@ export function EmployeeTaskListView({
           <button
             type="button"
             role="tab"
+            data-pf-slot="tab"
             aria-selected={appliedFilters.scope === 'mine'}
             className={employeeScopeTabClass(appliedFilters.scope === 'mine')}
             onClick={() => pushFilters({ ...appliedFilters, scope: 'mine', assignee: 'all' })}

@@ -117,7 +117,7 @@ export function QuickCaptureVideoRecorder({
   };
 
   return (
-    <div className="flex flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-4">
+    <div data-pf-style="classic" className="flex flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-4">
       <p className="text-sm font-medium">{t('recording')}</p>
       <p className="text-2xl tabular-nums">{formatDuration(durationMs)}</p>
       {sizeBytes > 0 ? (

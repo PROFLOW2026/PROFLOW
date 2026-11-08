@@ -53,7 +53,7 @@ function SnapshotCard({
 }) {
   const value = amount ? fromNumericString(amount, currency) : null;
   return (
-    <div className="min-w-0">
+    <div data-pf-slot="kpi-card" className="min-w-0">
       <p className="text-xs text-[var(--pf-text-muted)]">{label}</p>
       {value ? <MoneyText value={value} /> : <p className="text-sm">—</p>}
     </div>
@@ -72,7 +72,7 @@ function SnapshotGrid({
   const currency = snapshot.currency;
   const hideProfit = snapshot.profitHidden || !canReadProfit;
   return (
-    <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div data-pf-slot="kpi-grid" className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <SnapshotCard
         label={t('snapshot.originalContract')}
         amount={snapshot.originalContract?.amount}

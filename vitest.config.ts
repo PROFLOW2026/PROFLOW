@@ -79,7 +79,7 @@ export default defineConfig({
         test: {
           name: 'unit',
           environment: 'node',
-          include: ['tests/unit/**/*.test.ts', 'src/modules/**/__tests__/**/*.test.ts'],
+          include: ['tests/unit/**/*.test.ts', 'tests/design-v2/spec/**/*.test.ts', 'src/modules/**/__tests__/**/*.test.ts'],
           // Explicit local regressions (private DWG fixtures); run by path, not in CI unit gate.
           exclude: [
             'tests/unit/**/*.local.test.ts',

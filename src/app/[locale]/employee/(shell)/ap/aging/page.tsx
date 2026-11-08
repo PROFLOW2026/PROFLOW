@@ -131,8 +131,8 @@ export default async function EmployeeApAgingPage({
           {tAp('aging.apply')}
         </button>
       </form>
-      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] p-4">
+      <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+        <div data-pf-slot="kpi-card" className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] p-4">
           <p className="text-xs text-[var(--pf-text-secondary)]">{tAp('aging.total')}</p>
           <p className="mt-1 text-lg font-semibold">
             <MoneyText value={data.aging.totalOutstanding} />
@@ -144,6 +144,7 @@ export default async function EmployeeApAgingPage({
           return (
             <div
               key={key}
+              data-pf-slot="kpi-card"
               className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] p-4"
             >
               <p className="text-xs text-[var(--pf-text-secondary)]">{tAp(`aging.buckets.${key}`)}</p>

@@ -35,20 +35,20 @@ export default async function ContractorPaymentsPage({ params }: { params: Promi
           {rows.map((row) => (
             <section key={row.agreementId} className={portalPanelClass}>
               <h2 className="mb-3 text-base font-semibold tracking-tight text-[var(--pf-text-primary)]">{row.title}</h2>
-              <dl className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-                <div className={portalMetricCellClass}>
+              <dl data-pf-slot="kpi-grid" className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                <div data-pf-slot="kpi-card" className={portalMetricCellClass}>
                   <dt className="text-xs text-[var(--pf-text-secondary)]">{t('portal.payable')}</dt>
                   <dd className="mt-0.5 text-sm font-semibold tabular-nums" dir="ltr">
                     {formatMoneyString(row.status.totals.payableNet, row.status.currency, locale)}
                   </dd>
                 </div>
-                <div className={portalMetricCellClass}>
+                <div data-pf-slot="kpi-card" className={portalMetricCellClass}>
                   <dt className="text-xs text-[var(--pf-text-secondary)]">{t('portal.paid')}</dt>
                   <dd className="mt-0.5 text-sm font-semibold tabular-nums" dir="ltr">
                     {formatMoneyString(row.status.totals.paid, row.status.currency, locale)}
                   </dd>
                 </div>
-                <div className={portalMetricCellClass}>
+                <div data-pf-slot="kpi-card" className={portalMetricCellClass}>
                   <dt className="text-xs text-[var(--pf-text-secondary)]">{t('portal.retention')}</dt>
                   <dd className="mt-0.5 text-sm font-semibold tabular-nums" dir="ltr">
                     {formatMoneyString(row.status.retention.remaining, row.status.currency, locale)}

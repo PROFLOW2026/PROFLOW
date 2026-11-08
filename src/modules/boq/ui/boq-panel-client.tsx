@@ -307,14 +307,14 @@ export function BoqPanelClient({
       ) : null}
 
       {permissions.showAmounts ? (
-        <section className="grid min-w-0 gap-3 rounded-md border border-[var(--pf-border-default)] p-3 sm:grid-cols-2">
-          <div className="min-w-0 text-start">
+        <section data-pf-slot="kpi-grid" className="grid min-w-0 gap-3 rounded-md border border-[var(--pf-border-default)] p-3 sm:grid-cols-2">
+          <div data-pf-slot="kpi-card" className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{t('totals.original')}</p>
             <p className="text-lg font-semibold">
               <MoneyText value={totals.original} />
             </p>
           </div>
-          <div className="min-w-0 text-start">
+          <div data-pf-slot="kpi-card" className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{t('totals.current')}</p>
             <p className="text-lg font-semibold">
               <MoneyText value={totals.current} />

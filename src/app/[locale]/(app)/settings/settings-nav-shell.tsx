@@ -55,6 +55,7 @@ export function SettingsNavShell({ items }: { readonly items: readonly SettingsN
         <div
           className="-mx-1 flex gap-1 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:thin]"
           role="tablist"
+          data-pf-slot="tabs-list"
           aria-label={tSettings('hub.groupSwitcherLabel')}
         >
           {groupsPresent.map((group) => {
@@ -64,6 +65,7 @@ export function SettingsNavShell({ items }: { readonly items: readonly SettingsN
                 key={group}
                 href={firstHrefInGroup(items, group)}
                 role="tab"
+                data-pf-slot="tab"
                 aria-selected={active}
                 className={cn(
                   'shrink-0 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap',

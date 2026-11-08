@@ -78,9 +78,9 @@ export async function UnpricedWorkScreen({ surfaceRoot,
           </Card>
         ) : null}
 
-        <nav aria-label={t('unpriced.filterLabel')} className="flex gap-2 overflow-x-auto">
+        <nav data-pf-slot="tabs-list" aria-label={t('unpriced.filterLabel')} className="flex gap-2 overflow-x-auto">
           {FILTERS.map((key) => (
-            <Link
+            <Link data-pf-slot="tab"
               key={key}
               href={key === 'open' ? base : `${base}?status=${key}`}
               aria-current={key === filter ? 'page' : undefined}

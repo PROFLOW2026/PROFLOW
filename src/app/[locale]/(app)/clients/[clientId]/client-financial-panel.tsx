@@ -38,8 +38,8 @@ export async function ClientFinancialPanel({
               {t('overdueBanner', { count: snapshot.overdueCount })}
             </Alert>
           ) : null}
-          <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
+          <div data-pf-slot="kpi-grid" className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div data-pf-slot="kpi-card" className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
               <p className="text-xs text-[var(--pf-text-secondary)]">{t('invoiced')}</p>
               <div className="mt-1">
                 <BillingNetPrimaryDisplay
@@ -50,25 +50,25 @@ export async function ClientFinancialPanel({
                 />
               </div>
             </div>
-            <div className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
+            <div data-pf-slot="kpi-card" className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
               <p className="text-xs text-[var(--pf-text-secondary)]">{tFinancial('kpis.billedVat')}</p>
               <p className="mt-1 break-words text-base font-semibold">
                 <MoneyText value={billedVat} />
               </p>
             </div>
-            <div className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
+            <div data-pf-slot="kpi-card" className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
               <p className="text-xs text-[var(--pf-text-secondary)]">{t('invoicedGross')}</p>
               <p className="mt-1 break-words text-base font-semibold">
                 <MoneyText value={snapshot.invoiced} />
               </p>
             </div>
-            <div className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
+            <div data-pf-slot="kpi-card" className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
               <p className="text-xs text-[var(--pf-text-secondary)]">{t('paid')}</p>
               <p className="mt-1 break-words text-base font-semibold">
                 <MoneyText value={snapshot.paid} />
               </p>
             </div>
-            <div className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
+            <div data-pf-slot="kpi-card" className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
               <p className="text-xs text-[var(--pf-text-secondary)]">{t('balance')}</p>
               <p className="mt-0.5 text-[11px] text-[var(--pf-text-muted)]">{t('balanceHint')}</p>
               <p className="mt-1 break-words text-base font-semibold">
@@ -76,6 +76,7 @@ export async function ClientFinancialPanel({
               </p>
             </div>
             <div
+              data-pf-slot="kpi-card"
               className={
                 hasOverdue
                   ? 'min-w-0 rounded-md border border-[var(--pf-status-danger-border)] bg-[var(--pf-status-danger-bg)] p-3 text-start text-[var(--pf-status-danger-fg)]'

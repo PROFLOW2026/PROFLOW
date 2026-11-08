@@ -45,9 +45,9 @@ export async function DashboardRecentProjectsSection({
           {t('allProjectsLink')}
         </Link>
       </div>
-      <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {projects.map((project) => (
-          <Card key={project.id} className="min-w-0 max-w-full">
+          <Card key={project.id} data-pf-slot="kpi-card" className="min-w-0 max-w-full">
             <CardHeader className="py-3">
               <CardTitle className="min-w-0 break-words text-base">
                 <PrefetchOnIntentLink

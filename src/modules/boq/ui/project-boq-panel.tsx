@@ -269,14 +269,14 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
 
       {workspace.contracts.length > 1 ? (
         <MainAppSection title={t('forms.contract')} className="w-full min-w-0">
-          <nav className="flex min-w-0 flex-wrap gap-2" aria-label={t('forms.contract')}>
+          <nav data-pf-slot="tabs-list" className="flex min-w-0 flex-wrap gap-2" aria-label={t('forms.contract')}>
             {workspace.contracts.map((contract) => {
               const href = `/projects/${projectId}?tab=boq&contractId=${contract.id}`;
               const selected = workspace.selectedContractId === contract.id;
               return (
                 <Link
                   key={contract.id}
-                  href={href}
+                  data-pf-slot="tab" href={href}
                   className={
                     selected
                       ? 'rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm font-medium'

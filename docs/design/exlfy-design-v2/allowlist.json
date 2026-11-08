@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "frozen": [
+    {
+      "id": "marketing",
+      "patterns": [
+        "modules/marketing/**"
+      ],
+      "reason": "Owner-frozen marketing surface; not in EXLFY V2 UI churn."
+    },
+    {
+      "id": "legal",
+      "patterns": [
+        "app/[locale]/legal/**"
+      ],
+      "reason": "Legal pages frozen until counsel-owned copy refresh."
+    },
+    {
+      "id": "live",
+      "patterns": [
+        "app/[locale]/live/**"
+      ],
+      "reason": "Live session UI frozen during design-v2 rollout."
+    },
+    {
+      "id": "brand-preview",
+      "patterns": [
+        "app/[locale]/brand-preview/**"
+      ],
+      "reason": "Brand preview isolated from token/style experiments."
+    },
+    {
+      "id": "quick-create",
+      "patterns": [
+        "components/shell/quick-create*",
+        "components/shell/employee-quick-create*"
+      ],
+      "reason": "Quick-create FAB geometry and flows are frozen per CONTRACT-CHANGES."
+    }
+  ]
+}

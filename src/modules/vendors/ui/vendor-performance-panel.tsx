@@ -46,7 +46,7 @@ export async function VendorPerformancePanel({
         {!hasFacts ? (
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('empty')}</p>
         ) : (
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {performance.totalPurchased ? (
               <Fact label={t('totalPurchased')} value={<MoneyText value={performance.totalPurchased} />} />
             ) : null}
@@ -164,7 +164,7 @@ function Fact({
   readonly value: ReactNode;
 }) {
   return (
-    <div className="min-w-0 rounded-md border border-[var(--pf-border-default)] p-3">
+    <div data-pf-slot="kpi-card" className="min-w-0 rounded-md border border-[var(--pf-border-default)] p-3">
       <p className="text-xs text-[var(--pf-text-secondary)]">{label}</p>
       <div className="mt-1 text-sm font-medium">{value}</div>
     </div>

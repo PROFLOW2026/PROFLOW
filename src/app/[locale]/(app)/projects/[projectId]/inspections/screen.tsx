@@ -191,21 +191,21 @@ export async function ProjectInspectionsScreen({ surfaceRoot,
 
 
 
-        <nav className="flex gap-1" aria-label={t('title')}>
+        <nav data-pf-slot="tabs-list" className="flex gap-1" aria-label={t('title')}>
 
-          <Link href={base} className={tabClass(!status)} aria-current={!status ? 'page' : undefined}>
+          <Link data-pf-slot="tab" href={base} className={tabClass(!status)} aria-current={!status ? 'page' : undefined}>
 
             {t('filters.all')}
 
           </Link>
 
-          <Link href={`${base}?status=open`} className={tabClass(status === 'open')} aria-current={status === 'open' ? 'page' : undefined}>
+          <Link data-pf-slot="tab" href={`${base}?status=open`} className={tabClass(status === 'open')} aria-current={status === 'open' ? 'page' : undefined}>
 
             {t('status.open')}
 
           </Link>
 
-          <Link
+          <Link data-pf-slot="tab"
 
             href={`${base}?status=completed`}
 

@@ -38,7 +38,7 @@ export async function WorkKindFilterChrome({
   const reportsSection = pathname === '/reports' ? parseReportsSection(section) : null;
 
   return (
-    <nav
+    <nav data-pf-slot="tabs-list"
       aria-label={t('label')}
       className="flex min-w-0 flex-wrap items-center gap-2"
       data-pf-work-kind-filter=""

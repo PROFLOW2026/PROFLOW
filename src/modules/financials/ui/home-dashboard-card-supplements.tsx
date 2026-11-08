@@ -45,7 +45,7 @@ export async function HomeDashboardCardSupplements({
                 <p className="mb-3 text-sm text-[var(--pf-text-secondary)]">
                   {t('cards.timeUtilization.body')}
                 </p>
-                <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+                <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
                   {data.activeProjectCount > 0 ? (
                     <DashboardKpiCard
                       title={t('activeProjects')}

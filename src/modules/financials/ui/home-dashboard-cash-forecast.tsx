@@ -129,9 +129,9 @@ export function HomeDashboardCashForecast({
           {copy.openPage}
         </Link>
       </div>
-      <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
+      <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
         {tiles.map((tile) => (
-          <Card key={tile.key} className="min-w-0 max-w-full">
+          <Card key={tile.key} data-pf-slot="kpi-card" className="min-w-0 max-w-full">
             <CardContent className="flex min-w-0 flex-col gap-1 p-4">
               <div className="flex min-w-0 items-start justify-between gap-2">
                 <p className="text-xs text-[var(--pf-text-muted)]">{tile.title}</p>

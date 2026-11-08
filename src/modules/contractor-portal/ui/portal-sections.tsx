@@ -91,9 +91,9 @@ export async function PortalSectionList({
             </header>
 
             {section.metrics.length > 0 && section.count > 0 ? (
-              <dl className={portalMetricGridClass}>
+              <dl data-pf-slot="kpi-grid" className={portalMetricGridClass}>
                 {section.metrics.map((metric) => (
-                  <div key={metric.labelKey} className={portalMetricCellClass}>
+                  <div key={metric.labelKey} data-pf-slot="kpi-card" className={portalMetricCellClass}>
                     <dt className="text-xs text-[var(--pf-text-secondary)]">{tAny(metric.labelKey)}</dt>
                     <dd className="mt-0.5 text-lg font-bold tabular-nums tracking-tight text-[var(--pf-text-primary)]">
                       {metric.value}

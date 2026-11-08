@@ -49,11 +49,11 @@ export default async function ContractorDefectsPage({
         <p className={portalPageSubtitleClass}>{t('portal.description')}</p>
       </header>
 
-      <nav className={portalSegmentBarClass} aria-label={t('portal.title')}>
-        <Link href={base} className={portalSegmentClass(status === 'active')} aria-current={status === 'active' ? 'page' : undefined}>
+      <nav data-pf-slot="tabs-list" className={portalSegmentBarClass} aria-label={t('portal.title')}>
+        <Link data-pf-slot="tab" href={base} className={portalSegmentClass(status === 'active')} aria-current={status === 'active' ? 'page' : undefined}>
           {t('filters.active')}
         </Link>
-        <Link href={`${base}?status=all`} className={portalSegmentClass(status === 'all')} aria-current={status === 'all' ? 'page' : undefined}>
+        <Link data-pf-slot="tab" href={`${base}?status=all`} className={portalSegmentClass(status === 'all')} aria-current={status === 'all' ? 'page' : undefined}>
           {t('filters.all')}
         </Link>
       </nav>

@@ -46,11 +46,12 @@ export default async function ContractorInstructionsPage({
         ) : null}
       </header>
 
-      <nav className={portalSegmentBarClass} aria-label={t('instructions.filterLabel')}>
-        <Link href={basePath} className={portalSegmentClass(status === 'open')} aria-current={status === 'open' ? 'page' : undefined}>
+      <nav data-pf-slot="tabs-list" className={portalSegmentBarClass} aria-label={t('instructions.filterLabel')}>
+        <Link data-pf-slot="tab" href={basePath} className={portalSegmentClass(status === 'open')} aria-current={status === 'open' ? 'page' : undefined}>
           {t('instructions.filters.open')}
         </Link>
         <Link
+          data-pf-slot="tab"
           href={`${basePath}?status=all`}
           className={portalSegmentClass(status === 'all')}
           aria-current={status === 'all' ? 'page' : undefined}

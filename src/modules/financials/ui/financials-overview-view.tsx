@@ -45,7 +45,7 @@ export async function FinancialsOverviewView({
 
       <section className="flex min-w-0 flex-col gap-3">
         <h2 className="text-base font-semibold">{t('costsTitle')}</h2>
-        <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div data-pf-slot="kpi-grid" className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <OverviewKpiCard
             title={t('recognizedActual')}
             hint={t('recognizedActualHint')}
@@ -93,7 +93,7 @@ export async function FinancialsOverviewView({
 
       <section className="flex min-w-0 flex-col gap-3">
         <h2 className="text-base font-semibold">{t('revenueTitle')}</h2>
-        <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div data-pf-slot="kpi-grid" className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <OverviewKpiCard
             title={t('billed')}
             hint={t('billedHint')}
@@ -134,7 +134,7 @@ export async function FinancialsOverviewView({
       {data.upcomingCashOut ? (
         <section className="flex min-w-0 flex-col gap-3">
           <h2 className="text-base font-semibold">{t('cashOutTitle')}</h2>
-          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+          <div data-pf-slot="kpi-grid" className="grid min-w-0 gap-3 sm:grid-cols-2">
             <OverviewKpiCard
               title={t('upcomingCashOut')}
               hint={t('upcomingCashOutHint')}
@@ -168,7 +168,7 @@ function OverviewKpiCard({
   unavailableLabel: string;
 }) {
   return (
-    <Card className="min-w-0">
+    <Card data-pf-slot="kpi-card" className="min-w-0">
       <CardHeader className="pb-1">
         <div className="flex min-w-0 items-start gap-1">
           <CardTitle className="min-w-0 flex-1 break-words text-xs font-medium text-[var(--pf-text-secondary)]">

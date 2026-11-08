@@ -1,0 +1,282 @@
+{
+  "version": 1,
+  "description": "First-match ownership partition for EXLFY Design V2 (O-00 through O-19).",
+  "baseSha": "93e827c4cfb368c9f81b44465bf3cb6720113649",
+  "rules": [
+    {
+      "id": "O-00",
+      "agent": "A1",
+      "frozen": false,
+      "patterns": [
+        "src/app/[locale]/dev/design-system/**"
+      ]
+    },
+    {
+      "id": "O-01",
+      "agent": "frozen",
+      "frozen": true,
+      "patterns": [
+        "components/shell/quick-create*",
+        "components/shell/employee-quick-create*",
+        "components/shell/navigation.ts",
+        "components/shell/nav-accordion-state.ts",
+        "components/brand/**",
+        "modules/marketing/**",
+        "shared/i18n/**",
+        "app/[locale]/live/**",
+        "app/[locale]/legal/**",
+        "app/[locale]/brand-preview/**",
+        "app/[locale]/dev/**",
+        "**/application/**",
+        "**/domain/**",
+        "**/data/**",
+        "**/route.ts",
+        "drizzle/**",
+        "docs/audits/**",
+        ".github/**",
+        "vercel.json",
+        "scripts/deploy/**"
+      ]
+    },
+    {
+      "id": "O-02",
+      "agent": "S1",
+      "frozen": false,
+      "patterns": [
+        "src/shared/theme/styles/modern*",
+        "tests/design-v2/spec/modern*"
+      ]
+    },
+    {
+      "id": "O-03",
+      "agent": "S2",
+      "frozen": false,
+      "patterns": [
+        "src/shared/theme/styles/premium*",
+        "tests/design-v2/spec/premium*"
+      ]
+    },
+    {
+      "id": "O-04",
+      "agent": "A1",
+      "frozen": false,
+      "patterns": [
+        "app/globals.css",
+        "app/layout.tsx",
+        "app/[locale]/layout.tsx",
+        "app/manifest.webmanifest/**",
+        "app/auth/**",
+        "app/api/preferences/**",
+        "shared/theme/**",
+        "shared/auth/actions.ts",
+        "components/shell/theme-switcher.tsx",
+        "components/shell/user-menu.tsx",
+        "modules/employee-app/ui/employee-user-menu.tsx",
+        "modules/contractor-portal/application/actions.ts",
+        "app/[locale]/employee/actions.ts",
+        "modules/offline/domain/web-manifest.ts",
+        "locales/*/appearance.json",
+        "tests/unit/theme/**",
+        "tests/ui/design-tokens.test.ts",
+        "tests/unit/i18n/common-theme-messages.test.ts"
+      ]
+    },
+    {
+      "id": "O-05",
+      "agent": "Q4",
+      "frozen": false,
+      "patterns": [
+        "scripts/design/measure-*",
+        "tests/design-v2/e2e/perf*"
+      ]
+    },
+    {
+      "id": "O-06",
+      "agent": "D2",
+      "frozen": false,
+      "patterns": [
+        "components/patterns/main-app/**",
+        "shared/ui/main-app-surface-styles.*",
+        "shared/ui/owner-list-filter-bar.*",
+        "shared/ui/status-cell-styles.*",
+        "app/[locale]/(app)/owner-app-kit.css",
+        "app/[locale]/(app)/owner-density.css",
+        "app/[locale]/(app)/main-app-list.css",
+        "vendors/vendors-list-owner.css",
+        "reports/reports-hub.css"
+      ]
+    },
+    {
+      "id": "O-07",
+      "agent": "D3",
+      "frozen": false,
+      "patterns": [
+        "shared/ui/uwm-surface-styles.ts"
+      ]
+    },
+    {
+      "id": "O-08",
+      "agent": "A3",
+      "frozen": false,
+      "patterns": [
+        "components/ui/**",
+        "components/patterns/*.ts",
+        "components/patterns/*.tsx",
+        "shared/ui/cn.ts"
+      ]
+    },
+    {
+      "id": "O-09",
+      "agent": "E1",
+      "frozen": false,
+      "patterns": [
+        "components/shell/employee-*"
+      ]
+    },
+    {
+      "id": "O-10",
+      "agent": "D1",
+      "frozen": false,
+      "patterns": [
+        "components/shell/**",
+        "modules/financials/ui/home-dashboard*",
+        "modules/financials/ui/dashboard-*",
+        "modules/external-storage/ui/dashboard-*",
+        "app/not-found.tsx",
+        "app/[locale]/page.tsx",
+        "app/[locale]/error.tsx",
+        "app/[locale]/not-found.tsx",
+        "app/[locale]/loading.tsx",
+        "app/[locale]/(app)/(home)/**",
+        "app/[locale]/(app)/layout.tsx",
+        "app/[locale]/(app)/loading.tsx",
+        "app/[locale]/(app)/error.tsx",
+        "app/[locale]/(app)/not-found.tsx",
+        "app/robots.ts",
+        "app/sitemap.ts"
+      ]
+    },
+    {
+      "id": "O-11",
+      "agent": "E1",
+      "frozen": false,
+      "patterns": [
+        "modules/employee-app/**",
+        "app/[locale]/employee/**"
+      ]
+    },
+    {
+      "id": "O-12",
+      "agent": "C1",
+      "frozen": false,
+      "patterns": [
+        "modules/{contractor-portal,contractor-access,contractor-closeout,contractor-compliance,contractor-performance,portal}/**",
+        "app/[locale]/contractor/**",
+        "app/[locale]/portal/**"
+      ]
+    },
+    {
+      "id": "O-13",
+      "agent": "F1",
+      "frozen": false,
+      "patterns": [
+        "modules/{external-storage,project-plans,documents,ocr,evidence,defects,inspections,site-log,generated-documents,infra-mapping,quick-capture,identity-images}/**",
+        "app/[locale]/(app)/documents/**",
+        "app/[locale]/(app)/company-files/**",
+        "app/[locale]/(app)/quick-capture/**"
+      ]
+    },
+    {
+      "id": "O-14",
+      "agent": "D3",
+      "frozen": false,
+      "patterns": [
+        "modules/{tasks,collaboration,project-workspace,projects,planning,project-team,project-profile,connected-projects,coordination,calendar,scheduling,closeout,rfi,submittals,site-instructions,site-meetings,meetings}/**",
+        "app/[locale]/(app)/{projects,work,tasks,calendar,scheduling,today,meetings,jobs,work-orders,workload}/**"
+      ]
+    },
+    {
+      "id": "O-15",
+      "agent": "D4",
+      "frozen": false,
+      "patterns": [
+        "modules/{financials,expenses,expense-ingestion,billing,billing-plan,ap,boq,budgets,procurement,quotes,subcontracts,subcontract-claims,month-close,reports,exports,invoicing-integration,payment-instruments,banking,tax,commercial,ops-finance,retention,contractor-procurement,forecast,workforce,material-market,operations,ops,field-ops,field,assets,service,safety,compliance,warranty,deliveries,dg-events}/**",
+        "app/[locale]/(app)/{financials,expenses,billing,procurement,quotes,contracts,subcontracts,changes,cash-flow,month-close,overhead,reports,exports,ops-finance,sales,portfolio,workforce,field-ops,field,assets,service,safety,compliance,warranty,material-market,operations,dispatch}/**"
+      ]
+    },
+    {
+      "id": "O-16",
+      "agent": "D5",
+      "frozen": false,
+      "patterns": [
+        "modules/{clients,vendors,crm,communications,notifications,approvals,automations,assistant,integrations,forms,imports,custom-fields,branding,tenancy,identity,legal,search,recurring-drafts,command-center,business-catalog,rbac,workspaces,offline,api}/**",
+        "app/[locale]/(app)/{settings,clients,vendors,crm,communications,notifications,approvals,automations,inbox,assistant,integrations,forms,imports,recurring-drafts,workspaces}/**",
+        "app/[locale]/(auth)/**",
+        "app/[locale]/onboarding/**",
+        "app/[locale]/setup/**"
+      ]
+    },
+    {
+      "id": "O-17",
+      "agent": "A2",
+      "frozen": false,
+      "patterns": [
+        "scripts/design/**",
+        "tests/design-v2/guard/**",
+        "tests/design-v2/harness/**",
+        "tests/unit/design-v2/parity*",
+        "tests/unit/design-v2/lit*",
+        "tests/unit/design-v2/ownership*",
+        "tests/unit/design-v2/classic-diff*",
+        "docs/design/exlfy-design-v2/OWNERSHIP.json",
+        "docs/design/exlfy-design-v2/allowlist.json"
+      ]
+    },
+    {
+      "id": "O-18-Q1",
+      "agent": "Q1",
+      "frozen": false,
+      "patterns": [
+        "tests/design-v2/e2e/sweep*",
+        "tests/design-v2/e2e/mobile*",
+        "tests/design-v2/e2e/rtl*"
+      ]
+    },
+    {
+      "id": "O-18-Q2",
+      "agent": "Q2",
+      "frozen": false,
+      "patterns": [
+        "tests/design-v2/e2e/a11y*",
+        "tests/unit/design-v2/contrast*"
+      ]
+    },
+    {
+      "id": "O-18-Q3",
+      "agent": "Q3",
+      "frozen": false,
+      "patterns": [
+        "tests/ui/style-*",
+        "tests/design-v2/e2e/persistence*",
+        "tests/design-v2/e2e/forms*",
+        "playwright.config.ts"
+      ]
+    },
+    {
+      "id": "O-19",
+      "agent": "Lead",
+      "frozen": false,
+      "patterns": [
+        "docs/design/exlfy-design-v2/tokens.v1.json",
+        "docs/design/exlfy-design-v2/CONTRACT-CHANGES.md",
+        "docs/design/exlfy-design-v2/evidence/**",
+        "docs/design/exlfy-design-v2/owner-pack/**",
+        ".cursor/plans/**"
+      ]
+    }
+  ],
+  "a1ClassicRuleIds": [
+    "O-00",
+    "O-04"
+  ]
+}

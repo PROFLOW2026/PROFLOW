@@ -21,6 +21,7 @@ export function ClientDetailTabNav({
 
   return (
     <nav
+      data-pf-slot="tabs-list"
       aria-label={t('navLabel')}
       className={cn(mainAppDetailRouteTabListClassName, '-mx-1 pb-px')}
     >

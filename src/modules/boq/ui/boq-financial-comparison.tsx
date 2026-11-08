@@ -25,8 +25,8 @@ export async function BoqFinancialComparisonStrip({
         {/* Progress ≠ Actual - engine figures only */}
         <p className="text-xs text-[var(--pf-text-secondary)]">{t('comparison.progressNotActual')}</p>
       </div>
-      <dl className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-3 text-sm">
-        <div>
+      <dl data-pf-slot="kpi-grid" className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-3 text-sm">
+        <div data-pf-slot="kpi-card">
           <dt className="text-xs text-[var(--pf-text-muted)]">{t('comparison.physicalProgress')}</dt>
           <dd>
             {comparison.physicalProgressPercent != null

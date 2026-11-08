@@ -30,7 +30,7 @@ function Metric({
   readonly children: ReactNode;
 }) {
   return (
-    <div className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
+    <div data-pf-slot="kpi-card" className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
       <div className="flex items-center gap-1">
         <p className="text-xs text-[var(--pf-text-secondary)]">{label}</p>
         <ContextualInfo dialogTitle={label} content={hint} size="sm" />
@@ -66,7 +66,7 @@ export async function ClientProfitabilityPanel({
             <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('empty')}</p>
           ) : (
             <>
-              <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div data-pf-slot="kpi-grid" className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <Metric label={t('contract')} hint={t('contractHint')}>
                   <MoneyOrDash value={snapshot.currentContract} unavailable={unavailable} />
                 </Metric>

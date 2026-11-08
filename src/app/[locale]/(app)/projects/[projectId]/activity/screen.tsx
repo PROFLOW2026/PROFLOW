@@ -41,14 +41,14 @@ export async function ProjectActivityScreen({ surfaceRoot,
     <MainAppPage>
       <PageHeader title={t('activity.pageTitle')} description={t('activity.pageDescription')} />
       <MainAppSection>
-        <nav className="flex flex-wrap gap-1" aria-label={t('activity.filtersLabel')}>
-        <Link href={base} className={tab(!domain)} aria-current={!domain ? 'page' : undefined}>
+        <nav data-pf-slot="tabs-list" className="flex flex-wrap gap-1" aria-label={t('activity.filtersLabel')}>
+        <Link data-pf-slot="tab" href={base} className={tab(!domain)} aria-current={!domain ? 'page' : undefined}>
           {t('activity.filters.all')}
         </Link>
-        <Link href={`${base}?domain=task`} className={tab(domain === 'task')} aria-current={domain === 'task' ? 'page' : undefined}>
+        <Link data-pf-slot="tab" href={`${base}?domain=task`} className={tab(domain === 'task')} aria-current={domain === 'task' ? 'page' : undefined}>
           {t('activity.filters.tasks')}
         </Link>
-        <Link
+        <Link data-pf-slot="tab"
           href={`${base}?domain=coordination`}
           className={tab(domain === 'coordination')}
           aria-current={domain === 'coordination' ? 'page' : undefined}

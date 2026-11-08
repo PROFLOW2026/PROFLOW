@@ -15,7 +15,7 @@ function Stat({
   readonly value: ReactNode;
 }) {
   return (
-    <div className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
+    <div data-pf-slot="kpi-card" className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
       <p className="text-xs text-[var(--pf-text-secondary)]">{label}</p>
       <p className="mt-1 break-words text-base font-semibold">{value}</p>
     </div>
@@ -51,7 +51,7 @@ export async function ClientOverviewPanel({
         <CardHeader className="pb-2">
           <CardTitle className="text-base">{t('atAGlance')}</CardTitle>
         </CardHeader>
-        <CardContent className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <CardContent data-pf-slot="kpi-grid" className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label={t('activeProjects')} value={linkedProjectCount} />
           <Stat label={t('contracts')} value={contractCount} />
           <Stat label={t('openQuotes')} value={openQuoteCount} />

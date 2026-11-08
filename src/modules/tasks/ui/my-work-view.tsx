@@ -128,6 +128,7 @@ function ViewTabBar({
 
   return (
     <nav
+      data-pf-slot="tabs-list"
       aria-label={t('myWork.tabsLabel')}
       className={cn(uwmTabBarClass, 'max-w-full min-w-0')}
     >
@@ -136,6 +137,7 @@ function ViewTabBar({
         const active = v.key === current;
         return (
           <button
+            data-pf-slot="tab"
             key={v.key}
             type="button"
             role="tab"

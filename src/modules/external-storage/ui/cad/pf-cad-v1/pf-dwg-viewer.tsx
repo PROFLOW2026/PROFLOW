@@ -800,7 +800,7 @@ function PfDwgViewerInner({
 
   if (error || webglError) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-4">
+      <div data-pf-style="classic" className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-4">
         <Alert tone="danger">{error ?? webglError}</Alert>
         <div className="flex flex-wrap justify-center gap-2">
           <Button type="button" variant="secondary" onClick={onRetry}>
@@ -819,6 +819,7 @@ function PfDwgViewerInner({
   return (
     <div
       ref={hostRef}
+      data-pf-style="classic"
       className={`relative flex min-h-0 flex-1 flex-col ${plotView ? 'bg-white' : 'bg-[#0a0e14]'}`}
     >
       {loading ? (

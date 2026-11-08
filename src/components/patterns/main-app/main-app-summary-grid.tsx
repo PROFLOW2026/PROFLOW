@@ -10,7 +10,7 @@ export function MainAppSummaryGrid({
 }) {
   return (
     <div
-      data-pf-ma-summary=""
+      data-pf-ma-summary="" data-pf-slot="kpi-grid"
       className={cn(
         'grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6',
         className,
@@ -29,7 +29,7 @@ export function MainAppSummaryItem({
   children: ReactNode;
 }) {
   return (
-    <div className="min-w-0 text-start">
+    <div data-pf-slot="kpi-card" className="min-w-0 text-start">
       <div className="text-xs font-semibold text-[var(--pf-text-secondary)]">{label}</div>
       <div className="mt-0.5 text-sm font-medium text-[var(--pf-text-primary)]">{children}</div>
     </div>

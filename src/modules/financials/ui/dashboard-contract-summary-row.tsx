@@ -32,7 +32,7 @@ export async function DashboardContractSummaryRow({
   return (
     <section className="min-w-0 max-w-full">
       <h2 className="mb-2 text-sm font-semibold">{t('contractSummary.title')}</h2>
-      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <DashboardKpiCard
           title={originalTitle}
           money={summary.originalContractTotal ?? undefined}

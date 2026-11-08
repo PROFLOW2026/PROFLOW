@@ -69,6 +69,7 @@ export function StorageFilePreviewShell({
 
   return createPortal(
     <div
+      data-pf-style="classic"
       role="dialog"
       aria-modal="true"
       aria-label={title}

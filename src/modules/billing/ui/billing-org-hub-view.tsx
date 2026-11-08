@@ -398,9 +398,9 @@ export async function BillingOrgHubView({
       </div>
 
       {!paymentsView && contractOptions.length > 1 ? (
-        <nav className="flex min-w-0 flex-wrap gap-2" aria-label={t('list.contract')}>
+        <nav data-pf-slot="tabs-list" className="flex min-w-0 flex-wrap gap-2" aria-label={t('list.contract')}>
           <Link
-            href={billingListHref(filter)}
+            data-pf-slot="tab" href={billingListHref(filter)}
             className={
               !contractId
                 ? 'rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm font-medium'
@@ -412,7 +412,7 @@ export async function BillingOrgHubView({
           {contractOptions.map((contract) => (
             <Link
               key={contract.id}
-              href={billingListHref(filter, contract.id)}
+              data-pf-slot="tab" href={billingListHref(filter, contract.id)}
               className={
                 contractId === contract.id
                   ? 'rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm font-medium'

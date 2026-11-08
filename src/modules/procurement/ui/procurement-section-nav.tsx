@@ -19,7 +19,7 @@ export function ProcurementSectionNav({
   const t = useTranslations('procurement');
 
   return (
-    <nav
+    <nav data-pf-slot="tabs-list"
       aria-label={t('navLabel')}
       className="flex min-w-0 flex-wrap gap-2 border-b border-[var(--pf-border-default)] pb-3"
     >

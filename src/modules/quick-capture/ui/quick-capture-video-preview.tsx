@@ -16,7 +16,7 @@ export function QuickCaptureVideoPreview({
   const src = `/api/org-storage/download/${documentId}?disposition=inline`;
 
   return (
-    <div className={className}>
+    <div data-pf-style="classic" className={className}>
       <video
         controls
         playsInline

@@ -232,7 +232,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         if (!data.totalContractValue && !isKpiUnavailable('contractValue')) return null;
         return (
           <section key={card} className="min-w-0 max-w-full">
-            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <DashboardKpiCard
                 title={tFinancial('kpis.currentContract')}
                 money={isKpiUnavailable('contractValue') ? undefined : data.totalContractValue ?? undefined}
@@ -265,7 +265,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         }
         return (
           <section key={card} className="min-w-0 max-w-full">
-            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <DashboardKpiCard
                 title={t('kpiLabels.expectedProfit')}
                 money={
@@ -297,7 +297,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         if (!data.forecast) return null;
         return (
           <section key={card} className="min-w-0 max-w-full">
-            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <DashboardKpiCard
                 title={tFinancial('kpis.forecast')}
                 money={
@@ -554,7 +554,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         if (!data.forecast) return null;
         return (
           <section key={card} className="min-w-0 max-w-full">
-            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <DashboardKpiCard
                 title={tFinancial('kpis.committed')}
                 money={
@@ -594,7 +594,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         if (!(data.showBilling && data.billing)) return null;
         return (
           <section key={card} className="min-w-0 max-w-full">
-            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
+            <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               <DashboardKpiCard
                 title={tFinancial('kpis.billed')}
                 money={data.billing.netInvoiced}
@@ -640,7 +640,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         if (!hasAr && !hasAp) return null;
         return (
           <section key={card} className="min-w-0 max-w-full">
-            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
+            <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               {hasAr ? (
                 <DashboardKpiCard
                   title={tFinancial('kpis.outstandingNet')}
@@ -714,7 +714,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
             <p className="mb-3 text-sm text-[var(--pf-text-secondary)]">
               {t('cards.timeUtilization.body')}
             </p>
-            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+            <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
               {data.activeProjectCount > 0 ? (
                 <DashboardKpiCard title={t('activeProjects')} value={String(data.activeProjectCount)} />
               ) : null}
@@ -854,7 +854,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
             <h3 className="mb-2 text-sm font-semibold text-[var(--pf-text-secondary)]">
               {t('businessSummary.cashFlowTitle')}
             </h3>
-            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {data.showBilling && cardSet.has('collections') ? (
                 <DashboardKpiCard
                   title={t('businessSummary.collectionsActual')}
@@ -959,7 +959,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
             <h3 className="mb-2 text-sm font-semibold text-[var(--pf-text-secondary)]">
               {t('businessSummary.profitabilityTitle')}
             </h3>
-            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+            <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
               {data.showBilling && cardSet.has('billing') ? (
                 <DashboardKpiCard
                   title={t('businessSummary.invoicedThisMonth')}

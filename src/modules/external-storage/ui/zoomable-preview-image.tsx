@@ -92,7 +92,7 @@ export function ZoomablePreviewImage({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div data-pf-style="classic" className="flex min-h-0 flex-1 flex-col">
       <div className="flex shrink-0 flex-wrap items-center justify-center gap-1 border-b border-[var(--pf-border-default)] px-2 py-2">
         <Button type="button" size="sm" variant="secondary" onClick={() => { setFitWidth(false); setScale((s) => clampScale(s - 0.25)); }}>
           <Minus className="size-4" aria-hidden />

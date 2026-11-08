@@ -45,9 +45,9 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
     <div className="flex w-full min-w-0 flex-col gap-4">
       <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
       {contracts.length > 1 ? (
-        <nav className="flex min-w-0 flex-wrap gap-2" aria-label={t('list.contract')}>
+        <nav data-pf-slot="tabs-list" className="flex min-w-0 flex-wrap gap-2" aria-label={t('list.contract')}>
           <Link
-            href={`/projects/${projectId}?tab=billing`}
+            data-pf-slot="tab" href={`/projects/${projectId}?tab=billing`}
             className={
               !selectedContractId
                 ? 'rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm font-medium'
@@ -62,7 +62,7 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
             return (
               <Link
                 key={contract.id}
-                href={href}
+                data-pf-slot="tab" href={href}
                 className={
                   selected
                     ? 'rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm font-medium'
@@ -78,8 +78,8 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
         </nav>
       ) : null}
       <MainAppSection title={t('panel.positionTitle')} className="w-full min-w-0">
-        <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="min-w-0 text-start">
+        <div data-pf-slot="kpi-grid" className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div data-pf-slot="kpi-card" className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('invoiced')}</p>
             <BillingNetPrimaryDisplay
               netAmount={position.netInvoiced}
@@ -89,27 +89,27 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
               netClassName="text-lg"
             />
           </div>
-          <div className="min-w-0 text-start">
+          <div data-pf-slot="kpi-card" className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('kpis.billedVat')}</p>
             <p className="text-lg font-semibold">
               <MoneyText value={billedVat} />
             </p>
           </div>
-          <div className="min-w-0 text-start">
+          <div data-pf-slot="kpi-card" className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('kpis.billedGross')}</p>
             <p className="text-lg font-semibold">
               <MoneyText value={position.invoiced} />
             </p>
             <p className="text-xs text-[var(--pf-text-secondary)]">{tFinancial('kpis.billedGrossHint')}</p>
           </div>
-          <div className="min-w-0 text-start">
+          <div data-pf-slot="kpi-card" className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('paid')}</p>
             <p className="text-lg font-semibold">
               <MoneyText value={position.paid} />
             </p>
             <p className="text-xs text-[var(--pf-text-secondary)]">{tFinancial('kpis.paidHint')}</p>
           </div>
-          <div className="min-w-0 text-start">
+          <div data-pf-slot="kpi-card" className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('outstanding')}</p>
             <p className="text-lg font-semibold">
               <MoneyText value={position.outstanding} colorizeNegative />

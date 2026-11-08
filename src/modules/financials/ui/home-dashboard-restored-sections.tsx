@@ -319,7 +319,7 @@ export async function HomeDashboardRestoredSections({
     <>
       {showForecast && forecastCards ? (
         <section className="min-w-0 max-w-full" data-pf-dashboard-forecast="">
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {forecastCards}
           </div>
         </section>
@@ -327,7 +327,7 @@ export async function HomeDashboardRestoredSections({
 
       {billing ? (
         <section className="min-w-0 max-w-full" data-pf-dashboard-billing="">
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div data-pf-dashboard-metric="client-billing">
               <DashboardKpiCard
                 title={tFinancial('kpis.billed')}
@@ -387,7 +387,7 @@ export async function HomeDashboardRestoredSections({
             <h3 className="mb-2 text-sm font-semibold text-[var(--pf-text-secondary)]">
               {t('businessSummary.cashFlowTitle')}
             </h3>
-            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {data.showBilling ? (
                 <div data-pf-dashboard-metric="collections-actual">
                   <DashboardKpiCard
@@ -508,7 +508,7 @@ export async function HomeDashboardRestoredSections({
             <h3 className="mt-4 mb-2 text-sm font-semibold text-[var(--pf-text-secondary)]">
               {t('businessSummary.profitabilityTitle')}
             </h3>
-            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+            <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
               {data.showBilling ? (
                 <div data-pf-dashboard-metric="invoiced-this-month">
                   <DashboardKpiCard

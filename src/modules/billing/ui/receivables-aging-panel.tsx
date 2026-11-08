@@ -18,8 +18,8 @@ export async function ReceivablesAgingPanel({ aging }: { aging: ReceivablesAging
           {tExports('sheets.arAging')}
         </ExportDownloadControl>
       </div>
-      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <div className="min-w-0 max-w-full rounded-md bg-[var(--pf-bg-muted)] p-3">
+      <div data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <div data-pf-slot="kpi-card" className="min-w-0 max-w-full rounded-md bg-[var(--pf-bg-muted)] p-3">
           <p className="break-words text-xs text-[var(--pf-text-secondary)]">{t('total')}</p>
           <p className="mt-1 max-w-full overflow-x-auto text-base font-semibold">
             <MoneyText value={aging.totalOutstanding} colorizeNegative />
@@ -28,7 +28,7 @@ export async function ReceivablesAgingPanel({ aging }: { aging: ReceivablesAging
         {aging.buckets.map((bucket) => (
           <div
             key={bucket.key}
-            className="min-w-0 max-w-full rounded-md bg-[var(--pf-bg-muted)] p-3"
+            data-pf-slot="kpi-card" className="min-w-0 max-w-full rounded-md bg-[var(--pf-bg-muted)] p-3"
           >
             <p className="break-words text-xs text-[var(--pf-text-secondary)]">
               {t(`buckets.${bucket.key}`)}

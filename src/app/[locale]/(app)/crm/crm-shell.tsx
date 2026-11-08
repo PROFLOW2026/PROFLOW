@@ -1,5 +1,5 @@
 import { MainAppPage } from '@/components/patterns/main-app';
-﻿import type { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { SectionNavLink } from '@/components/ui/section-nav-link';
 
@@ -16,6 +16,7 @@ export async function CrmSectionNav({ active }: { active: 'opportunities' | 'pro
     <nav
       className="flex flex-wrap gap-2 border-b border-[var(--pf-border-default)] pb-3"
       aria-label={t('navLabel')}
+      data-pf-slot="tabs-list"
     >
       {SECTIONS.map((section) => (
         <SectionNavLink key={section.key} href={section.href} active={section.key === active}>

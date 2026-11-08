@@ -181,15 +181,15 @@ export async function ProjectDefectsScreen({ surfaceRoot,
 
 
 
-        <nav className="flex flex-wrap gap-1" aria-label={t('title')}>
+        <nav data-pf-slot="tabs-list" className="flex flex-wrap gap-1" aria-label={t('title')}>
 
-          <Link href={base} className={tabClass(status === 'all')} aria-current={status === 'all' ? 'page' : undefined}>
+          <Link data-pf-slot="tab" href={base} className={tabClass(status === 'all')} aria-current={status === 'all' ? 'page' : undefined}>
 
             {t('filters.all')}
 
           </Link>
 
-          <Link
+          <Link data-pf-slot="tab"
 
             href={`${base}?status=active`}
 
@@ -203,7 +203,7 @@ export async function ProjectDefectsScreen({ surfaceRoot,
 
           </Link>
 
-          <Link
+          <Link data-pf-slot="tab"
 
             href={`${base}?status=awaiting_verification`}
 
@@ -217,7 +217,7 @@ export async function ProjectDefectsScreen({ surfaceRoot,
 
           </Link>
 
-          <Link
+          <Link data-pf-slot="tab"
 
             href={`${base}?status=closed`}
 

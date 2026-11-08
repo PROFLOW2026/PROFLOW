@@ -132,6 +132,12 @@ export default defineConfig({
         storageState: 'tests/e2e/.auth/owner.json',
       },
     },
+    {
+      name: 'design-v2-specimen',
+      testDir: './tests/design-v2/e2e',
+      testMatch: /.*\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 } },
+    },
   ],
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined

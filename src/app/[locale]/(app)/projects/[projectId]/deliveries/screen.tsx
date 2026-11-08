@@ -65,11 +65,11 @@ export async function ProjectDeliveriesScreen({ surfaceRoot,
       <MainAppSection>
         {wantsCreate && board.canManage ? <DeliveryCreateForm projectId={projectId} cancelHref={base} /> : null}
 
-        <nav className="flex gap-1" aria-label={t('title')}>
-          <Link href={base} className={tabClass(scope === 'open')} aria-current={scope === 'open' ? 'page' : undefined}>
+        <nav data-pf-slot="tabs-list" className="flex gap-1" aria-label={t('title')}>
+          <Link data-pf-slot="tab" href={base} className={tabClass(scope === 'open')} aria-current={scope === 'open' ? 'page' : undefined}>
             {t('filters.open')}
           </Link>
-          <Link
+          <Link data-pf-slot="tab"
             href={`${base}?scope=all`}
             className={tabClass(scope === 'all')}
             aria-current={scope === 'all' ? 'page' : undefined}

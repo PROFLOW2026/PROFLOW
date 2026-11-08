@@ -100,15 +100,16 @@ export default async function EmployeeTasksPage({ searchParams }: PageProps) {
         locale={locale}
       />
       {hasPmTasksAccess && (
-        <div className={employeeTabBarClass}>
-          <Link href="/employee/tasks" className={cn(employeeTabClass(activeTab === 'pm-tasks'))}>
+        <div data-pf-slot="tabs-list" className={employeeTabBarClass}>
+          <Link href="/employee/tasks" data-pf-slot="tab" className={cn(employeeTabClass(activeTab === 'pm-tasks'))}>
             {t('tabs.pmTasks')}
           </Link>
-          <Link href="/employee/tasks/calendar" className={employeeTabClass(false)}>
+          <Link href="/employee/tasks/calendar" data-pf-slot="tab" className={employeeTabClass(false)}>
             {tHome('openCalendar')}
           </Link>
           <Link
             href="/employee/tasks?tab=field-items"
+            data-pf-slot="tab"
             className={cn(
               employeeTabClass(activeTab === 'field-items'),
               'border-s border-[var(--pf-border-default)]',

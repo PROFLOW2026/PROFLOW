@@ -40,7 +40,7 @@ export async function ProjectHubSectionNav({
   const tTabs = await getTranslations('projects.workspace.tabs');
 
   return (
-    <nav
+    <nav data-pf-slot="tabs-list"
       aria-label={hub}
       dir={dir}
       className={mainAppDetailHubSectionNavClassName}
@@ -48,7 +48,7 @@ export async function ProjectHubSectionNav({
       {sections.map((section) => {
         const selected = section === activeSection;
         return (
-          <Link
+          <Link data-pf-slot="tab"
             key={section}
             href={sectionHref(projectHref, section)}
             scroll={false}
