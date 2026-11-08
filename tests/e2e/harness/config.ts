@@ -9,7 +9,7 @@
  * an ordinary auth host.
  */
 
-export const DATABASE_PORT = 55432;
+export const DATABASE_PORT = Number(process.env.E2E_DATABASE_PORT ?? 55432);
 export const AUTH_PORT = 55321;
 export const APP_PORT = 3100;
 
