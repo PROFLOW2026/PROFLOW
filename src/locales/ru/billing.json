@@ -229,6 +229,7 @@
     "finalize": "Финализировать",
     "void": "Аннулировать запись",
     "voidPayment": "Аннулировать платёж",
+    "restorePayment": "Восстановить платёж",
     "recordPayment": "Зафиксировать платёж",
     "clientAccountStatementPreview": "Предпросмотр / печать выписки клиента (все начисления)",
     "paymentsTitle": "Платежи",
@@ -238,7 +239,8 @@
     "reference": "Номер",
     "notes": "Примечания",
     "kind": "Тип",
-    "voidPaymentAriaLabel": "Аннулировать платёж {amount} от {date}"
+    "voidPaymentAriaLabel": "Аннулировать платёж {amount} от {date}",
+    "restorePaymentAriaLabel": "Восстановить платёж на {amount} от {date}"
   },
   "confirm": {
     "finalizeTitle": "Финализировать запись о выставлении",
@@ -254,9 +256,13 @@
     "voidDraftConsequence": "Черновик помечается аннулированным и остаётся в истории. Он не удаляется.",
     "voidDraftSuccess": "Черновик аннулирован.",
     "voidPaymentTitle": "Аннулировать платёж",
+    "restorePaymentTitle": "Восстановить платёж",
     "voidPaymentQuestion": "Аннулировать платёж <amount></amount> от <date></date>?",
-    "voidPaymentConsequence": "Будет создана сторнирующая запись; отменить нельзя.",
-    "voidPaymentSuccess": "Платёж аннулирован."
+    "restorePaymentQuestion": "Восстановить платёж на <amount></amount> от <date></date>?",
+    "voidPaymentConsequence": "Владелец организации может позже восстановить тот же платёж после подтверждения. Другие роли не могут.",
+    "restorePaymentConsequence": "Тот же платёж снова становится записанным. Подтверждает только владелец организации.",
+    "voidPaymentSuccess": "Платёж аннулирован.",
+    "restorePaymentSuccess": "Платёж восстановлен."
   },
   "panel": {
     "positionTitle": "Позиция по выставлению",
@@ -336,6 +342,7 @@
     "dueBeforeIssue": "Срок оплаты не может быть раньше даты выставления.",
     "correctionNotVoidable": "Корректирующие записи нельзя аннулировать повторно.",
     "paymentTargetNotFinalized": "Платежи можно фиксировать только против финализированных записей о выставлении.",
+    "paymentNotRestorable": "Восстановить можно только аннулированный платёж.",
     "paymentNotVoidable": "Аннулировать можно только зафиксированные платежи.",
     "currencyMismatch": "Валюта выставления должна совпадать с валютой проекта.",
     "hasRecordedPayments": "Аннулируйте зафиксированные платежи перед аннулированием этой записи о выставлении.",

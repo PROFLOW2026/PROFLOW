@@ -10,6 +10,7 @@ import { withTrustedFinancialLatch } from '@/shared/db/trusted-financial-latch';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { assertClosedMonthSourceEdit } from '@/shared/business-change/assert-owner-retroactive';
 import {
   assertMonthOpenForRewrite,
   rethrowClosedPeriodRewrite,
@@ -78,6 +79,12 @@ export async function restoreApBill(
 
   let restored: { before: ApBillRow; after: ApBillRow };
   try {
+    await assertClosedMonthSourceEdit(
+      context,
+      yearMonthFromBusinessDate(freezeDate),
+      parsed.data.changeAcknowledged,
+      'ap.errors.confirmRequired',
+    );
     await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(freezeDate));
 
     restored = await withTransaction(context.db, async (tx) => {

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
 import {
+  assignTaskToContractor,
   createLinkedTask,
   postExternalComment,
   postInternalComment,
@@ -188,6 +189,37 @@ export async function internalTaskCommandAction(_prev: CollabActionState, formDa
     });
     revalidatePath(`/tasks/${taskId}`);
     if (projectId) revalidatePath(`/projects/${projectId}/activity`);
+    return COLLAB_ACTION_OK();
+  } catch (error) {
+    return mapCollabActionError(error);
+  }
+}
+
+export async function assignTaskToContractorAction(
+  _prev: CollabActionState,
+  formData: FormData,
+): Promise<CollabActionState> {
+  const taskId = String(formData.get('taskId') ?? '').trim();
+  const projectId = String(formData.get('projectId') ?? '').trim();
+  const vendorId = String(formData.get('vendorId') ?? '').trim();
+  const subcontractAgreementId = String(formData.get('subcontractAgreementId') ?? '').trim() || null;
+  const principalId = String(formData.get('principalId') ?? '').trim() || null;
+  const t = await getTranslations('collaboration');
+  if (!projectId) return { error: t('contractorPanel.projectRequired') };
+  if (!vendorId) return { error: t('contractorPanel.vendorRequired') };
+  try {
+    await withOrgContext(async (context) => {
+      await assignTaskToContractor(context, taskId, {
+        vendorId,
+        subcontractAgreementId,
+        principalId,
+      });
+    });
+    revalidatePath(`/tasks/${taskId}`);
+    revalidatePath(`/employee/tasks/${taskId}`);
+    revalidatePath(`/projects/${projectId}/activity`);
+    revalidatePath(`/contractor/projects/${projectId}/tasks/${taskId}`);
+    revalidatePath(`/contractor/projects/${projectId}/tasks`);
     return COLLAB_ACTION_OK();
   } catch (error) {
     return mapCollabActionError(error);

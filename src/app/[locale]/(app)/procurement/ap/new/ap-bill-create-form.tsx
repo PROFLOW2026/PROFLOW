@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useActionState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -18,7 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { formatMoneyString } from '@/shared/money/format';
 import { addMoney, money, multiplyMoney, toNumericString, zeroMoney } from '@/shared/money/money';
+import { acceptApAmountInput, seedApAmountInput } from '@/modules/ap/domain/accept-amount-input';
 import { RetentionCaptureFields } from '@/modules/retention/ui/retention-capture-fields';
 import type { ExpenseOverlapCandidate } from '@/modules/financials/domain/expense-ap-overlap';
 import { findSimilarFinalizedExpensesForBill } from '@/modules/financials/domain/expense-ap-overlap';
@@ -67,7 +69,10 @@ function emptyLine(): LineDraft {
 function computeLineTotal(quantity: string, unitAmount: string, currency: string): string {
   if (!quantity.trim() || !unitAmount.trim()) return '';
   try {
-    return toNumericString(multiplyMoney(money(unitAmount, currency), quantity));
+    return seedApAmountInput(
+      toNumericString(multiplyMoney(money(unitAmount, currency), quantity)),
+      currency,
+    );
   } catch {
     return '';
   }
@@ -124,6 +129,7 @@ export function ApBillCreateForm({
   );
   const [reference, setReference] = useState('');
   const [acknowledgeDuplicateReference, setAcknowledgeDuplicateReference] = useState(false);
+  const [confirmDistinctCosts, setConfirmDistinctCosts] = useState(false);
   const [linkExpenseId, setLinkExpenseId] = useState('');
   const [purchaseOrderId, setPurchaseOrderId] = useState(initialPo?.id ?? '');
   const [paymentTermId, setPaymentTermId] = useState(() => {
@@ -136,6 +142,7 @@ export function ApBillCreateForm({
     return vendor?.defaultPaymentTermId ?? '';
   });
   const [lines, setLines] = useState<LineDraft[]>([emptyLine()]);
+  const locale = useLocale();
   const currency = defaultCurrency;
 
   const filteredPos = useMemo(
@@ -231,6 +238,9 @@ export function ApBillCreateForm({
   return (
     <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+      {state.pendingDuplicateWarning ? (
+        <input type="hidden" name="resumeBillId" value={state.pendingDuplicateWarning.recordId} />
+      ) : null}
       <ExpenseApOverlapWarning hits={overlapHits} namespace="ap.create" />
       <label className="flex items-start gap-2 text-sm">
         <input
@@ -238,8 +248,8 @@ export function ApBillCreateForm({
           name="confirmDistinctCosts"
           value="true"
           className="mt-1"
-          checked={acknowledgeDuplicateReference}
-          onChange={(event) => setAcknowledgeDuplicateReference(event.target.checked)}
+          checked={confirmDistinctCosts}
+          onChange={(event) => setConfirmDistinctCosts(event.target.checked)}
         />
         <span>{t('overlapConfirmDistinct')}</span>
       </label>
@@ -340,6 +350,7 @@ export function ApBillCreateForm({
               onChange={(event) => {
                 setReference(event.target.value);
                 setAcknowledgeDuplicateReference(false);
+                setConfirmDistinctCosts(false);
               }}
             />
           )}
@@ -456,14 +467,16 @@ export function ApBillCreateForm({
                   <MoneyInput
                     {...props}
                     value={line.unitAmount}
+                    currency={currency}
                     onValueChange={(unitAmount) => {
+                      const storedUnitAmount = acceptApAmountInput(unitAmount, currency);
                       setLines((prev) =>
                         prev.map((row, i) =>
                           i === index
                             ? {
                                 ...row,
-                                unitAmount,
-                                lineTotal: computeLineTotal(row.quantity, unitAmount, currency),
+                                unitAmount: storedUnitAmount,
+                                lineTotal: computeLineTotal(row.quantity, storedUnitAmount, currency),
                               }
                             : row,
                         ),
@@ -501,7 +514,7 @@ export function ApBillCreateForm({
                         <SelectItem value={NONE}>{t('linePoLineNone')}</SelectItem>
                         {availablePoLines.map((poLine) => (
                           <SelectItem key={poLine.id} value={poLine.id}>
-                            {poLine.description} · {poLine.lineTotal} {poLine.currency}
+                            {poLine.description} · {formatMoneyString(poLine.lineTotal, poLine.currency, locale)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -569,7 +582,7 @@ export function ApBillCreateForm({
                 <p className="text-sm text-[var(--pf-text-secondary)]">
                   {t('lineTotal')}:{' '}
                   <span dir="ltr" className="pf-numeric">
-                    {line.lineTotal || t('lineTotalEmpty')} {currency}
+                    {line.lineTotal ? formatMoneyString(line.lineTotal, currency, locale) : `${t('lineTotalEmpty')} ${currency}`}
                   </span>
                 </p>
                 {lines.length > 1 ? (
@@ -625,7 +638,7 @@ export function ApBillCreateForm({
       <Button
         type="submit"
         loading={pending}
-        disabled={!vendorId || (duplicateReferenceHits.length > 0 && !acknowledgeDuplicateReference)}
+        disabled={!vendorId}
       >
         {pending ? tCommon('states.saving') : t('submit')}
       </Button>

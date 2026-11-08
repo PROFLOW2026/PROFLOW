@@ -19,6 +19,7 @@ export {
 } from './application/bills';
 export { editRecognizedApBill } from './application/edit-recognized-ap-bill';
 export { updateRecordedVendorPaymentDate } from './application/update-recorded-vendor-payment-date';
+export { correctRecordedVendorPaymentAmount } from './application/correct-recorded-vendor-payment-amount';
 
 export {
   voidApBill,
@@ -39,6 +40,7 @@ export {
   listVendorPaymentsForVendor,
   recordVendorPayment,
   voidVendorPayment,
+  restoreVendorPayment,
   updateVendorPaymentMetadata,
   deleteVendorPayment,
   rejectPaymentApplicationMutation,

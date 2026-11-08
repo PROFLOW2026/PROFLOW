@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, or } from 'drizzle-orm';
 import { subcontractAgreements } from '@drizzle/schema';
 import { externalActor } from '@/shared/actor';
 import { AUDIT_ACTIONS } from '@/shared/audit';
@@ -40,7 +40,7 @@ import { loadAgreementContext, loadClaimState, loadPriorCertified } from './clai
 import { freezeRevision } from './draft-lines';
 import { claimEventPayload, openNewRevisionInTx, saveDraftInTx, type InternalClaimDetail } from './internal-claims';
 import { loadAgreementPaymentStatus, type AgreementPaymentStatus } from './payables';
-import { coveringGrants, parseOrThrow, recordExternalAudit, scopedVendorIds } from './support';
+import { coveringGrants, parseOrThrow, paymentListScope, recordExternalAudit, scopedVendorIds } from './support';
 import { toDetailView, toListItems } from './views';
 
 function scopeOf(row: {
@@ -431,15 +431,19 @@ export async function listContractorProjectDeductions(
   return toDeductionViews(context.db, organizationId, visible);
 }
 
-/** Portal payments tab: one row per granted agreement with ext.payment.view. */
+/** Portal payments tab: named agreements, plus every agreement of a vendor-wide payment grant on this project. */
 export async function listContractorProjectPayments(
   context: ExternalContext,
   organizationId: string,
   projectId: string,
 ): Promise<ContractorAgreementPayments[]> {
   const grants = coveringGrants(context, { organizationId, projectId }, X.PAYMENT_VIEW);
-  const agreementIds = [...new Set(grants.map((grant) => grant.subcontractAgreementId).filter(Boolean) as string[])];
-  if (agreementIds.length === 0) throw new NotFoundError('Project');
+  const scope = paymentListScope(grants);
+  if (scope.agreementIds.length === 0 && scope.vendorIds.length === 0) throw new NotFoundError('Project');
+  const agreementMatch = [
+    ...(scope.agreementIds.length > 0 ? [inArray(subcontractAgreements.id, [...scope.agreementIds])] : []),
+    ...(scope.vendorIds.length > 0 ? [inArray(subcontractAgreements.vendorId, [...scope.vendorIds])] : []),
+  ];
   const agreements = await context.db
     .select({
       id: subcontractAgreements.id,
@@ -451,7 +455,7 @@ export async function listContractorProjectPayments(
       and(
         eq(subcontractAgreements.organizationId, organizationId),
         eq(subcontractAgreements.projectId, projectId),
-        inArray(subcontractAgreements.id, agreementIds),
+        agreementMatch.length === 1 ? agreementMatch[0] : or(...agreementMatch),
       ),
     );
   const result: ContractorAgreementPayments[] = [];

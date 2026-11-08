@@ -23,6 +23,7 @@ import type { BusinessChangeFieldDiff } from '@/shared/business-change/types';
 import { businessDate } from '@/shared/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { addMoney, money, multiplyMoney, toNumericString, zeroMoney } from '@/shared/money/money';
+import { acceptApAmountInput, seedApAmountInput } from '@/modules/ap/domain/accept-amount-input';
 import { editRecognizedApBillAction, type ApFormState } from '../actions';
 
 const NONE = '__none__';
@@ -44,7 +45,10 @@ function newKey(): string {
 function computeLineTotal(quantity: string, unitAmount: string, currency: string): string {
   if (!quantity.trim() || !unitAmount.trim()) return '';
   try {
-    return toNumericString(multiplyMoney(money(unitAmount, currency), quantity));
+    return seedApAmountInput(
+      toNumericString(multiplyMoney(money(unitAmount, currency), quantity)),
+      currency,
+    );
   } catch {
     return '';
   }
@@ -108,8 +112,8 @@ export function ApBillRecognizedEditPanel({
           lineId: line.id,
           description: line.description,
           quantity: line.quantity,
-          unitAmount: line.unitAmount,
-          lineTotal: line.lineTotal,
+          unitAmount: seedApAmountInput(line.unitAmount, currency),
+          lineTotal: seedApAmountInput(line.lineTotal, currency),
           costCategoryId: line.costCategoryId ?? '',
         }))
       : [
@@ -386,19 +390,21 @@ export function ApBillRecognizedEditPanel({
                     <MoneyInput
                       {...props}
                       value={line.unitAmount}
-                      onValueChange={(unitAmount) =>
+                      currency={currency}
+                      onValueChange={(unitAmount) => {
+                        const storedUnitAmount = acceptApAmountInput(unitAmount, currency);
                         setLines((prev) =>
                           prev.map((row, i) =>
                             i === index
                               ? {
                                   ...row,
-                                  unitAmount,
-                                  lineTotal: computeLineTotal(row.quantity, unitAmount, currency),
+                                  unitAmount: storedUnitAmount,
+                                  lineTotal: computeLineTotal(row.quantity, storedUnitAmount, currency),
                                 }
                               : row,
                           ),
-                        )
-                      }
+                        );
+                      }}
                     />
                   )}
                 </Field>
@@ -407,9 +413,14 @@ export function ApBillRecognizedEditPanel({
                     <MoneyInput
                       {...props}
                       value={line.lineTotal}
+                      currency={currency}
                       onValueChange={(lineTotal) =>
                         setLines((prev) =>
-                          prev.map((row, i) => (i === index ? { ...row, lineTotal } : row)),
+                          prev.map((row, i) =>
+                            i === index
+                              ? { ...row, lineTotal: acceptApAmountInput(lineTotal, currency) }
+                              : row,
+                          ),
                         )
                       }
                     />

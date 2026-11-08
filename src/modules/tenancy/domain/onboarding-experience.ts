@@ -4,6 +4,11 @@
  */
 
 import type { BusinessProfileKey } from './business-profiles';
+import {
+  parseExperienceComplexity,
+  type ExperienceComplexityKey,
+} from './experience-complexity';
+import { personaForBusinessProfile } from './experience-persona';
 import type { OptionalModuleKey } from './types';
 import type { WorkMix } from './work-mix';
 
@@ -129,4 +134,29 @@ export function resolveOnboardingProfileKey(input: {
   if (input.path === 'none') return null;
   if (input.path === 'all') return 'ALL_CAPABILITIES';
   return input.businessType;
+}
+
+/** Shown on first-run onboarding until the founder picks another depth. */
+export const DEFAULT_ONBOARDING_COMPLEXITY = 'simple' satisfies ExperienceComplexityKey;
+
+/**
+ * Depth that keeps a consulting profile's recommended tasks (work_management).
+ * Simple and advanced drop that module from the profile overlay.
+ */
+export const CONSULTING_ONBOARDING_COMPLEXITY = 'full' satisfies ExperienceComplexityKey;
+
+/**
+ * Complexity stored for a new organization.
+ * Simple is the default. All-capabilities stays full. The consulting profile
+ * always uses the depth where tasks stay visible.
+ */
+export function resolveOnboardingComplexity(input: {
+  profileKey?: string | null;
+  selected?: string | null;
+}): ExperienceComplexityKey {
+  if (input.profileKey === 'ALL_CAPABILITIES') return 'full';
+  if (personaForBusinessProfile(input.profileKey) === 'consulting') {
+    return CONSULTING_ONBOARDING_COMPLEXITY;
+  }
+  return parseExperienceComplexity(input.selected) ?? DEFAULT_ONBOARDING_COMPLEXITY;
 }

@@ -6,6 +6,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { AuthorizationError } from '@/shared/errors';
 import { resolveAccessibleProjectIds } from '@/modules/projects/application/project-access';
 import { getWorkspaceScope } from '@/modules/workspaces/domain/access';
+import { sqlUuidEqAny } from '../domain/task-project-access-filter';
 
 // ---------------------------------------------------------------------------
 // Domain types
@@ -82,18 +83,12 @@ function workloadTaskVisibilitySql(context: OrgContext, workspaceScope: ReturnTy
 
 function workloadTaskProjectAccessSql(accessibleProjectIds: readonly string[] | null): SQL {
   if (accessibleProjectIds === null) return sql``;
-  if (accessibleProjectIds.length === 0) {
-    return sql`AND t.project_id IS NULL`;
-  }
-  return sql`AND (t.project_id IS NULL OR t.project_id = ANY(${accessibleProjectIds}::uuid[]))`;
+  return sql`AND (t.project_id IS NULL OR ${sqlUuidEqAny(sql`t.project_id`, accessibleProjectIds)})`;
 }
 
 function workloadAssignmentProjectAccessSql(accessibleProjectIds: readonly string[] | null): SQL {
   if (accessibleProjectIds === null) return sql``;
-  if (accessibleProjectIds.length === 0) {
-    return sql`AND false`;
-  }
-  return sql`AND epa.project_id = ANY(${accessibleProjectIds}::uuid[])`;
+  return sql`AND ${sqlUuidEqAny(sql`epa.project_id`, accessibleProjectIds)}`;
 }
 
 type WorkloadAccessScope = {

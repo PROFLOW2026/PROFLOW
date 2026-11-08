@@ -1,4 +1,6 @@
 import { recordAuditEvent } from '@/shared/audit';
+import { assertClosedMonthSourceEdit } from '@/shared/business-change/assert-owner-retroactive';
+import { yearMonthFromBusinessDate } from '@/modules/month-close';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone, toIsoInstant } from '@/shared/dates';
 import { DomainRuleError, ValidationError } from '@/shared/errors';
@@ -48,6 +50,7 @@ export interface UpsertContractAmountInput {
    * Not a payment, bill, or expense. Empty / 0 ⇒ today's behavior.
    */
   readonly openingReductionAmount?: string | null;
+  readonly changeAcknowledged?: boolean;
 }
 
 export interface UpsertContractAmountResult {
@@ -242,6 +245,12 @@ export async function upsertPrimaryContractAmount(
   }
 
   const originalEvent = findOriginalValueEvent(events);
+  await assertClosedMonthSourceEdit(
+    context,
+    yearMonthFromBusinessDate(originalEvent?.effectiveDate ?? effectiveDate),
+    input.changeAcknowledged,
+    'errors.confirmRequired',
+  );
   const before = {
     enteredValueAmount: existing.enteredValueAmount,
     amountIncludesTax: existing.amountIncludesTax,

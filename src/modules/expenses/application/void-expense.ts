@@ -3,6 +3,7 @@ import { NotFoundError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { assertClosedMonthSourceEdit } from '@/shared/business-change/assert-owner-retroactive';
 import {
   assertMonthOpenForRewrite,
   rethrowClosedPeriodRewrite,
@@ -24,7 +25,11 @@ const EXPENSE_AUDIT_VOIDED = 'expense.voided';
  * Simple void: flip finalized → void on the same row (excluded from Actual).
  * Prefer createExpenseReversal / createExpenseAdjustment when a ledger link is required.
  */
-export async function voidExpense(context: OrgContext, expenseId: string): Promise<ExpenseDetail> {
+export async function voidExpense(
+  context: OrgContext,
+  expenseId: string,
+  options?: { readonly changeAcknowledged?: boolean },
+): Promise<ExpenseDetail> {
   assertPermission(context, PERMISSIONS.EXPENSES_FINALIZE);
 
   const existing = await findExpenseById(context.db, context.organizationId, expenseId);
@@ -33,6 +38,12 @@ export async function voidExpense(context: OrgContext, expenseId: string): Promi
   let scheduleYearMonths: string[] = [];
 
   try {
+    await assertClosedMonthSourceEdit(
+      context,
+      yearMonthFromBusinessDate(existing.expenseDate),
+      options?.changeAcknowledged,
+      'expenses.errors.confirmRequired',
+    );
     await assertMonthOpenForRewrite(
       context,
       yearMonthFromBusinessDate(existing.expenseDate),

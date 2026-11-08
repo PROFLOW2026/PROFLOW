@@ -18,7 +18,7 @@ export async function getOrganizationEarlyWarnings(
   if (!hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ)) return [];
 
   const rollup = options?.rollup ?? (await getOrganizationProjectRollup(context));
-  if (rollup.rows.length === 0) return [];
+  if (rollup.eligibleRows.length === 0) return [];
 
   const allowed = await resolveAccessibleProjectIds(context);
   const canReadBudget = hasPermission(context, PERMISSIONS.BUDGETS_READ);
@@ -30,7 +30,7 @@ export async function getOrganizationEarlyWarnings(
     : new Map<string, { amount: string; currency: string }>();
 
   const out: EarlyWarning[] = [];
-  for (const row of rollup.rows) {
+  for (const row of rollup.eligibleRows) {
     if (allowed !== null && !allowed.includes(row.projectId)) continue;
     const budget = budgets.get(row.projectId);
     const budgetAmount =

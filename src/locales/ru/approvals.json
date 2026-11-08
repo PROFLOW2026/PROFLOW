@@ -34,7 +34,8 @@
     "vendor_credit": "Кредит поставщика",
     "time_correction": "Корректировка времени",
     "quote_discount": "Скидка по смете",
-    "budget_revision": "Ревизия бюджета"
+    "budget_revision": "Ревизия бюджета",
+    "task": "Задача"
   },
   "fields": {
     "name": "Название",

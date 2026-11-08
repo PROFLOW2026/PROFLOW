@@ -12,6 +12,10 @@ import { withTransaction } from '@/shared/db';
 import { INTERNAL_FINANCIAL_EDIT_LATCH } from '@/shared/db/financial-latch-kinds';
 import { withTrustedFinancialLatch } from '@/shared/db/trusted-financial-latch';
 import { businessDate } from '@/shared/dates';
+import {
+  assertClosedMonthSourceEdit,
+  retainBusinessDate,
+} from '@/shared/business-change/assert-owner-retroactive';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -125,6 +129,12 @@ export async function editRecognizedApBill(
   const freezeDate = billPreview.billDate ?? billPreview.createdAt.toISOString().slice(0, 10);
 
   try {
+    await assertClosedMonthSourceEdit(
+      context,
+      yearMonthFromBusinessDate(freezeDate),
+      input.changeAcknowledged,
+      'ap.errors.confirmRequired',
+    );
     await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(freezeDate));
 
     const vendor = await findVendorById(context.db, context.organizationId, input.vendorId);
@@ -162,9 +172,15 @@ export async function editRecognizedApBill(
       }
     }
 
-    const billDate = businessDate(input.billDate ?? freezeDate);
+    const billDate = businessDate(retainBusinessDate(input.billDate ?? freezeDate, new Date()));
     const newYearMonth = yearMonthFromBusinessDate(billDate);
     if (newYearMonth !== yearMonthFromBusinessDate(freezeDate)) {
+      await assertClosedMonthSourceEdit(
+        context,
+        newYearMonth,
+        input.changeAcknowledged,
+        'ap.errors.confirmRequired',
+      );
       await assertMonthOpenForRewrite(context, newYearMonth);
     }
 

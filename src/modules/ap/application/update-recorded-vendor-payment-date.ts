@@ -1,6 +1,7 @@
 import { AUDIT_ACTIONS } from '@/shared/audit/actions';
 import { recordAuditEvent } from '@/shared/audit';
 import { businessDate } from '@/shared/dates';
+import { retainBusinessDate } from '@/shared/business-change/assert-owner-retroactive';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertBusinessChangeAcknowledged } from '@/shared/business-change/assert-change-acknowledged';
@@ -54,7 +55,7 @@ export async function updateRecordedVendorPaymentDate(
     );
   }
 
-  const nextDate = businessDate(input.paymentDate);
+  const nextDate = businessDate(retainBusinessDate(input.paymentDate, new Date()));
   if (nextDate === existing.paymentDate) {
     throw new ValidationError([{ path: 'paymentDate', message: 'Payment date unchanged' }]);
   }

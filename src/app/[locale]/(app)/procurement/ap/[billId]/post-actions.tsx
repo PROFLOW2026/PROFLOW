@@ -17,6 +17,7 @@ export function PostApBillPanel({
   billStatus: string;
 }) {
   const t = useTranslations('ap.post');
+  const tCreate = useTranslations('ap.create');
   const [state, action, pending] = useActionState<ApFormState, FormData>(postApBillAction, {});
 
   if (!canManage || billStatus !== 'draft') return null;
@@ -30,6 +31,10 @@ export function PostApBillPanel({
         <label className="flex items-start gap-2 text-sm">
           <input type="checkbox" name="confirmDistinctCosts" value="true" className="mt-1" />
           <span>{t('confirmDistinct')}</span>
+        </label>
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" name="acknowledgeDuplicateVendorReference" value="true" className="mt-1" />
+          <span>{tCreate('duplicateReferenceAck')}</span>
         </label>
         <p className="text-xs text-[var(--pf-text-secondary)]">{t('inventoryStockHint')}</p>
         <Button type="submit" loading={pending} size="lg" block className="sm:w-auto">

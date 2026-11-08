@@ -241,6 +241,7 @@
     "finalize": "הפקת חיוב",
     "void": "ביטול חיוב",
     "voidPayment": "ביטול תשלום",
+    "restorePayment": "שחזור תשלום",
     "recordPayment": "רישום תשלום",
     "clientAccountStatementPreview": "תצוגה מקדימה / הדפסה - דף חשבון לקוח (כל החיובים)",
     "paymentsTitle": "תשלומים",
@@ -250,7 +251,8 @@
     "reference": "אסמכתא",
     "notes": "הערות",
     "kind": "סוג",
-    "voidPaymentAriaLabel": "ביטול תשלום על סך {amount} מתאריך {date}"
+    "voidPaymentAriaLabel": "ביטול תשלום על סך {amount} מתאריך {date}",
+    "restorePaymentAriaLabel": "שחזור תשלום על סך {amount} מתאריך {date}"
   },
   "confirm": {
     "finalizeTitle": "הפקת חיוב",
@@ -266,9 +268,13 @@
     "voidDraftConsequence": "הטיוטה תסומן כמבוטלת ותישאר בהיסטוריה. היא לא תימחק.",
     "voidDraftSuccess": "הטיוטה בוטלה.",
     "voidPaymentTitle": "ביטול תשלום",
+    "restorePaymentTitle": "שחזור תשלום",
     "voidPaymentQuestion": "לבטל את התשלום על סך <amount></amount> מתאריך <date></date>?",
-    "voidPaymentConsequence": "הפעולה תיצור רישום היפוך ולא ניתן לבטל אותה.",
-    "voidPaymentSuccess": "התשלום בוטל."
+    "restorePaymentQuestion": "לשחזר את התשלום על סך <amount></amount> מתאריך <date></date>?",
+    "voidPaymentConsequence": "הבעלים יכול לשחזר את אותו תשלום אחר כך, אחרי אישור. תפקיד אחר לא יכול.",
+    "restorePaymentConsequence": "התשלום חוזר לרשום על אותה רשומה. רק בעל הארגון מאשר.",
+    "voidPaymentSuccess": "התשלום בוטל.",
+    "restorePaymentSuccess": "התשלום שוחזר."
   },
   "panel": {
     "positionTitle": "מצב חיוב וגבייה",
@@ -354,6 +360,7 @@
     "dueBeforeIssue": "תאריך הפירעון לא יכול להיות לפני תאריך ההפקה.",
     "correctionNotVoidable": "לא ניתן לבטל שוב רשומת תיקון.",
     "paymentTargetNotFinalized": "ניתן לרשום תשלום רק על חיוב סופי.",
+    "paymentNotRestorable": "ניתן לשחזר רק תשלום מבוטל.",
     "paymentNotVoidable": "ניתן לבטל רק תשלום שרשום.",
     "currencyMismatch": "מטבע החיוב חייב להיות זהה למטבע הפרויקט.",
     "hasRecordedPayments": "יש לבטל תשלומים רשומים לפני ביטול החיוב.",

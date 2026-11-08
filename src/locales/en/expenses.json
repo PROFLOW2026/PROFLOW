@@ -25,7 +25,7 @@
     "vendorBillGuidanceBody": "Record the supplier invoice as a vendor bill. The bill is the payable and the recognized cost. You can still save this expense for petty cash or a separate cost. If you keep both, link them with a match so the expense is deducted and the cost is counted once.",
     "vendorBillGuidanceLink": "Create a vendor bill",
     "referenceMatchTitle": "This reference is already on a vendor bill",
-    "referenceMatchBody": "A non-void vendor bill for this supplier already uses this reference. Open that bill instead of recording the same cost again. Saving this expense is still allowed."
+    "referenceMatchBody": "A non-void vendor bill for this supplier already uses this reference. Open that bill instead of recording the same cost again. Saving this expense is still allowed.", "referenceMatchAck": "These are separate documents with the same number"
   },
   "detail": {
     "title": "Expense",

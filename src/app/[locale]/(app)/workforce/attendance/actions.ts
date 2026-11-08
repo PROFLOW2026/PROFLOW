@@ -243,6 +243,7 @@ async function manualAttendanceRangeAction(
       // Overwrite path is gated by overwriteConfirmed (Owner double approval), not a checkbox.
       updateExisting: overwriteConfirmed,
       overwriteConfirmed,
+      ...(formData.get('changeAcknowledged') === 'true' ? { changeAcknowledged: true as const } : {}),
       workScope,
       projectId: workScope === 'project' && projectIdRaw ? projectIdRaw : null,
     });

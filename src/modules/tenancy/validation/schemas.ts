@@ -3,6 +3,7 @@ import { LOCALES } from '@/shared/i18n/config';
 import { BUSINESS_PROFILE_KEYS } from '../domain/business-profiles';
 import { PROFESSION_PRESET_KEYS } from '../domain/profession-presets';
 import { OPTIONAL_MODULE_KEYS } from '../domain/types';
+import { EXPERIENCE_COMPLEXITY_KEYS } from '../domain/experience-complexity';
 import { WORK_MIXES } from '../domain/work-mix';
 
 /**
@@ -66,6 +67,11 @@ export const createOrganizationSchema = z.object({
   ),
   /** When `all`, org is provisioned with ALL_CAPABILITIES (optional onboarding). */
   onboardingSkip: z.preprocess(optionalPresetToken, z.enum(['all']).optional()),
+  /** First-run experience depth. Omitted stays simple, except consulting and all capabilities. */
+  experienceComplexity: z.preprocess(
+    optionalPresetToken,
+    z.enum(EXPERIENCE_COMPLEXITY_KEYS).optional(),
+  ),
 });
 
 export type CreateOrganizationInput = z.input<typeof createOrganizationSchema>;

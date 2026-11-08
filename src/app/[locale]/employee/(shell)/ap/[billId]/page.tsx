@@ -4,6 +4,7 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Link } from '@/shared/i18n/navigation';
 import { getApBillDetail, type ApBillStatus } from '@/modules/ap';
+import { employeeAcknowledgeApDuplicateWarningsAction } from '../actions';
 import { getVendorById } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
@@ -57,12 +58,13 @@ export default async function EmployeeApBillDetailPage({
       ...detail,
       vendorName,
       canReadProcurement: employeeHasPermission(context, PERMISSIONS.PROCUREMENT_READ),
+      canManageAp: employeeHasPermission(context, PERMISSIONS.AP_MANAGE),
     };
   });
 
   if (!data) notFound();
 
-  const { bill, lines, vendorName, canReadProcurement } = data;
+  const { bill, lines, vendorName, canReadProcurement, canManageAp } = data;
   const formatDate = (value: string | null) =>
     value
       ? intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(value))
@@ -125,6 +127,22 @@ export default async function EmployeeApBillDetailPage({
           ))}
         </ul>
       </section>
+      {canManageAp && bill.status === 'draft' ? (
+      <form action={employeeAcknowledgeApDuplicateWarningsAction} className="flex flex-col gap-2">
+        <input type="hidden" name="billId" value={bill.id} />
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" name="confirmDistinctCosts" value="true" className="mt-1" />
+          <span>{tAp('create.overlapConfirmDistinct')}</span>
+        </label>
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" name="acknowledgeDuplicateVendorReference" value="true" className="mt-1" />
+          <span>{tAp('create.duplicateReferenceAck')}</span>
+        </label>
+        <button type="submit" className="text-sm underline">
+          {tAp('create.duplicateReferenceAck')}
+        </button>
+      </form>
+      ) : null}
     </div>
   );
 }

@@ -34,7 +34,8 @@
     "vendor_credit": "إشعار دائن مورد",
     "time_correction": "تصحيح وقت",
     "quote_discount": "خصم عرض سعر",
-    "budget_revision": "مراجعة ميزانية"
+    "budget_revision": "مراجعة ميزانية",
+    "task": "مهمة"
   },
   "fields": {
     "name": "الاسم",

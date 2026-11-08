@@ -59,7 +59,10 @@ export async function createExpenseAdjustment(
       reversal = await findExpenseById(context.db, context.organizationId, existing.id);
     } else {
       assertReversible(original.status, original.voidsExpenseId, original.adjustsExpenseId, false);
-      reversal = await createExpenseReversal(context, original.id);
+      reversal = await createExpenseReversal(context, original.id, {
+        changeAcknowledged:
+          'changeAcknowledged' in input && input.changeAcknowledged === true ? true : undefined,
+      });
     }
   }
 

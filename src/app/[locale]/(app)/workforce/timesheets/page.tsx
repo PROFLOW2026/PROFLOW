@@ -77,7 +77,7 @@ export default async function TimesheetsListPage({
       <MainAppSection>
         <WorkforceSubNav active="timesheets" />
       <MainAppListBody>
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('timesheets.notPayroll')}</p>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('timesheets.notPayroll')} {t('timesheets.approvalAfterSubmit')}</p>
       <form method="get" className="flex flex-col gap-2">
         <div className="flex flex-wrap items-end gap-2">
           {employees.length > 0 ? (

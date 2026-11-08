@@ -217,20 +217,26 @@ export async function removeProjectCover(context: OrgContext, raw: RemoveProject
   return after;
 }
 
-/** Short-lived signed URL for header/list `<img>` preview (inline, not download). */
-export async function getProjectCoverViewUrl(
-  context: OrgContext,
-  storageKey: string,
-  expiresInSeconds = 300,
-): Promise<string | null> {
-  assertPermission(context, PERMISSIONS.PROJECTS_READ);
-  const prefix = `${context.organizationId}/project_cover/`;
+const COVER_VIEW_URL_TTL_SECONDS = 300;
+
+function assertProjectCoverViewKey(organizationId: string, storageKey: string): void {
+  const prefix = `${organizationId}/project_cover/`;
   if (!storageKey.startsWith(prefix) || storageKey.includes('..') || storageKey.includes('\\')) {
     throw new DomainRuleError(
       'Invalid project cover storage key',
       'projects.cover.errors.invalidStorageKey',
     );
   }
+}
+
+/** Short-lived signed URL for header/list `<img>` preview (inline, not download). */
+export async function getProjectCoverViewUrl(
+  context: OrgContext,
+  storageKey: string,
+  expiresInSeconds = COVER_VIEW_URL_TTL_SECONDS,
+): Promise<string | null> {
+  assertPermission(context, PERMISSIONS.PROJECTS_READ);
+  assertProjectCoverViewKey(context.organizationId, storageKey);
   const storage = getStoragePort();
   if (!storage.configured) return null;
   const signed = await storage.createDownloadUrl(storageKey, expiresInSeconds);
@@ -253,18 +259,55 @@ export async function resolveProjectCoverViewUrls(
 ): Promise<Record<string, string | null>> {
   assertPermission(context, PERMISSIONS.PROJECTS_READ);
   const out: Record<string, string | null> = {};
-  await Promise.all(
-    items.map(async (item) => {
-      if (!item.storageKey) {
-        out[item.projectId] = null;
-        return;
-      }
-      try {
-        out[item.projectId] = await getProjectCoverViewUrl(context, item.storageKey);
-      } catch {
-        out[item.projectId] = null;
-      }
-    }),
-  );
+  if (items.length === 0) return out;
+
+  const storage = getStoragePort();
+  const pending: { projectId: string; storageKey: string }[] = [];
+  for (const item of items) {
+    if (!item.storageKey) {
+      out[item.projectId] = null;
+      continue;
+    }
+    try {
+      assertProjectCoverViewKey(context.organizationId, item.storageKey);
+    } catch {
+      out[item.projectId] = null;
+      continue;
+    }
+    if (!storage.configured) {
+      out[item.projectId] = null;
+      continue;
+    }
+    pending.push({ projectId: item.projectId, storageKey: item.storageKey });
+  }
+  if (pending.length === 0) return out;
+
+  const uniqueKeys: string[] = [];
+  const seen = new Set<string>();
+  for (const item of pending) {
+    if (seen.has(item.storageKey)) continue;
+    seen.add(item.storageKey);
+    uniqueKeys.push(item.storageKey);
+  }
+
+  const signedByKey = new Map<string, string | null>();
+  try {
+    const signMany = storage.createDownloadUrls;
+    if (!signMany) {
+      throw new Error('Storage batch signing is not available');
+    }
+    const signed = await signMany.call(storage, uniqueKeys, COVER_VIEW_URL_TTL_SECONDS);
+    uniqueKeys.forEach((key, index) => {
+      signedByKey.set(key, signed[index]?.url ?? null);
+    });
+  } catch {
+    for (const item of pending) out[item.projectId] = null;
+    return out;
+  }
+
+  for (const item of pending) {
+    out[item.projectId] = signedByKey.get(item.storageKey) ?? null;
+  }
   return out;
 }
+

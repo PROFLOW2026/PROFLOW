@@ -209,7 +209,10 @@ export function buildEmployeeNavItems(context: OrgContext): EmployeeNavItem[] {
   ];
 }
 
-export async function getEmployeeShellData(context: OrgContext): Promise<EmployeeShellData> {
+export async function getEmployeeShellData(
+  context: OrgContext,
+  options?: { readonly includeClock?: boolean },
+): Promise<EmployeeShellData> {
   if (!isEmployeeAppUser(context)) {
     return {
       employeeId: null,
@@ -241,8 +244,13 @@ export async function getEmployeeShellData(context: OrgContext): Promise<Employe
     );
   }
 
+  // Attendance clock is rendered on the employee time route only.
   let clock: EmployeeShellData['clock'] = null;
-  if (employee && employeeHasPermission(context, PERMISSIONS.ATTENDANCE_SELF)) {
+  if (
+    options?.includeClock &&
+    employee &&
+    employeeHasPermission(context, PERMISSIONS.ATTENDANCE_SELF)
+  ) {
     clock = await getAttendanceClockSurface(context);
   }
 

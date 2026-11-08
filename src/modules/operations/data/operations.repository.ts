@@ -18,6 +18,7 @@ import {
   workspaces,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import { taskProjectAccessCondition } from '@/modules/tasks/domain/task-project-access-filter';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -132,15 +133,8 @@ export async function getAccessibleTaskCounts(
 
   // Apply project-context filter when access is restricted
   // (tasks without a project are always visible within accessible workspaces)
-  if (accessibleProjectIds !== null && accessibleProjectIds.length > 0) {
-    // include tasks with no project OR tasks in accessible projects
-    baseConditions.push(
-      sql`(${tasks.projectId} IS NULL OR ${tasks.projectId} = ANY(${accessibleProjectIds}))`,
-    );
-  } else if (accessibleProjectIds !== null && accessibleProjectIds.length === 0) {
-    // no accessible projects — only show workspace-wide (no-project) tasks
-    baseConditions.push(isNull(tasks.projectId));
-  }
+  const projectAccess = taskProjectAccessCondition(accessibleProjectIds);
+  if (projectAccess) baseConditions.push(projectAccess);
 
   const [row] = await db
     .select({

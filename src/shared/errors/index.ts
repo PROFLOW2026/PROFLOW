@@ -36,7 +36,14 @@ export {
 export { inferMessageKey } from './infer-message-key';
 
 export {
+  PAGE_AUTHORIZATION_DIGEST,
+  isPageAuthorizationFailure,
+  rethrowIfPageAuthorization,
+} from './page-authorization';
+
+export {
   apiRouteErrorBody,
   apiRouteErrorResponse,
   apiRouteErrorFromUnknown,
+  fileRouteErrorResponse,
 } from './route-error-response';

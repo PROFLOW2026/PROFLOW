@@ -222,6 +222,7 @@ export default async function VendorCreditDetailPage({
           <EditDraftCreditForm
             creditId={credit.id}
             amount={credit.amount}
+            currency={credit.currency}
             creditDate={credit.creditDate}
             reference={credit.reference}
             notes={credit.notes}

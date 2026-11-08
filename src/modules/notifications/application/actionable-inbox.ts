@@ -12,10 +12,11 @@ export {
 } from './merged-inbox';
 
 export async function listMergedNotificationInbox(context: OrgContext): Promise<NotificationInbox> {
-  const [persisted, actionable] = await Promise.all([
-    listNotifications(context),
-    getActionableInboxIfAllowed(context),
-  ]);
+  // Collectors inside the actionable inbox take savepoints on this connection.
+  // A second query in parallel aborts the request transaction, so the list is
+  // read first. The badge upsert is isolated and must not drop this result.
+  const persisted = await listNotifications(context);
+  const actionable = await getActionableInboxIfAllowed(context);
 
   const merged = buildMergedNotificationInbox(persisted, actionable);
   await persistAttentionBadgeSnapshot(context, merged.unreadCount);

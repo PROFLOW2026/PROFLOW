@@ -12,6 +12,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { resolveAccessibleProjectIds } from '@/modules/projects/application/project-access';
 import { projects, tasks, projectMilestones, approvalRequests, employees, taskAssignees } from '@drizzle/schema';
 import { getAccessibleWorkspaceIds } from '@/modules/operations';
+import { taskProjectAccessCondition } from '@/modules/tasks/domain/task-project-access-filter';
 
 // ─── Task status per project ──────────────────────────────────────────────────
 
@@ -48,13 +49,8 @@ export async function getProjectTaskStatusReport(
   if (projectId) {
     conditions.push(eq(tasks.projectId, projectId));
   } else if (accessibleProjectIds !== null) {
-    if (accessibleProjectIds.length === 0) {
-      conditions.push(isNull(tasks.projectId));
-    } else {
-      conditions.push(
-        sql`(${tasks.projectId} IS NULL OR ${tasks.projectId} = ANY(${accessibleProjectIds}))`,
-      );
-    }
+    const projectAccess = taskProjectAccessCondition(accessibleProjectIds);
+    if (projectAccess) conditions.push(projectAccess);
   }
 
   const rows = await context.db
@@ -143,13 +139,8 @@ export async function getOverdueTasksReport(
   if (filters.projectId) {
     conditions.push(eq(tasks.projectId, filters.projectId));
   } else if (accessibleProjectIds !== null) {
-    if (accessibleProjectIds.length === 0) {
-      conditions.push(isNull(tasks.projectId));
-    } else {
-      conditions.push(
-        sql`(${tasks.projectId} IS NULL OR ${tasks.projectId} = ANY(${accessibleProjectIds}))`,
-      );
-    }
+    const projectAccess = taskProjectAccessCondition(accessibleProjectIds);
+    if (projectAccess) conditions.push(projectAccess);
   }
 
   if (filters.workspaceId) {

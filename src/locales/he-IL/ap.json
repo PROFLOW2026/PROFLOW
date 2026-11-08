@@ -373,6 +373,8 @@
     "duplicateReason": "אותו תאריך וסכום ({date}, {amount}).",
     "correctPaymentDate": "תיקון תאריך תשלום",
     "correctPaymentDateHint": "בעלים בלבד. דוחות מזומן לפי תאריך תשלום - ההכרה בחשבון לא משתנה.",
+    "correctPaymentAmount": "תיקון סכום תשלום",
+    "savePaymentCorrection": "שמירת תיקון התשלום",
     "savePaymentDate": "שמירת תאריך תשלום"
   },
   "aging": {
@@ -456,8 +458,10 @@
     "paymentBillNotPayable": "לא ניתן לשלם חשבון בטיוטה או מבוטל.",
     "paymentOverApplied": "התשלום יחרוג מיתרת החשבון לתשלום.",
     "paymentApplicationMismatch": "סכום התשלום חייב להיות שווה לסכום ההקצאות.",
-    "paymentNotVoidable": "ניתן לבטל רק תשלומים רשומים.",
+    "paymentNotVoidable": "ניתן לבטל רק תשלומים רשומים.",
+    "paymentNotRestorable": "ניתן לשחזר רק תשלום ספק מבוטל.",
     "paymentNotEditable": "ניתן לתקן כאן רק תשלומים במצב רשום.",
+    "paymentCorrectionMultiApply": "תשלום שמחולק ליותר מחשבון אחד לא יכול לשנות סכום כאן.",
     "confirmRequired": "יש לאשר את השינוי לפני שמירה.",
     "ownerOnlyRetroactiveEdit": "רק בעל הארגון רשאי לבצע תיקון זה.",
     "paymentVendorMismatch": "כל ההקצאות חייבות להיות לאותו ספק.",

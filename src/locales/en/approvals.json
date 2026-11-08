@@ -34,7 +34,8 @@
     "vendor_credit": "Vendor credit",
     "time_correction": "Time correction",
     "quote_discount": "Quote discount",
-    "budget_revision": "Budget revision"
+    "budget_revision": "Budget revision",
+    "task": "Task"
   },
   "fields": {
     "name": "Name",

@@ -1,0 +1,53 @@
+-- Proposed SECURITY DEFINER read. Do not apply from this file.
+-- Returns a display name for one external principal, and only when the caller
+-- is a member of an organization that owns that principal (grant, home org, or
+-- a defect history row). No other principal columns are returned.
+
+CREATE OR REPLACE FUNCTION app.external_principal_display_name(p_principal_id uuid)
+RETURNS text
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $fn$
+  SELECT CASE
+    WHEN p_principal_id IS NULL THEN NULL
+    WHEN NOT (
+      EXISTS (
+        SELECT 1
+        FROM public.external_access_grants g
+        WHERE g.principal_id = p_principal_id
+          AND app.is_org_member(g.organization_id)
+      )
+      OR EXISTS (
+        SELECT 1
+        FROM public.external_principals home
+        WHERE home.id = p_principal_id
+          AND home.home_organization_id IS NOT NULL
+          AND app.is_org_member(home.home_organization_id)
+      )
+      OR EXISTS (
+        SELECT 1
+        FROM public.defect_cycle_records history
+        WHERE history.actor_principal_id = p_principal_id
+          AND app.is_org_member(history.organization_id)
+      )
+    ) THEN NULL
+    ELSE (
+      SELECT COALESCE(
+        NULLIF(btrim(p.display_name), ''),
+        NULLIF(btrim(p.contact_email), ''),
+        CASE
+          WHEN p.email ILIKE '%@contractors.pf.internal' THEN NULL
+          ELSE NULLIF(btrim(p.email), '')
+        END
+      )
+      FROM public.external_principals p
+      WHERE p.id = p_principal_id
+    )
+  END;
+$fn$;
+
+REVOKE ALL ON FUNCTION app.external_principal_display_name(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.external_principal_display_name(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION app.external_principal_display_name(uuid) TO service_role;

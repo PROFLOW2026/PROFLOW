@@ -1,4 +1,6 @@
 import type { OrgContext } from '@/shared/auth/context';
+import { holdApBillDuplicateWarnings } from '@/modules/duplicate-warnings';
+import type { PendingDuplicateWarning } from '@/modules/duplicate-warnings';
 import { resolveAllocatedReference } from '@/modules/tenancy';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
@@ -17,7 +19,7 @@ export type VendorBillDraftPayload = ReturnType<typeof mapConfirmedFieldsToVendo
 export type CreateVendorBillDraftFn = (
   context: OrgContext,
   draft: VendorBillDraftPayload,
-) => Promise<{ id: string; status: 'draft' }>;
+) => Promise<{ id: string; status: 'draft'; pendingDuplicateWarning?: PendingDuplicateWarning | null }>;
 
 /**
  * Persist a Vendor Bill in status `draft` only.
@@ -28,7 +30,7 @@ export type CreateVendorBillDraftFn = (
 export async function createVendorBillDraftFromOcr(
   context: OrgContext,
   draft: VendorBillDraftPayload,
-): Promise<{ id: string; status: 'draft' }> {
+): Promise<{ id: string; status: 'draft'; pendingDuplicateWarning: PendingDuplicateWarning | null }> {
   assertPermission(context, PERMISSIONS.AP_MANAGE);
 
   if (draft.status !== 'draft' || draft.recognizedVendorActual !== false) {
@@ -122,5 +124,16 @@ export async function createVendorBillDraftFromOcr(
     }),
   );
 
-  return { id: bill.id, status: 'draft' };
+  const pendingDuplicateWarning = await holdApBillDuplicateWarnings(context, {
+    id: bill.id,
+    vendorId: bill.vendorId,
+    projectId: bill.projectId,
+    netAmount: bill.netAmount,
+    totalAmount: bill.totalAmount,
+    currency: bill.currency,
+    reference: bill.reference,
+    billDate: bill.billDate,
+  });
+
+  return { id: bill.id, status: 'draft', pendingDuplicateWarning };
 }

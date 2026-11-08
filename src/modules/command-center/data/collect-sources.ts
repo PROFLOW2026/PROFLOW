@@ -367,9 +367,11 @@ export async function collectProjectOverBudget(
       : await getOrganizationProjectRollup(ctx.context);
   if (!rollup) return [];
   const actualByProject = new Map(
-    rollup.rows.map((row) => [row.projectId, row.actualCost] as const),
+    rollup.eligibleRows.map((row) => [row.projectId, row.actualCost] as const),
   );
-  const nameByProject = new Map(rollup.rows.map((row) => [row.projectId, row.name] as const));
+  const nameByProject = new Map(
+    rollup.eligibleRows.map((row) => [row.projectId, row.name] as const),
+  );
 
   const items: CommandCenterItem[] = [];
   for (const budget of budgets) {

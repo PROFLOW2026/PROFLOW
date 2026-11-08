@@ -15,6 +15,7 @@ import {
   recordCustomerPayment,
   updateBillingRecord,
   voidBillingRecord,
+  restorePayment,
   voidPayment,
 } from '@/modules/billing';
 import { releaseBillingRecordRetention } from '@/modules/retention';
@@ -156,15 +157,38 @@ export async function employeeVoidBillingRecordAction(
   return {};
 }
 
-export async function employeeVoidPaymentAction(
+export async function employeeRestorePaymentAction(
   paymentId: string,
   billingRecordId: string,
+  changeAcknowledged?: boolean,
 ): Promise<BillingFormState> {
   const tErrors = await getTranslations('errors');
   try {
     await withOrgContext(async (context) => {
       await assertEmployeeBillingManage(context);
-      await voidPayment(context, paymentId);
+      await restorePayment(context, paymentId, {
+        changeAcknowledged: changeAcknowledged === true ? true : undefined,
+      });
+    });
+    revalidateEmployeeBillingRecord(billingRecordId);
+  } catch (error) {
+    return mapBillingError(error, tErrors('unexpected'));
+  }
+  return {};
+}
+
+export async function employeeVoidPaymentAction(
+  paymentId: string,
+  billingRecordId: string,
+  changeAcknowledged?: boolean,
+): Promise<BillingFormState> {
+  const tErrors = await getTranslations('errors');
+  try {
+    await withOrgContext(async (context) => {
+      await assertEmployeeBillingManage(context);
+      await voidPayment(context, paymentId, {
+        changeAcknowledged: changeAcknowledged === true ? true : undefined,
+      });
     });
     revalidateEmployeeBillingRecord(billingRecordId);
   } catch (error) {

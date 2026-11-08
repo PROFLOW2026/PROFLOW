@@ -74,7 +74,7 @@
     "livekit-client": "^2.23.0",
     "livekit-server-sdk": "^2.19.2",
     "lucide-react": "^1.30.0",
-    "next": "^16.3.0",
+    "next": "16.4.1",
     "next-intl": "^4.13.5",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.3.289",
@@ -88,7 +88,7 @@
     "server-only": "^0.0.1",
     "tailwind-merge": "^3.6.0",
     "three": "^0.172.0",
-    "zod": "^4.4.3"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",

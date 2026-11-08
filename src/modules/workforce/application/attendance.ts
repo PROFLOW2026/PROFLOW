@@ -3,7 +3,10 @@ import type { OrgContext } from '@/shared/auth/context';
 import { withExecutor } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
 import { todayInTimeZone } from '@/shared/dates';
+import { assertClosedMonthSourceEdit } from '@/shared/business-change/assert-owner-retroactive';
+import { yearMonthFromBusinessDate } from '@/modules/month-close';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
+import { parseZonedLocalDateTime } from '@/modules/site-meetings/domain/zoned-time';
 import { getLaborCostDefaultsForApply, noteModuleUsage, resolveOrgWorkWeekdays } from '@/modules/tenancy';
 import { isConfiguredOrgWorkday } from '../domain/attendance-workday';
 import {
@@ -697,10 +700,16 @@ export async function setAttendanceDayOvertime(
   return updated;
 }
 
-function localWallTimeToDate(workDate: string, timeOfDay: string): Date {
+/**
+ * Clock time on the business work date the user chose, read in the
+ * organization time zone (context.organization.timezone, same as the rest
+ * of workforce). The stored work date is that calendar day — not the UTC date
+ * of the instant.
+ */
+export function localWallTimeToDate(workDate: string, timeOfDay: string, timeZone: string): Date {
   const normalized = timeOfDay.length === 5 ? `${timeOfDay}:00` : timeOfDay;
-  const parsed = new Date(`${workDate}T${normalized}`);
-  if (Number.isNaN(parsed.getTime())) {
+  const parsed = parseZonedLocalDateTime(`${workDate}T${normalized}`, timeZone);
+  if (!parsed) {
     throw new ValidationError([{ path: 'clockInTime', message: 'Invalid timestamp' }]);
   }
   return parsed;
@@ -1051,6 +1060,18 @@ export async function applyManualAttendanceWorkdayRange(
   const { hoursBetweenClockTimes } = await import('../validation/schemas');
   const hours = hoursBetweenClockTimes(input.clockInTime, input.clockOutTime);
 
+  const closedMonths = [
+    ...new Set(dates.map((workDate) => yearMonthFromBusinessDate(workDate))),
+  ];
+  for (const yearMonth of closedMonths) {
+    await assertClosedMonthSourceEdit(
+      context,
+      yearMonth,
+      input.changeAcknowledged,
+      'errors.confirmRequired',
+    );
+  }
+
   return withTransaction(context.db, async (tx) => {
     const txCtx = withExecutor(context, tx);
 
@@ -1067,8 +1088,9 @@ export async function applyManualAttendanceWorkdayRange(
         continue;
       }
 
-      const clockInAt = localWallTimeToDate(workDate, input.clockInTime);
-      const clockOutAt = localWallTimeToDate(workDate, input.clockOutTime);
+      const timeZone = context.organization.timezone;
+      const clockInAt = localWallTimeToDate(workDate, input.clockInTime, timeZone);
+      const clockOutAt = localWallTimeToDate(workDate, input.clockOutTime, timeZone);
 
       let day = await findAttendanceDayByEmployeeDate(
         txCtx.db,

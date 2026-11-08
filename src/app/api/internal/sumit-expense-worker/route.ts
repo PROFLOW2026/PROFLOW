@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { drainSumitExpenseIngestion } from '@/modules/expense-ingestion/server';
 import { isInternalWorkerAuthorized } from '@/shared/http/internal-worker-auth';
+import { methodNotAllowedResponse } from '@/shared/http/method-not-allowed';
 import {
   inferWorkerTrigger,
   logUsageWorkerEnd,
@@ -28,6 +29,6 @@ export async function POST(request: Request): Promise<Response> {
   return response;
 }
 
-export async function GET(request: Request): Promise<Response> {
-  return POST(request);
+export function GET(): Response {
+  return methodNotAllowedResponse();
 }

@@ -46,7 +46,9 @@ export async function voidBillingRecord(
     }
     assertBusinessChangeAcknowledged(options?.changeAcknowledged, 'billing.errors.confirmRequired');
     for (const payment of recordedPayments) {
-      await voidPayment(context, payment.id);
+      await voidPayment(context, payment.id, {
+        changeAcknowledged: options?.changeAcknowledged,
+      });
     }
   }
 

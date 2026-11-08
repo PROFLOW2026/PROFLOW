@@ -1,4 +1,5 @@
 import { sql } from 'drizzle-orm';
+import { permitScopedAuthAttempt } from '@/shared/auth/consume-auth-rate-limit';
 import { AUDIT_ACTIONS } from '@/shared/audit/actions';
 import { externalActor } from '@/shared/actor';
 import type { DbExecutor } from '@/shared/db/types';
@@ -204,6 +205,11 @@ export async function signInContractor(
     since: new Date(at.getTime() - SIGN_IN_WINDOW_MS),
   });
   if (isThrottled(counts)) {
+    await record(null, 'rate_limited');
+    return { ok: false, reason: 'rate_limited' };
+  }
+
+  if (username && !(await permitScopedAuthAttempt('contractor_sign_in', username, deps.db))) {
     await record(null, 'rate_limited');
     return { ok: false, reason: 'rate_limited' };
   }

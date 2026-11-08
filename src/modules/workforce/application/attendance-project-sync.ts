@@ -160,7 +160,7 @@ async function reconcileApprovedTimeForAttendanceOverwrite(
       description: input.notes ?? row.description ?? undefined,
       changeAcknowledged: true,
     });
-    if (corrected.mode !== 'void_replace') continue;
+    if (corrected.mode !== 'void_replace' && corrected.mode !== 'source_edit') continue;
 
     adjusted += 1;
   }

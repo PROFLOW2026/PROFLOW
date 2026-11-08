@@ -373,6 +373,8 @@
     "duplicateReason": "نفس التاريخ والمبلغ ({date}, {amount}).",
     "correctPaymentDate": "تصحيح تاريخ الدفع",
     "correctPaymentDateHint": "للمالك فقط. تقارير النقد حسب تاريخ الدفع — الاعتراف بالحساب لا يتغير.",
+    "correctPaymentAmount": "تصحيح مبلغ الدفعة",
+    "savePaymentCorrection": "حفظ تصحيح الدفعة",
     "savePaymentDate": "حفظ تاريخ الدفع"
   },
   "aging": {
@@ -456,8 +458,10 @@
     "paymentBillNotPayable": "لا يمكن دفع حساب مسودة أو ملغى.",
     "paymentOverApplied": "الدفعة ستتجاوز مستحق الحساب.",
     "paymentApplicationMismatch": "مبلغ الدفعة يجب أن يساوي مجموع التطبيقات.",
-    "paymentNotVoidable": "يمكن إلغاء الدفعات المسجّلة فقط.",
+    "paymentNotVoidable": "يمكن إلغاء الدفعات المسجّلة فقط.",
+    "paymentNotRestorable": "يمكن استعادة دفعة مورد ملغاة فقط.",
     "paymentNotEditable": "ניתן לתקן כאן רק תשלומים במצב רשום.",
+    "paymentCorrectionMultiApply": "لا يمكن تغيير مبلغ دفعة موزعة على أكثر من حساب من هنا.",
     "confirmRequired": "יש לאשר את השינוי לפני שמירה.",
     "ownerOnlyRetroactiveEdit": "فقط مالك المنظمة يمكنه تنفيذ هذا التصحيح.",
     "paymentVendorMismatch": "جميع تطبيقات الحساب يجب أن تشترك في نفس المورد.",

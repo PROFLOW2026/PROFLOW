@@ -23,6 +23,7 @@ import {
   publishTaskCommentWithAttachments,
   recordTaskApprovalActivity,
 } from '@/modules/tasks';
+import { taskCommentUpdateWhere } from '@/modules/tasks/domain/comment-update-scope';
 import {
   submitApprovalRequest,
   decideApprovalRequest,
@@ -258,12 +259,12 @@ export async function editTaskCommentAction(
         .update(taskComments)
         .set({ body, isEdited: true, editedAt: new Date() })
         .where(
-          and(
-            eq(taskComments.id, commentId),
-            eq(taskComments.organizationId, context.organizationId),
-            eq(taskComments.authorOrgMemberId, context.membershipId),
-            eq(taskComments.isDeleted, false),
-          ),
+          taskCommentUpdateWhere({
+            commentId,
+            taskId,
+            organizationId: context.organizationId,
+            authorOrgMemberId: context.membershipId,
+          }),
         )
         .returning({ id: taskComments.id });
 

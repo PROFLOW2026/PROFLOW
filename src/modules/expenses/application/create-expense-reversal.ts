@@ -5,6 +5,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withTrustedFinancialLatch } from '@/shared/db/trusted-financial-latch';
+import { assertClosedMonthSourceEdit } from '@/shared/business-change/assert-owner-retroactive';
 import {
   assertMonthOpenForRewrite,
   yearMonthFromBusinessDate,
@@ -33,12 +34,19 @@ const EXPENSE_AUDIT_CREATED = 'expense.created';
 export async function createExpenseReversal(
   context: OrgContext,
   expenseId: string,
+  options?: { readonly changeAcknowledged?: boolean },
 ): Promise<ExpenseDetail> {
   assertPermission(context, PERMISSIONS.EXPENSES_FINALIZE);
 
   const original = await findExpenseById(context.db, context.organizationId, expenseId);
   if (!original) throw new NotFoundError('Expense');
 
+  await assertClosedMonthSourceEdit(
+    context,
+    yearMonthFromBusinessDate(original.expenseDate),
+    options?.changeAcknowledged,
+    'expenses.errors.confirmRequired',
+  );
   await assertMonthOpenForRewrite(
     context,
     yearMonthFromBusinessDate(original.expenseDate),

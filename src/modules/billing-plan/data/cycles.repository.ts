@@ -336,15 +336,69 @@ export async function upsertCycleLine(
   return mapCycleLine(inserted!);
 }
 
+function cycleLineInsertValues(row: Parameters<typeof upsertCycleLine>[1]) {
+  return {
+    organizationId: row.organizationId,
+    cycleId: row.cycleId,
+    planLineId: row.planLineId,
+    sortOrder: row.sortOrder,
+    currentPercent: row.currentPercent,
+    currentAmount: row.currentAmount,
+    requestedPercent: row.requestedPercent ?? null,
+    requestedAmount: row.requestedAmount ?? null,
+    approvedPercent: row.approvedPercent ?? null,
+    approvedAmount: row.approvedAmount ?? null,
+    priorPercent: row.priorPercent,
+    priorAmount: row.priorAmount,
+    cumulativePercent: row.cumulativePercent,
+    cumulativeAmount: row.cumulativeAmount,
+    remainingAmount: row.remainingAmount,
+    baseAmountSnapshot: row.baseAmountSnapshot,
+    retentionAmount: row.retentionAmount,
+    lineNotes: row.lineNotes ?? null,
+  };
+}
+
+/**
+ * One INSERT for the batch. A repeated cycle/plan line keeps the last money
+ * values, matching the previous per-row upsert, so the unique line is not duplicated.
+ */
 export async function insertCycleLines(
   db: DbExecutor,
   rows: readonly Parameters<typeof upsertCycleLine>[1][],
 ): Promise<ProjectBillingCycleLineRecord[]> {
-  const result: ProjectBillingCycleLineRecord[] = [];
+  if (rows.length === 0) return [];
+
+  const unique: Parameters<typeof upsertCycleLine>[1][] = [];
+  const indexByKey = new Map<string, number>();
   for (const row of rows) {
-    result.push(await upsertCycleLine(db, row));
+    const key = `${row.organizationId}:${row.cycleId}:${row.planLineId}`;
+    const existing = indexByKey.get(key);
+    if (existing === undefined) {
+      indexByKey.set(key, unique.length);
+      unique.push(row);
+    } else {
+      unique[existing] = row;
+    }
   }
-  return result;
+
+  const inserted = await db
+    .insert(projectBillingCycleLines)
+    .values(unique.map(cycleLineInsertValues))
+    .returning();
+  const mapped = new Map(
+    inserted.map((row) => [
+      `${row.organizationId}:${row.cycleId}:${row.planLineId}`,
+      mapCycleLine(row),
+    ]),
+  );
+  return unique.map((row) => {
+    const line = mapped.get(`${row.organizationId}:${row.cycleId}:${row.planLineId}`);
+    if (!line) {
+      throw new Error('Billing cycle line insert did not return the written row');
+    }
+    return line;
+  });
 }
 
 const BILLABLE_CYCLE_STATUSES: ReadonlySet<BillingCycleStatus> = new Set([

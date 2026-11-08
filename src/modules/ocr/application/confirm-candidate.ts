@@ -50,6 +50,8 @@ import {
   type CreateVendorCreditDraftFn,
 } from './create-vendor-credit-draft';
 import { runBestEffortInTransaction } from '@/shared/db/best-effort-savepoint';
+import { holdApBillDuplicateWarnings, holdExpenseDuplicateWarnings } from '@/modules/duplicate-warnings';
+import type { PendingDuplicateWarning } from '@/modules/duplicate-warnings';
 import { rememberOcrCorrections } from './remember-corrections';
 
 export type CreateExpenseFn = (
@@ -93,6 +95,7 @@ export type ConfirmOcrCandidateResult =
       readonly draftTarget: 'expense';
       readonly job: ExtractionJob;
       readonly expenseId: string;
+      readonly pendingDuplicateWarning?: PendingDuplicateWarning | null;
       readonly expenseInput: CreateExpenseInput;
       readonly expenseDraft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
       readonly draft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
@@ -102,6 +105,7 @@ export type ConfirmOcrCandidateResult =
       readonly draftTarget: 'vendor_bill';
       readonly job: ExtractionJob;
       readonly vendorBillId: string;
+      readonly pendingDuplicateWarning?: PendingDuplicateWarning | null;
       readonly vendorBillDraft: VendorBillDraftPayload;
       readonly expenseDraft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
       readonly draft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
@@ -375,11 +379,29 @@ export async function confirmOcrCandidate(
       }),
     );
 
+    let pendingDuplicateWarning = created.pendingDuplicateWarning ?? null;
+    if (!pendingDuplicateWarning) {
+      const storedBill = await findApBillById(context.db, context.organizationId, created.id);
+      if (storedBill) {
+        pendingDuplicateWarning = await holdApBillDuplicateWarnings(context, {
+          id: storedBill.id,
+          vendorId: storedBill.vendorId,
+          projectId: storedBill.projectId,
+          netAmount: storedBill.netAmount,
+          totalAmount: storedBill.totalAmount,
+          currency: storedBill.currency,
+          reference: storedBill.reference,
+          billDate: storedBill.billDate,
+        });
+      }
+    }
+
     return {
       kind: 'created',
       draftTarget: 'vendor_bill',
       job: updated!,
       vendorBillId: created.id,
+      pendingDuplicateWarning,
       vendorBillDraft: billDraft,
       expenseDraft,
       draft: expenseDraft,
@@ -482,11 +504,25 @@ export async function confirmOcrCandidate(
     }),
   );
 
+  const storedExpense = await findExpenseById(context.db, context.organizationId, created.id);
+  const pendingDuplicateWarning = storedExpense
+    ? await holdExpenseDuplicateWarnings(context, {
+        id: storedExpense.id,
+        vendorId: storedExpense.vendorId,
+        projectId: storedExpense.projectId,
+        netAmount: storedExpense.netAmount.amount,
+        currency: storedExpense.netAmount.currency,
+        expenseDate: storedExpense.expenseDate,
+        description: storedExpense.description,
+      })
+    : null;
+
   return {
     kind: 'created',
     draftTarget: 'expense',
     job: updated!,
     expenseId: created.id,
+    pendingDuplicateWarning,
     expenseInput,
     expenseDraft,
     draft: expenseDraft,

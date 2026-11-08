@@ -12,6 +12,7 @@ import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors
 import { addMoney, compareMoney, money } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { assertClosedMonthSourceEdit } from '@/shared/business-change/assert-owner-retroactive';
 import {
   assertMonthOpenForRewrite,
   rethrowClosedPeriodRewrite,
@@ -64,6 +65,12 @@ export async function voidApBill(context: OrgContext, raw: { billId: string }): 
 
   let voided: { before: ApBillRow; after: ApBillRow };
   try {
+    await assertClosedMonthSourceEdit(
+      context,
+      yearMonthFromBusinessDate(freezeDate),
+      parsed.data.changeAcknowledged,
+      'ap.errors.confirmRequired',
+    );
     await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(freezeDate));
 
     voided = await withTransaction(context.db, async (tx) => {

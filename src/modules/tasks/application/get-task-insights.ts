@@ -10,6 +10,7 @@ import { tasks, taskAssignees, employees } from '@drizzle/schema';
 import type { TaskStatus } from '../domain/types';
 import { todayInTimeZone } from '@/shared/dates';
 import { upcomingSundayFrom } from '../domain/week-window';
+import { taskProjectAccessCondition } from '../domain/task-project-access-filter';
 
 export interface TaskInsightsAssigneeRow {
   readonly assigneeId: string;
@@ -62,13 +63,8 @@ export async function getTaskInsights(context: OrgContext): Promise<TaskInsights
   ];
 
   if (accessibleProjectIds !== null) {
-    if (accessibleProjectIds.length === 0) {
-      baseConditions.push(isNull(tasks.projectId));
-    } else {
-      baseConditions.push(
-        sql`(${tasks.projectId} IS NULL OR ${tasks.projectId} = ANY(${accessibleProjectIds}))`,
-      );
-    }
+    const projectAccess = taskProjectAccessCondition(accessibleProjectIds);
+    if (projectAccess) baseConditions.push(projectAccess);
   }
 
   const [statusRows, overdueRow, completedRow, blockedRow, dueWeekRow, assigneeRows, projectRows] =

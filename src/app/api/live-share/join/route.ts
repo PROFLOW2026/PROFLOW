@@ -9,6 +9,7 @@ import {
   type LiveShareViewerSession,
 } from '@/modules/infra-mapping/domain/live-share';
 import { liveShareDeps } from '@/modules/infra-mapping/live-share-server';
+import { permitScopedAuthAttempt } from '@/shared/auth/consume-auth-rate-limit';
 import { logger } from '@/shared/observability/logger';
 
 /**
@@ -79,6 +80,11 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   if (rateLimited(parsed.viewerToken.slice(0, 24))) {
+    return respond({ ok: false, error: LIVE_SHARE_MESSAGES.unavailable, code: 'unavailable' }, 429);
+  }
+
+  // Public join stays anonymous. Only a hash of the viewer token is counted.
+  if (!(await permitScopedAuthAttempt('live_share_join', parsed.viewerToken))) {
     return respond({ ok: false, error: LIVE_SHARE_MESSAGES.unavailable, code: 'unavailable' }, 429);
   }
 

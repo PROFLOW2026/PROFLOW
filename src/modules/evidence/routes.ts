@@ -2,7 +2,6 @@ import 'server-only';
 
 import { requireExternalContext } from '@/modules/contractor-access';
 import { requireSession, runInOrgContext } from '@/shared/auth/session';
-import { NotFoundError, apiRouteErrorFromUnknown } from '@/shared/errors';
 import { isExplicitAttachmentRequest } from '@/modules/external-storage/domain/authorized-preview';
 import { readRequestBytes, fileResponse, fileRouteError } from './http';
 import { completeExternalEvidenceUpload, completeInternalEvidenceUpload } from './application/upload-evidence';
@@ -84,8 +83,7 @@ export async function handleInternalEvidenceDownload(
     const inline = file.mimeType.startsWith('image/') || file.mimeType.startsWith('video/') || file.mimeType === 'application/pdf';
     return fileResponse(file, inline);
   } catch (error) {
-    if (error instanceof NotFoundError) return new Response(null, { status: 404 });
-    return apiRouteErrorFromUnknown(error, 'externalStorage.errors.operationFailed');
+    return fileRouteError(error);
   }
 }
 
@@ -107,7 +105,6 @@ export async function handleExternalEvidenceDownload(
         file.mimeType === 'application/pdf');
     return fileResponse(file, inline);
   } catch (error) {
-    if (error instanceof NotFoundError) return new Response(null, { status: 404 });
-    return apiRouteErrorFromUnknown(error, 'externalStorage.errors.operationFailed');
+    return fileRouteError(error);
   }
 }

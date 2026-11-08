@@ -3,15 +3,14 @@ import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getAccountingAdapter } from '../domain/unconfigured-adapter';
 import type { IntegrationCatalogEntry } from '../domain/types';
-import {
-  listIntegrationMappings,
-  listRecentSyncJobs,
-} from '../data/integrations.repository';
 
+/**
+ * Entity mappings and sync jobs are revoked from the authenticated role.
+ * This screen does not render them, and a failed user-role select aborts the
+ * request transaction, so the settings path must not read those tables.
+ */
 export async function listAccountingIntegrations(context: OrgContext): Promise<{
   readonly catalog: readonly IntegrationCatalogEntry[];
-  readonly mappingCount: number;
-  readonly syncJobs: readonly { id: string; status: string; jobKind: string; errorMessage: string | null }[];
   readonly adapterConnected: false;
   readonly canManage: boolean;
 }> {
@@ -21,8 +20,6 @@ export async function listAccountingIntegrations(context: OrgContext): Promise<{
 
   return {
     catalog: [],
-    mappingCount: await listIntegrationMappings(context.db, context.organizationId).catch(() => 0),
-    syncJobs: await listRecentSyncJobs(context.db, context.organizationId).catch(() => []),
     adapterConnected: status.connected,
     canManage: hasPermission(context, PERMISSIONS.SETTINGS_MANAGE),
   };

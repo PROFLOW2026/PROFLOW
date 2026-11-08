@@ -122,7 +122,7 @@ export default async function TimesheetDetailPage({
 
       <MainAppSection>
         <WorkforceSubNav active="timesheets" />
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('timesheets.notPayroll')}</p>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('timesheets.notPayroll')} {t('timesheets.approvalAfterSubmit')}</p>
 
         <Card className="flex flex-col gap-3 p-4 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">

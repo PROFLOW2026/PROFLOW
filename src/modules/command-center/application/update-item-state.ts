@@ -44,20 +44,7 @@ export async function updateCommandCenterItemState(
     throw new DomainRuleError(safety.reason, 'commandCenter.errors.unsafeState');
   }
 
-  if (input.state === 'active') {
-    return upsertCommandCenterItemState(context.db, {
-      organizationId: context.organizationId,
-      itemKey: input.itemKey,
-      sourceType: input.sourceType,
-      sourceId: input.sourceId,
-      state: 'active',
-      snoozedUntil: null,
-      note: input.note ?? null,
-      updatedByUserId: context.userId,
-    });
-  }
-
-  return upsertCommandCenterItemState(context.db, {
+  const record = await upsertCommandCenterItemState(context.db, {
     organizationId: context.organizationId,
     itemKey: input.itemKey,
     sourceType: input.sourceType,
@@ -67,4 +54,18 @@ export async function updateCommandCenterItemState(
     note: input.note ?? null,
     updatedByUserId: context.userId,
   });
+
+  // cc: rows are not notification records, so the shell delta never clears them.
+  // Recompute this actor's snapshot only. Never another user, never service role.
+  // A badge failure must not undo the state change.
+  try {
+    const { refreshActorAttentionBadge } = await import(
+      '@/modules/notifications/application/attention-badge'
+    );
+    await refreshActorAttentionBadge(context);
+  } catch {
+    // refreshActorAttentionBadge already isolates its savepoint.
+  }
+
+  return record;
 }

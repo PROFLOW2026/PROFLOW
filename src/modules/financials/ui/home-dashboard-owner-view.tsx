@@ -145,11 +145,12 @@ function KpiTile({
 }
 
 export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewProps) {
-  const [t, tFinancial, tNav, tStatus, locale] = await Promise.all([
+  const [t, tFinancial, tNav, tStatus, tCommon, locale] = await Promise.all([
     getTranslations('dashboard'),
     getTranslations('financial'),
     getTranslations('nav'),
     getTranslations('status.project'),
+    getTranslations('common'),
     getLocale(),
   ]);
 
@@ -560,6 +561,13 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
       {data.projectTableRows.length > 0 && showDashboardUi(data, 'owner.projectProfitTable') ? (
         <section className="min-w-0 max-w-full">
           <h2 className="mb-2 text-sm font-semibold">{t('ownerHeadline.projectTableTitle')}</h2>
+          <p className="mb-2 text-sm text-[var(--pf-text-secondary)]">
+            {tCommon('pagination.showing', {
+              from: data.projectTableShowing.from,
+              to: data.projectTableShowing.to,
+              total: data.projectTableShowing.total,
+            })}
+          </p>
           <ResponsiveTable
             items={[...data.projectTableRows]}
             getRowKey={(row) => row.projectId}

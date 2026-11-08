@@ -31,6 +31,7 @@ import {
   mapServerActionError,
 } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
+import { readPendingDuplicateWarning, type PendingDuplicateWarning } from '@/modules/duplicate-warnings';
 
 async function mapMonthCloseError(error: unknown): Promise<ExpenseActionState | null> {
   if (!(error instanceof DomainRuleError) || !error.messageKey.startsWith('monthClose.')) {
@@ -91,6 +92,39 @@ export interface ExpenseActionState {
   offlineQueued?: boolean;
   /** Offline queue includes save+approve intent (not yet approved on server). */
   pendingApproveSync?: boolean;
+  pendingDuplicateWarning?: {
+    recordId: string;
+    snapshotHash: string;
+    warningTypes: string[];
+  };
+}
+
+async function duplicateWarningState(pending: PendingDuplicateWarning): Promise<ExpenseActionState> {
+  const tExpenses = await getTranslations('expenses');
+  const messages: string[] = [];
+  for (const warning of pending.warnings) {
+    if (warning.warningType === 'expense_ap_overlap') {
+      messages.push(tExpenses('errors.unlinkedApOverlap'));
+    } else if (warning.warningType === 'duplicate_vendor_reference') {
+      messages.push(tExpenses('capture.referenceMatchBody'));
+    }
+  }
+  return {
+    error: messages.join(' '),
+    expenseId: pending.recordId,
+    pendingDuplicateWarning: {
+      recordId: pending.recordId,
+      snapshotHash: pending.snapshotHash,
+      warningTypes: pending.warnings.map((warning) => warning.warningType),
+    },
+  };
+}
+
+function expenseAckOptions(formData: FormData) {
+  return {
+    confirmDistinctCosts: formData.get('confirmDistinctCosts') === 'true',
+    acknowledgeDuplicateVendorReference: formData.get('acknowledgeDuplicateVendorReference') === 'true',
+  };
 }
 
 function withPreservedFormValues(
@@ -210,6 +244,15 @@ export async function createExpenseAction(
 
   try {
     const expense = await withOrgContext(async (context) => {
+      const resumeExpenseId = formValue(formData, 'resumeExpenseId');
+      if (resumeExpenseId) {
+        const finalized = await finalizeExpense(context, resumeExpenseId, expenseAckOptions(formData));
+        if (readPendingDuplicateWarning(finalized)) return finalized;
+        const refreshed = await import('@/modules/expenses/application/queries').then((m) =>
+          m.getExpense(context, resumeExpenseId),
+        );
+        return refreshed;
+      }
       const created = await createExpense(context, parsed.data);
       const wantsApprove = parsed.data.finalizeOnCreate === true;
       const canFinalizeWithoutCategory = expenseHasProjectAttribution(parsed.data);
@@ -219,9 +262,8 @@ export async function createExpenseAction(
           parsed.data.paymentStructure !== 'installments' &&
           (Boolean(parsed.data.costCategoryId) || canFinalizeWithoutCategory));
       if (shouldFinalize && (parsed.data.costCategoryId || canFinalizeWithoutCategory)) {
-        await finalizeExpense(context, created.id, {
-          confirmDistinctCosts: formData.get('confirmDistinctCosts') === 'true',
-        });
+        const finalized = await finalizeExpense(context, created.id, expenseAckOptions(formData));
+        if (readPendingDuplicateWarning(finalized)) return finalized;
       }
       const refreshed = await import('@/modules/expenses/application/queries').then((m) =>
         m.getExpense(context, created.id),
@@ -244,6 +286,10 @@ export async function createExpenseAction(
       }
       return refreshed;
     });
+    const pendingCreated = readPendingDuplicateWarning(expense);
+    if (pendingCreated) {
+      return withPreservedFormValues(formData, await duplicateWarningState(pendingCreated));
+    }
     revalidatePath('/expenses');
     redirect({ href: `/expenses/${expense.id}`, locale });
   } catch (error) {
@@ -310,9 +356,8 @@ export async function updateExpenseAction(
         updated.status === 'draft' &&
         (parsed.data.costCategoryId || canFinalizeWithoutCategory)
       ) {
-        await finalizeExpense(context, updated.id, {
-          confirmDistinctCosts: formData.get('confirmDistinctCosts') === 'true',
-        });
+        const finalized = await finalizeExpense(context, updated.id, expenseAckOptions(formData));
+        if (readPendingDuplicateWarning(finalized)) return finalized;
       }
       const refreshed = await import('@/modules/expenses/application/queries').then((m) =>
         m.getExpense(context, updated.id),
@@ -337,6 +382,10 @@ export async function updateExpenseAction(
       }
       return refreshed;
     });
+    const pendingUpdated = readPendingDuplicateWarning(expense);
+    if (pendingUpdated) {
+      return withPreservedFormValues(formData, await duplicateWarningState(pendingUpdated));
+    }
     const detailPath =
       formValue(formData, 'detailPath') === `/employee/expenses/${expense.id}`
         ? `/employee/expenses/${expense.id}`
@@ -370,10 +419,35 @@ export async function updateExpenseAction(
 export async function finalizeExpenseAction(
   expenseId: string,
   confirmDistinctCosts = false,
+  acknowledgeDuplicateVendorReference = false,
+): Promise<ExpenseActionState> {
+  try {
+    const finalized = await withOrgContext((context) =>
+      finalizeExpense(context, expenseId, {
+        confirmDistinctCosts,
+        acknowledgeDuplicateVendorReference,
+      }),
+    );
+    const pending = readPendingDuplicateWarning(finalized);
+    if (pending) return duplicateWarningState(pending);
+    revalidatePath('/expenses');
+    revalidatePath(`/expenses/${expenseId}`);
+    revalidatePath(`/employee/expenses/${expenseId}`);
+    return { ok: true, expenseId };
+  } catch (error) {
+    return mapExpenseActionError(error);
+  }
+}
+
+export async function voidExpenseAction(
+  expenseId: string,
+  changeAcknowledged?: boolean,
 ): Promise<ExpenseActionState> {
   try {
     await withOrgContext((context) =>
-      finalizeExpense(context, expenseId, { confirmDistinctCosts }),
+      voidExpense(context, expenseId, {
+        changeAcknowledged: changeAcknowledged === true ? true : undefined,
+      }),
     );
     revalidatePath('/expenses');
     revalidatePath(`/expenses/${expenseId}`);
@@ -383,22 +457,18 @@ export async function finalizeExpenseAction(
   }
 }
 
-export async function voidExpenseAction(expenseId: string): Promise<ExpenseActionState> {
-  try {
-    await withOrgContext((context) => voidExpense(context, expenseId));
-    revalidatePath('/expenses');
-    revalidatePath(`/expenses/${expenseId}`);
-    return { ok: true, expenseId };
-  } catch (error) {
-    return mapExpenseActionError(error);
-  }
-}
-
-export async function reverseExpenseAction(expenseId: string): Promise<ExpenseActionState> {
+export async function reverseExpenseAction(
+  expenseId: string,
+  changeAcknowledged?: boolean,
+): Promise<ExpenseActionState> {
   const locale = await getLocale();
 
   try {
-    const reversal = await withOrgContext((context) => createExpenseReversal(context, expenseId));
+    const reversal = await withOrgContext((context) =>
+      createExpenseReversal(context, expenseId, {
+        changeAcknowledged: changeAcknowledged === true ? true : undefined,
+      }),
+    );
     revalidatePath('/expenses');
     revalidatePath(`/expenses/${expenseId}`);
     revalidatePath(`/expenses/${reversal.id}`);
@@ -423,6 +493,7 @@ export async function correctExpenseAction(
     ...buildExpensePayload(formData),
     adjustsExpenseId: formValue(formData, 'adjustsExpenseId'),
     reverseOriginal: formValue(formData, 'reverseOriginal') !== 'false',
+    ...(formData.get('changeAcknowledged') === 'true' ? { changeAcknowledged: true as const } : {}),
   });
 
   if (!parsed.success) {

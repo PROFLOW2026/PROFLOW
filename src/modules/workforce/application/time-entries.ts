@@ -2,15 +2,16 @@ import { randomUUID } from 'node:crypto';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { businessDate } from '@/shared/dates';
 import { withTransaction } from '@/shared/db';
-import { fromNumericString, subtractMoney, toNumericString, zeroMoney } from '@/shared/money';
 import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertAnyPermission, assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
+import { isOrganizationOwner } from '@/shared/business-change/org-owner';
+import { retainBusinessDate } from '@/shared/business-change/assert-owner-retroactive';
+import { closedPeriodSourceRewriteError } from '@/modules/month-close/domain/period-state';
 import { assertApprovalAllowsAction } from '@/modules/approvals';
 import {
   assertMonthOpenForRewrite,
-  createClosedPeriodSourceCorrection,
   isMonthClosed,
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
@@ -59,6 +60,7 @@ import {
   listNonProjectTimeCodes,
   listTimeEntries,
   sumProjectLaborCost,
+  updateRecordedTimeEntrySource,
   voidTimeEntryRow,
 } from '../data/time-entries.repository';
 import { findTimesheetById, patchMutableTimeEntry } from '../data/timesheets.repository';
@@ -708,41 +710,18 @@ export type CorrectTimeEntryResult =
       readonly replacement: TimeEntryRecord;
     }
   | {
-      readonly mode: 'closed_period_adjustment';
+      readonly mode: 'source_edit';
       readonly original: TimeEntryRecord;
-      readonly adjustmentId: string;
+      readonly updated: TimeEntryRecord;
     };
-
-function laborCostDelta(
-  original: TimeEntryRecord,
-  snapshot: CostSnapshot,
-  fallbackCurrency: string,
-): { amount: string; currency: string } {
-  const currency = snapshot.costCurrency ?? original.costCurrency ?? fallbackCurrency;
-  const previous =
-    fromNumericString(original.costAmount, original.costCurrency ?? currency) ??
-    zeroMoney(currency);
-  const next =
-    fromNumericString(snapshot.costAmount, snapshot.costCurrency ?? currency) ??
-    zeroMoney(currency);
-  if (previous.currency !== next.currency) {
-    throw new DomainRuleError(
-      'Closed-month time correction requires the same cost currency',
-      'workforce.errors.closedMonthCurrencyMismatch',
-      { from: previous.currency, to: next.currency },
-    );
-  }
-  const delta = subtractMoney(next, previous);
-  return { amount: toNumericString(delta), currency: delta.currency };
-}
 
 /**
  * Correction: void the original (no silent overwrite) and insert a replacement
  * row with `corrects_entry_id` pointing at the voided original.
  * When a `time_correction` rule matches, Actual is unchanged until approved.
  *
- * Closed original month: the source row stays as historical truth. Economic
- * truth is original + a month-close cost adjustment for (new cost − old cost).
+ * Closed month: a non-owner is rejected. The organization owner, after explicit
+ * confirmation, updates the same row. work_date stays the business date.
  */
 export async function correctTimeEntry(
   context: OrgContext,
@@ -793,58 +772,90 @@ export async function correctTimeEntry(
     hours: input.hours,
   });
 
+  const originalMonthForClose = yearMonthFromBusinessDate(original.workDate);
+  const destinationMonthForClose = yearMonthFromBusinessDate(
+    retainBusinessDate(input.workDate, new Date()),
+  );
+  const originalClosed = await isMonthClosed(context, originalMonthForClose);
+  const destinationClosed =
+    destinationMonthForClose === originalMonthForClose
+      ? originalClosed
+      : await isMonthClosed(context, destinationMonthForClose);
+  if ((originalClosed || destinationClosed) && !isOrganizationOwner(context)) {
+    throw closedPeriodSourceRewriteError();
+  }
+
   await assertTimeCorrectionAllowed(context, {
     originalEntryId: original.id,
     hours: input.hours,
     snapshot,
   });
 
-  const originalMonth = yearMonthFromBusinessDate(original.workDate);
-  if (await isMonthClosed(context, originalMonth)) {
-    const projectId = original.projectId ?? targets.projectId;
-    if (!projectId) {
-      throw new ConflictError(
-        'Cannot record a closed-month economic correction without a project. Date a reversing time entry in an open month, or assign the original entry to a project.',
-        'workforce.errors.closedMonthNeedsProject',
-        { timeEntryId: original.id, yearMonth: originalMonth },
+  if (originalClosed || destinationClosed) {
+    const updatedAt = new Date();
+    const persistedWorkDate = retainBusinessDate(input.workDate, updatedAt);
+    const updated = await withTransaction(context.db, async (tx) => {
+      const row = await updateRecordedTimeEntrySource(tx, context.organizationId, original.id, {
+        workDate: persistedWorkDate,
+        hours: input.hours,
+        kind: input.kind,
+        projectId: targets.projectId,
+        workPackageId: targets.workPackageId,
+        phaseId: targets.phaseId,
+        timeCodeId: targets.timeCodeId,
+        taskId: targets.taskId,
+        description: input.description ?? original.description ?? null,
+        costAmount: snapshot.costAmount,
+        costCurrency: snapshot.costCurrency,
+        rateVersionId: snapshot.rateVersionId,
+        updatedAt,
+      });
+      if (!row) throw new NotFoundError('Time entry');
+      await reconcileDailyExcessForEmployeeDate(
+        tx,
+        context.organizationId,
+        input.employeeId,
+        persistedWorkDate,
       );
-    }
-
-    const delta = laborCostDelta(original, snapshot, context.organization.baseCurrency);
-    const adjustment = await createClosedPeriodSourceCorrection(context, {
-      yearMonth: originalMonth,
-      adjustmentType: 'correction',
-      reason:
-        `תיקון שעות בחודש סגור. רשומת מקור ${original.id} נשארת היסטורית (לא בוטלה). ` +
-        `שעות ${original.hours}→${input.hours}.`,
-      amount: delta.amount,
-      currency: delta.currency,
-      effectSide: 'cost',
-      projectId,
-      entityType: 'time_entry',
-      entityId: original.id,
+      if (original.workDate !== persistedWorkDate) {
+        await reconcileDailyExcessForEmployeeDate(
+          tx,
+          context.organizationId,
+          original.employeeId,
+          original.workDate,
+        );
+      }
+      return (await findTimeEntryById(tx, context.organizationId, original.id)) ?? row;
     });
 
     await recordAuditEvent(context, {
       action: AUDIT_ACTIONS.TIME_ENTRY_CORRECTED,
       entityType: 'time_entry',
       entityId: original.id,
+      before: {
+        correctionKind: 'owner_retroactive',
+        hours: original.hours,
+        workDate: original.workDate,
+        costAmount: original.costAmount,
+        projectId: original.projectId,
+      },
       after: {
-        closedPeriod: true,
-        sourceRewritten: false,
-        monthCloseAdjustmentId: adjustment.id,
-        hoursFrom: original.hours,
-        hoursTo: input.hours,
-        costDelta: delta.amount,
-        costCurrency: delta.currency,
+        correctionKind: 'owner_retroactive',
+        hours: updated.hours,
+        workDate: updated.workDate,
+        costAmount: updated.costAmount,
+        projectId: updated.projectId,
+        sourceRewritten: true,
       },
     });
 
-    return {
-      mode: 'closed_period_adjustment',
-      original,
-      adjustmentId: adjustment.id,
-    };
+    const { recomputeEmployeeCostsAfterTimeChange } = await import('./daily-cost-recompute');
+    await recomputeEmployeeCostsAfterTimeChange(context, {
+      employeeId: original.employeeId,
+      workDates: [original.workDate, updated.workDate],
+    });
+
+    return { mode: 'source_edit', original, updated };
   }
 
   await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(input.workDate));

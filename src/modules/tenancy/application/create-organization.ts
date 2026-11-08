@@ -6,6 +6,7 @@ import { assignRole, provisionOrganizationRoles } from '@/modules/rbac';
 import { defaultsForCountry } from '../domain/organization-defaults';
 import { resolveBusinessProfileKey } from '../domain/business-profiles';
 import { WORK_MIX_SETTING_KEY, isWorkMix } from '../domain/work-mix';
+import { resolveOnboardingComplexity } from '../domain/onboarding-experience';
 import { applyBusinessProfileConfig } from './apply-business-profile';
 import { createOrganizationSchema, type CreateOrganizationInput } from '../validation/schemas';
 import { PROJECT_ACCESS_SETTING_KEY } from '@/modules/projects/domain/project-access';
@@ -106,13 +107,11 @@ export async function createOrganization(
         moduleMode,
         extraModules: input.extraModules,
         workMixOverride: input.workMix,
-        // Recommended path → simple surface; All Capabilities → full customer set.
-        experienceComplexity:
-          profileKey === 'ALL_CAPABILITIES'
-            ? 'full'
-            : moduleMode === 'replace'
-              ? 'simple'
-              : undefined,
+        // Simple by default. All capabilities stays full. Consulting keeps tasks visible.
+        experienceComplexity: resolveOnboardingComplexity({
+          profileKey,
+          selected: input.experienceComplexity,
+        }),
       },
     );
   }

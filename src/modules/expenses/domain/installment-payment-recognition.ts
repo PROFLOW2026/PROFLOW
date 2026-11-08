@@ -14,8 +14,11 @@ import {
   isPositiveMoney,
   isZeroMoney,
   money,
+  moneyEquals,
   roundMoney,
   subtractMoney,
+  sumMoney,
+  toDecimalValue,
   zeroMoney,
   type MoneyValue,
 } from '@/shared/money';
@@ -42,14 +45,48 @@ export interface ExpensePaymentRecognitionFields {
   readonly installmentPaymentStatus?: ExpenseInstallmentPaymentStatus;
 }
 
+/** Proportional NET for one gross slice, rounded to the currency minor unit. */
 function netFromGrossSlice(
   grossSlice: MoneyValue,
   netTotal: MoneyValue,
   grossTotal: MoneyValue,
 ): MoneyValue {
   if (isZeroMoney(grossTotal)) return zeroMoney(grossSlice.currency);
-  const ratio = Number(netTotal.amount) / Number(grossTotal.amount);
-  return roundMoney(money(String(Number(grossSlice.amount) * ratio), grossSlice.currency));
+  const raw = toDecimalValue(grossSlice)
+    .times(toDecimalValue(netTotal))
+    .dividedBy(toDecimalValue(grossTotal));
+  return roundMoney(money(raw, grossSlice.currency));
+}
+
+/**
+ * NET shares for the gross slices of one expense.
+ * Earlier slices round on their own. When those slices cover the full gross,
+ * the last slice is netTotal minus the sum of the earlier nets, so the shares
+ * re-sum to the full net. A partial cover stays proportional — the residue
+ * waits for the final slice. This does not rewrite stored payment rows.
+ */
+function allocateNetFromGrossSlices(
+  grossSlices: readonly MoneyValue[],
+  netTotal: MoneyValue,
+  grossTotal: MoneyValue,
+): MoneyValue[] {
+  if (grossSlices.length === 0) return [];
+  const currency = netTotal.currency;
+  const coversFullGross = moneyEquals(sumMoney(grossSlices, currency), grossTotal);
+  const nets: MoneyValue[] = [];
+  let allocated = zeroMoney(currency);
+  for (let index = 0; index < grossSlices.length; index += 1) {
+    const slice = grossSlices[index]!;
+    const isLast = index === grossSlices.length - 1;
+    if (isLast && coversFullGross) {
+      nets.push(roundMoney(subtractMoney(netTotal, allocated)));
+      continue;
+    }
+    const net = netFromGrossSlice(slice, netTotal, grossTotal);
+    nets.push(net);
+    allocated = addMoney(allocated, net);
+  }
+  return nets;
 }
 
 function paymentYearMonth(date: BusinessDate | null): string | null {
@@ -70,17 +107,30 @@ function recognizedFromVerifiedInstallments(
   const grossTotal = fromNumericString(fields.grossAmount, currency);
   if (!netTotal || !grossTotal) return null;
 
+  const eligible = verified
+    .filter((payment) => payment.verification === 'verified' && payment.actualPaidAt != null)
+    .slice()
+    .sort((left, right) => left.installmentIndex - right.installmentIndex);
+  if (eligible.length === 0) return null;
+
+  const nets =
+    mode === 'net'
+      ? allocateNetFromGrossSlices(
+          eligible.map((payment) => payment.grossPaid),
+          netTotal,
+          grossTotal,
+        )
+      : null;
+
   let monthTotal = zeroMoney(currency);
-  for (const payment of verified) {
-    if (payment.verification !== 'verified' || !payment.actualPaidAt) continue;
+  for (let index = 0; index < eligible.length; index += 1) {
+    const payment = eligible[index]!;
+    if (!payment.actualPaidAt) continue;
     if (yearMonthFromBusinessDate(payment.actualPaidAt) !== yearMonth) continue;
-    if (mode === 'gross') {
+    if (mode === 'gross' || !nets) {
       monthTotal = addMoney(monthTotal, payment.grossPaid);
     } else {
-      monthTotal = addMoney(
-        monthTotal,
-        netFromGrossSlice(payment.grossPaid, netTotal, grossTotal),
-      );
+      monthTotal = addMoney(monthTotal, nets[index]!);
     }
   }
   return isZeroMoney(monthTotal) ? null : roundMoney(monthTotal);

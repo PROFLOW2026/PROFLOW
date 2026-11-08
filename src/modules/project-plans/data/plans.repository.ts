@@ -485,7 +485,7 @@ export async function myRevisionAcknowledgements(
   return new Map(rows.map((row) => [row.revisionId, row.acknowledgedAt.toISOString()] as const));
 }
 
-/** Contractor-visible drawings (RLS decides) with their current revision. */
+/** Active drawings that have a current revision. Does not apply contractor visibility; the caller must. */
 export async function listVisibleDrawingsWithCurrent(
   db: DbExecutor,
   input: { readonly organizationId: string; readonly projectId: string; readonly limit?: number },
@@ -505,6 +505,9 @@ export async function listVisibleDrawingsWithCurrent(
       acknowledgementRequired: drawingRevisions.acknowledgementRequired,
       fileName: drawingRevisions.fileName,
       mimeType: drawingRevisions.mimeType,
+      contractorVisibility: drawings.contractorVisibility,
+      drawingStatus: drawings.status,
+      publishedRevisionId: drawings.currentRevisionId,
     })
     .from(drawings)
     .innerJoin(
@@ -528,4 +531,59 @@ export async function listVisibleDrawingsWithCurrent(
     )
     .orderBy(desc(drawingRevisions.publishedAt))
     .limit(Math.min(Math.max(input.limit ?? PAGE_MAX, 1), PAGE_MAX));
+}
+
+export async function listDistributionTargets(
+  db: DbExecutor,
+  organizationId: string,
+  drawingIds: readonly string[],
+) {
+  if (drawingIds.length === 0) return [];
+  return db
+    .select({
+      drawingId: drawingDistributionEntries.drawingId,
+      audience: drawingDistributionEntries.audience,
+      vendorId: drawingDistributionEntries.vendorId,
+      agreementId: drawingDistributionEntries.subcontractAgreementId,
+      principalId: drawingDistributionEntries.principalId,
+    })
+    .from(drawingDistributionEntries)
+    .where(
+      and(
+        eq(drawingDistributionEntries.organizationId, organizationId),
+        inArray(drawingDistributionEntries.drawingId, [...drawingIds]),
+      ),
+    );
+}
+
+/** Drawing revisions whose file is one of these documents. Service role may read them only to evaluate visibility. */
+export async function listDrawingDocumentLinks(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  documentIds: readonly string[],
+) {
+  if (documentIds.length === 0) return [];
+  return db
+    .select({
+      documentId: drawingRevisions.documentId,
+      revisionStatus: drawingRevisions.status,
+      drawingId: drawings.id,
+      projectId: drawings.projectId,
+      drawingStatus: drawings.status,
+      contractorVisibility: drawings.contractorVisibility,
+      currentRevisionId: drawings.currentRevisionId,
+    })
+    .from(drawingRevisions)
+    .innerJoin(
+      drawings,
+      and(eq(drawings.id, drawingRevisions.drawingId), eq(drawings.organizationId, drawingRevisions.organizationId)),
+    )
+    .where(
+      and(
+        eq(drawingRevisions.organizationId, organizationId),
+        eq(drawingRevisions.projectId, projectId),
+        inArray(drawingRevisions.documentId, [...documentIds]),
+      ),
+    );
 }

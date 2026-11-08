@@ -1,6 +1,5 @@
 import { recordAuditEvent } from '@/shared/audit';
-import { assertBusinessChangeAcknowledged } from '@/shared/business-change/assert-change-acknowledged';
-import { isOrganizationOwner } from '@/shared/business-change/org-owner';
+import { assertClosedMonthSourceEdit } from '@/shared/business-change/assert-owner-retroactive';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
@@ -10,7 +9,6 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   assertMonthOpenForRewrite,
-  isMonthClosed,
   rethrowClosedPeriodRewrite,
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
@@ -43,9 +41,12 @@ export async function updateFinalizedExpense(context: OrgContext, input: UpdateE
   }
 
   const expenseMonth = yearMonthFromBusinessDate(existing.expenseDate);
-  if (isOrganizationOwner(context) && (await isMonthClosed(context, expenseMonth))) {
-    assertBusinessChangeAcknowledged(input.changeAcknowledged, 'expenses.errors.confirmRequired');
-  }
+  await assertClosedMonthSourceEdit(
+    context,
+    expenseMonth,
+    input.changeAcknowledged,
+    'expenses.errors.confirmRequired',
+  );
 
   try {
     await assertMonthOpenForRewrite(context, expenseMonth);
@@ -68,6 +69,12 @@ export async function updateFinalizedExpense(context: OrgContext, input: UpdateE
     const newYearMonth = yearMonthFromBusinessDate(payload.expenseDate);
     const oldYearMonth = yearMonthFromBusinessDate(existing.expenseDate);
     if (newYearMonth !== oldYearMonth) {
+      await assertClosedMonthSourceEdit(
+        context,
+        newYearMonth,
+        input.changeAcknowledged,
+        'expenses.errors.confirmRequired',
+      );
       await assertMonthOpenForRewrite(context, newYearMonth);
     }
 

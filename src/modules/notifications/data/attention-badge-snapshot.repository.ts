@@ -2,6 +2,19 @@ import { eq, and, sql } from 'drizzle-orm';
 import { notificationAttentionBadgeSnapshots } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 
+type TransactionCapableDb = DbExecutor & {
+  transaction: <T>(fn: (tx: DbExecutor) => Promise<T>) => Promise<T>;
+};
+
+/**
+ * Nested Drizzle transaction. On the request RLS transaction this is a
+ * postgres.js savepoint with its own error scope. A raw SAVEPOINT does not
+ * clear that scope, so a caught 42501 would still abort the notification list.
+ */
+function asTransactionCapable(db: DbExecutor): TransactionCapableDb {
+  return db as TransactionCapableDb;
+}
+
 /**
  * Cache only a positive result. A missing relation is rechecked so applying
  * migration 0172 takes effect without a process restart.
@@ -146,22 +159,26 @@ export async function upsertAttentionBadgeSnapshot(
 ): Promise<void> {
   if (!(await attentionBadgeSnapshotRelationReady(db))) return;
   const safe = Math.max(0, Math.floor(activeAttentionCount));
-  await db
-    .insert(notificationAttentionBadgeSnapshots)
-    .values({
-      organizationId,
-      userId,
-      activeAttentionCount: safe,
-      updatedAt: new Date(),
-    })
-    .onConflictDoUpdate({
-      target: [
-        notificationAttentionBadgeSnapshots.organizationId,
-        notificationAttentionBadgeSnapshots.userId,
-      ],
-      set: {
+  // userId is the acting user. RLS also requires user_id = app.current_user_id().
+  // This statement never writes a different user's snapshot.
+  await asTransactionCapable(db).transaction(async (tx) => {
+    await tx
+      .insert(notificationAttentionBadgeSnapshots)
+      .values({
+        organizationId,
+        userId,
         activeAttentionCount: safe,
         updatedAt: new Date(),
-      },
-    });
+      })
+      .onConflictDoUpdate({
+        target: [
+          notificationAttentionBadgeSnapshots.organizationId,
+          notificationAttentionBadgeSnapshots.userId,
+        ],
+        set: {
+          activeAttentionCount: safe,
+          updatedAt: new Date(),
+        },
+      });
+  });
 }

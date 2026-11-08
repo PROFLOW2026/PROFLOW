@@ -17,6 +17,10 @@ import {
   type SemanticFolderType,
 } from '@/modules/external-storage/server';
 import { requireExternalProjectCapability } from '@/modules/project-plans/application/shared';
+import {
+  assertDrawingDocumentVisibleToContractor,
+  omitDrawingsHiddenFromContractor,
+} from '@/modules/project-plans/application/drawing-visibility';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import { NotFoundError, ServiceUnavailableError } from '@/shared/errors';
 import { type ExternalCapability, type ExternalContext } from '@/shared/external';
@@ -149,11 +153,20 @@ export async function listContractorSemanticFolder(
       });
     }
 
+    const visibleFiles =
+      raw.folder === 'plans'
+        ? await omitDrawingsHiddenFromContractor(context, db, {
+            organizationId,
+            projectId,
+            files,
+          })
+        : files;
+
     return {
       folder: raw.folder,
       folderName: folderMeta?.name ?? root.displayName,
       folderExternalId: targetFolderId,
-      files,
+      files: visibleFiles,
       subfolders: listing.folders.map((folder) => ({ id: folder.id, name: folder.name })),
     };
   });
@@ -246,6 +259,15 @@ export async function openContractorFolderDocument(
   if (!location) throw new NotFoundError('Document');
   assertFolderCapability(context, organizationId, projectId, location.folderType);
 
+  if (location.folderType === 'plans') {
+    await assertDrawingDocumentVisibleToContractor(
+      context,
+      context.db,
+      { organizationId, projectId, documentId },
+      'Document',
+    );
+  }
+
   const opened = await projectFileDeps.store.open({
     organizationId,
     documentId,
@@ -302,6 +324,14 @@ export async function openContractorFolderProviderFile(
     const linked = await asServiceRoleWrite(db, () =>
       findStorageFileByExternalId(db, organizationId, connection.id, raw.externalFileId),
     );
+    if (raw.folder === 'plans' && linked?.documentId) {
+      await assertDrawingDocumentVisibleToContractor(
+        context,
+        db,
+        { organizationId, projectId, documentId: linked.documentId },
+        'File',
+      );
+    }
     if (linked?.documentId) {
       const opened = await projectFileDeps.store.open({
         organizationId,

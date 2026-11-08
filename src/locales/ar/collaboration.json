@@ -49,7 +49,18 @@
   "contractorPanel": {
     "title": "تعيين المقاول",
     "evidenceRequired": "مطلوب دليل",
-    "due": "الاستحقاق {date}"
+    "due": "الاستحقاق {date}",
+    "vendorLabel": "المقاول",
+    "vendorPlaceholder": "اختر مقاولاً",
+    "agreementLabel": "الاتفاقية",
+    "principalLabel": "مستخدم المقاول",
+    "optional": "اختياري",
+    "none": "بدون",
+    "submit": "تعيين للمقاول",
+    "submitting": "جارٍ التعيين...",
+    "empty": "لا يوجد مقاولون مرتبطون بهذا المشروع",
+    "vendorRequired": "يجب اختيار مقاول",
+    "projectRequired": "لا يمكن تعيين المهمة لمقاول بدون مشروع"
   },
   "taskStatus": {
     "assigned": "معيّنة",

@@ -113,6 +113,11 @@ export interface VendorPaymentsRepository {
     paymentId: string,
     voidedAt: Date,
   ): Promise<ApPaymentRow | null>;
+  restorePayment(
+    db: DbExecutor,
+    organizationId: string,
+    paymentId: string,
+  ): Promise<ApPaymentRow | null>;
   /** Non-financial metadata only - never amount/currency/date/vendor. */
   updatePaymentMetadata(
     db: DbExecutor,
@@ -200,6 +205,9 @@ export const gatedVendorPaymentsRepository: VendorPaymentsRepository = {
     unavailable();
   },
   async voidPayment() {
+    unavailable();
+  },
+  async restorePayment() {
     unavailable();
   },
   async updatePaymentMetadata() {
@@ -313,6 +321,22 @@ export const drizzleVendorPaymentsRepository: VendorPaymentsRepository = {
           eq(apPayments.id, paymentId),
           eq(apPayments.organizationId, organizationId),
           eq(apPayments.status, 'recorded'),
+        ),
+      )
+      .returning();
+    return row ? mapPayment(row) : null;
+  },
+
+  async restorePayment(db, organizationId, paymentId) {
+    const restoredAt = new Date();
+    const [row] = await db
+      .update(apPayments)
+      .set({ status: 'recorded', voidedAt: null, updatedAt: restoredAt })
+      .where(
+        and(
+          eq(apPayments.id, paymentId),
+          eq(apPayments.organizationId, organizationId),
+          eq(apPayments.status, 'void'),
         ),
       )
       .returning();
@@ -435,6 +459,59 @@ export function setVendorPaymentsRepository(repo: VendorPaymentsRepository): voi
 
 export function getVendorPaymentsRepository(): VendorPaymentsRepository {
   return activeRepository;
+}
+
+/** Owner retroactive correction — recorded payment amount, same row. */
+export async function updateRecordedVendorPaymentAmount(
+  db: DbExecutor,
+  organizationId: string,
+  paymentId: string,
+  amount: string,
+): Promise<void> {
+  await db
+    .update(apPayments)
+    .set({ amount, updatedAt: new Date() })
+    .where(
+      and(
+        eq(apPayments.id, paymentId),
+        eq(apPayments.organizationId, organizationId),
+        eq(apPayments.status, 'recorded'),
+      ),
+    );
+}
+
+export async function listVendorPaymentApplicationIds(
+  db: DbExecutor,
+  organizationId: string,
+  paymentId: string,
+): Promise<readonly string[]> {
+  const rows = await db
+    .select({ id: apPaymentApplications.id })
+    .from(apPaymentApplications)
+    .where(
+      and(
+        eq(apPaymentApplications.apPaymentId, paymentId),
+        eq(apPaymentApplications.organizationId, organizationId),
+      ),
+    );
+  return rows.map((row) => row.id);
+}
+
+export async function updateVendorPaymentApplicationAmount(
+  db: DbExecutor,
+  organizationId: string,
+  applicationId: string,
+  appliedAmount: string,
+): Promise<void> {
+  await db
+    .update(apPaymentApplications)
+    .set({ appliedAmount, updatedAt: new Date() })
+    .where(
+      and(
+        eq(apPaymentApplications.id, applicationId),
+        eq(apPaymentApplications.organizationId, organizationId),
+      ),
+    );
 }
 
 /** Owner retroactive correction — payment date only, recorded payments. */
@@ -586,6 +663,23 @@ export function createInMemoryVendorPaymentsRepository(): VendorPaymentsReposito
         status: 'void',
         voidedAt,
         updatedAt: voidedAt,
+      };
+      const idx = payments.indexOf(payment);
+      payments[idx] = updated;
+      return updated;
+    },
+
+    async restorePayment(_db, organizationId, paymentId) {
+      const payment = payments.find(
+        (p) => p.id === paymentId && p.organizationId === organizationId,
+      );
+      if (!payment || payment.status !== 'void') return null;
+      const restoredAt = new Date();
+      const updated: ApPaymentRow = {
+        ...payment,
+        status: 'recorded',
+        voidedAt: null,
+        updatedAt: restoredAt,
       };
       const idx = payments.indexOf(payment);
       payments[idx] = updated;

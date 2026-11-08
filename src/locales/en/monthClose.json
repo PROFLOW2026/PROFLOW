@@ -32,13 +32,13 @@
     "saved": "Saved."
   },
   "closed": {
-    "notice": "This month is closed. Silent rewrites are blocked - record an explicit adjustment or economic correction. Original records stay unchanged.",
-    "sourceRewriteHint": "Do not void or rewrite expenses, vendor bills, or time in this month. Post a month-close correction instead. The source row remains historical truth."
+    "notice": "This month is closed. The organization owner may change a source record only after a warning and explicit confirmation. Other roles stay blocked.",
+    "sourceRewriteHint": "In a closed month only the organization owner may change an expense, vendor bill, or time entry, and only after a warning and explicit confirmation. Other roles stay blocked."
   },
   "coherence": {
     "title": "How closed-month money works",
     "historicalTruth": "Historical truth",
-    "historicalTruthBody": "The original transaction is never rewritten after close. It stays on the ledger as history.",
+    "historicalTruthBody": "The organization owner may correct the original transaction in a closed month only after a warning and explicit confirmation. Other roles stay blocked, and the transaction stays on the ledger.",
     "currentTruth": "Current economic truth",
     "currentTruthBody": "Original amount plus surviving month-close adjustments (netted once in financial compose).",
     "openPeriod": "Open period",
@@ -66,7 +66,9 @@
     "missing_project_allocations": "Missing project allocations",
     "unresolved_expense_drafts": "Unresolved expense drafts",
     "incomplete_attendance": "Incomplete attendance",
-    "open_overhead_allocation": "Open general business cost allocation"
+    "open_overhead_allocation": "Open general business cost allocation",
+    "unallocated_attendance_hours": "Unallocated attendance hours",
+    "pending_attendance_corrections": "Pending attendance corrections"
   },
   "adjustments": {
     "title": "Post-close adjustment",
@@ -95,12 +97,12 @@
     "currentTruth": "Current economic truth",
     "historicalTruth": "Historical truth - the source row was not rewritten.",
     "supersededFromTotals": "Excluded from compose (superseded)",
-    "sourceRewriteHint": "Closed-month expenses, vendor bills, and time cannot be voided or rewritten. Record the correction here so compose can net it.",
+    "sourceRewriteHint": "In a closed month only the organization owner may change an expense, vendor bill, or time entry, and only after a warning and explicit confirmation. Other roles stay blocked and can record a correction here.",
     "auditOnly": "Audit only",
     "activeInTotals": "Included in compose",
     "superseded": "Superseded",
     "history": "Adjustment history",
-    "explainability": "Closed-month history is immutable. Amounts shown here are the correction rows themselves - project Actual and billing totals come from compose only, never a second engine on this page.",
+    "explainability": "In a closed month the organization owner may correct a source record only after a warning and explicit confirmation. Other roles stay blocked. Amounts shown here are the correction rows themselves - project Actual and billing totals come from compose only, never a second engine on this page.",
     "types": {
       "correction": "Correction",
       "supersede": "Supersede",
@@ -110,7 +112,7 @@
   "errors": {
     "invalidTransition": "That status change is not allowed.",
     "monthClosed": "This month is closed. Open Month close and record an explicit post-close adjustment instead of changing the original record.",
-    "useCorrectionNotRewrite": "This month is closed. Do not void or rewrite the original expense, vendor bill, billing record, or time entry - record a month-close correction instead.",
+    "useCorrectionNotRewrite": "This month is closed. The organization owner may change the original record only after a warning and explicit confirmation. Other roles stay blocked.",
     "notClosed": "Post-close adjustments require a closed month.",
     "notComplete": "Completeness must be 100% before ready/close.",
     "currencyMismatch": "Economic corrections must use the organization base currency.",

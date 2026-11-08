@@ -34,7 +34,8 @@
     "vendor_credit": "זיכוי ספק",
     "time_correction": "תיקון שעות",
     "quote_discount": "הנחת הצעת מחיר",
-    "budget_revision": "עדכון תקציב"
+    "budget_revision": "עדכון תקציב",
+    "task": "משימה"
   },
   "fields": {
     "name": "שם",

@@ -4,8 +4,8 @@
  *
  * Financial immutability:
  * - No delete of payments or applications.
- * - No rewrite of amount / currency / paymentDate / vendorId / applications.
- * - Correction = void old payment + record a new one.
+ * - Amount, currency, vendor, and applications stay on the same payment row.
+ * - The organization owner may restore a voided payment on that same row.
  * - Optional metadata edits: method / reference / notes on recorded payments only.
  */
 
@@ -13,6 +13,8 @@ import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
 import { businessDate } from '@/shared/dates';
+import { assertClosedMonthSourceEdit } from '@/shared/business-change/assert-owner-retroactive';
+import { yearMonthFromBusinessDate } from '@/modules/month-close';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { addMoney, money, toNumericString } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
@@ -41,6 +43,7 @@ import {
   assertPaymentFinancialFieldsImmutable,
   assertPaymentMetadataEditable,
   assertPaymentNotDeletable,
+  assertPaymentRestorable,
   assertPaymentVoidable,
   assertVendorPaymentDoesNotAffectActual,
   computeBillOutstanding,
@@ -353,6 +356,7 @@ export async function recordVendorPayment(
 export async function voidVendorPayment(
   context: OrgContext,
   paymentId: string,
+  options?: { readonly changeAcknowledged?: boolean },
 ): Promise<ApPaymentRow> {
   assertPermission(context, PERMISSIONS.AP_MANAGE);
   assertPaymentsSchemaReady();
@@ -366,6 +370,18 @@ export async function voidVendorPayment(
   }
 
   const repo = getVendorPaymentsRepository();
+  const preview = await repo.findPaymentById(
+    context.db,
+    context.organizationId,
+    parsed.data.paymentId,
+  );
+  if (!preview) throw new NotFoundError('Vendor payment');
+  await assertClosedMonthSourceEdit(
+    context,
+    yearMonthFromBusinessDate(preview.paymentDate),
+    options?.changeAcknowledged,
+    'ap.errors.confirmRequired',
+  );
   const voidedAt = new Date();
 
   const voided = await withTransaction(context.db, async (tx) => {
@@ -397,6 +413,57 @@ export async function voidVendorPayment(
   });
 
   return voided;
+}
+
+export async function restoreVendorPayment(
+  context: OrgContext,
+  paymentId: string,
+  options?: { readonly changeAcknowledged?: boolean },
+): Promise<ApPaymentRow> {
+  assertPermission(context, PERMISSIONS.AP_MANAGE);
+  assertPaymentsSchemaReady();
+  assertVendorPaymentDoesNotAffectActual();
+  const { isOrganizationOwner } = await import('@/shared/business-change/org-owner');
+  const { assertBusinessChangeAcknowledged } = await import(
+    '@/shared/business-change/assert-change-acknowledged'
+  );
+  if (!isOrganizationOwner(context)) {
+    throw new DomainRuleError(
+      'Only the organization owner may restore a voided vendor payment',
+      'ap.errors.ownerOnlyRetroactiveEdit',
+    );
+  }
+
+  const repo = getVendorPaymentsRepository();
+  const preview = await repo.findPaymentById(context.db, context.organizationId, paymentId);
+  if (!preview) throw new NotFoundError('Vendor payment');
+  assertPaymentRestorable(preview.status);
+  await assertClosedMonthSourceEdit(
+    context,
+    yearMonthFromBusinessDate(preview.paymentDate),
+    options?.changeAcknowledged,
+    'ap.errors.confirmRequired',
+  );
+  assertBusinessChangeAcknowledged(options?.changeAcknowledged, 'ap.errors.confirmRequired');
+
+  const restored = await withTransaction(context.db, async (tx) => {
+    const locked = await repo.lockPaymentForUpdate(tx, context.organizationId, paymentId);
+    if (!locked) throw new NotFoundError('Vendor payment');
+    assertPaymentRestorable(locked.status);
+    const updated = await repo.restorePayment(tx, context.organizationId, locked.id);
+    if (!updated) throw new NotFoundError('Vendor payment');
+    return updated;
+  });
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.AP_PAYMENT_RESTORED,
+    entityType: 'ap_payment',
+    entityId: restored.id,
+    before: { status: 'void', voidedAt: preview.voidedAt ?? null },
+    after: { status: 'recorded', voidedAt: null, affectsActualCost: false },
+  });
+
+  return restored;
 }
 
 /**

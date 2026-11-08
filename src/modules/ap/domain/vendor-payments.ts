@@ -370,6 +370,15 @@ export function assertPaymentVoidable(status: ApPaymentStatus): void {
   }
 }
 
+export function assertPaymentRestorable(status: ApPaymentStatus): void {
+  if (status !== 'void') {
+    throw new DomainRuleError(
+      'Only voided payments can be restored',
+      'ap.errors.paymentNotRestorable',
+    );
+  }
+}
+
 /** Payments are never hard-deleted - void + recreate is the correction path. */
 export function assertPaymentNotDeletable(): never {
   throw new DomainRuleError(

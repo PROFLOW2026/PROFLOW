@@ -49,7 +49,18 @@
   "contractorPanel": {
     "title": "הקצאה לקבלן",
     "evidenceRequired": "נדרשת ראיה (תמונה/מסמך)",
-    "due": "יעד {date}"
+    "due": "יעד {date}",
+    "vendorLabel": "קבלן",
+    "vendorPlaceholder": "בחרו קבלן",
+    "agreementLabel": "הסכם",
+    "principalLabel": "משתמש קבלן",
+    "optional": "אופציונלי",
+    "none": "ללא",
+    "submit": "הקצה לקבלן",
+    "submitting": "מקצה...",
+    "empty": "אין קבלנים משויכים לפרויקט",
+    "vendorRequired": "יש לבחור קבלן",
+    "projectRequired": "אי אפשר להקצות משימה בלי פרויקט"
   },
   "taskStatus": {
     "assigned": "הוקצתה",

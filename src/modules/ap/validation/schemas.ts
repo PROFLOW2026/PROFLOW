@@ -23,6 +23,7 @@ export const createApBillSchema = z.object({
   /** When true, persist as draft - no Actual, no commitment consumption. */
   asDraft: z.boolean().optional(),
   confirmDistinctCosts: z.boolean().optional(),
+  acknowledgeDuplicateVendorReference: z.boolean().optional(),
   inventoryStockPurchase: z.boolean().optional(),
   inventoryItemId: z.string().uuid().optional().nullable(),
   inventoryPurchaseQty: moneyString.optional().nullable(),
@@ -153,24 +154,28 @@ export const saveBillProjectAllocationsSchema = z.object({
   apply: z.boolean().optional().default(false),
   /** Intent for under-allocated bill NET remainder after project lines. */
   remainderAllocationIntent: z.enum(['auto_pool', 'company_only']).optional(),
+  changeAcknowledged: z.literal(true).optional(),
 });
 
 export type SaveBillProjectAllocationsInput = z.input<typeof saveBillProjectAllocationsSchema>;
 
 export const applyBillProjectAllocationsSchema = z.object({
   apBillId: z.string().uuid(),
+  changeAcknowledged: z.literal(true).optional(),
 });
 
 export type ApplyBillProjectAllocationsInput = z.input<typeof applyBillProjectAllocationsSchema>;
 
 export const voidApBillSchema = z.object({
   billId: z.string().uuid(),
+  changeAcknowledged: z.literal(true).optional(),
 });
 
 export type VoidApBillInput = z.input<typeof voidApBillSchema>;
 
 export const restoreApBillSchema = z.object({
   billId: z.string().uuid(),
+  changeAcknowledged: z.literal(true).optional(),
 });
 
 export type RestoreApBillInput = z.input<typeof restoreApBillSchema>;
@@ -217,6 +222,16 @@ export const updateRecordedVendorPaymentDateSchema = z.object({
 
 export type UpdateRecordedVendorPaymentDateInput = z.infer<
   typeof updateRecordedVendorPaymentDateSchema
+>;
+
+export const correctRecordedVendorPaymentAmountSchema = z.object({
+  paymentId: z.string().uuid(),
+  amount: moneyString,
+  changeAcknowledged: z.literal(true),
+});
+
+export type CorrectRecordedVendorPaymentAmountInput = z.infer<
+  typeof correctRecordedVendorPaymentAmountSchema
 >;
 
 export const createVendorCreditSchema = z.object({

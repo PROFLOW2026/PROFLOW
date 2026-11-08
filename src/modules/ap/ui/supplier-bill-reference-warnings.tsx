@@ -37,6 +37,8 @@ export function DuplicateVendorBillReferenceWarning({
       <label className="mt-3 flex items-start gap-2 text-sm">
         <input
           type="checkbox"
+          name="acknowledgeDuplicateVendorReference"
+          value="true"
           className="mt-1"
           checked={acknowledged}
           onChange={(event) => onAcknowledgedChange(event.target.checked)}

@@ -49,7 +49,18 @@
   "contractorPanel": {
     "title": "Назначение подрядчику",
     "evidenceRequired": "Требуется доказательство",
-    "due": "Срок {date}"
+    "due": "Срок {date}",
+    "vendorLabel": "Подрядчик",
+    "vendorPlaceholder": "Выберите подрядчика",
+    "agreementLabel": "Договор",
+    "principalLabel": "Пользователь подрядчика",
+    "optional": "Необязательно",
+    "none": "Нет",
+    "submit": "Назначить подрядчику",
+    "submitting": "Назначение...",
+    "empty": "К проекту не привязаны подрядчики",
+    "vendorRequired": "Выберите подрядчика",
+    "projectRequired": "Нельзя назначить задачу подрядчику без проекта"
   },
   "taskStatus": {
     "assigned": "Назначена",

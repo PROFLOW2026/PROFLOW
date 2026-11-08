@@ -1,0 +1,131 @@
+-- Proposed for migration 0198. Do not apply from this file.
+-- Wins exactly one crm_opportunities row: the opportunity_id stored on the
+-- converted estimate in the same organization. Caller must already hold the
+-- quote-convert permission set (quotes.manage, projects.create, projects.update,
+-- contracts.manage) org-wide, as an employee grant, or on that project.
+-- Does not grant crm.manage and does not update any other opportunity.
+
+CREATE OR REPLACE FUNCTION app.mark_linked_opportunity_won(
+  p_organization_id uuid,
+  p_quote_id uuid,
+  p_opportunity_id uuid,
+  p_project_id uuid,
+  p_client_id uuid,
+  p_contract_id uuid,
+  p_converted_at timestamptz
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $fn$
+DECLARE
+  v_linked uuid;
+  v_status text;
+  v_existing_project uuid;
+BEGIN
+  IF app.current_user_id() IS NULL THEN
+    RAISE EXCEPTION 'authentication required' USING ERRCODE = '42501';
+  END IF;
+
+  IF NOT app.is_org_member(p_organization_id) THEN
+    RAISE EXCEPTION 'not an organization member' USING ERRCODE = '42501';
+  END IF;
+
+  IF NOT (
+    (
+      app.uwm_has_permission(p_organization_id, 'quotes.manage')
+      OR app.has_project_permission(p_organization_id, p_project_id, 'quotes.manage')
+    )
+    AND (
+      app.uwm_has_permission(p_organization_id, 'projects.create')
+      OR app.has_project_permission(p_organization_id, p_project_id, 'projects.create')
+    )
+    AND (
+      app.uwm_has_permission(p_organization_id, 'projects.update')
+      OR app.has_project_permission(p_organization_id, p_project_id, 'projects.update')
+    )
+    AND (
+      app.uwm_has_permission(p_organization_id, 'contracts.manage')
+      OR app.has_project_permission(p_organization_id, p_project_id, 'contracts.manage')
+    )
+  ) THEN
+    RAISE EXCEPTION 'missing quote convert permission' USING ERRCODE = '42501';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM public.projects p
+    WHERE p.id = p_project_id
+      AND p.organization_id = p_organization_id
+  ) THEN
+    RAISE EXCEPTION 'project is outside the organization' USING ERRCODE = '42501';
+  END IF;
+
+  IF p_client_id IS NOT NULL AND NOT EXISTS (
+    SELECT 1
+    FROM public.clients c
+    WHERE c.id = p_client_id
+      AND c.organization_id = p_organization_id
+  ) THEN
+    RAISE EXCEPTION 'client is outside the organization' USING ERRCODE = '42501';
+  END IF;
+
+  IF p_contract_id IS NOT NULL AND NOT EXISTS (
+    SELECT 1
+    FROM public.contracts c
+    WHERE c.id = p_contract_id
+      AND c.organization_id = p_organization_id
+      AND c.project_id = p_project_id
+  ) THEN
+    RAISE EXCEPTION 'contract is outside the converted project' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT e.opportunity_id
+  INTO v_linked
+  FROM public.estimates e
+  WHERE e.id = p_quote_id
+    AND e.organization_id = p_organization_id
+    AND e.status = 'converted'
+    AND e.converted_project_id = p_project_id;
+
+  IF v_linked IS DISTINCT FROM p_opportunity_id THEN
+    RAISE EXCEPTION 'opportunity is not linked to this converted quote' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT o.status, o.converted_project_id
+  INTO v_status, v_existing_project
+  FROM public.crm_opportunities o
+  WHERE o.id = p_opportunity_id
+    AND o.organization_id = p_organization_id
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RETURN;
+  END IF;
+
+  IF v_status IN ('lost', 'cancelled') THEN
+    RETURN;
+  END IF;
+
+  IF v_existing_project IS NOT NULL AND v_existing_project IS DISTINCT FROM p_project_id THEN
+    RETURN;
+  END IF;
+
+  UPDATE public.crm_opportunities
+  SET
+    status = 'won',
+    stage = 'won',
+    converted_client_id = COALESCE(p_client_id, converted_client_id),
+    converted_project_id = p_project_id,
+    converted_contract_id = COALESCE(p_contract_id, converted_contract_id),
+    converted_at = COALESCE(converted_at, p_converted_at, now()),
+    updated_at = now()
+  WHERE id = p_opportunity_id
+    AND organization_id = p_organization_id;
+END;
+$fn$;
+
+REVOKE ALL ON FUNCTION app.mark_linked_opportunity_won(uuid, uuid, uuid, uuid, uuid, uuid, timestamptz) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.mark_linked_opportunity_won(uuid, uuid, uuid, uuid, uuid, uuid, timestamptz) TO authenticated;
+GRANT EXECUTE ON FUNCTION app.mark_linked_opportunity_won(uuid, uuid, uuid, uuid, uuid, uuid, timestamptz) TO service_role;

@@ -25,6 +25,11 @@ import {
 } from '../domain/data-confidence';
 import { resolveForecastCostBasis } from '../domain/resolve-forecast-cost-basis';
 import { resolveOrgRollupKpiMoneyFields } from '../domain/org-rollup-kpi-money';
+import {
+  presentOrganizationRollup,
+  type OrganizationRollupShowing,
+  type OrganizationRollupTotals,
+} from '../domain/organization-rollup-page';
 import { DEFAULT_PROJECT_PROFITABILITY_MODE } from '@/modules/tenancy/domain/project-profitability-mode';
 import {
   loadProjectFinancialsBatch,
@@ -100,7 +105,17 @@ export interface OrganizationProjectRollupOptions {
 export interface OrganizationProjectRollup {
   readonly currency: string;
   readonly workKindFilter: WorkKindFilter;
+  /** Display page only. Financial totals use `eligibleRows`. */
   readonly rows: readonly ProjectRollupRow[];
+  /** Every base-currency active project/job in the selected filter. */
+  readonly eligibleRows: readonly ProjectRollupRow[];
+  /** 1-based display window: showing `from`–`to` of `total`. */
+  readonly showing: OrganizationRollupShowing;
+  /**
+   * Totals, profit, allocations, and balances for every eligible row.
+   * Unallocated org costs are not folded in; callers pass those beside project Actual.
+   */
+  readonly totals: OrganizationRollupTotals;
   readonly ops: OrganizationOpsSummary;
   /** Projects excluded because their currency differs from org base. */
   readonly excludedForeignCurrencyCount: number;
@@ -163,6 +178,7 @@ function rollupMemoKey(options: OrganizationProjectRollupOptions): string | null
  *
  * All base-currency active projects and jobs are included (filterable).
  * Optional limit/offset only pages the returned `rows` array.
+ * `eligibleRows` and `totals` always cover every eligible project.
  *
  * Uses set-based batch loads (not per-project getProjectFinancials) while
  * composing each row with the same financial formulas.
@@ -437,14 +453,20 @@ async function computeOrganizationProjectRollup(
     ? allRows.filter((row) => row.profitable === true).length
     : null;
 
-  const offset = Math.max(0, options.offset ?? 0);
-  const limit = options.limit != null && options.limit > 0 ? options.limit : undefined;
-  const rows = limit == null ? allRows : allRows.slice(offset, offset + limit);
+  const presented = presentOrganizationRollup(allRows, {
+    currency,
+    offset: options.offset,
+    limit: options.limit,
+    canReadCommercial: canCommercial,
+  });
 
   return {
     currency,
     workKindFilter,
-    rows,
+    rows: presented.rows,
+    eligibleRows: presented.eligibleRows,
+    showing: presented.showing,
+    totals: presented.totals,
     ops: {
       /** Full base-currency eligible set for the active work-kind filter. */
       activeProjectCount: allRows.length,
@@ -456,7 +478,7 @@ async function computeOrganizationProjectRollup(
     excludedForeignCurrencyCount,
     truncatedActiveProjectCount: 0,
     totalEligibleProjectCount: allRows.length,
-    note: 'Amounts use organization base currency only. VAT is not treated as profit. Actual, Committed and Forecast stay labelled separately. Incomplete cost coverage is disclosed per project financials. Org totals include every base-currency active project and job in the selected All/Projects/Jobs filter (limit/offset page rows only). Open-price jobs contribute costs but not profit. Unallocated organization costs are reported beside rollup totals, never inside project profit.',
+    note: 'Amounts use organization base currency only. VAT is not treated as profit. Actual, Committed and Forecast stay labelled separately. Incomplete cost coverage is disclosed per project financials. Org totals include every base-currency active project and job in the selected All/Projects/Jobs filter. limit/offset pages the displayed rows only and never the totals. Open-price jobs contribute costs but not profit. Unallocated organization costs are reported beside rollup totals, never inside project profit.',
     canReadProfit: canProfit,
     canReadBilling: canBilling,
     canReadCommercial: canCommercial,

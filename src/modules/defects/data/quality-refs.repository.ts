@@ -82,6 +82,52 @@ export async function projectVendorNames(
   return names;
 }
 
+/**
+ * vendorId -> display name for many projects in one query.
+ * Uses the same security-definer directory as projectVendorNames, filtered with project_id IN.
+ */
+export async function projectVendorNamesForProjects(
+  db: DbExecutor,
+  organizationId: string,
+  projectIds: readonly string[],
+): Promise<Map<string, Map<string, string>>> {
+  const ids = [...new Set(projectIds.filter((id) => id.length > 0))];
+  const byProject = new Map<string, Map<string, string>>();
+  if (ids.length === 0) return byProject;
+
+  const alias = new Map(ids.map((id) => [id.toLowerCase(), id]));
+  const uuidList = () =>
+    sql.join(
+      ids.map((id) => sql`${id}::uuid`),
+      sql`, `,
+    );
+  const rows = sqlRows<{
+    project_id: string;
+    vendor_id: string;
+    vendor_name: string | null;
+  }>(
+    await db.execute(sql`
+      SELECT ids.project_id::text AS project_id,
+             c.vendor_id::text AS vendor_id,
+             c.vendor_name
+      FROM unnest(ARRAY[${uuidList()}]::uuid[]) AS ids(project_id)
+      CROSS JOIN LATERAL app.quality_project_contractors(${organizationId}::uuid, ids.project_id) AS c
+      WHERE ids.project_id IN (${uuidList()})
+    `),
+  );
+  for (const row of rows) {
+    const projectId = alias.get(String(row.project_id).toLowerCase());
+    if (!projectId || !row.vendor_id) continue;
+    let names = byProject.get(projectId);
+    if (!names) {
+      names = new Map<string, string>();
+      byProject.set(projectId, names);
+    }
+    names.set(row.vendor_id, row.vendor_name ?? '');
+  }
+  return byProject;
+}
+
 function invalid(path: string): never {
   throw new ValidationError([{ path, message: 'Invalid reference', messageKey: 'defects.errors.invalidReference' }]);
 }

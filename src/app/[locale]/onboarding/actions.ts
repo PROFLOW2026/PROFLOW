@@ -48,6 +48,7 @@ export async function createOrganizationAction(
     workMix: formData.get('workMix'),
     moduleMode: formData.get('moduleMode') || undefined,
     extraModules: formData.get('extraModules'),
+    experienceComplexity: formData.get('experienceComplexity'),
   });
   if (!parsed.success) return { error: tErrors('validationFailed') };
 

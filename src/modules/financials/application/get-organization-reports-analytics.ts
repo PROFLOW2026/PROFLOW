@@ -185,13 +185,12 @@ export async function getOrganizationReportsAnalytics(
         }
       : cashFlowBase;
 
-  // Rollup includes every base-currency active project (no correctness cap).
-  // Optional limit/offset on rollup pages rows only - aggregates always use the full set.
+  // Totals use every eligible project. limit/offset pages rollup.rows only.
   const commercial = rollup.canReadCommercial
-    ? aggregateOrgCommercial(rollup.rows, currency)
+    ? aggregateOrgCommercial(rollup.eligibleRows, currency)
     : null;
-  const cash = rollup.canReadBilling ? aggregateOrgCash(rollup.rows, currency) : null;
-  const cost = aggregateOrgCost(rollup.rows, currency, { unallocatedBusinessCosts });
+  const cash = rollup.canReadBilling ? aggregateOrgCash(rollup.eligibleRows, currency) : null;
+  const cost = aggregateOrgCost(rollup.eligibleRows, currency, { unallocatedBusinessCosts });
   const allocatedGeneralFromPool =
     fromNumericString(generalPoolTotals.allocated, currency) ?? zeroMoney(currency);
   const costWithAllocatedGeneral =
@@ -234,7 +233,7 @@ export async function getOrganizationReportsAnalytics(
         })
       : null;
   const recognizedCompanyRevenue = deriveRecognizedCompanyRevenue(
-    rollup.rows,
+    rollup.eligibleRows,
     currency,
     rollup.canReadCommercial,
   );
@@ -268,7 +267,7 @@ export async function getOrganizationReportsAnalytics(
         })
       : null;
   const profitability = rollup.canReadProfit
-    ? aggregateOrgProfit(rollup.rows, currency)
+    ? aggregateOrgProfit(rollup.eligibleRows, currency)
     : null;
 
   const canField = hasPermission(context, PERMISSIONS.FIELD_OPS_READ);
@@ -282,7 +281,7 @@ export async function getOrganizationReportsAnalytics(
       : null;
 
   const assetCapital = sumAssetCapitalActual(
-    rollup.rows
+    rollup.eligibleRows
       .map((row) => row.assetCapitalActual)
       .filter((value): value is NonNullable<typeof value> => value != null),
     currency,
@@ -429,7 +428,7 @@ export async function getOrganizationReportsAnalytics(
       hasNonZeroMoney(commercial.pending.value) ||
       hasNonZeroMoney(commercial.original.value))
       ? commercial
-      : commercial && rollup.rows.some((r) => r.originalContract != null)
+      : commercial && rollup.eligibleRows.some((r) => r.originalContract != null)
         ? commercial
         : null;
 

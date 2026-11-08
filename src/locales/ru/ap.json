@@ -373,6 +373,8 @@
     "duplicateReason": "Та же дата и сумма ({date}, {amount}).",
     "correctPaymentDate": "Исправить дату оплаты",
     "correctPaymentDateHint": "Только владелец. Отчёты по кассе — по дате оплаты; признание счёта не меняется.",
+    "correctPaymentAmount": "Исправить сумму платежа",
+    "savePaymentCorrection": "Сохранить исправление платежа",
     "savePaymentDate": "Сохранить дату оплаты"
   },
   "aging": {
@@ -456,8 +458,10 @@
     "paymentBillNotPayable": "Нельзя оплатить черновик или аннулированный счёт.",
     "paymentOverApplied": "Платёж превысит задолженность по счёту.",
     "paymentApplicationMismatch": "Сумма платежа должна равняться сумме применений.",
-    "paymentNotVoidable": "Аннулировать можно только записанные платежи.",
+    "paymentNotVoidable": "Аннулировать можно только записанные платежи.",
+    "paymentNotRestorable": "Восстановить можно только аннулированный платёж поставщику.",
     "paymentNotEditable": "ניתן לתקן כאן רק תשלומים במצב רשום.",
+    "paymentCorrectionMultiApply": "Платёж, разнесённый на несколько счетов, нельзя изменить по сумме здесь.",
     "confirmRequired": "יש לאשר את השינוי לפני שמירה.",
     "ownerOnlyRetroactiveEdit": "רק בעל הארגון רשאי לבצע תיקון זה.",
     "paymentVendorMismatch": "Все применения к счетам должны иметь одного поставщика.",

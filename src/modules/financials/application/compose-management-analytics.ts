@@ -115,7 +115,7 @@ export async function composeManagementAnalytics(
 
   const profitByClient = canProfit
     ? groupProfitByClient(
-        input.rollup.rows.map((row) => {
+        input.rollup.eligibleRows.map((row) => {
           const client = clientNameByProject.get(row.projectId);
           return {
             clientId: client?.clientId ?? null,
@@ -128,7 +128,7 @@ export async function composeManagementAnalytics(
     : null;
 
   const riskByProject = new Map<string, ProjectRiskRow>();
-  for (const row of input.rollup.rows) {
+  for (const row of input.rollup.eligibleRows) {
     const warnings = evaluateEarlyWarnings({
       projectId: row.projectId,
       workKind: row.workKind,
@@ -199,9 +199,9 @@ export async function composeManagementAnalytics(
     opportunityConversion: opportunityConversion
       ? { ...opportunityConversion, href: '/crm' }
       : null,
-    profitByProject: canProfit ? groupProfitByProject(input.rollup.rows) : null,
+    profitByProject: canProfit ? groupProfitByProject(input.rollup.eligibleRows) : null,
     profitByClient: profitByClient,
-    profitByWorkType: canProfit ? groupProfitByWorkType(input.rollup.rows, currency) : null,
+    profitByWorkType: canProfit ? groupProfitByWorkType(input.rollup.eligibleRows, currency) : null,
     projectsAtRisk: riskByProject.size > 0 ? [...riskByProject.values()] : null,
     workforceHours:
       timeEntries.length > 0

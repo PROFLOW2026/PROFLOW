@@ -170,6 +170,7 @@ export async function updateProject(
           currency,
           amountIncludesTax: includesTax,
           openingReductionAmount: input.openingReductionAmount,
+          changeAcknowledged: input.changeAcknowledged,
         });
       }
     } else {
@@ -179,6 +180,7 @@ export async function updateProject(
         currency,
         amountIncludesTax: includesTax,
         openingReductionAmount: input.openingReductionAmount,
+        changeAcknowledged: input.changeAcknowledged,
       });
     }
   }

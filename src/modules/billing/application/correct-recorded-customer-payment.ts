@@ -4,6 +4,7 @@ import { businessDate, type BusinessDate } from '@/shared/dates';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertBusinessChangeAcknowledged } from '@/shared/business-change/assert-change-acknowledged';
+import { retainBusinessDate } from '@/shared/business-change/assert-owner-retroactive';
 import { isOrganizationOwner } from '@/shared/business-change/org-owner';
 import { compareMoney, money, toNumericString } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
@@ -106,7 +107,7 @@ export async function correctRecordedCustomerPayment(
 
   const existingPaymentDate = businessDate(existing.paymentDate);
   const nextDate: BusinessDate = input.paymentDate
-    ? businessDate(input.paymentDate)
+    ? businessDate(retainBusinessDate(input.paymentDate, new Date()))
     : existingPaymentDate;
   const touchesDate = input.paymentDate !== undefined && nextDate !== existingPaymentDate;
   const touchesAmount = input.amount !== undefined && input.amount !== existing.amount;

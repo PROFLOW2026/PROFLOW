@@ -3,7 +3,7 @@
 import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
-import { mapServerActionError, ValidationError } from '@/shared/errors';
+import { mapServerActionError, NotFoundError, ValidationError } from '@/shared/errors';
 import {
   getMyWork,
   getMyWorkPage,
@@ -47,6 +47,7 @@ import {
   linkProviderFileToTaskComment,
 } from '@/modules/tasks';
 import type { ProviderFileLinkInput } from '@/modules/tasks/application/task-provider-file-link';
+import { retainAccessibleProjectId } from '@/modules/tasks/application/retain-accessible-project-id';
 import type { ProjectCloudFileRef } from '@/modules/external-storage/client';
 import {
   getTaskRecurrence,
@@ -131,11 +132,11 @@ export async function getTaskDetailAction(taskId: string) {
   return withOrgContext(async (context) => {
     try {
       const detail = await getTaskDetail(context, taskId);
-      if (!detail) return null;
       const { mapTaskDetailToUiForOrg } = await import('@/modules/tasks/application/map-tasks-for-ui');
       return mapTaskDetailToUiForOrg(context, detail);
-    } catch {
-      return null;
+    } catch (error) {
+      if (error instanceof NotFoundError) return null;
+      throw error;
     }
   });
 }
@@ -294,6 +295,38 @@ export async function loadMoreMyWorkAction(
   });
 }
 
+
+function readFormAssigneeKeys(formData: FormData): string[] | undefined {
+  const keys = formData.getAll('assigneeKeys').flatMap((value) => {
+    const text = String(value).trim();
+    if (!text) return [];
+    if (text.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(text) as unknown;
+        if (Array.isArray(parsed)) {
+          return parsed
+            .filter((item): item is string => typeof item === 'string')
+            .map((item) => item.trim())
+            .filter((item) => item.length > 0);
+        }
+      } catch {
+        // Fall through to a comma-separated list.
+      }
+    }
+    return text
+      .split(',')
+      .map((part) => part.trim())
+      .filter((part) => part.length > 0);
+  });
+  const unique = [...new Set(keys)];
+  return unique.length > 0 ? unique : undefined;
+}
+
+function readAssignAllProjectTeam(formData: FormData): boolean {
+  const raw = formData.get('assignAllProjectTeam');
+  return raw === '1' || raw === 'on' || raw === 'true';
+}
+
 // ─── Create Task ─────────────────────────────────────────────────────────────
 
 export async function createTaskAction(
@@ -313,6 +346,8 @@ export async function createTaskAction(
     const startDate = formData.get('startDate') as string | null;
     const dueDate = formData.get('dueDate') as string | null;
     const approvalRequired = formData.get('approvalRequired') === 'on' || formData.get('approvalRequired') === '1';
+    const assigneeKeys = readFormAssigneeKeys(formData);
+    const assignAllProjectTeam = readAssignAllProjectTeam(formData);
 
     await withOrgContext(async (context) => {
       await createTask(context, {
@@ -326,6 +361,8 @@ export async function createTaskAction(
         startDate: startDate || null,
         dueDate: dueDate || null,
         approvalRequired,
+        ...(assigneeKeys ? { assigneeKeys } : {}),
+        ...(assignAllProjectTeam ? { assignAllProjectTeam: true } : {}),
       });
     });
 
@@ -346,10 +383,11 @@ export async function createMyWorkTaskFromFabAction(input: CreateTaskInput): Pro
     if (!workspaceId) {
       throw new ValidationError([{ path: 'workspaceId', message: 'No workspace available' }]);
     }
+    const projectId = await retainAccessibleProjectId(context, input.projectId);
     await createTask(context, {
       ...input,
       workspaceId,
-      projectId: input.projectId ?? null,
+      projectId,
       boardId: input.boardId ?? null,
       bucketId: input.bucketId ?? null,
     });

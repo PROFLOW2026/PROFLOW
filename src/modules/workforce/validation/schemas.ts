@@ -438,6 +438,7 @@ export const applyMonthlyEmployerCostAllocationSchema = z.object({
   yearMonth: yearMonthSchema,
   /** When omitted, applies the active draft run for the month. */
   runId: z.string().uuid().optional(),
+  changeAcknowledged: z.literal(true).optional(),
 });
 
 export type ApplyMonthlyEmployerCostAllocationInput = z.infer<
@@ -501,6 +502,8 @@ export const manualAttendanceWorkdayRangeSchema = z
      * Required when any selected date already has attendance.
      */
     overwriteConfirmed: z.boolean().default(false),
+    /** Closed-month source edit: owner confirmed the warning. */
+    changeAcknowledged: z.literal(true).optional(),
     /**
      * Owner work association (optional for costing/project time).
      * `general` = attendance only; `project` = also create project time for the same days.

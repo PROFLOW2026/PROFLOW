@@ -45,8 +45,6 @@ export default async function IntegrationsSettingsPage() {
       return {
         allowed: true as const,
         catalog: [],
-        mappingCount: 0,
-        syncJobs: [],
         adapterConnected: false as const,
         canManage: false,
         sumit: { connected: false, companyId: null, providerId: null },

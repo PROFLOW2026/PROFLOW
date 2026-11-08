@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { DomainRuleError, apiRouteErrorFromUnknown } from '@/shared/errors';
+import { DomainRuleError, fileRouteErrorResponse } from '@/shared/errors';
 import type { OpenedFile } from './application/file-store';
 
 /** Reads a raw upload body, refusing anything beyond `maxBytes` without buffering it all first. */
@@ -52,5 +52,5 @@ export function fileResponse(file: OpenedFile & { readonly fileName: string }, i
 }
 
 export function fileRouteError(error: unknown): Response {
-  return apiRouteErrorFromUnknown(error, 'externalStorage.errors.operationFailed');
+  return fileRouteErrorResponse(error);
 }

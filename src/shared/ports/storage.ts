@@ -44,6 +44,14 @@ export interface StoragePort {
   }): string;
   createUploadUrl(key: string, contentType: string): Promise<SignedUploadUrl>;
   createDownloadUrl(key: string, expiresInSeconds?: number): Promise<SignedUrl>;
+  /**
+   * Signs many keys in one storage round-trip. URL shape matches createDownloadUrl.
+   * A null entry means that key could not be signed.
+   */
+  createDownloadUrls?(
+    keys: readonly string[],
+    expiresInSeconds?: number,
+  ): Promise<Array<SignedUrl | null>>;
   /** Server-side byte fetch for OCR and other private processing. */
   downloadBytes(key: string): Promise<DownloadedObject>;
   remove(key: string): Promise<void>;
@@ -109,6 +117,10 @@ class UnconfiguredStorageAdapter implements StoragePort {
     throw new StorageNotConfiguredError();
   }
 
+  async createDownloadUrls(): Promise<Array<SignedUrl | null>> {
+    throw new StorageNotConfiguredError();
+  }
+
   async downloadBytes(): Promise<DownloadedObject> {
     throw new StorageNotConfiguredError();
   }
@@ -161,6 +173,28 @@ class SupabaseStorageAdapter implements StoragePort {
     return { url: data.signedUrl, expiresAt: new Date(Date.now() + expiresInSeconds * 1000) };
   }
 
+  async createDownloadUrls(
+    keys: readonly string[],
+    expiresInSeconds = DEFAULT_DOWNLOAD_TTL_SECONDS,
+  ): Promise<Array<SignedUrl | null>> {
+    if (keys.length === 0) return [];
+    const supabase = await this.client();
+    const { data, error } = await supabase.storage
+      .from(this.bucket)
+      .createSignedUrls([...keys], expiresInSeconds);
+    if (error || !data) {
+      throw new Error(`Could not create download URLs: ${error?.message ?? 'missing data'}`);
+    }
+    const expiresAt = new Date(Date.now() + expiresInSeconds * 1000);
+    const byPath = new Map(
+      data.flatMap((item) => (item.path ? [[item.path, item.signedUrl] as const] : [])),
+    );
+    const ordered = keys.every((key) => byPath.has(key))
+      ? keys.map((key) => byPath.get(key) ?? null)
+      : keys.map((_, index) => data[index]?.signedUrl ?? null);
+    return ordered.map((url) => (url ? { url, expiresAt } : null));
+  }
+
   async downloadBytes(key: string): Promise<DownloadedObject> {
     const supabase = await this.client();
     const { data, error } = await supabase.storage.from(this.bucket).download(key);
@@ -204,6 +238,14 @@ class E2eHarnessStorageAdapter implements StoragePort {
       url: this.objectUrl(key),
       expiresAt: new Date(Date.now() + expiresInSeconds * 1000),
     };
+  }
+
+  async createDownloadUrls(
+    keys: readonly string[],
+    expiresInSeconds = DEFAULT_DOWNLOAD_TTL_SECONDS,
+  ): Promise<Array<SignedUrl | null>> {
+    const expiresAt = new Date(Date.now() + expiresInSeconds * 1000);
+    return keys.map((key) => ({ url: this.objectUrl(key), expiresAt }));
   }
 
   async downloadBytes(key: string): Promise<DownloadedObject> {

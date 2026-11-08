@@ -87,6 +87,22 @@ export function coveringGrants(
     );
 }
 
+/**
+ * Payment-list scope for grants that already cover this project.
+ * A named agreement stays named. A null agreement means every agreement of that vendor on the project.
+ */
+export function paymentListScope(
+  grants: readonly Pick<ExternalGrantView, 'subcontractAgreementId' | 'vendorId'>[],
+): { readonly agreementIds: readonly string[]; readonly vendorIds: readonly string[] } {
+  const agreementIds = new Set<string>();
+  const vendorIds = new Set<string>();
+  for (const grant of grants) {
+    if (grant.subcontractAgreementId) agreementIds.add(grant.subcontractAgreementId);
+    else vendorIds.add(grant.vendorId);
+  }
+  return { agreementIds: [...agreementIds], vendorIds: [...vendorIds] };
+}
+
 /** Vendors the principal may act for on a project with any of the capabilities. */
 export function scopedVendorIds(
   context: ExternalContext,

@@ -193,6 +193,9 @@ export {
   workMixForOnboardingStyle,
   modulesForManageOptions,
   resolveOnboardingProfileKey,
+  resolveOnboardingComplexity,
+  DEFAULT_ONBOARDING_COMPLEXITY,
+  CONSULTING_ONBOARDING_COMPLEXITY,
 } from './domain/onboarding-experience';
 export type {
   OnboardingBusinessType,

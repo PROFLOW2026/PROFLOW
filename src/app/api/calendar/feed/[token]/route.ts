@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { resolveOrgContext } from '@/modules/tenancy';
 import { buildMyWorkIcsFeed } from '@/modules/calendar/application/build-my-work-ics';
 import { resolveCalendarFeedByRawToken } from '@/modules/calendar/application/calendar-feed-tokens';
+import { permitScopedAuthAttempt } from '@/shared/auth/consume-auth-rate-limit';
 import { getAdminDb, withUserContext } from '@/shared/db/client';
 
 const hits = new Map<string, { count: number; resetAt: number }>();
@@ -29,6 +30,10 @@ export async function GET(
   }
 
   if (rateLimited(token.slice(0, 16))) {
+    return new NextResponse('Too many requests', { status: 429 });
+  }
+
+  if (!(await permitScopedAuthAttempt('calendar_feed', token.trim()))) {
     return new NextResponse('Too many requests', { status: 429 });
   }
 

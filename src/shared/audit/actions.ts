@@ -132,6 +132,7 @@ export const AUDIT_ACTIONS = {
   PAYMENT_RECORDED: 'payment.recorded',
   PAYMENT_ALLOCATED: 'payment.allocated',
   PAYMENT_VOIDED: 'payment.voided',
+  PAYMENT_RESTORED: 'payment.restored',
   PAYMENT_DATE_CORRECTED: 'payment.date_corrected',
   PAYMENT_CORRECTED: 'payment.corrected',
 
@@ -255,6 +256,7 @@ export const AUDIT_ACTIONS = {
   AP_MATCH_REJECTED: 'ap.match_rejected',
   AP_PAYMENT_RECORDED: 'ap.payment_recorded',
   AP_PAYMENT_VOIDED: 'ap.payment_voided',
+  AP_PAYMENT_RESTORED: 'ap.payment_restored',
   AP_CREDIT_CREATED: 'ap.credit_created',
   AP_CREDIT_UPDATED: 'ap.credit_updated',
   AP_CREDIT_POSTED: 'ap.credit_posted',

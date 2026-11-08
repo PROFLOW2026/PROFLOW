@@ -12,6 +12,10 @@ import {
   findExpenseById,
   updateExpenseRow,
 } from '@/modules/expenses';
+import {
+  holdApBillDuplicateWarnings,
+  readPendingDuplicateWarning,
+} from '@/modules/duplicate-warnings';
 import { nextOccurrenceOfDayOfMonth } from '@/modules/expenses/domain/cash-installment-schedule';
 import { isMonthClosed, yearMonthFromBusinessDate } from '@/modules/month-close';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
@@ -142,7 +146,8 @@ async function tryFinalizeRecurringExpense(
   const ym = yearMonthFromBusinessDate(runDate);
   if (await isMonthClosed(context, ym)) return 'blocked_closed';
 
-  await finalizeExpense(context, expenseId);
+  const finalized = await finalizeExpense(context, expenseId);
+  if (readPendingDuplicateWarning(finalized)) return 'draft';
   return 'finalized';
 }
 
@@ -253,6 +258,17 @@ async function createDraftEntity(
           };
         }),
       );
+
+      await holdApBillDuplicateWarnings(context, {
+        id: bill.id,
+        vendorId: bill.vendorId,
+        projectId: bill.projectId,
+        netAmount: bill.netAmount,
+        totalAmount: bill.totalAmount,
+        currency: bill.currency,
+        reference: bill.reference,
+        billDate: bill.billDate,
+      });
 
       return { id: bill.id, status: bill.status };
     }

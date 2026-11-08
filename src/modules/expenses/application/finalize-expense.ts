@@ -13,7 +13,7 @@ import {
 } from '@/modules/month-close';
 import { bookInventoryPurchaseFromExpenseOnExecutor } from '@/modules/assets/application/inventory-cost';
 import { assertExpenseFinalizeHasNoProjectDoubleAttribution } from '@/modules/expenses/application/expense-integrity-audit';
-import { assertExpenseFinalizeHasNoUnlinkedApOverlap } from '@/modules/financials/application/assert-expense-ap-overlap';
+import { holdExpenseDuplicateWarnings } from '@/modules/duplicate-warnings';
 import { resolveExpenseClassificationStatus } from '@/modules/financials/domain/economic-classification';
 import { isPositiveMoney, toNumericString } from '@/shared/money';
 import { expenseAllowsFinalizeWithoutCategory } from '../domain/targeting';
@@ -36,7 +36,10 @@ const EXPENSE_AUDIT_FINALIZED = 'expense.finalized';
 export async function finalizeExpense(
   context: OrgContext,
   expenseId: string,
-  options: { readonly confirmDistinctCosts?: boolean } = {},
+  options: {
+    readonly confirmDistinctCosts?: boolean;
+    readonly acknowledgeDuplicateVendorReference?: boolean;
+  } = {},
 ) {
   assertPermission(context, PERMISSIONS.EXPENSES_FINALIZE);
 
@@ -116,18 +119,25 @@ export async function finalizeExpense(
     allocations: existing.allocations,
   });
 
-  await assertExpenseFinalizeHasNoUnlinkedApOverlap(
-    context.db,
-    context.organizationId,
+  const pendingDuplicateWarning = await holdExpenseDuplicateWarnings(
+    context,
     {
       id: existing.id,
       vendorId: existing.vendorId,
       projectId: existing.projectId,
       netAmount: existing.netAmount.amount,
       currency: existing.netAmount.currency,
+      expenseDate: existing.expenseDate,
+      description: existing.description,
     },
-    options.confirmDistinctCosts === true,
+    {
+      confirmDistinctCosts: options.confirmDistinctCosts === true,
+      acknowledgeDuplicateVendorReference: options.acknowledgeDuplicateVendorReference === true,
+    },
   );
+  if (pendingDuplicateWarning) {
+    return { ...existing, pendingDuplicateWarning };
+  }
 
   const finalizedAt = todayInTimeZone(context.organization.timezone);
   const taxSnapshot = captureTaxSnapshot(

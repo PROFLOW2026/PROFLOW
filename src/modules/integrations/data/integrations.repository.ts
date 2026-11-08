@@ -1,9 +1,5 @@
-import { and, desc, eq } from 'drizzle-orm';
-import {
-  integrationEntityMappings,
-  integrationSyncJobs,
-  organizationIntegrations,
-} from '@drizzle/schema';
+import { and, eq } from 'drizzle-orm';
+import { organizationIntegrations } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { normalizeStoredIntegrationStatus, unconfiguredCapabilities } from '../domain/status-guard';
 import type {
@@ -38,35 +34,6 @@ export async function listOrganizationIntegrations(
     .where(eq(organizationIntegrations.organizationId, organizationId))
     .orderBy(organizationIntegrations.providerKey);
   return rows.map(mapIntegration);
-}
-
-export async function listIntegrationMappings(
-  db: DbExecutor,
-  organizationId: string,
-): Promise<number> {
-  const rows = await db
-    .select({ id: integrationEntityMappings.id })
-    .from(integrationEntityMappings)
-    .where(eq(integrationEntityMappings.organizationId, organizationId));
-  return rows.length;
-}
-
-export async function listRecentSyncJobs(
-  db: DbExecutor,
-  organizationId: string,
-): Promise<{ id: string; status: string; jobKind: string; errorMessage: string | null }[]> {
-  const rows = await db
-    .select()
-    .from(integrationSyncJobs)
-    .where(eq(integrationSyncJobs.organizationId, organizationId))
-    .orderBy(desc(integrationSyncJobs.createdAt))
-    .limit(20);
-  return rows.map((row) => ({
-    id: row.id,
-    status: row.status,
-    jobKind: row.jobKind,
-    errorMessage: row.errorMessage,
-  }));
 }
 
 export async function ensureUnconfiguredAccountingRows(

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import * as React from 'react';
 import { ChevronRight } from 'lucide-react';
@@ -798,6 +798,10 @@ export function ExpenseForm({
       <label className="flex items-start gap-2 text-sm">
         <input type="checkbox" name="confirmDistinctCosts" value="true" className="mt-1" />
         <span>{t('capture.overlapConfirmDistinct')}</span>
+      </label>
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="acknowledgeDuplicateVendorReference" value="true" className="mt-1" />
+        <span>{t('capture.referenceMatchAck')}</span>
       </label>
 
       <section className="flex min-w-0 flex-col gap-4">

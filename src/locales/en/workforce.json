@@ -30,6 +30,7 @@
     "detailTitle": "Timesheet period",
     "detailDescription": "Period hours and workflow for one employee week.",
     "notPayroll": "Timesheets track hours for operations and labor Actual. This is not payroll.",
+    "approvalAfterSubmit": "Hour approval happens after the timesheet is submitted.",
     "lockedYes": "Locked",
     "lockedHint": "Period is locked. Silent edits are blocked — use void + insert correction for changes.",
     "columns": {

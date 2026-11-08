@@ -5,6 +5,7 @@ import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { MoneyInput } from '@/components/patterns/money-input';
+import { acceptApAmountInput } from '@/modules/ap/domain/accept-amount-input';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -102,7 +103,7 @@ export function VendorCreditPanel({
           <Field label={t('amountLabel')} required>
             {(controlProps) => (
               <>
-                <MoneyInput {...controlProps} required value={amount} onValueChange={setAmount} />
+                <MoneyInput {...controlProps} required currency={currency} value={amount} onValueChange={(value) => setAmount(acceptApAmountInput(value, currency))} />
                 <input type="hidden" name="amount" value={amount} />
               </>
             )}

@@ -87,6 +87,16 @@ export function assertPaymentVoidable(status: PaymentRecordStatus): void {
   }
 }
 
+export function assertPaymentRestorable(status: PaymentRecordStatus): void {
+  if (status !== 'void') {
+    throw new DomainRuleError(
+      'Only voided payments can be restored',
+      'billing.errors.paymentNotRestorable',
+      { status },
+    );
+  }
+}
+
 export function recordStatusShape(status: BillingRecordStatus): 'draft' | 'approved' | 'void' {
   if (status === 'draft') return 'draft';
   if (status === 'void') return 'void';

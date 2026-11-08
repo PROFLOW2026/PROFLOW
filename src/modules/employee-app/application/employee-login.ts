@@ -2,6 +2,7 @@ import 'server-only';
 
 import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
+import { permitScopedAuthAttempt } from '@/shared/auth/consume-auth-rate-limit';
 import { getAdminDb } from '@/shared/db/client';
 import { createSupabaseServerClient, isSupabaseConfigured } from '@/shared/supabase/server';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
@@ -120,6 +121,12 @@ export async function employeeLogin(input: EmployeeLoginInput): Promise<Employee
   const noteThrottleFailure = () => recordEmployeeLoginFailure(throttleKey);
 
   const db = getAdminDb();
+  if (
+    throttleKey.username &&
+    !(await permitScopedAuthAttempt('employee_login', throttleKey.username, db))
+  ) {
+    throw new DomainRuleError('Too many attempts', 'employeeApp.errors.rateLimited');
+  }
 
   if (!isValidPin(input.pin)) {
     noteThrottleFailure();

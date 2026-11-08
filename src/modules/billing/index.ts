@@ -19,6 +19,7 @@ export { recordPayment } from './application/record-payment';
 export { recordCustomerPayment } from './application/record-customer-payment';
 export { allocateCustomerPayment } from './application/allocate-customer-payment';
 export { voidPayment } from './application/void-payment';
+export { restorePayment } from './application/restore-payment';
 export { listUnallocatedPayments } from './application/list-unallocated-payments';
 export { getProjectBillingPosition } from './application/get-project-billing-position';
 export { loadProjectBillingTabPayload } from './application/load-project-billing-tab';

@@ -29,13 +29,10 @@ function nextConfig(phase: string): NextConfig {
     '/*': ['./src/modules/reports/fonts/**/*'],
   },
   typedRoutes: false,
-  // Type safety: `npm run typecheck` (CI + local preflight) uses tsconfig.json.
-  // Skip the second full-graph TypeScript pass inside `next build` — it duplicates CI and
-  // exhausts Vercel's 8 GB builder (OOM/SIGKILL after Webpack on production deploys).
-  typescript:
-    phase === PHASE_PRODUCTION_BUILD
-      ? { ignoreBuildErrors: true }
-      : undefined,
+  // R-04: tsc --noEmit is clean, so the production build no longer ignores type errors.
+  // The previous ignoreBuildErrors flag also skipped a second typecheck that exhausted
+  // the 8 GB Vercel builder. Restore it only if a Linux production build fails on a
+  // Next-only check that tsc does not see, and record that failure as accepted risk.
   // package-lock.json lives beside this file, not at the drive root Next infers.
   turbopack: { root: import.meta.dirname },
   ...(productionBuild
@@ -71,6 +68,7 @@ function nextConfig(phase: string): NextConfig {
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(self), microphone=(), geolocation=()' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'" },
         ],
       },
       {

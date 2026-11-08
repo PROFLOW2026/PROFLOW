@@ -37,6 +37,7 @@ export async function ReportsAnalyticsView({
 }) {
   const t = await getTranslations('dashboard.reports');
   const tFinancial = await getTranslations('financial');
+  const tCommon = await getTranslations('common');
   const { rollup, cashFlow } = analytics;
 
   const sectionAnchorClass = (id: ReportsSection) =>
@@ -558,6 +559,15 @@ export async function ReportsAnalyticsView({
 
       <div id="reports-comparison" className={sectionAnchorClass('comparison')}>
         <MainAppSection title={t('sections.comparison')} description={t('sections.comparisonHint')}>
+        {rollup.showing.total > 0 ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">
+            {tCommon('pagination.showing', {
+              from: rollup.showing.from,
+              to: rollup.showing.to,
+              total: rollup.showing.total,
+            })}
+          </p>
+        ) : null}
         <ResponsiveTable
           items={rollup.rows}
           getRowKey={(row) => row.projectId}

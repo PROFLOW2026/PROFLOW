@@ -229,6 +229,7 @@
     "finalize": "إنهاء",
     "void": "إلغاء السجل",
     "voidPayment": "إلغاء الدفعة",
+    "restorePayment": "استعادة الدفعة",
     "recordPayment": "تسجيل دفعة",
     "clientAccountStatementPreview": "معاينة / طباعة كشف حساب العميل (كل الفوترة)",
     "paymentsTitle": "المدفوعات",
@@ -238,7 +239,8 @@
     "reference": "المرجع",
     "notes": "ملاحظات",
     "kind": "النوع",
-    "voidPaymentAriaLabel": "إلغاء دفعة {amount} من {date}"
+    "voidPaymentAriaLabel": "إلغاء دفعة {amount} من {date}",
+    "restorePaymentAriaLabel": "استعادة دفعة بمبلغ {amount} بتاريخ {date}"
   },
   "confirm": {
     "finalizeTitle": "إنهاء سجل الفوترة",
@@ -254,9 +256,13 @@
     "voidDraftConsequence": "تُعلَّم المسودة كملغاة وتبقى في السجل. لا تُحذف.",
     "voidDraftSuccess": "أُلغيت المسودة.",
     "voidPaymentTitle": "إلغاء الدفعة",
+    "restorePaymentTitle": "استعادة الدفعة",
     "voidPaymentQuestion": "إلغاء الدفعة بمبلغ <amount></amount> من <date></date>؟",
-    "voidPaymentConsequence": "ينشئ قيد عكس ولا يمكن التراجع.",
-    "voidPaymentSuccess": "تم إلغاء الدفعة."
+    "restorePaymentQuestion": "استعادة الدفعة بمبلغ <amount></amount> بتاريخ <date></date>؟",
+    "voidPaymentConsequence": "يمكن لصاحب المنظمة استعادة نفس الدفعة لاحقًا بعد التأكيد. الأدوار الأخرى لا تستطيع.",
+    "restorePaymentConsequence": "تعود نفس الدفعة إلى مسجّلة. التأكيد لصاحب المنظمة فقط.",
+    "voidPaymentSuccess": "تم إلغاء الدفعة.",
+    "restorePaymentSuccess": "تمت استعادة الدفعة."
   },
   "panel": {
     "positionTitle": "موقف الفوترة",
@@ -336,6 +342,7 @@
     "dueBeforeIssue": "لا يمكن أن يكون تاريخ الاستحقاق قبل تاريخ الإصدار.",
     "correctionNotVoidable": "قيود التصحيح لا يمكن إلغاؤها مرة أخرى.",
     "paymentTargetNotFinalized": "المدفوعات تُسجَّل فقط ضد سجلات فوترة مُنهية.",
+    "paymentNotRestorable": "يمكن استعادة دفعة ملغاة فقط.",
     "paymentNotVoidable": "فقط المدفوعات المُسجَّلة يمكن إلغاؤها.",
     "currencyMismatch": "عملة الفوترة يجب أن تطابق عملة المشروع.",
     "hasRecordedPayments": "ألغِ المدفوعات المُسجَّلة قبل إلغاء سجل الفوترة هذا.",

@@ -98,6 +98,11 @@ export interface ImportRowResult {
   readonly ok: boolean;
   readonly entityId?: string;
   readonly error?: string;
+  readonly pendingDuplicateWarning?: {
+    readonly recordId: string;
+    readonly snapshotHash: string;
+    readonly warningTypes: readonly string[];
+  };
 }
 
 export interface ImportConfirmResult {

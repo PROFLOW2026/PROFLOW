@@ -16,6 +16,7 @@ import {
   updateExpense,
   updateExpenseSchema,
 } from '@/modules/expenses';
+import { readPendingDuplicateWarning } from '@/modules/duplicate-warnings';
 import { expenseHasProjectAttribution } from '@/modules/expenses/domain/targeting';
 import {
   createDailyLog,
@@ -246,7 +247,8 @@ async function submitExpense(
         row.status === 'draft' &&
         (parsed.data.costCategoryId || expenseHasProjectAttribution(parsed.data))
       ) {
-        await finalizeExpense(context, row.id);
+        const finalized = await finalizeExpense(context, row.id);
+        if (readPendingDuplicateWarning(finalized)) return row;
         const refreshed = await getExpense(context, row.id);
         return refreshed;
       }
@@ -287,7 +289,8 @@ async function submitExpense(
       parsed.data.finalizeOnCreate === true &&
       (parsed.data.costCategoryId || expenseHasProjectAttribution(parsed.data))
     ) {
-      await finalizeExpense(context, row.id);
+      const finalized = await finalizeExpense(context, row.id);
+      if (readPendingDuplicateWarning(finalized)) return row;
       return getExpense(context, row.id);
     }
     return row;

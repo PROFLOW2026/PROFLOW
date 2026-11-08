@@ -16,12 +16,12 @@ export async function employeeCreateExpenseAction(formData: FormData): Promise<v
   const projectId = String(formData.get('projectId') ?? '') || null;
   const supplierName = String(formData.get('supplierName') ?? '') || null;
 
-  await withOrgContext(async (context) => {
+  const created = await withOrgContext(async (context) => {
     await assertEmployeeAppContext(context);
     const date =
       expenseDate ||
       todayInTimeZone(context.organization.timezone);
-    await createEmployeeOperationalExpense(context, {
+    return createEmployeeOperationalExpense(context, {
       amount,
       description,
       expenseDate: date,
@@ -31,5 +31,6 @@ export async function employeeCreateExpenseAction(formData: FormData): Promise<v
   });
 
   revalidatePath('/employee/expenses');
-  redirect({ href: '/employee/expenses', locale });
+  revalidatePath(`/employee/expenses/${created.id}`);
+  redirect({ href: `/employee/expenses/${created.id}`, locale });
 }

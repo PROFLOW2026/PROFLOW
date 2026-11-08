@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MoneyInput } from '@/components/patterns/money-input';
 import { MoneyText } from '@/components/patterns/money-text';
 import { money } from '@/shared/money/money';
+import { acceptApAmountInput } from '@/modules/ap/domain/accept-amount-input';
 import {
   previewBillAllocationStrip,
   type BillAllocationMethod,
@@ -88,10 +89,9 @@ export function VendorBillAllocationPanel({
 
   const preview = useMemo(() => {
     if (mode === 'single') {
-      const net = Number(recognizedNet) || 0;
       return {
-        allocated: net.toFixed(2),
-        unallocated: '0.00',
+        allocated: recognizedNet || '0',
+        unallocated: '0',
         exceeds: false,
         lineAmounts: [] as string[],
       };
@@ -285,12 +285,12 @@ export function VendorBillAllocationPanel({
                         setLines((prev) =>
                           prev.map((item) =>
                             item.key === line.key
-                              ? { ...item, method: 'manual_amount', amount: value }
+                              ? { ...item, method: 'manual_amount', amount: acceptApAmountInput(value, currency) }
                               : item,
                           ),
                         )
                       }
-                      currencySymbol={currency}
+                      currency={currency} currencySymbol={currency}
                     />
                   )}
                 </Field>
@@ -333,11 +333,11 @@ export function VendorBillAllocationPanel({
                           onValueChange={(value) =>
                             setLines((prev) =>
                               prev.map((item) =>
-                                item.key === line.key ? { ...item, amount: value } : item,
+                                item.key === line.key ? { ...item, amount: acceptApAmountInput(value, currency) } : item,
                               ),
                             )
                           }
-                          currencySymbol={currency}
+                          currency={currency} currencySymbol={currency}
                         />
                       )}
                     </Field>

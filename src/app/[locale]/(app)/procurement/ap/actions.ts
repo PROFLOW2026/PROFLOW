@@ -20,18 +20,55 @@ import {
   restoreApBill,
   editRecognizedApBill,
   updateRecordedVendorPaymentDate,
+  correctRecordedVendorPaymentAmount,
   voidVendorCredit,
+  restoreVendorPayment,
   voidVendorPayment,
 } from '@/modules/ap';
 import { releaseVendorBillRetention } from '@/modules/retention';
 import { withOrgContext } from '@/shared/auth/session';
-import { mapServerActionError } from '@/shared/errors';
+import { mapServerActionError, ValidationError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
+import { readPendingDuplicateWarning, type PendingDuplicateWarning } from '@/modules/duplicate-warnings';
 
 export interface ApFormState {
   error?: string;
   fieldErrors?: Record<string, string>;
   success?: boolean;
+  pendingDuplicateWarning?: {
+    recordId: string;
+    snapshotHash: string;
+    warningTypes: string[];
+  };
+}
+
+function billAckOptions(formData: FormData) {
+  return {
+    confirmDistinctCosts: formData.get('confirmDistinctCosts') === 'true',
+    acknowledgeDuplicateVendorReference:
+      formData.get('acknowledgeDuplicateVendorReference') === 'true',
+  };
+}
+
+async function pendingBillState(pending: PendingDuplicateWarning): Promise<ApFormState> {
+  const tAp = await getTranslations('ap');
+  const tExpenses = await getTranslations('expenses');
+  const messages: string[] = [];
+  for (const warning of pending.warnings) {
+    if (warning.warningType === 'expense_ap_overlap') {
+      messages.push(tExpenses('errors.unlinkedApOverlap'));
+    } else if (warning.warningType === 'duplicate_vendor_reference') {
+      messages.push(tAp('create.duplicateReferenceBody'));
+    }
+  }
+  return {
+    error: messages.join(' '),
+    pendingDuplicateWarning: {
+      recordId: pending.recordId,
+      snapshotHash: pending.snapshotHash,
+      warningTypes: pending.warnings.map((warning) => warning.warningType),
+    },
+  };
 }
 
 function formValue(formData: FormData, key: string): string | undefined {
@@ -136,8 +173,18 @@ export async function createApBillAction(
   if (lines.length === 0) return { error: t('errors.linesRequired') };
 
   try {
-    const bill = await withOrgContext((context) =>
-      createApBill(context, {
+    const resumeBillId = formValue(formData, 'resumeBillId');
+    const bill = await withOrgContext((context) => {
+      const ack = billAckOptions(formData);
+      if (resumeBillId) {
+        return postApBill(context, resumeBillId, {
+          ...ack,
+          inventoryStockPurchase: formData.get('inventoryStockPurchase') === 'on',
+          inventoryItemId: formValue(formData, 'inventoryItemId'),
+          inventoryPurchaseQty: formValue(formData, 'inventoryPurchaseQty'),
+        });
+      }
+      return createApBill(context, {
         vendorId,
         projectId: formValue(formData, 'projectId'),
         purchaseOrderId: formValue(formData, 'purchaseOrderId'),
@@ -149,7 +196,8 @@ export async function createApBillAction(
         totalAmount: requiredFormValue(formData, 'totalAmount'),
         amountIncludesTax: formData.get('amountIncludesTax') === 'on',
         asDraft: formData.get('asDraft') === 'on',
-        confirmDistinctCosts: formData.get('confirmDistinctCosts') === 'true',
+        confirmDistinctCosts: ack.confirmDistinctCosts,
+        acknowledgeDuplicateVendorReference: ack.acknowledgeDuplicateVendorReference,
         inventoryStockPurchase: formData.get('inventoryStockPurchase') === 'on',
         inventoryItemId: formValue(formData, 'inventoryItemId'),
         inventoryPurchaseQty: formValue(formData, 'inventoryPurchaseQty'),
@@ -157,8 +205,12 @@ export async function createApBillAction(
         retentionPercent: formValue(formData, 'retentionPercent'),
         notes: formValue(formData, 'notes'),
         lines,
-      }),
-    );
+      });
+    });
+    const pendingBill = readPendingDuplicateWarning(bill);
+    if (pendingBill && formData.get('asDraft') !== 'on') {
+      return pendingBillState(pendingBill);
+    }
     revalidatePath('/procurement/ap');
     const linkExpenseId = formValue(formData, 'linkExpenseId');
     const href = linkExpenseId
@@ -262,6 +314,25 @@ export async function recordVendorPaymentAction(
   }
 }
 
+export async function restoreVendorPaymentAction(
+  _prev: ApFormState,
+  formData: FormData,
+): Promise<ApFormState> {
+  const billId = formValue(formData, 'apBillId');
+  try {
+    await withOrgContext((context) =>
+      restoreVendorPayment(context, requiredFormValue(formData, 'paymentId'), {
+        changeAcknowledged: formData.get('changeAcknowledged') === 'true' ? true : undefined,
+      }),
+    );
+    if (billId) revalidatePath(`/procurement/ap/${billId}`);
+    revalidatePath('/procurement/ap');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
 export async function voidVendorPaymentAction(
   _prev: ApFormState,
   formData: FormData,
@@ -269,7 +340,9 @@ export async function voidVendorPaymentAction(
   const billId = formValue(formData, 'apBillId');
   try {
     await withOrgContext((context) =>
-      voidVendorPayment(context, requiredFormValue(formData, 'paymentId')),
+      voidVendorPayment(context, requiredFormValue(formData, 'paymentId'), {
+        changeAcknowledged: formData.get('changeAcknowledged') === 'true' ? true : undefined,
+      }),
     );
     if (billId) revalidatePath(`/procurement/ap/${billId}`);
     revalidatePath('/procurement/ap');
@@ -309,6 +382,7 @@ export async function saveBillProjectAllocationsAction(input: {
   linesJson: string;
   apply?: boolean;
   remainderAllocationIntent?: 'auto_pool' | 'company_only';
+  changeAcknowledged?: true;
 }): Promise<ApFormState> {
   try {
     await withOrgContext((context) =>
@@ -317,6 +391,7 @@ export async function saveBillProjectAllocationsAction(input: {
         lines: parseBillAllocationLines(input.linesJson),
         apply: input.apply === true,
         remainderAllocationIntent: input.remainderAllocationIntent,
+        ...(input.changeAcknowledged === true ? { changeAcknowledged: true as const } : {}),
       }),
     );
     revalidatePath(`/procurement/ap/${input.apBillId}`);
@@ -329,10 +404,14 @@ export async function saveBillProjectAllocationsAction(input: {
 
 export async function applyBillProjectAllocationsAction(input: {
   apBillId: string;
+  changeAcknowledged?: true;
 }): Promise<ApFormState> {
   try {
     await withOrgContext((context) =>
-      applyBillProjectAllocations(context, { apBillId: input.apBillId }),
+      applyBillProjectAllocations(context, {
+        apBillId: input.apBillId,
+        ...(input.changeAcknowledged === true ? { changeAcknowledged: true as const } : {}),
+      }),
     );
     revalidatePath(`/procurement/ap/${input.apBillId}`);
     revalidatePath('/procurement/ap');
@@ -348,14 +427,16 @@ export async function postApBillAction(
 ): Promise<ApFormState> {
   const billId = requiredFormValue(formData, 'apBillId');
   try {
-    await withOrgContext((context) =>
+    const posted = await withOrgContext((context) =>
       postApBill(context, billId, {
-        confirmDistinctCosts: formData.get('confirmDistinctCosts') === 'true',
+        ...billAckOptions(formData),
         inventoryStockPurchase: formData.get('inventoryStockPurchase') === 'on',
         inventoryItemId: formValue(formData, 'inventoryItemId'),
         inventoryPurchaseQty: formValue(formData, 'inventoryPurchaseQty'),
       }),
     );
+    const pendingPosted = readPendingDuplicateWarning(posted);
+    if (pendingPosted) return pendingBillState(pendingPosted);
     revalidatePath(`/procurement/ap/${billId}`);
     revalidatePath('/procurement/ap');
     revalidatePath('/procurement/ap/aging');
@@ -426,7 +507,14 @@ export async function voidApBillAction(
 ): Promise<ApFormState> {
   const billId = requiredFormValue(formData, 'apBillId');
   try {
-    await withOrgContext((context) => voidApBill(context, { billId }));
+    await withOrgContext((context) =>
+      voidApBill(context, {
+        billId,
+        ...(formData.get('changeAcknowledged') === 'true'
+          ? { changeAcknowledged: true as const }
+          : {}),
+      }),
+    );
     revalidatePath(`/procurement/ap/${billId}`);
     revalidatePath('/procurement/ap');
     revalidatePath('/procurement/ap/aging');
@@ -442,7 +530,14 @@ export async function restoreApBillAction(
 ): Promise<ApFormState> {
   const billId = requiredFormValue(formData, 'apBillId');
   try {
-    await withOrgContext((context) => restoreApBill(context, { billId }));
+    await withOrgContext((context) =>
+      restoreApBill(context, {
+        billId,
+        ...(formData.get('changeAcknowledged') === 'true'
+          ? { changeAcknowledged: true as const }
+          : {}),
+      }),
+    );
     revalidatePath(`/procurement/ap/${billId}`);
     revalidatePath('/procurement/ap');
     revalidatePath('/procurement/ap/aging');
@@ -466,13 +561,29 @@ export async function updateRecordedVendorPaymentDateAction(
   }
 
   try {
-    await withOrgContext((context) =>
-      updateRecordedVendorPaymentDate(context, {
-        paymentId,
-        paymentDate,
-        changeAcknowledged: true,
-      }),
-    );
+    const amount = formValue(formData, 'amount');
+    await withOrgContext(async (context) => {
+      const amountResult = amount
+        ? await correctRecordedVendorPaymentAmount(context, {
+            paymentId,
+            amount,
+            changeAcknowledged: true,
+          })
+        : { changed: false };
+      try {
+        await updateRecordedVendorPaymentDate(context, {
+          paymentId,
+          paymentDate,
+          changeAcknowledged: true,
+        });
+      } catch (error) {
+        const unchangedDate =
+          amountResult.changed &&
+          error instanceof ValidationError &&
+          error.issues.some((issue) => issue.path === 'paymentDate');
+        if (!unchangedDate) throw error;
+      }
+    });
     if (apBillId) revalidatePath(`/procurement/ap/${apBillId}`);
     revalidatePath('/procurement/ap');
     revalidatePath('/procurement/ap/aging');

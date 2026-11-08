@@ -3,6 +3,7 @@ import { createVendor } from '@/modules/vendors';
 import { createEmployee } from '@/modules/workforce';
 import { createProject, upsertPrimaryContractAmount } from '@/modules/projects';
 import { createExpense } from '@/modules/expenses';
+import { holdExpenseDuplicateWarnings } from '@/modules/duplicate-warnings';
 import { createInventoryItem } from '@/modules/assets';
 import { costCategories } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
@@ -66,7 +67,13 @@ async function createFromRow(
   context: OrgContext,
   kind: EnabledImportKind,
   row: MappedImportRow,
-): Promise<string> {
+): Promise<
+  | string
+  | {
+      id: string;
+      pendingDuplicateWarning: Awaited<ReturnType<typeof holdExpenseDuplicateWarnings>>;
+    }
+> {
   const v = row.values;
 
   switch (kind) {
@@ -228,7 +235,16 @@ async function createFromRow(
           | undefined,
         notes: emptyToUndefined(v.notes) ?? null,
       });
-      return created.id;
+      const pending = await holdExpenseDuplicateWarnings(context, {
+        id: created.id,
+        vendorId: created.vendorId,
+        projectId: created.projectId,
+        netAmount: created.netAmount.amount,
+        currency: created.netAmount.currency,
+        expenseDate: created.expenseDate,
+        description: created.description,
+      });
+      return { id: created.id, pendingDuplicateWarning: pending };
     }
     case 'inventory': {
       // Canonical createInventoryItem: opening qty is a qty receive to the
@@ -359,8 +375,23 @@ export async function confirmImport(
   } else {
     for (const row of candidates) {
       try {
-        const entityId = await createFromRow(context, kind, row);
-        results.push({ rowNumber: row.rowNumber, ok: true, entityId });
+        const createdRow = await createFromRow(context, kind, row);
+        const entityId = typeof createdRow === 'string' ? createdRow : createdRow.id;
+        const pending = typeof createdRow === 'string' ? null : createdRow.pendingDuplicateWarning;
+        results.push({
+          rowNumber: row.rowNumber,
+          ok: true,
+          entityId,
+          ...(pending
+            ? {
+                pendingDuplicateWarning: {
+                  recordId: pending.recordId,
+                  snapshotHash: pending.snapshotHash,
+                  warningTypes: pending.warnings.map((warning) => warning.warningType),
+                },
+              }
+            : {}),
+        });
       } catch (error) {
         results.push({ rowNumber: row.rowNumber, ok: false, error: errorMessage(error) });
       }
@@ -466,8 +497,23 @@ export async function confirmImportInBatches(
         const out: ImportRowResult[] = [];
         for (const row of batch) {
           try {
-            const entityId = await createFromRow(context, kind, row);
-            out.push({ rowNumber: row.rowNumber, ok: true, entityId });
+            const createdRow = await createFromRow(context, kind, row);
+            const entityId = typeof createdRow === 'string' ? createdRow : createdRow.id;
+            const pending = typeof createdRow === 'string' ? null : createdRow.pendingDuplicateWarning;
+            out.push({
+              rowNumber: row.rowNumber,
+              ok: true,
+              entityId,
+              ...(pending
+                ? {
+                    pendingDuplicateWarning: {
+                      recordId: pending.recordId,
+                      snapshotHash: pending.snapshotHash,
+                      warningTypes: pending.warnings.map((warning) => warning.warningType),
+                    },
+                  }
+                : {}),
+            });
           } catch (error) {
             out.push({ rowNumber: row.rowNumber, ok: false, error: errorMessage(error) });
           }

@@ -3,6 +3,7 @@ import { withTransaction } from '@/shared/db';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { assertClosedMonthSourceEdit } from '@/shared/business-change/assert-owner-retroactive';
 import {
   assertMonthOpenForRewrite,
   yearMonthFromBusinessDate,
@@ -155,6 +156,15 @@ export async function saveBillProjectAllocations(
     );
   }
 
+  const allocationMonth = yearMonthFromBusinessDate(
+    bill.billDate ?? bill.createdAt.toISOString().slice(0, 10),
+  );
+  await assertClosedMonthSourceEdit(
+    context,
+    allocationMonth,
+    parsed.data.changeAcknowledged,
+    'ap.errors.confirmRequired',
+  );
   if (apply) {
     const freezeDate = bill.billDate ?? bill.createdAt.toISOString().slice(0, 10);
     await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(freezeDate));
@@ -236,6 +246,12 @@ export async function applyBillProjectAllocations(
   }
 
   const freezeDate = bill.billDate ?? bill.createdAt.toISOString().slice(0, 10);
+  await assertClosedMonthSourceEdit(
+    context,
+    yearMonthFromBusinessDate(freezeDate),
+    parsed.data.changeAcknowledged,
+    'ap.errors.confirmRequired',
+  );
   await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(freezeDate));
 
   const billDate = freezeDate;

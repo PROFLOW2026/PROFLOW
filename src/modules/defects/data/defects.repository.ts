@@ -10,7 +10,7 @@ import {
   qualityInspections,
   subcontractWorkLines,
 } from '@drizzle/schema';
-import { projectVendorNames } from './quality-refs.repository';
+import { projectVendorNames, projectVendorNamesForProjects } from './quality-refs.repository';
 import { actorColumns, type Actor } from '@/shared/actor';
 import type { DbExecutor } from '@/shared/db/types';
 import {
@@ -194,8 +194,11 @@ export async function listDefectRows(
   const assigneeNames = new Map<string, string>();
   if (audience === 'internal') {
     const projectIds = [...new Set(page.filter((row) => row.vendorId).map((row) => row.projectId))];
+    const namesByProject = await projectVendorNamesForProjects(db, scope.organizationId, projectIds);
     for (const projectId of projectIds) {
-      for (const [id, name] of await projectVendorNames(db, scope.organizationId, projectId)) vendorNames.set(id, name);
+      const names = namesByProject.get(projectId);
+      if (!names) continue;
+      for (const [id, name] of names) vendorNames.set(id, name);
     }
     const userIds = [...new Set(page.map((row) => row.assigneeUserId).filter((id): id is string => Boolean(id)))];
     if (userIds.length > 0) {
@@ -262,6 +265,49 @@ export async function countDefectsByStatus(
   };
 }
 
+
+function sqlResultRows<T>(result: unknown): T[] {
+  if (Array.isArray(result)) return result as T[];
+  return ((result as { rows?: T[] }).rows ?? []) as T[];
+}
+
+/**
+ * Same-org display name when the external_principals join is RLS-blocked.
+ * Calls app.external_principal_display_name only after it exists
+ * (see external-principal-display-name.sql-snippet.txt). Does not update history rows.
+ */
+async function externalPrincipalDisplayNames(
+  db: DbExecutor,
+  principalIds: readonly string[],
+): Promise<Map<string, string>> {
+  const ids = [...new Set(principalIds.filter((id) => id.length > 0))];
+  const names = new Map<string, string>();
+  if (ids.length === 0) return names;
+
+  const probe = sqlResultRows<{ ready: boolean | string | null }>(
+    await db.execute(sql`
+      SELECT to_regprocedure('app.external_principal_display_name(uuid)') IS NOT NULL AS ready
+    `),
+  );
+  const ready = probe[0]?.ready;
+  if (ready !== true && ready !== 't' && ready !== 'true') return names;
+
+  const loaded = sqlResultRows<{ id: string; display_name: string | null }>(
+    await db.execute(sql`
+      SELECT principal_id::text AS id,
+             app.external_principal_display_name(principal_id) AS display_name
+      FROM unnest(ARRAY[${sql.join(
+        ids.map((id) => sql`${id}::uuid`),
+        sql`, `,
+      )}]::uuid[]) AS names(principal_id)
+    `),
+  );
+  for (const row of loaded) {
+    if (row.id && row.display_name) names.set(row.id.toLowerCase(), row.display_name);
+  }
+  return names;
+}
+
 export async function listCycleRecords(
   db: DbExecutor,
   organizationId: string,
@@ -308,6 +354,14 @@ export async function listCycleRecords(
     .leftJoin(externalPrincipals, eq(externalPrincipals.id, defectCycleRecords.actorPrincipalId))
     .where(and(...conditions))
     .orderBy(asc(defectCycleRecords.createdAt));
+  const fallbackNames = await externalPrincipalDisplayNames(
+    db,
+    rows.flatMap(({ record, principalName, principalEmail }) =>
+      record.actorType === 'external' && record.actorPrincipalId && !principalName && !principalEmail
+        ? [record.actorPrincipalId]
+        : [],
+    ),
+  );
   return rows.map(({ record, userName, userEmail, principalName, principalEmail }) => ({
     id: record.id,
     cycleNo: record.cycleNo,
@@ -322,7 +376,11 @@ export async function listCycleRecords(
       record.actorType === 'internal'
         ? (userName ?? userEmail ?? null)
         : record.actorType === 'external'
-          ? (principalName ?? principalEmail ?? null)
+          ? (principalName ??
+            principalEmail ??
+            (record.actorPrincipalId
+              ? (fallbackNames.get(record.actorPrincipalId.toLowerCase()) ?? null)
+              : null))
           : null,
     createdAt: record.createdAt,
   }));
@@ -486,10 +544,11 @@ export async function listAwaitingVerificationRows(
     .where(and(...conditions))
     .orderBy(asc(defects.lastSubmittedAt))
     .limit(limit);
-  const names = new Map<string, Map<string, string>>();
-  for (const projectId of new Set(rows.filter((row) => row.vendorId).map((row) => row.projectId))) {
-    names.set(projectId, await projectVendorNames(db, organizationId, projectId));
-  }
+  const names = await projectVendorNamesForProjects(
+    db,
+    organizationId,
+    [...new Set(rows.filter((row) => row.vendorId).map((row) => row.projectId))],
+  );
   return rows.map(({ vendorId, ...row }) => ({
     ...row,
     vendorName: vendorId ? (names.get(row.projectId)?.get(vendorId) ?? null) : null,

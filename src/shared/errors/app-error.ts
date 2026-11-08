@@ -1,3 +1,5 @@
+import { PAGE_AUTHORIZATION_DIGEST } from './page-authorization';
+
 /**
  * Application error vocabulary.
  *
@@ -52,6 +54,13 @@ export class AuthenticationRequiredError extends AppError {
  * probing another tenant learns nothing from the difference.
  */
 export class AuthorizationError extends AppError {
+  /**
+   * Stable digest the locale error boundary reads. Not a Next.js router
+   * interrupt, so callers that catch this error (including notFound mapping)
+   * still receive an AuthorizationError.
+   */
+  readonly digest = PAGE_AUTHORIZATION_DIGEST;
+
   constructor(permission?: string) {
     super(
       'authorization_denied',

@@ -2,11 +2,17 @@
 
 import { getLocale, getTranslations } from 'next-intl/server';
 import { z } from 'zod';
+import { permitScopedAuthAttempt } from '@/shared/auth/consume-auth-rate-limit';
 import {
   MIN_PASSWORD_LENGTH,
   isPasswordLongEnough,
   passwordsMatch,
 } from '@/shared/auth/password-policy';
+import {
+  signUpConfirmationNotice,
+  signUpOutcomeForProviderError,
+  type SignUpProviderErrorKey,
+} from '@/shared/auth/sign-up-outcome';
 import { buildAuthCallbackUrl, safeAppPath } from '@/shared/i18n/auth-locale';
 import { isLocale, type Locale } from '@/shared/i18n/config';
 import { resolveLocaleAfterAuth } from '@/shared/i18n/persist-locale-preference';
@@ -17,8 +23,8 @@ import { createSupabaseServerClient, isSupabaseConfigured } from '@/shared/supab
  * Credential flows (doc 72 §4).
  *
  * Supabase handles the credentials; these actions only translate the outcome.
- * Messages are deliberately non-enumerating - the sign-in failure and the
- * password-reset response never reveal whether an account exists.
+ * Messages are deliberately non-enumerating - the sign-in failure, the sign-up
+ * response, and the password-reset response never reveal whether an account exists.
  * Passwords are never logged.
  */
 
@@ -54,6 +60,10 @@ export async function signInAction(
     password: formData.get('password'),
   });
   if (!parsed.success) return { error: t('signIn.invalidCredentials') };
+
+  if (!(await permitScopedAuthAttempt('sign_in', parsed.data.email))) {
+    return { error: t('signIn.invalidCredentials'), email: parsed.data.email };
+  }
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
@@ -97,6 +107,10 @@ export async function signUpAction(
     return { error: tValidation('required'), email };
   }
 
+  if (!(await permitScopedAuthAttempt('sign_up', parsed.data.email))) {
+    return { error: t('signUp.failed'), email: parsed.data.email };
+  }
+
   // confirmPassword is validated only — never sent to Auth or stored.
   const locale = await activeLocale();
   const supabase = await createSupabaseServerClient();
@@ -110,15 +124,23 @@ export async function signUpAction(
   });
 
   if (error) {
+    const outcome = signUpOutcomeForProviderError(error.message, error.code);
+    if ('notice' in outcome) {
+      return { notice: outcome.notice, email: parsed.data.email };
+    }
     return {
-      error: mapSignUpProviderError(error.message, error.code, t, tValidation),
+      error: signUpProviderErrorText(outcome.errorKey, t, tValidation),
       email: parsed.data.email,
     };
   }
 
   // With email confirmation on, there is no session yet; tell the user to check
   // their inbox rather than dropping them on a sign-in screen with no context.
-  if (!data.session) return { notice: 'check-email', email: parsed.data.email };
+  // An already-registered address gets this same notice and is not signed in.
+  const identityCount = data.user?.identities ? data.user.identities.length : null;
+  if (signUpConfirmationNotice({ hasSession: Boolean(data.session), identityCount }) === 'check-email') {
+    return { notice: 'check-email', email: parsed.data.email };
+  }
 
   redirect({ href: '/onboarding', locale });
 }
@@ -164,25 +186,13 @@ export async function updatePasswordAction(
   redirect({ href: '/', locale: await activeLocale() });
 }
 
-function mapSignUpProviderError(
-  message: string,
-  code: string | undefined,
+function signUpProviderErrorText(
+  errorKey: SignUpProviderErrorKey,
   t: Awaited<ReturnType<typeof getTranslations<'auth'>>>,
   tValidation: Awaited<ReturnType<typeof getTranslations<'validation'>>>,
 ): string {
-  if (code === 'user_already_exists' || code === 'email_exists') {
-    return t('signUp.emailAlreadyRegistered');
-  }
-  const lower = message.toLowerCase();
-  if (lower.includes('already') || lower.includes('registered') || lower.includes('exists')) {
-    return t('signUp.emailAlreadyRegistered');
-  }
-  if (lower.includes('password') && (lower.includes('short') || lower.includes('least') || lower.includes('weak'))) {
-    return tValidation('passwordTooWeak');
-  }
-  if (lower.includes('email') && (lower.includes('invalid') || lower.includes('valid'))) {
-    return tValidation('invalidEmail');
-  }
+  if (errorKey === 'passwordTooWeak') return tValidation('passwordTooWeak');
+  if (errorKey === 'invalidEmail') return tValidation('invalidEmail');
   return t('signUp.failed');
 }
 

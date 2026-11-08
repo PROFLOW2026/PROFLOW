@@ -42,6 +42,7 @@ import {
   CommentAttachmentsGallery,
 } from '@/modules/tasks/ui/task-comments-client';
 import { TaskActivity } from '@/modules/tasks/ui/task-activity';
+import { TaskContractorSection } from '@/modules/collaboration/ui';
 import { getEmployeeTaskDocumentPanelData } from '@/modules/employee-app/application/employee-task-documents';
 import { EmployeeTaskDocumentAttachments } from '@/modules/employee-app/ui/employee-task-document-attachments';
 import { SubmitButton } from '@/components/ui/submit-button';
@@ -466,6 +467,8 @@ export default async function EmployeePmTaskDetailPage({ params, searchParams }:
       <section className={employeePanelClass}>
         <TaskActivity taskId={taskId} />
       </section>
+
+      {task.projectId ? <TaskContractorSection taskId={taskId} /> : null}
     </div>
   );
 }

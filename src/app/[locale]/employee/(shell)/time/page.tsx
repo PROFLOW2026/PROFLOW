@@ -83,7 +83,7 @@ export default async function EmployeeTimePage() {
   const payload = await withOrgContext(async (context) => {
     const canAttendance = employeeHasPermission(context, PERMISSIONS.ATTENDANCE_SELF);
     const canHours = employeeHasPermission(context, PERMISSIONS.TIME_MANAGE);
-    const shell = await getEmployeeShellData(context);
+    const shell = await getEmployeeShellData(context, { includeClock: true });
 
     let days: EmployeeAttendanceDayRow[] = [];
     let linkedEmployeeId: string | null = null;

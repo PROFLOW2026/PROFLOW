@@ -207,6 +207,7 @@ export const expenseIdSchema = z.object({
 export const createExpenseAdjustmentSchema = expenseFieldsSchema.extend({
   adjustsExpenseId: z.string().uuid(),
   reverseOriginal: z.boolean().optional(),
+  changeAcknowledged: z.literal(true).optional(),
 });
 
 export const expenseAttentionFilterSchema = z.enum([

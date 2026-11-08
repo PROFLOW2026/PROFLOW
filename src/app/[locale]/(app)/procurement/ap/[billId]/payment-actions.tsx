@@ -6,6 +6,7 @@ import { useActionState, useState, type FormEvent } from 'react';
 import { useTranslations } from 'next-intl';
 import { BusinessChangeFormDialogs } from '@/components/patterns/business-change-form-dialogs';
 import { MoneyInput } from '@/components/patterns/money-input';
+import { acceptApAmountInput, seedApAmountInput } from '@/modules/ap/domain/accept-amount-input';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ import { formatBusinessDate } from '@/shared/dates/format';
 import {
   recordVendorPaymentAction,
   updateRecordedVendorPaymentDateAction,
+  restoreVendorPaymentAction,
   voidVendorPaymentAction,
   type ApFormState,
 } from '../actions';
@@ -31,17 +33,23 @@ function RecordedVendorPaymentDateCorrection({
   paymentId,
   billId,
   initialDate,
+  initialAmount,
+  currency,
   locale,
 }: {
   readonly paymentId: string;
   readonly billId: string;
   readonly initialDate: string;
+  readonly initialAmount: string;
+  readonly currency: string;
   readonly locale: string;
 }) {
   const t = useTranslations('ap.retroactiveEdit');
   const tCommon = useTranslations('common');
   const [open, setOpen] = useState(false);
   const [paymentDate, setPaymentDate] = useState(initialDate);
+  const seededAmount = seedApAmountInput(initialAmount, currency);
+  const [amount, setAmount] = useState(seededAmount);
   const [state, formAction, pending] = useActionState<ApFormState, FormData>(
     updateRecordedVendorPaymentDateAction,
     {},
@@ -52,14 +60,22 @@ function RecordedVendorPaymentDateCorrection({
     alwaysConfirm: true,
     formId,
     buildChanges: (): BusinessChangeFieldDiff[] => {
-      if (paymentDate === initialDate) return [];
-      return [
-        {
+      const changes: BusinessChangeFieldDiff[] = [];
+      if (paymentDate !== initialDate) {
+        changes.push({
           fieldLabel: t('correctPaymentDate'),
           before: formatBusinessDate(businessDate(initialDate), locale),
           after: formatBusinessDate(businessDate(paymentDate), locale),
-        },
-      ];
+        });
+      }
+      if (amount !== seededAmount) {
+        changes.push({
+          fieldLabel: t('correctPaymentAmount'),
+          before: seededAmount,
+          after: amount,
+        });
+      }
+      return changes;
     },
   });
 
@@ -89,9 +105,17 @@ function RecordedVendorPaymentDateCorrection({
           dir="ltr"
           className="max-w-[11rem]"
         />
+        <Input
+          name="amount"
+          inputMode="decimal"
+          value={amount}
+          onChange={(event) => setAmount(acceptApAmountInput(event.target.value, currency))}
+          dir="ltr"
+          className="max-w-[11rem]"
+        />
         <div className="flex flex-wrap gap-2">
           <Button type="submit" size="sm" loading={pending || businessChange.similarLoading}>
-            {t('savePaymentDate')}
+            {t('savePaymentCorrection')}
           </Button>
           <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(false)}>
             {tCommon('actions.cancel')}
@@ -184,6 +208,10 @@ export function VendorPaymentPanel({
     voidVendorPaymentAction,
     {},
   );
+  const [restoreState, restoreAction, restorePending] = useActionState<ApFormState, FormData>(
+    restoreVendorPaymentAction,
+    {},
+  );
 
   return (
     <section className="flex min-w-0 flex-col gap-4">
@@ -251,17 +279,29 @@ export function VendorPaymentPanel({
                             paymentId={payment.id}
                             billId={billId}
                             initialDate={payment.paymentDate}
+                            initialAmount={payment.amount}
+                            currency={payment.currency}
                             locale={locale}
                           />
                         ) : null}
                         <form action={voidAction}>
                           <input type="hidden" name="paymentId" value={payment.id} />
                           <input type="hidden" name="apBillId" value={billId} />
+                          <input type="hidden" name="changeAcknowledged" value="true" />
                           <Button type="submit" variant="ghost" size="sm" disabled={voidPending}>
                             {t('void')}
                           </Button>
                         </form>
                       </div>
+                    ) : canManage && paymentsAvailable && payment.status === 'void' ? (
+                      <form action={restoreAction}>
+                        <input type="hidden" name="paymentId" value={payment.id} />
+                        <input type="hidden" name="apBillId" value={billId} />
+                        <input type="hidden" name="changeAcknowledged" value="true" />
+                        <Button type="submit" variant="ghost" size="sm" disabled={restorePending}>
+                          {t('restore')}
+                        </Button>
+                      </form>
                     ) : (
                       '-'
                     )}
@@ -276,6 +316,7 @@ export function VendorPaymentPanel({
       )}
 
       {voidState.error ? <Alert tone="danger">{voidState.error}</Alert> : null}
+      {restoreState.error ? <Alert tone="danger">{restoreState.error}</Alert> : null}
 
       {canManage && paymentsAvailable && payableStatus !== 'paid' && payableStatus !== null ? (
         <form
@@ -297,7 +338,7 @@ export function VendorPaymentPanel({
           <Field label={t('amountLabel')} required>
             {(controlProps) => (
               <>
-                <MoneyInput {...controlProps} required value={amount} onValueChange={setAmount} />
+                <MoneyInput {...controlProps} required currency={currency} value={amount} onValueChange={(value) => setAmount(acceptApAmountInput(value, currency))} />
                 <input type="hidden" name="amount" value={amount} />
               </>
             )}

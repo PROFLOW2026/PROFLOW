@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
+import { rethrowIfPageAuthorization } from '@/shared/errors/page-authorization';
 
 /**
  * Isolates a tab-panel failure so project chrome (header + hubs) stays usable.
@@ -27,6 +28,7 @@ export default function ProjectWorkspaceError({
     );
   }, [error]);
 
+  rethrowIfPageAuthorization(error);
   return (
     <div className="flex flex-col items-start gap-3 py-8">
       <h2 className="text-lg font-semibold">{t('title')}</h2>

@@ -13,6 +13,7 @@ import {
   updateBillingCollectionFollowUp,
   updateBillingRecord,
   voidBillingRecord,
+  restorePayment,
   voidPayment,
 } from '@/modules/billing';
 import type {
@@ -386,11 +387,51 @@ async function runAllocatePaymentAction(
   return {};
 }
 
-export async function voidPaymentAction(paymentId: string, billingRecordId: string): Promise<BillingFormState> {
+export async function restorePaymentAction(
+  paymentId: string,
+  billingRecordId: string,
+  changeAcknowledged?: boolean,
+): Promise<BillingFormState> {
   const tErrors = await getTranslations('errors');
 
   try {
-    const result = await withOrgContext((context) => voidPayment(context, paymentId));
+    const result = await withOrgContext((context) =>
+      restorePayment(context, paymentId, {
+        changeAcknowledged: changeAcknowledged === true ? true : undefined,
+      }),
+    );
+    revalidatePath('/billing');
+    const ids = new Set<string>([
+      billingRecordId,
+      ...result.billingRecords.map((record) => record.id),
+    ]);
+    for (const id of ids) {
+      revalidatePath(`/billing/${id}`);
+    }
+    for (const record of result.billingRecords) {
+      if (record.projectId) revalidatePath(`/projects/${record.projectId}`);
+    }
+  } catch (error) {
+    if (error instanceof AppError) return mapError(error, tErrors('unexpected'));
+    throw error;
+  }
+
+  return {};
+}
+
+export async function voidPaymentAction(
+  paymentId: string,
+  billingRecordId: string,
+  changeAcknowledged?: boolean,
+): Promise<BillingFormState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    const result = await withOrgContext((context) =>
+      voidPayment(context, paymentId, {
+        changeAcknowledged: changeAcknowledged === true ? true : undefined,
+      }),
+    );
     revalidatePath('/billing');
     const ids = new Set<string>([
       billingRecordId,

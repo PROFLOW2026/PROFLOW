@@ -4,6 +4,7 @@ import { useMemo, useState, useActionState } from 'react';
 import { useTranslations } from 'next-intl';
 import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
 import { MoneyInput } from '@/components/patterns/money-input';
+import { acceptApAmountInput } from '@/modules/ap/domain/accept-amount-input';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -126,7 +127,7 @@ export function VendorCreditCreateForm({
 
       <Field label={t('amountLabel')} required className={mainAppFieldSpan.lg}>
         {(controlProps) => (
-          <MoneyInput {...controlProps} required value={amount} onValueChange={setAmount} />
+          <MoneyInput {...controlProps} required currency={defaultCurrency} value={amount} onValueChange={(value) => setAmount(acceptApAmountInput(value, defaultCurrency))} />
         )}
       </Field>
       </MainAppFormGrid>

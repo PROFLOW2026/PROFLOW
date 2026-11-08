@@ -97,6 +97,7 @@ import {
 import { loadProjectPaidCashFacts } from '../data/project-paid-cash.repository';
 import { composeProjectPaidCash, type ProjectPaidCash } from '../domain/project-paid-cash';
 import { getOrganizationProjectRollup } from './get-organization-project-rollup';
+import type { OrganizationRollupShowing } from '../domain/organization-rollup-page';
 import {
   sumOrganizationGeneralPoolTotals,
   sumOrganizationOwnerCompanyLabor,
@@ -196,8 +197,10 @@ export interface HomeDashboardData {
   readonly isBrandNew: boolean;
   readonly activeProjectCount: number;
   readonly recentProjects: readonly ActiveProjectSummary[];
-  /** Active projects with financial rollup for owner dashboard table. */
+  /** Display page of active projects. Totals use every eligible project. */
   readonly projectTableRows: readonly HomeDashboardProjectTableRow[];
+  /** 1-based window for the project table: showing from–to of total. */
+  readonly projectTableShowing: OrganizationRollupShowing;
   /** Org actual profit (sum of project actual margins). */
   readonly actualProfitTotal: MoneyValue | null;
   /** Org profitability % from actual profit / contract value. */
@@ -521,6 +524,7 @@ export async function getHomeDashboard(
       contractNetInvoiced: null,
       quickAccessShortcuts,
       projectTableRows: [],
+      projectTableShowing: { from: 0, to: 0, total: 0 },
       actualProfitTotal: null,
       profitabilityPercent: null,
       totalContractValue: null,
@@ -586,7 +590,7 @@ export async function getHomeDashboard(
 
   const scopedProjectIds =
     parsedWorkKindFilter !== 'all' && rollup
-      ? rollup.rows.map((row) => row.projectId)
+      ? rollup.eligibleRows.map((row) => row.projectId)
       : undefined;
   const billingLoadOptions =
     scopedProjectIds !== undefined ? { projectIds: scopedProjectIds } : {};
@@ -672,7 +676,7 @@ export async function getHomeDashboard(
             scopeProjectPaidFactsToRollup(
               facts,
               parsedWorkKindFilter,
-              rollup?.rows.map((row) => row.projectId) ?? [],
+              rollup?.eligibleRows.map((row) => row.projectId) ?? [],
             ),
             currency,
           ),
@@ -716,14 +720,14 @@ export async function getHomeDashboard(
 
   if (rollup) {
     const commercial = rollup.canReadCommercial
-      ? aggregateOrgCommercial(rollup.rows, currency)
+      ? aggregateOrgCommercial(rollup.eligibleRows, currency)
       : null;
     orgCommercial = commercial;
-    const cost = aggregateOrgCost(rollup.rows, currency, {
+    const cost = aggregateOrgCost(rollup.eligibleRows, currency, {
       unallocatedBusinessCosts,
     });
     const profitability = rollup.canReadProfit
-      ? aggregateOrgProfit(rollup.rows, currency)
+      ? aggregateOrgProfit(rollup.eligibleRows, currency)
       : null;
 
     if (commercial && rollup.totalEligibleProjectCount > 0) {
@@ -786,7 +790,7 @@ export async function getHomeDashboard(
       ? (companyComposition?.companyActual ?? null)
       : null;
     const recognizedCompanyRevenue = deriveRecognizedCompanyRevenue(
-      rollup.rows,
+      rollup.eligibleRows,
       currency,
       rollup.canReadCommercial,
     );
@@ -988,6 +992,7 @@ export async function getHomeDashboard(
       : null;
 
   let projectTableRows: HomeDashboardProjectTableRow[] = [];
+  let projectTableShowing: OrganizationRollupShowing = { from: 0, to: 0, total: 0 };
   let actualProfitTotal: MoneyValue | null = null;
   let profitabilityPercent: string | null = null;
 
@@ -1013,7 +1018,8 @@ export async function getHomeDashboard(
       marginPercent: row.actualMarginPercent,
       status: row.status,
     }));
-    const profitTotals = aggregateOrgProfit(rollup.rows, currency);
+    projectTableShowing = rollup.showing;
+    const profitTotals = aggregateOrgProfit(rollup.eligibleRows, currency);
     actualProfitTotal = profitTotals.actualProfit?.value ?? forecast?.totalActualMargin ?? null;
     if (actualProfitTotal && totalContractValue && !isZeroMoney(totalContractValue)) {
       profitabilityPercent = computeMarginPercent(actualProfitTotal, totalContractValue);
@@ -1034,6 +1040,7 @@ export async function getHomeDashboard(
     activeProjectCount,
     recentProjects,
     projectTableRows,
+    projectTableShowing,
     actualProfitTotal,
     profitabilityPercent,
     totalContractValue,

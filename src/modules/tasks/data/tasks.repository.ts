@@ -46,6 +46,7 @@ import type {
   TaskSubtaskView,
   TaskTemplateSummary,
 } from '../domain/types';
+import { taskProjectAccessCondition } from '../domain/task-project-access-filter';
 
 // ─── Mappers ──────────────────────────────────────────────────────────────────
 
@@ -478,16 +479,8 @@ export async function listTasksPage(
     conditions.push(ilike(tasks.title, term));
   }
 
-  const accessibleProjectIds = accessScope.accessibleProjectIds;
-  if (accessibleProjectIds !== undefined && accessibleProjectIds !== null) {
-    if (accessibleProjectIds.length === 0) {
-      conditions.push(isNull(tasks.projectId));
-    } else {
-      conditions.push(
-        sql`(${tasks.projectId} IS NULL OR ${tasks.projectId} = ANY(${accessibleProjectIds}))`,
-      );
-    }
-  }
+  const projectAccess = taskProjectAccessCondition(accessScope.accessibleProjectIds);
+  if (projectAccess) conditions.push(projectAccess);
 
   const limit = clampTaskListLimit(filters.limit);
   const offset = filters.offset ?? 0;
@@ -623,16 +616,8 @@ export async function countTasksMatching(
     conditions.push(ilike(tasks.title, term));
   }
 
-  const accessibleProjectIds = accessScope.accessibleProjectIds;
-  if (accessibleProjectIds !== undefined && accessibleProjectIds !== null) {
-    if (accessibleProjectIds.length === 0) {
-      conditions.push(isNull(tasks.projectId));
-    } else {
-      conditions.push(
-        sql`(${tasks.projectId} IS NULL OR ${tasks.projectId} = ANY(${accessibleProjectIds}))`,
-      );
-    }
-  }
+  const projectAccess = taskProjectAccessCondition(accessScope.accessibleProjectIds);
+  if (projectAccess) conditions.push(projectAccess);
 
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })

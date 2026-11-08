@@ -176,6 +176,71 @@ export async function applyLaborAllocationRun(
   return row ? withLaborAllocationRunLegacyDefaults(row) : null;
 }
 
+export async function rewriteAppliedLaborAllocationAmounts(
+  db: DbExecutor,
+  organizationId: string,
+  runId: string,
+  input: {
+    allocatedAmount: string;
+    unallocatedAmount: string;
+    companyOnlyAmount: string;
+    lines: readonly {
+      projectId: string;
+      amount: string;
+      currency: string;
+      percent?: string | null;
+      basisHours?: string | null;
+      basisDays?: string | null;
+      sortOrder: number;
+      notes?: string | null;
+    }[];
+  },
+): Promise<LaborAllocationRunRow | null> {
+  const runCols = await laborAllocationRunSelectColumns(db);
+  const [row] = await db
+    .update(laborAllocationRuns)
+    .set({
+      allocatedAmount: input.allocatedAmount,
+      unallocatedAmount: input.unallocatedAmount,
+      companyOnlyAmount: input.companyOnlyAmount,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(laborAllocationRuns.id, runId),
+        eq(laborAllocationRuns.organizationId, organizationId),
+        eq(laborAllocationRuns.status, 'applied'),
+      ),
+    )
+    .returning(runCols);
+  if (!row) return null;
+  await db
+    .delete(laborAllocationRunLines)
+    .where(
+      and(
+        eq(laborAllocationRunLines.laborAllocationRunId, runId),
+        eq(laborAllocationRunLines.organizationId, organizationId),
+      ),
+    );
+  if (input.lines.length > 0) {
+    await db.insert(laborAllocationRunLines).values(
+      input.lines.map((line) => ({
+        organizationId,
+        laborAllocationRunId: runId,
+        projectId: line.projectId,
+        amount: line.amount,
+        currency: line.currency,
+        percent: line.percent ?? null,
+        basisHours: line.basisHours ?? null,
+        basisDays: line.basisDays ?? null,
+        sortOrder: line.sortOrder,
+        notes: line.notes ?? null,
+      })),
+    );
+  }
+  return withLaborAllocationRunLegacyDefaults(row);
+}
+
 /** Delete a draft run (and cascade lines) so amounts can be rewritten. */
 export async function deleteDraftLaborAllocationRun(
   db: DbExecutor,

@@ -16,6 +16,7 @@ import { todayInTimeZone } from '@/shared/dates';
 import { listEmployeesForOrg, listAttendanceDays, listTimeEntries } from '@/modules/workforce';
 import { listFormTemplatesForOrg } from '@/modules/forms/application/manage-templates';
 import { listExpensesForOrg } from '@/modules/expenses/application/queries';
+import { holdExpenseDuplicateWarnings } from '@/modules/duplicate-warnings';
 
 export interface EmployeeTeamMemberRow {
   readonly id: string;
@@ -343,7 +344,7 @@ export async function createEmployeeOperationalExpense(
   }
 
   const { createExpense } = await import('@/modules/expenses');
-  return createExpense(context, {
+  const created = await createExpense(context, {
     amount: input.amount.trim(),
     currency: context.organization.baseCurrency ?? 'ILS',
     description: input.description.trim() || null,
@@ -351,4 +352,14 @@ export async function createEmployeeOperationalExpense(
     supplierName: input.supplierName?.trim() || null,
     projectId,
   });
+  const pendingDuplicateWarning = await holdExpenseDuplicateWarnings(context, {
+    id: created.id,
+    vendorId: created.vendorId,
+    projectId: created.projectId,
+    netAmount: created.netAmount.amount,
+    currency: created.netAmount.currency,
+    expenseDate: created.expenseDate,
+    description: created.description,
+  });
+  return pendingDuplicateWarning ? { ...created, pendingDuplicateWarning } : created;
 }

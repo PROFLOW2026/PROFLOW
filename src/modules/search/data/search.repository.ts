@@ -25,6 +25,7 @@ import {
 import type { DbExecutor } from '@/shared/db/types';
 import { formatProjectDisplayName } from '@/modules/projects/domain/display';
 import { GLOBAL_SEARCH_KIND_CAP, ilikeContainsPattern } from '../domain/search-scope';
+import { sqlUuidEqAny, taskProjectAccessCondition } from '@/modules/tasks/domain/task-project-access-filter';
 
 // ─── Result types ─────────────────────────────────────────────────────────────
 
@@ -148,13 +149,8 @@ export async function searchTasks(
   // Project-context filter: tasks with no project are always visible in accessible workspaces;
   // tasks with a project must be in accessibleProjectIds.
   if (accessibleProjectIds !== null) {
-    if (accessibleProjectIds.length === 0) {
-      conditions.push(isNull(tasks.projectId));
-    } else {
-      conditions.push(
-        sql`(${tasks.projectId} IS NULL OR ${tasks.projectId} = ANY(${accessibleProjectIds}))`,
-      );
-    }
+    const projectAccess = taskProjectAccessCondition(accessibleProjectIds);
+    if (projectAccess) conditions.push(projectAccess);
   }
 
   const rows = await db
@@ -602,7 +598,7 @@ function documentProjectRestriction(organizationId: string, accessibleProjectIds
     where dl.document_id = ${documents.id}
       and dl.organization_id = ${organizationId}
       and dl.owner_type in ('project', 'work_order')
-      and not (dl.owner_id = any(${accessibleProjectIds}))
+      and not (${sqlUuidEqAny(sql`dl.owner_id`, accessibleProjectIds)})
   )`;
 }
 

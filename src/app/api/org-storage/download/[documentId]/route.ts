@@ -4,7 +4,7 @@ import {
   buildContentRange,
 } from '@/modules/external-storage/server/byte-range';
 import { requireSession, runInOrgContext } from '@/shared/auth/session';
-import { apiRouteErrorFromUnknown, apiRouteErrorResponse } from '@/shared/errors';
+import { apiRouteErrorResponse, fileRouteErrorResponse } from '@/shared/errors';
 
 export const runtime = 'nodejs';
 
@@ -64,6 +64,6 @@ export async function GET(
       headers,
     });
   } catch (error) {
-    return apiRouteErrorFromUnknown(error, 'externalStorage.errors.operationFailed');
+    return fileRouteErrorResponse(error);
   }
 }

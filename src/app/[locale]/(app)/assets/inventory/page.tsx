@@ -26,12 +26,11 @@ import { InventoryLocationsPanel } from './inventory-locations-panel';
 import { InventoryReservationsPanel } from './inventory-reservations-panel';
 import { InventoryCountsPanel } from './inventory-counts-panel';
 import { InventoryTransferAdjustPanel } from './inventory-transfer-adjust-panel';
+import { InventorySearchForm } from './inventory-search-form';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import { Alert } from '@/components/ui/alert';
 import { todayInTimeZone } from '@/shared/dates/dates';
-import { Field } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
 
 /**
  * UX: operational inventory under /assets/inventory.
@@ -66,7 +65,6 @@ export default async function InventoryPage({
   searchParams: Promise<{ new?: string; q?: string }>;
 }) {
   const t = await getTranslations('assets');
-  const tCommon = await getTranslations('common');
   const { new: showNew, q: search } = await searchParams;
   const query = search?.trim() ?? '';
 
@@ -176,23 +174,7 @@ export default async function InventoryPage({
       />
 
       <MainAppListBody>
-      <form method="get" role="search" className="flex max-w-xl flex-col gap-3 sm:flex-row sm:items-end">
-        <Field label={t('inventory.searchLabel')} className="flex-1">
-          {(control) => (
-            <Input
-              {...control}
-              type="search"
-              name="q"
-              defaultValue={query}
-              placeholder={t('inventory.searchPlaceholder')}
-              dir="ltr"
-            />
-          )}
-        </Field>
-        <Button type="submit" variant="secondary" className="min-h-11 md:min-h-8">
-          {tCommon('actions.search')}
-        </Button>
-      </form>
+      <InventorySearchForm query={query} />
 
       <InventoryReservationsPanel
         items={items.map((item) => ({ id: item.id, name: item.name, unit: item.unit }))}

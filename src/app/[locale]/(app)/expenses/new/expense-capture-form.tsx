@@ -106,6 +106,9 @@ export function ExpenseCaptureForm({
         </Alert>
       ) : null}
 
+      {state.pendingDuplicateWarning ? (
+        <input type="hidden" name="resumeExpenseId" value={state.pendingDuplicateWarning.recordId} />
+      ) : null}
       <ExpenseForm
         key={formRestoreKey}
         mode="create"

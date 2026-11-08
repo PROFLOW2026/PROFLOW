@@ -10,6 +10,7 @@ import {
   findDrawing,
   findVisibleRevision,
   insertRevisionAcknowledgement,
+  listDistributionTargets,
   listRevisions,
   listVisibleDrawingsWithCurrent,
   myRevisionAcknowledgements,
@@ -22,6 +23,8 @@ import {
   myShareAcknowledgements,
 } from '../data/shares.repository';
 import { acknowledgementPending } from '../domain/revisions';
+import { contractorMayViewDrawing } from '../domain/visibility';
+import { storedDrawingVisibleToContractor } from './drawing-visibility';
 import type { DrawingDiscipline, DrawingRevisionView } from '../domain/types';
 import { requireExternalProjectCapability, uuid } from './shared';
 
@@ -60,8 +63,8 @@ export interface ContractorPlanItem {
 
 /**
  * Drawings with a published current revision on a project.
- * Gate = ext.plan.view (plans-folder capability). After the check we read via service role so
- * `contractor_visibility` (distribution metadata) does not hide files already in the plans folder.
+ * `ext.plan.view` is required and is not enough. Service role loads the rows only so
+ * `contractorMayViewDrawing` can deny internal, unknown, and undistributed drawings before any metadata is returned.
  */
 export async function listContractorPlans(
   context: ExternalContext,
@@ -69,16 +72,33 @@ export async function listContractorPlans(
 ): Promise<{ items: readonly ContractorPlanItem[]; canAcknowledge: boolean }> {
   const input = projectInput.parse(raw);
   requireExternalProjectCapability(context, input, X.PLAN_VIEW);
-  const rows = await asServiceRoleWrite(context.db, () => listVisibleDrawingsWithCurrent(context.db, input));
+  const { rows, distribution } = await asServiceRoleWrite(context.db, async () => {
+    const loaded = await listVisibleDrawingsWithCurrent(context.db, input);
+    const distributionIds = loaded.filter((row) => row.contractorVisibility === 'distribution').map((row) => row.id);
+    const entries = await listDistributionTargets(context.db, input.organizationId, distributionIds);
+    return { rows: loaded, distribution: entries };
+  });
+  const visible = rows.filter((row) =>
+    contractorMayViewDrawing({
+      visibility: row.contractorVisibility,
+      status: row.drawingStatus,
+      hasPublishedRevision: row.publishedRevisionId != null,
+      organizationId: input.organizationId,
+      projectId: row.projectId,
+      principalId: context.principalId,
+      grants: context.grants,
+      distribution: distribution.filter((entry) => entry.drawingId === row.id),
+    }),
+  );
   const acks = await asServiceRoleWrite(context.db, () =>
     myRevisionAcknowledgements(
       context.db,
       input.organizationId,
       context.principalId,
-      rows.map((row) => row.currentRevisionId),
+      visible.map((row) => row.currentRevisionId),
     ),
   );
-  const items = rows.map((row) => {
+  const items = visible.map((row) => {
     const acknowledgedAt = acks.get(row.currentRevisionId) ?? null;
     return {
       drawingId: row.id,
@@ -126,7 +146,9 @@ export async function getContractorDrawing(
   const drawing = await asServiceRoleWrite(context.db, () =>
     findDrawing(context.db, organizationId, uuid.parse(raw.drawingId)),
   );
-  if (!drawing) throw new NotFoundError('Drawing');
+  if (!drawing || !(await storedDrawingVisibleToContractor(context, context.db, drawing))) {
+    throw new NotFoundError('Drawing');
+  }
   requireExternalProjectCapability(context, { organizationId, projectId: drawing.projectId }, X.PLAN_VIEW);
   const revisions = await asServiceRoleWrite(context.db, () =>
     listRevisions(context.db, organizationId, drawing.id, { publishedOnly: true }),
@@ -167,6 +189,12 @@ export async function acknowledgeDrawingRevision(
     findVisibleRevision(context.db, uuid.parse(raw.revisionId)),
   );
   if (!revision || revision.organizationId !== organizationId) throw new NotFoundError('Revision');
+  const drawing = await asServiceRoleWrite(context.db, () =>
+    findDrawing(context.db, organizationId, revision.drawingId),
+  );
+  if (!drawing || !(await storedDrawingVisibleToContractor(context, context.db, drawing))) {
+    throw new NotFoundError('Revision');
+  }
   if (revision.status !== 'current') {
     throw new DomainRuleError('Only the current revision can be acknowledged', 'projectPlans.errors.notCurrent');
   }
@@ -222,6 +250,12 @@ export async function openExternalRevisionFile(
     findVisibleRevision(context.db, uuid.parse(input.revisionId)),
   );
   if (!revision || (revision.status !== 'current' && revision.status !== 'superseded')) {
+    throw new NotFoundError('Revision');
+  }
+  const drawing = await asServiceRoleWrite(context.db, () =>
+    findDrawing(context.db, revision.organizationId, revision.drawingId),
+  );
+  if (!drawing || !(await storedDrawingVisibleToContractor(context, context.db, drawing))) {
     throw new NotFoundError('Revision');
   }
   requireExternalProjectCapability(
@@ -374,6 +408,7 @@ export async function getContractorPlansPortalSummary(
   const canViewPlans = canOnProject(context, input.organizationId, input.projectId, X.PLAN_VIEW);
   const canViewDocuments = canOnProject(context, input.organizationId, input.projectId, X.DOCUMENT_VIEW);
   const since = Date.now() - (raw.recentDays ?? 14) * 24 * 60 * 60 * 1000;
+  // listContractorPlans applies contractorMayViewDrawing before any drawing metadata is returned.
   const plans = canViewPlans ? (await listContractorPlans(context, input)).items : [];
   const documents = canViewDocuments ? (await listContractorSharedDocuments(context, input)).items : [];
   const pick = (item: ContractorPlanItem) => ({

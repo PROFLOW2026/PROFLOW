@@ -1,11 +1,12 @@
 'use client';
 
-import { useActionState, useMemo } from 'react';
+import { useActionState, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import { MoneyInput } from '@/components/patterns/money-input';
+import { acceptApAmountInput, seedApAmountInput } from '@/modules/ap/domain/accept-amount-input';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -72,12 +73,15 @@ export function ProposeMatchForm({
     (referenceHits[0] ? expenses.find((expense) => expense.id === referenceHits[0]!.id) : undefined);
   const initialExpenseId = suggested?.id ?? NONE;
 
+  const matchedAmountSeed = seedApAmountInput(defaultAmount, currency);
+  const [matchedAmount, setMatchedAmount] = useState(matchedAmountSeed);
+
   return (
     <form action={action} className="flex w-full min-w-0 max-w-lg flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
       <h2 className="font-medium">{t('proposeTitle')}</h2>
       <p className="text-xs text-[var(--pf-text-muted)]">{t('hint')}</p>
       <p className="break-words text-xs text-[var(--pf-text-secondary)]">
-        {t('remainingHint', { amount: remainingLabel, currency })}
+        {t('remainingHint', { amount: seedApAmountInput(remainingLabel, currency), currency })}
       </p>
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? (
@@ -128,7 +132,16 @@ export function ProposeMatchForm({
 
       <Field label={t('amountLabel')} required>
         {(props) => (
-          <Input {...props} name="matchedAmount" defaultValue={defaultAmount} dir="ltr" required />
+          <>
+            <MoneyInput
+              {...props}
+              required
+              currency={currency}
+              value={matchedAmount}
+              onValueChange={(value) => setMatchedAmount(acceptApAmountInput(value, currency))}
+            />
+            <input type="hidden" name="matchedAmount" value={matchedAmount} />
+          </>
         )}
       </Field>
 

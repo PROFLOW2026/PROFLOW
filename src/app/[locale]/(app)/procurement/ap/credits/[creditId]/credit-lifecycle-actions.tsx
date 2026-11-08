@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { MoneyInput } from '@/components/patterns/money-input';
+import { acceptApAmountInput, seedApAmountInput } from '@/modules/ap/domain/accept-amount-input';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -27,12 +28,14 @@ import {
 export function EditDraftCreditForm({
   creditId,
   amount,
+  currency,
   creditDate,
   reference,
   notes,
 }: {
   creditId: string;
   amount: string;
+  currency: string;
   creditDate: string;
   reference: string | null;
   notes: string | null;
@@ -43,7 +46,7 @@ export function EditDraftCreditForm({
     updateVendorCreditAction,
     {},
   );
-  const [value, setValue] = useState(amount);
+  const [value, setValue] = useState(() => seedApAmountInput(amount, currency));
 
   return (
     <section className="flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
@@ -54,7 +57,7 @@ export function EditDraftCreditForm({
         <input type="hidden" name="amount" value={value} />
         <Field label={tFields('amountLabel')} required>
           {(controlProps) => (
-            <MoneyInput {...controlProps} required value={value} onValueChange={setValue} />
+            <MoneyInput {...controlProps} required currency={currency} value={value} onValueChange={(next) => setValue(acceptApAmountInput(next, currency))} />
           )}
         </Field>
         <label className="flex items-start gap-2 text-sm">
@@ -141,7 +144,7 @@ export function ApplyVendorCreditForm({
     {},
   );
   const [billId, setBillId] = useState('');
-  const [amount, setAmount] = useState(remaining);
+  const [amount, setAmount] = useState(() => seedApAmountInput(remaining, currency));
 
   if (bills.length === 0) {
     return (
@@ -178,11 +181,11 @@ export function ApplyVendorCreditForm({
         </Field>
         <Field label={t('amountLabel')} required>
           {(controlProps) => (
-            <MoneyInput {...controlProps} required value={amount} onValueChange={setAmount} />
+            <MoneyInput {...controlProps} required currency={currency} value={amount} onValueChange={(next) => setAmount(acceptApAmountInput(next, currency))} />
           )}
         </Field>
         <p className="text-xs text-[var(--pf-text-muted)]">
-          {t('remainingHint', { amount: remaining, currency })}
+          {t('remainingHint', { amount: seedApAmountInput(remaining, currency), currency })}
         </p>
         <Button type="submit" disabled={pending || !billId || !amount} size="lg" className="sm:w-auto">
           {t('action')}

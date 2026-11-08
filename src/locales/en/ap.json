@@ -373,6 +373,8 @@
     "duplicateReason": "Same bill date and total ({date}, {amount}).",
     "correctPaymentDate": "Correct payment date",
     "correctPaymentDateHint": "Owner only. Cash reporting uses payment date — bill recognition is unchanged.",
+    "correctPaymentAmount": "Correct payment amount",
+    "savePaymentCorrection": "Save payment correction",
     "savePaymentDate": "Save payment date"
   },
   "aging": {
@@ -456,8 +458,10 @@
     "paymentBillNotPayable": "Cannot pay a draft or void bill.",
     "paymentOverApplied": "Payment would exceed the bill outstanding.",
     "paymentApplicationMismatch": "Payment amount must equal the sum of applications.",
-    "paymentNotVoidable": "Only recorded payments can be voided.",
+    "paymentNotVoidable": "Only recorded payments can be voided.",
+    "paymentNotRestorable": "Only a voided vendor payment can be restored.",
     "paymentNotEditable": "Only recorded payments can be corrected here.",
+    "paymentCorrectionMultiApply": "A payment applied to more than one bill cannot change amount here.",
     "confirmRequired": "Confirm the change before saving.",
     "ownerOnlyRetroactiveEdit": "Only the organization owner may apply this correction.",
     "paymentVendorMismatch": "All bill applications must share the same vendor.",

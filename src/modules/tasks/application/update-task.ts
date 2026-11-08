@@ -7,6 +7,7 @@ import {
   updateTaskById,
   insertTaskActivity,
 } from '../data/tasks.repository';
+import { assertCanAccessTask } from './assert-task-access';
 import { buildActivityActorFieldsFromContext } from '../domain/actor';
 import { applyTaskStatusChange } from './apply-task-status-change';
 import { rescheduleTaskReminders } from './reschedule-task-reminders';
@@ -42,8 +43,7 @@ export async function updateTask(
 
   const input = parsed.data;
 
-  const existing = await findTaskById(context.db, context.organizationId, taskId);
-  if (!existing) throw new NotFoundError('Task');
+  const existing = await assertCanAccessTask(context, taskId);
 
   const nextStart = input.startDate !== undefined ? input.startDate : existing.startDate;
   const nextDue = input.dueDate !== undefined ? input.dueDate : existing.dueDate;

@@ -25,14 +25,16 @@ export async function ExecutionHubLinks({
   surfaceRoot,
   params,
   compact = false,
+  skipDeveloperGcGate = false,
 }: {
   readonly hub: LinkHub;
   readonly surfaceRoot?: string;
   readonly params: Promise<{ projectId: string }>;
   readonly compact?: boolean;
+  readonly skipDeveloperGcGate?: boolean;
 }) {
   const { projectId } = await params;
-  await requireDeveloperGcExecutionPage(projectId);
+  if (!skipDeveloperGcGate) await requireDeveloperGcExecutionPage(projectId);
   const access = await requireProjectCapabilityPage(projectId, HUB_CAPABILITY[hub], { mode: 'any' });
   const t = await getTranslations('projectWorkspace');
   const root = surfaceRoot ?? `/projects/${projectId}`;

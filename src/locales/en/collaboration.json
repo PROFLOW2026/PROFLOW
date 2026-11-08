@@ -49,7 +49,18 @@
   "contractorPanel": {
     "title": "Contractor assignment",
     "evidenceRequired": "Evidence required",
-    "due": "Due {date}"
+    "due": "Due {date}",
+    "vendorLabel": "Contractor",
+    "vendorPlaceholder": "Choose a contractor",
+    "agreementLabel": "Agreement",
+    "principalLabel": "Contractor user",
+    "optional": "Optional",
+    "none": "None",
+    "submit": "Assign to contractor",
+    "submitting": "Assigning...",
+    "empty": "No contractors are linked to this project",
+    "vendorRequired": "Choose a contractor",
+    "projectRequired": "A task can only be assigned to a contractor when it belongs to a project"
   },
   "taskStatus": {
     "assigned": "Assigned",

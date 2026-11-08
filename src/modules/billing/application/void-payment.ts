@@ -1,6 +1,8 @@
 import { recordAuditEvent } from '@/shared/audit';
+import { assertClosedMonthSourceEdit } from '@/shared/business-change/assert-owner-retroactive';
 import { NotFoundError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
+import { yearMonthFromBusinessDate } from '@/modules/month-close';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { assertPaymentVoidable } from '../domain/lifecycle';
@@ -13,12 +15,22 @@ import {
 
 const PAYMENT_AUDIT_VOIDED = 'payment.voided';
 
-export async function voidPayment(context: OrgContext, paymentId: string) {
+export async function voidPayment(
+  context: OrgContext,
+  paymentId: string,
+  options?: { readonly changeAcknowledged?: boolean },
+) {
   assertPermission(context, PERMISSIONS.BILLING_MANAGE);
 
   const payment = await findPaymentById(context.db, context.organizationId, paymentId);
   if (!payment) throw new NotFoundError('Payment');
   assertPaymentVoidable(payment.status);
+  await assertClosedMonthSourceEdit(
+    context,
+    yearMonthFromBusinessDate(payment.paymentDate),
+    options?.changeAcknowledged,
+    'billing.errors.confirmRequired',
+  );
 
   const affectedBillingRecordIds = await listBillingRecordIdsForPayment(
     context.db,

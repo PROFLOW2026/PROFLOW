@@ -993,15 +993,29 @@ export async function findAcceptedVersionForOpportunity(
   opportunityId: string,
 ): Promise<SalesQuoteVersionRecord | null> {
   const quotes = await listSalesQuotesForOpportunity(db, organizationId, opportunityId);
+  const versionIds = [
+    ...new Set(
+      quotes
+        .map((quote) => quote.acceptedVersionId)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+  if (versionIds.length === 0) return null;
+
+  const rows = await db
+    .select()
+    .from(crmSalesQuoteVersions)
+    .where(
+      and(
+        eq(crmSalesQuoteVersions.organizationId, organizationId),
+        inArray(crmSalesQuoteVersions.id, versionIds),
+      ),
+    );
+  const byId = new Map(rows.map((row) => [row.id, mapVersion(row)]));
   for (const quote of quotes) {
-    if (quote.acceptedVersionId) {
-      const version = await findSalesQuoteVersionById(
-        db,
-        organizationId,
-        quote.acceptedVersionId,
-      );
-      if (version?.status === 'accepted') return version;
-    }
+    if (!quote.acceptedVersionId) continue;
+    const version = byId.get(quote.acceptedVersionId);
+    if (version?.status === 'accepted') return version;
   }
   return null;
 }

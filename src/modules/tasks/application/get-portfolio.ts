@@ -11,6 +11,7 @@ import {
   resolveListLimit,
   resolveListOffset,
 } from '@/shared/db/list-limits';
+import { sqlUuidEqAny } from '../domain/task-project-access-filter';
 
 // ---------------------------------------------------------------------------
 // Domain types
@@ -209,9 +210,7 @@ export async function getPortfolio(
           -- Caller access filter
           ${accessibleProjectIds === null
             ? sql``
-            : accessibleProjectIds.length === 0
-              ? sql`AND false`
-              : sql`AND p.id = ANY(${accessibleProjectIds}::uuid[])`}
+            : sql`AND ${sqlUuidEqAny(sql`p.id`, accessibleProjectIds)}`}
           -- Optional filters
           ${filters.clientId ? sql`AND p.client_id = ${filters.clientId}::uuid` : sql``}
           ${filters.stageId

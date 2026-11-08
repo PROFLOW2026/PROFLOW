@@ -81,7 +81,7 @@ export default async function ProjectContractorAccessPage({ params }: { params: 
                   invitationsByAgreement={loaded?.invitationsByAgreement ?? {}}
                   actions={{ issue: issueConnectionCodeAction, revoke: revokeConnectionCodeAction }}
                 />
-                <ExecutionHubLinks hub="contractors" params={params} compact />
+                <ExecutionHubLinks hub="contractors" params={params} compact skipDeveloperGcGate />
               </>
             ) : (
               <Alert tone="warning">{t('manage.forbidden')}</Alert>

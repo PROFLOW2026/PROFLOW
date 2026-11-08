@@ -1,12 +1,32 @@
-import type { ProjectStatus } from './types';
+import { PROJECT_STATUSES, type ProjectStatus } from './types';
 
 /**
  * Soft-archive / restore for projects & jobs.
  *
  * Archive sets status=`archived` + archivedAt.
- * Restore nulls archivedAt and returns status to `active`.
- * Completed / cancelled are separate lifecycle states - not soft-archive.
+ * Restore clears archivedAt and returns the pre-archive status when the
+ * archive audit `before` payload holds a valid project status other than
+ * `archived`. Missing, invalid, or `archived` falls back to `active`.
  */
+
+const RESTORABLE_PROJECT_STATUSES: ReadonlySet<string> = new Set(
+  PROJECT_STATUSES.filter((status) => status !== 'archived'),
+);
+
+function readArchiveBeforeStatus(before: unknown): unknown {
+  if (before === null || typeof before !== 'object' || Array.isArray(before)) return undefined;
+  if (!('status' in before)) return undefined;
+  return (before as { readonly status?: unknown }).status;
+}
+
+/** Pre-archive status for restore. Anything other than a live project status becomes `active`. */
+export function resolveRestoredProjectStatus(before: unknown): ProjectStatus {
+  const status = readArchiveBeforeStatus(before);
+  if (typeof status === 'string' && RESTORABLE_PROJECT_STATUSES.has(status)) {
+    return status as ProjectStatus;
+  }
+  return 'active';
+}
 
 export function buildProjectArchivePatch(now: Date = new Date()) {
   return {
@@ -15,9 +35,9 @@ export function buildProjectArchivePatch(now: Date = new Date()) {
   };
 }
 
-export function buildProjectRestorePatch() {
+export function buildProjectRestorePatch(before?: unknown) {
   return {
-    status: 'active' as const satisfies ProjectStatus,
+    status: resolveRestoredProjectStatus(before),
     archivedAt: null,
   };
 }

@@ -66,7 +66,7 @@ import {
 import { findVendorById, findSubcontractAgreementById } from '@/modules/vendors';
 import { bookInventoryPurchaseFromApBillOnExecutor } from '@/modules/assets/application/inventory-cost';
 import { findCostCategoryById } from '@/modules/expenses';
-import { assertApBillHasNoUnlinkedExpenseOverlap } from '@/modules/financials/application/assert-expense-ap-overlap';
+import { holdApBillDuplicateWarnings } from '@/modules/duplicate-warnings';
 import {
   isDeprecatedForNewTransactionEntry,
   resolveApClassificationStatus,
@@ -180,20 +180,35 @@ async function promoteDraftApBillToOpen(
   options: {
     readonly postedFromDraft?: boolean;
     readonly confirmDistinctCosts?: boolean;
+    readonly acknowledgeDuplicateVendorReference?: boolean;
     readonly inventoryStockPurchase?: boolean;
     readonly inventoryItemId?: string | null;
     readonly inventoryPurchaseQty?: string | null;
   } = {},
-): Promise<ApBillRow> {
+): Promise<ApBillRow & { pendingDuplicateWarning?: unknown }> {
   const lines = await listApBillLines(context.db, context.organizationId, bill.id);
   assertAllLinesClassifiedForRecognition(lines);
 
-  await assertApBillHasNoUnlinkedExpenseOverlap(
-    context.db,
-    context.organizationId,
-    bill,
-    options.confirmDistinctCosts === true,
+  const pendingDuplicateWarning = await holdApBillDuplicateWarnings(
+    context,
+    {
+      id: bill.id,
+      vendorId: bill.vendorId,
+      projectId: bill.projectId,
+      netAmount: bill.netAmount,
+      totalAmount: bill.totalAmount,
+      currency: bill.currency,
+      reference: bill.reference,
+      billDate: bill.billDate,
+    },
+    {
+      confirmDistinctCosts: options.confirmDistinctCosts === true,
+      acknowledgeDuplicateVendorReference: options.acknowledgeDuplicateVendorReference === true,
+    },
   );
+  if (pendingDuplicateWarning) {
+    return { ...bill, pendingDuplicateWarning };
+  }
 
   const updated = await withTransaction(context.db, async (tx) => {
     const txContext = withExecutor(context, tx);
@@ -614,14 +629,36 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
     })),
   );
 
-  let resultBill = bill;
+  let resultBill: ApBillRow & { pendingDuplicateWarning?: unknown } = bill;
   if (initialStatus === 'open') {
     resultBill = await promoteDraftApBillToOpen(context, bill, {
       confirmDistinctCosts: input.confirmDistinctCosts === true,
+      acknowledgeDuplicateVendorReference: input.acknowledgeDuplicateVendorReference === true,
       inventoryStockPurchase: input.inventoryStockPurchase === true,
       inventoryItemId: input.inventoryItemId,
       inventoryPurchaseQty: input.inventoryPurchaseQty,
     });
+  } else {
+    const pendingDuplicateWarning = await holdApBillDuplicateWarnings(
+      context,
+      {
+        id: bill.id,
+        vendorId: bill.vendorId,
+        projectId: bill.projectId,
+        netAmount: bill.netAmount,
+        totalAmount: bill.totalAmount,
+        currency: bill.currency,
+        reference: bill.reference,
+        billDate: bill.billDate,
+      },
+      {
+        confirmDistinctCosts: input.confirmDistinctCosts === true,
+        acknowledgeDuplicateVendorReference: input.acknowledgeDuplicateVendorReference === true,
+      },
+    );
+    if (pendingDuplicateWarning) {
+      resultBill = { ...bill, pendingDuplicateWarning };
+    }
   }
 
   if (matchingApproval) {
@@ -667,11 +704,12 @@ export async function postApBill(
   billId: string,
   options: {
     readonly confirmDistinctCosts?: boolean;
+    readonly acknowledgeDuplicateVendorReference?: boolean;
     readonly inventoryStockPurchase?: boolean;
     readonly inventoryItemId?: string | null;
     readonly inventoryPurchaseQty?: string | null;
   } = {},
-): Promise<ApBillRow> {
+): Promise<ApBillRow & { pendingDuplicateWarning?: unknown }> {
   assertPermission(context, PERMISSIONS.AP_MANAGE);
 
   const bill = await findApBillById(context.db, context.organizationId, billId);
@@ -701,6 +739,7 @@ export async function postApBill(
   return promoteDraftApBillToOpen(context, bill, {
     postedFromDraft: true,
     confirmDistinctCosts: options.confirmDistinctCosts === true,
+    acknowledgeDuplicateVendorReference: options.acknowledgeDuplicateVendorReference === true,
     inventoryStockPurchase: options.inventoryStockPurchase === true,
     inventoryItemId: options.inventoryItemId,
     inventoryPurchaseQty: options.inventoryPurchaseQty,

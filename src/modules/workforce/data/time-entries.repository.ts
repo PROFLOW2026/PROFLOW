@@ -297,6 +297,57 @@ export async function voidTimeEntryRow(
   return row ? mapTimeEntry(row) : null;
 }
 
+/** In-place source edit. updatedAt is separate from workDate. */
+export async function updateRecordedTimeEntrySource(
+  db: DbExecutor,
+  organizationId: string,
+  timeEntryId: string,
+  patch: {
+    readonly workDate: string;
+    readonly hours: string;
+    readonly kind: TimeEntryKind;
+    readonly projectId: string | null;
+    readonly workPackageId: string | null;
+    readonly phaseId: string | null;
+    readonly timeCodeId: string | null;
+    readonly taskId: string | null;
+    readonly description: string | null;
+    readonly costAmount: string | null;
+    readonly costCurrency: string | null;
+    readonly rateVersionId: string | null;
+    readonly updatedAt: Date;
+  },
+): Promise<TimeEntryRecord | null> {
+  const [row] = await db
+    .update(timeEntries)
+    .set({
+      workDate: patch.workDate,
+      hours: patch.hours,
+      kind: patch.kind,
+      projectId: patch.projectId,
+      workPackageId: patch.workPackageId,
+      phaseId: patch.phaseId,
+      timeCodeId: patch.timeCodeId,
+      taskId: patch.taskId,
+      description: patch.description,
+      costAmount: patch.costAmount,
+      costCurrency: patch.costCurrency,
+      rateVersionId: patch.rateVersionId,
+      updatedAt: patch.updatedAt,
+    })
+    .where(
+      and(
+        eq(timeEntries.id, timeEntryId),
+        eq(timeEntries.organizationId, organizationId),
+        eq(timeEntries.status, 'recorded'),
+        isNull(timeEntries.voidedAt),
+        isNull(timeEntries.archivedAt),
+      ),
+    )
+    .returning();
+
+  return row ? mapTimeEntry(row) : null;
+}
 export interface TimeEntryFilters {
   readonly employeeId?: string;
   readonly projectId?: string;

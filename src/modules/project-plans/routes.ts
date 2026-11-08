@@ -8,7 +8,6 @@ import {
   openExternalSharedDocumentFile,
 } from '@/modules/project-plans/application/contractor-plans';
 import { requireSession, runInOrgContext } from '@/shared/auth/session';
-import { NotFoundError, apiRouteErrorFromUnknown } from '@/shared/errors';
 import { isExplicitAttachmentRequest } from '@/modules/external-storage/domain/authorized-preview';
 import { readRequestBytes, fileResponse, fileRouteError } from '@/modules/evidence/http';
 import { EVIDENCE_SIZE_LIMITS } from '@/modules/evidence';
@@ -55,8 +54,7 @@ export async function handleInternalRevisionDownload(
     const inline = file.mimeType.startsWith('image/') || file.mimeType === 'application/pdf';
     return fileResponse(file, inline);
   } catch (error) {
-    if (error instanceof NotFoundError) return new Response(null, { status: 404 });
-    return apiRouteErrorFromUnknown(error, 'externalStorage.errors.operationFailed');
+    return fileRouteError(error);
   }
 }
 
@@ -76,8 +74,7 @@ export async function handleExternalRevisionDownload(
       (file.mimeType.startsWith('image/') || file.mimeType === 'application/pdf');
     return fileResponse(file, inline);
   } catch (error) {
-    if (error instanceof NotFoundError) return new Response(null, { status: 404 });
-    return apiRouteErrorFromUnknown(error, 'externalStorage.errors.operationFailed');
+    return fileRouteError(error);
   }
 }
 
@@ -97,7 +94,6 @@ export async function handleExternalSharedDocumentDownload(
       (file.mimeType.startsWith('image/') || file.mimeType === 'application/pdf');
     return fileResponse(file, inline);
   } catch (error) {
-    if (error instanceof NotFoundError) return new Response(null, { status: 404 });
-    return apiRouteErrorFromUnknown(error, 'externalStorage.errors.operationFailed');
+    return fileRouteError(error);
   }
 }

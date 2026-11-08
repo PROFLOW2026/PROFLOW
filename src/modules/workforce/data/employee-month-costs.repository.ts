@@ -152,6 +152,39 @@ export async function updateEmployeeMonthCostDraft(
   return row ?? null;
 }
 
+export async function updateAppliedEmployeeMonthCostAmounts(
+  db: DbExecutor,
+  organizationId: string,
+  id: string,
+  patch: {
+    estimatedAmount: string | null;
+    actualAmount: string | null;
+    knownAmount: string;
+    knownQuality: KnownQuality;
+    notes?: string | null;
+  },
+): Promise<EmployeeMonthCostRow | null> {
+  const [row] = await db
+    .update(employeeMonthCosts)
+    .set({
+      estimatedAmount: patch.estimatedAmount,
+      actualAmount: patch.actualAmount,
+      knownAmount: patch.knownAmount,
+      knownQuality: patch.knownQuality,
+      notes: patch.notes === undefined ? undefined : patch.notes,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(employeeMonthCosts.id, id),
+        eq(employeeMonthCosts.organizationId, organizationId),
+        inArray(employeeMonthCosts.status, ['applied', 'closed']),
+      ),
+    )
+    .returning();
+  return row ?? null;
+}
+
 /**
  * Freeze an applied month-cost row at month close (must already be monthly_allocated).
  */

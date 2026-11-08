@@ -154,7 +154,9 @@ export async function getFinancialsOverview(
   }
 
   const commitments =
-    rollup != null ? (aggregateOrgCost(rollup.rows, currency).committed?.value ?? null) : null;
+    rollup != null
+      ? (aggregateOrgCost(rollup.eligibleRows, currency).committed?.value ?? null)
+      : null;
 
   const receivables =
     billingRecords != null ? computeReceivablesSummary(billingRecords, currency, today) : null;

@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
+import { rethrowIfPageAuthorization } from '@/shared/errors/page-authorization';
 
 export default function DocumentsError({
   error,
@@ -17,6 +18,7 @@ export default function DocumentsError({
     console.error('[documents-error]', error.digest ?? error.message);
   }, [error]);
 
+  rethrowIfPageAuthorization(error);
   return (
     <div className="flex flex-col items-start gap-3 py-8">
       <h1 className="text-xl font-semibold">{t('title')}</h1>

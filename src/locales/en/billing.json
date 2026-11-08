@@ -241,6 +241,7 @@
     "finalize": "Finalize",
     "void": "Void record",
     "voidPayment": "Void payment",
+    "restorePayment": "Restore payment",
     "recordPayment": "Record payment",
     "clientAccountStatementPreview": "Preview / print customer account statement (all billing)",
     "paymentsTitle": "Payments",
@@ -250,7 +251,8 @@
     "reference": "Reference",
     "notes": "Notes",
     "kind": "Kind",
-    "voidPaymentAriaLabel": "Void payment of {amount} from {date}"
+    "voidPaymentAriaLabel": "Void payment of {amount} from {date}",
+    "restorePaymentAriaLabel": "Restore the payment of {amount} from {date}"
   },
   "confirm": {
     "finalizeTitle": "Finalize billing record",
@@ -266,9 +268,13 @@
     "voidDraftConsequence": "The draft is marked void and kept in history. It is not deleted.",
     "voidDraftSuccess": "Draft voided.",
     "voidPaymentTitle": "Void payment",
+    "restorePaymentTitle": "Restore payment",
     "voidPaymentQuestion": "Void the payment of <amount></amount> from <date></date>?",
-    "voidPaymentConsequence": "This creates a reversal entry and cannot be undone.",
-    "voidPaymentSuccess": "Payment voided."
+    "restorePaymentQuestion": "Restore the payment of <amount></amount> from <date></date>?",
+    "voidPaymentConsequence": "The organization owner can restore the same payment later, after confirmation. Other roles cannot.",
+    "restorePaymentConsequence": "The same payment returns to recorded. Only the organization owner can confirm this.",
+    "voidPaymentSuccess": "Payment voided.",
+    "restorePaymentSuccess": "Payment restored."
   },
   "panel": {
     "positionTitle": "Billing position",
@@ -354,6 +360,7 @@
     "dueBeforeIssue": "The due date cannot be before the issue date.",
     "correctionNotVoidable": "Correcting entries cannot be voided again.",
     "paymentTargetNotFinalized": "Payments can only be recorded against finalized billing records.",
+    "paymentNotRestorable": "Only a voided payment can be restored.",
     "paymentNotVoidable": "Only recorded payments can be voided.",
     "currencyMismatch": "Billing currency must match the project currency.",
     "hasRecordedPayments": "Void recorded payments before voiding this billing record.",

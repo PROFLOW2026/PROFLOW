@@ -11,11 +11,13 @@ import type { MoneyValue } from '@/shared/money/money';
 import {
   finalizeBillingRecordAction,
   voidBillingRecordAction,
+  restorePaymentAction,
   voidPaymentAction,
 } from './actions';
 import { VoidBillingWithPaymentsButton } from './void-billing-with-payments-button';
 import {
   employeeFinalizeBillingRecordAction,
+  employeeRestorePaymentAction,
   employeeVoidBillingRecordAction,
   employeeVoidPaymentAction,
 } from '@/app/[locale]/employee/(shell)/billing/actions';
@@ -80,6 +82,8 @@ export function BillingDetailActions({
     surface === 'employee' ? employeeVoidBillingRecordAction : voidBillingRecordAction;
   const voidPayment =
     surface === 'employee' ? employeeVoidPaymentAction : voidPaymentAction;
+  const restorePayment =
+    surface === 'employee' ? employeeRestorePaymentAction : restorePaymentAction;
   const t = useTranslations('billing');
   const tErrors = useTranslations('errors');
   const locale = useLocale();
@@ -192,11 +196,49 @@ export function BillingDetailActions({
               successMessage={t('confirm.voidPaymentSuccess')}
               triggerAriaLabel={ariaLabel}
               onConfirm={() =>
-                runBillingAction(() => voidPayment(payment.paymentId, billingRecordId))
+                runBillingAction(() => voidPayment(payment.paymentId, billingRecordId, true))
               }
               trigger={
                 <Button type="button" variant="secondary">
                   {t('detail.voidPayment')}
+                </Button>
+              }
+            />
+          );
+        })}
+      {paymentActions
+        .filter((payment) => payment.status === 'void')
+        .map((payment) => {
+          const formattedAmount = isolate(formatMoney(payment.amount, locale));
+          const formattedDate = isolate(formatBusinessDate(payment.paymentDate, locale));
+          const ariaLabel = t('detail.restorePaymentAriaLabel', {
+            amount: formattedAmount,
+            date: formattedDate,
+          });
+          return (
+            <ConfirmAction
+              key={payment.paymentId}
+              title={t('confirm.restorePaymentTitle')}
+              description={
+                <>
+                  <p>
+                    {t.rich('confirm.restorePaymentQuestion', {
+                      amount: () => <MoneyText value={payment.amount} />,
+                      date: () => <FormattedDate date={payment.paymentDate} locale={locale} />,
+                    })}
+                  </p>
+                  <p>{t('confirm.restorePaymentConsequence')}</p>
+                </>
+              }
+              confirmLabel={t('detail.restorePayment')}
+              successMessage={t('confirm.restorePaymentSuccess')}
+              triggerAriaLabel={ariaLabel}
+              onConfirm={() =>
+                runBillingAction(() => restorePayment(payment.paymentId, billingRecordId, true))
+              }
+              trigger={
+                <Button type="button" variant="secondary">
+                  {t('detail.restorePayment')}
                 </Button>
               }
             />

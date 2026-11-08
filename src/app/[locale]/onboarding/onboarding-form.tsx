@@ -13,6 +13,7 @@ import {
   ONBOARDING_MANAGE_OPTIONS,
   ONBOARDING_WORK_STYLES,
   modulesForManageOptions,
+  resolveOnboardingComplexity,
   resolveOnboardingProfileKey,
   workMixForOnboardingStyle,
   type OnboardingBusinessType,
@@ -20,6 +21,10 @@ import {
   type OnboardingPath,
   type OnboardingWorkStyle,
 } from '@/modules/tenancy/domain/onboarding-experience';
+import {
+  EXPERIENCE_COMPLEXITY_KEYS,
+  type ExperienceComplexityKey,
+} from '@/modules/tenancy/domain/experience-complexity';
 import { createOrganizationAction, type OnboardingFormState } from './actions';
 
 const COUNTRY_CODES = ['IL', 'US', 'GB'] as const;
@@ -54,6 +59,7 @@ export function OnboardingForm() {
   const [workStyle, setWorkStyle] = useState<OnboardingWorkStyle>('projects');
   const [manageOptions, setManageOptions] = useState<readonly OnboardingManageOption[]>([]);
   const [path, setPath] = useState<OnboardingPath>('recommended');
+  const [complexity, setComplexity] = useState<ExperienceComplexityKey>('simple');
   const [state, formAction, pending] = useActionState<OnboardingFormState, FormData>(
     createOrganizationAction,
     {},
@@ -77,6 +83,10 @@ export function OnboardingForm() {
 
   const workMix = workMixForOnboardingStyle(workStyle);
   const profileKey = resolveOnboardingProfileKey({ path, businessType });
+  const submittedComplexity = resolveOnboardingComplexity({
+    profileKey,
+    selected: complexity,
+  });
   const extraModules = useMemo(
     () => (path === 'recommended' ? modulesForManageOptions(manageOptions) : []),
     [path, manageOptions],
@@ -161,6 +171,7 @@ export function OnboardingForm() {
       <input type="hidden" name="workMix" value={workMix} />
       <input type="hidden" name="moduleMode" value={path === 'recommended' ? 'replace' : 'additive'} />
       <input type="hidden" name="extraModules" value={extraModules.join(',')} />
+      <input type="hidden" name="experienceComplexity" value={submittedComplexity} />
 
       <p className="text-sm font-medium text-[var(--pf-text-primary)]">{t('stepExperience')}</p>
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('experienceHint')}</p>
@@ -257,6 +268,31 @@ export function OnboardingForm() {
                 {t(`path.${value}`)}
               </span>
               <span className="ps-6 text-xs text-[var(--pf-text-muted)]">{t(`path.${value}Hint`)}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset className="flex flex-col gap-2">
+        <legend className="text-sm font-medium text-[var(--pf-text-primary)]">
+          {t('complexityLabel')}
+        </legend>
+        <p className="text-xs text-[var(--pf-text-muted)]">{t('complexityLater')}</p>
+        <div className="flex flex-col gap-2">
+          {EXPERIENCE_COMPLEXITY_KEYS.map((value) => (
+            <label
+              key={value}
+              className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-[var(--pf-border-default)] p-3 text-sm font-medium text-[var(--pf-text-primary)] has-[:checked]:border-[var(--pf-action-primary)]"
+            >
+              <input
+                type="radio"
+                name="experienceComplexityChoice"
+                value={value}
+                checked={submittedComplexity === value}
+                onChange={() => setComplexity(value)}
+                className="size-4 accent-[var(--pf-action-primary)]"
+              />
+              {t(`complexity.${value}`)}
             </label>
           ))}
         </div>

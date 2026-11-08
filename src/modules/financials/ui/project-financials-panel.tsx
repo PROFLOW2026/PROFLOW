@@ -21,6 +21,7 @@ import { ExpectedRemainingCostForm } from './expected-remaining-cost-form';
 import { BillingPlanStatusStrip } from '@/modules/billing-plan/ui/billing-plan-status-strip';
 import { ProjectVendorActualPanel } from './project-vendor-actual-panel';
 import { ProjectApPaymentStatusPanel } from './project-ap-payment-status-panel';
+import { resolveDisplayedForecastFinalCost } from './resolve-displayed-forecast-cost';
 
 export interface ProjectFinancialsPanelProps {
   readonly projectId: string;
@@ -52,6 +53,10 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
   ]);
   const { cashFlow, canReadProfit, canReadBilling, canReadCommercial, canUpdateProject, canReadAp } =
     extras;
+  const displayedForecastFinalCost = resolveDisplayedForecastFinalCost(
+    financials.projectProfitabilityMode,
+    financials.cost,
+  );
 
   const coverageSources = mapCoverageToSources(financials.coverage, t);
   const hasCostPartials = (financials.coverage.partials?.length ?? 0) > 0;
@@ -309,7 +314,7 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
             ) : null}
             <MetricRow
               label={t('estimatedFinalCost')}
-              value={financials.cost.estimatedFinalCost}
+              value={displayedForecastFinalCost}
               nature={t('metricNature.forecast')}
             />
             <p className="text-xs text-[var(--pf-text-muted)]">{t('estimatedFinalCostHint')}</p>
