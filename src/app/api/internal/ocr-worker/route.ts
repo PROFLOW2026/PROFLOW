@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { drainDurableOcrQueue } from '@/modules/ocr';
-import { isInternalWorkerAuthorized } from '@/shared/http/internal-worker-auth';
-import { methodNotAllowedResponse } from '@/shared/http/method-not-allowed';
+import { isInternalWorkerAuthorized, rejectUnauthorizedInternalWorker } from '@/shared/http/internal-worker-auth';
 import {
   inferWorkerTrigger,
   logUsageWorkerEnd,
@@ -36,6 +35,9 @@ export async function POST(request: Request): Promise<Response> {
   return response;
 }
 
-export function GET(): Response {
-  return methodNotAllowedResponse();
+/** Vercel Cron calls GET. The same bearer secret as POST is required. */
+export function GET(request: Request): Response | Promise<Response> {
+  const denied = rejectUnauthorizedInternalWorker(request, 'ocr-worker');
+  if (denied) return denied;
+  return POST(request);
 }

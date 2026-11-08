@@ -18,6 +18,8 @@ describe('prepared closed-period and warning migrations', () => {
   it('stores pending warnings and hashed rate limits without a raw email', () => {
     expect(warnings).toContain('duplicate_warning_acknowledgements');
     expect(warnings).toContain("status IN ('pending', 'acknowledged')");
+    expect(warnings).toContain("status = 'pending'");
+    expect(warnings).toContain('approver_user_id IS NULL');
     expect(warnings).toContain('REVOKE DELETE ON public.duplicate_warning_acknowledgements FROM authenticated');
     expect(warnings).toContain('CREATE OR REPLACE FUNCTION app.consume_auth_rate_limit');
     expect(warnings).toContain("position('@' in p_key_hash)");

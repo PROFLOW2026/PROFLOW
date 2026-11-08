@@ -48,11 +48,24 @@ CREATE POLICY duplicate_warning_acknowledgements_insert ON public.duplicate_warn
 DROP POLICY IF EXISTS duplicate_warning_acknowledgements_ack ON public.duplicate_warning_acknowledgements;
 CREATE POLICY duplicate_warning_acknowledgements_ack ON public.duplicate_warning_acknowledgements
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id) AND status = 'pending')
+  USING (
+    app.is_org_member(organization_id)
+    AND status IN ('pending', 'acknowledged')
+  )
   WITH CHECK (
     app.is_org_member(organization_id)
-    AND status = 'acknowledged'
-    AND approver_user_id = app.current_user_id()
+    AND (
+      (
+        status = 'pending'
+        AND approver_user_id IS NULL
+        AND acknowledged_at IS NULL
+      )
+      OR (
+        status = 'acknowledged'
+        AND approver_user_id IS NOT NULL
+        AND acknowledged_at IS NOT NULL
+      )
+    )
   );
 
 DROP POLICY IF EXISTS duplicate_warning_acknowledgements_service ON public.duplicate_warning_acknowledgements;

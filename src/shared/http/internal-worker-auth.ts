@@ -53,6 +53,19 @@ export function isInternalWorkerAuthorized(
   return secrets.some((secret) => secretMatches(token, secret));
 }
 
+/**
+ * Vercel Cron calls the scheduled workers with GET. The job runs only when the
+ * same bearer secret as POST matches. A missing secret, or a GET without it,
+ * returns 401 and does not run the worker.
+ */
+export function rejectUnauthorizedInternalWorker(
+  request: Request,
+  route: InternalWorkerRoute,
+): Response | null {
+  if (isInternalWorkerAuthorized(request, route)) return null;
+  return Response.json({ error: 'unauthorized' }, { status: 401 });
+}
+
 /** Bearer secret for outbound kicks to a specific internal worker route. */
 export function resolveInternalWorkerBearer(route: InternalWorkerRoute): string | null {
   const secrets = acceptedSecrets(route);
