@@ -10,6 +10,7 @@ const config = [
   {
     ignores: [
       '.next/**',
+      '.vercel/**',
       'node_modules/**',
       'playwright-report/**',
       'test-results/**',
@@ -24,6 +25,8 @@ const config = [
       'public/cad/**',
       'scripts/.**',
       '.tools/**',
+      '.deploy-linux/**',
+      '.cursor/linux-build/**',
       'docs/**/scripts/**',
     ],
   },

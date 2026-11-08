@@ -130,7 +130,6 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   }
 
   const closeoutReady = closeoutStatus === 'ready';
-  const showWorkTab = detail.showWorkPackages;
   const canArchive = shell?.permissions.has(PERMISSIONS.PROJECTS_ARCHIVE) ?? false;
   const showUwmLinks =
     Boolean(modules?.work_management) && (shell?.permissions.has(PERMISSIONS.TASKS_READ) ?? false);

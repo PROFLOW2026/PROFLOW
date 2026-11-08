@@ -153,7 +153,6 @@ function ProjectTabsEnhancerChrome({
 
     function softNavigate(hub: string) {
       navigateTabRef.current(hub, () => {
-        const params = new URLSearchParams();
         router.replace(hubNavigationHref(pathnameRef.current, hub as ProjectHubKey), { scroll: false });
       });
     }
