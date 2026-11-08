@@ -1,5 +1,5 @@
 import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { titleWithDocumentNumber } from '@/modules/tenancy';

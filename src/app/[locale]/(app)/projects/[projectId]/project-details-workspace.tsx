@@ -11,7 +11,7 @@ import { withProjectOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { ProjectManagementModePanel } from '@/modules/project-profile/ui/project-management-mode-panel';
 import { loadProjectDetailInContext } from './load-project-detail';
-import { projectDetailForClient } from './project-detail-client';
+import { customFieldValuesForClient, projectDetailForClient } from './project-detail-client';
 import { DetailsTab } from './details-tab';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 
@@ -29,7 +29,7 @@ export async function ProjectDetailsWorkspace({
     const isOwner = isOrganizationOwner(context);
 
     const detail = projectDetailForClient(
-      await loadProjectDetailInContext(context, projectId, true),
+      await loadProjectDetailInContext(context, projectId, false),
     );
     const uiLocale = locale === 'he-IL' ? 'he-IL' : 'en';
     const baseCurrency =
@@ -82,7 +82,7 @@ export async function ProjectDetailsWorkspace({
             currencySymbol={currencySymbol}
             canManageContract={canManageContract}
             isOwner={isOwner}
-            customFields={customFields}
+            customFields={customFieldValuesForClient(customFields)}
             taxRatePercent={detail.contract?.taxSnapshot?.ratePercent ?? null}
             coverPreviewUrl={coverPreviewUrl}
             coverSchemaReady={coverAvailability?.schemaReady ?? false}
