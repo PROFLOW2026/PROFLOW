@@ -84,7 +84,7 @@ export function InfraCamera({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-lg bg-black" data-testid="infra-camera">
+    <div data-pf-style="classic" className="relative overflow-hidden rounded-lg bg-black" data-testid="infra-camera">
       <video ref={videoRef} playsInline muted autoPlay className="aspect-[4/3] max-h-[60dvh] w-full object-cover" />
       {flash ? <div className="pointer-events-none absolute inset-0 bg-white/70" /> : null}
       <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 bg-gradient-to-t from-black/70 to-transparent p-3">

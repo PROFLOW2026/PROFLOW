@@ -61,6 +61,7 @@ export function ShellNavLink({
     <Link
       href={href}
       prefetch={prefetch}
+      data-pf-slot={variant === 'mobile' ? 'bottom-nav-item' : 'sidebar-item'}
       aria-current={active ? 'page' : undefined}
       aria-busy={busy || undefined}
       data-pending={busy ? '' : undefined}

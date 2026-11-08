@@ -35,6 +35,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Inp
         className,
       )}
       {...props}
+      data-pf-slot="control"
     />
   );
 });

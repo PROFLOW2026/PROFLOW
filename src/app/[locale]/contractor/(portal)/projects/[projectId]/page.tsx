@@ -57,7 +57,7 @@ export default async function ContractorPortalProjectPage({ params }: PageProps)
 
   return (
     <div className={portalPageStackClass}>
-      <header className={portalHeroClass}>
+      <header data-pf-slot="hero" className={portalHeroClass}>
         <p className={portalSectionLabelClass}>{portalOrganizationLabel(t, project.organizationName)}</p>
         <h1 className={portalPageTitleClass}>{portalProjectLabel(t, project)}</h1>
         {vendors.length > 0 ? (

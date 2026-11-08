@@ -86,6 +86,7 @@ function SideNavLink({ item, active, t }: { item: PortalNavItem; active: boolean
   return (
     <Link
       href={item.href}
+      data-pf-slot="sidebar-item"
       aria-current={active ? 'page' : undefined}
       className={portalSideNavLinkClass(active)}
     >
@@ -356,6 +357,7 @@ function MobileTabSideLink({
   return (
     <Link
       href={item.href}
+      data-pf-slot="sidebar-item"
       aria-current={active ? 'page' : undefined}
       className={portalSideNavLinkClass(active)}
     >
@@ -386,7 +388,7 @@ export function ContractorPortalShell({ shell, children }: { shell: PortalShellD
 
   return (
     <div className={portalShellFrameClass} data-pf-contractor-portal>
-      <nav className={portalSideNavClass} aria-label={t('shell.navLabel')}>
+      <nav data-pf-slot="sidebar" className={portalSideNavClass} aria-label={t('shell.navLabel')}>
         <div className="flex h-[var(--pf-topbar-height)] shrink-0 items-center gap-2.5 border-b border-[var(--pf-border-default)] px-3.5">
           <span
             className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)] shadow-sm"
@@ -454,7 +456,7 @@ export function ContractorPortalShell({ shell, children }: { shell: PortalShellD
         >
           {tCommon('a11y.skipToContent')}
         </a>
-        <header className={portalTopBarClass}>
+        <header data-pf-slot="topbar" className={portalTopBarClass}>
           <span className="flex min-w-0 items-center gap-2.5 lg:hidden">
             <span
               className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)]"

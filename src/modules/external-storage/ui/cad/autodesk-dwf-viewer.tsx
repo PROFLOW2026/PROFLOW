@@ -143,7 +143,7 @@ function AutodeskDwfViewerInner({
 
   if (error) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-4">
+      <div data-pf-style="classic" className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-4">
         <Alert tone="danger">{error}</Alert>
         <div className="flex flex-wrap justify-center gap-2">
           <Button type="button" variant="secondary" onClick={onRetry}>
@@ -160,7 +160,7 @@ function AutodeskDwfViewerInner({
   }
 
   return (
-    <div ref={hostRef} className="relative flex min-h-0 flex-1 flex-col bg-[var(--pf-surface-base)]">
+    <div ref={hostRef} data-pf-style="classic" className="relative flex min-h-0 flex-1 flex-col bg-[var(--pf-surface-base)]">
       {loading ? <StorageLoadingOverlay label={t('cadLoadingEngine')} blocking /> : null}
       <CadPreviewChrome hostRef={hostRef}>
         <div ref={viewerHostRef} className="absolute inset-0 min-h-0" />

@@ -23,16 +23,16 @@ export async function ProjectHeaderMetrics({
     displayOriginalValue!.amount !== managedOpeningValue!.amount;
 
   return (
-    <div className="grid min-w-0 max-w-full gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div data-pf-slot="kpi-grid" className="grid min-w-0 max-w-full gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {showBaselineContext ? (
         <>
-          <div className="min-w-0">
+          <div data-pf-slot="kpi-card" className="min-w-0">
             <p className="text-xs text-[var(--pf-text-muted)]">{t('displayOriginalValue')}</p>
             <p className="min-w-0 max-w-full overflow-x-auto text-sm text-[var(--pf-text-secondary)]">
               <MoneyText value={displayOriginalValue!} />
             </p>
           </div>
-          <div className="min-w-0">
+          <div data-pf-slot="kpi-card" className="min-w-0">
             <p className="text-xs text-[var(--pf-text-muted)]">{t('managedOpeningValue')}</p>
             <p className="min-w-0 max-w-full overflow-x-auto text-sm text-[var(--pf-text-secondary)]">
               <MoneyText value={managedOpeningValue!} />
@@ -40,7 +40,7 @@ export async function ProjectHeaderMetrics({
           </div>
         </>
       ) : null}
-      <div className="min-w-0">
+      <div data-pf-slot="kpi-card" className="min-w-0">
         <p className="text-xs text-[var(--pf-text-muted)]">{t('currentContractValue')}</p>
         <p className="min-w-0 max-w-full overflow-x-auto text-lg font-semibold">
           <MoneyText value={currentContractValue} />

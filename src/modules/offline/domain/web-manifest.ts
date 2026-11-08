@@ -8,6 +8,7 @@ import {
   type ThemePreference,
 } from '@/shared/theme/config';
 import { pwaManifestColors } from '@/shared/theme/pwa-theme-colors';
+import { DEFAULT_STYLE_PREFERENCE, type StylePreference } from '@/shared/theme/style/config';
 
 const MANIFEST_DESCRIPTIONS: Record<Locale, string> = {
   'he-IL': heOffline.manifest.description,
@@ -73,9 +74,10 @@ function manifestLang(locale: Locale): ProjectFlowWebManifest['lang'] {
 export function buildWebManifest(
   locale: Locale,
   themePreference: ThemePreference = DEFAULT_THEME_PREFERENCE,
+  style: StylePreference = DEFAULT_STYLE_PREFERENCE,
 ): ProjectFlowWebManifest {
   const meta = LOCALE_METADATA[locale];
-  const pwa = pwaManifestColors(themePreference);
+  const pwa = pwaManifestColors(themePreference, style);
   return {
     id: '/',
     name: 'EXLFY',

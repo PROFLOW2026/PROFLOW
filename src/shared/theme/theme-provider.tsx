@@ -7,6 +7,7 @@ import {
   type ThemePreference,
 } from './config';
 import { applyThemePreferenceToDocument } from './apply-theme-dom';
+import { clearStyleClientState } from './style/style-provider';
 import { persistThemePreferenceAction } from './persist-theme-preference';
 import { writeClientThemeCookie } from './theme-cookie';
 import { ThemePreferenceContext } from './theme-context';
@@ -90,4 +91,5 @@ export function clearThemeClientState(userId: string | null): void {
     window.matchMedia('(prefers-color-scheme: dark)').matches,
   );
   document.documentElement.dataset.pfTheme = DEFAULT_THEME_PREFERENCE;
+  clearStyleClientState(userId);
 }

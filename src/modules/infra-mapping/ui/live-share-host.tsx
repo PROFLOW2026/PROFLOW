@@ -406,6 +406,7 @@ export function LiveShareHost({
             role="dialog"
             aria-label={LIVE_SHARE_TEXT.title}
             dir="rtl"
+            data-pf-style="classic"
             data-testid="live-share-sheet"
           >
             <div className="flex max-h-[92dvh] w-full max-w-sm flex-col gap-3 overflow-y-auto rounded-xl bg-neutral-900 p-4 text-white shadow-xl">

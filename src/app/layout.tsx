@@ -7,6 +7,8 @@ import { documentLocale } from '@/shared/i18n/bare-path';
 import { LOCALE_METADATA } from '@/shared/i18n/config';
 import { cn } from '@/shared/ui/cn';
 import { ThemeBootScript } from '@/shared/theme/theme-boot-script';
+import { STYLE_COOKIE_NAME, normalizeStylePreference } from '@/shared/theme/style/config';
+import { premiumFont } from '@/shared/theme/styles/premium-font';
 import './globals.css';
 
 /* Body 400 + heading 600 only — fewer next/font files at build on the 8 GB builder.
@@ -37,12 +39,14 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const pathname = await getRequestPathname();
   const locale = documentLocale(pathname, cookieStore.get(LOCALE_COOKIE_NAME)?.value);
   const metadata = LOCALE_METADATA[locale];
+  const style = normalizeStylePreference(cookieStore.get(STYLE_COOKIE_NAME)?.value);
 
   return (
     <html
       lang={metadata.htmlLang}
       dir={metadata.dir}
-      className={cn(notoSans.variable, notoHebrew.variable)}
+      data-pf-style={style}
+      className={cn(notoSans.variable, notoHebrew.variable, premiumFont.variable)}
       suppressHydrationWarning
     >
       <body

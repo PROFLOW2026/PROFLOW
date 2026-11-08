@@ -1,0 +1,82 @@
+@media screen and (forced-colors: none) {
+  [data-pf-style='premium'] [data-pf-slot='sidebar-item'][aria-current='page']:not([data-pf-style='classic'] *) {
+    background: var(--pf-accent-soft);
+    color: var(--pf-text-primary);
+    font-weight: 600;
+    border-inline-start: 2px solid var(--pf-accent);
+    border-radius: 0.375rem;
+  }
+
+  [data-pf-style='premium'] [data-pf-slot='tab'][aria-selected='true']:not([data-pf-style='classic'] *),
+  [data-pf-style='premium'] [data-pf-slot='tab'][data-state='active']:not([data-pf-style='classic'] *),
+  [data-pf-style='premium'] [data-pf-slot='tab'][aria-current='page']:not([data-pf-style='classic'] *) {
+    color: var(--pf-text-primary);
+    border-bottom: 2px solid var(--pf-action-primary);
+    font-weight: 600;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  [data-pf-style='premium'] [data-pf-slot='tabs-list']:not([data-pf-style='classic'] *) {
+    border-bottom: 1px solid var(--pf-border-default);
+  }
+
+  [data-pf-style='premium'] [data-pf-slot='bottom-nav']:not([data-pf-style='classic'] *) {
+    background: var(--pf-bg-surface);
+    border-top: 1px solid var(--pf-border-default);
+    backdrop-filter: none;
+  }
+
+  [data-pf-style='premium'] [data-pf-slot='kpi-grid']:not([data-pf-style='classic'] *) {
+    gap: 0.75rem;
+  }
+
+  [data-pf-style='premium'] [data-pf-slot='kpi-card']:not([data-pf-style='classic'] *) {
+    border: 1px solid var(--pf-border-default);
+    border-radius: var(--pf-radius-lg);
+    box-shadow: none;
+    background: var(--pf-bg-surface);
+  }
+
+  [data-pf-style='premium'] [data-pf-slot='kpi-card'] :is(.text-lg, .text-2xl, .text-3xl):not([data-pf-style='classic'] *) {
+    font-size: var(--pf-fs-kpi);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (pointer: fine) {
+    [data-pf-style='premium'] [data-pf-slot='control']:is([data-size='md'], :not([data-size])):not(textarea):not([data-pf-style='classic'] *) {
+      height: var(--pf-ctl-h-md);
+      min-height: var(--pf-ctl-h-md);
+      border-radius: var(--pf-radius-md);
+    }
+  }
+
+  [data-pf-style='premium'] [data-pf-slot='hero']:not([data-pf-style='classic'] *) {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--pf-border-default);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  [data-pf-style='premium'] [data-pf-slot='table-shell']:not([data-pf-style='classic'] *) :is(th) {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--pf-text-muted);
+    background: var(--pf-bg-subtle);
+    border-bottom: 1px solid var(--pf-border-strong);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-pf-switching] * { transition: none !important; }
+  [data-pf-style='premium'] [data-pf-slot='tab'][aria-pressed='true']:not([data-pf-style='classic'] *) {
+    color: var(--pf-text-primary);
+    border: 1px solid var(--pf-border-default);
+    border-bottom: 2px solid var(--pf-action-primary);
+    background: var(--pf-bg-surface);
+    font-weight: 600;
+  }
+
+}

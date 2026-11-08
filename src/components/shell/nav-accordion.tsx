@@ -88,7 +88,7 @@ export function NavAccordionSections({
         const hasActiveChild = items.some((item) => isNavItemActive(pathname, item.href));
 
         return (
-          <div key={group} className="min-w-0">
+          <div key={group} data-pf-slot="sidebar-group" className="min-w-0">
             <button
               type="button"
               className={cn(

@@ -35,6 +35,7 @@ export function ProjectWorkNavTabs({
 
   return (
     <div
+      data-pf-slot="tabs-list"
       className={cn(
         'flex min-w-0 max-w-full items-center gap-1 overflow-x-auto overscroll-x-contain border-b border-[var(--pf-border-default)]',
         '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
@@ -60,6 +61,7 @@ export function ProjectWorkNavTabs({
             href={href}
             scroll={false}
             prefetch={false}
+            data-pf-slot="tab"
             aria-current={selected ? 'page' : undefined}
             className={cn(
               'relative shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-sm font-medium',

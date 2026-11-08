@@ -1,0 +1,153 @@
+{
+  "generatedAt": "2026-11-08T09:16:43.561Z",
+  "contrast": [
+    {
+      "id": "premium-light-primary",
+      "fg": "#ffffff",
+      "bg": "#0b665f",
+      "min": 4.5,
+      "value": 6.82,
+      "pass": true
+    },
+    {
+      "id": "premium-light-primary-hover",
+      "fg": "#ffffff",
+      "bg": "#0b524c",
+      "min": 4.5,
+      "value": 9.03,
+      "pass": true
+    },
+    {
+      "id": "premium-light-primary-active",
+      "fg": "#ffffff",
+      "bg": "#0b433f",
+      "min": 4.5,
+      "value": 11.12,
+      "pass": true
+    },
+    {
+      "id": "premium-dark-primary",
+      "fg": "#04201d",
+      "bg": "#36b8a8",
+      "min": 4.5,
+      "value": 6.98,
+      "pass": true
+    },
+    {
+      "id": "premium-dark-primary-hover",
+      "fg": "#04201d",
+      "bg": "#4cd0c0",
+      "min": 4.5,
+      "value": 9.02,
+      "pass": true
+    },
+    {
+      "id": "premium-dark-primary-active",
+      "fg": "#04201d",
+      "bg": "#5fd3c4",
+      "min": 4.5,
+      "value": 9.44,
+      "pass": true
+    },
+    {
+      "id": "premium-light-rail-text",
+      "fg": "#11181b",
+      "bg": "#ffffff",
+      "min": 4.5,
+      "value": 17.94,
+      "pass": true
+    },
+    {
+      "id": "premium-light-rail-muted",
+      "fg": "#566165",
+      "bg": "#ffffff",
+      "min": 4.5,
+      "value": 6.38,
+      "pass": true
+    },
+    {
+      "id": "premium-light-ink-indicator",
+      "fg": "#172025",
+      "bg": "#ffffff",
+      "min": 3,
+      "value": 16.54,
+      "pass": true
+    },
+    {
+      "id": "modern-light-primary",
+      "fg": "#ffffff",
+      "bg": "#0a6b63",
+      "min": 4.5,
+      "value": 6.37,
+      "pass": true
+    },
+    {
+      "id": "modern-dark-primary",
+      "fg": "#04201d",
+      "bg": "#2bb3a3",
+      "min": 4.5,
+      "value": 6.57,
+      "pass": true
+    },
+    {
+      "id": "premium-light-body",
+      "fg": "#11181b",
+      "bg": "#eef0f1",
+      "min": 4.5,
+      "value": 15.7,
+      "pass": true
+    },
+    {
+      "id": "premium-dark-body",
+      "fg": "#e9eef0",
+      "bg": "#0c1012",
+      "min": 4.5,
+      "value": 16.34,
+      "pass": true
+    },
+    {
+      "id": "modern-light-body",
+      "fg": "#0f1923",
+      "bg": "#f5f7f9",
+      "min": 4.5,
+      "value": 16.52,
+      "pass": true
+    },
+    {
+      "id": "modern-dark-body",
+      "fg": "#e8eef3",
+      "bg": "#0e1318",
+      "min": 4.5,
+      "value": 15.96,
+      "pass": true
+    }
+  ],
+  "css": [
+    {
+      "name": "tokens-structure.css",
+      "bytes": 1261,
+      "gzip": 411
+    },
+    {
+      "name": "modern.css",
+      "bytes": 3661,
+      "gzip": 997
+    },
+    {
+      "name": "modern-hooks.css",
+      "bytes": 2725,
+      "gzip": 636
+    },
+    {
+      "name": "premium.css",
+      "bytes": 4503,
+      "gzip": 1200
+    },
+    {
+      "name": "premium-hooks.css",
+      "bytes": 2978,
+      "gzip": 688
+    }
+  ],
+  "contrastPass": true
+}

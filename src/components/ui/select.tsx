@@ -37,6 +37,8 @@ export const SelectTrigger = React.forwardRef<
         className,
       )}
       {...props}
+      data-pf-slot="control"
+      data-size="md"
     >
       <span className="min-w-0 truncate">{children}</span>
       <SelectPrimitive.Icon asChild>

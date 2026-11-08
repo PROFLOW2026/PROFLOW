@@ -118,7 +118,7 @@ export function InfraVideoPlayer({
   if (failed) return <Alert tone="warning">{INFRA_TEXT.video.playerFailed}</Alert>;
 
   return (
-    <div className="flex flex-col gap-2" data-testid="infra-video-player">
+    <div data-pf-style="classic" className="flex flex-col gap-2" data-testid="infra-video-player">
       <video
         ref={videoRef}
         src={src}

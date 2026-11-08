@@ -65,7 +65,7 @@ export default async function EmployeeProjectOverviewPage({ params }: PageProps)
 
       <section className="space-y-3">
         <h3 className={employeeSectionTitleClass}>{t('stats.sectionTitle')}</h3>
-        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <dl data-pf-slot="kpi-grid" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard label={t('stats.totalTasks')} value={overview.totalTasks} />
           <StatCard label={t('stats.openTasks')} value={overview.openTasks} />
           <StatCard label={t('stats.dueToday')} value={overview.dueToday} />
@@ -95,7 +95,7 @@ function StatCard({
   highlight?: boolean;
 }) {
   return (
-    <div className={highlight && value > 0 ? employeeStatCardAccentClass : employeeStatCardClass}>
+    <div data-pf-slot="kpi-card" className={highlight && value > 0 ? employeeStatCardAccentClass : employeeStatCardClass}>
       <dt className="text-xs font-medium text-[var(--pf-text-secondary)]">{label}</dt>
       <dd
         className={cn(

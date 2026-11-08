@@ -259,6 +259,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
       {data.billing?.netPaid || data.businessCashPosition?.actualPaidNet || data.businessCashPosition?.actualPaid ? (
         <section
           className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3"
+          data-pf-slot="kpi-grid"
           data-pf-dashboard-cash-picture=""
         >
           {data.billing?.netPaid ? (
@@ -335,7 +336,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
       ) : null}
 
       {showDashboardUi(data, 'owner.kpiRow') ? (
-      <section className={kpiColumnClass}>
+      <section data-pf-slot="kpi-grid" className={kpiColumnClass}>
         {showContractHeadline ? (
           <KpiTile
             title={t('ownerHeadline.workValue')}
@@ -528,7 +529,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
       {data.apOutstanding &&
       !data.businessCashPosition?.outstandingPayable &&
       showDashboardUi(data, 'owner.apOutstanding') ? (
-        <section className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <section data-pf-slot="kpi-grid" className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <KpiTile
             title={tFinancial('apOutstanding')}
             money={data.apOutstanding}

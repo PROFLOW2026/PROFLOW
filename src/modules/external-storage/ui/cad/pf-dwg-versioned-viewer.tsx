@@ -67,7 +67,7 @@ export function PfDwgVersionedViewer(props: Omit<ViewerProps, 'viewerVersion' | 
   const Viewer = active?.Viewer;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div data-pf-style="classic" className="flex min-h-0 flex-1 flex-col">
       {switchError ? (
         <Alert tone="danger" className="m-2">
           {switchError}

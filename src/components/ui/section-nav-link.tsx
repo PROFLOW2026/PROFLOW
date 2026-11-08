@@ -86,6 +86,7 @@ export function SectionNavLink({
       href={href}
       prefetch={prefetch}
       scroll={preserveScrollOnQueryNav.scroll}
+      data-pf-slot="tab"
       aria-current={active ? 'page' : undefined}
       aria-busy={busy || undefined}
       aria-disabled={busy || undefined}

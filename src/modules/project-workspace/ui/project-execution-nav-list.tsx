@@ -23,7 +23,7 @@ export function ProjectExecutionNavList({
   const pathname = usePathname();
 
   return (
-    <ul className="flex min-w-0 flex-wrap gap-2">
+    <ul data-pf-slot="tabs-list" className="flex min-w-0 flex-wrap gap-2">
       {links.map((link) => (
         <li key={link.key} className="min-w-0">
           <SectionNavLink href={link.href} active={hubIsCurrent(pathname, link.href)} prefetch={false}>

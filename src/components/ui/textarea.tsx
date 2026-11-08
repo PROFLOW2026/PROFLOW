@@ -14,6 +14,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(fun
       rows={rows}
       className={cn(inputClassName, 'min-h-20 resize-y text-start', className)}
       {...props}
+      data-pf-slot="control"
     />
   );
 });

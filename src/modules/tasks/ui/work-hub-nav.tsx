@@ -40,6 +40,7 @@ export function WorkHubNav() {
 
   return (
     <nav
+      data-pf-slot="tabs-list"
       aria-label={tNav('myWork')}
       className={cn(
         'flex min-w-0 max-w-full flex-wrap gap-1 border-b border-[var(--pf-border-default)] pb-1',
@@ -57,6 +58,7 @@ export function WorkHubNav() {
             href={`${path}${querySuffix}`}
             scroll={false}
             prefetch={false}
+            data-pf-slot="tab"
             aria-current={selected ? 'page' : undefined}
             className={cn(
               'relative min-w-0 flex-1 basis-[calc(50%-0.25rem)] border-b-2 border-transparent px-2 py-2 text-center text-sm font-medium sm:basis-auto sm:flex-none sm:px-3 sm:py-2.5',

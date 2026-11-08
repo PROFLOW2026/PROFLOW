@@ -3,5 +3,12 @@
   "switcher": "Choose appearance",
   "light": "Light",
   "dark": "Dark",
-  "system": "System"
+  "system": "System",
+  "style": {
+    "label": "Style",
+    "switcher": "Choose a style",
+    "classic": "Classic",
+    "modern": "Modern",
+    "premium": "Premium"
+  }
 }

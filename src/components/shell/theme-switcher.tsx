@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { pressableClassName } from '@/components/ui/pressable';
 import { THEME_PREFERENCES, type ThemePreference } from '@/shared/theme/config';
+import { STYLE_PREFERENCES, type StylePreference } from '@/shared/theme/style/config';
+import { useStylePreference } from '@/shared/theme/style/style-context';
 import { useThemePreference } from '@/shared/theme/theme-context';
 import { cn } from '@/shared/ui/cn';
 
@@ -37,6 +39,41 @@ function themeModeLabel(t: (key: 'light' | 'dark' | 'system') => string, mode: T
   }
 }
 
+
+
+function styleLabel(
+  t: (key: 'style.classic' | 'style.modern' | 'style.premium') => string,
+  mode: StylePreference,
+): string {
+  if (mode === 'classic') return t('style.classic');
+  if (mode === 'modern') return t('style.modern');
+  return t('style.premium');
+}
+function StyleOptions() {
+  const t = useTranslations('appearance');
+  const { style, setStyle, pending } = useStylePreference();
+  return (
+    <>
+      <DropdownMenuSeparator />
+      <DropdownMenuLabel>{t('style.label')}</DropdownMenuLabel>
+      {STYLE_PREFERENCES.map((mode) => (
+        <DropdownMenuItem
+          key={mode}
+          disabled={pending}
+          onSelect={() => {
+            if (mode === style) return;
+            setStyle(mode);
+          }}
+        >
+          <span className="min-w-0 flex-1 truncate">{styleLabel(t, mode)}</span>
+          {mode === style ? (
+            <Check className="size-4 text-[var(--pf-text-brand)]" aria-hidden />
+          ) : null}
+        </DropdownMenuItem>
+      ))}
+    </>
+  );
+}
 /** Desktop header control — hidden below `lg` per product spec. */
 export function ThemeHeaderToggle({ className }: { className?: string }) {
   const t = useTranslations('appearance');
@@ -78,6 +115,7 @@ export function ThemeHeaderToggle({ className }: { className?: string }) {
             ) : null}
           </DropdownMenuItem>
         ))}
+        <StyleOptions />
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -108,6 +146,7 @@ export function ThemeMenuSection() {
           ) : null}
         </DropdownMenuItem>
       ))}
+      <StyleOptions />
     </div>
   );
 }

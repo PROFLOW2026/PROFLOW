@@ -518,6 +518,7 @@ export function LiveShareViewer({ viewerToken }: { readonly viewerToken: string 
       dir="rtl"
       role="dialog"
       aria-label={LIVE_SHARE_TEXT.viewerTitle}
+      data-pf-style="classic"
       data-testid="live-share-viewer"
       data-status={status}
       data-link={link}

@@ -211,8 +211,8 @@ export default async function EmployeeHomePage() {
             </div>
           </div>
 
-          <dl className="grid grid-cols-2 gap-3 md:grid-cols-2">
-            <Link href="/employee/tasks" className={employeeStatCardClass}>
+          <dl data-pf-slot="kpi-grid" className="grid grid-cols-2 gap-3 md:grid-cols-2">
+            <Link href="/employee/tasks" data-pf-slot="kpi-card" className={employeeStatCardClass}>
               <dt className="text-xs font-medium text-[var(--pf-text-secondary)]">
                 {t('home.workSummary.dueToday')}
               </dt>
@@ -222,6 +222,7 @@ export default async function EmployeeHomePage() {
             </Link>
             <Link
               href="/employee/tasks"
+              data-pf-slot="kpi-card"
               className={cn(
                 taskSummary.overdue > 0 ? employeeStatCardAccentClass : employeeStatCardClass,
               )}

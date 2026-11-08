@@ -47,6 +47,7 @@ export function PendingChromeLink({
     <Link
       href={href}
       prefetch={false}
+      data-pf-slot="bottom-nav-item"
       aria-current={active ? 'page' : undefined}
       aria-busy={busy || undefined}
       data-pending={busy ? '' : undefined}

@@ -48,7 +48,13 @@ function collectTokenReferences(source: string): string[] {
 describe('design tokens', () => {
   it('declares every --pf-* token referenced in src/', () => {
     const globalsCss = fs.readFileSync(GLOBALS_CSS_PATH, 'utf8');
-    const declaredTokens = collectDeclaredTokens(globalsCss);
+    const styleDir = path.join(REPO_ROOT, 'src/shared/theme/styles');
+    const styleCss = fs
+      .readdirSync(styleDir)
+      .filter((name) => name.endsWith('.css'))
+      .map((name) => fs.readFileSync(path.join(styleDir, name), 'utf8'))
+      .join('\n');
+    const declaredTokens = collectDeclaredTokens(globalsCss + styleCss);
     const violations: string[] = [];
 
     for (const filePath of walkSourceFiles(SOURCE_ROOT)) {

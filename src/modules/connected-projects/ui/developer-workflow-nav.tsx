@@ -19,7 +19,7 @@ export function DeveloperWorkflowNav({ contractorProjectId, tabs }: DeveloperWor
   if (tabs.length === 0) return null;
 
   return (
-    <nav aria-label={t('navLabel')} className="border-b border-[var(--pf-border-default)]">
+    <nav data-pf-slot="tabs-list" aria-label={t('navLabel')} className="border-b border-[var(--pf-border-default)]">
       <ul className="-mb-px flex flex-wrap gap-4">
         {tabs.map((tab) => {
           const href = developerWorkflowHref(contractorProjectId, tab.segment);
@@ -34,6 +34,7 @@ export function DeveloperWorkflowNav({ contractorProjectId, tabs }: DeveloperWor
                     ? 'border-[var(--pf-accent)] text-[var(--pf-text-primary)]'
                     : 'border-transparent text-[var(--pf-text-secondary)] hover:text-[var(--pf-text-primary)]'
                 }`}
+                data-pf-slot="tab"
                 aria-current={active ? 'page' : undefined}
               >
                 {t(tab.labelKey)}

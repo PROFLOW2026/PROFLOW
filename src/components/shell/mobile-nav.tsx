@@ -71,6 +71,7 @@ export function MobileNav({
 
   const navBar = (
     <nav
+      data-pf-slot="bottom-nav"
       aria-label={tCommon('a11y.mainNavigation')}
       data-pf-mobile-nav=""
       className={cn(

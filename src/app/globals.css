@@ -1,5 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600&display=swap');
 @import 'tailwindcss';
+@import '../shared/theme/styles/tokens-structure.css';
+@import '../shared/theme/styles/modern.css';
+@import '../shared/theme/styles/premium.css';
+@import '../shared/theme/styles/modern-hooks.css';
+@import '../shared/theme/styles/premium-hooks.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -12,7 +17,9 @@
  */
 
 @layer base {
-  :root {
+  :root,
+  [data-pf-style='classic'],
+  [data-pf-quick-create='fab'] {
     /* Arabic face via CSS (Turbopack-safe); Latin/Hebrew via next/font variables. */
     --font-noto-arabic: 'Noto Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif;
 
@@ -232,7 +239,9 @@
   /*
    * B Improved dark — semantic tokens; readability polish (surfaces + status contrast).
    */
-  .dark {
+  .dark,
+  .dark [data-pf-style='classic'],
+  .dark [data-pf-quick-create='fab'] {
     color-scheme: dark;
 
     --pf-bg-page: #171c28;
@@ -388,10 +397,12 @@
   --color-neutral-bg: var(--pf-status-neutral-bg);
   --color-neutral-border: var(--pf-status-neutral-border);
 
-  --radius-sm: 0.3125rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  --radius-sm: var(--pf-radius-sm);
+  --radius-md: var(--pf-radius-md);
+  --radius-lg: var(--pf-radius-lg);
+  --radius-xl: var(--pf-radius-xl);
+  --radius-2xl: var(--pf-radius-2xl);
+  --radius-3xl: var(--pf-radius-3xl);
 
   --shadow-sm: var(--pf-shadow-sm);
   --shadow-md: var(--pf-shadow-md);

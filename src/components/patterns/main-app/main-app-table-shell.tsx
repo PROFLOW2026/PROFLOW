@@ -11,7 +11,7 @@ export function MainAppTableShell({
   className?: string;
 }) {
   return (
-    <div data-pf-ma-table-shell="" className={cn(mainAppTableShellClass, className)}>
+    <div data-pf-slot="table-shell" data-pf-ma-table-shell="" className={cn(mainAppTableShellClass, className)}>
       {children}
     </div>
   );

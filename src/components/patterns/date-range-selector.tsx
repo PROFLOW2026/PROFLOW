@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 /**
  * Reusable date-range picker with preset buttons.
@@ -277,6 +277,7 @@ export function DateRangeSelector({
           <button
             key={preset}
             type="button"
+            data-pf-slot="tab"
             onClick={() => applyPreset(preset)}
             aria-pressed={matchedPreset === preset && !customRangeOpen}
             className={presetChipClass(matchedPreset === preset && !customRangeOpen)}
@@ -287,6 +288,7 @@ export function DateRangeSelector({
         {dateInputs === 'custom-only' ? (
           <button
             type="button"
+            data-pf-slot="tab"
             onClick={openCustomRange}
             aria-pressed={customRangeOpen || matchedPreset === null}
             className={presetChipClass(customRangeOpen || matchedPreset === null)}

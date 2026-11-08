@@ -33,6 +33,7 @@ export function ProjectTabsList({
   return (
     <div
       role="tablist"
+      data-pf-slot="tabs-list"
       data-pf-project-tabs=""
       dir={dir}
       className={mainAppDetailRouteTabListClassName}
@@ -44,6 +45,7 @@ export function ProjectTabsList({
             key={hub}
             href={hubHref(projectHref, hub)}
             role="tab"
+            data-pf-slot="tab"
             data-tab={hub}
             data-state={selected ? 'active' : 'inactive'}
             aria-selected={selected}

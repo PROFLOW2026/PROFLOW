@@ -21,6 +21,7 @@ export const TabsList = React.forwardRef<
   return (
     <TabsPrimitive.List
       ref={ref}
+      data-pf-slot="tabs-list"
       className={cn(
         // Contained horizontal scroll - never widen the page for many tabs.
         'flex min-w-0 max-w-full w-full items-center gap-1 overflow-x-auto overscroll-x-contain border-b border-[var(--pf-border-default)]',
@@ -39,6 +40,7 @@ export const TabsTrigger = React.forwardRef<
   return (
     <TabsPrimitive.Trigger
       ref={ref}
+      data-pf-slot="tab"
       className={cn(
         'relative shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-sm font-medium text-start',
         // ≥44px touch; underline tabs stay dense but pressable on mobile.

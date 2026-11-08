@@ -68,6 +68,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
         ref={ref}
         className={cn(buttonVariants({ variant, size, block }), className)}
         {...props}
+        data-pf-slot="control"
+        data-size={size ?? 'md'}
       >
         {children}
       </Slot>
@@ -84,6 +86,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       aria-busy={loading || undefined}
       data-loading={loading ? '' : undefined}
       {...props}
+      data-pf-slot="control"
+      data-size={size ?? 'md'}
     >
       {loading ? <Loader2 className="animate-spin" aria-hidden /> : null}
       {children}

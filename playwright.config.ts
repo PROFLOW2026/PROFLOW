@@ -31,6 +31,7 @@ const harnessEnv: Record<string, string> = {
   STORAGE_TOKEN_ENCRYPTION_KEY: E2E_STORAGE_TOKEN_ENCRYPTION_KEY,
   SUPABASE_SERVICE_ROLE_KEY: E2E_SUPABASE_SERVICE_ROLE_KEY,
   EMPLOYEE_AUTH_PASSWORD_PEPPER: E2E_EMPLOYEE_AUTH_PASSWORD_PEPPER,
+  PF_DESIGN_SPECIMEN: '1',
 };
 
 // PGlite socket backend: single wire connection. Real Postgres smoke uses app default pool (5).

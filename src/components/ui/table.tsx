@@ -115,6 +115,7 @@ export function Table({ className, children, layout = 'stack', ...props }: Table
   const tableChildren = layout === 'stack' ? withBodyLabels(children, labels) : children;
   return (
     <div
+      data-pf-slot="table-shell"
       {...(layout === 'stack' ? { [RESPONSIVE_TABLE_ATTR]: '' } : {})}
       className={cn(
         'relative min-w-0 w-full max-w-full',

@@ -25,6 +25,7 @@ function NavLink({
   return (
     <Link
       href={item.href}
+      data-pf-slot="sidebar-item"
       aria-current={current ? 'page' : undefined}
       className={cn(
         'group relative flex min-h-10 items-center gap-2.5 rounded-lg px-2.5 text-sm font-medium transition-colors',
@@ -65,7 +66,7 @@ function NavSection({
 }) {
   if (items.length === 0) return null;
   return (
-    <div className="flex flex-col gap-0.5">
+    <div data-pf-slot="sidebar-group" className="flex flex-col gap-0.5">
       <p className="px-2.5 pb-1.5 pt-1 text-[0.6875rem] font-semibold uppercase tracking-[0.06em] text-[var(--pf-text-muted)]">
         {label}
       </p>
@@ -94,6 +95,7 @@ export function EmployeeSideNav({
 
   return (
     <nav
+      data-pf-slot="sidebar"
       className="sticky top-0 hidden h-svh w-[var(--pf-sidebar-width)] shrink-0 flex-col border-e border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] lg:flex print:hidden"
       aria-label={t('employeeApp.title')}
     >

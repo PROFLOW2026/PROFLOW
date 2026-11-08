@@ -5,7 +5,9 @@ import {
   PWA_BACKGROUND_DARK,
   PWA_BACKGROUND_LIGHT,
   pwaColorsForPreference,
+  pwaColorsForStyle,
 } from './pwa-theme-colors';
+import { useStylePreference } from './style/style-context';
 import { useThemePreference } from './theme-context';
 
 const META_APPLE_STATUS = 'apple-mobile-web-app-status-bar-style';
@@ -40,22 +42,26 @@ function upsertMeta(name: string, content: string): void {
 /** Keeps PWA chrome in sync without tearing down Next.js head tags during client navigations. */
 export function ThemeColorSync() {
   const { preference } = useThemePreference();
+  const { style } = useStylePreference();
 
   React.useEffect(() => {
     const sync = () => {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const background =
+        style === 'classic'
+          ? prefersDark
+            ? PWA_BACKGROUND_DARK
+            : PWA_BACKGROUND_LIGHT
+          : pwaColorsForStyle(style, prefersDark ? 'dark' : 'light').backgroundColor;
 
       if (preference === 'system') {
         removeManagedThemeColor();
         upsertMeta(META_APPLE_STATUS, 'default');
-        document.documentElement.style.setProperty(
-          '--pf-pwa-background',
-          prefersDark ? PWA_BACKGROUND_DARK : PWA_BACKGROUND_LIGHT,
-        );
+        document.documentElement.style.setProperty('--pf-pwa-background', background);
         return;
       }
 
-      const { themeColor, backgroundColor } = pwaColorsForPreference(preference, prefersDark);
+      const { themeColor, backgroundColor } = pwaColorsForPreference(preference, prefersDark, style);
       upsertManagedThemeColor(themeColor);
       upsertMeta(META_APPLE_STATUS, preference === 'dark' ? 'black-translucent' : 'default');
       document.documentElement.style.setProperty('--pf-pwa-background', backgroundColor);
@@ -69,7 +75,7 @@ export function ThemeColorSync() {
     const onMedia = () => sync();
     media.addEventListener('change', onMedia);
     return () => media.removeEventListener('change', onMedia);
-  }, [preference]);
+  }, [preference, style]);
 
   return null;
 }

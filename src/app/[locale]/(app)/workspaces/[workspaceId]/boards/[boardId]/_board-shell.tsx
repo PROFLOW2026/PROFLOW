@@ -152,6 +152,7 @@ export function BoardShell({
     <div className="flex min-w-0 max-w-full flex-col gap-3">
       {activeBoards.length > 1 && (
         <nav
+          data-pf-slot="tabs-list"
           aria-label={t('boards.switcherLabel')}
           className="flex overflow-x-auto border-b border-[var(--pf-border-default)]"
         >
@@ -167,6 +168,7 @@ export function BoardShell({
                     ? 'border-[var(--pf-border-brand)] text-[var(--pf-text-brand)]'
                     : 'border-transparent text-[var(--pf-text-secondary)] hover:border-[var(--pf-border-default)] hover:text-[var(--pf-text-primary)]',
                 )}
+                data-pf-slot="tab"
                 aria-current={active ? 'page' : undefined}
               >
                 {board.name}

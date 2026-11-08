@@ -1,0 +1,47 @@
+/* Classic structure tokens. Same values as the literals compiled today. */
+:root,
+[data-pf-style='classic'],
+[data-pf-quick-create='fab'] {
+  --pf-radius-sm: 0.3125rem;
+  --pf-radius-md: 0.5rem;
+  --pf-radius-lg: 0.75rem;
+  --pf-radius-xl: 1rem;
+  --pf-radius-2xl: 1rem;
+  --pf-radius-3xl: 1.5rem;
+  --pf-radius-bare: 0.25rem;
+  --pf-ctl-h-sm: 2rem;
+  --pf-ctl-h-md: 2.75rem;
+  --pf-ctl-h-lg: 3rem;
+  --pf-row-py: 0.5rem;
+  --pf-card-px: 1.25rem;
+  --pf-panel-gap: 1rem;
+  --pf-fs-h1: 1.375rem;
+  --pf-fs-h2: 1.0625rem;
+  --pf-fs-kpi: 1.125rem;
+  --pf-fw-heading: 600;
+  --pf-fw-numeric: 400;
+  --pf-shadow-panel: none;
+  --pf-shadow-pop: var(--pf-shadow-lg);
+  --pf-focus-width: 2px;
+  --pf-focus-offset: 2px;
+  --pf-hero-bg: transparent;
+}
+
+.dark,
+.dark [data-pf-style='classic'],
+.dark [data-pf-quick-create='fab'] {
+  --pf-radius-sm: 0.3125rem;
+  --pf-radius-md: 0.5rem;
+  --pf-radius-lg: 0.75rem;
+  --pf-radius-xl: 1rem;
+  --pf-radius-2xl: 1rem;
+  --pf-radius-3xl: 1.5rem;
+  --pf-radius-bare: 0.25rem;
+  --pf-ctl-h-sm: 2rem;
+  --pf-ctl-h-md: 2.75rem;
+  --pf-ctl-h-lg: 3rem;
+}
+[data-pf-style='modern'] .rounded:not([data-pf-style='classic'] *),
+[data-pf-style='premium'] .rounded:not([data-pf-style='classic'] *) {
+  border-radius: var(--pf-radius-bare);
+}

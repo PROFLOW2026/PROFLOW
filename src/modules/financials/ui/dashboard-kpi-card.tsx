@@ -49,7 +49,7 @@ export function DashboardKpiCard({
     ...(detailNotes ?? []),
   ]);
   return (
-    <Card className="min-w-0 max-w-full">
+    <Card data-pf-slot="kpi-card" className="min-w-0 max-w-full">
       <CardHeader className="pb-1">
         <div className="flex min-w-0 items-start justify-between gap-2">
           <CardTitle className="break-words text-xs font-medium text-[var(--pf-text-secondary)]">

@@ -40,6 +40,7 @@ export function Sidebar({
 
   return (
     <nav
+      data-pf-slot="sidebar"
       aria-label={tCommon('a11y.mainNavigation')}
       className="hidden w-[var(--pf-sidebar-width)] shrink-0 flex-col border-e border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] print:hidden lg:flex"
     >
