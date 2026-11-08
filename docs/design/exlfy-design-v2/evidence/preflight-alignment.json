@@ -1,0 +1,9 @@
+{
+  "tool": "preflight-alignment",
+  "branch": "design/exlfy-v2",
+  "base": "93e827c4cfb368c9f81b44465bf3cb6720113649",
+  "baseIsAncestor": true,
+  "missing": [],
+  "sqlExecution": false,
+  "pass": true
+}

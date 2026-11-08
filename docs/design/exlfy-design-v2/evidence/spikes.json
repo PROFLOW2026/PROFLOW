@@ -1,0 +1,9 @@
+{
+  "tool": "design-v2-spikes",
+  "results": [
+    { "id": "S0-2", "result": "pass", "note": "Structural hooks are unlayered and beat Tailwind layer utilities. Bare radius is overridden only for modern and premium." },
+    { "id": "S0-3", "result": "pass", "note": "Invalid style metadata returns null so the cookie wins. A failed preference write keeps the cookie." },
+    { "id": "S0-4", "result": "pass", "note": "IBM Plex Hebrew loads with preload false and is applied only when data-pf-style is premium." },
+    { "id": "S0-6", "result": "pass", "note": "Implementation lives in the design/exlfy-v2 worktree. The main checkout was not switched." }
+  ]
+}
