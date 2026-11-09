@@ -34,6 +34,7 @@ describe('global search scope', () => {
       'contract',
       'expense',
       'purchase_order',
+      'opportunity',
     ]);
   });
 

@@ -124,7 +124,7 @@
       "evidence": "תמונות ומסמכים",
       "history": "היסטוריה",
       "completionNote": "הערת השלמה (אופציונלי)",
-      "currentDrawing": "פתיחת הגרסה הנוכחית — {label}",
+      "currentDrawing": "פתיחת הגרסה הנוכחית: {label}",
       "guide": {
         "title": "סדר מומלץ",
         "steps": {

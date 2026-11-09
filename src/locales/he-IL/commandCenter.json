@@ -413,7 +413,7 @@
       "why": "נוצרה עותק חדש מתבנית חוזרת."
     },
     "projectDecisionRecent": {
-      "what": "נרשמה החלטה — {excerpt}",
+      "what": "נרשמה החלטה: {excerpt}",
       "why": "בפרויקט {projectName}."
     },
     "reportMonthLabel": "{month} {year}",
