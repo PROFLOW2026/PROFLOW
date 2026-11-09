@@ -275,6 +275,8 @@
     "officeApproveHint": "الاعتماد يبقى في تبويب جدول الكميات بالمكتب.",
     "officeApproveLink": "فتح جدول الكميات بالمكتب",
     "noSubmitPermission": "يمكنك عرض الكميات. إرسال القياسات يحتاج صلاحية التقدم.",
-    "chapter": "الفصل"
+    "chapter": "الفصل",
+    "batchEvidenceTitle": "صور دفعة القياس",
+    "batchEvidenceLabel": "شهادة رقم {number} · {period}"
   }
 }

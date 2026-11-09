@@ -49,6 +49,7 @@ const MODULE_PATH_NAMESPACE_ALLOW: ReadonlyArray<{
   { pathPrefix: 'src/modules/project-plans/', namespaces: ['projectPlans'] },
   { pathPrefix: 'src/modules/project-profile/', namespaces: ['projectProfile'] },
   { pathPrefix: 'src/modules/project-risks/', namespaces: ['projectRisks'] },
+  { pathPrefix: 'src/modules/work-permits/', namespaces: ['workPermits'] },
   { pathPrefix: 'src/modules/project-team/', namespaces: ['projectTeam'] },
   { pathPrefix: 'src/app/[locale]/(app)/projects/[projectId]/risks/', namespaces: ['projectRisks'] },
   { pathPrefix: 'src/modules/rfi/', namespaces: ['rfi'] },
@@ -151,6 +152,14 @@ function parseMessageWrapperExtras(source: string): readonly string[] {
     const block = extraMatch?.[1] ?? '';
     for (const match of block.matchAll(/['"]([a-zA-Z0-9_-]+)['"]/g)) {
       extras.push(match[1]!);
+    }
+    const literalNs = source.match(
+      new RegExp(`${tag}[\\s\\S]*?namespaces=\\{\\[([^\\]]+)\\]\\}`),
+    );
+    if (literalNs?.[1] && !literalNs[1].includes('...')) {
+      for (const match of literalNs[1].matchAll(/['"]([a-zA-Z0-9_-]+)['"]/g)) {
+        extras.push(match[1]!);
+      }
     }
     const nsMatch = source.match(
       new RegExp(`${tag}[\\s\\S]*?namespaces=\\{\\[\\.\\.\\.([A-Z_]+)\\]\\}`),

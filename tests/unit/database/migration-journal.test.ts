@@ -58,6 +58,7 @@ describe('migration journal', () => {
       '0197_employee_notification_access',
       '0198_owner_closed_period_source_edit',
       '0199_duplicate_warnings_and_auth_rate_limits',
+      '0200_exlfy_evolution_local',
     ] as const;
     const tags = (await loadJournal()).entries.map((entry) => entry.tag);
     const tail = tags.slice(tags.indexOf('0182_expense_installment_payments_grants') + 1);
@@ -468,7 +469,7 @@ describe('migration journal', () => {
     expect(tags.indexOf('0171_retention_release_service_grant')).toBeLessThan(
       tags.indexOf('0172_notification_attention_badge_snapshot'),
     );
-    expect(tags.at(-1)).toBe('0199_duplicate_warnings_and_auth_rate_limits');
+    expect(tags.at(-1)).toBe('0200_exlfy_evolution_local');
     expect(tags.indexOf('0181_owner_bms_installment_payment_backfill')).toBeLessThan(
       tags.indexOf('0182_expense_installment_payments_grants'),
     );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useActionState, useEffect } from 'react';
+import { useMemo, useState, useActionState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { MoneyInput } from '@/components/patterns/money-input';
@@ -66,13 +66,6 @@ export function SupplierRfqQuoteForm({
       ? seedLines.map((line) => emptyLine(line.description, line.quantity || '1'))
       : [emptyLine()],
   );
-  const [submitted, setSubmitted] = useState(false);
-
-  useEffect(() => {
-    if (!state.success) return;
-    setSubmitted(true);
-  }, [state.success]);
-
   const totalAmount = useMemo(() => {
     try {
       return toNumericString(
@@ -115,7 +108,7 @@ export function SupplierRfqQuoteForm({
     );
   }
 
-  if (submitted) {
+  if (state.success) {
     return <Alert tone="success">{t('success')}</Alert>;
   }
 

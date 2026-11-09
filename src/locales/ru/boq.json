@@ -275,6 +275,8 @@
     "officeApproveHint": "Утверждение остаётся на офисной вкладке BOQ.",
     "officeApproveLink": "Открыть офисный BOQ",
     "noSubmitPermission": "Вы можете просматривать количества. Отправка измерений требует разрешения на прогресс.",
-    "chapter": "Раздел"
+    "chapter": "Раздел",
+    "batchEvidenceTitle": "Фото пакета измерений",
+    "batchEvidenceLabel": "Акт № {number} · {period}"
   }
 }
