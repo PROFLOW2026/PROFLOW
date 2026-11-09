@@ -35,6 +35,8 @@ describe('global search scope', () => {
       'expense',
       'purchase_order',
       'opportunity',
+      'work_permit',
+      'project_risk',
     ]);
   });
 
@@ -45,7 +47,7 @@ describe('global search scope', () => {
       PERMISSIONS.DOCUMENTS_READ,
     ]);
 
-    expect(kindsVisibleToPermissions(permissions)).toEqual(['client', 'project', 'document']);
+    expect(kindsVisibleToPermissions(permissions)).toEqual(['client', 'project', 'document', 'project_risk']);
     expect(kindsVisibleToPermissions(new Set())).toEqual([]);
     expect(kindsVisibleToPermissions(new Set(['not.a.permission']))).toEqual([]);
   });
@@ -61,6 +63,8 @@ describe('global search scope', () => {
     expect(SEARCH_KIND_PERMISSION.document).toBe(PERMISSIONS.DOCUMENTS_READ);
     expect(SEARCH_KIND_PERMISSION.employee).toBe(PERMISSIONS.WORKFORCE_READ);
     expect(SEARCH_KIND_PERMISSION.contract).toBe(PERMISSIONS.CONTRACTS_READ);
+    expect(SEARCH_KIND_PERMISSION.work_permit).toBe(PERMISSIONS.SAFETY_READ);
+    expect(SEARCH_KIND_PERMISSION.project_risk).toBe(PERMISSIONS.PROJECTS_READ);
   });
 
   it('caps each kind at 8 and still honors a smaller caller limit', () => {

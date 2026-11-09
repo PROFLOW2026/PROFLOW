@@ -19,6 +19,8 @@ const REQUIRED_DG_NAMESPACES = [
   'contractorPortal',
   'projectProfile',
   'projectRisks',
+  'projectGoals',
+  'planningBaselines',
   'subcontracts',
   'subcontractClaims',
   'collaboration',
