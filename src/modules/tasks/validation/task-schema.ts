@@ -9,6 +9,7 @@ export const createTaskSchema = z.object({
   title: z.string().min(1, 'Title is required').max(500, 'Title too long'),
   description: z.string().max(10000).nullable().optional(),
   projectId: z.string().uuid().nullable().optional(),
+  workPackageId: z.string().uuid().nullable().optional(),
   boardId: z.string().uuid().nullable().optional(),
   bucketId: z.string().uuid().nullable().optional(),
   priority: z.enum(taskPriorityValues).optional().default('none'),
@@ -36,6 +37,7 @@ export const updateTaskSchema = z.object({
   boardId: z.string().uuid().nullable().optional(),
   estimatedEffortMinutes: z.number().int().positive().nullable().optional(),
   milestoneId: z.string().uuid().nullable().optional(),
+  workPackageId: z.string().uuid().nullable().optional(),
   approvalRequired: z.boolean().optional(),
   contributesToProgress: z.boolean().optional(),
   progressWeight: z.preprocess((value) => {

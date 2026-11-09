@@ -3,25 +3,32 @@
 **Status:** Binding for Agent 6 overnight delivery  
 **Module:** `src/modules/planning/`
 
-## Critical Path — NOT shipped as product truth
+## Critical Path (CPM)
 
-Critical Path Method (CPM) is **unsafe** for V1 product claims. Foundations only:
+When every **active** `planning_work_item` has schedulable dates, `buildCriticalPathFoundation()` runs
+true CPM via `computeCpm()`:
 
-| Missing for real CPM | Why it matters |
-|----------------------|----------------|
-| Working calendars / non-working days | Duration ≠ calendar span |
-| Lag / lead on dependencies | FS edges alone understate constraints |
+- Finish-to-start dependencies only (zero lag).
+- Durations from inclusive calendar days between `startDate` and `targetEndDate`.
+- **Simplified calendar:** every day of the week counts as working time; **no holidays** yet.
+- Total float and critical path = zero-float items.
+
+`supported: false` when:
+
+- The dependency graph fails validation (cycle, unknown item, etc.) → `planning.criticalPath.unsafe`
+- Any active item lacks dates needed for CPM → `planning.criticalPath.missingDates`
+
+Still **not** MS Project–grade scheduling:
+
+| Missing for enterprise CPM | Why it matters |
+|---------------------------|----------------|
+| Custom working calendars / non-working days | Duration ≠ real crew time |
+| Lag / lead on dependencies | FS with zero lag only |
 | Multiple dependency types (SS/FF/SF) | Only `finish_to_start` in V1 |
-| Total / free float | Cannot mark “critical” bars honestly |
-| Resource leveling | Longest path ≠ resource-feasible path |
-| Partial / actual progress on network | Progress % does not retime the network |
+| Resource leveling | Critical path ≠ resource-feasible path |
+| Progress-driven retiming | Progress % does not retime the network |
 
-`buildCriticalPathFoundation()` therefore always returns `supported: false` and exposes only:
-
-- topological order (when acyclic)
-- a **heuristic** longest path by calendar-day duration (debug / future use)
-
-**UI must not label any bar or path as “Critical Path” / “נתיב קריטי”.**
+**UI may label zero-float items as critical** when `supported: true`, with the simplified-calendar caveat above.
 
 ## Jobs opt-out
 

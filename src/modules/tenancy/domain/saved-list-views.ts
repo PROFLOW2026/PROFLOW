@@ -26,6 +26,9 @@ export const SAVED_LIST_VIEW_QUERY_VALUE_MAX = 200;
 export const SAVED_LIST_VIEW_QUERY_KEYS_MAX = 20;
 export const SAVED_LIST_VIEWS_PER_LIST_MAX = 30;
 
+export const SAVED_LIST_VIEW_SCOPES = ['private', 'organization'] as const;
+export type SavedListViewScope = (typeof SAVED_LIST_VIEW_SCOPES)[number];
+
 export interface SavedListViewRecord {
   readonly id: string;
   readonly organizationId: string;
@@ -34,8 +37,23 @@ export interface SavedListViewRecord {
   readonly name: string;
   readonly query: Readonly<Record<string, string>>;
   readonly isDefault: boolean;
+  readonly scope: SavedListViewScope;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+}
+
+/** Merges private and organization-scoped lists without duplicate ids (org wins on collision). */
+export function mergeSavedListViewsForListing(
+  privateViews: readonly SavedListViewRecord[],
+  organizationViews: readonly SavedListViewRecord[],
+): SavedListViewRecord[] {
+  const byId = new Map<string, SavedListViewRecord>();
+  for (const view of privateViews) byId.set(view.id, view);
+  for (const view of organizationViews) byId.set(view.id, view);
+  return [...byId.values()].sort((left, right) => {
+    if (left.isDefault !== right.isDefault) return left.isDefault ? -1 : 1;
+    return right.updatedAt.getTime() - left.updatedAt.getTime();
+  });
 }
 
 export function isSavedListKey(value: string): value is SavedListKey {

@@ -9,7 +9,11 @@ import { getOcrQueueSnapshot } from '@/modules/ocr';
 import { listProjectMilestones, listProjectsForOrg } from '@/modules/projects';
 import { listQuotesForOrg } from '@/modules/quotes';
 import { getModuleVisibility } from '@/modules/tenancy';
-import { listOverdueUwmTasks } from '@/modules/tasks';
+import {
+  listBlockedUwmTasksForAutomation,
+  listOverdueUwmTasks,
+  listTaskReminderDueUwmTasks,
+} from '@/modules/tasks';
 import { listOrgWarrantyCoverages } from '@/modules/warranty';
 import { listTimesheetsForOrg } from '@/modules/workforce';
 import type { OrgContext } from '@/shared/auth/context';
@@ -283,6 +287,41 @@ export async function collectPresetMatches(
       if (!hasPermission(context, PERMISSIONS.TASKS_READ)) return [];
       const rows = await safe(
         () => listOverdueUwmTasks(context.db, context.organizationId, today, MATCH_CAP),
+        [],
+      );
+      return rows.map((row) => ({
+        entityType: 'task',
+        entityId: row.id,
+        taskId: row.id,
+        workspaceId: row.workspaceId,
+        title: row.title,
+        body: row.title,
+        href: `/tasks/${row.id}`,
+        projectId: row.projectId,
+      }));
+    }
+    case 'task_blocked': {
+      if (!hasPermission(context, PERMISSIONS.TASKS_READ)) return [];
+      const rows = await safe(
+        () => listBlockedUwmTasksForAutomation(context.db, context.organizationId, MATCH_CAP),
+        [],
+      );
+      return rows.map((row) => ({
+        entityType: 'task',
+        entityId: row.id,
+        taskId: row.id,
+        workspaceId: row.workspaceId,
+        title: row.title,
+        body: row.title,
+        href: `/tasks/${row.id}`,
+        projectId: row.projectId,
+      }));
+    }
+    case 'task_reminder_due': {
+      if (!hasPermission(context, PERMISSIONS.TASKS_READ)) return [];
+      const rows = await safe(
+        () =>
+          listTaskReminderDueUwmTasks(context.db, context.organizationId, new Date(), MATCH_CAP),
         [],
       );
       return rows.map((row) => ({

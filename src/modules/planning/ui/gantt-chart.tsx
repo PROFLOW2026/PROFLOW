@@ -16,6 +16,8 @@ export interface GanttChartProps {
   /** Highlight transitive predecessors of this work item. */
   readonly focusWorkItemId?: string | null;
   readonly focusedPredecessorIds?: readonly string[];
+  /** CPM critical-path work items (zero total float). */
+  readonly criticalPathWorkItemIds?: readonly string[];
 }
 
 export function GanttChart({
@@ -24,11 +26,13 @@ export function GanttChart({
   dir = 'rtl',
   focusWorkItemId = null,
   focusedPredecessorIds = [],
+  criticalPathWorkItemIds = [],
 }: GanttChartProps) {
   const chartW = Math.max(480, model.totalDays * 18);
   const height = PAD_TOP + model.bars.length * ROW_H + PAD_BOTTOM;
   const dayW = chartW / model.totalDays;
   const focusPreds = new Set(focusedPredecessorIds);
+  const criticalPath = new Set(criticalPathWorkItemIds);
 
   return (
     <div className="min-w-0 max-w-full">
@@ -59,11 +63,12 @@ export function GanttChart({
           {model.bars.map((bar) => {
             const highlighted =
               bar.workItemId === focusWorkItemId || focusPreds.has(bar.workItemId);
+            const onCriticalPath = criticalPath.has(bar.workItemId);
             return (
               <li
                 key={bar.workItemId}
                 className={`flex h-9 items-center gap-2 truncate px-3 ${
-                  highlighted ? 'bg-[var(--pf-bg-muted)] font-medium' : ''
+                  highlighted || onCriticalPath ? 'bg-[var(--pf-bg-muted)] font-medium' : ''
                 }`}
                 title={bar.name}
               >
@@ -173,6 +178,7 @@ export function GanttChart({
             const y = PAD_TOP + idx * ROW_H + 8;
             const highlighted =
               bar.workItemId === focusWorkItemId || focusPreds.has(bar.workItemId);
+            const onCriticalPath = criticalPath.has(bar.workItemId);
             if (bar.isMilestone) {
               const cx = bar.startOffsetDays * dayW + dayW / 2;
               const cy = y + 10;
@@ -194,10 +200,12 @@ export function GanttChart({
               : 'var(--pf-status-info-bg)';
             const stroke = bar.overdue
               ? 'var(--pf-status-danger-fg)'
-              : 'var(--pf-status-info-fg)';
+              : onCriticalPath
+                ? 'var(--pf-status-warning-fg)'
+                : 'var(--pf-status-info-fg)';
 
             return (
-              <g key={bar.workItemId} opacity={highlighted || !focusWorkItemId ? 1 : 0.4}>
+              <g key={bar.workItemId} opacity={highlighted || onCriticalPath || !focusWorkItemId ? 1 : 0.4}>
                 <rect
                   x={x}
                   y={y}
@@ -206,7 +214,7 @@ export function GanttChart({
                   rx={4}
                   fill={fill}
                   stroke={stroke}
-                  strokeWidth={highlighted ? 2 : 1}
+                  strokeWidth={highlighted || onCriticalPath ? 2 : 1}
                 />
                 <rect
                   x={x}

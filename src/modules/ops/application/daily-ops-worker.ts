@@ -16,6 +16,8 @@ import {
   type ClaimCashProjectionOutboxRecoveryResult,
 } from '@/modules/connected-projects/application/retry-claim-cash-projection-outbox';
 import { runDocumentCleanupOpsWorker } from '@/modules/documents/application/document-cleanup-ops-worker';
+import { runAutomationScanOpsWorker } from '@/modules/automations/application/automation-scan-ops-worker';
+import { runWebhookDeliveryOpsWorker } from '@/modules/api/application/webhook-delivery-ops-worker';
 import { runWithMaxConcurrency } from '@/shared/async/run-with-concurrency';
 import { logUsageKickFailure } from '@/shared/observability/runtime-usage-diag';
 
@@ -41,6 +43,8 @@ export interface DailyOpsWorkerPayload {
   readonly dgEvents: Awaited<ReturnType<typeof runDgEventsOpsWorker>>;
   readonly crossOrgOutbox: ClaimCashProjectionOutboxRecoveryResult;
   readonly documentCleanup: Awaited<ReturnType<typeof runDocumentCleanupOpsWorker>>;
+  readonly automationScan: Awaited<ReturnType<typeof runAutomationScanOpsWorker>>;
+  readonly webhookDelivery: Awaited<ReturnType<typeof runWebhookDeliveryOpsWorker>>;
 }
 
 function remainingOpsBudgetMs(startedMs: number): number {
@@ -73,7 +77,10 @@ export async function runDailyOpsWorker(startedMs: number = Date.now()): Promise
   const dgMaxMs = Math.min(45_000, remainingOpsBudgetMs(startedMs));
 
   const jobs: readonly {
-    readonly key: keyof Omit<DailyOpsWorkerPayload, 'crossOrgOutbox' | 'documentCleanup'>;
+    readonly key: keyof Omit<
+      DailyOpsWorkerPayload,
+      'crossOrgOutbox' | 'documentCleanup' | 'automationScan' | 'webhookDelivery'
+    >;
     readonly run: () => Promise<unknown>;
   }[] = [
     {
@@ -259,6 +266,33 @@ export async function runDailyOpsWorker(startedMs: number = Date.now()): Promise
     () => runDocumentCleanupOpsWorker(),
   );
 
+  const automationScan = await safeJob(
+    'automationScan',
+    {
+      scanned: 0,
+      rulesScanned: 0,
+      runsRecorded: 0,
+      matchesNotified: 0,
+      entitiesSkippedDuplicate: 0,
+      failed: 1,
+      failures: [{ organizationId: 'ops-bundle', error: 'sub_worker_failed' }],
+    },
+    () => runAutomationScanOpsWorker(),
+  );
+
+  const webhookDelivery = await safeJob(
+    'webhookDelivery',
+    {
+      enabled: false,
+      orgsScanned: 0,
+      deliveriesAttempted: 0,
+      delivered: 0,
+      failed: 1,
+      failures: [{ organizationId: 'ops-bundle', error: 'sub_worker_failed' }],
+    },
+    () => runWebhookDeliveryOpsWorker(),
+  );
+
   return {
     expenseRecurrence: results[0] as DailyOpsWorkerPayload['expenseRecurrence'],
     taskRecurrence: results[1] as DailyOpsWorkerPayload['taskRecurrence'],
@@ -273,5 +307,7 @@ export async function runDailyOpsWorker(startedMs: number = Date.now()): Promise
     dgEvents: results[10] as DailyOpsWorkerPayload['dgEvents'],
     crossOrgOutbox,
     documentCleanup,
+    automationScan,
+    webhookDelivery,
   };
 }

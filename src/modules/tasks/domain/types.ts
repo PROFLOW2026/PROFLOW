@@ -57,6 +57,7 @@ export interface Task {
   readonly bucketId: string | null;
   /** Authoritative project attribution. Validated against project_workspace_links. */
   readonly projectId: string | null;
+  readonly workPackageId: string | null;
   readonly title: string;
   readonly description: string | null;
   readonly status: TaskStatus;
@@ -257,6 +258,7 @@ export interface CreateTaskInput {
   readonly title: string;
   readonly description?: string | null;
   readonly projectId?: string | null;
+  readonly workPackageId?: string | null;
   readonly boardId?: string | null;
   readonly bucketId?: string | null;
   readonly priority?: TaskPriority;
@@ -288,6 +290,7 @@ export interface UpdateTaskInput {
   readonly boardId?: string | null;
   readonly estimatedEffortMinutes?: number | null;
   readonly milestoneId?: string | null;
+  readonly workPackageId?: string | null;
   readonly approvalRequired?: boolean;
   readonly contributesToProgress?: boolean;
   readonly progressWeight?: number | string | null;
@@ -358,6 +361,7 @@ export interface TaskListFilters {
   readonly blocked?: boolean;
   readonly noProjectOnly?: boolean;
   readonly projectId?: string;
+  readonly workPackageId?: string;
   readonly boardId?: string;
   readonly bucketId?: string;
   readonly search?: string;

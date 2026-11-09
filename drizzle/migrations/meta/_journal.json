@@ -1394,6 +1394,20 @@
             "when": 1794180000000,
             "tag": "0200_exlfy_evolution_local",
             "breakpoints": true
+        },
+        {
+            "idx": 199,
+            "version": "7",
+            "when": 1794180001000,
+            "tag": "0201_planning_baselines_project_goals",
+            "breakpoints": true
+        },
+        {
+            "idx": 200,
+            "version": "7",
+            "when": 1794266400000,
+            "tag": "0202_automation_task_scan_presets",
+            "breakpoints": true
         }
     ]
 }

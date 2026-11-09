@@ -13,6 +13,7 @@ import { applyTaskStatusChange } from './apply-task-status-change';
 import { rescheduleTaskReminders } from './reschedule-task-reminders';
 import { updateTaskSchema } from '../validation/task-schema';
 import { assertStartBeforeDue } from '../domain/start-before-due';
+import { assertWorkPackageMatchesTaskProject } from './assert-work-package-for-task';
 import type { Task, UpdateTaskInput } from '../domain/types';
 
 /**
@@ -80,6 +81,13 @@ export async function updateTask(
 
   if (input.estimatedEffortMinutes !== undefined) patch.estimatedEffortMinutes = input.estimatedEffortMinutes;
   if (input.milestoneId !== undefined) patch.milestoneId = input.milestoneId;
+  if (input.workPackageId !== undefined) {
+    patch.workPackageId = await assertWorkPackageMatchesTaskProject(
+      context,
+      existing.projectId,
+      input.workPackageId,
+    );
+  }
   if (input.approvalRequired !== undefined) patch.approvalRequired = input.approvalRequired;
   if (input.contributesToProgress !== undefined) {
     patch.contributesToProgress = input.contributesToProgress;

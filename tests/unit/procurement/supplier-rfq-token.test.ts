@@ -27,6 +27,18 @@ describe('supplier RFQ access token helpers', () => {
     expect(isSupplierRfqAccessTokenConsumed(new Date())).toBe(true);
   });
 
+  it('treats single-use consumption as irreversible for validity checks', () => {
+    const usedAt = new Date('2026-05-01T00:00:00.000Z');
+    expect(isSupplierRfqAccessTokenConsumed(usedAt)).toBe(true);
+    expect(
+      assessSupplierRfqAccessTokenValidity({
+        expiresAt: new Date('2027-01-01T00:00:00.000Z'),
+        usedAt,
+        now: new Date('2026-06-01T00:00:00.000Z'),
+      }).kind,
+    ).toBe('used');
+  });
+
   it('assesses validity in priority order: used, then expired, else valid', () => {
     const now = new Date('2026-06-01T00:00:00.000Z');
     expect(

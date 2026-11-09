@@ -634,8 +634,12 @@
     "toggleOff": "Off",
     "chipSearch": "Search: {value}",
     "chipStatus": "Status: {value}",
-    "chipClient": "Client: {value}"
+    "chipClient": "Client: {value}",
+    "workPackage": "Work package",
+    "allWorkPackages": "All work packages",
+    "chipWorkPackage": "Work package: {value}"
   },
+  "workPackageLabel": "Work package",
   "filters": {
     "search": "Search tasks",
     "searchPlaceholder": "Search by title or project…",
@@ -646,7 +650,8 @@
     "overdueOnly": "Overdue only",
     "blockedOnly": "Blocked only",
     "noProjectOnly": "No project",
-    "archivedOnly": "Archived tasks only"
+    "archivedOnly": "Archived tasks only",
+    "allWorkPackages": "No work package"
   },
   "calendar": {
     "pageTitle": "Task calendar",

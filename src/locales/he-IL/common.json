@@ -43,7 +43,10 @@
     "save": "שמירת תצוגה",
     "makeDefault": "ברירת מחדל",
     "defaultName": "{name} (ברירת מחדל)",
-    "limitReached": "הגעתם למספר המרבי של תצוגות שמורות ברשימה הזו."
+    "limitReached": "הגעתם למספר המרבי של תצוגות שמורות ברשימה הזו.",
+    "shareWithOrganization": "שיתוף עם הארגון",
+    "organizationBadge": "ארגון",
+    "readOnlyOrganizationView": "תצוגת ארגון זו ניתנת לעריכה רק על ידי יוצר התצוגה או מנהל מערכת."
   },
   "labels": {
     "name": "שם",

@@ -59,6 +59,7 @@ import {
   archiveTaskAction,
   unarchiveTaskAction,
   listTaskAssigneeOptionsAction,
+  listTaskWorkPackageOptionsAction,
   syncTaskAssigneesAction,
 } from '@/app/[locale]/(app)/work/actions';
 import { TaskChecklistSection } from './task-checklist-section';
@@ -211,6 +212,7 @@ type TaskEditDraft = {
   contributesToProgress: boolean;
   progressWeight: string;
   approvalRequired: boolean;
+  workPackageId: string | null;
 };
 
 function parseProgressWeightDraft(
@@ -302,8 +304,27 @@ export function TaskDetailSheet({
       contributesToProgress: task.contributesToProgress === true,
       progressWeight: task.progressWeight ?? '',
       approvalRequired: task.approvalRequired === true,
+      workPackageId: task.workPackageId ?? null,
     };
   }, [task]);
+
+  const [loadedWorkPackageOptions, setLoadedWorkPackageOptions] = useState<
+    readonly { id: string; name: string }[]
+  >([]);
+
+  useEffect(() => {
+    if (!open || !taskId || !task?.projectId) {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const rows = await listTaskWorkPackageOptionsAction(taskId);
+      if (!cancelled) setLoadedWorkPackageOptions(rows);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, taskId, task?.projectId]);
 
   const [draftOverride, setDraftOverride] = useState<{
     taskId: string;
@@ -405,7 +426,8 @@ export function TaskDetailSheet({
       draft.estimatedEffortMinutes !== (task.estimatedEffortMinutes ?? null) ||
       draft.contributesToProgress !== (task.contributesToProgress === true) ||
       !sameProgressWeight(task.progressWeight, draft.progressWeight) ||
-      draft.approvalRequired !== (task.approvalRequired === true)
+      draft.approvalRequired !== (task.approvalRequired === true) ||
+      (draft.workPackageId ?? null) !== (task.workPackageId ?? null)
     );
   }, [task, draft]);
 
@@ -473,6 +495,9 @@ export function TaskDetailSheet({
             }
             if (draft.approvalRequired !== (task.approvalRequired === true)) {
               patch.approvalRequired = draft.approvalRequired;
+            }
+            if ((draft.workPackageId ?? null) !== (task.workPackageId ?? null)) {
+              patch.workPackageId = draft.workPackageId;
             }
 
             const result = await handleUpdate(patch);
@@ -720,6 +745,33 @@ export function TaskDetailSheet({
                   </div>
                 )}
               </Field>
+
+              {task.projectId && loadedWorkPackageOptions.length > 0 ? (
+                <Field label={t('workPackageLabel')} icon={<FileText className="size-4" />}>
+                  <select
+                    value={draft?.workPackageId ?? task.workPackageId ?? ''}
+                    disabled={isPending || taskIsArchived}
+                    onChange={(event) =>
+                      setDraft((current) =>
+                        current
+                          ? {
+                              ...current,
+                              workPackageId: event.target.value ? event.target.value : null,
+                            }
+                          : current,
+                      )
+                    }
+                    className="w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--pf-focus-ring)]"
+                  >
+                    <option value="">{t('filters.allWorkPackages')}</option>
+                    {loadedWorkPackageOptions.map((pkg) => (
+                      <option key={pkg.id} value={pkg.id}>
+                        {pkg.name}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              ) : null}
 
               <Field label={t('task.startDate')} icon={<Calendar className="size-4" />}>
                 <input

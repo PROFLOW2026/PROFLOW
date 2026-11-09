@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { getTodayInbox } from '@/modules/command-center';
+import { TodayDecisionsLensToggle } from '@/modules/command-center/ui/today-decisions-lens';
 import { TodayInboxPanel } from '@/modules/command-center/ui/today-inbox';
 import { isEmployeeAppUser } from '@/modules/employee-app/application/load-employee-app-context';
 import { withOrgContext } from '@/shared/auth/session';
@@ -23,7 +24,11 @@ export async function generateMetadata({
   return { title: t('title') };
 }
 
-export default async function TodayPage() {
+export default async function TodayPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ lens?: string }>;
+}) {
   const [t, tCommon] = await Promise.all([
     getTranslations('commandCenter'),
     getTranslations('common'),
@@ -33,20 +38,40 @@ export default async function TodayPage() {
     <MainAppPage>
       <PageHeader title={t('title')} description={t('description')} />
       <MainAppSection>
+        <Suspense fallback={null}>
+          <TodayDecisionsLensToggle />
+        </Suspense>
         <Suspense
-        fallback={
-          <p className="text-sm text-[var(--pf-text-secondary)]">{tCommon('states.loading')}</p>
-        }
-      >
-        <TodayInboxBody />
-      </Suspense>
-    
+          fallback={
+            <p className="text-sm text-[var(--pf-text-secondary)]">{tCommon('states.loading')}</p>
+          }
+        >
+          <TodayInboxBodyWrapper searchParams={searchParams} />
+        </Suspense>
       </MainAppSection>
     </MainAppPage>
   );
 }
 
-async function TodayInboxBody() {
+function TodayInboxBodyWrapper({
+  searchParams,
+}: {
+  searchParams: Promise<{ lens?: string }>;
+}) {
+  return <TodayInboxBodyLoader searchParams={searchParams} />;
+}
+
+async function TodayInboxBodyLoader({
+  searchParams,
+}: {
+  searchParams: Promise<{ lens?: string }>;
+}) {
+  const { lens } = await searchParams;
+  const decisionsOnly = lens === 'decisions';
+  return <TodayInboxBody decisionsOnly={decisionsOnly} />;
+}
+
+async function TodayInboxBody({ decisionsOnly = false }: { readonly decisionsOnly?: boolean }) {
   const t = await getTranslations('commandCenter');
   const locale = await getLocale();
 
@@ -83,12 +108,21 @@ async function TodayInboxBody() {
     );
   }
 
+  const inbox = decisionsOnly
+    ? {
+        ...result.inbox,
+        items: result.inbox.items.filter((item) => item.sourceType === 'project_decision_recent'),
+        totalActive: result.inbox.items.filter((item) => item.sourceType === 'project_decision_recent')
+          .length,
+      }
+    : result.inbox;
+
   return (
     <>
       <p className="text-sm text-[var(--pf-text-secondary)]">
-        {t('summary', { count: result.inbox.totalActive })}
+        {decisionsOnly ? t('decisionsLens.summary', { count: inbox.totalActive }) : t('summary', { count: inbox.totalActive })}
       </p>
-      <TodayInboxPanel inbox={result.inbox} defaultPaymentDate={result.defaultPaymentDate} />
+      <TodayInboxPanel inbox={inbox} defaultPaymentDate={result.defaultPaymentDate} />
     </>
   );
 }

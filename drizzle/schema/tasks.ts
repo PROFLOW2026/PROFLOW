@@ -27,8 +27,7 @@ import {
 import { profiles } from './identity';
 import { organizations, organizationMemberships } from './tenancy';
 import { employees } from './workforce';
-import { projects } from './projects';
-import { projectMilestones } from './projects';
+import { projects, projectMilestones, workPackages } from './projects';
 import { clientContacts } from './clients';
 import { projectWorkspaceLinks, workspaces } from './workspaces';
 
@@ -182,6 +181,7 @@ export const tasks = pgTable(
      * NULL = workspace-wide task (not attributed to any single project).
      */
     projectId: uuid('project_id').references(() => projects.id, { onDelete: 'set null' }),
+    workPackageId: uuid('work_package_id').references(() => workPackages.id, { onDelete: 'set null' }),
 
     title: text('title').notNull(),
     description: text('description'),

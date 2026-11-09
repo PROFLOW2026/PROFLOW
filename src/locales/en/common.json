@@ -43,7 +43,10 @@
     "save": "Save view",
     "makeDefault": "Default",
     "defaultName": "{name} (default)",
-    "limitReached": "You already have the maximum number of saved views for this list."
+    "limitReached": "You already have the maximum number of saved views for this list.",
+    "shareWithOrganization": "Share with organization",
+    "organizationBadge": "Org",
+    "readOnlyOrganizationView": "This organization view can only be changed by its creator or an administrator."
   },
   "labels": {
     "name": "Name",

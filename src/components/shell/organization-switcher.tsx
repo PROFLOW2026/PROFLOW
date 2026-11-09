@@ -17,7 +17,7 @@ import { cn } from '@/shared/ui/cn';
 
 export interface OrganizationSwitcherProps {
   organizationName: string;
-  organizations: { id: string; name: string }[];
+  organizations: { id: string; name: string; openTaskCount?: number }[];
   activeOrganizationId: string;
   /** Sidebar header: plain company name; multi-org adds a subtle chevron only. */
   variant?: 'default' | 'sidebar';
@@ -115,6 +115,16 @@ export function OrganizationSwitcher({
             >
               <Building2 aria-hidden />
               <span className="min-w-0 flex-1 truncate">{organization.name}</span>
+              {organization.id !== activeOrganizationId &&
+              organization.openTaskCount != null &&
+              organization.openTaskCount > 0 ? (
+                <span
+                  className="shrink-0 rounded-full bg-[var(--pf-bg-muted)] px-2 py-0.5 text-xs font-medium tabular-nums text-[var(--pf-text-secondary)]"
+                  title={t('organizationSwitcher.openTasks', { count: organization.openTaskCount })}
+                >
+                  {organization.openTaskCount}
+                </span>
+              ) : null}
               {organization.id === activeOrganizationId ? (
                 <Check className="size-4 text-[var(--pf-text-brand)]" aria-hidden />
               ) : null}

@@ -2,6 +2,7 @@ import 'server-only';
 
 import { and, eq, inArray } from 'drizzle-orm';
 import { clients, projects } from '@drizzle/schema';
+import { findWorkPackageById } from '@/modules/projects';
 import type { OrgContext } from '@/shared/auth/context';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -92,7 +93,8 @@ export async function mapTaskDetailToUiForOrg(
   context: OrgContext,
   detail: TaskDetail,
 ): Promise<UiTaskDetail> {
-  const [projectLabels, assigneeMap, reportedHours, attachments, clientNames] = await Promise.all([
+  const [projectLabels, assigneeMap, reportedHours, attachments, clientNames, workPackage] =
+    await Promise.all([
     enrichTasksWithProjectDisplayNames(context, [detail]),
     loadTaskAssigneeDisplayMap(context.db, context.organizationId, [detail.id]),
     sumReportedHoursForTask(context.db, context.organizationId, detail.id),
@@ -100,10 +102,14 @@ export async function mapTaskDetailToUiForOrg(
       ? listTaskAttachments(context, detail.id).catch(() => [])
       : Promise.resolve([]),
     loadProjectClientNameMap(context, [detail.projectId]),
+    detail.workPackageId
+      ? findWorkPackageById(context.db, context.organizationId, detail.workPackageId)
+      : Promise.resolve(null),
   ]);
 
   return mapTaskDetailToUi(detail, {
     projectName: projectDisplayNameForTask(detail, projectLabels),
+    workPackageName: workPackage?.name ?? null,
     clientName: clientNameForTask(detail.projectId, clientNames),
     assignees: [...assigneeDisplaysForTask(detail.id, assigneeMap)],
     checklistTotal: detail.checklistItems.length,

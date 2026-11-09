@@ -11,12 +11,13 @@ import {
   notificationEmailLogExists,
 } from '@/modules/notifications';
 import { getEmailPort } from '@/shared/ports/email';
+import { resolveTaskDeliveryChannelStatus } from '../domain/task-delivery-channels';
 
 /**
  * Outbound email for an existing in-app task notification. Never throws.
- * Skips when Resend is not configured. Dedupe is the notification key plus recipient.
+ * Requires `TASK_EMAIL_DELIVERY_ENABLED=true` and `EMAIL_DRIVER=resend`. Dedupe via notification_email_log.
  */
-export async function trySendTaskCommentMentionEmail(
+export async function trySendTaskNotificationEmail(
   context: OrgContext,
   input: {
     readonly dedupeKey: string;
@@ -26,6 +27,11 @@ export async function trySendTaskCommentMentionEmail(
     readonly deepLink: string;
   },
 ): Promise<void> {
+  const channels = resolveTaskDeliveryChannelStatus({
+    taskEmailDeliveryEnabled: serverEnv().TASK_EMAIL_DELIVERY_ENABLED === 'true',
+  });
+  if (channels.email !== 'connected') return;
+
   const port = getEmailPort();
   if (!port.configured) return;
 
@@ -66,9 +72,12 @@ export async function trySendTaskCommentMentionEmail(
   try {
     await insertNotificationEmailLog(adminDb, { ...logKey, status });
   } catch (error) {
-    logger.warn('task_comment_mention_email.log_write_failed', {
+    logger.warn('task_notification_email.log_write_failed', {
       to: redactEmail(recipientEmail),
       error,
     });
   }
 }
+
+/** @deprecated Use trySendTaskNotificationEmail */
+export const trySendTaskCommentMentionEmail = trySendTaskNotificationEmail;

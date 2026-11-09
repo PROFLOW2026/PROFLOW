@@ -772,3 +772,111 @@ export async function searchOpportunities(
     stage: row.stage,
   }));
 }
+
+export interface WorkPermitSearchHit {
+  readonly id: string;
+  readonly title: string;
+  readonly status: string;
+  readonly projectId: string;
+  readonly projectName: string | null;
+}
+
+export async function searchWorkPermits(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  accessibleProjectIds: string[] | null,
+  limit = GLOBAL_SEARCH_KIND_CAP,
+): Promise<WorkPermitSearchHit[]> {
+  const exact = trimmed(query);
+  if (!exact) return [];
+  const term = ilikeContainsPattern(exact);
+  const projectFilter =
+    accessibleProjectIds != null && accessibleProjectIds.length > 0
+      ? sql`and wp.project_id = any(${accessibleProjectIds}::uuid[])`
+      : accessibleProjectIds != null
+        ? sql`and false`
+        : sql``;
+
+  const rows = await db.execute(sql`
+    select
+      wp.id,
+      wp.title,
+      wp.status,
+      wp.project_id,
+      p.name as project_name
+    from public.work_permits wp
+    left join public.projects p
+      on p.id = wp.project_id and p.organization_id = wp.organization_id
+    where wp.organization_id = ${organizationId}::uuid
+      and wp.title ilike ${term}
+      ${projectFilter}
+    order by wp.updated_at desc
+    limit ${limit}
+  `);
+  return readSqlRows(rows).map((row) => ({
+    id: String(row.id),
+    title: String(row.title),
+    status: String(row.status),
+    projectId: String(row.project_id),
+    projectName: row.project_name != null ? String(row.project_name) : null,
+  }));
+}
+
+export interface ProjectRiskSearchHit {
+  readonly id: string;
+  readonly description: string;
+  readonly status: string;
+  readonly projectId: string;
+  readonly projectName: string | null;
+}
+
+function readSqlRows(result: unknown): Record<string, unknown>[] {
+  if (Array.isArray(result)) return result as Record<string, unknown>[];
+  if (result && typeof result === 'object' && Array.isArray((result as { rows?: unknown[] }).rows)) {
+    return (result as { rows: Record<string, unknown>[] }).rows;
+  }
+  return [];
+}
+
+export async function searchProjectRisks(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  accessibleProjectIds: string[] | null,
+  limit = GLOBAL_SEARCH_KIND_CAP,
+): Promise<ProjectRiskSearchHit[]> {
+  const exact = trimmed(query);
+  if (!exact) return [];
+  const term = ilikeContainsPattern(exact);
+  const projectFilter =
+    accessibleProjectIds != null && accessibleProjectIds.length > 0
+      ? sql`and pr.project_id = any(${accessibleProjectIds}::uuid[])`
+      : accessibleProjectIds != null
+        ? sql`and false`
+        : sql``;
+
+  const rows = await db.execute(sql`
+    select
+      pr.id,
+      pr.description,
+      pr.status,
+      pr.project_id,
+      p.name as project_name
+    from public.project_risks pr
+    left join public.projects p
+      on p.id = pr.project_id and p.organization_id = pr.organization_id
+    where pr.organization_id = ${organizationId}::uuid
+      and pr.description ilike ${term}
+      ${projectFilter}
+    order by (pr.probability * pr.impact) desc, pr.updated_at desc
+    limit ${limit}
+  `);
+  return readSqlRows(rows).map((row) => ({
+    id: String(row.id),
+    description: String(row.description),
+    status: String(row.status),
+    projectId: String(row.project_id),
+    projectName: row.project_name != null ? String(row.project_name) : null,
+  }));
+}

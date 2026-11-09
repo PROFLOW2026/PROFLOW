@@ -164,6 +164,8 @@ export interface InfraPermissions {
   readonly canCaptureVideo: boolean;
   /** Open a stored file in the provider's own web UI (needs a provider login: owner-side accounts only). */
   readonly canOpenInCloud: boolean;
+  /** Open create-defect with this capture as linked evidence (defects.manage / equivalent grant). */
+  readonly canCreateDefect: boolean;
 }
 
 export interface InfraListPage<T> {

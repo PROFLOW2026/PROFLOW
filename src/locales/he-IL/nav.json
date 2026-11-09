@@ -104,7 +104,8 @@
   "organizationSwitcher": {
     "label": "עסק",
     "current": "ארגון נוכחי: {name}",
-    "createNew": "יצירת עסק חדש"
+    "createNew": "יצירת עסק חדש",
+    "openTasks": "{count, plural, one {משימה פתוחה אחת} two {2 משימות פתוחות} other {# משימות פתוחות}}"
   },
   "user": {
     "profile": "פרופיל",

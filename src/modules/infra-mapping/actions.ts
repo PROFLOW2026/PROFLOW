@@ -66,6 +66,7 @@ import {
 import { beginVideoCapture, type BeginVideoCaptureResult } from './application/videos';
 import { assertCanManageLocations, organizationFor } from './application/access';
 import type { InfraActor } from './application/ports';
+import { createDefectFromInfraCapture } from './application/create-defect-from-capture';
 import { loadInfraWorkspace, type InfraWorkspaceData } from './application/workspace';
 import type { FolderInspection, SyncResult } from './application/folders';
 import {
@@ -235,6 +236,27 @@ export async function removeCaptureAction(
   return run(viewer, async (actor) => {
     await removeCapture(actor, input, infraDeps);
     return undefined;
+  });
+}
+
+export async function createDefectFromCaptureAction(
+  viewer: InfraViewer,
+  input: {
+    readonly captureId: string;
+    readonly organizationId: string;
+    readonly projectId: string;
+    readonly title: string;
+    readonly description?: string | null;
+  },
+): Promise<InfraResult<{ defectId: string; href: string }>> {
+  return run(viewer, async (actor) => {
+    if (actor.kind !== 'internal') {
+      throw new AuthorizationError('infra:defect_from_capture');
+    }
+    const result = await createDefectFromInfraCapture(actor.context, input);
+    revalidatePath(`/projects/${input.projectId}/defects`);
+    revalidatePath(`/projects/${input.projectId}/defects/${result.defectId}`);
+    return result;
   });
 }
 

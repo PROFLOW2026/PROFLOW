@@ -28,6 +28,7 @@ import {
 } from '../domain/safe-actions';
 import {
   insertAutomationRun,
+  listAutomationNotifiedEntityIdsForRuleOnDate,
   listAutomationRules,
   upsertAutomationRule,
 } from '../data/automations.repository';
@@ -100,6 +101,10 @@ function notificationTypeForPreset(presetKey: AutomationPresetKey) {
       return 'billing_plan_retention_held' as const;
     case 'milestone_approaching_days':
       return 'milestone_approaching' as const;
+    case 'task_blocked':
+      return 'action_required' as const;
+    case 'task_reminder_due':
+      return 'task_due_soon' as const;
     case 'task_dependency_resolved':
       return 'task_dependency_resolved' as const;
     case 'asset_service_due':
@@ -424,15 +429,20 @@ export async function runRules(
         continue;
       }
 
-      const executed = [];
+      const executed: { kind: string; count: number }[] = [];
+      let notifiedEntityIds: string[] = [];
       for (const action of allowed) {
-        executed.push(await executeSafeAction(context, rule.presetKey, action, [...matches]));
+        const result = await executeSafeAction(context, rule.presetKey, action, [...matches]);
+        executed.push(result);
+        if (action.kind === 'notify' && result.count > 0) {
+          notifiedEntityIds = [...matches].slice(0, NOTIFY_CAP).map((match) => match.entityId);
+        }
       }
       const ok = await insertAutomationRun(context.db, {
         organizationId: context.organizationId,
         ruleId: rule.id,
         status: 'ok',
-        actionsJson: { matches: matches.length, executed },
+        actionsJson: { matches: matches.length, executed, notifiedEntityIds },
         errorMessage: null,
         accessScopeJson: accessScopeForMatches([...matches]),
       });
@@ -505,15 +515,20 @@ async function executeRuleActionsForMatches(
     });
   }
 
-  const executed = [];
+  const executed: { kind: string; count: number }[] = [];
+  let notifiedEntityIds: string[] = [];
   for (const action of allowed) {
-    executed.push(await executeSafeAction(context, rule.presetKey, action, [...matches]));
+    const result = await executeSafeAction(context, rule.presetKey, action, [...matches]);
+    executed.push(result);
+    if (action.kind === 'notify' && result.count > 0) {
+      notifiedEntityIds = [...matches].slice(0, NOTIFY_CAP).map((match) => match.entityId);
+    }
   }
   const run = await insertAutomationRun(context.db, {
     organizationId: context.organizationId,
     ruleId: rule.id,
     status: 'ok',
-    actionsJson: { matches: matches.length, executed },
+    actionsJson: { matches: matches.length, executed, notifiedEntityIds },
     errorMessage: null,
     accessScopeJson: accessScopeForMatches([...matches]),
   });
@@ -524,6 +539,138 @@ async function executeRuleActionsForMatches(
     after: { presetKey: rule.presetKey, status: 'ok', matchCount: matches.length },
   });
   return run;
+}
+
+export const SCHEDULED_AUTOMATION_SCAN_PRESETS = [
+  'task_overdue',
+  'task_blocked',
+  'task_reminder_due',
+  'milestone_approaching_days',
+] as const satisfies readonly AutomationPresetKey[];
+
+export interface ScheduledAutomationScanResult {
+  readonly rulesScanned: number;
+  readonly runsRecorded: number;
+  readonly matchesNotified: number;
+  readonly entitiesSkippedDuplicate: number;
+}
+
+/**
+ * Daily ops path: enabled scan presets, notify-only, same-day entity dedupe via run history.
+ */
+export async function runScheduledAutomationScans(
+  context: OrgContext,
+): Promise<ScheduledAutomationScanResult> {
+  if (!hasPermission(context, PERMISSIONS.AUTOMATIONS_MANAGE)) {
+    return { rulesScanned: 0, runsRecorded: 0, matchesNotified: 0, entitiesSkippedDuplicate: 0 };
+  }
+
+  const businessDate = todayInTimeZone(context.organization.timezone);
+  const rules = (await listAutomationRules(context.db, context.organizationId).catch(() => [])).filter(
+    (rule) =>
+      rule.enabled &&
+      (SCHEDULED_AUTOMATION_SCAN_PRESETS as readonly string[]).includes(rule.presetKey),
+  );
+
+  let runsRecorded = 0;
+  let matchesNotified = 0;
+  let entitiesSkippedDuplicate = 0;
+
+  for (const rule of rules) {
+    const alreadyNotified = await listAutomationNotifiedEntityIdsForRuleOnDate(
+      context.db,
+      context.organizationId,
+      rule.id,
+      businessDate,
+    );
+    const allMatches = await collectPresetMatches(context, rule.presetKey, rule.configJson);
+    const matches = allMatches.filter((match) => {
+      if (alreadyNotified.has(match.entityId)) {
+        entitiesSkippedDuplicate += 1;
+        return false;
+      }
+      return true;
+    });
+
+    if (matches.length === 0) {
+      const skipped = await insertAutomationRun(context.db, {
+        organizationId: context.organizationId,
+        ruleId: rule.id,
+        status: 'skipped',
+        actionsJson: {
+          matches: 0,
+          scheduledScan: true,
+          idempotencyKey: `automation-scan:${rule.presetKey}:${businessDate}`,
+          skippedDuplicates: entitiesSkippedDuplicate,
+        },
+        errorMessage: null,
+        accessScopeJson: {},
+      });
+      runsRecorded += 1;
+      void skipped;
+      continue;
+    }
+
+    const notifyOnly: AutomationActionRequest[] = [{ kind: 'notify' }];
+    const { allowed, refused } = filterExecutableActions(notifyOnly);
+    if (refused.length > 0) {
+      await insertAutomationRun(context.db, {
+        organizationId: context.organizationId,
+        ruleId: rule.id,
+        status: 'failed',
+        actionsJson: { refused, scheduledScan: true },
+        errorMessage: 'Unsafe action refused',
+        accessScopeJson: {},
+      });
+      runsRecorded += 1;
+      continue;
+    }
+
+    try {
+      const executed: { kind: string; count: number }[] = [];
+      let notifiedEntityIds: string[] = [];
+      for (const action of allowed) {
+        const result = await executeSafeAction(context, rule.presetKey, action, matches);
+        executed.push(result);
+        if (action.kind === 'notify' && result.count > 0) {
+          notifiedEntityIds = [...matches].slice(0, NOTIFY_CAP).map((match) => match.entityId);
+          matchesNotified += result.count;
+        }
+      }
+      await insertAutomationRun(context.db, {
+        organizationId: context.organizationId,
+        ruleId: rule.id,
+        status: 'ok',
+        actionsJson: {
+          matches: matches.length,
+          executed,
+          notifiedEntityIds,
+          scheduledScan: true,
+          idempotencyKey: `automation-scan:${rule.presetKey}:${businessDate}`,
+        },
+        errorMessage: null,
+        accessScopeJson: accessScopeForMatches(matches),
+      });
+      runsRecorded += 1;
+    } catch (error) {
+      await insertAutomationRun(context.db, {
+        organizationId: context.organizationId,
+        ruleId: rule.id,
+        status: 'failed',
+        actionsJson: { scheduledScan: true },
+        errorMessage: error instanceof Error ? error.message : 'failed',
+        accessScopeJson: {},
+      });
+      runsRecorded += 1;
+    }
+  }
+
+  return {
+    rulesScanned: rules.length,
+    runsRecorded,
+    matchesNotified,
+    entitiesSkippedDuplicate,
+  };
 }
 
 /**

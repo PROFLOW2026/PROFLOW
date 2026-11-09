@@ -3,10 +3,10 @@ import {
   listSavedListViews,
   type SavedListKey,
 } from '@/modules/tenancy';
+import { canCreateOrganizationSavedListView } from '@/modules/tenancy/domain/saved-list-view-access';
 import { withOrgContext } from '@/shared/auth/session';
 import { SavedListViewsControl } from './saved-list-views-control';
 
-/** Personal saved views only (`listSavedListViews` scopes by user id). */
 export async function SavedListViewsBar({
   listKey,
   searchParams,
@@ -17,9 +17,19 @@ export async function SavedListViewsBar({
   keys?: readonly string[];
 }) {
   const currentQuery = compactSearchQuery(searchParams, keys);
-  const views = await withOrgContext((context) => listSavedListViews(context, listKey));
+  const { views, currentUserId, canShareWithOrganization } = await withOrgContext(async (context) => ({
+    views: await listSavedListViews(context, listKey),
+    currentUserId: context.userId,
+    canShareWithOrganization: canCreateOrganizationSavedListView(context),
+  }));
 
   return (
-    <SavedListViewsControl listKey={listKey} currentQuery={currentQuery} views={views} />
+    <SavedListViewsControl
+      listKey={listKey}
+      currentQuery={currentQuery}
+      views={views}
+      currentUserId={currentUserId}
+      canShareWithOrganization={canShareWithOrganization}
+    />
   );
 }

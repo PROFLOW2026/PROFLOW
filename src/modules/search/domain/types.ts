@@ -18,6 +18,8 @@ export const GLOBAL_SEARCH_KINDS = [
   'expense',
   'quote',
   'opportunity',
+  'work_permit',
+  'project_risk',
   'contract',
   'purchase_order',
   'subcontract',

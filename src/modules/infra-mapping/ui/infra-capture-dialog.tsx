@@ -5,7 +5,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useRouter } from '@/shared/i18n/navigation';
 import {
+  createDefectFromCaptureAction,
   getCaptureDetailAction,
   openCaptureInCloudAction,
   removeCaptureAction,
@@ -83,6 +85,7 @@ export function InfraCaptureDialog({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const router = useRouter();
 
   const reload = useCallback(async () => {
     const result = await getCaptureDetailAction(viewer, { captureId: capture.id, organizationId });
@@ -112,6 +115,32 @@ export function InfraCaptureDialog({
       })),
     [current.markings],
   );
+
+  async function createDefectFromCapture() {
+    if (!permissions.canCreateDefect || !available) return;
+  const title =
+    capture.description?.trim() ||
+    capture.fileName ||
+    INFRA_TEXT.gallery.createDefectDefaultTitle;
+  const confirmed = window.confirm(INFRA_TEXT.gallery.createDefectConfirm);
+  if (!confirmed) return;
+  setBusy(true);
+  setError(null);
+  const result = await createDefectFromCaptureAction(viewer, {
+    captureId: capture.id,
+    organizationId,
+    projectId: capture.projectId,
+    title,
+    description: capture.note,
+  });
+  setBusy(false);
+  if (!result.ok) {
+    setError(result.error);
+    return;
+  }
+  setNotice(INFRA_TEXT.gallery.createDefectSuccess);
+  router.push(result.data.href);
+  }
 
   async function saveEdit() {
     setBusy(true);
@@ -325,6 +354,17 @@ export function InfraCaptureDialog({
                   <Button type="button" variant="ghost" onClick={() => void openCloud()} disabled={busy}>
                     <ExternalLink aria-hidden />
                     {INFRA_TEXT.gallery.openCloud}
+                  </Button>
+                ) : null}
+                {permissions.canCreateDefect && available ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => void createDefectFromCapture()}
+                    disabled={busy}
+                    data-testid="infra-create-defect"
+                  >
+                    {INFRA_TEXT.gallery.createDefect}
                   </Button>
                 ) : null}
                 {capture.canEdit ? (

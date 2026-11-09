@@ -104,6 +104,15 @@ export async function loadInfraWorkspace(
   const hasDocumentsView =
     actor.kind === 'internal' &&
     (await hasProjectCapability(actor.context, access.projectId, PROJECT_CAPABILITIES.DOCUMENTS_VIEW));
+  const canManageDefects =
+    actor.kind === 'internal'
+      ? (await hasProjectCapability(actor.context, access.projectId, PROJECT_CAPABILITIES.DEFECTS_MANAGE))
+      : actor.context.grants.some(
+          (grant) =>
+            grant.organizationId === organizationId &&
+            (grant.projectId === null || grant.projectId === access.projectId) &&
+            grant.capabilities.has(PROJECT_CAPABILITIES.DEFECTS_MANAGE),
+        );
   const permissions = resolveInfraPermissions({
     external: actor.kind === 'external',
     canDocument,
@@ -112,6 +121,7 @@ export async function loadInfraWorkspace(
     hasDocumentsView,
     storageGateOpen: raw.employeeStorageAllowed ?? true,
     employeeApp: Boolean(raw.employeeApp),
+    canManageDefects,
   });
 
   const taskId = raw.taskId && z.string().uuid().safeParse(raw.taskId).success ? raw.taskId : null;

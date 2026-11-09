@@ -6,7 +6,9 @@ import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { findActiveBoqForProject, listBoqNodes } from '@/modules/boq';
 import { findRevision } from '../data/plans.repository';
+import { assertNoDuplicateBoqNodeLink } from './sheet-mark-boq-link';
 import { parseOrThrow, uuid } from './shared';
 
 export const SHEET_MARK_KINDS = ['pin', 'note', 'measure'] as const;
@@ -115,11 +117,50 @@ const normalizedPoint = z.tuple([z.number().min(0).max(1), z.number().min(0).max
 
 const pointGeometrySchema = z.object({ x: z.number().min(0).max(1), y: z.number().min(0).max(1) });
 
-const measureGeometrySchema = z.object({
-  points: z.tuple([normalizedPoint, normalizedPoint]),
-  scale: z.number().positive().finite(),
-  unit: z.literal('m'),
-});
+const measureGeometrySchema = z
+  .object({
+    shape: z.enum(['line', 'rectangle']).default('line'),
+    points: z.union([
+      z.tuple([normalizedPoint, normalizedPoint]),
+      z.array(normalizedPoint).min(2).max(32),
+    ]),
+    scale: z.number().positive().finite(),
+    unit: z.literal('m'),
+    measurementSourceRevisionId: uuid,
+    pixelDistance: z.number().nonnegative().finite().optional(),
+    pixelArea: z.number().nonnegative().finite().optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.shape === 'line' && (!Array.isArray(value.points) || value.points.length !== 2)) {
+      ctx.addIssue({ code: 'custom', message: 'Line measure requires two points' });
+    }
+    if (value.shape === 'rectangle' && (!Array.isArray(value.points) || value.points.length !== 2)) {
+      ctx.addIssue({ code: 'custom', message: 'Rectangle measure requires two corner points' });
+    }
+  });
+
+export interface SheetMarkBoqPickerLine {
+  readonly id: string;
+  readonly itemCode: string | null;
+  readonly description: string;
+  readonly unit: string | null;
+}
+
+export async function listSheetMarkBoqPickerLines(
+  context: OrgContext,
+  projectId: string,
+): Promise<readonly SheetMarkBoqPickerLine[]> {
+  await assertCanCreateSheetMark(context, projectId);
+  const boq = await findActiveBoqForProject(context.db, context.organizationId, projectId);
+  if (!boq) return [];
+  const nodes = await listBoqNodes(context.db, context.organizationId, boq.id);
+  return nodes.map((node) => ({
+    id: node.id,
+    itemCode: node.itemCode ?? null,
+    description: node.description,
+    unit: node.unit ?? null,
+  }));
+}
 
 const createSchema = z.object({
   projectId: uuid,
@@ -145,6 +186,15 @@ export async function createDrawingSheetMark(
     input.kind === 'measure'
       ? measureGeometrySchema.parse(input.geometry)
       : pointGeometrySchema.parse(input.geometry);
+
+  if (input.linkedEntityType === 'boq_node' && input.linkedEntityId) {
+    await assertNoDuplicateBoqNodeLink(
+      context.db,
+      context.organizationId,
+      input.drawingRevisionId,
+      input.linkedEntityId,
+    );
+  }
 
   const markId = randomUUID();
   const geometryJson = JSON.stringify(geometry);

@@ -4,13 +4,14 @@ import { MapPin, StickyNote, X } from 'lucide-react';
 import { useCallback, type MouseEvent } from 'react';
 import type { SheetMarkView } from '@/modules/project-plans/application/sheet-marks';
 import {
-  formatMeasureMeters,
-  measureLengthMeters,
-  measurePixelDistance,
-} from '@/modules/project-plans/domain/sheet-measure';
+  formatMeasureAreaSqM,
+  measureLineQuantityMeters,
+  measureRectangleAreaSqMeters,
+} from '@/modules/project-plans/domain/sheet-measure-area';
+import { formatMeasureMeters } from '@/modules/project-plans/domain/sheet-measure';
 import { cn } from '@/shared/ui/cn';
 
-export type SheetMarkTool = 'view' | 'pin' | 'note' | 'measure';
+export type SheetMarkTool = 'view' | 'pin' | 'note' | 'measure' | 'measure_area';
 
 export type MeasureDraft = {
   readonly pageIndex: number;
@@ -23,6 +24,10 @@ function readPoint(geometry: Record<string, unknown>): readonly [number, number]
   const y = geometry.y;
   if (typeof x !== 'number' || typeof y !== 'number') return null;
   return [x, y];
+}
+
+function readMeasureShape(geometry: Record<string, unknown>): 'line' | 'rectangle' {
+  return geometry.shape === 'rectangle' ? 'rectangle' : 'line';
 }
 
 function readMeasurePoints(
@@ -111,28 +116,41 @@ export function DrawingSheetMarksPageOverlay({
           const py1 = y1 * pageHeight;
           const px2 = x2 * pageWidth;
           const py2 = y2 * pageHeight;
-          const pixelDist = measurePixelDistance(points, pageWidth, pageHeight);
-          const lengthM = measureLengthMeters(
-            [
-              [0, 0],
-              [pixelDist, 0],
-            ],
-            scale,
-          );
-          const label = formatMeasureMeters(lengthM);
+          const shape = readMeasureShape(mark.geometry);
           const midX = (px1 + px2) / 2;
           const midY = (py1 + py2) / 2;
+          const label =
+            shape === 'rectangle'
+              ? formatMeasureAreaSqM(measureRectangleAreaSqMeters(points, scale, pageWidth, pageHeight))
+              : formatMeasureMeters(measureLineQuantityMeters(points, scale, pageWidth, pageHeight));
+          const rectX = Math.min(px1, px2);
+          const rectY = Math.min(py1, py2);
+          const rectW = Math.abs(px2 - px1);
+          const rectH = Math.abs(py2 - py1);
           return (
             <g key={mark.id}>
-              <line
-                x1={px1}
-                y1={py1}
-                x2={px2}
-                y2={py2}
-                stroke="var(--pf-text-brand)"
-                strokeWidth={2}
-                strokeDasharray="6 4"
-              />
+              {shape === 'rectangle' ? (
+                <rect
+                  x={rectX}
+                  y={rectY}
+                  width={rectW}
+                  height={rectH}
+                  fill="color-mix(in srgb, var(--pf-text-brand) 12%, transparent)"
+                  stroke="var(--pf-text-brand)"
+                  strokeWidth={2}
+                  strokeDasharray="6 4"
+                />
+              ) : (
+                <line
+                  x1={px1}
+                  y1={py1}
+                  x2={px2}
+                  y2={py2}
+                  stroke="var(--pf-text-brand)"
+                  strokeWidth={2}
+                  strokeDasharray="6 4"
+                />
+              )}
               <text
                 x={midX}
                 y={midY - 6}
@@ -149,12 +167,29 @@ export function DrawingSheetMarksPageOverlay({
           (() => {
             const [x1, y1] = measureDraft.first;
             const [x2, y2] = measureDraft.second;
+            const px1 = x1 * pageWidth;
+            const py1 = y1 * pageHeight;
+            const px2 = x2 * pageWidth;
+            const py2 = y2 * pageHeight;
+            if (tool === 'measure_area') {
+              return (
+                <rect
+                  x={Math.min(px1, px2)}
+                  y={Math.min(py1, py2)}
+                  width={Math.abs(px2 - px1)}
+                  height={Math.abs(py2 - py1)}
+                  fill="color-mix(in srgb, var(--pf-status-warning-fg) 15%, transparent)"
+                  stroke="var(--pf-status-warning-fg)"
+                  strokeWidth={2}
+                />
+              );
+            }
             return (
               <line
-                x1={x1 * pageWidth}
-                y1={y1 * pageHeight}
-                x2={x2 * pageWidth}
-                y2={y2 * pageHeight}
+                x1={px1}
+                y1={py1}
+                x2={px2}
+                y2={py2}
                 stroke="var(--pf-status-warning-fg)"
                 strokeWidth={2}
               />

@@ -7,6 +7,7 @@ import { findBucketById, listBucketsForBoard } from '../data/boards.repository';
 import { ensureDefaultProjectBoard } from './ensure-default-project-board';
 import { listProjectWorkspaceLinksByWorkspace } from '@/modules/workspaces';
 import { validateProjectContext } from '../domain/project-context';
+import { assertWorkPackageMatchesTaskProject } from './assert-work-package-for-task';
 import { buildCreatorFieldsFromContext, buildActivityActorFieldsFromContext } from '../domain/actor';
 import { generateSortKey } from '../domain/lexorank';
 import { assertMaxSubtaskDepth, assertSameWorkspaceContext } from '../domain/subtasks';
@@ -81,6 +82,12 @@ export async function createTask(
     validateProjectContext(input.workspaceId, input.projectId, links);
   }
 
+  const workPackageId = await assertWorkPackageMatchesTaskProject(
+    context,
+    input.projectId ?? null,
+    input.workPackageId ?? null,
+  );
+
   if (input.parentTaskId) {
     const parentTask = await findTaskById(context.db, context.organizationId, input.parentTaskId);
     if (!parentTask) {
@@ -99,6 +106,7 @@ export async function createTask(
     title: input.title,
     description: input.description ?? null,
     projectId: input.projectId ?? null,
+    workPackageId,
     boardId,
     bucketId,
     priority: input.priority,

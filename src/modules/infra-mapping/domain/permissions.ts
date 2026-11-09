@@ -25,6 +25,8 @@ export interface InfraPermissionFacts {
   readonly storageGateOpen: boolean;
   /** The account is an employee-app account (it has no personal provider login). */
   readonly employeeApp: boolean;
+  /** Project-level defects.manage (internal capability or contractor grant). */
+  readonly canManageDefects: boolean;
 }
 
 export function resolveInfraPermissions(facts: InfraPermissionFacts): InfraPermissions {
@@ -42,5 +44,6 @@ export function resolveInfraPermissions(facts: InfraPermissionFacts): InfraPermi
     // Opening the file in the provider's own web UI needs a provider login. Only owner-side accounts have one;
     // everyone else views the original inside the system.
     canOpenInCloud: !facts.external && !facts.employeeApp && facts.hasDocumentsView,
+    canCreateDefect: facts.canManageDefects,
   };
 }

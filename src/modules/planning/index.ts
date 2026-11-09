@@ -2,13 +2,15 @@
  * Planning / Timeline / Gantt V1 (Agent 6 overnight + PRE-SQL Agent D).
  *
  * Useful project planning - not MS Project. Jobs opt-out by default.
- * Critical Path: foundations only (`supported: false`) - see LIMITATION.md.
+ * Critical Path: CPM when all active items are dated; see LIMITATION.md.
  * Persistence: Drizzle when `PLANNING_PERSISTENCE_READY`; otherwise in-memory
  * is a **test double only**.
  */
 
 export type {
   CriticalPathFoundation,
+  CriticalPathFoundationSupported,
+  CriticalPathFoundationUnsupported,
   GanttBar,
   GanttModel,
   IsoDate,
@@ -70,6 +72,8 @@ export {
 
 export { buildGanttModel } from './domain/gantt-layout';
 export { buildCriticalPathFoundation } from './domain/critical-path-foundation';
+export { computeCpm, durationDaysForCpm } from './domain/compute-cpm';
+export type { CpmScheduleMaps } from './domain/compute-cpm';
 
 export {
   isIsoDate,

@@ -39,12 +39,16 @@ export async function saveSavedListViewAction(
   if (!isSavedListKey(listKey)) return { error: tErrors('validationFailed') };
 
   try {
+    const scopeRaw = String(formData.get('scope') ?? 'private');
+    const scope = scopeRaw === 'organization' ? 'organization' : 'private';
+
     await withOrgContext((context) =>
       saveSavedListView(context, {
         listKey,
         name: String(formData.get('name') ?? ''),
         query: parseQuery(formData.get('queryJson')),
         isDefault: formData.get('isDefault') === '1',
+        scope,
       }),
     );
     revalidatePath('/', 'layout');

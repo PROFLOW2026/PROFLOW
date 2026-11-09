@@ -104,7 +104,8 @@
   "organizationSwitcher": {
     "label": "Organization",
     "current": "Current organization: {name}",
-    "createNew": "Create organization"
+    "createNew": "Create organization",
+    "openTasks": "{count, plural, one {# open assigned task} other {# open assigned tasks}}"
   },
   "user": {
     "profile": "Profile",

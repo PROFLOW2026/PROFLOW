@@ -4,6 +4,7 @@
  */
 export const WORK_TASK_QUERY_KEYS = [
   'projectId',
+  'workPackageId',
   'clientId',
   'assigneeOrgMemberId',
   'assigneeEmployeeId',

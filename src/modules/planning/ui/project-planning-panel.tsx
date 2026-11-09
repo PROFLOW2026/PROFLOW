@@ -57,6 +57,24 @@ export function ProjectPlanningPanel({
     return [...collectPredecessorChain(focusId, dependencies)];
   }, [focusId, dependencies]);
 
+  const criticalPathIds = useMemo(() => {
+    if (!criticalPathFoundation.supported) return new Set<string>();
+    return new Set(criticalPathFoundation.criticalPathIds);
+  }, [criticalPathFoundation]);
+
+  const floatByWorkItemId = useMemo(() => {
+    if (!criticalPathFoundation.supported) return {} as Readonly<Record<string, number>>;
+    return criticalPathFoundation.floatByWorkItemId;
+  }, [criticalPathFoundation]);
+
+  const limitationNote = useMemo(() => {
+    if (criticalPathFoundation.supported) return t.criticalPathActive;
+    if (criticalPathFoundation.limitationKey === 'planning.criticalPath.missingDates') {
+      return t.criticalPathMissingDates;
+    }
+    return t.criticalPathLimitation;
+  }, [criticalPathFoundation, t]);
+
   if (workKind !== 'project') {
     return (
       <section
@@ -83,7 +101,7 @@ export function ProjectPlanningPanel({
           className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm text-[var(--pf-text-primary)]"
           role="note"
         >
-          {t.criticalPathLimitation}
+          {limitationNote}
         </p>
       </header>
 
@@ -105,8 +123,9 @@ export function ProjectPlanningPanel({
             dir={dir}
             focusWorkItemId={focusId}
             focusedPredecessorIds={focusedPredecessorIds}
+            criticalPathWorkItemIds={[...criticalPathIds]}
           />
-          <p className="text-xs text-[var(--pf-text-secondary)]">{t.criticalPathLimitation}</p>
+          <p className="text-xs text-[var(--pf-text-secondary)]">{limitationNote}</p>
         </div>
       ) : (
         <div className="rounded-lg border border-dashed border-[var(--pf-border-default)] p-6 text-sm text-[var(--pf-text-secondary)]">
@@ -124,12 +143,17 @@ export function ProjectPlanningPanel({
                 .filter((d) => d.successorId === item.id)
                 .map((d) => workItems.find((w) => w.id === d.predecessorId)?.name ?? d.predecessorId);
               const isOverdue = overdueIds.has(item.id);
+              const isCritical = criticalPathIds.has(item.id);
+              const floatDays = floatByWorkItemId[item.id];
               return (
                 <li
                   key={item.id}
                   className={cn(
-                    'rounded-lg border border-[var(--pf-border-default)] p-3',
+                    'rounded-lg border p-3',
                     pressableClassName,
+                    isCritical
+                      ? 'border-[var(--pf-status-warning-border)] bg-[var(--pf-bg-muted)]'
+                      : 'border-[var(--pf-border-default)]',
                     focusId === item.id ? 'bg-[var(--pf-bg-muted)]' : 'bg-[var(--pf-bg-surface)]',
                   )}
                   onClick={() => setFocusId((prev) => (prev === item.id ? null : item.id))}
@@ -148,6 +172,9 @@ export function ProjectPlanningPanel({
                       <span className="text-xs text-[var(--pf-text-secondary)]">{t.milestone}</span>
                     ) : null}
                     {isOverdue ? <StatusBadge shape="overdue" label={t.overdue} /> : null}
+                    {isCritical ? (
+                      <StatusBadge shape="active" label={t.criticalPathBadge} />
+                    ) : null}
                   </div>
                   <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-[var(--pf-text-secondary)]">
                     <div>
@@ -168,6 +195,14 @@ export function ProjectPlanningPanel({
                         <dd className="inline">{preds.join(', ')}</dd>
                       </div>
                     ) : null}
+                    {criticalPathFoundation.supported && floatDays != null ? (
+                      <div>
+                        <dt className="inline">{t.totalFloat}: </dt>
+                        <dd className="inline tabular-nums text-[var(--pf-text-primary)]">
+                          {floatDays}
+                        </dd>
+                      </div>
+                    ) : null}
                   </dl>
                 </li>
               );
@@ -186,6 +221,9 @@ export function ProjectPlanningPanel({
                   <th className="px-3 py-2 font-medium">{t.progress}</th>
                   <th className="px-3 py-2 font-medium">{t.workArea}</th>
                   <th className="px-3 py-2 font-medium">{t.predecessors}</th>
+                  {criticalPathFoundation.supported ? (
+                    <th className="px-3 py-2 font-medium">{t.totalFloat}</th>
+                  ) : null}
                 </tr>
               </thead>
               <tbody>
@@ -194,6 +232,8 @@ export function ProjectPlanningPanel({
                     .filter((d) => d.successorId === item.id)
                     .map((d) => workItems.find((w) => w.id === d.predecessorId)?.name ?? d.predecessorId);
                   const isOverdue = overdueIds.has(item.id);
+                  const isCritical = criticalPathIds.has(item.id);
+                  const floatDays = floatByWorkItemId[item.id];
                   return (
                     <tr
                       key={item.id}
@@ -201,6 +241,7 @@ export function ProjectPlanningPanel({
                         'cursor-pointer border-t border-[var(--pf-border-default)]',
                         pressableClassName,
                         'active:bg-[var(--pf-action-subtle-active)]',
+                        isCritical ? 'bg-[var(--pf-bg-muted)]/80' : '',
                         focusId === item.id
                           ? 'bg-[var(--pf-bg-muted)]'
                           : 'hover:bg-[var(--pf-bg-muted)]/60',
@@ -224,6 +265,9 @@ export function ProjectPlanningPanel({
                             </span>
                           ) : null}
                           {isOverdue ? <StatusBadge shape="overdue" label={t.overdue} /> : null}
+                          {isCritical ? (
+                            <StatusBadge shape="active" label={t.criticalPathBadge} />
+                          ) : null}
                         </div>
                       </td>
                       <td className="px-3 py-2 tabular-nums">{item.startDate ?? '-'}</td>
@@ -240,6 +284,11 @@ export function ProjectPlanningPanel({
                       <td className="px-3 py-2 text-[var(--pf-text-secondary)]">
                         {preds.length > 0 ? preds.join(', ') : '-'}
                       </td>
+                      {criticalPathFoundation.supported ? (
+                        <td className="px-3 py-2 tabular-nums">
+                          {floatDays != null ? floatDays : '-'}
+                        </td>
+                      ) : null}
                     </tr>
                   );
                 })}
@@ -249,13 +298,20 @@ export function ProjectPlanningPanel({
         </>
       ) : null}
 
-      {/* Always document CPM limitation - never claim critical path. */}
       {!criticalPathFoundation.supported ? (
-        <p className="text-xs text-[var(--pf-text-secondary)]">{t.criticalPathLimitation}</p>
+        <p className="text-xs text-[var(--pf-text-secondary)]">{limitationNote}</p>
       ) : null}
-      {criticalPathFoundation.heuristicLongestPathIds.length > 0 ? (
+      {!criticalPathFoundation.supported &&
+      criticalPathFoundation.heuristicLongestPathIds.length > 0 ? (
         <p className="text-xs text-[var(--pf-text-secondary)]">
           {t.fsChain.replace('{count}', String(criticalPathFoundation.heuristicLongestPathIds.length))}
+        </p>
+      ) : null}
+      {criticalPathFoundation.supported && criticalPathFoundation.criticalPathIds.length > 0 ? (
+        <p className="text-xs text-[var(--pf-text-secondary)]">
+          {formatPlanningMessage(t.criticalPathCount, {
+            count: criticalPathFoundation.criticalPathIds.length,
+          })}
         </p>
       ) : null}
     </section>

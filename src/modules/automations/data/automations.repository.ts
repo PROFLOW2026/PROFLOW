@@ -131,6 +131,36 @@ export async function insertAutomationRun(
   };
 }
 
+/** Entity ids recorded in ok runs on a business date (scheduled scan dedupe). */
+export async function listAutomationNotifiedEntityIdsForRuleOnDate(
+  db: DbExecutor,
+  organizationId: string,
+  ruleId: string,
+  businessDate: string,
+): Promise<Set<string>> {
+  const rows = await db
+    .select({ actionsJson: automationRuns.actionsJson })
+    .from(automationRuns)
+    .where(
+      and(
+        eq(automationRuns.organizationId, organizationId),
+        eq(automationRuns.ruleId, ruleId),
+        eq(automationRuns.status, 'ok'),
+        sql`${automationRuns.ranAt} >= ${businessDate}::date`,
+        sql`${automationRuns.ranAt} < (${businessDate}::date + interval '1 day')`,
+      ),
+    );
+  const ids = new Set<string>();
+  for (const row of rows) {
+    const payload = row.actionsJson as { notifiedEntityIds?: unknown } | null;
+    if (!payload || !Array.isArray(payload.notifiedEntityIds)) continue;
+    for (const id of payload.notifiedEntityIds) {
+      if (typeof id === 'string' && id.length > 0) ids.add(id);
+    }
+  }
+  return ids;
+}
+
 export async function listAutomationRuns(
   db: DbExecutor,
   organizationId: string,

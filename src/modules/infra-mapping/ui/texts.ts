@@ -146,6 +146,10 @@ export const INFRA_TEXT = {
     marksTitle: 'סימונים',
     editMarks: 'עריכת סימונים',
     versions: 'גרסאות סימון',
+    createDefect: 'פתיחת ליקוי מהתיעוד',
+    createDefectConfirm: 'לפתוח ליקוי חדש עם קישור לתמונת התיעוד הזו (בלי העתקת קובץ)?',
+    createDefectDefaultTitle: 'ליקוי מתיעוד תשתית',
+    createDefectSuccess: 'ליקוי נוצר — מעבירים לפרטי הליקוי…',
     closeDialog: 'סגירה',
   },
   marks: {

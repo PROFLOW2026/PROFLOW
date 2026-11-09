@@ -62,6 +62,14 @@
       "name": "Overdue task",
       "hint": "When a task is past its due date."
     },
+    "task_blocked": {
+      "name": "Blocked task",
+      "hint": "When a task is blocked or waiting on an open blocked-by dependency."
+    },
+    "task_reminder_due": {
+      "name": "Task reminder due",
+      "hint": "When a user-set task reminder time has arrived."
+    },
     "task_assigned_to": {
       "name": "Task assigned",
       "hint": "When a task is assigned to a team member."

@@ -94,13 +94,14 @@ export interface GanttModel {
   readonly todayOffsetDays: number | null;
 }
 
-/**
- * Non-authoritative longest-path scaffolding only.
- * See LIMITATION.md - not a true Critical Path Method result.
- */
-export interface CriticalPathFoundation {
+export type CriticalPathLimitationKey =
+  | 'planning.criticalPath.unsafe'
+  | 'planning.criticalPath.missingDates';
+
+/** CPM could not be computed (cycle, missing dates, or validation failure). */
+export interface CriticalPathFoundationUnsupported {
   readonly supported: false;
-  readonly limitationKey: 'planning.criticalPath.unsafe';
+  readonly limitationKey: CriticalPathLimitationKey;
   /** Topological order of work-item ids when the graph is acyclic. */
   readonly topologicalOrder: readonly string[];
   /**
@@ -109,3 +110,19 @@ export interface CriticalPathFoundation {
    */
   readonly heuristicLongestPathIds: readonly string[];
 }
+
+/** FS-network CPM with simplified 7-day calendar (see LIMITATION.md). */
+export interface CriticalPathFoundationSupported {
+  readonly supported: true;
+  readonly topologicalOrder: readonly string[];
+  readonly criticalPathIds: readonly string[];
+  readonly floatByWorkItemId: Readonly<Record<string, number>>;
+  readonly earlyStartByWorkItemId: Readonly<Record<string, number>>;
+  readonly earlyFinishByWorkItemId: Readonly<Record<string, number>>;
+  readonly lateStartByWorkItemId: Readonly<Record<string, number>>;
+  readonly lateFinishByWorkItemId: Readonly<Record<string, number>>;
+}
+
+export type CriticalPathFoundation =
+  | CriticalPathFoundationUnsupported
+  | CriticalPathFoundationSupported;

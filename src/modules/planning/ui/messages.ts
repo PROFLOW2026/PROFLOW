@@ -31,6 +31,11 @@ export interface PlanningMessages {
   readonly phase: string;
   readonly today: string;
   readonly criticalPathLimitation: string;
+  readonly criticalPathMissingDates: string;
+  readonly criticalPathActive: string;
+  readonly totalFloat: string;
+  readonly criticalPathBadge: string;
+  readonly criticalPathCount: string;
   readonly fsChain: string;
   readonly legendPlanned: string;
   readonly legendOverdue: string;
@@ -61,6 +66,13 @@ const HE: PlanningMessages = {
   today: 'היום',
   criticalPathLimitation:
     'תכנון קל בלבד: תלויות סיום-להתחלה (FS). אין נתיב קריטי מלא, אין לוח עבודה ואין השהיה. זה אינו MS Project.',
+  criticalPathMissingDates:
+    'נתיב קריטי (CPM): נדרשים תאריך התחלה ויעד סיום לכל פריט פעיל לפני חישוב מרווח.',
+  criticalPathActive:
+    'נתיב קריטי (CPM, FS בלבד): לוח עבודה מפושט — כל ימי השבוע עובדים, ללא חגים וללא lag/lead.',
+  totalFloat: 'מרווח (ימים)',
+  criticalPathBadge: 'נתיב קריטי',
+  criticalPathCount: 'פריטי נתיב קריטי (מרווח 0): {count}',
   fsChain: 'השרשרת הארוכה ביותר בסיום-להתחלה: {count} פריטים. זה אינו CPM מלא.',
   legendPlanned: 'מתוכנן',
   legendOverdue: 'באיחור',
@@ -91,6 +103,13 @@ const EN: PlanningMessages = {
   today: 'Today',
   criticalPathLimitation:
     'Light planning only: finish-to-start (FS) dependencies. No full critical path, no working calendar, and no lag. This is not MS Project.',
+  criticalPathMissingDates:
+    'Critical path (CPM): every active item needs a start and target end before float can be computed.',
+  criticalPathActive:
+    'Critical path (CPM, FS only): simplified calendar — all week days work, no holidays, no lag/lead.',
+  totalFloat: 'Float (days)',
+  criticalPathBadge: 'Critical',
+  criticalPathCount: 'Critical-path items (zero float): {count}',
   fsChain: 'Longest finish-to-start chain: {count} items. This is not full CPM.',
   legendPlanned: 'Planned',
   legendOverdue: 'Overdue',
@@ -121,6 +140,11 @@ function pickPlanningMessages(source: typeof arPlanning): PlanningMessages {
     phase: source.phase,
     today: source.today,
     criticalPathLimitation: source.criticalPathLimitation,
+    criticalPathMissingDates: EN.criticalPathMissingDates,
+    criticalPathActive: EN.criticalPathActive,
+    totalFloat: EN.totalFloat,
+    criticalPathBadge: EN.criticalPathBadge,
+    criticalPathCount: EN.criticalPathCount,
     fsChain: 'fsChain' in source && typeof source.fsChain === 'string' ? source.fsChain : EN.fsChain,
     legendPlanned: source.legendPlanned,
     legendOverdue: source.legendOverdue,

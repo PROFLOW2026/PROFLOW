@@ -5,6 +5,7 @@ import {
   SAVED_LIST_VIEW_QUERY_KEY_MAX,
   SAVED_LIST_VIEW_QUERY_KEYS_MAX,
   SAVED_LIST_VIEW_QUERY_VALUE_MAX,
+  SAVED_LIST_VIEW_SCOPES,
 } from '../domain/saved-list-views';
 
 const queryKeySchema = z
@@ -25,6 +26,7 @@ export const saveSavedListViewSchema = z.object({
   name: z.string().trim().min(1).max(SAVED_LIST_VIEW_NAME_MAX),
   query: savedListQuerySchema.default({}),
   isDefault: z.boolean().optional().default(false),
+  scope: z.enum(SAVED_LIST_VIEW_SCOPES).optional().default('private'),
 });
 
 export const deleteSavedListViewSchema = z.object({

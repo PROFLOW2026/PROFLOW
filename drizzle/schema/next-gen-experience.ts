@@ -495,7 +495,17 @@ export const automationRules = pgTable(
         'compliance_expiring',
         'asset_service_due',
         'retention_release_date',
-        'closeout_has_blockers'
+        'closeout_has_blockers',
+        'task_status_changed_to',
+        'task_overdue',
+        'task_blocked',
+        'task_reminder_due',
+        'task_assigned_to',
+        'task_created_from_template',
+        'task_approval_rejected',
+        'task_dependency_resolved',
+        'milestone_approaching_days',
+        'project_created'
       )`,
     ),
   ],

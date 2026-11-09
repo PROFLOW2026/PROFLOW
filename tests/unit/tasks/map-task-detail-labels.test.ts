@@ -10,6 +10,7 @@ function minimalTaskDetail(overrides: Partial<AgentTaskDetail> = {}): AgentTaskD
     boardId: null,
     bucketId: null,
     projectId: null,
+    workPackageId: null,
     parentTaskId: null,
     title: 'Test',
     description: null,

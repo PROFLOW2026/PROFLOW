@@ -52,6 +52,8 @@ export const QUERIED_SEARCH_KINDS = [
   'expense',
   'purchase_order',
   'opportunity',
+  'work_permit',
+  'project_risk',
 ] as const satisfies readonly GlobalSearchKind[];
 
 export type QueriedSearchKind = (typeof QUERIED_SEARCH_KINDS)[number];
@@ -71,6 +73,8 @@ export const SEARCH_KIND_PERMISSION: Record<QueriedSearchKind, PermissionKey> = 
   expense: PERMISSIONS.EXPENSES_READ,
   purchase_order: PERMISSIONS.PROCUREMENT_READ,
   opportunity: PERMISSIONS.CRM_READ,
+  work_permit: PERMISSIONS.SAFETY_READ,
+  project_risk: PERMISSIONS.PROJECTS_READ,
 };
 
 export function kindsVisibleToPermissions(

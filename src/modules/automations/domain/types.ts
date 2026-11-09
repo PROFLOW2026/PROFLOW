@@ -15,6 +15,8 @@ export const AUTOMATION_PRESET_KEYS = [
   // ── Universal Work Management triggers ─────────────────────────────────────
   'task_status_changed_to',
   'task_overdue',
+  'task_blocked',
+  'task_reminder_due',
   'task_assigned_to',
   'task_created_from_template',
   'task_approval_rejected',
@@ -48,6 +50,8 @@ export function isUnavailableAutomationPreset(presetKey: string): boolean {
 export const AUTOMATION_TRIGGER_TYPES = [
   { key: 'task_status_changed_to', category: 'tasks', configParams: ['status'] },
   { key: 'task_overdue', category: 'tasks', configParams: [] },
+  { key: 'task_blocked', category: 'tasks', configParams: [] },
+  { key: 'task_reminder_due', category: 'tasks', configParams: [] },
   { key: 'task_assigned_to', category: 'tasks', configParams: ['assigneeOrgMemberId'] },
   { key: 'task_created_from_template', category: 'tasks', configParams: ['templateId'] },
   { key: 'task_approval_rejected', category: 'tasks', configParams: [] },

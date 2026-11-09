@@ -174,9 +174,10 @@ describe('planning eligibility + gantt + critical path foundation', () => {
         },
       ],
     });
-    expect(foundation.supported).toBe(false);
-    expect(foundation.limitationKey).toBe('planning.criticalPath.unsafe');
+    expect(foundation.supported).toBe(true);
+    if (!foundation.supported) return;
     expect(foundation.topologicalOrder).toEqual(['a', 'b']);
-    expect(foundation.heuristicLongestPathIds).toEqual(['a', 'b']);
+    expect(foundation.criticalPathIds).toEqual(['a', 'b']);
+    expect(foundation.floatByWorkItemId).toEqual({ a: 0, b: 0 });
   });
 });

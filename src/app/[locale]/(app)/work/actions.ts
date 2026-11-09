@@ -838,6 +838,23 @@ export async function listTaskAssigneeOptionsAction(taskId: string): Promise<
   });
 }
 
+export async function listTaskWorkPackageOptionsAction(
+  taskId: string,
+): Promise<readonly { id: string; name: string }[]> {
+  return withOrgContext(async (context) => {
+    const { findTaskById } = await import('@/modules/tasks/data/tasks.repository');
+    const task = await findTaskById(context.db, context.organizationId, taskId);
+    if (!task?.projectId) return [];
+    const { listWorkPackagesForProjects } = await import('@/modules/projects');
+    const packages = await listWorkPackagesForProjects(
+      context.db,
+      context.organizationId,
+      [task.projectId],
+    );
+    return packages.map((pkg) => ({ id: pkg.id, name: pkg.name }));
+  });
+}
+
 // ─── Dependencies ─────────────────────────────────────────────────────────────
 
 export async function addDependencyAction(

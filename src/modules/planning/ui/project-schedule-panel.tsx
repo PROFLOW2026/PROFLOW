@@ -12,6 +12,7 @@ import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
 import { PlanningVsTasksContextualInfo } from '@/modules/tasks/ui/planning-vs-tasks-contextual-info';
 import { ProjectPlanningPanel } from './project-planning-panel';
 import { PlanningWritePanel } from './planning-write-panel';
+import { PlanningBaselineSection } from './planning-baseline-section';
 import {
   createPlanningWorkItemAction,
   updatePlanningWorkItemAction,
@@ -124,6 +125,8 @@ export async function ProjectSchedulePanel({ projectId }: ProjectSchedulePanelPr
         overdue={data.overdue}
         criticalPathFoundation={data.criticalPathFoundation}
       />
+
+      {data.workKind === 'project' ? <PlanningBaselineSection projectId={projectId} /> : null}
 
       {data.canWrite && data.workKind === 'project' ? (
         <PlanningWritePanel

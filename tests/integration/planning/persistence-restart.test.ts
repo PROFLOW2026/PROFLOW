@@ -107,7 +107,7 @@ describe('scenario L - planning persistence restart', () => {
       expect(view.snapshot.dependencies).toHaveLength(1);
       expect(view.snapshot.dependencies[0]?.predecessorId).toBe(workItemIds[0]);
       expect(view.snapshot.dependencies[0]?.successorId).toBe(workItemIds[1]);
-      expect(view.criticalPathFoundation.supported).toBe(false);
+      expect(view.criticalPathFoundation.supported).toBe(true);
     });
   });
 });

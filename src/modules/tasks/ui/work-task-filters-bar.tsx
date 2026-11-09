@@ -16,10 +16,13 @@ export interface WorkTaskClientOption {
   readonly name: string;
 }
 
+export type WorkTaskWorkPackageOption = WorkTaskClientOption;
+
 interface WorkTaskFiltersBarProps {
   currentParams: Record<string, string | undefined>;
   clients: readonly WorkTaskClientOption[];
   assignees?: readonly WorkTaskClientOption[];
+  workPackages?: readonly WorkTaskWorkPackageOption[];
   taskCount: number;
 }
 
@@ -28,6 +31,7 @@ interface WorkTaskFilterDraft {
   status: string;
   priority: string;
   clientId: string;
+  workPackageId: string;
   assigneeOrgMemberId: string;
   dueFrom: string;
   dueTo: string;
@@ -44,6 +48,7 @@ const DEFAULT_DRAFT: WorkTaskFilterDraft = {
   status: '',
   priority: '',
   clientId: '',
+  workPackageId: '',
   assigneeOrgMemberId: '',
   dueFrom: '',
   dueTo: '',
@@ -59,6 +64,7 @@ function parseDraft(params: Record<string, string | undefined>): WorkTaskFilterD
     status: params.status ?? '',
     priority: params.priority ?? '',
     clientId: params.clientId ?? '',
+    workPackageId: params.workPackageId ?? '',
     assigneeOrgMemberId: params.assigneeOrgMemberId ?? '',
     dueFrom: params.dueFrom ?? '',
     dueTo: params.dueTo ?? '',
@@ -75,6 +81,7 @@ function isActive(draft: WorkTaskFilterDraft): boolean {
     draft.status !== DEFAULT_DRAFT.status ||
     draft.priority !== DEFAULT_DRAFT.priority ||
     draft.clientId !== DEFAULT_DRAFT.clientId ||
+    draft.workPackageId !== DEFAULT_DRAFT.workPackageId ||
     draft.assigneeOrgMemberId !== DEFAULT_DRAFT.assigneeOrgMemberId ||
     draft.dueFrom !== DEFAULT_DRAFT.dueFrom ||
     draft.dueTo !== DEFAULT_DRAFT.dueTo ||
@@ -91,6 +98,7 @@ function buildQuery(draft: WorkTaskFilterDraft): URLSearchParams {
   if (draft.status) params.set('status', draft.status);
   if (draft.priority) params.set('priority', draft.priority);
   if (draft.clientId) params.set('clientId', draft.clientId);
+  if (draft.workPackageId) params.set('workPackageId', draft.workPackageId);
   if (draft.assigneeOrgMemberId) params.set('assigneeOrgMemberId', draft.assigneeOrgMemberId);
   if (draft.dueFrom) params.set('dueFrom', draft.dueFrom);
   if (draft.dueTo) params.set('dueTo', draft.dueTo);
@@ -107,6 +115,7 @@ function activeCountFromDraft(draft: WorkTaskFilterDraft): number {
     draft.status,
     draft.priority,
     draft.clientId,
+    draft.workPackageId,
     draft.assigneeOrgMemberId,
     draft.dueFrom,
     draft.dueTo,
@@ -121,6 +130,7 @@ export function WorkTaskFiltersBar({
   currentParams,
   clients,
   assignees = [],
+  workPackages = [],
   taskCount,
 }: WorkTaskFiltersBarProps) {
   const t = useTranslations('tasks.workFilters');
@@ -141,6 +151,7 @@ export function WorkTaskFiltersBar({
       applied={applied}
       clients={clients}
       assignees={assignees}
+      workPackages={workPackages}
       taskCount={taskCount}
       onApply={(draft) => pushQuery(buildQuery(draft))}
       onClear={() => {
@@ -160,6 +171,7 @@ function WorkTaskFilterControls({
   applied,
   clients,
   assignees,
+  workPackages,
   taskCount,
   onApply,
   onClear,
@@ -169,6 +181,7 @@ function WorkTaskFilterControls({
   applied: WorkTaskFilterDraft;
   clients: readonly WorkTaskClientOption[];
   assignees: readonly WorkTaskClientOption[];
+  workPackages: readonly WorkTaskWorkPackageOption[];
   taskCount: number;
   onApply: (draft: WorkTaskFilterDraft) => void;
   onClear: () => void;
@@ -216,6 +229,10 @@ function WorkTaskFilterControls({
   if (applied.clientId) {
     const client = clients.find((row) => row.id === applied.clientId);
     summary.push(t('chipClient', { value: client?.name ?? applied.clientId }));
+  }
+  if (applied.workPackageId) {
+    const pkg = workPackages.find((row) => row.id === applied.workPackageId);
+    summary.push(t('chipWorkPackage', { value: pkg?.name ?? applied.workPackageId }));
   }
   if (applied.overdue) summary.push(tTasks('filters.overdueOnly'));
   if (applied.blocked) summary.push(tTasks('filters.blockedOnly'));
@@ -318,6 +335,25 @@ function WorkTaskFilterControls({
               ))}
             </select>
           </OwnerFilterField>
+
+          {workPackages.length > 0 ? (
+            <OwnerFilterField label={t('workPackage')}>
+              <select
+                value={draft.workPackageId}
+                className={uwmFilterInputClass}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, workPackageId: event.target.value }))
+                }
+              >
+                <option value="">{t('allWorkPackages')}</option>
+                {workPackages.map((pkg) => (
+                  <option key={pkg.id} value={pkg.id}>
+                    {pkg.name}
+                  </option>
+                ))}
+              </select>
+            </OwnerFilterField>
+          ) : null}
 
           <OwnerFilterField label={t('dueFrom')}>
             <input

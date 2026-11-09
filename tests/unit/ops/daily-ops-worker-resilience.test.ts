@@ -16,6 +16,8 @@ const mocks = vi.hoisted(() => ({
   runDgEventsOpsWorker: vi.fn(),
   retryClaimCashProjectionOutbox: vi.fn(),
   runDocumentCleanupOpsWorker: vi.fn(),
+  runAutomationScanOpsWorker: vi.fn(),
+  runWebhookDeliveryOpsWorker: vi.fn(),
 }));
 
 vi.mock('@/modules/recurring-drafts', () => ({
@@ -56,6 +58,12 @@ vi.mock('@/modules/connected-projects/application/retry-claim-cash-projection-ou
 }));
 vi.mock('@/modules/documents/application/document-cleanup-ops-worker', () => ({
   runDocumentCleanupOpsWorker: mocks.runDocumentCleanupOpsWorker,
+}));
+vi.mock('@/modules/automations/application/automation-scan-ops-worker', () => ({
+  runAutomationScanOpsWorker: mocks.runAutomationScanOpsWorker,
+}));
+vi.mock('@/modules/api/application/webhook-delivery-ops-worker', () => ({
+  runWebhookDeliveryOpsWorker: mocks.runWebhookDeliveryOpsWorker,
 }));
 
 import { runDailyOpsWorker } from '@/modules/ops/application/daily-ops-worker';
@@ -130,6 +138,23 @@ describe('runDailyOpsWorker resilience', () => {
       orgsScanned: 3,
       candidates: 2,
       sample: [],
+    });
+    mocks.runAutomationScanOpsWorker.mockResolvedValue({
+      scanned: 1,
+      rulesScanned: 0,
+      runsRecorded: 0,
+      matchesNotified: 0,
+      entitiesSkippedDuplicate: 0,
+      failed: 0,
+      failures: [],
+    });
+    mocks.runWebhookDeliveryOpsWorker.mockResolvedValue({
+      enabled: false,
+      orgsScanned: 0,
+      deliveriesAttempted: 0,
+      delivered: 0,
+      failed: 0,
+      failures: [],
     });
 
     const payload = await runDailyOpsWorker(Date.now());

@@ -66,6 +66,7 @@ export async function AppShell({
             organizations: shell.memberships.map((membership) => ({
               id: membership.id,
               name: membership.name,
+              openTaskCount: shell.organizationOpenTaskCounts[membership.id],
             })),
             activeOrganizationId: shell.organizationId,
           }}

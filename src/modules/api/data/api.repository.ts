@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, lt, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, isNull, lt, sql } from 'drizzle-orm';
 import { apiClients, apiKeys, organizations, webhookDeliveries, webhookEndpoints } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { parseDeliveryHttpStatus } from '../domain/delivery-state';
@@ -423,6 +423,22 @@ export async function updateWebhookDeliveryAttempt(
     )
     .returning();
   return row ? mapDelivery(row) : null;
+}
+
+export async function listPendingWebhookDeliveries(
+  db: DbExecutor,
+  organizationId: string,
+  limit: number,
+): Promise<WebhookDeliveryRecord[]> {
+  const rows = await db
+    .select()
+    .from(webhookDeliveries)
+    .where(
+      and(eq(webhookDeliveries.organizationId, organizationId), eq(webhookDeliveries.status, 'pending')),
+    )
+    .orderBy(asc(webhookDeliveries.createdAt), asc(webhookDeliveries.id))
+    .limit(limit);
+  return rows.map(mapDelivery);
 }
 
 export async function listWebhookDeliveries(

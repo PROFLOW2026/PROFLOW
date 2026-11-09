@@ -43,7 +43,10 @@
     "save": "حفظ العرض",
     "makeDefault": "افتراضي",
     "defaultName": "{name} (افتراضي)",
-    "limitReached": "لديك بالفعل الحد الأقصى من العروض المحفوظة لهذه القائمة."
+    "limitReached": "لديك بالفعل الحد الأقصى من العروض المحفوظة لهذه القائمة.",
+    "shareWithOrganization": "مشاركة مع المنظمة",
+    "organizationBadge": "منظمة",
+    "readOnlyOrganizationView": "لا يمكن تعديل عرض المنظمة هذا إلا من قِبل من أنشأه أو من مدير."
   },
   "labels": {
     "name": "الاسم",

@@ -48,6 +48,7 @@ export function parseWorkTaskListFilters(
   const filters: WritableTaskListFilters = {};
 
   if (q.projectId) filters.projectId = q.projectId;
+  if (q.workPackageId) filters.workPackageId = q.workPackageId;
   if (q.clientId) filters.clientId = q.clientId;
   if (q.assigneeOrgMemberId) filters.assigneeOrgMemberId = q.assigneeOrgMemberId;
   if (q.assigneeEmployeeId) filters.assigneeEmployeeId = q.assigneeEmployeeId;

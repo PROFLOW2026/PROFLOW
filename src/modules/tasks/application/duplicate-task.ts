@@ -85,6 +85,8 @@ export async function duplicateTask(
       dueDate: copyDates ? source.dueDate : null,
       estimatedEffortMinutes: source.estimatedEffortMinutes,
       milestoneId: source.milestoneId,
+      workPackageId:
+        targetProjectId && targetProjectId === source.projectId ? source.workPackageId : null,
       source: 'manual',
       approvalRequired: false,
       sortKey,

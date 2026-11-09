@@ -1,0 +1,30 @@
+{
+  "title": "Project goals",
+  "description": "Track outcome targets for this project — separate from the task list and Gantt.",
+  "fields": {
+    "title": "Goal title",
+    "dueOn": "Due date",
+    "status": "Status",
+    "progressPercent": "Progress (%)"
+  },
+  "status": {
+    "not_started": "Not started",
+    "in_progress": "In progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "form": {
+    "title": "Add goal",
+    "description": "Define a measurable target the team can track.",
+    "submit": "Save goal"
+  },
+  "list": {
+    "title": "Goals",
+    "description": "Sorted by due date.",
+    "empty": "No goals recorded for this project yet."
+  },
+  "errors": {
+    "not_allowed": "You do not have permission to change goals on this project.",
+    "validation_failed": "Check the form fields and try again."
+  }
+}

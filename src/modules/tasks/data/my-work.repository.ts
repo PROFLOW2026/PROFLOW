@@ -45,6 +45,7 @@ function mapTaskRow(row: typeof tasks.$inferSelect): Task {
     boardId: row.boardId ?? null,
     bucketId: row.bucketId ?? null,
     projectId: row.projectId ?? null,
+    workPackageId: row.workPackageId ?? null,
     title: row.title,
     description: row.description ?? null,
     status: row.status as TaskStatus,

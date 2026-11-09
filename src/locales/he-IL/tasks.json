@@ -634,8 +634,12 @@
     "toggleOff": "כבוי",
     "chipSearch": "חיפוש: {value}",
     "chipStatus": "סטטוס: {value}",
-    "chipClient": "לקוח: {value}"
+    "chipClient": "לקוח: {value}",
+    "workPackage": "חבילת עבודה",
+    "allWorkPackages": "כל חבילות העבודה",
+    "chipWorkPackage": "חבילת עבודה: {value}"
   },
+  "workPackageLabel": "חבילת עבודה",
   "filters": {
     "search": "חיפוש משימות",
     "searchPlaceholder": "חיפוש לפי כותרת או פרויקט…",
@@ -646,7 +650,8 @@
     "overdueOnly": "באיחור בלבד",
     "blockedOnly": "חסומות בלבד",
     "noProjectOnly": "ללא פרויקט",
-    "archivedOnly": "משימות בארכיון בלבד"
+    "archivedOnly": "משימות בארכיון בלבד",
+    "allWorkPackages": "ללא חבילת עבודה"
   },
   "calendar": {
     "pageTitle": "לוח שנה משימות",

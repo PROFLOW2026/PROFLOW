@@ -9,6 +9,7 @@ const base: InfraPermissionFacts = {
   hasDocumentsView: true,
   storageGateOpen: true,
   employeeApp: false,
+  canManageDefects: false,
 };
 
 describe('one capability model for owner, employee and contractor', () => {

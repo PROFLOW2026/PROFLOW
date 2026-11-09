@@ -79,6 +79,14 @@ export function opportunitySearchHref(id: string): string {
   return `/crm/opportunities/${id}`;
 }
 
+export function workPermitSearchHref(projectId: string): string {
+  return `/projects/${projectId}/work-permits`;
+}
+
+export function projectRiskSearchHref(projectId: string): string {
+  return `/projects/${projectId}/risks`;
+}
+
 /** Documents have no detail route; the org list filters by filename. */
 export function documentSearchHref(filename: string): string {
   return `/documents?q=${encodeURIComponent(filename)}`;

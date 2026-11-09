@@ -1,0 +1,21 @@
+{
+  "title": "Schedule baseline",
+  "description": "Save an immutable snapshot of planned dates. Each save adds a new baseline — nothing is overwritten.",
+  "save": "Save baseline",
+  "label": "Label (optional)",
+  "empty": "No baseline saved yet.",
+  "savedAt": "Latest baseline",
+  "compareTitle": "Current schedule vs latest baseline (read-only)",
+  "columns": {
+    "name": "Work item",
+    "baselineStart": "Baseline start",
+    "currentStart": "Current start",
+    "baselineEnd": "Baseline target end",
+    "currentEnd": "Current target end",
+    "startDelta": "Start Δ (days)",
+    "endDelta": "End Δ (days)"
+  },
+  "errors": {
+    "not_allowed": "You do not have permission to save baselines on this project."
+  }
+}

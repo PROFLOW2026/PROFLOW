@@ -205,6 +205,8 @@ export {
   findTaskById,
   findTaskCommentById,
   listOverdueUwmTasks,
+  listBlockedUwmTasksForAutomation,
+  listTaskReminderDueUwmTasks,
 } from './data/tasks.repository';
 
 // Validation schemas

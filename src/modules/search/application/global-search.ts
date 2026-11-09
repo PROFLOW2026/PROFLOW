@@ -25,6 +25,8 @@ import {
   taskSearchHref,
   vendorSearchHref,
   workEntityHref,
+  workPermitSearchHref,
+  projectRiskSearchHref,
 } from '../domain/hrefs';
 import { groupSearchHits } from '../domain/group';
 import { matchSearchCommands } from '../domain/commands';
@@ -46,9 +48,11 @@ import {
   searchOpportunities,
   searchProjects,
   searchPurchaseOrders,
+  searchProjectRisks,
   searchQuotes,
   searchTasks,
   searchVendors,
+  searchWorkPermits,
 } from '../data/search.repository';
 
 interface SearchScope {
@@ -62,7 +66,12 @@ async function loadSearchScope(
 ): Promise<SearchScope> {
   const kinds = new Set(allowed);
   const needsProjects =
-    kinds.has('project') || kinds.has('task') || kinds.has('contract') || kinds.has('document');
+    kinds.has('project') ||
+    kinds.has('task') ||
+    kinds.has('contract') ||
+    kinds.has('document') ||
+    kinds.has('work_permit') ||
+    kinds.has('project_risk');
   const needsWorkspaces = kinds.has('task');
 
   const [accessibleProjectIds, accessibleWorkspaceIds] = await Promise.all([
@@ -331,6 +340,56 @@ async function fetchExpenseHits(
   }));
 }
 
+async function fetchWorkPermitHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+  scope: SearchScope,
+): Promise<GlobalSearchHit[]> {
+  if (!hasPermission(context, PERMISSIONS.SAFETY_READ) && !hasPermission(context, PERMISSIONS.PROJECTS_READ)) return [];
+  const hits = await searchWorkPermits(
+    context.db,
+    context.organizationId,
+    query,
+    scope.accessibleProjectIds,
+    limit,
+  );
+  return hits.map((hit) => ({
+    kind: 'work_permit' as const,
+    id: hit.id,
+    title: hit.title,
+    subtitle: hit.projectName,
+    href: workPermitSearchHref(hit.projectId),
+    status: hit.status,
+    contextLabel: hit.projectName,
+  }));
+}
+
+async function fetchProjectRiskHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+  scope: SearchScope,
+): Promise<GlobalSearchHit[]> {
+  if (!hasPermission(context, PERMISSIONS.PROJECTS_READ)) return [];
+  const hits = await searchProjectRisks(
+    context.db,
+    context.organizationId,
+    query,
+    scope.accessibleProjectIds,
+    limit,
+  );
+  return hits.map((hit) => ({
+    kind: 'project_risk' as const,
+    id: hit.id,
+    title: hit.description,
+    subtitle: hit.projectName,
+    href: projectRiskSearchHref(hit.projectId),
+    status: hit.status,
+    contextLabel: hit.projectName,
+  }));
+}
+
 async function fetchOpportunityHits(
   context: OrgContext,
   query: string,
@@ -394,6 +453,8 @@ async function fetchAllowedHits(
   if (kinds.has('expense')) jobs.push(fetchExpenseHits(context, query, limit));
   if (kinds.has('purchase_order')) jobs.push(fetchPurchaseOrderHits(context, query, limit));
   if (kinds.has('opportunity')) jobs.push(fetchOpportunityHits(context, query, limit));
+  if (kinds.has('work_permit')) jobs.push(fetchWorkPermitHits(context, query, limit, scope));
+  if (kinds.has('project_risk')) jobs.push(fetchProjectRiskHits(context, query, limit, scope));
 
   const lists = await Promise.all(jobs);
   return lists.flat();

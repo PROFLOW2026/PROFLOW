@@ -81,6 +81,8 @@ export interface TaskCardData {
   contributesToProgress?: boolean;
   progressWeight?: string | null;
   projectId: string | null;
+  workPackageId?: string | null;
+  workPackageName?: string | null;
   projectName: string | null;
   /** Client display name via project.client. Absent when the task has no project. */
   clientName?: string | null;
@@ -213,6 +215,7 @@ export function mapTaskToCardData(
     boardName?: string | null;
     bucketName?: string | null;
     projectName?: string | null;
+    workPackageName?: string | null;
     clientName?: string | null;
     assignees?: TaskAssigneeDisplay[];
     labels?: string[];
@@ -241,6 +244,8 @@ export function mapTaskToCardData(
     contributesToProgress: task.contributesToProgress,
     progressWeight: task.progressWeight,
     projectId: task.projectId,
+    workPackageId: task.workPackageId,
+    workPackageName: enrichment?.workPackageName ?? null,
     projectName: enrichment?.projectName ?? null,
     clientName: enrichment?.clientName ?? null,
     workspaceId: task.workspaceId,

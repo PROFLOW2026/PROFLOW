@@ -58,6 +58,7 @@ function mapTaskRow(row: typeof tasks.$inferSelect): Task {
     boardId: row.boardId ?? null,
     bucketId: row.bucketId ?? null,
     projectId: row.projectId ?? null,
+    workPackageId: row.workPackageId ?? null,
     title: row.title,
     description: row.description ?? null,
     status: row.status as TaskStatus,
@@ -184,6 +185,7 @@ export async function insertTask(
     title: string;
     description?: string | null;
     projectId?: string | null;
+    workPackageId?: string | null;
     boardId?: string | null;
     bucketId?: string | null;
     priority?: TaskPriority;
@@ -211,6 +213,7 @@ export async function insertTask(
       title: input.title,
       description: input.description ?? null,
       projectId: input.projectId ?? null,
+      workPackageId: input.workPackageId ?? null,
       boardId: input.boardId ?? null,
       bucketId: input.bucketId ?? null,
       priority: input.priority ?? 'none',
@@ -263,6 +266,7 @@ export async function updateTaskById(
     sortKey: string;
     estimatedEffortMinutes: number | null;
     milestoneId: string | null;
+    workPackageId: string | null;
     approvalRequired: boolean;
     contributesToProgress: boolean;
     progressWeight: string | null;
@@ -387,6 +391,10 @@ export async function listTasksPage(
 
   if (filters.projectId) {
     conditions.push(eq(tasks.projectId, filters.projectId));
+  }
+
+  if (filters.workPackageId) {
+    conditions.push(eq(tasks.workPackageId, filters.workPackageId));
   }
 
   if (filters.clientId) {
@@ -524,6 +532,10 @@ export async function countTasksMatching(
 
   if (filters.projectId) {
     conditions.push(eq(tasks.projectId, filters.projectId));
+  }
+
+  if (filters.workPackageId) {
+    conditions.push(eq(tasks.workPackageId, filters.workPackageId));
   }
 
   if (filters.clientId) {
@@ -1582,6 +1594,101 @@ export async function listDueTaskReminders(
     taskTitle: row.taskTitle,
     assigneeUserIds: [],
   }));
+}
+
+export async function listBlockedUwmTasksForAutomation(
+  db: DbExecutor,
+  organizationId: string,
+  cap: number,
+): Promise<
+  {
+    id: string;
+    title: string;
+    projectId: string | null;
+    workspaceId: string;
+  }[]
+> {
+  const rows = await db
+    .select({
+      id: tasks.id,
+      title: tasks.title,
+      projectId: tasks.projectId,
+      workspaceId: tasks.workspaceId,
+    })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.organizationId, organizationId),
+        eq(tasks.isArchived, false),
+        sql`${tasks.status} NOT IN ('done', 'cancelled')`,
+        or(
+          eq(tasks.status, 'blocked'),
+          sql`EXISTS (
+            SELECT 1
+            FROM task_dependencies td
+            INNER JOIN tasks st ON st.id = td.source_task_id
+            WHERE td.target_task_id = tasks.id
+              AND td.organization_id = tasks.organization_id
+              AND td.dependency_type = 'blocked_by'
+              AND st.is_archived = false
+              AND st.status NOT IN ('done', 'cancelled')
+          )`,
+        ),
+      ),
+    )
+    .orderBy(desc(tasks.updatedAt), asc(tasks.id))
+    .limit(cap);
+
+  return rows;
+}
+
+export async function listTaskReminderDueUwmTasks(
+  db: DbExecutor,
+  organizationId: string,
+  before: Date,
+  cap: number,
+): Promise<
+  {
+    id: string;
+    title: string;
+    projectId: string | null;
+    workspaceId: string;
+  }[]
+> {
+  const rows = await db
+    .select({
+      id: tasks.id,
+      title: tasks.title,
+      projectId: tasks.projectId,
+      workspaceId: tasks.workspaceId,
+    })
+    .from(taskReminders)
+    .innerJoin(tasks, eq(taskReminders.taskId, tasks.id))
+    .where(
+      and(
+        eq(taskReminders.organizationId, organizationId),
+        lte(taskReminders.remindAt, before),
+        eq(tasks.isArchived, false),
+        sql`${tasks.status} NOT IN ('done', 'cancelled')`,
+      ),
+    )
+    .orderBy(asc(taskReminders.remindAt), asc(tasks.id))
+    .limit(cap * 3);
+
+  const seen = new Set<string>();
+  const matches: {
+    id: string;
+    title: string;
+    projectId: string | null;
+    workspaceId: string;
+  }[] = [];
+  for (const row of rows) {
+    if (seen.has(row.id)) continue;
+    seen.add(row.id);
+    matches.push(row);
+    if (matches.length >= cap) break;
+  }
+  return matches;
 }
 
 export async function listOverdueUwmTasks(

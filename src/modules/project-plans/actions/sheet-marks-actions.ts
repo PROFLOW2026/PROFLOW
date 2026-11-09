@@ -4,10 +4,23 @@ import {
   createDrawingSheetMark,
   deleteDrawingSheetMark,
   listDrawingSheetMarks,
+  listSheetMarkBoqPickerLines,
+  type SheetMarkBoqPickerLine,
   type SheetMarkView,
 } from '@/modules/project-plans/application/sheet-marks';
 import { withOrgContext } from '@/shared/auth/session';
 import { plansActionError, type PlansActionResult } from './action-result';
+
+export async function listSheetMarkBoqPickerLinesAction(input: {
+  readonly projectId: string;
+}): Promise<PlansActionResult<readonly SheetMarkBoqPickerLine[]>> {
+  try {
+    const data = await withOrgContext((context) => listSheetMarkBoqPickerLines(context, input.projectId));
+    return { ok: true, data };
+  } catch (error) {
+    return plansActionError(error);
+  }
+}
 
 export async function listDrawingSheetMarksAction(input: {
   readonly revisionId: string;

@@ -88,6 +88,10 @@ export async function moveTaskToProject(
 
   const updated = await updateTaskById(context.db, context.organizationId, taskId, {
     projectId: input.targetProjectId,
+    workPackageId:
+      input.targetProjectId && input.targetProjectId === existing.projectId
+        ? existing.workPackageId
+        : null,
     workspaceId,
     boardId,
     bucketId,

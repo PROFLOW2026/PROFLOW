@@ -1,5 +1,8 @@
-import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
+import { AuthorizationError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
+import { assertPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { canMutateSavedListView } from '../domain/saved-list-view-access';
 import {
   SAVED_LIST_VIEWS_PER_LIST_MAX,
   type SavedListKey,
@@ -7,12 +10,13 @@ import {
 } from '../domain/saved-list-views';
 import {
   clearDefaultSavedListViews,
-  deleteSavedListViewById,
-  findSavedListViewById,
+  countSavedListViewsCreatedByUser,
+  deleteSavedListViewByIdInOrg,
+  findSavedListViewByIdInOrg,
   findSavedListViewByName,
   insertSavedListView,
-  listSavedListViewsForUser,
-  updateSavedListViewById,
+  listSavedListViewsForOrgMember,
+  updateSavedListViewByIdInOrg,
 } from '../data/saved-list-views.repository';
 import {
   deleteSavedListViewSchema,
@@ -24,7 +28,12 @@ export async function listSavedListViews(
   context: OrgContext,
   listKey: SavedListKey,
 ): Promise<SavedListViewRecord[]> {
-  return listSavedListViewsForUser(context.db, context.organizationId, context.userId, listKey);
+  return listSavedListViewsForOrgMember(
+    context.db,
+    context.organizationId,
+    context.userId,
+    listKey,
+  );
 }
 
 export async function saveSavedListView(
@@ -39,22 +48,31 @@ export async function saveSavedListView(
   }
 
   const input = parsed.data;
+  if (input.scope === 'organization') {
+    assertPermission(context, PERMISSIONS.SETTINGS_MANAGE);
+  }
+
   const existing = await findSavedListViewByName(
     context.db,
     context.organizationId,
     context.userId,
     input.listKey,
     input.name,
+    input.scope,
   );
 
+  if (existing && !canMutateSavedListView(context, existing)) {
+    throw new AuthorizationError('saved_list_view.mutate');
+  }
+
   if (!existing) {
-    const current = await listSavedListViewsForUser(
+    const count = await countSavedListViewsCreatedByUser(
       context.db,
       context.organizationId,
       context.userId,
       input.listKey,
     );
-    if (current.length >= SAVED_LIST_VIEWS_PER_LIST_MAX) {
+    if (count >= SAVED_LIST_VIEWS_PER_LIST_MAX) {
       throw new DomainRuleError('Too many saved views', 'common.savedViews.limitReached');
     }
   }
@@ -69,10 +87,9 @@ export async function saveSavedListView(
   }
 
   if (existing) {
-    const updated = await updateSavedListViewById(
+    const updated = await updateSavedListViewByIdInOrg(
       context.db,
       context.organizationId,
-      context.userId,
       existing.id,
       {
         query: input.query,
@@ -90,6 +107,7 @@ export async function saveSavedListView(
     name: input.name,
     query: input.query,
     isDefault: input.isDefault,
+    scope: input.scope,
   });
 }
 
@@ -101,18 +119,20 @@ export async function deleteSavedListView(context: OrgContext, rawId: string): P
     );
   }
 
-  const existing = await findSavedListViewById(
+  const existing = await findSavedListViewByIdInOrg(
     context.db,
     context.organizationId,
-    context.userId,
     parsed.data.id,
   );
   if (!existing) throw new NotFoundError('Saved view');
+  if (!canMutateSavedListView(context, existing)) {
+    throw new AuthorizationError('saved_list_view.mutate');
+  }
 
-  await deleteSavedListViewById(
+  const deleted = await deleteSavedListViewByIdInOrg(
     context.db,
     context.organizationId,
-    context.userId,
     parsed.data.id,
   );
+  if (!deleted) throw new NotFoundError('Saved view');
 }

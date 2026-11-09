@@ -55,6 +55,8 @@ const serverEnvSchema = z.object({
   ),
   /** Planner P05 — task notification email; independent of EMAIL_DRIVER / Resend. */
   TASK_EMAIL_DELIVERY_ENABLED: z.preprocess(emptyToUndefined, z.string().optional()),
+  /** Opt-in cron delivery of pending webhook rows (signed POST). */
+  WEBHOOK_DELIVERY_ENABLED: z.preprocess(emptyToUndefined, z.string().optional()),
 
   SENTRY_DSN: optionalUrl,
   LOG_LEVEL: z.preprocess(

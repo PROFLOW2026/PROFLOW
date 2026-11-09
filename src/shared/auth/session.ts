@@ -308,9 +308,21 @@ export const getShellContext = cache(async () => {
         ) as ModuleVisibility;
       }
 
+      const organizationOpenTaskCounts =
+        session.memberships.length > 1
+          ? await (
+              await import('@/modules/tenancy/application/organization-switcher-open-tasks')
+            ).loadOrganizationSwitcherOpenTaskCounts(
+              session.user.id,
+              session.memberships,
+              context.organizationId,
+            )
+          : {};
+
       return {
         user: session.user,
         memberships: session.memberships,
+        organizationOpenTaskCounts,
         organization: context.organization,
         organizationId: context.organizationId,
         organizationLogoUrl,
