@@ -129,6 +129,17 @@
         "drainage_slots": "Drainage slots clear; water test passed",
         "protection_film": "Protection film and cleanliness"
       }
+    },
+    "site_safety": {
+      "name": "Site safety",
+      "items": {
+        "ppe_compliance": "Required PPE worn (hard hat, boots, eye protection)",
+        "barriers_signage": "Barriers and hazard signage in work zones",
+        "housekeeping": "Walkways and work areas clear of tripping hazards",
+        "floor_openings": "Floor openings and stair voids protected and marked",
+        "hot_work_extinguisher": "Fire extinguisher at active hot-work stations",
+        "emergency_access": "Emergency exits and fire equipment routes unobstructed"
+      }
     }
   },
   "fields": {

@@ -35,6 +35,18 @@
     "itemSubmitted": "Item submitted",
     "itemNotes": "Notes (optional)"
   },
+  "portalWarranty": {
+    "title": "Warranty reports",
+    "description": "Report warranty issues on your subcontract work.",
+    "reportSection": "New report",
+    "reportTitle": "Issue title",
+    "notes": "Notes (optional)",
+    "agreement": "Subcontract",
+    "chooseAgreement": "Select subcontract",
+    "submit": "Submit report",
+    "submitted": "Report submitted",
+    "empty": "No warranty reports yet."
+  },
   "itemStatus": {
     "pending": "Pending",
     "submitted": "Submitted",

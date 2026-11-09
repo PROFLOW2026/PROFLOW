@@ -26,12 +26,14 @@
     "compliance": "المستندات الإلزامية",
     "deliveries": "التوريدات",
     "safety": "السلامة",
+    "permits": "تصاريح العمل",
     "contract": "عقدي",
     "contractChanges": "تغييرات العقد",
     "claims": "المستخلصات",
     "payments": "المدفوعات",
     "tenders": "المناقصات",
     "handover": "التسليم",
+    "warranty": "الضمان",
     "more": "المزيد"
   },
   "shell": {

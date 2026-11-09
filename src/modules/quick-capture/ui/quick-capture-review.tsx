@@ -122,6 +122,7 @@ export function QuickCaptureReview({
   );
   const [financialCostCategoryId, setFinancialCostCategoryId] = useState('');
   const [category, setCategory] = useState<FieldMediaCategory>('progress');
+  const [createLinkedTask, setCreateLinkedTask] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ocrParsing, setOcrParsing] = useState(false);
   const [ocrSlowTriggered, setOcrSlowTriggered] = useState(false);
@@ -393,9 +394,14 @@ export function QuickCaptureReview({
           ownerSelectedType: 'field_media',
           projectId,
           category,
+          createLinkedTask,
         });
         if (!result.ok) {
           setError(result.error);
+          return;
+        }
+        if (result.data.routedEntityType === 'task' && result.data.routedEntityId) {
+          router.push(`/tasks/${result.data.routedEntityId}`);
           return;
         }
       } else if (ownerType === 'other_document') {
@@ -698,6 +704,18 @@ export function QuickCaptureReview({
               </Select>
             )}
           </Field>
+        ) : null}
+
+        {ownerType === 'field_media' ? (
+          <label className="flex min-h-11 items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={createLinkedTask}
+              disabled={pending}
+              onChange={(event) => setCreateLinkedTask(event.target.checked)}
+            />
+            {tField('createTask')}
+          </label>
         ) : null}
 
         <div className="flex flex-wrap gap-2">

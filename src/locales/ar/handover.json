@@ -35,6 +35,18 @@
     "itemSubmitted": "تم تقديم البند",
     "itemNotes": "ملاحظات (اختياري)"
   },
+  "portalWarranty": {
+    "title": "تقارير الضمان",
+    "description": "أبلغ عن مشكلات الضمان في أعمال العقد الفرعي.",
+    "reportSection": "تقرير جديد",
+    "reportTitle": "عنوان المشكلة",
+    "notes": "ملاحظات (اختياري)",
+    "agreement": "العقد الفرعي",
+    "chooseAgreement": "اختر العقد",
+    "submit": "إرسال التقرير",
+    "submitted": "تم إرسال التقرير",
+    "empty": "لا توجد تقارير ضمان بعد."
+  },
   "itemStatus": {
     "pending": "معلق",
     "submitted": "مُقدَّم",

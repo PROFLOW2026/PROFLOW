@@ -11,6 +11,7 @@ import {
 import { notificationsCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { findTaskById } from '../data/tasks.repository';
+import { trySendTaskCommentMentionEmail } from './task-comment-mention-email';
 
 async function recipientUsesEmployeeTaskLinks(
   context: OrgContext,
@@ -71,6 +72,13 @@ export async function notifyTaskApprovalSubmitted(
           deepLink: taskApprovalDeepLink(input.taskId, recipientIsEmployee, 'approvals'),
           severity: 'warning',
         });
+        await trySendTaskCommentMentionEmail(context, {
+          dedupeKey: `task_approval_requested:${input.requestId}:${recipientUserId}`,
+          recipientUserId,
+          subject: copy.title,
+          body: copy.body,
+          deepLink: taskApprovalDeepLink(input.taskId, recipientIsEmployee, 'approvals'),
+        });
       }),
   );
 }
@@ -108,5 +116,12 @@ export async function notifyTaskApprovalDecided(
     entityId: input.taskId,
     deepLink: taskApprovalDeepLink(input.taskId, recipientIsEmployee),
     severity: input.decision === 'approved' ? 'info' : 'warning',
+  });
+  await trySendTaskCommentMentionEmail(context, {
+    dedupeKey: `task_approval_decided:${input.requestId}:${input.decision}:${input.submittedByUserId}`,
+    recipientUserId: input.submittedByUserId,
+    subject: copy.title,
+    body: copy.body,
+    deepLink: taskApprovalDeepLink(input.taskId, recipientIsEmployee),
   });
 }

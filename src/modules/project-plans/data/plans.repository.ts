@@ -217,6 +217,38 @@ export function toRevisionView(row: DrawingRevisionRow): DrawingRevisionView {
   };
 }
 
+export interface PublishedRevisionOption {
+  readonly id: string;
+  readonly drawingId: string;
+  readonly revisionLabel: string;
+  readonly status: DrawingRevisionStatus;
+}
+
+/** Published revisions (current + superseded) for many drawings on one project. */
+export async function listPublishedRevisionsForDrawings(
+  db: DbExecutor,
+  organizationId: string,
+  drawingIds: readonly string[],
+): Promise<PublishedRevisionOption[]> {
+  if (drawingIds.length === 0) return [];
+  return db
+    .select({
+      id: drawingRevisions.id,
+      drawingId: drawingRevisions.drawingId,
+      revisionLabel: drawingRevisions.revisionLabel,
+      status: drawingRevisions.status,
+    })
+    .from(drawingRevisions)
+    .where(
+      and(
+        eq(drawingRevisions.organizationId, organizationId),
+        inArray(drawingRevisions.drawingId, [...drawingIds]),
+        inArray(drawingRevisions.status, ['current', 'superseded']),
+      ),
+    )
+    .orderBy(desc(drawingRevisions.sequence));
+}
+
 export async function listRevisions(
   db: DbExecutor,
   organizationId: string,

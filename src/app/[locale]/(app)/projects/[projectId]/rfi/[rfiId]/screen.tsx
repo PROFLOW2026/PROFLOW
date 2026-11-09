@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { EntityDiscussion, EntityLinkedTasksSection } from '@/modules/collaboration/ui';
+import { DrawingLinkDetail } from '@/modules/project-plans/ui/drawing-link-detail';
 import { formatRfiNumber, getRfi, rfiStatusTone } from '@/modules/rfi';
 import { RfiDetailActions } from '@/modules/rfi/ui/rfi-detail-actions';
 import { RfiHistory } from '@/modules/rfi/ui/rfi-history';
@@ -41,6 +42,7 @@ export async function ProjectRfiDetailScreen({ surfaceRoot,
   const { detail, timeZone } = data;
   const [t, locale] = await Promise.all([getTranslations('rfi'), getLocale()]);
   const base = `${surfaceRoot ?? ('/projects/' + projectId)}/rfi`;
+  const plansBase = `${surfaceRoot ?? ('/projects/' + projectId)}/plans`;
 
   return (
     <MainAppPage>
@@ -172,6 +174,22 @@ export async function ProjectRfiDetailScreen({ surfaceRoot,
                   {detail.locationName}
                 </div>
               ) : null}
+              <div>
+                <p className="mb-1 text-[var(--pf-text-secondary)]">{t('detail.linkedDrawing')}</p>
+                <DrawingLinkDetail
+                  labels={{
+                    link: t('fields.projectDrawing'),
+                    reference: t('fields.drawingReference'),
+                    empty: t('detail.noLinkedDrawing'),
+                    openPlan: t('detail.openDrawing'),
+                  }}
+                  drawingId={detail.drawingId}
+                  drawingRevisionId={detail.drawingRevisionId}
+                  drawingReference={detail.drawingReference}
+                  resolved={detail.linkedDrawing}
+                  planHref={detail.drawingId ? `${plansBase}/${detail.drawingId}` : null}
+                />
+              </div>
               {detail.dueDate ? (
                 <div>
                   <span className="text-[var(--pf-text-secondary)]">{t('fields.dueDate')}: </span>

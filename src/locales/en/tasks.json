@@ -559,6 +559,8 @@
     "switcherLabel": "Switch board",
     "default": "Default",
     "createBoard": "Create board",
+    "fromTemplate": "Task template",
+    "applyTemplate": "Create task from template",
     "createNameLabel": "Board name",
     "createDescription": "Create a new board in {workspace}",
     "createFirst": "Create your first board",

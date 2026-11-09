@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EntityDiscussion } from '@/modules/collaboration/ui';
 import { requireExternalContext } from '@/modules/contractor-access';
 import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
+import { DrawingLinkDetail } from '@/modules/project-plans/ui/drawing-link-detail';
 import { formatRfiNumber, getContractorRfi, rfiStatusTone } from '@/modules/rfi';
 import { ContractorRfiActions } from '@/modules/rfi/ui/contractor-rfi-actions';
 import { statusTone } from '@/modules/rfi/ui/tones';
@@ -49,6 +50,30 @@ export default async function ContractorRfiDetailPage({
         title={`${formatRfiNumber(detail.number)} · ${detail.subject}`}
         meta={<Badge tone={statusTone(rfiStatusTone(detail.status, detail.overdue))}>{t(`status.${detail.status}`)}</Badge>}
       />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('detail.details')}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2 text-sm">
+          <div>
+            <p className="mb-1 text-[var(--pf-text-secondary)]">{t('detail.linkedDrawing')}</p>
+            <DrawingLinkDetail
+              labels={{
+                link: t('fields.projectDrawing'),
+                reference: t('fields.drawingReference'),
+                empty: t('detail.noLinkedDrawing'),
+                openPlan: t('detail.openDrawing'),
+              }}
+              drawingId={detail.drawingId}
+              drawingRevisionId={detail.drawingRevisionId}
+              drawingReference={detail.drawingReference}
+              resolved={detail.linkedDrawing}
+              planHref={detail.drawingId ? `/contractor/projects/${projectId}/plans/${detail.drawingId}` : null}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

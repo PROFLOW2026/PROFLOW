@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EntityDiscussion } from '@/modules/collaboration/ui';
 import { requireExternalContext } from '@/modules/contractor-access';
 import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
+import { DrawingLinkDetail } from '@/modules/project-plans/ui/drawing-link-detail';
 import { formatSubmittalNumber, getContractorSubmittal, submittalStatusTone } from '@/modules/submittals';
 import { ContractorSubmittalActions } from '@/modules/submittals/ui/contractor-submittal-actions';
 import { statusTone } from '@/modules/submittals/ui/tones';
@@ -52,6 +53,28 @@ export default async function ContractorSubmittalDetailPage({
           <Badge tone={statusTone(submittalStatusTone(detail.status, detail.overdue))}>{t(`status.${detail.status}`)}</Badge>
         }
       />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('detail.details')}</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm">
+          <p className="mb-1 text-[var(--pf-text-secondary)]">{t('detail.linkedDrawing')}</p>
+          <DrawingLinkDetail
+            labels={{
+              link: t('fields.projectDrawing'),
+              reference: t('fields.drawingReference'),
+              empty: t('detail.noLinkedDrawing'),
+              openPlan: t('detail.openDrawing'),
+            }}
+            drawingId={detail.drawingId}
+            drawingRevisionId={detail.drawingRevisionId}
+            drawingReference={detail.drawingReference}
+            resolved={detail.linkedDrawing}
+            planHref={detail.drawingId ? `/contractor/projects/${projectId}/plans/${detail.drawingId}` : null}
+          />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

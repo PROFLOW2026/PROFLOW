@@ -26,9 +26,11 @@ const BADGE_REFRESH_MS = 90_000;
 export function NotificationBell({
   initialInbox,
   loadInbox,
+  inboxHref = '/notifications',
 }: {
   readonly initialInbox?: NotificationInboxDto;
   readonly loadInbox?: () => Promise<NotificationInboxDto>;
+  readonly inboxHref?: string;
 } = {}) {
   const t = useTranslations('notifications');
   const [open, setOpen] = React.useState(false);
@@ -184,6 +186,7 @@ export function NotificationBell({
           onRetry={() => void fetchInbox()}
           onScan={() => void handleScan()}
           scanning={scanning}
+          inboxHref={inboxHref}
           onNavigate={() => setOpen(false)}
         />
       </PopoverContent>

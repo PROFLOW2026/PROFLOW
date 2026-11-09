@@ -124,6 +124,16 @@
       "evidence": "Photos and documents",
       "history": "History",
       "completionNote": "Completion note (optional)",
+      "currentDrawing": "Open current revision — {label}",
+      "guide": {
+        "title": "Suggested order",
+        "steps": {
+          "acknowledge": "Acknowledge assignment",
+          "drawing": "Open the drawing’s current revision",
+          "photo": "Capture infrastructure for this task",
+          "submit": "Submit completion"
+        }
+      },
       "command": {
         "acknowledge": "Acknowledge assignment",
         "start": "Start work",

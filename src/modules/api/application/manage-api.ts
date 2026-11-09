@@ -8,6 +8,7 @@ import { generateApiKeyMaterial, generateWebhookSecretMaterial } from '../domain
 import {
   applyDeliveryAttempt,
   initialDeliveryState,
+  isTerminalDeliveryStatus,
   type DeliveryAttemptState,
 } from '../domain/delivery-state';
 import { apiScopesArePermissionEquivalent } from '../domain/scope-permissions';
@@ -559,4 +560,49 @@ export async function prepareSignedWebhookDelivery(
     headers: signed.headers,
     eventId: envelope.eventId,
   };
+}
+
+const WEBHOOK_FETCH_TIMEOUT_MS = 30_000;
+
+/**
+ * Performs one signed HTTP POST for a pending delivery and persists the attempt outcome.
+ * Failed fetches keep the delivery row (status failed / abandoned per retry rules).
+ */
+export async function deliverPendingWebhook(
+  context: OrgContext,
+  deliveryId: string,
+): Promise<WebhookDeliveryRecord> {
+  assertPermission(context, PERMISSIONS.API_MANAGE);
+
+  const current = await findWebhookDeliveryById(context.db, context.organizationId, deliveryId);
+  if (!current) throw new NotFoundError('Webhook delivery');
+  if (isTerminalDeliveryStatus(current.status)) return current;
+
+  const prepared = await prepareSignedWebhookDelivery(context, deliveryId);
+
+  try {
+    const response = await fetch(prepared.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...prepared.headers,
+      },
+      body: prepared.body,
+      signal: AbortSignal.timeout(WEBHOOK_FETCH_TIMEOUT_MS),
+    });
+
+    return recordWebhookDeliveryAttempt(context, {
+      deliveryId,
+      outcome: response.ok ? 'success' : 'failure',
+      httpStatus: response.status,
+      error: response.ok ? undefined : `peer_status_${response.status}`,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'fetch_failed';
+    return recordWebhookDeliveryAttempt(context, {
+      deliveryId,
+      outcome: 'failure',
+      error: message,
+    });
+  }
 }

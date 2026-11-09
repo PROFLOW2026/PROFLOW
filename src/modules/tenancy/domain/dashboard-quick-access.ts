@@ -14,6 +14,7 @@ export const DASHBOARD_QUICK_ACCESS_DEFAULT_KEYS = [
   'vendorBills',
   'expenses',
   'today',
+  'myWork',
 ] as const;
 
 export const DASHBOARD_QUICK_ACCESS_KEYS = [
@@ -31,6 +32,7 @@ export const DASHBOARD_QUICK_ACCESS_KEYS = [
   'reports',
   'invoicingSettings',
   'quickCapture',
+  'myWork',
 ] as const;
 
 export type DashboardQuickAccessKey = (typeof DASHBOARD_QUICK_ACCESS_KEYS)[number];
@@ -158,6 +160,14 @@ export const DASHBOARD_QUICK_ACCESS_CATALOG: readonly DashboardQuickAccessDefini
     iconKey: 'documents',
     permission: PERMISSIONS.DOCUMENTS_MANAGE,
     module: 'documents',
+  },
+  {
+    key: 'myWork',
+    href: '/work',
+    labelKey: 'myWork',
+    iconKey: 'myWork',
+    permission: PERMISSIONS.TASKS_READ,
+    module: 'work_management',
   },
 ];
 

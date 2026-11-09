@@ -1,6 +1,10 @@
 ﻿import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
+import { listOrganizationMembers } from '@/modules/tenancy/application/members';
 import { WORK_TASK_QUERY_KEYS, compactWorkTaskQuery, workTaskQueryString } from '@/modules/tasks/domain/work-task-filter-keys';
+import { withOrgContext } from '@/shared/auth/session';
+import { hasPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { WorkTaskFiltersBar, type WorkTaskClientOption } from './work-task-filters-bar';
 
 interface WorkLensChromeProps {
@@ -23,6 +27,14 @@ export async function WorkLensChrome({
   ) as Record<string, string | undefined>;
 
   const exportHref = `/exports/tasks-xlsx${workTaskQueryString(compact)}`;
+  const assignees = await withOrgContext(async (context) => {
+    if (!hasPermission(context, PERMISSIONS.MEMBERS_READ)) return [];
+    const members = await listOrganizationMembers(context);
+    return members.map((member) => ({
+      id: member.membershipId,
+      name: member.displayName?.trim() || member.email,
+    }));
+  });
 
   return (
     <div className="flex min-w-0 flex-col gap-3">
@@ -34,7 +46,12 @@ export async function WorkLensChrome({
           {t('export.downloadXlsx')}
         </Link>
       </div>
-      <WorkTaskFiltersBar currentParams={barParams} clients={clients} taskCount={taskCount} />
+      <WorkTaskFiltersBar
+        currentParams={barParams}
+        clients={clients}
+        assignees={assignees}
+        taskCount={taskCount}
+      />
     </div>
   );
 }

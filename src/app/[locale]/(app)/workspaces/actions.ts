@@ -376,6 +376,37 @@ export async function removeBucketAction(bucketId: string): Promise<WorkspaceAct
   }
 }
 
+export async function createWorkspaceTaskFromTemplateAction(
+  _prev: WorkspaceActionState,
+  formData: FormData,
+): Promise<WorkspaceActionState> {
+  const tErrors = await getTranslations('errors');
+  const workspaceId = String(formData.get('workspaceId') ?? '');
+  const templateId = String(formData.get('templateId') ?? '');
+  const boardId = String(formData.get('boardId') ?? '');
+
+  try {
+    await withOrgContext(async (context) => {
+      await getWorkspaceDetail(context, workspaceId);
+      const { createTaskFromTemplate } = await import(
+        '@/modules/tasks/application/manage-task-templates'
+      );
+      await createTaskFromTemplate(context, {
+        workspaceId,
+        templateId,
+        boardId: boardId || null,
+      });
+    });
+    revalidatePath(`/workspaces/${workspaceId}/boards`);
+    if (boardId) revalidatePath(`/workspaces/${workspaceId}/boards/${boardId}`);
+    return { success: true };
+  } catch (error) {
+    return mapServerActionError(error, {
+      tErrors: (key) => tErrors(key as 'unexpected'),
+    });
+  }
+}
+
 export async function reorderBucketsAction(
   boardId: string,
   orderedBucketIds: string[],

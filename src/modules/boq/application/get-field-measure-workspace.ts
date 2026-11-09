@@ -8,7 +8,15 @@ import { findActiveBoqForProject, findProjectInOrganization } from '../data/boq.
 import { getProjectBoqWorkspace } from './manage-boq';
 import { listBoqProgress } from './manage-progress';
 
+export type FieldMeasureProgressBatch = {
+  readonly id: string;
+  readonly certificateNumber: number;
+  readonly periodLabel: string;
+  readonly status: string;
+};
+
 export type FieldMeasureWorkspace = {
+  readonly organizationId: string;
   readonly projectId: string;
   readonly projectName: string;
   readonly workKind: string;
@@ -21,6 +29,7 @@ export type FieldMeasureWorkspace = {
   readonly canSubmit: boolean;
   readonly canApproveProgress: boolean;
   readonly defaultPeriodLabel: string;
+  readonly progressBatches: readonly FieldMeasureProgressBatch[];
 };
 
 export async function getFieldMeasureWorkspace(
@@ -62,7 +71,15 @@ export async function getFieldMeasureWorkspace(
     hasPermission(context, PERMISSIONS.BOQ_PROGRESS_SUBMIT) &&
     Boolean(boq && canRecordProgress(boq.status as 'draft' | 'active' | 'superseded' | 'archived'));
 
+  const progressBatches = progress.batches.map(({ batch }) => ({
+    id: batch.id,
+    certificateNumber: batch.certificateNumber,
+    periodLabel: batch.periodLabel,
+    status: batch.status,
+  }));
+
   return {
+    organizationId: context.organizationId,
     projectId: workspace.project.id,
     projectName: workspace.project.name,
     workKind: workspace.project.workKind,
@@ -77,6 +94,7 @@ export async function getFieldMeasureWorkspace(
     canSubmit,
     canApproveProgress: hasPermission(context, PERMISSIONS.BOQ_PROGRESS_APPROVE),
     defaultPeriodLabel: todayInTimeZone(context.organization.timezone),
+    progressBatches,
   };
 }
 

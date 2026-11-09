@@ -1,0 +1,41 @@
+{
+  "title": "היתרי עבודה",
+  "description": "בקשה, הגשה ואישור של היתרי עבודה באתר.",
+  "fields": {
+    "title": "כותרת",
+    "permitType": "סוג היתר",
+    "validFrom": "תוקף מ-",
+    "validUntil": "תוקף עד",
+    "notes": "הערות"
+  },
+  "status": {
+    "draft": "טיוטה",
+    "submitted": "הוגש",
+    "approved": "אושר",
+    "rejected": "נדחה",
+    "closed": "סגור"
+  },
+  "create": {
+    "action": "היתר חדש",
+    "title": "היתר עבודה חדש",
+    "submit": "שמירת טיוטה",
+    "cancel": "ביטול"
+  },
+  "actions": {
+    "submit": "הגשה",
+    "approve": "אישור",
+    "reject": "דחייה"
+  },
+  "empty": {
+    "title": "אין היתרי עבודה",
+    "description": "צרו טיוטת היתר והגישו לאישור."
+  },
+  "portal": {
+    "title": "היתרי עבודה",
+    "description": "היתרים מאושרים וממתינים בפרויקט.",
+    "empty": "אין היתרי עבודה בפרויקט זה."
+  },
+  "errors": {
+    "invalidTransition": "שינוי הסטטוס אינו מותר."
+  }
+}

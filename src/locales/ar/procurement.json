@@ -302,6 +302,51 @@
       "notes": "ملاحظات"
     }
   },
+  "supplierRfqLink": {
+    "invitedAs": "طلب عرض سعر لـ {vendor}",
+    "dueDate": "الاستحقاق",
+    "requestedLines": "البنود المطلوبة",
+    "submitSection": "عرضكم",
+    "staff": {
+      "title": "رابط عرض المورد",
+      "description": "أنشئوا رابطاً لمرة واحدة ليتمكن المورد من تقديم عرضه عبر الإنترنت.",
+      "vendorLabel": "المورد",
+      "vendorPlaceholder": "اختيار مورد",
+      "createLink": "إنشاء رابط",
+      "linkReady": "انسخوا الرابط الآن — يُعرض مرة واحدة فقط.",
+      "expiresAt": "ينتهي",
+      "copy": "نسخ الرابط",
+      "copied": "تم نسخ الرابط.",
+      "copyFailed": "تعذر النسخ. انسخوا يدوياً.",
+      "created": "تم إنشاء الرابط.",
+      "createFailed": "تعذر إنشاء الرابط.",
+      "oneTimeHint": "كل رابط يقبل تقديم عرض واحد.",
+      "rfqMustBeSent": "علّموا طلب العرض كـ«مُرسل» قبل دعوة المورد."
+    },
+    "form": {
+      "receivedOnLabel": "تاريخ العرض",
+      "linesTitle": "بنود العرض",
+      "addLine": "إضافة بند",
+      "removeLine": "إزالة",
+      "lineDescription": "الوصف",
+      "lineQuantity": "الكمية",
+      "lineUnitAmount": "سعر الوحدة",
+      "lineTotal": "إجمالي البند",
+      "totalLabel": "إجمالي العرض",
+      "notesLabel": "ملاحظات",
+      "submit": "إرسال العرض",
+      "success": "شكراً — تم استلام عرضكم."
+    },
+    "errors": {
+      "invalid": "رابط العرض غير صالح.",
+      "expired": "انتهت صلاحية رابط العرض.",
+      "used": "تم استخدام رابط العرض مسبقاً.",
+      "unavailable": "تقديم عروض المورد عبر الإنترنت غير متاح حالياً.",
+      "rfqNotOpen": "هذا الطلب لم يعد يقبل عروضاً.",
+      "rfqNotSent": "علّموا طلب العرض كـ«مُرسل» قبل إنشاء رابط للمورد.",
+      "rateLimited": "محاولات كثيرة. انتظروا قليلاً وحاولوا مجدداً."
+    }
+  },
   "materialTrade": {
     "sectionTitle": "تصنيف السوق",
     "label": "فئة السوق",

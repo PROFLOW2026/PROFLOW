@@ -71,6 +71,11 @@
     "noLocation": "No location",
     "drawingReference": "Drawing / revision reference",
     "drawingReferenceHint": "For example A-101 Rev C",
+    "projectDrawing": "Project drawing",
+    "projectDrawingHint": "Pick a published drawing and revision from the project plans register.",
+    "noProjectDrawing": "No drawing selected",
+    "noDrawingRevision": "No published revision",
+    "currentRevision": "current",
     "workPackage": "Work package",
     "noWorkPackage": "No work package",
     "dueDate": "Review needed by",
@@ -102,7 +107,10 @@
     "reviewedBy": "by {name}",
     "awaitingReview": "Awaiting review",
     "attachments": "Revision files",
-    "discussion": "Discussion"
+    "discussion": "Discussion",
+    "linkedDrawing": "Linked drawing",
+    "noLinkedDrawing": "No drawing linked.",
+    "openDrawing": "Open drawing"
   },
   "actions": {
     "title": "Actions",

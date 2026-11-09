@@ -124,6 +124,16 @@
       "evidence": "תמונות ומסמכים",
       "history": "היסטוריה",
       "completionNote": "הערת השלמה (אופציונלי)",
+      "currentDrawing": "פתיחת הגרסה הנוכחית — {label}",
+      "guide": {
+        "title": "סדר מומלץ",
+        "steps": {
+          "acknowledge": "אישור קבלה",
+          "drawing": "פתיחת הגרסה הנוכחית של השרטוט",
+          "photo": "צילום תשתיות למשימה",
+          "submit": "הגשת השלמה"
+        }
+      },
       "command": {
         "acknowledge": "אישור קבלה",
         "start": "התחלת עבודה",

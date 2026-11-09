@@ -12,7 +12,7 @@ export const GLOBAL_SEARCH_KIND_CAP = 8;
 /**
  * Kinds the dispatcher actually queries (have a bounded SQL search function).
  *
- * ── Implemented (12) ──────────────────────────────────────────────────────
+ * ── Implemented (13) ──────────────────────────────────────────────────────
  *   client, vendor, project, task, billing, bill, quote, document,
  *   employee, contract, expense, purchase_order
  *
@@ -20,7 +20,7 @@ export const GLOBAL_SEARCH_KIND_CAP = 8;
  *   safety  (Agent 8 — add search function + fetchSafetyHits here when done)
  *
  * ── Not yet implemented (21 catalog-only kinds) ───────────────────────────
- *   job, work_order, contact, vendor_credit, opportunity, subcontract,
+ *   job, work_order, contact, vendor_credit, subcontract,
  *   asset, inventory_item, material, boq_item, daily_log, punch,
  *   inspection, warranty, communication, calendar_event, closeout,
  *   billing_plan, billing_cycle, recurring_draft, approval
@@ -51,6 +51,7 @@ export const QUERIED_SEARCH_KINDS = [
   'contract',
   'expense',
   'purchase_order',
+  'opportunity',
 ] as const satisfies readonly GlobalSearchKind[];
 
 export type QueriedSearchKind = (typeof QUERIED_SEARCH_KINDS)[number];
@@ -69,6 +70,7 @@ export const SEARCH_KIND_PERMISSION: Record<QueriedSearchKind, PermissionKey> = 
   contract: PERMISSIONS.CONTRACTS_READ,
   expense: PERMISSIONS.EXPENSES_READ,
   purchase_order: PERMISSIONS.PROCUREMENT_READ,
+  opportunity: PERMISSIONS.CRM_READ,
 };
 
 export function kindsVisibleToPermissions(

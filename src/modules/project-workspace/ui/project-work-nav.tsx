@@ -2,6 +2,8 @@ import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
 import { ContextualInfo } from '@/components/ui/contextual-info';
+import type { ProjectOperationalToolLink } from '../domain/project-operational-tool-links';
+import { ProjectOperationalToolNav } from './project-operational-tool-nav';
 import { ProjectWorkNavTabs } from './project-work-nav-tabs';
 
 interface ProjectWorkNavProps {
@@ -9,6 +11,7 @@ interface ProjectWorkNavProps {
   readonly dir?: 'rtl' | 'ltr';
   readonly backToProjectHref?: string;
   readonly surfaceRoot?: string;
+  readonly operationalToolLinks?: readonly ProjectOperationalToolLink[];
   /** When true, only tab strip (project name/back live in layout header). */
   readonly compact?: boolean;
 }
@@ -19,6 +22,7 @@ export async function ProjectWorkNav({
   dir,
   backToProjectHref,
   surfaceRoot,
+  operationalToolLinks,
   compact,
 }: ProjectWorkNavProps) {
   const t = await getTranslations('tasks');
@@ -55,6 +59,9 @@ export async function ProjectWorkNav({
       <Suspense fallback={<div className="min-h-11 animate-pulse rounded bg-[var(--pf-bg-muted)]" aria-hidden />}>
         <ProjectWorkNavTabs projectId={projectId} surfaceRoot={surfaceRoot} />
       </Suspense>
+      {operationalToolLinks?.length ? (
+        <ProjectOperationalToolNav links={operationalToolLinks} dir={dir} />
+      ) : null}
     </nav>
   );
 }

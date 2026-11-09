@@ -8,7 +8,12 @@ import { withOrgContext, getShellContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { todayInTimeZone } from '@/shared/dates';
 import { TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
-import { compactWorkTaskQuery, workTaskQueryString } from '@/modules/tasks/domain/work-task-filter-keys';
+import {
+  WORK_TASK_QUERY_KEYS,
+  compactWorkTaskQuery,
+  workTaskQueryString,
+} from '@/modules/tasks/domain/work-task-filter-keys';
+import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { listAccessibleWorkLensTasksPage } from '@/modules/tasks/application/work-lens-task-list';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import { WorkLensChrome } from '@/modules/tasks/ui/work-lens-chrome';
@@ -81,6 +86,7 @@ export default async function WorkListPage({ searchParams }: WorkListPageProps) 
       <MainAppSection className="w-full min-w-0">
         <MainAppListBody>
         <WorkLensChrome searchParams={params} clients={clients} taskCount={table.taskCount} />
+        <SavedListViewsBar listKey="tasks" searchParams={params} keys={WORK_TASK_QUERY_KEYS} />
 
       <WorkListTableClient
         key={workTaskQueryString(filterQuery)}

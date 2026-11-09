@@ -75,6 +75,10 @@ export function quoteSearchHref(id: string): string {
   return `/quotes/${id}`;
 }
 
+export function opportunitySearchHref(id: string): string {
+  return `/crm/opportunities/${id}`;
+}
+
 /** Documents have no detail route; the org list filters by filename. */
 export function documentSearchHref(filename: string): string {
   return `/documents?q=${encodeURIComponent(filename)}`;

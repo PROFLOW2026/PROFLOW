@@ -559,6 +559,8 @@
     "switcherLabel": "בחר לוח",
     "default": "ברירת מחדל",
     "createBoard": "צור לוח",
+    "fromTemplate": "תבנית משימה",
+    "applyTemplate": "צור משימה מהתבנית",
     "createNameLabel": "שם לוח",
     "createDescription": "צור לוח חדש ב-{workspace}",
     "createFirst": "צור את הלוח הראשון שלך",

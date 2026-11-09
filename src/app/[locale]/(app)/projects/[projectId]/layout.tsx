@@ -27,6 +27,7 @@ import {
   type ProjectHubKey,
 } from './project-hub-order';
 import { loadProjectExecutionNav } from '@/modules/project-workspace/application/load-execution-nav';
+import { loadProjectOperationalToolLinks } from '@/modules/project-workspace/application/load-project-operational-tool-links';
 import { DeveloperGcExecutionEntry } from '@/modules/project-workspace/ui/developer-gc-execution-entry';
 import { ProjectExecutionNav } from '@/modules/project-workspace/ui/project-execution-nav';
 import { ProjectOperationalContextHeader } from '@/modules/project-workspace/ui/project-operational-context-header';
@@ -84,6 +85,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
     identity,
     locale,
     executionNav,
+    operationalToolLinks,
     t,
     tHubs,
     tStatus,
@@ -99,6 +101,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         showGroup: false,
         links: [],
       })),
+      withOrgContext((context) => loadProjectOperationalToolLinks(context, projectId)).catch(() => []),
       getTranslations('projects'),
       getTranslations('projects.workspace.hubs'),
       getTranslations('status.project'),
@@ -186,11 +189,16 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         backToProjectHref={projectHref}
         workspaceKind="work"
       />
-      <ProjectWorkNav projectId={projectId} dir={dir} compact />
+      <ProjectWorkNav
+        projectId={projectId}
+        dir={dir}
+        compact
+        operationalToolLinks={operationalToolLinks}
+      />
     </>
   );
 
-  const executionChrome = (
+  const executionChrome = executionNav.showGroup ? (
     <>
       <ProjectOperationalContextHeader
         projectName={identity.name}
@@ -198,10 +206,10 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         backToProjectHref={projectHref}
         workspaceKind="execution"
       />
-      {executionNav.showGroup ? (
-        <ProjectExecutionNav links={executionNav.links} dir={dir} compact />
-      ) : null}
+      <ProjectExecutionNav links={executionNav.links} dir={dir} compact />
     </>
+  ) : (
+    workChrome
   );
 
   const commercialTop = (

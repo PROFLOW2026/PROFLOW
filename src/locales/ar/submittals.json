@@ -71,6 +71,11 @@
     "noLocation": "بدون موقع",
     "drawingReference": "مرجع المخطط / الإصدار",
     "drawingReferenceHint": "مثال: A-101 الإصدار C",
+    "projectDrawing": "مخطط المشروع",
+    "projectDrawingHint": "اختر مخططًا وإصدارًا منشورين من سجل مخططات المشروع.",
+    "noProjectDrawing": "بدون مخطط",
+    "noDrawingRevision": "لا يوجد إصدار منشور",
+    "currentRevision": "الحالي",
     "workPackage": "حزمة العمل",
     "noWorkPackage": "بدون حزمة عمل",
     "dueDate": "المراجعة مطلوبة حتى",
@@ -102,7 +107,10 @@
     "reviewedBy": "بواسطة {name}",
     "awaitingReview": "بانتظار المراجعة",
     "attachments": "ملفات الإصدار",
-    "discussion": "النقاش"
+    "discussion": "النقاش",
+    "linkedDrawing": "مخطط مرتبط",
+    "noLinkedDrawing": "لا يوجد مخطط مرتبط.",
+    "openDrawing": "فتح المخطط"
   },
   "actions": {
     "title": "الإجراءات",

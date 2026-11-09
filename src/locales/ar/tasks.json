@@ -559,6 +559,8 @@
     "switcherLabel": "تبديل اللوحة",
     "default": "افتراضي",
     "createBoard": "إنشاء لوحة",
+    "fromTemplate": "قالب مهمة",
+    "applyTemplate": "إنشاء مهمة من القالب",
     "createNameLabel": "اسم اللوحة",
     "createDescription": "إنشاء لوحة جديدة في {workspace}",
     "createFirst": "أنشئ لوحتك الأولى",

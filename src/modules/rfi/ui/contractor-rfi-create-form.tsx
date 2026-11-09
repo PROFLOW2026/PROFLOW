@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { RFI_PRIORITIES } from '../domain/types';
 import { useRouter } from '@/shared/i18n/navigation';
 import { createContractorRfiAction } from '../actions/external-actions';
+import type { DrawingPickerOption } from '@/modules/project-plans';
+import { DrawingRevisionPickerFields } from '@/modules/project-plans/ui';
 import type { LocationOption, WorkPackageOption } from '../data/project-options.repository';
 import { FormError, FormRow, selectClassName } from './form-controls';
 
@@ -18,12 +20,14 @@ export function ContractorRfiCreateForm({
   basePath,
   locations,
   workPackages,
+  drawings,
 }: {
   organizationId: string;
   projectId: string;
   basePath: string;
   locations: readonly LocationOption[];
   workPackages: readonly WorkPackageOption[];
+  drawings: readonly DrawingPickerOption[];
 }) {
   const t = useTranslations('rfi');
   const tCommon = useTranslations('common');
@@ -44,6 +48,8 @@ export function ContractorRfiCreateForm({
         question: String(form.get('question') ?? ''),
         locationId: String(form.get('locationId') ?? '') || null,
         workPackageId: String(form.get('workPackageId') ?? '') || null,
+        drawingId: String(form.get('drawingId') ?? '') || null,
+        drawingRevisionId: String(form.get('drawingRevisionId') ?? '') || null,
         drawingReference: String(form.get('drawingReference') ?? '') || null,
         priority: (String(form.get('priority') ?? 'normal') || 'normal') as (typeof RFI_PRIORITIES)[number],
         dueDate: String(form.get('dueDate') ?? '') || null,
@@ -91,6 +97,9 @@ export function ContractorRfiCreateForm({
                 </option>
               ))}
             </select>
+          </FormRow>
+          <FormRow label={t('fields.projectDrawing')} hint={t('fields.projectDrawingHint')}>
+            <DrawingRevisionPickerFields drawings={drawings} translationNamespace="rfi" />
           </FormRow>
           <FormRow label={t('fields.drawingReference')} hint={t('fields.drawingReferenceHint')}>
             <Input name="drawingReference" maxLength={300} />

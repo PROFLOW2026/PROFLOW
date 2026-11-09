@@ -19,11 +19,16 @@ export const AUTH_RATE_LIMIT_POLICIES = {
   contractor_sign_in: { windowSeconds: 15 * 60, limit: 10 },
   live_share_join: { windowSeconds: 60, limit: 30 },
   calendar_feed: { windowSeconds: 60, limit: 120 },
+  supplier_rfq_submit: { windowSeconds: 60, limit: 30 },
 } as const;
 
 export type AuthRateLimitScope = keyof typeof AUTH_RATE_LIMIT_POLICIES;
 
-const TOKEN_SCOPES = new Set<AuthRateLimitScope>(['live_share_join', 'calendar_feed']);
+const TOKEN_SCOPES = new Set<AuthRateLimitScope>([
+  'live_share_join',
+  'calendar_feed',
+  'supplier_rfq_submit',
+]);
 
 /** SHA-256 hex digest. Always 64 hex characters, so the result cannot contain `@`. */
 export function hashAuthRateLimitKey(identifier: string): string {

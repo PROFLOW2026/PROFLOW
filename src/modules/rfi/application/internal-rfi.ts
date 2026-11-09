@@ -42,6 +42,7 @@ import {
   type RfiTransitionInput,
   type UpdateInternalRfiInput,
 } from '../validation/schemas';
+import { resolveDrawingLink, type ResolvedDrawingLink } from '@/modules/project-plans';
 import { listProjectContractors, vendorNameMap } from '../data/project-options.repository';
 import { assertProjectAssignee, fieldError, parseOrThrow, resolveAgreementVendor } from './support';
 
@@ -353,6 +354,7 @@ export interface InternalRfiView extends RfiDetail {
   readonly canManage: boolean;
   readonly availableActions: readonly RfiAction[];
   readonly contentEditable: boolean;
+  readonly linkedDrawing: ResolvedDrawingLink | null;
 }
 
 export async function getRfi(context: OrgContext, rfiId: string): Promise<InternalRfiView> {
@@ -369,11 +371,18 @@ export async function getRfi(context: OrgContext, rfiId: string): Promise<Intern
           (!detail.subcontractAgreementId && option.vendorId === detail.vendorId),
       )
     : undefined;
+  const linkedDrawing = await resolveDrawingLink(
+    context.db,
+    context.organizationId,
+    detail.drawingId,
+    detail.drawingRevisionId,
+  );
   return {
     ...detail,
     vendorName: detail.vendorName ?? contractor?.vendorName ?? null,
     agreementTitle:
       detail.agreementTitle ?? (detail.subcontractAgreementId ? (contractor?.title ?? null) : null),
+    linkedDrawing,
     overdue: isRfiOverdue(detail, today),
     canManage,
     availableActions: canManage ? availableRfiActions(detail.status, 'internal') : [],

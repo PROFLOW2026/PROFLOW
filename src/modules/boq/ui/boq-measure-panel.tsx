@@ -7,6 +7,7 @@ import { Link } from '@/shared/i18n/navigation';
 import { AuthorizationError, NotFoundError } from '@/shared/errors';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
+import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
 import { getFieldMeasureWorkspace } from '../application/get-field-measure-workspace';
 import { BoqMeasureClient } from './boq-measure-client';
 
@@ -83,6 +84,44 @@ export async function BoqMeasurePanel({ projectId }: BoqMeasurePanelProps) {
           defaultPeriodLabel={view.defaultPeriodLabel}
           canSubmit={view.canSubmit}
         />
+      ) : null}
+
+      {view.progressBatches.length > 0 ? (
+        <div className="flex min-w-0 flex-col gap-3">
+          <h3 className="text-sm font-semibold">{t('batchEvidenceTitle')}</h3>
+          <ul className="flex min-w-0 flex-col gap-4">
+            {view.progressBatches.map((batch) => (
+              <li
+                key={batch.id}
+                className="flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4"
+              >
+                <p className="text-sm font-medium text-start">
+                  {t('batchEvidenceLabel', {
+                    number: batch.certificateNumber,
+                    period: batch.periodLabel,
+                  })}
+                </p>
+                <EvidenceGallery
+                  organizationId={view.organizationId}
+                  entityType="boq_progress_batch"
+                  entityId={batch.id}
+                  viewer="internal"
+                />
+                {view.canSubmit && batch.status === 'draft' ? (
+                  <EvidenceUploader
+                    organizationId={view.organizationId}
+                    projectId={projectId}
+                    entityType="boq_progress_batch"
+                    entityId={batch.id}
+                    viewer="internal"
+                    defaultVisibility="internal"
+                    accept={['photo']}
+                  />
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
 
       {view.canApproveProgress ? (

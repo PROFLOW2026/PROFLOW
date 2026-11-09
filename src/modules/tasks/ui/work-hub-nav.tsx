@@ -27,7 +27,7 @@ function compactWorkSearchParams(searchParams: ReadonlyURLSearchParams): string 
   return query ? `?${query}` : '';
 }
 
-export function WorkHubNav() {
+export function WorkHubNav({ showWorkload = false }: { readonly showWorkload?: boolean }) {
   const tNav = useTranslations('nav');
   const tTasksList = useTranslations('tasks.list');
   const pathname = usePathname();
@@ -46,7 +46,9 @@ export function WorkHubNav() {
         'flex min-w-0 max-w-full flex-wrap gap-1 border-b border-[var(--pf-border-default)] pb-1',
       )}
     >
-      {WORK_HUB_ROUTES.map(({ path, labelKey, labelNs }) => {
+      {[...WORK_HUB_ROUTES, ...(showWorkload
+        ? [{ path: '/workload', labelKey: 'workload' as const, labelNs: 'nav' as const }]
+        : [])].map(({ path, labelKey, labelNs }) => {
         const label = labelNs === 'tasks.list' ? tTasksList('pageTitle') : tNav(labelKey);
         const selected =
           path === '/work'
@@ -55,7 +57,7 @@ export function WorkHubNav() {
         return (
           <Link
             key={path}
-            href={`${path}${querySuffix}`}
+            href={path === '/workload' ? path : `${path}${querySuffix}`}
             scroll={false}
             prefetch={false}
             data-pf-slot="tab"

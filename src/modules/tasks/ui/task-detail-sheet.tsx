@@ -75,6 +75,7 @@ import {
 import type { RecurrencePreset } from '../domain/recurrence-presets';
 import { PostponeMenu } from './postpone-menu';
 import { TaskAssigneePicker, type TaskAssigneePickerOption } from './task-assignee-picker';
+import { TaskActivityDrawerPanel } from './task-activity-drawer-panel';
 import { TaskCommentsDrawerPanel } from './task-comments-drawer-panel';
 
 // ---------------------------------------------------------------------------
@@ -963,6 +964,7 @@ export function TaskDetailSheet({
                 </div>
               )}
 
+              {!embedded ? <TaskActivityDrawerPanel taskId={task.id} /> : null}
               {!embedded ? <TaskCommentsDrawerPanel taskId={task.id} /> : null}
 
               {!embedded ? (

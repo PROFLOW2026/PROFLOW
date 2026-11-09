@@ -89,6 +89,20 @@ export type TaskCommentsPanelPayload = {
   error?: string;
 };
 
+export async function loadTaskActivityPanelAction(
+  taskId: string,
+): Promise<{ rows: import('./task-activity-client').TaskActivityViewRow[]; error?: string }> {
+  const tErrors = await getTranslations('errors');
+  try {
+    const { loadTaskActivityViewRows } = await import('./task-activity');
+    const rows = await loadTaskActivityViewRows(taskId);
+    return { rows };
+  } catch (error) {
+    const serialized = serializeError(error);
+    return { rows: [], error: tErrors(serialized.messageKey.replace(/^errors\./, '') as 'unexpected') };
+  }
+}
+
 export async function loadTaskCommentsPanelAction(
   taskId: string,
 ): Promise<TaskCommentsPanelPayload> {

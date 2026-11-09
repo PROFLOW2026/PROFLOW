@@ -26,6 +26,8 @@ import type {
   removePlanningDependencyAction,
   setPlanningDependencyAction,
   unlinkPlanningWorkItemTaskAction,
+  copyPlanningDatesToLinkedTaskAction,
+  copyLinkedTaskDatesToPlanningAction,
   updatePlanningWorkItemAction,
   PlanningActionState,
 } from '@/app/[locale]/(app)/projects/planning-actions';
@@ -37,6 +39,10 @@ interface PlanningWritePanelProps {
   readonly workItems: readonly PlanningWorkItem[];
   readonly dependencies: readonly PlanningDependency[];
   readonly phaseNames?: Readonly<Record<string, string>>;
+  /** When false, hide «copy dates to linked task» (requires tasks.update on server). */
+  readonly canUpdateTasks: boolean;
+  /** When false, hide «copy dates to planning row» (requires planning write on server). */
+  readonly canUpdatePlanning: boolean;
   readonly createAction: typeof createPlanningWorkItemAction;
   readonly updateAction: typeof updatePlanningWorkItemAction;
   readonly archiveAction: typeof archivePlanningWorkItemAction;
@@ -44,6 +50,8 @@ interface PlanningWritePanelProps {
   readonly removeDepAction: typeof removePlanningDependencyAction;
   readonly linkTaskAction: typeof linkPlanningWorkItemTaskAction;
   readonly unlinkTaskAction: typeof unlinkPlanningWorkItemTaskAction;
+  readonly copyDatesToTaskAction: typeof copyPlanningDatesToLinkedTaskAction;
+  readonly copyDatesToPlanningAction: typeof copyLinkedTaskDatesToPlanningAction;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -369,19 +377,28 @@ function LinkTaskControl({
   projectId,
   workItemId,
   taskId,
+  canUpdateTasks,
+  canUpdatePlanning,
   linkTaskAction,
   unlinkTaskAction,
+  copyDatesToTaskAction,
+  copyDatesToPlanningAction,
 }: {
   projectId: string;
   workItemId: string;
   taskId: string | null;
+  canUpdateTasks: boolean;
+  canUpdatePlanning: boolean;
   linkTaskAction: typeof linkPlanningWorkItemTaskAction;
   unlinkTaskAction: typeof unlinkPlanningWorkItemTaskAction;
+  copyDatesToTaskAction: typeof copyPlanningDatesToLinkedTaskAction;
+  copyDatesToPlanningAction: typeof copyLinkedTaskDatesToPlanningAction;
 }) {
   const t = useTranslations('planning.write');
   const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [draftTaskId, setDraftTaskId] = useState('');
+  const [dateCopyPending, setDateCopyPending] = useState(false);
 
   function handleLink(e: React.FormEvent) {
     e.preventDefault();
@@ -405,6 +422,26 @@ function LinkTaskControl({
     });
   }
 
+  function handleCopyDatesToTask() {
+    setDateCopyPending(true);
+    startTransition(async () => {
+      const result = await copyDatesToTaskAction(projectId, workItemId);
+      if (result.error) setError(result.error);
+      else setError(null);
+      setDateCopyPending(false);
+    });
+  }
+
+  function handleCopyDatesToPlanning() {
+    setDateCopyPending(true);
+    startTransition(async () => {
+      const result = await copyDatesToPlanningAction(projectId, workItemId);
+      if (result.error) setError(result.error);
+      else setError(null);
+      setDateCopyPending(false);
+    });
+  }
+
   return (
     <div className="mt-1 text-xs space-y-1">
       {taskId ? (
@@ -416,6 +453,28 @@ function LinkTaskControl({
           <button type="button" onClick={handleUnlink} className={cn(BTN_SECONDARY, 'text-xs px-2')}>
             {t('taskLink.unlink')}
           </button>
+          {canUpdateTasks ? (
+            <button
+              type="button"
+              disabled={dateCopyPending}
+              aria-label={t('taskLink.copyDatesToTaskAria')}
+              onClick={handleCopyDatesToTask}
+              className={cn(BTN_SECONDARY, 'text-xs px-2')}
+            >
+              {t('taskLink.copyDatesToTask')}
+            </button>
+          ) : null}
+          {canUpdatePlanning ? (
+            <button
+              type="button"
+              disabled={dateCopyPending}
+              aria-label={t('taskLink.copyDatesToPlanningAria')}
+              onClick={handleCopyDatesToPlanning}
+              className={cn(BTN_SECONDARY, 'text-xs px-2')}
+            >
+              {t('taskLink.copyDatesToPlanning')}
+            </button>
+          ) : null}
         </div>
       ) : (
         <form onSubmit={handleLink} className="flex flex-wrap items-end gap-2">
@@ -455,6 +514,10 @@ function WriteItemRow({
   removeDepAction,
   linkTaskAction,
   unlinkTaskAction,
+  canUpdateTasks,
+  canUpdatePlanning,
+  copyDatesToTaskAction,
+  copyDatesToPlanningAction,
 }: {
   item: PlanningWorkItem;
   projectId: string;
@@ -466,6 +529,10 @@ function WriteItemRow({
   removeDepAction: typeof removePlanningDependencyAction;
   linkTaskAction: typeof linkPlanningWorkItemTaskAction;
   unlinkTaskAction: typeof unlinkPlanningWorkItemTaskAction;
+  canUpdateTasks: boolean;
+  canUpdatePlanning: boolean;
+  copyDatesToTaskAction: typeof copyPlanningDatesToLinkedTaskAction;
+  copyDatesToPlanningAction: typeof copyLinkedTaskDatesToPlanningAction;
 }) {
   const t = useTranslations('planning');
   const tWrite = useTranslations('planning.write');
@@ -537,8 +604,12 @@ function WriteItemRow({
           projectId={projectId}
           workItemId={item.id}
           taskId={item.taskId}
+          canUpdateTasks={canUpdateTasks}
+          canUpdatePlanning={canUpdatePlanning}
           linkTaskAction={linkTaskAction}
           unlinkTaskAction={unlinkTaskAction}
+          copyDatesToTaskAction={copyDatesToTaskAction}
+          copyDatesToPlanningAction={copyDatesToPlanningAction}
         />
       ) : null}
 
@@ -608,6 +679,10 @@ export function PlanningWritePanel({
   removeDepAction,
   linkTaskAction,
   unlinkTaskAction,
+  canUpdateTasks,
+  canUpdatePlanning,
+  copyDatesToTaskAction,
+  copyDatesToPlanningAction,
 }: PlanningWritePanelProps) {
   const tWrite = useTranslations('planning.write');
   const [addKind, setAddKind] = useState<PlanningWorkItemKind | null>(null);
@@ -667,6 +742,10 @@ export function PlanningWritePanel({
               removeDepAction={removeDepAction}
               linkTaskAction={linkTaskAction}
               unlinkTaskAction={unlinkTaskAction}
+              canUpdateTasks={canUpdateTasks}
+              canUpdatePlanning={canUpdatePlanning}
+              copyDatesToTaskAction={copyDatesToTaskAction}
+              copyDatesToPlanningAction={copyDatesToPlanningAction}
             />
           ))}
         </ul>

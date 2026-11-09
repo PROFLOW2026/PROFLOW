@@ -95,6 +95,7 @@
     "task_overdue": "Просроченная задача",
     "task_due_today": "Задача на сегодня",
     "task_unassigned": "Задача без исполнителя",
+    "project_decision_recent": "Решение по проекту",
     "storage_attention": "Файловое хранилище",
     "statutory_attention": "Налоговый документ",
     "dg_claim_awaiting_review": "Акт подрядчика на проверку",
@@ -410,6 +411,10 @@
     "recurringTaskGenerated": {
       "what": "Создана повторяющаяся задача - {title}",
       "why": "Создан новый экземпляр из повторяющегося шаблона."
+    },
+    "projectDecisionRecent": {
+      "what": "Зафиксировано решение — {excerpt}",
+      "why": "В проекте {projectName}."
     },
     "reportMonthLabel": "{month} {year}",
     "reportMonths": {

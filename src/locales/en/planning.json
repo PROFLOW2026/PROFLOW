@@ -69,7 +69,12 @@
       "placeholder": "Task ID (UUID)",
       "linkButton": "Link",
       "linked": "Linked task:",
-      "unlink": "Unlink"
+      "unlink": "Unlink",
+      "copyDatesToTask": "Copy row dates → task",
+      "copyDatesToPlanning": "Copy task dates → row",
+      "copyDatesToTaskAria": "Copy planning row start and target end dates to the linked task",
+      "copyDatesToPlanningAria": "Copy linked task start and due dates to the planning row",
+      "dateCopyRequiresLink": "Link a task before copying dates."
     }
   }
 }

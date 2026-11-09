@@ -95,6 +95,7 @@
     "task_overdue": "مهمة متأخرة",
     "task_due_today": "مهمة مستحقة اليوم",
     "task_unassigned": "مهمة بدون إسناد",
+    "project_decision_recent": "قرار مشروع",
     "storage_attention": "تخزين الملفات",
     "statutory_attention": "مستند ضريبي",
     "dg_claim_awaiting_review": "مطالبة مقاول للمراجعة",
@@ -410,6 +411,10 @@
     "recurringTaskGenerated": {
       "what": "تم إنشاء مهمة متكررة - {title}",
       "why": "تم إنشاء نسخة جديدة من قالب متكرر."
+    },
+    "projectDecisionRecent": {
+      "what": "تم تسجيل قرار — {excerpt}",
+      "why": "في المشروع {projectName}."
     },
     "reportMonthLabel": "{month} {year}",
     "reportMonths": {

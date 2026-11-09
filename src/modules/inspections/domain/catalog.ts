@@ -118,6 +118,19 @@ export const INSPECTION_CATALOG: readonly CatalogTemplate[] = [
       item('protection_film', 'Protection film and cleanliness', false),
     ],
   },
+  {
+    key: 'site_safety',
+    category: 'safety',
+    name: 'Site safety',
+    items: [
+      item('ppe_compliance', 'Required PPE worn (hard hat, boots, eye protection)'),
+      item('barriers_signage', 'Barriers and hazard signage in work zones'),
+      item('housekeeping', 'Walkways and work areas clear of tripping hazards'),
+      item('floor_openings', 'Floor openings and stair voids protected and marked'),
+      item('hot_work_extinguisher', 'Fire extinguisher at active hot-work stations'),
+      item('emergency_access', 'Emergency exits and fire equipment routes unobstructed'),
+    ],
+  },
 ];
 
 const BY_KEY = new Map(INSPECTION_CATALOG.map((template) => [template.key, template] as const));

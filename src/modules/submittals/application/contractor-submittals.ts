@@ -4,6 +4,7 @@ import { todayInTimeZone } from '@/shared/dates';
 import { withTransaction } from '@/shared/db';
 import type { DbExecutor } from '@/shared/db/types';
 import { AuthorizationError, ConflictError, DomainRuleError, NotFoundError } from '@/shared/errors';
+import { resolveDrawingLink, type ResolvedDrawingLink } from '@/modules/project-plans';
 import {
   EXTERNAL_CAPABILITIES,
   hasExternalScope,
@@ -237,6 +238,7 @@ export interface ContractorSubmittalView extends SubmittalDetail {
   readonly overdue: boolean;
   readonly availableActions: readonly SubmittalAction[];
   readonly draftRevisionId: string | null;
+  readonly linkedDrawing: ResolvedDrawingLink | null;
 }
 
 export async function getContractorSubmittal(
@@ -247,8 +249,15 @@ export async function getContractorSubmittal(
   const detail = await loadSubmittalDetail(context.db, input.organizationId, row.id, { includeInternalNames: false });
   if (!detail) throw new NotFoundError('Submittal');
   const current = detail.revisions.find((revision) => revision.revisionNumber === detail.currentRevisionNumber);
+  const linkedDrawing = await resolveDrawingLink(
+    context.db,
+    input.organizationId,
+    detail.drawingId,
+    detail.drawingRevisionId,
+  );
   return {
     ...detail,
+    linkedDrawing,
     overdue: isSubmittalOverdue(detail, todayInTimeZone('UTC')),
     availableActions: availableSubmittalActions(detail.status, 'external'),
     draftRevisionId: current && !current.submittedAt && detail.status === 'draft' ? current.id : null,

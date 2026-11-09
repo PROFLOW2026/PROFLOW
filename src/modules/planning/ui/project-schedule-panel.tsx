@@ -20,6 +20,8 @@ import {
   removePlanningDependencyAction,
   linkPlanningWorkItemTaskAction,
   unlinkPlanningWorkItemTaskAction,
+  copyPlanningDatesToLinkedTaskAction,
+  copyLinkedTaskDatesToPlanningAction,
 } from '@/app/[locale]/(app)/projects/planning-actions';
 import type { PlanningLocale } from './messages';
 
@@ -44,11 +46,13 @@ export async function ProjectSchedulePanel({ projectId }: ProjectSchedulePanelPr
     if (!project) return null;
 
     const canWrite = hasPermission(context, PERMISSIONS.PLANNING_WRITE);
+    const canUpdateTasks = hasPermission(context, PERMISSIONS.TASKS_UPDATE);
     const workKind = project.workKind === 'job' ? ('job' as const) : ('project' as const);
     if (workKind === 'job') {
       return {
         workKind,
         canWrite,
+        canUpdateTasks,
         workItems: [] as const,
         dependencies: [] as const,
         gantt: null,
@@ -75,6 +79,7 @@ export async function ProjectSchedulePanel({ projectId }: ProjectSchedulePanelPr
       return {
         workKind: 'project' as const,
         canWrite,
+        canUpdateTasks,
         workItems: view.snapshot.workItems,
         dependencies: view.snapshot.dependencies,
         gantt: view.gantt,
@@ -86,6 +91,7 @@ export async function ProjectSchedulePanel({ projectId }: ProjectSchedulePanelPr
         return {
           workKind: 'job' as const,
           canWrite,
+          canUpdateTasks,
           workItems: [] as const,
           dependencies: [] as const,
           gantt: null,
@@ -124,6 +130,8 @@ export async function ProjectSchedulePanel({ projectId }: ProjectSchedulePanelPr
           projectId={projectId}
           workItems={data.workItems}
           dependencies={data.dependencies}
+          canUpdateTasks={data.canUpdateTasks}
+          canUpdatePlanning={data.canWrite}
           createAction={createPlanningWorkItemAction}
           updateAction={updatePlanningWorkItemAction}
           archiveAction={archivePlanningWorkItemAction}
@@ -131,6 +139,8 @@ export async function ProjectSchedulePanel({ projectId }: ProjectSchedulePanelPr
           removeDepAction={removePlanningDependencyAction}
           linkTaskAction={linkPlanningWorkItemTaskAction}
           unlinkTaskAction={unlinkPlanningWorkItemTaskAction}
+          copyDatesToTaskAction={copyPlanningDatesToLinkedTaskAction}
+          copyDatesToPlanningAction={copyLinkedTaskDatesToPlanningAction}
         />
       ) : null}
     </div>

@@ -12,6 +12,7 @@ import {
   portalStatChipClass,
   portalWideListClass,
 } from '@/modules/contractor-portal/ui/portal-surface';
+import { listContractorDrawingPickerOptions } from '@/modules/project-plans';
 import { listProjectLocationOptions, listProjectWorkPackageOptions } from '@/modules/rfi';
 import { getContractorSubmittalSummary, listContractorSubmittals } from '@/modules/submittals';
 import { ContractorSubmittalCreateForm } from '@/modules/submittals/ui/contractor-submittal-create-form';
@@ -41,11 +42,12 @@ export default async function ContractorSubmittalsPage({
   const wantsCreate = newParam === '1';
   const base = `/contractor/projects/${projectId}/submittals`;
 
-  const [items, summary, locations, workPackages] = await Promise.all([
+  const [items, summary, locations, workPackages, drawings] = await Promise.all([
     listContractorSubmittals(context, { organizationId, projectId }),
     getContractorSubmittalSummary(context, { organizationId, projectId }),
     listProjectLocationOptions(context.db, organizationId, projectId),
     listProjectWorkPackageOptions(context.db, organizationId, projectId),
+    wantsCreate ? listContractorDrawingPickerOptions(context, { organizationId, projectId }) : Promise.resolve([]),
   ]);
 
   const [t, locale] = await Promise.all([getTranslations('submittals'), getLocale()]);
@@ -78,6 +80,7 @@ export default async function ContractorSubmittalsPage({
             basePath={base}
             locations={locations}
             workPackages={workPackages}
+            drawings={drawings}
           />
         </WithPortalClientMessages>
       ) : (

@@ -14,7 +14,7 @@ import {
   Square,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Document, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -47,6 +47,7 @@ import {
   computePdfZoomPercent,
   createPdfPreviewTimings,
   elapsedMs,
+  estimatePageHeight,
   readDevicePixelRatio,
   zoomPresetToPercent,
   type PdfFitMode,
@@ -55,6 +56,12 @@ import {
 
 pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_PUBLIC_PATH;
 
+export type PdfPageOverlayRenderProps = {
+  readonly pageNumber: number;
+  readonly pageWidth: number;
+  readonly pageHeight: number;
+};
+
 export function PdfJsViewer({
   url,
   reloadKey,
@@ -62,6 +69,7 @@ export function PdfJsViewer({
   onOpenOnDevice,
   onOpenInProvider,
   openInProviderLabel,
+  pageOverlay,
 }: {
   url: string;
   reloadKey: number;
@@ -69,6 +77,7 @@ export function PdfJsViewer({
   onOpenOnDevice?: () => void;
   onOpenInProvider?: () => void;
   openInProviderLabel?: string | null;
+  pageOverlay?: (props: PdfPageOverlayRenderProps) => ReactNode;
 }) {
   return (
     <PdfJsViewerInner
@@ -79,6 +88,7 @@ export function PdfJsViewer({
       onOpenOnDevice={onOpenOnDevice}
       onOpenInProvider={onOpenInProvider}
       openInProviderLabel={openInProviderLabel}
+      pageOverlay={pageOverlay}
     />
   );
 }
@@ -90,6 +100,7 @@ function PdfJsViewerInner({
   onOpenOnDevice,
   onOpenInProvider,
   openInProviderLabel,
+  pageOverlay,
 }: {
   url: string;
   reloadKey: number;
@@ -97,6 +108,7 @@ function PdfJsViewerInner({
   onOpenOnDevice?: () => void;
   onOpenInProvider?: () => void;
   openInProviderLabel?: string | null;
+  pageOverlay?: (props: PdfPageOverlayRenderProps) => ReactNode;
 }) {
   const t = useTranslations('externalStorage.preview');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -637,6 +649,7 @@ function PdfJsViewerInner({
             >
               {Array.from({ length: numPages }, (_, index) => {
                 const pageNumber = index + 1;
+                const pageHeight = estimatePageHeight(pageWidth, pageAspect);
                 return (
                   <div
                     key={`${pageNumber}:${Math.round(pageWidth)}:${devicePixelRatio}:${rotation}`}
@@ -645,6 +658,8 @@ function PdfJsViewerInner({
                       else pageRefs.current.delete(pageNumber);
                     }}
                     data-page={pageNumber}
+                    className={pageOverlay ? 'relative' : undefined}
+                    style={pageOverlay ? { width: pageWidth, minHeight: pageHeight } : undefined}
                   >
                     <PdfLazyPage
                       pageNumber={pageNumber}
@@ -658,6 +673,14 @@ function PdfJsViewerInner({
                       onFirstPageMetrics={onFirstPageRendered}
                       onPageAspect={setPageAspect}
                     />
+                    {pageOverlay ? (
+                      <div
+                        className="absolute inset-0"
+                        style={{ width: pageWidth, height: pageHeight }}
+                      >
+                        {pageOverlay({ pageNumber, pageWidth, pageHeight })}
+                      </div>
+                    ) : null}
                   </div>
                 );
               })}

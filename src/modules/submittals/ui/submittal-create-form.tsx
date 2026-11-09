@@ -11,6 +11,7 @@ import { useRouter } from '@/shared/i18n/navigation';
 import { createSubmittalAction } from '../actions/internal-actions';
 import type { SubmittalFormOptions } from '../application/form-options';
 import { MainAppFormActions, MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
+import { DrawingRevisionPickerFields } from '@/modules/project-plans/ui';
 import { FormError, FormRow, selectClassName } from './form-controls';
 
 export function SubmittalCreateForm({
@@ -42,6 +43,8 @@ export function SubmittalCreateForm({
         specSection: String(form.get('specSection') ?? '') || null,
         locationId: String(form.get('locationId') ?? '') || null,
         workPackageId: String(form.get('workPackageId') ?? '') || null,
+        drawingId: String(form.get('drawingId') ?? '') || null,
+        drawingRevisionId: String(form.get('drawingRevisionId') ?? '') || null,
         drawingReference: String(form.get('drawingReference') ?? '') || null,
         dueDate: String(form.get('dueDate') ?? '') || null,
         reviewerUserId: String(form.get('reviewerUserId') ?? '') || null,
@@ -121,6 +124,9 @@ export function SubmittalCreateForm({
                 ))}
               </select>
             </FormRow>
+          <FormRow label={t('fields.projectDrawing')} hint={t('fields.projectDrawingHint')} className={mainAppFieldSpan.full}>
+            <DrawingRevisionPickerFields drawings={options.drawings} translationNamespace="submittals" />
+          </FormRow>
           <FormRow label={t('fields.drawingReference')} hint={t('fields.drawingReferenceHint')} className={mainAppFieldSpan.full}>
             <Input name="drawingReference" maxLength={300} />
           </FormRow>

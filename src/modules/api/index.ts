@@ -11,6 +11,7 @@ export {
   enqueueWebhookDelivery,
   recordWebhookDeliveryAttempt,
   prepareSignedWebhookDelivery,
+  deliverPendingWebhook,
 } from './application/manage-api';
 export { authenticateApiKey, resolveApiWhoami } from './application/authenticate-api-key';
 export {

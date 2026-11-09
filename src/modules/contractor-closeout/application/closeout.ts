@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 import { subcontractAgreements } from '@drizzle/schema';
-import { internalActor } from '@/shared/actor';
+import { externalActor, internalActor } from '@/shared/actor';
 import { AUDIT_ACTIONS, recordAuditEvent, writeAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
@@ -31,10 +31,12 @@ import {
 import {
   closeAgreementSchema,
   ensureCloseoutSchema,
+  portalWarrantyReportSchema,
   submitHandoverItemSchema,
   warrantyReportSchema,
   type CloseAgreementInput,
   type EnsureCloseoutInput,
+  type PortalWarrantyReportInput,
   type SubmitHandoverItemInput,
   type WarrantyReportInput,
 } from '../validation/schemas';
@@ -230,6 +232,102 @@ export async function reportWarrantyIssue(context: OrgContext, raw: WarrantyRepo
     action: AUDIT_ACTIONS.WARRANTY_ISSUE_REPORTED,
     entityType: WARRANTY_REPORT_ENTITY,
     entityId: reportId,
+  });
+  return { reportId };
+}
+
+export async function getPortalWarranty(
+  context: ExternalContext,
+  input: { readonly organizationId: string; readonly projectId: string },
+) {
+  const grant = context.grants.find(
+    (g) =>
+      g.organizationId === input.organizationId &&
+      g.capabilities.has(X.DEFECT_WORK) &&
+      (!g.projectId || g.projectId === input.projectId),
+  );
+  if (!grant) {
+    return { reports: [] as const, agreements: [] as const, vendorId: null as string | null };
+  }
+  requireExternalScope(
+    context,
+    {
+      organizationId: input.organizationId,
+      projectId: input.projectId,
+      vendorId: grant.vendorId,
+      subcontractAgreementId: grant.subcontractAgreementId,
+    },
+    X.DEFECT_WORK,
+  );
+  const [reports, agreements] = await Promise.all([
+    listWarrantyReports(context.db, input.organizationId, input.projectId).then((rows) =>
+      rows.filter((row) => row.vendorId === grant.vendorId),
+    ),
+    context.db
+      .select({
+        id: subcontractAgreements.id,
+        title: subcontractAgreements.title,
+      })
+      .from(subcontractAgreements)
+      .where(
+        and(
+          eq(subcontractAgreements.organizationId, input.organizationId),
+          eq(subcontractAgreements.projectId, input.projectId),
+          eq(subcontractAgreements.vendorId, grant.vendorId),
+        ),
+      ),
+  ]);
+  return { reports, agreements, vendorId: grant.vendorId };
+}
+
+/** Contractor portal warranty issue (ext.defect.work) — same row shape as internal reportWarrantyIssue. */
+export async function reportPortalWarrantyIssue(context: ExternalContext, raw: PortalWarrantyReportInput) {
+  const input = parse(portalWarrantyReportSchema, raw);
+  const grant = requireExternalScope(
+    context,
+    {
+      organizationId: input.organizationId,
+      projectId: input.projectId,
+      vendorId: input.vendorId,
+      subcontractAgreementId: input.agreementId,
+    },
+    X.DEFECT_WORK,
+  );
+  if (grant.vendorId !== input.vendorId) throw new NotFoundError('Subcontract agreement');
+  const scope = await findAgreementScope(context.db, input.organizationId, input.agreementId);
+  if (!scope || scope.projectId !== input.projectId || scope.vendorId !== input.vendorId) {
+    throw new NotFoundError('Subcontract agreement');
+  }
+  const reportId = await insertWarrantyReport(context.db, {
+    organizationId: input.organizationId,
+    projectId: input.projectId,
+    vendorId: scope.vendorId,
+    subcontractAgreementId: input.agreementId,
+    warrantyCoverageId: null,
+    title: input.title,
+    notes: input.notes ?? null,
+    reportedActorType: 'external',
+    reportedByUserId: null,
+    reportedByPrincipalId: context.principalId,
+    retentionFlag: false,
+    guaranteeFlag: false,
+  });
+  await emitDomainEvent(context.db, {
+    organizationId: input.organizationId,
+    projectId: input.projectId,
+    type: DOMAIN_EVENTS.WARRANTY_CLAIM_REPORTED,
+    entityType: WARRANTY_REPORT_ENTITY,
+    entityId: reportId,
+    actor: externalActor(context.principalId),
+    payload: { agreementId: input.agreementId, defectLinked: false },
+  });
+  await recordExternalAudit(context.db, {
+    organizationId: input.organizationId,
+    principalId: context.principalId,
+    action: AUDIT_ACTIONS.WARRANTY_ISSUE_REPORTED,
+    entityType: WARRANTY_REPORT_ENTITY,
+    entityId: reportId,
+    after: { agreementId: input.agreementId, title: input.title },
   });
   return { reportId };
 }

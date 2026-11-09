@@ -111,6 +111,7 @@ export const PORTAL_ROUTES = [
   { key: 'project.compliance', track: 'P', scope: 'project', path: 'projects/[projectId]/compliance', pageFile: '(portal)/projects/[projectId]/compliance/page.tsx', capability: CAP.COMPLIANCE_SUBMIT, placement: 'project', labelKey: 'nav.compliance', implemented: true },
   { key: 'project.deliveries', track: 'P', scope: 'project', path: 'projects/[projectId]/deliveries', pageFile: '(portal)/projects/[projectId]/deliveries/page.tsx', capability: CAP.DELIVERY_REPORT, placement: 'project', labelKey: 'nav.deliveries', implemented: true },
   { key: 'project.safety', track: 'P', scope: 'project', path: 'projects/[projectId]/safety', pageFile: '(portal)/projects/[projectId]/safety/page.tsx', capability: CAP.SAFETY_REPORT, placement: 'project', labelKey: 'nav.safety', implemented: true },
+  { key: 'project.permits', track: 'P', scope: 'project', path: 'projects/[projectId]/permits', pageFile: '(portal)/projects/[projectId]/permits/page.tsx', capability: CAP.SAFETY_REPORT, placement: 'project', labelKey: 'nav.permits', implemented: true },
 
   // Track E - contract lines / changes (agreement-scoped: deep links only)
   { key: 'project.contract', track: 'E', scope: 'project', path: 'projects/[projectId]/contracts/[agreementId]', pageFile: '(portal)/projects/[projectId]/contracts/[agreementId]/page.tsx', capability: CAP.PROJECT_VIEW, placement: 'detail', labelKey: 'nav.contract', implemented: true },
@@ -125,6 +126,7 @@ export const PORTAL_ROUTES = [
   { key: 'project.tenders', track: 'Q', scope: 'project', path: 'projects/[projectId]/tenders', pageFile: '(portal)/projects/[projectId]/tenders/page.tsx', capability: CAP.BID_SUBMIT, placement: 'project', labelKey: 'nav.tenders', implemented: true },
   { key: 'project.tender', track: 'Q', scope: 'project', path: 'projects/[projectId]/tenders/[packageId]', pageFile: '(portal)/projects/[projectId]/tenders/[packageId]/page.tsx', capability: CAP.BID_SUBMIT, placement: 'detail', labelKey: 'nav.tenders', implemented: true },
   { key: 'project.handover', track: 'Q', scope: 'project', path: 'projects/[projectId]/handover', pageFile: '(portal)/projects/[projectId]/handover/page.tsx', capability: CAP.HANDOVER_SUBMIT, placement: 'project', labelKey: 'nav.handover', implemented: true },
+  { key: 'project.warranty', track: 'Q', scope: 'project', path: 'projects/[projectId]/warranty', pageFile: '(portal)/projects/[projectId]/warranty/page.tsx', capability: CAP.DEFECT_WORK, placement: 'project', labelKey: 'nav.warranty', implemented: true },
 ] as const satisfies readonly PortalRouteDefinition[];
 
 export type PortalRouteKey = (typeof PORTAL_ROUTES)[number]['key'];

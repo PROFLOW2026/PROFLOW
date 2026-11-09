@@ -59,6 +59,11 @@
     "noLocation": "Без места",
     "drawingReference": "Ссылка на чертёж / ревизию",
     "drawingReferenceHint": "Например, A-101 ревизия C",
+    "projectDrawing": "Чертёж проекта",
+    "projectDrawingHint": "Выберите опубликованный чертёж и ревизию из реестра планов.",
+    "noProjectDrawing": "Без чертежа",
+    "noDrawingRevision": "Нет опубликованной ревизии",
+    "currentRevision": "текущая",
     "workPackage": "Пакет работ",
     "noWorkPackage": "Без пакета работ",
     "dueDate": "Ответ нужен до",
@@ -97,7 +102,10 @@
     "attachments": "Вложения",
     "discussion": "Обсуждение",
     "reopened": "{count, plural, one {Переоткрыт # раз} few {Переоткрыт # раза} many {Переоткрыт # раз} other {Переоткрыт # раза}}",
-    "raisedOn": "Создан {date}"
+    "raisedOn": "Создан {date}",
+    "linkedDrawing": "Связанный чертёж",
+    "noLinkedDrawing": "Чертёж не привязан.",
+    "openDrawing": "Открыть чертёж"
   },
   "history": {
     "created": "Создан со статусом {status}",

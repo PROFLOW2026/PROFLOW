@@ -26,12 +26,14 @@
     "compliance": "מסמכי חובה",
     "deliveries": "אספקות",
     "safety": "בטיחות",
+    "permits": "היתרי עבודה",
     "contract": "החוזה שלי",
     "contractChanges": "שינויים בחוזה",
     "claims": "חשבונות חלקיים",
     "payments": "תשלומים",
     "tenders": "מכרזים",
     "handover": "מסירה",
+    "warranty": "אחריות",
     "more": "עוד"
   },
   "shell": {

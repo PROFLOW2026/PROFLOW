@@ -8,7 +8,11 @@ import { NotificationBell } from './notification-bell';
 /**
  * Shell badge reads cached active-attention snapshot (no Command Center collectors on render).
  */
-export async function NotificationBellLoader() {
+export async function NotificationBellLoader({
+  inboxHref = '/notifications',
+}: {
+  readonly inboxHref?: string;
+} = {}) {
   const initialInbox = await withOrgContext(async (context): Promise<NotificationInboxDto> => {
     if (!hasPermission(context, PERMISSIONS.NOTIFICATIONS_READ)) {
       return { items: [], unreadCount: 0 };
@@ -16,5 +20,5 @@ export async function NotificationBellLoader() {
     const unreadCount = await getShellNotificationBadgeCount(context);
     return { items: [], unreadCount };
   });
-  return <NotificationBell initialInbox={initialInbox} />;
+  return <NotificationBell initialInbox={initialInbox} inboxHref={inboxHref} />;
 }

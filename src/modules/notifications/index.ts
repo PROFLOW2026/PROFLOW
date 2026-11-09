@@ -63,6 +63,10 @@ export { markAllNotificationsRead } from './application/mark-all-read';
 export { runNotificationScan } from './application/scan-conditions';
 export { listUserIdsWithPermission } from './data/permission-holders.repository';
 export { resolveNotificationsAsSystem } from './data/notifications.repository';
+export {
+  insertNotificationEmailLog,
+  notificationEmailLogExists,
+} from './data/notification-email-log.repository';
 
 export {
   notificationIdSchema,

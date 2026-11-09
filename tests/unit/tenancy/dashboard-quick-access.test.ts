@@ -42,6 +42,7 @@ describe('dashboard quick access defaults', () => {
       'vendorBills',
       'expenses',
       'today',
+      'myWork',
     ]);
     expect(parseDashboardQuickAccessPreference(undefined)).toEqual([
       ...DASHBOARD_QUICK_ACCESS_DEFAULT_KEYS,
@@ -138,5 +139,21 @@ describe('dashboard quick access defaults', () => {
     );
     expect(resolved.map((entry) => entry.key)).toEqual(saved);
     expect(resolved.some((entry) => entry.key === 'quickCapture')).toBe(false);
+  });
+
+  it('hides my work without tasks.read and shows it when the permission and module are on', () => {
+    const hidden = resolveDashboardQuickAccessShortcuts(
+      parseDashboardQuickAccessPreference(undefined),
+      OWNER_PERMISSIONS,
+      ALL_MODULES,
+    );
+    expect(hidden.some((entry) => entry.key === 'myWork')).toBe(false);
+
+    const shown = resolveDashboardQuickAccessShortcuts(
+      parseDashboardQuickAccessPreference(undefined),
+      new Set([...OWNER_PERMISSIONS, PERMISSIONS.TASKS_READ]),
+      ALL_MODULES,
+    );
+    expect(shown.some((entry) => entry.key === 'myWork' && entry.href === '/work')).toBe(true);
   });
 });

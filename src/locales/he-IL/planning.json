@@ -69,7 +69,12 @@
       "placeholder": "מזהה משימה (UUID)",
       "linkButton": "קשר",
       "linked": "משימה מקושרת:",
-      "unlink": "נתק"
+      "unlink": "נתק",
+      "copyDatesToTask": "העתק תאריכי שורה → משימה",
+      "copyDatesToPlanning": "העתק תאריכי משימה → שורה",
+      "copyDatesToTaskAria": "העתקת תאריך התחלה ויעד הסיום מהשורה למשימה המקושרת",
+      "copyDatesToPlanningAria": "העתקת תאריך התחלה ויעד מהמשימה המקושרת לשורת התכנון",
+      "dateCopyRequiresLink": "יש לקשר משימה לפני העתקת תאריכים."
     }
   }
 }

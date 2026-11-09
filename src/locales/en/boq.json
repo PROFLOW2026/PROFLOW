@@ -275,6 +275,8 @@
     "officeApproveHint": "Approval stays on the office BOQ tab.",
     "officeApproveLink": "Open office BOQ",
     "noSubmitPermission": "You can view quantities. Submitting measurements needs progress permission.",
-    "chapter": "Chapter"
+    "chapter": "Chapter",
+    "batchEvidenceTitle": "Progress batch photos",
+    "batchEvidenceLabel": "Certificate #{number} · {period}"
   }
 }

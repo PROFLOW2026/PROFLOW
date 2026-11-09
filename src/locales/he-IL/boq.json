@@ -275,6 +275,8 @@
     "officeApproveHint": "אישור נשאר בלשונית כתב הכמויות במשרד.",
     "officeApproveLink": "פתיחת כתב כמויות במשרד",
     "noSubmitPermission": "אפשר לראות כמויות. שליחת מדידות דורשת הרשאת התקדמות.",
-    "chapter": "פרק"
+    "chapter": "פרק",
+    "batchEvidenceTitle": "תמונות לאצוות מדידה",
+    "batchEvidenceLabel": "תעודה מס׳ {number} · {period}"
   }
 }

@@ -13,6 +13,10 @@ import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { pressableCardLinkClassName } from '@/components/ui/pressable';
 import { listBoards } from '@/modules/tasks';
+import { listTaskTemplates } from '@/modules/tasks/application/manage-task-templates';
+import { hasPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { ApplyWorkspaceTemplateForm } from '../../_apply-template-form';
 import { mapBoardToUiBoard } from '@/modules/tasks/ui/task-api';
 
 export async function generateMetadata({
@@ -43,12 +47,18 @@ export default async function WorkspaceBoardsPage({
     if (!workspace) return null;
     const rawBoards = await listBoards(context, workspaceId);
     const boards = rawBoards.map((b) => mapBoardToUiBoard(b));
-    return { workspace, boards };
+    const templates = hasPermission(context, PERMISSIONS.TASKS_CREATE)
+      ? (await listTaskTemplates(context)).map((template) => ({
+          id: template.id,
+          title: template.title,
+        }))
+      : [];
+    return { workspace, boards, templates };
   });
 
   if (!data) notFound();
 
-  const { workspace, boards } = data;
+  const { workspace, boards, templates } = data;
   const activeBoards = boards.filter((b) => !b.isArchived);
   const defaultBoard = activeBoards.find((b) => b.isDefault);
 
@@ -63,6 +73,11 @@ export default async function WorkspaceBoardsPage({
         }
       />
       <MainAppSection>
+        <ApplyWorkspaceTemplateForm
+          workspaceId={workspaceId}
+          boardId={defaultBoard?.id ?? activeBoards[0]?.id ?? null}
+          templates={templates}
+        />
         {activeBoards.length === 0 ? (
           <EmptyState
             icon={LayoutGrid}

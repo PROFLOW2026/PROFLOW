@@ -7,6 +7,7 @@
     "entryHint": "פתיחת סביבת ניהול הביצוע, מחוץ לעמוד המסחרי של הפרויקט.",
     "backToProject": "חזרה לפרויקט",
     "navAriaLabel": "ניווט ניהול ביצוע",
+    "operationalToolsAriaLabel": "כלי איכות ושטח בפרויקט",
     "planningHint": "תיאום, משימות, לוח וציר זמן. לוח הזמנים הקלאסי נשאר בלשונית העבודה של פרויקט רגיל.",
     "hubs": {
       "overview": "סקירת ביצוע",
@@ -51,7 +52,10 @@
       "rfi": "בקשות מידע",
       "submittals": "הגשות",
       "inspections": "בקרות",
+      "projectInspections": "ביקורת פרויקט",
+      "fieldInspections": "ביקורת שטח",
       "defects": "ליקויים",
+      "dailyLog": "יומן",
       "siteLog": "יומן אתר",
       "meetings": "ישיבות",
       "instructions": "הנחיות",

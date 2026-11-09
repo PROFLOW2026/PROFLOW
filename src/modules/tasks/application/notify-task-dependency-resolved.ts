@@ -12,6 +12,7 @@ import {
 import { taskDeepLinkForRecipient } from '@/modules/notifications/domain/task-links';
 import { notificationsCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
 import { runAutomationEventMatches } from '@/modules/automations/application/run-rules';
+import { trySendTaskCommentMentionEmail } from './task-comment-mention-email';
 import {
   areAllPredecessorsComplete,
   findTaskById,
@@ -121,6 +122,13 @@ export async function notifySuccessorsWhenDependenciesResolved(
       deepLink: taskDeepLinkForRecipient(`/tasks/${successorId}`, recipientIsEmployee),
       severity: 'info',
       metadata: { completedPredecessorId: completedTaskId },
+    });
+    await trySendTaskCommentMentionEmail(context, {
+      dedupeKey: `task_dependency_resolved:${successorId}:${completedTaskId}:${recipientUserId}`,
+      recipientUserId,
+      subject: copy.title,
+      body: copy.body,
+      deepLink: taskDeepLinkForRecipient(`/tasks/${successorId}`, recipientIsEmployee),
     });
 
     await runAutomationEventMatches(context, 'task_dependency_resolved', [

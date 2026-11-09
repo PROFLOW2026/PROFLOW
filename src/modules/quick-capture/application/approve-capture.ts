@@ -26,6 +26,8 @@ export type ApproveFieldMediaInput = {
   readonly category: FieldMediaCategory;
   readonly taskId?: string | null;
   readonly workOrderId?: string | null;
+  /** When true, also calls the existing task engine. Off by default. */
+  readonly createLinkedTask?: boolean;
 };
 
 export type FinancialExpenseAssignment =
@@ -89,11 +91,32 @@ export async function approveFieldMediaCapture(
 ): Promise<CaptureItemRecord> {
   assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
   const category = assertFieldMediaCategory(input.category);
-
   const capture = await findCaptureById(context.db, context.organizationId, input.captureId);
   if (!capture) throw new NotFoundError('Quick capture');
   if (capture.status !== 'ready_for_review') {
     throw new DomainRuleError('Capture is not ready for review', 'quickCapture.errors.notReady');
+  }
+
+  let linkedTaskId = input.taskId ?? null;
+  if (input.createLinkedTask && !linkedTaskId) {
+    assertPermission(context, PERMISSIONS.TASKS_CREATE);
+    const { findProjectById } = await import('@/modules/projects');
+    const { lazyCreateProjectWorkspace } = await import(
+      '@/modules/workspaces/application/lazy-create-project-workspace'
+    );
+    const { createTask } = await import('@/modules/tasks/application/create-task');
+    const project = await findProjectById(context.db, context.organizationId, input.projectId);
+    const workspace = await lazyCreateProjectWorkspace(
+      context,
+      input.projectId,
+      project?.name ?? 'Project',
+    );
+    const task = await createTask(context, {
+      workspaceId: workspace.workspace.id,
+      projectId: input.projectId,
+      title: project?.name ? `${project.name} · ${category}` : category,
+    });
+    linkedTaskId = task.id;
   }
 
   const junctionDocs = await listCaptureDocumentsByCaptureId(
@@ -109,11 +132,11 @@ export async function approveFieldMediaCapture(
       ownerId: input.projectId,
       label: category,
     });
-    if (input.taskId) {
+    if (linkedTaskId) {
       await linkDocumentToEntity(context, {
         documentId: junction.documentId,
         ownerType: 'task',
-        ownerId: input.taskId,
+        ownerId: linkedTaskId,
         label: category,
       });
     }
@@ -135,8 +158,8 @@ export async function approveFieldMediaCapture(
   const approved = await updateCaptureItem(context.db, context.organizationId, capture.id, {
     status: 'approved',
     ownerSelectedType: 'field_media',
-    routedEntityType: 'document_link_batch',
-    routedEntityId: null,
+    routedEntityType: linkedTaskId ? 'task' : 'document_link_batch',
+    routedEntityId: linkedTaskId,
     approvedAt: new Date(),
   });
   if (!approved) throw new NotFoundError('Quick capture');
@@ -342,6 +365,7 @@ export async function approveCapture(
         category: input.category,
         taskId: input.taskId ?? null,
         workOrderId: input.workOrderId ?? null,
+        createLinkedTask: input.createLinkedTask === true,
       });
     case 'financial_document':
       if (!input.confirmInput) {

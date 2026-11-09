@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { getLocale } from 'next-intl/server';
 import { loadProjectLayoutIdentity } from '../../../../(app)/projects/[projectId]/load-project-detail';
 import { loadProjectExecutionNav } from '@/modules/project-workspace/application/load-execution-nav';
+import { loadProjectOperationalToolLinks } from '@/modules/project-workspace/application/load-project-operational-tool-links';
 import { employeeProjectRoot } from '@/modules/project-workspace/domain/project-surface-path';
 import { DeveloperGcExecutionEntry } from '@/modules/project-workspace/ui/developer-gc-execution-entry';
 import { ProjectExecutionNav } from '@/modules/project-workspace/ui/project-execution-nav';
@@ -23,11 +24,14 @@ export default async function EmployeeProjectLayout({
   const locale = await getLocale();
   const employeeRoot = employeeProjectRoot(projectId);
 
-  const [identity, executionNav] = await Promise.all([
+  const [identity, executionNav, operationalToolLinks] = await Promise.all([
     loadProjectLayoutIdentity(projectId),
     withOrgContext((context) =>
       loadProjectExecutionNav(context, projectId, { surfaceRoot: employeeRoot }),
     ).catch(() => ({ showGroup: false, links: [] })),
+    withOrgContext((context) =>
+      loadProjectOperationalToolLinks(context, projectId, { surfaceRoot: employeeRoot }),
+    ).catch(() => []),
   ]);
 
   if (!identity) notFound();
@@ -49,14 +53,21 @@ export default async function EmployeeProjectLayout({
         backToProjectHref={employeeRoot}
         workspaceKind="work"
       />
-      <ProjectWorkNav projectId={projectId} dir={dir} compact surfaceRoot={employeeRoot} />
+      <ProjectWorkNav
+        projectId={projectId}
+        dir={dir}
+        compact
+        surfaceRoot={employeeRoot}
+        operationalToolLinks={operationalToolLinks}
+      />
     </>
   );
 
-  const executionChrome =
-    executionNav.showGroup ? (
-      <ProjectExecutionNav links={executionNav.links} dir={dir} backToProjectHref={employeeRoot} />
-    ) : null;
+  const executionChrome = executionNav.showGroup ? (
+    <ProjectExecutionNav links={executionNav.links} dir={dir} backToProjectHref={employeeRoot} />
+  ) : (
+    workChrome
+  );
 
   return (
     <WithAppClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>

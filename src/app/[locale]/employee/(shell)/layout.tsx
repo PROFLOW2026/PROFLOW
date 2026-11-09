@@ -5,6 +5,7 @@ import { EmployeeBottomNav } from '@/modules/employee-app/ui/employee-bottom-nav
 import { EmployeeSideNav } from '@/modules/employee-app/ui/employee-side-nav';
 import { EmployeeShellHeader } from '@/modules/employee-app/ui/employee-shell-header';
 import { EmployeeTopBar } from '@/modules/employee-app/ui/employee-top-bar';
+import { NotificationBellLoader } from '@/modules/notifications/ui/notification-bell-loader';
 import { getEmployeeShellData } from '@/modules/employee-app/application/get-employee-shell';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { getSessionState, withOrgContext } from '@/shared/auth/session';
@@ -53,6 +54,7 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
             organizationName={shell.organizationName}
             avatarUrl={shell.avatarUrl}
             userId={session.user.id}
+            bell={<NotificationBellLoader inboxHref="/employee/notifications" />}
           />
           <main
             id="main"

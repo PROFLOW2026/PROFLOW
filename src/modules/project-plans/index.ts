@@ -72,5 +72,15 @@ export {
   type ContractorSharedDocument,
 } from './application/contractor-plans';
 export type { ShareableDocument } from './data/audience.repository';
-export { listDistribution } from './data/plans.repository';
+export {
+  listDistribution,
+  listPublishedRevisionsForDrawings,
+  type PublishedRevisionOption,
+} from './data/plans.repository';
+export {
+  listContractorDrawingPickerOptions,
+  listInternalDrawingPickerOptions,
+} from './application/drawing-picker-options';
+export { resolveDrawingLink } from './application/resolve-drawing-link';
+export type { DrawingPickerOption, DrawingPickerRevision, ResolvedDrawingLink } from './domain/drawing-picker';
 export { listDocumentSharesForProject } from './data/shares.repository';

@@ -31,7 +31,17 @@ export const warrantyReportSchema = z.object({
   guaranteeFlag: z.boolean().optional(),
 });
 
+export const portalWarrantyReportSchema = z.object({
+  organizationId: z.string().uuid(),
+  projectId: z.string().uuid(),
+  agreementId: z.string().uuid(),
+  vendorId: z.string().uuid(),
+  title: z.string().trim().min(1),
+  notes: z.string().trim().optional(),
+});
+
 export type EnsureCloseoutInput = z.infer<typeof ensureCloseoutSchema>;
 export type CloseAgreementInput = z.infer<typeof closeAgreementSchema>;
 export type SubmitHandoverItemInput = z.infer<typeof submitHandoverItemSchema>;
 export type WarrantyReportInput = z.infer<typeof warrantyReportSchema>;
+export type PortalWarrantyReportInput = z.infer<typeof portalWarrantyReportSchema>;

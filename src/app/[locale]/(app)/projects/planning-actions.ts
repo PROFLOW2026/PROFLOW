@@ -3,6 +3,10 @@
 import { revalidatePath } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
 import {
+  copyLinkedTaskDatesToPlanningWorkItem,
+  copyPlanningWorkItemDatesToLinkedTask,
+} from '@/modules/planning/application/copy-planning-work-item-task-dates';
+import {
   linkPlanningWorkItemToTask,
   unlinkPlanningWorkItemTask,
 } from '@/modules/planning/application/link-planning-work-item-task';
@@ -205,6 +209,68 @@ export async function linkPlanningWorkItemTaskAction(
         },
         { db: context.db },
       );
+    });
+
+    revalidateProject(projectId);
+    return { success: true };
+  } catch (error) {
+    return mapPlanningError(error);
+  }
+}
+
+export async function copyPlanningDatesToLinkedTaskAction(
+  projectId: string,
+  workItemId: string,
+): Promise<PlanningActionState> {
+  try {
+    await withOrgContext(async (context) => {
+      assertPermission(context, PERMISSIONS.PLANNING_WRITE);
+      assertPermission(context, PERMISSIONS.TASKS_UPDATE);
+      const project = await findProjectById(context.db, context.organizationId, projectId);
+      if (!project) throw new NotFoundError('Project');
+
+      const linkedTaskId = await copyPlanningWorkItemDatesToLinkedTask(
+        context,
+        {
+          organizationId: context.organizationId,
+          projectId,
+          workItemId,
+          workKind: project.workKind as 'project' | 'job',
+        },
+        { db: context.db },
+      );
+      revalidatePath(`/tasks/${linkedTaskId}`);
+    });
+
+    revalidateProject(projectId);
+    return { success: true };
+  } catch (error) {
+    return mapPlanningError(error);
+  }
+}
+
+export async function copyLinkedTaskDatesToPlanningAction(
+  projectId: string,
+  workItemId: string,
+): Promise<PlanningActionState> {
+  try {
+    await withOrgContext(async (context) => {
+      assertPermission(context, PERMISSIONS.PLANNING_WRITE);
+      assertPermission(context, PERMISSIONS.TASKS_READ);
+      const project = await findProjectById(context.db, context.organizationId, projectId);
+      if (!project) throw new NotFoundError('Project');
+
+      const item = await copyLinkedTaskDatesToPlanningWorkItem(
+        context,
+        {
+          organizationId: context.organizationId,
+          projectId,
+          workItemId,
+          workKind: project.workKind as 'project' | 'job',
+        },
+        { db: context.db },
+      );
+      revalidatePath(`/tasks/${item.taskId}`);
     });
 
     revalidateProject(projectId);

@@ -71,6 +71,11 @@
     "noLocation": "Без места",
     "drawingReference": "Ссылка на чертёж / ревизию",
     "drawingReferenceHint": "Например, A-101 ревизия C",
+    "projectDrawing": "Чертёж проекта",
+    "projectDrawingHint": "Выберите опубликованный чертёж и ревизию из реестра планов.",
+    "noProjectDrawing": "Без чертежа",
+    "noDrawingRevision": "Нет опубликованной ревизии",
+    "currentRevision": "текущая",
     "workPackage": "Пакет работ",
     "noWorkPackage": "Без пакета работ",
     "dueDate": "Рассмотреть до",
@@ -102,7 +107,10 @@
     "reviewedBy": "проверил: {name}",
     "awaitingReview": "Ждёт рассмотрения",
     "attachments": "Файлы ревизии",
-    "discussion": "Обсуждение"
+    "discussion": "Обсуждение",
+    "linkedDrawing": "Связанный чертёж",
+    "noLinkedDrawing": "Чертёж не привязан.",
+    "openDrawing": "Открыть чертёж"
   },
   "actions": {
     "title": "Действия",

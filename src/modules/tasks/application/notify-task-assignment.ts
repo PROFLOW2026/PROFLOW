@@ -4,6 +4,7 @@ import { and, eq } from 'drizzle-orm';
 import { employees, organizationMemberships } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import { emitNotification } from '@/modules/notifications';
+import { trySendTaskCommentMentionEmail } from './task-comment-mention-email';
 import { notificationCopy } from '@/modules/notifications/domain/copy';
 import { taskDeepLinkForRecipient } from '@/modules/notifications/domain/task-links';
 import {
@@ -75,5 +76,12 @@ export async function notifyTaskAssigned(
     entityId: input.taskId,
     deepLink: taskDeepLinkForRecipient(`/tasks/${input.taskId}`, recipientIsEmployee),
     severity: 'info',
+  });
+  await trySendTaskCommentMentionEmail(context, {
+    dedupeKey: `task_assigned:${input.taskId}:${recipientUserId}`,
+    recipientUserId,
+    subject: copy.title,
+    body: copy.body,
+    deepLink: taskDeepLinkForRecipient(`/tasks/${input.taskId}`, recipientIsEmployee),
   });
 }

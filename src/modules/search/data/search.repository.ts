@@ -21,6 +21,7 @@ import {
   tasks,
   vendors,
   workspaces,
+  crmOpportunities,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { formatProjectDisplayName } from '@/modules/projects/domain/display';
@@ -100,6 +101,13 @@ export interface EmployeeSearchHit {
   readonly status: string;
   readonly jobTitle: string | null;
   readonly employeeNumber: string | null;
+}
+
+export interface OpportunitySearchHit {
+  readonly id: string;
+  readonly name: string;
+  readonly status: string;
+  readonly stage: string;
 }
 
 export interface ContractSearchHit {
@@ -725,5 +733,42 @@ export async function searchPurchaseOrders(
     committedAmount: row.committedAmount,
     currency: row.currency,
     vendorName: row.vendorName,
+  }));
+}
+
+export async function searchOpportunities(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit = GLOBAL_SEARCH_KIND_CAP,
+): Promise<OpportunitySearchHit[]> {
+  const exact = trimmed(query);
+  if (!exact) return [];
+
+  const term = ilikeContainsPattern(exact);
+
+  const rows = await db
+    .select({
+      id: crmOpportunities.id,
+      name: crmOpportunities.name,
+      status: crmOpportunities.status,
+      stage: crmOpportunities.stage,
+    })
+    .from(crmOpportunities)
+    .where(
+      and(
+        eq(crmOpportunities.organizationId, organizationId),
+        isNull(crmOpportunities.archivedAt),
+        ilike(crmOpportunities.name, term),
+      ),
+    )
+    .orderBy(desc(crmOpportunities.updatedAt))
+    .limit(limit);
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    status: row.status,
+    stage: row.stage,
   }));
 }

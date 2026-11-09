@@ -4,6 +4,7 @@ import { todayInTimeZone } from '@/shared/dates';
 import { withTransaction } from '@/shared/db';
 import { AuthorizationError, ConflictError, DomainRuleError, NotFoundError } from '@/shared/errors';
 import { DOMAIN_EVENTS, emitDomainEvent } from '@/shared/domain-events';
+import { resolveDrawingLink, type ResolvedDrawingLink } from '@/modules/project-plans';
 import {
   EXTERNAL_CAPABILITIES,
   hasExternalScope,
@@ -234,6 +235,7 @@ export interface ContractorRfiView extends RfiDetail {
   readonly overdue: boolean;
   readonly canEdit: boolean;
   readonly canSubmit: boolean;
+  readonly linkedDrawing: ResolvedDrawingLink | null;
 }
 
 export async function getContractorRfi(
@@ -246,7 +248,19 @@ export async function getContractorRfi(
   const today = todayInTimeZone('UTC');
   const ownDraft = detail.raisedActorType === 'external' && detail.status === 'draft';
   const canWrite = hasExternalScope(context, scopeOf(row), CAP);
-  return { ...detail, overdue: isRfiOverdue(detail, today), canEdit: ownDraft && canWrite, canSubmit: ownDraft && canWrite };
+  const linkedDrawing = await resolveDrawingLink(
+    context.db,
+    input.organizationId,
+    detail.drawingId,
+    detail.drawingRevisionId,
+  );
+  return {
+    ...detail,
+    linkedDrawing,
+    overdue: isRfiOverdue(detail, today),
+    canEdit: ownDraft && canWrite,
+    canSubmit: ownDraft && canWrite,
+  };
 }
 
 export async function listContractorRfis(

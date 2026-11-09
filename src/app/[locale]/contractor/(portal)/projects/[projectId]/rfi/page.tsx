@@ -12,6 +12,7 @@ import {
   portalStatChipClass,
   portalWideListClass,
 } from '@/modules/contractor-portal/ui/portal-surface';
+import { listContractorDrawingPickerOptions } from '@/modules/project-plans';
 import { getContractorRfiSummary, listContractorRfis, listProjectLocationOptions, listProjectWorkPackageOptions } from '@/modules/rfi';
 import { ContractorRfiCreateForm } from '@/modules/rfi/ui/contractor-rfi-create-form';
 import { RfiList } from '@/modules/rfi/ui/rfi-list';
@@ -40,11 +41,12 @@ export default async function ContractorRfisPage({
   const wantsCreate = newParam === '1';
   const base = `/contractor/projects/${projectId}/rfi`;
 
-  const [items, summary, locations, workPackages] = await Promise.all([
+  const [items, summary, locations, workPackages, drawings] = await Promise.all([
     listContractorRfis(context, { organizationId, projectId }),
     getContractorRfiSummary(context, { organizationId, projectId }),
     listProjectLocationOptions(context.db, organizationId, projectId),
     listProjectWorkPackageOptions(context.db, organizationId, projectId),
+    wantsCreate ? listContractorDrawingPickerOptions(context, { organizationId, projectId }) : Promise.resolve([]),
   ]);
 
   const [t, locale] = await Promise.all([getTranslations('rfi'), getLocale()]);
@@ -70,6 +72,7 @@ export default async function ContractorRfisPage({
             basePath={base}
             locations={locations}
             workPackages={workPackages}
+            drawings={drawings}
           />
         ) : (
           <Link href={`${base}?new=1`} className={portalPrimaryButtonClass}>

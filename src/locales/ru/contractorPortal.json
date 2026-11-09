@@ -26,12 +26,14 @@
     "compliance": "Обязательные документы",
     "deliveries": "Поставки",
     "safety": "Безопасность",
+    "permits": "Разрешения на работы",
     "contract": "Мой договор",
     "contractChanges": "Изменения договора",
     "claims": "Промежуточные акты",
     "payments": "Платежи",
     "tenders": "Тендеры",
     "handover": "Сдача работ",
+    "warranty": "Гарантия",
     "more": "Ещё"
   },
   "shell": {

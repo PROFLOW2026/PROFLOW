@@ -3,10 +3,15 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { getContractorPortalTask } from '@/modules/collaboration';
+import { resolveContractorPortalTaskDrawingLink } from '@/modules/collaboration/application/contractor-portal-task-drawing';
+import { buildContractorTaskWorkGuideSteps } from '@/modules/collaboration/domain/contractor-task-work-guide-steps';
 import { EntityDiscussion } from '@/modules/collaboration/ui';
 import { ContractorTaskCommandForm } from '@/modules/collaboration/ui/contractor-task-command-form';
+import { ContractorTaskCurrentDrawingLink } from '@/modules/collaboration/ui/contractor-task-current-drawing-link';
+import { ContractorTaskWorkGuide } from '@/modules/collaboration/ui/contractor-task-work-guide';
 import { requireExternalContext } from '@/modules/contractor-access';
 import { InfraTaskLink } from '@/modules/infra-mapping/ui/infra-task-link';
+import { EXTERNAL_CAPABILITIES as X, hasExternalScope } from '@/shared/external';
 import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
 import { loadOrNotFound } from '@/modules/site-log/shared/page-guard';
 import { Link } from '@/shared/i18n/navigation';
@@ -30,6 +35,29 @@ export default async function ContractorTaskDetailPage({
   );
   const { task } = detail;
   const basePath = `/contractor/projects/${projectId}/tasks`;
+  const externalScope = {
+    organizationId,
+    projectId,
+    vendorId: task.vendorId,
+    subcontractAgreementId: task.subcontractAgreementId,
+  };
+  const canCaptureInfra =
+    hasExternalScope(context, externalScope, X.DOCUMENT_UPLOAD) ||
+    hasExternalScope(context, externalScope, X.DOCUMENT_VIEW);
+  const drawingLink = await resolveContractorPortalTaskDrawingLink(context, {
+    organizationId,
+    projectId,
+    taskId,
+    vendorId: task.vendorId,
+    subcontractAgreementId: task.subcontractAgreementId,
+  });
+  const guideSteps = buildContractorTaskWorkGuideSteps({
+    canAct: task.canAct,
+    availableCommands: task.availableCommands,
+    status: task.status,
+    drawingDrawingId: drawingLink?.drawingId ?? null,
+    canCaptureInfra,
+  });
 
   return (
     <div className="flex min-w-0 flex-col gap-4 pb-6">
@@ -56,17 +84,25 @@ export default async function ContractorTaskDetailPage({
         </CardContent>
       </Card>
 
-      <InfraTaskLink href={`/contractor/projects/${projectId}/infrastructure?taskId=${taskId}`} />
+      <ContractorTaskWorkGuide steps={guideSteps} />
+
+      {drawingLink ? <ContractorTaskCurrentDrawingLink projectId={projectId} drawing={drawingLink} /> : null}
+
+      <div id="contractor-task-infra">
+        <InfraTaskLink href={`/contractor/projects/${projectId}/infrastructure?taskId=${taskId}`} />
+      </div>
 
       {task.canAct && task.availableCommands.length > 0 ? (
-        <WithPortalClientMessages extra={['collaboration']}>
-          <ContractorTaskCommandForm
-            organizationId={organizationId}
-            projectId={projectId}
-            taskId={taskId}
-            commands={task.availableCommands}
-          />
-        </WithPortalClientMessages>
+        <div id="contractor-task-commands">
+          <WithPortalClientMessages extra={['collaboration']}>
+            <ContractorTaskCommandForm
+              organizationId={organizationId}
+              projectId={projectId}
+              taskId={taskId}
+              commands={task.availableCommands}
+            />
+          </WithPortalClientMessages>
+        </div>
       ) : null}
 
       <Card>

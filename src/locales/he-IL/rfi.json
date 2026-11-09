@@ -59,6 +59,11 @@
     "noLocation": "ללא מיקום",
     "drawingReference": "הפניה לתוכנית / גרסה",
     "drawingReferenceHint": "לדוגמה A-101 גרסה C",
+    "projectDrawing": "תוכנית מהפרויקט",
+    "projectDrawingHint": "בחירת תוכנית וגרסה שפורסמו ממאגר התוכניות.",
+    "noProjectDrawing": "ללא תוכנית",
+    "noDrawingRevision": "אין גרסה מפורסמת",
+    "currentRevision": "נוכחית",
     "workPackage": "חבילת עבודה",
     "noWorkPackage": "ללא חבילת עבודה",
     "dueDate": "תשובה נדרשת עד",
@@ -97,7 +102,10 @@
     "attachments": "קבצים מצורפים",
     "discussion": "דיון",
     "reopened": "{count, plural, one {נפתחה מחדש פעם אחת} other {נפתחה מחדש # פעמים}}",
-    "raisedOn": "הועלתה ב־{date}"
+    "raisedOn": "הועלתה ב־{date}",
+    "linkedDrawing": "תוכנית מקושרת",
+    "noLinkedDrawing": "לא קושרה תוכנית.",
+    "openDrawing": "פתיחת תוכנית"
   },
   "history": {
     "created": "נוצרה בסטטוס {status}",

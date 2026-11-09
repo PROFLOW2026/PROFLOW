@@ -114,6 +114,7 @@
     "title": "Field media",
     "videoTitle": "Field video",
     "category": "Category",
+    "createTask": "Open a task from this capture",
     "categories": {
       "progress": "Progress",
       "before": "Before",

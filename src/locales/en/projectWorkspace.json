@@ -7,6 +7,7 @@
     "entryHint": "Open the execution workspace — separate from the commercial project page.",
     "backToProject": "Back to project",
     "navAriaLabel": "Execution management navigation",
+    "operationalToolsAriaLabel": "Project quality and site tools",
     "planningHint": "Coordination, tasks, calendar, and timeline. The classic schedule stays on the work tab of a standard project.",
     "hubs": {
       "overview": "Execution overview",
@@ -51,7 +52,10 @@
       "rfi": "RFIs",
       "submittals": "Submittals",
       "inspections": "Inspections",
+      "projectInspections": "Project inspections",
+      "fieldInspections": "Field inspections",
       "defects": "Defects",
+      "dailyLog": "Daily log",
       "siteLog": "Site log",
       "meetings": "Meetings",
       "instructions": "Instructions",

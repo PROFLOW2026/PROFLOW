@@ -687,3 +687,13 @@ export function recurringTaskGeneratedCopy(
     why: scope.t('itemCopy.recurringTaskGenerated.why'),
   };
 }
+
+export function projectDecisionRecentCopy(
+  scope: CommandCenterCopyScope,
+  input: { excerpt: string; projectName: string },
+): { what: string; why: string } {
+  return {
+    what: scope.t('itemCopy.projectDecisionRecent.what', { excerpt: input.excerpt }),
+    why: scope.t('itemCopy.projectDecisionRecent.why', { projectName: input.projectName }),
+  };
+}

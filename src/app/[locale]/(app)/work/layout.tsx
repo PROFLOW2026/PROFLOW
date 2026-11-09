@@ -12,7 +12,7 @@ export default async function WorkLayout({ children }: { children: React.ReactNo
 
   return (
     <MainAppPage>
-      <WorkHubNav />
+      <WorkHubNav showWorkload={shell.permissions.has(PERMISSIONS.WORKLOAD_READ)} />
       {children}
     </MainAppPage>
   );

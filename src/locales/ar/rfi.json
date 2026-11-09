@@ -59,6 +59,11 @@
     "noLocation": "بدون موقع",
     "drawingReference": "مرجع المخطط / الإصدار",
     "drawingReferenceHint": "مثال: A-101 الإصدار C",
+    "projectDrawing": "مخطط المشروع",
+    "projectDrawingHint": "اختر مخططًا وإصدارًا منشورين من سجل مخططات المشروع.",
+    "noProjectDrawing": "بدون مخطط",
+    "noDrawingRevision": "لا يوجد إصدار منشور",
+    "currentRevision": "الحالي",
     "workPackage": "حزمة العمل",
     "noWorkPackage": "بدون حزمة عمل",
     "dueDate": "الإجابة مطلوبة حتى",
@@ -97,7 +102,10 @@
     "attachments": "المرفقات",
     "discussion": "النقاش",
     "reopened": "{count, plural, one {أُعيد فتحه مرة واحدة} other {أُعيد فتحه # مرات}}",
-    "raisedOn": "قُدِّم في {date}"
+    "raisedOn": "قُدِّم في {date}",
+    "linkedDrawing": "مخطط مرتبط",
+    "noLinkedDrawing": "لا يوجد مخطط مرتبط.",
+    "openDrawing": "فتح المخطط"
   },
   "history": {
     "created": "أُنشئ بحالة {status}",

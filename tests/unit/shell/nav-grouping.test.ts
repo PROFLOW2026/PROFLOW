@@ -181,18 +181,15 @@ describe('nav grouping', () => {
     expect(readers.some((item) => item.key === 'timesheets')).toBe(true);
   });
 
-  it('lists the task status board with the other work management items', () => {
-    const myWorkIndex = NAV_ITEMS.findIndex((item) => item.key === 'myWork');
-    const boardIndex = NAV_ITEMS.findIndex((item) => item.key === 'taskBoard');
-    const calendarIndex = NAV_ITEMS.findIndex((item) => item.key === 'taskCalendar');
-    expect(boardIndex).toBeGreaterThan(myWorkIndex);
-    expect(boardIndex).toBeLessThan(calendarIndex);
-
-    const board = NAV_ITEMS[boardIndex];
-    expect(board?.href).toBe('/work/board');
-    expect(board?.permission).toBe(PERMISSIONS.TASKS_READ);
-    expect(board?.module).toBe('work_management');
-    expect(board?.moreGroup).toBe('workManagement');
+  it('keeps one work entry and leaves the lenses on WorkHubNav routes', () => {
+    const myWork = NAV_ITEMS.find((item) => item.key === 'myWork');
+    expect(myWork?.href).toBe('/work');
+    expect(myWork?.permission).toBe(PERMISSIONS.TASKS_READ);
+    expect(myWork?.module).toBe('work_management');
+    expect(myWork?.moreGroup).toBe('workManagement');
+    for (const key of ['taskBoard', 'taskCalendar', 'taskTimeline', 'taskInsights']) {
+      expect(NAV_ITEMS.some((item) => item.key === key)).toBe(false);
+    }
   });
 
   it('keeps cash flow visible in simple depth when the user can read financials', () => {

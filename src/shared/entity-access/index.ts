@@ -1,3 +1,4 @@
+import { BOQ_ENTITY_RESOLVERS } from './resolvers/boq';
 import { CLAIMS_ENTITY_RESOLVERS } from './resolvers/claims';
 import { COLLAB_ENTITY_RESOLVERS } from './resolvers/collab';
 import { COMPLIANCE_ENTITY_RESOLVERS } from './resolvers/compliance';
@@ -19,6 +20,7 @@ import type { DbExecutor } from '@/shared/db/types';
 export type { EntityAccessResolver, EntityScope } from './types';
 
 const RESOLVERS: readonly EntityAccessResolver[] = [
+  ...BOQ_ENTITY_RESOLVERS,
   ...CLAIMS_ENTITY_RESOLVERS,
   ...COLLAB_ENTITY_RESOLVERS,
   ...COMPLIANCE_ENTITY_RESOLVERS,

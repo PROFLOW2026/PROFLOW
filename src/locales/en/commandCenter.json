@@ -95,6 +95,7 @@
     "task_overdue": "Overdue task",
     "task_due_today": "Task due today",
     "task_unassigned": "Unassigned task",
+    "project_decision_recent": "Project decision",
     "storage_attention": "File storage",
     "statutory_attention": "Tax document",
     "dg_claim_awaiting_review": "Contractor claim to review",
@@ -410,6 +411,10 @@
     "recurringTaskGenerated": {
       "what": "Recurring task generated - {title}",
       "why": "A new instance was created from a recurring template."
+    },
+    "projectDecisionRecent": {
+      "what": "Decision logged — {excerpt}",
+      "why": "Recorded on project {projectName}."
     },
     "reportMonthLabel": "{month} {year}",
     "reportMonths": {

@@ -39,6 +39,8 @@ export interface NotificationPanelProps {
   readonly density?: 'compact' | 'full';
   /** Bell popover links to the inbox. The inbox page hides this self-link. */
   readonly showViewAll?: boolean;
+  /** Inbox route for this shell. Employee uses `/employee/notifications`. */
+  readonly inboxHref?: string;
 }
 
 export function NotificationPanel({
@@ -53,6 +55,7 @@ export function NotificationPanel({
   onNavigate,
   density = 'compact',
   showViewAll = true,
+  inboxHref = '/notifications',
 }: NotificationPanelProps) {
   const t = useTranslations('notifications');
   const compact = density === 'compact';
@@ -207,7 +210,7 @@ export function NotificationPanel({
       {showViewAll ? (
         <div className="border-t border-[var(--pf-border-default)] px-3 py-2">
           <Link
-            href="/notifications"
+            href={inboxHref}
             className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--pf-text-brand)]"
             onClick={() => onNavigate?.()}
           >

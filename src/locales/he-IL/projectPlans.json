@@ -86,6 +86,22 @@
       "withdrawn": "בוטלה"
     }
   },
+  "sheetMarks": {
+    "title": "סקירת גיליון",
+    "previewPdf": "תצוגה",
+    "toolView": "צפייה",
+    "toolPin": "נקודה",
+    "toolNote": "הערה",
+    "toolMeasure": "מדידה",
+    "notePrompt": "טקסט הערה",
+    "boqPrompt": "מזהה סעיף כתב כמויות (אופציונלי)",
+    "scalePrompt": "מטרים לפיקסל על המסך",
+    "scaleLabel": "מ׳/פיקסל",
+    "compareTitle": "השוואת מהדורות",
+    "compareLeft": "מהדורה שמאל",
+    "compareRight": "מהדורה ימין",
+    "compareAction": "השוואה"
+  },
   "revision": {
     "uploadTitle": "מהדורה חדשה",
     "label": "תווית מהדורה",

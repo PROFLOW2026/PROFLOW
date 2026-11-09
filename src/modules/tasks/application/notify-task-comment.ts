@@ -12,6 +12,7 @@ import {
 import { taskDeepLinkForRecipient } from '@/modules/notifications/domain/task-links';
 import { notificationsCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
 import { listTaskFollowerUserIds } from '../data/tasks.repository';
+import { trySendTaskCommentMentionEmail } from './task-comment-mention-email';
 
 async function resolveTaskAssigneeUserIds(
   context: OrgContext,
@@ -87,17 +88,30 @@ async function emitTaskCommentNotification(
   );
   const recipientIsEmployee = account != null && isActiveEmployeeAppAccount(account);
 
+  const dedupeKey = `${input.type}:${input.commentId}:${input.recipientUserId}`;
+  const deepLink = taskDeepLinkForRecipient(`/tasks/${input.taskId}`, recipientIsEmployee);
+
   await emitNotification(context, {
     recipientUserId: input.recipientUserId,
     type: input.type,
     title: copy.title,
     body: copy.body,
-    dedupeKey: `${input.type}:${input.commentId}:${input.recipientUserId}`,
+    dedupeKey,
     entityType: 'task',
     entityId: input.taskId,
-    deepLink: taskDeepLinkForRecipient(`/tasks/${input.taskId}`, recipientIsEmployee),
+    deepLink,
     severity: 'info',
   });
+
+  if (input.type === 'task_comment_mention') {
+    await trySendTaskCommentMentionEmail(context, {
+      dedupeKey,
+      recipientUserId: input.recipientUserId,
+      subject: copy.title,
+      body: copy.body,
+      deepLink,
+    });
+  }
 }
 
 /**

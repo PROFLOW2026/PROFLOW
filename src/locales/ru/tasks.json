@@ -559,6 +559,8 @@
     "switcherLabel": "Переключить доску",
     "default": "По умолчанию",
     "createBoard": "Создать доску",
+    "fromTemplate": "Шаблон задачи",
+    "applyTemplate": "Создать задачу из шаблона",
     "createNameLabel": "Название доски",
     "createDescription": "Создать новую доску в {workspace}",
     "createFirst": "Создайте первую доску",

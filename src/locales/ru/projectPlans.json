@@ -86,6 +86,22 @@
       "withdrawn": "Отозвана"
     }
   },
+  "sheetMarks": {
+    "title": "Просмотр листа",
+    "previewPdf": "Просмотр",
+    "toolView": "Смотреть",
+    "toolPin": "Метка",
+    "toolNote": "Заметка",
+    "toolMeasure": "Измерение",
+    "notePrompt": "Текст заметки",
+    "boqPrompt": "ID узла BOQ (необязательно)",
+    "scalePrompt": "Метров на пиксель на экране",
+    "scaleLabel": "м/пкс",
+    "compareTitle": "Сравнение редакций",
+    "compareLeft": "Слева",
+    "compareRight": "Справа",
+    "compareAction": "Сравнить"
+  },
   "revision": {
     "uploadTitle": "Новая редакция",
     "label": "Обозначение редакции",

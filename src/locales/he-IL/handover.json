@@ -35,6 +35,18 @@
     "itemSubmitted": "הפריט הוגש",
     "itemNotes": "הערות (אופציונלי)"
   },
+  "portalWarranty": {
+    "title": "דיווחי אחריות",
+    "description": "דווח על ליקויי אחריות בעבודת המשנה שלך.",
+    "reportSection": "דיווח חדש",
+    "reportTitle": "כותרת הדיווח",
+    "notes": "הערות (אופציונלי)",
+    "agreement": "הסכם משנה",
+    "chooseAgreement": "בחר הסכם",
+    "submit": "שלח דיווח",
+    "submitted": "הדיווח נשלח",
+    "empty": "אין עדיין דיווחי אחריות."
+  },
   "itemStatus": {
     "pending": "ממתין",
     "submitted": "הוגש",

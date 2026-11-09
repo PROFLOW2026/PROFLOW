@@ -86,6 +86,22 @@
       "withdrawn": "Withdrawn"
     }
   },
+  "sheetMarks": {
+    "title": "Sheet review",
+    "previewPdf": "Preview",
+    "toolView": "View",
+    "toolPin": "Pin",
+    "toolNote": "Note",
+    "toolMeasure": "Measure",
+    "notePrompt": "Note text",
+    "boqPrompt": "BOQ node id (optional)",
+    "scalePrompt": "Meters per pixel on screen",
+    "scaleLabel": "m/px",
+    "compareTitle": "Compare revisions",
+    "compareLeft": "Left rev",
+    "compareRight": "Right rev",
+    "compareAction": "Compare"
+  },
   "revision": {
     "uploadTitle": "New revision",
     "label": "Revision label",

@@ -10,13 +10,14 @@ import { DrawingVisibilityForm } from '@/modules/project-plans/ui/drawing-visibi
 import { RevisionUploadForm } from '@/modules/project-plans/ui/revision-upload-form';
 import { PROJECT_CAPABILITIES } from '@/modules/project-team';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
+import { EntityLinkedTasksSection } from '@/modules/collaboration/ui';
 import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
 import { projectFileDeps } from '@/modules/evidence/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError, NotFoundError } from '@/shared/errors';
 import { Link } from '@/shared/i18n/navigation';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
-import { INTERNAL_REVISION_DOWNLOAD_PATH } from '@/modules/project-plans/routes';
+import { InternalDrawingRevisionsPanel } from '@/modules/project-plans/ui/internal-drawing-revisions-panel';
 
 export async function ProjectDrawingDetailScreen({ surfaceRoot,
   params,
@@ -82,28 +83,22 @@ export async function ProjectDrawingDetailScreen({ surfaceRoot,
           <CardTitle>{t('revisions')}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-          {detail.revisions.map((revision) => (
-            <div key={revision.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--pf-border-default)] py-2 last:border-0">
-              <div>
-                <span className="font-medium">Rev {revision.revisionLabel}</span>
-                <Badge tone="neutral" className="ms-2">
-                  {t(`revisionStatus.${revision.status}`)}
-                </Badge>
-              </div>
-              {revision.fileReady ? (
-                <a
-                  href={`${INTERNAL_REVISION_DOWNLOAD_PATH}/${revision.id}`}
-                  className="text-sm text-[var(--pf-text-brand)] hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {revision.fileName}
-                </a>
-              ) : null}
-            </div>
-          ))}
+          <WithAppClientMessages extra={['projectPlans']}>
+            <InternalDrawingRevisionsPanel
+              projectId={projectId}
+              revisions={detail.revisions}
+              canManage={detail.canManage}
+            />
+          </WithAppClientMessages>
         </CardContent>
       </Card>
+
+      <EntityLinkedTasksSection
+        projectId={projectId}
+        entityType="drawing"
+        entityId={drawingId}
+        defaultTaskTitle={`${detail.drawing.drawingNumber} · ${detail.drawing.title}`}
+      />
 
       <Card>
         <CardHeader>

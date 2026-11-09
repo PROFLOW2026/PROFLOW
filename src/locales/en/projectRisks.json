@@ -1,0 +1,32 @@
+{
+  "title": "Project risk register",
+  "description": "Track threats to schedule, cost and quality. Score is probability × impact (1–25).",
+  "fields": {
+    "description": "Risk description",
+    "probability": "Probability (1–5)",
+    "impact": "Impact (1–5)",
+    "treatment": "Treatment / mitigation",
+    "status": "Status",
+    "reviewOn": "Next review"
+  },
+  "status": {
+    "open": "Open",
+    "mitigating": "Mitigating",
+    "closed": "Closed"
+  },
+  "form": {
+    "title": "Add risk",
+    "description": "Document a risk and how the team will address it.",
+    "submit": "Save risk"
+  },
+  "list": {
+    "title": "Register",
+    "description": "Risks sorted by exposure score.",
+    "empty": "No risks recorded for this project yet.",
+    "score": "Score {score}"
+  },
+  "errors": {
+    "not_allowed": "You do not have permission to change risks on this project.",
+    "validation_failed": "Check the form fields and try again."
+  }
+}

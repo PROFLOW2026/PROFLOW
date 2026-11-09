@@ -32,7 +32,7 @@ export function hrefForRelatedEntity(
     case 'project':
       return `/projects/${entityId}`;
     case 'project_milestone':
-      return projectId ? `/projects/${projectId}?tab=milestones` : null;
+      return projectId ? `/projects/${projectId}` : null;
     default:
       return projectId ? `/projects/${projectId}` : null;
   }

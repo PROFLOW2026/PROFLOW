@@ -253,6 +253,11 @@ export function ProjectPlanningPanel({
       {!criticalPathFoundation.supported ? (
         <p className="text-xs text-[var(--pf-text-secondary)]">{t.criticalPathLimitation}</p>
       ) : null}
+      {criticalPathFoundation.heuristicLongestPathIds.length > 0 ? (
+        <p className="text-xs text-[var(--pf-text-secondary)]">
+          {t.fsChain.replace('{count}', String(criticalPathFoundation.heuristicLongestPathIds.length))}
+        </p>
+      ) : null}
     </section>
   );
 }

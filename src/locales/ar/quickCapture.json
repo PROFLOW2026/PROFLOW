@@ -114,6 +114,7 @@
     "title": "توثيق ميداني",
     "videoTitle": "فيديو ميداني",
     "category": "الفئة",
+    "createTask": "فتح مهمة من هذا الالتقاط",
     "categories": {
       "progress": "تقدم",
       "before": "قبل",

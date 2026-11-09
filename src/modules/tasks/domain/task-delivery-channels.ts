@@ -19,3 +19,11 @@ export function resolveTaskDeliveryChannelStatus(
     push: 'disconnected',
   };
 }
+
+/** Device push stays off unless explicitly enabled and VAPID keys are present. */
+export function isPushDeliveryEnabled(): boolean {
+  if (process.env.PUSH_DELIVERY_ENABLED !== 'true') return false;
+  const publicKey = process.env.VAPID_PUBLIC_KEY?.trim();
+  const privateKey = process.env.VAPID_PRIVATE_KEY?.trim();
+  return Boolean(publicKey && privateKey);
+}

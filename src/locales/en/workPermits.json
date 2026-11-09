@@ -1,0 +1,41 @@
+{
+  "title": "Work permits",
+  "description": "Request, submit, and approve site work permits.",
+  "fields": {
+    "title": "Title",
+    "permitType": "Permit type",
+    "validFrom": "Valid from",
+    "validUntil": "Valid until",
+    "notes": "Notes"
+  },
+  "status": {
+    "draft": "Draft",
+    "submitted": "Submitted",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "closed": "Closed"
+  },
+  "create": {
+    "action": "New permit",
+    "title": "New work permit",
+    "submit": "Save draft",
+    "cancel": "Cancel"
+  },
+  "actions": {
+    "submit": "Submit",
+    "approve": "Approve",
+    "reject": "Reject"
+  },
+  "empty": {
+    "title": "No work permits",
+    "description": "Create a draft permit and submit it for approval."
+  },
+  "portal": {
+    "title": "Work permits",
+    "description": "Approved and pending permits on this project.",
+    "empty": "No work permits on this project."
+  },
+  "errors": {
+    "invalidTransition": "That status change is not allowed."
+  }
+}

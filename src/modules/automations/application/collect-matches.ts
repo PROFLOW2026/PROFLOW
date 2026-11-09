@@ -318,7 +318,7 @@ export async function collectPresetMatches(
             entityId: milestone.id,
             title: milestone.name,
             body: milestone.targetDate ?? milestone.name,
-            href: `/projects/${project.id}?tab=milestones`,
+            href: `/projects/${project.id}`,
             projectId: project.id,
           });
         }

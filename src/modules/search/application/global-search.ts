@@ -19,6 +19,7 @@ import {
   documentSearchHref,
   employeeSearchHref,
   expenseSearchHref,
+  opportunitySearchHref,
   purchaseOrderSearchHref,
   quoteSearchHref,
   taskSearchHref,
@@ -42,6 +43,7 @@ import {
   searchDocuments,
   searchEmployees,
   searchExpenses,
+  searchOpportunities,
   searchProjects,
   searchPurchaseOrders,
   searchQuotes,
@@ -329,6 +331,24 @@ async function fetchExpenseHits(
   }));
 }
 
+async function fetchOpportunityHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  if (!hasPermission(context, PERMISSIONS.CRM_READ)) return [];
+  const hits = await searchOpportunities(context.db, context.organizationId, query, limit);
+  return hits.map((hit) => ({
+    kind: 'opportunity' as const,
+    id: hit.id,
+    title: hit.name,
+    subtitle: hit.stage,
+    href: opportunitySearchHref(hit.id),
+    status: hit.status,
+    contextLabel: hit.stage,
+  }));
+}
+
 async function fetchPurchaseOrderHits(
   context: OrgContext,
   query: string,
@@ -373,6 +393,7 @@ async function fetchAllowedHits(
   if (kinds.has('contract')) jobs.push(fetchContractHits(context, query, limit, scope));
   if (kinds.has('expense')) jobs.push(fetchExpenseHits(context, query, limit));
   if (kinds.has('purchase_order')) jobs.push(fetchPurchaseOrderHits(context, query, limit));
+  if (kinds.has('opportunity')) jobs.push(fetchOpportunityHits(context, query, limit));
 
   const lists = await Promise.all(jobs);
   return lists.flat();

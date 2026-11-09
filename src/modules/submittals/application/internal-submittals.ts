@@ -6,6 +6,7 @@ import { todayInTimeZone } from '@/shared/dates';
 import { withTransaction } from '@/shared/db';
 import { AuthorizationError, ConflictError, DomainRuleError, NotFoundError } from '@/shared/errors';
 import { DOMAIN_EVENTS, emitDomainEvent } from '@/shared/domain-events';
+import { resolveDrawingLink, type ResolvedDrawingLink } from '@/modules/project-plans';
 import { assertProjectCapability, loadProjectCapabilities, PROJECT_CAPABILITIES } from '@/modules/project-team';
 import {
   assertProjectAssignee,
@@ -320,6 +321,7 @@ export interface InternalSubmittalView extends SubmittalDetail {
   readonly availableActions: readonly SubmittalAction[];
   /** Draft revision open for notes / attachments. */
   readonly draftRevisionId: string | null;
+  readonly linkedDrawing: ResolvedDrawingLink | null;
 }
 
 export async function getSubmittal(context: OrgContext, submittalId: string): Promise<InternalSubmittalView> {
@@ -336,11 +338,18 @@ export async function getSubmittal(context: OrgContext, submittalId: string): Pr
       option.id === detail.subcontractAgreementId ||
       (!detail.subcontractAgreementId && option.vendorId === detail.vendorId),
   );
+  const linkedDrawing = await resolveDrawingLink(
+    context.db,
+    context.organizationId,
+    detail.drawingId,
+    detail.drawingRevisionId,
+  );
   return {
     ...detail,
     vendorName: detail.vendorName ?? contractor?.vendorName ?? null,
     agreementTitle:
       detail.agreementTitle ?? (detail.subcontractAgreementId ? (contractor?.title ?? null) : null),
+    linkedDrawing,
     overdue: isSubmittalOverdue(detail, todayInTimeZone(context.organization.timezone)),
     canManage,
     availableActions: canManage ? availableSubmittalActions(detail.status, 'internal') : [],

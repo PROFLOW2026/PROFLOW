@@ -302,6 +302,51 @@
       "notes": "הערות"
     }
   },
+  "supplierRfqLink": {
+    "invitedAs": "בקשת הצעת מחיר עבור {vendor}",
+    "dueDate": "מועד",
+    "requestedLines": "פריטים מבוקשים",
+    "submitSection": "ההצעה שלכם",
+    "staff": {
+      "title": "קישור להצעת ספק",
+      "description": "צרו קישור חד־פעמי כדי שהספק יוכל להגיש הצעה אונליין. הקישור תקף פעם אחת ופג תוקף אוטומטית.",
+      "vendorLabel": "ספק",
+      "vendorPlaceholder": "בחירת ספק",
+      "createLink": "יצירת קישור",
+      "linkReady": "העתיקו את הקישור עכשיו — הוא מוצג פעם אחת בלבד.",
+      "expiresAt": "תוקף",
+      "copy": "העתקת קישור",
+      "copied": "הקישור הועתק.",
+      "copyFailed": "לא ניתן להעתיק. סמנו את הקישור והעתיקו ידנית.",
+      "created": "הקישור נוצר.",
+      "createFailed": "לא ניתן ליצור קישור.",
+      "oneTimeHint": "כל קישור מאפשר הגשת הצעה אחת.",
+      "rfqMustBeSent": "סמנו את בקשת ההצעה כ״נשלחה״ לפני הזמנת ספק."
+    },
+    "form": {
+      "receivedOnLabel": "תאריך הצעה",
+      "linesTitle": "שורות הצעה",
+      "addLine": "הוספת שורה",
+      "removeLine": "הסרה",
+      "lineDescription": "תיאור",
+      "lineQuantity": "כמות",
+      "lineUnitAmount": "מחיר יחידה",
+      "lineTotal": "סה\"כ שורה",
+      "totalLabel": "סה\"כ הצעה",
+      "notesLabel": "הערות",
+      "submit": "שליחת הצעה",
+      "success": "תודה — ההצעה התקבלה."
+    },
+    "errors": {
+      "invalid": "קישור ההצעה אינו תקין.",
+      "expired": "תוקף קישור ההצעה פג.",
+      "used": "קישור ההצעה כבר נוצל.",
+      "unavailable": "הגשת הצעות ספק אונליין אינה זמינה כרגע.",
+      "rfqNotOpen": "בקשה זו אינה מקבלת עוד הצעות.",
+      "rfqNotSent": "סמנו את בקשת ההצעה כ״נשלחה״ לפני יצירת קישור לספק.",
+      "rateLimited": "יותר מדי ניסיונות. המתינו רגע ונסו שוב."
+    }
+  },
   "materialTrade": {
     "sectionTitle": "סיווג שוק חומרים",
     "label": "קטגוריית סחר בשוק",

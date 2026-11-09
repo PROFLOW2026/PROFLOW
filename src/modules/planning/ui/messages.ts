@@ -31,6 +31,7 @@ export interface PlanningMessages {
   readonly phase: string;
   readonly today: string;
   readonly criticalPathLimitation: string;
+  readonly fsChain: string;
   readonly legendPlanned: string;
   readonly legendOverdue: string;
   readonly legendProgress: string;
@@ -59,7 +60,8 @@ const HE: PlanningMessages = {
   phase: 'שלב',
   today: 'היום',
   criticalPathLimitation:
-    'תכנון קל בלבד: תלויות סיום-להתחלה (FS). אין נתיב קריטי, אין CPM, אין השהיה/הקדמה, ואין לוח עבודה. זה אינו MS Project.',
+    'תכנון קל בלבד: תלויות סיום-להתחלה (FS). אין נתיב קריטי מלא, אין לוח עבודה ואין השהיה. זה אינו MS Project.',
+  fsChain: 'השרשרת הארוכה ביותר בסיום-להתחלה: {count} פריטים. זה אינו CPM מלא.',
   legendPlanned: 'מתוכנן',
   legendOverdue: 'באיחור',
   legendProgress: 'התקדמות',
@@ -88,7 +90,8 @@ const EN: PlanningMessages = {
   phase: 'Phase',
   today: 'Today',
   criticalPathLimitation:
-    'Light planning only: finish-to-start (FS) dependencies. No critical path, no CPM, no lag/lead, and no working calendars. This is not MS Project.',
+    'Light planning only: finish-to-start (FS) dependencies. No full critical path, no working calendar, and no lag. This is not MS Project.',
+  fsChain: 'Longest finish-to-start chain: {count} items. This is not full CPM.',
   legendPlanned: 'Planned',
   legendOverdue: 'Overdue',
   legendProgress: 'Progress',
@@ -118,6 +121,7 @@ function pickPlanningMessages(source: typeof arPlanning): PlanningMessages {
     phase: source.phase,
     today: source.today,
     criticalPathLimitation: source.criticalPathLimitation,
+    fsChain: 'fsChain' in source && typeof source.fsChain === 'string' ? source.fsChain : EN.fsChain,
     legendPlanned: source.legendPlanned,
     legendOverdue: source.legendOverdue,
     legendProgress: source.legendProgress,

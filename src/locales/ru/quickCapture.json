@@ -114,6 +114,7 @@
     "title": "Полевые материалы",
     "videoTitle": "Полевое видео",
     "category": "Категория",
+    "createTask": "Открыть задачу из этой загрузки",
     "categories": {
       "progress": "Прогресс",
       "before": "До",

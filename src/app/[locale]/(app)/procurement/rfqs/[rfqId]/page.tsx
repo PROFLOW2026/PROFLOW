@@ -31,8 +31,10 @@ import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { publicEnv } from '@/shared/env/public';
 import { AcceptQuoteButton, CreatePoFromQuoteButton, RfqStatusButton } from './rfq-actions';
 import { QuoteCaptureForm } from './quote-capture-form';
+import { RfqSupplierLinkPanel } from './rfq-supplier-link-panel';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
@@ -108,6 +110,7 @@ export default async function RfqDetailPage({
   if (!data) notFound();
   const { detail, quotes, comparison, vendors, documentsPanel, canManage, defaultCurrency } = data;
   const { rfq, lines } = detail;
+  const appOrigin = publicEnv.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? '';
   return (
     <MainAppPage>
       <PageHeader
@@ -391,7 +394,16 @@ export default async function RfqDetailPage({
       </MainAppSection>
 
       {canManage && vendors.length > 0 ? (
-        <MainAppSection>
+        <MainAppSection className="gap-6">
+          {appOrigin ? (
+            <RfqSupplierLinkPanel
+              rfqId={rfq.id}
+              rfqStatus={rfq.status}
+              vendors={vendors}
+              appOrigin={appOrigin}
+              locale={locale}
+            />
+          ) : null}
           <QuoteCaptureForm
             rfqId={rfq.id}
             defaultCurrency={defaultCurrency}

@@ -114,6 +114,7 @@
     "title": "תיעוד מהשטח",
     "videoTitle": "סרטון שטח",
     "category": "קטגוריה",
+    "createTask": "פתח משימה מהקליטה",
     "categories": {
       "progress": "התקדמות",
       "before": "לפני",

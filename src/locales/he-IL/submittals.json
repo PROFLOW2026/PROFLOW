@@ -71,6 +71,11 @@
     "noLocation": "ללא מיקום",
     "drawingReference": "הפניה לתוכנית / גרסה",
     "drawingReferenceHint": "לדוגמה A-101 גרסה C",
+    "projectDrawing": "תוכנית מהפרויקט",
+    "projectDrawingHint": "בחירת תוכנית וגרסה שפורסמו ממאגר התוכניות.",
+    "noProjectDrawing": "ללא תוכנית",
+    "noDrawingRevision": "אין גרסה מפורסמת",
+    "currentRevision": "נוכחית",
     "workPackage": "חבילת עבודה",
     "noWorkPackage": "ללא חבילת עבודה",
     "dueDate": "בדיקה נדרשת עד",
@@ -102,7 +107,10 @@
     "reviewedBy": "על ידי {name}",
     "awaitingReview": "ממתינה לבדיקה",
     "attachments": "קבצי הגרסה",
-    "discussion": "דיון"
+    "discussion": "דיון",
+    "linkedDrawing": "תוכנית מקושרת",
+    "noLinkedDrawing": "לא קושרה תוכנית.",
+    "openDrawing": "פתיחת תוכנית"
   },
   "actions": {
     "title": "פעולות",

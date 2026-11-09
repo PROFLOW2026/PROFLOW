@@ -16,6 +16,7 @@ import {
   eq,
   exists,
   gte,
+  isNotNull,
   isNull,
   lt,
   lte,
@@ -25,6 +26,7 @@ import {
 } from 'drizzle-orm';
 import {
   approvalRequests,
+  collabComments,
   projectMilestones,
   projects,
   taskActivity,
@@ -32,6 +34,9 @@ import {
   tasks,
   taskRecurrenceOccurrences,
 } from '@drizzle/schema';
+import { internalEntityHref } from '@/modules/collaboration/domain/activity';
+import { resolveAccessibleProjectIds } from '@/modules/projects/application/project-access';
+import { sqlUuidEqAny } from '@/modules/tasks/domain/task-project-access-filter';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { addDays, businessDate, daysBetween } from '@/shared/dates';
@@ -39,6 +44,7 @@ import { withItemDefaults } from '../domain/ranking';
 import {
   fallbackWhere,
   milestoneApproachingCopy,
+  projectDecisionRecentCopy,
   projectStaleCopy,
   recurringTaskGeneratedCopy,
   taskApprovalRequestedCopy,
@@ -83,6 +89,13 @@ const MILESTONE_LOOKAHEAD_DAYS = 7;
 const STALE_THRESHOLD_DAYS = 14;
 const BLOCKED_THRESHOLD_DAYS = 3;
 const RECURRING_LOOKBACK_HOURS = 24;
+const DECISION_LOOKBACK_DAYS = 14;
+
+function excerptCollabBody(body: string, max = 120): string {
+  const trimmed = body.trim().replace(/\s+/g, ' ');
+  if (trimmed.length <= max) return trimmed;
+  return `${trimmed.slice(0, max - 1)}…`;
+}
 
 function postgresErrorCode(error: unknown): string {
   if (!error || typeof error !== 'object') return '';
@@ -512,7 +525,7 @@ export async function collectMilestoneApproaching(
       what: copy.what,
       why: copy.why,
       where: row.projectName,
-      href: `/projects/${row.projectId}?tab=milestones`,
+      href: `/projects/${row.projectId}`,
       severity: daysLeft <= 2 ? 'high' : 'medium',
       urgencyBump: Math.min(99, (MILESTONE_LOOKAHEAD_DAYS - daysLeft) * 10),
       meta: { projectId: row.projectId, targetDate, daysLeft },
@@ -664,6 +677,88 @@ export async function collectRecurringTaskGenerated(
   });
 }
 
+// ─── project_decision_recent ──────────────────────────────────────────────────
+
+/**
+ * Recent internal decision posts on projects the viewer can access (collab_comments.kind).
+ */
+export async function collectProjectDecisionRecent(
+  ctx: CollectContext,
+): Promise<CommandCenterItem[]> {
+  if (!hasPermission(ctx.context, PERMISSIONS.PROJECTS_READ)) return [];
+
+  const accessibleProjectIds = await resolveAccessibleProjectIds(ctx.context);
+  if (accessibleProjectIds !== null && accessibleProjectIds.length === 0) return [];
+
+  const since = addDays(ctx.today, -DECISION_LOOKBACK_DAYS);
+  const accessFilter =
+    accessibleProjectIds === null
+      ? []
+      : [sqlUuidEqAny(collabComments.projectId, accessibleProjectIds)];
+
+  const rows = await safeQuery(ctx.context.db, () =>
+    ctx.context.db
+      .select({
+        id: collabComments.id,
+        body: collabComments.body,
+        projectId: collabComments.projectId,
+        projectName: projects.name,
+        entityType: collabComments.entityType,
+        entityId: collabComments.entityId,
+        createdAt: collabComments.createdAt,
+      })
+      .from(collabComments)
+      .innerJoin(
+        projects,
+        and(
+          eq(projects.id, collabComments.projectId),
+          eq(projects.organizationId, collabComments.organizationId),
+          isNull(projects.archivedAt),
+        ),
+      )
+      .where(
+        and(
+          eq(collabComments.organizationId, ctx.context.organizationId),
+          eq(collabComments.kind, 'decision'),
+          eq(collabComments.audience, 'internal'),
+          isNotNull(collabComments.projectId),
+          gte(collabComments.createdAt, sql`${since}::date::timestamptz`),
+          ...accessFilter,
+        ),
+      )
+      .orderBy(desc(collabComments.createdAt))
+      .limit(PER_SOURCE_CAP),
+  );
+
+  return rows.map((row) => {
+    const projectId = row.projectId!;
+    const excerpt = excerptCollabBody(row.body);
+    const copy = projectDecisionRecentCopy(ctx.copyScope, {
+      excerpt,
+      projectName: row.projectName,
+    });
+    const href =
+      internalEntityHref(projectId, row.entityType, row.entityId) ?? `/projects/${projectId}`;
+    const daysAgo = daysBetween(businessDate(row.createdAt.toISOString().slice(0, 10)), ctx.today);
+    return withItemDefaults({
+      sourceType: 'project_decision_recent',
+      sourceId: row.id,
+      what: copy.what,
+      why: copy.why,
+      where: row.projectName,
+      href,
+      severity: daysAgo <= 2 ? 'high' : 'medium',
+      urgencyBump: Math.min(99, Math.max(0, DECISION_LOOKBACK_DAYS - daysAgo) * 3),
+      meta: {
+        projectId,
+        entityType: row.entityType,
+        entityId: row.entityId,
+        daysAgo,
+      },
+    });
+  });
+}
+
 /** Run UWM scanners sequentially so savepoint isolation stays predictable. */
 export async function collectUwmTaskSources(ctx: CollectContext): Promise<CommandCenterItem[]> {
   const useEmployeeTaskLinks = await resolveUseEmployeeTaskDeepLinks(ctx.context);
@@ -678,6 +773,7 @@ export async function collectUwmTaskSources(ctx: CollectContext): Promise<Comman
     collectMilestoneApproaching,
     collectProjectStale,
     collectRecurringTaskGenerated,
+    collectProjectDecisionRecent,
   ] as const;
 
   const items: CommandCenterItem[] = [];

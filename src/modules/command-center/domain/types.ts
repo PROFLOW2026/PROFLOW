@@ -57,6 +57,7 @@ export const COMMAND_CENTER_SOURCE_TYPES = [
   'milestone_approaching',
   'project_stale',
   'recurring_task_generated',
+  'project_decision_recent',
   'storage_attention',
   'statutory_attention',
   // ── Developer / GC (collectors behind ports, data/collect-dg.ts) ────────────

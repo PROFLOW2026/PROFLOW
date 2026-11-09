@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { OrgShellMark } from '@/components/shell/org-shell-mark';
 import { ThemeHeaderToggle } from '@/components/shell/theme-switcher';
 import { EmployeeUserMenu } from './employee-user-menu';
@@ -8,6 +9,7 @@ export interface EmployeeTopBarProps {
   readonly organizationName: string;
   readonly avatarUrl?: string | null;
   readonly userId: string;
+  readonly bell?: ReactNode;
 }
 
 export function EmployeeTopBar({
@@ -16,6 +18,7 @@ export function EmployeeTopBar({
   organizationName,
   avatarUrl = null,
   userId,
+  bell = null,
 }: EmployeeTopBarProps) {
   return (
     <header data-pf-slot="topbar" className="sticky top-0 z-40 flex h-[var(--pf-topbar-height)] w-full shrink-0 items-center gap-2 border-b border-[var(--pf-border-default)] bg-[color-mix(in_srgb,var(--pf-bg-surface)_92%,transparent)] px-4 backdrop-blur-md print:hidden sm:gap-3 supports-[backdrop-filter]:bg-[color-mix(in_srgb,var(--pf-bg-surface)_84%,transparent)]">
@@ -28,6 +31,7 @@ export function EmployeeTopBar({
 
       <div className="min-w-0 flex-1" />
 
+      {bell}
       <ThemeHeaderToggle />
       <EmployeeUserMenu
         employeeName={employeeName}

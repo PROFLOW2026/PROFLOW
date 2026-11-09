@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { EntityDiscussion, EntityLinkedTasksSection } from '@/modules/collaboration/ui';
 import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
+import { DrawingLinkDetail } from '@/modules/project-plans/ui/drawing-link-detail';
 import { formatSubmittalNumber, getSubmittal, submittalStatusTone } from '@/modules/submittals';
 import { SubmittalDetailActions } from '@/modules/submittals/ui/submittal-detail-actions';
 import { statusTone } from '@/modules/submittals/ui/tones';
@@ -40,6 +41,7 @@ export async function ProjectSubmittalDetailScreen({ surfaceRoot,
   const { detail, timeZone } = data;
   const [t, locale] = await Promise.all([getTranslations('submittals'), getLocale()]);
   const base = `${surfaceRoot ?? ('/projects/' + projectId)}/submittals`;
+  const plansBase = `${surfaceRoot ?? ('/projects/' + projectId)}/plans`;
   const currentRevision = detail.revisions.find((r) => r.revisionNumber === detail.currentRevisionNumber);
 
   return (
@@ -176,6 +178,22 @@ export async function ProjectSubmittalDetailScreen({ surfaceRoot,
                   {formatBusinessDate(detail.dueDate as never, locale)}
                 </div>
               ) : null}
+              <div>
+                <p className="mb-1 text-[var(--pf-text-secondary)]">{t('detail.linkedDrawing')}</p>
+                <DrawingLinkDetail
+                  labels={{
+                    link: t('fields.projectDrawing'),
+                    reference: t('fields.drawingReference'),
+                    empty: t('detail.noLinkedDrawing'),
+                    openPlan: t('detail.openDrawing'),
+                  }}
+                  drawingId={detail.drawingId}
+                  drawingRevisionId={detail.drawingRevisionId}
+                  drawingReference={detail.drawingReference}
+                  resolved={detail.linkedDrawing}
+                  planHref={detail.drawingId ? `${plansBase}/${detail.drawingId}` : null}
+                />
+              </div>
             </CardContent>
           </Card>
 

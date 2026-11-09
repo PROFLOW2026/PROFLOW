@@ -26,12 +26,14 @@
     "compliance": "Compliance",
     "deliveries": "Deliveries",
     "safety": "Safety",
+    "permits": "Work permits",
     "contract": "My contract",
     "contractChanges": "Contract changes",
     "claims": "Progress claims",
     "payments": "Payments",
     "tenders": "Tenders",
     "handover": "Handover",
+    "warranty": "Warranty",
     "more": "More"
   },
   "shell": {

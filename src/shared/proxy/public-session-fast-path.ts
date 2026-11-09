@@ -34,6 +34,11 @@ export function isLiveSharePublicPath(segments: readonly string[]): boolean {
   return segments[0] === 'live' && segments.length === 2;
 }
 
+/** One-time supplier RFQ quote form — public, no session. */
+export function isSupplierRfqPublicPath(segments: readonly string[]): boolean {
+  return segments[0] === 'supplier-rfq' && segments.length === 2;
+}
+
 export function isOrgPublicAuthPath(segments: readonly string[]): boolean {
   const first = segments[0];
   return (
@@ -64,6 +69,7 @@ export function isPublicSessionFastPathCandidate(pathname: string): boolean {
   return (
     isLegalPublicPath(segments) ||
     isLiveSharePublicPath(segments) ||
+    isSupplierRfqPublicPath(segments) ||
     isOrgPublicAuthPath(segments) ||
     isEmployeePublicLoginPath(segments) ||
     isContractorPublicAuthPath(segments)
@@ -92,6 +98,12 @@ export function shouldSkipProxySessionRefresh(
 ): boolean {
   if (!isPublicSessionFastPathCandidate(pathname)) return false;
   const { segments } = splitLocalizedPathname(pathname);
-  if (isLegalPublicPath(segments) || isLiveSharePublicPath(segments)) return true;
+  if (
+    isLegalPublicPath(segments) ||
+    isLiveSharePublicPath(segments) ||
+    isSupplierRfqPublicPath(segments)
+  ) {
+    return true;
+  }
   return !requestHasSupabaseAuthCookies(request);
 }

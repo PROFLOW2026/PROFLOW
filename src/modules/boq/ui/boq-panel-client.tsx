@@ -8,6 +8,7 @@ import { Field } from '@/components/ui/field';
 import { fromNumericString, type MoneyValue } from '@/shared/money';
 import { cn } from '@/shared/ui/cn';
 import type { ContractBoqReconStatus } from '../domain/types';
+import { EvidenceUploader } from '@/modules/evidence/ui';
 import {
   activateBoqAction,
   allocateApprovedChangeToBoqAction,
@@ -54,6 +55,7 @@ export interface BoqPanelBatch {
 }
 
 export interface BoqPanelClientProps {
+  readonly organizationId: string;
   readonly projectId: string;
   readonly currency: string;
   readonly boq: {
@@ -156,6 +158,7 @@ function ActionMessage({ state }: { state: BoqFormState }) {
 }
 
 export function BoqPanelClient({
+  organizationId,
   projectId,
   currency,
   boq,
@@ -723,6 +726,17 @@ export function BoqPanelClient({
                           {t(`batchStatus.${batch.status as 'draft'}`)} ·{' '}
                           {t('progress.linesCount', { count: batch.lines.length })}
                         </p>
+                        {permissions.canSubmitProgress && batch.status === 'draft' ? (
+                          <EvidenceUploader
+                            organizationId={organizationId}
+                            projectId={projectId}
+                            entityType="boq_progress_batch"
+                            entityId={batch.id}
+                            viewer="internal"
+                            defaultVisibility="internal"
+                            accept={['photo']}
+                          />
+                        ) : null}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {batch.status === 'draft' && permissions.canApproveProgress ? (

@@ -12,6 +12,7 @@ import { Link, useRouter } from '@/shared/i18n/navigation';
 import { createRfiAction } from '../actions/internal-actions';
 import type { RfiFormOptions } from '../application/form-options';
 import { MainAppFormGrid, mainAppFieldSpan } from '@/components/patterns/main-app';
+import { DrawingRevisionPickerFields } from '@/modules/project-plans/ui';
 import { FormError, FormRow, selectClassName } from './form-controls';
 
 export function RfiCreateForm({
@@ -45,6 +46,8 @@ export function RfiCreateForm({
         assigneeUserId: String(form.get('assigneeUserId') ?? '') || null,
         locationId: String(form.get('locationId') ?? '') || null,
         workPackageId: String(form.get('workPackageId') ?? '') || null,
+        drawingId: String(form.get('drawingId') ?? '') || null,
+        drawingRevisionId: String(form.get('drawingRevisionId') ?? '') || null,
         drawingReference: String(form.get('drawingReference') ?? '') || null,
         priority: (String(form.get('priority') ?? 'normal') || 'normal') as (typeof RFI_PRIORITIES)[number],
         dueDate: String(form.get('dueDate') ?? '') || null,
@@ -108,6 +111,13 @@ export function RfiCreateForm({
                 ))}
               </select>
             </FormRow>
+          <FormRow label={t('fields.projectDrawing')} hint={t('fields.projectDrawingHint')} className={mainAppFieldSpan.full}>
+            <DrawingRevisionPickerFields
+              drawings={options.drawings}
+              fieldErrors={fieldErrors}
+              translationNamespace="rfi"
+            />
+          </FormRow>
           <FormRow label={t('fields.drawingReference')} hint={t('fields.drawingReferenceHint')} className={mainAppFieldSpan.full}>
             <Input name="drawingReference" maxLength={300} />
           </FormRow>

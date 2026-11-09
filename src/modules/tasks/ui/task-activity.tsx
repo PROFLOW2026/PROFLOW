@@ -244,6 +244,15 @@ interface TaskActivityProps {
   taskId: string;
 }
 
+export async function loadTaskActivityViewRows(taskId: string): Promise<TaskActivityViewRow[]> {
+  const [events, t, locale] = await Promise.all([
+    loadActivity(taskId),
+    getTranslations('tasks'),
+    getLocale(),
+  ]);
+  return events.map((event) => toActivityViewRow(event, t, locale));
+}
+
 export async function TaskActivity({ taskId }: TaskActivityProps) {
   const [events, t, locale] = await Promise.all([
     loadActivity(taskId),

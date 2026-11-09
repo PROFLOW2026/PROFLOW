@@ -10,6 +10,8 @@ import { SUBMITTAL_TYPES } from '../domain/types';
 import { useRouter } from '@/shared/i18n/navigation';
 import { createContractorSubmittalAction } from '../actions/external-actions';
 import type { LocationOption, WorkPackageOption } from '@/modules/rfi';
+import type { DrawingPickerOption } from '@/modules/project-plans';
+import { DrawingRevisionPickerFields } from '@/modules/project-plans/ui';
 import { FormError, FormRow, selectClassName } from './form-controls';
 
 export function ContractorSubmittalCreateForm({
@@ -18,12 +20,14 @@ export function ContractorSubmittalCreateForm({
   basePath,
   locations,
   workPackages,
+  drawings,
 }: {
   organizationId: string;
   projectId: string;
   basePath: string;
   locations: readonly LocationOption[];
   workPackages: readonly WorkPackageOption[];
+  drawings: readonly DrawingPickerOption[];
 }) {
   const t = useTranslations('submittals');
   const tCommon = useTranslations('common');
@@ -45,6 +49,8 @@ export function ContractorSubmittalCreateForm({
         specSection: String(form.get('specSection') ?? '') || null,
         locationId: String(form.get('locationId') ?? '') || null,
         workPackageId: String(form.get('workPackageId') ?? '') || null,
+        drawingId: String(form.get('drawingId') ?? '') || null,
+        drawingRevisionId: String(form.get('drawingRevisionId') ?? '') || null,
         drawingReference: String(form.get('drawingReference') ?? '') || null,
         notes: String(form.get('notes') ?? '') || null,
       });
@@ -105,6 +111,9 @@ export function ContractorSubmittalCreateForm({
                 </option>
               ))}
             </select>
+          </FormRow>
+          <FormRow label={t('fields.projectDrawing')} hint={t('fields.projectDrawingHint')}>
+            <DrawingRevisionPickerFields drawings={drawings} translationNamespace="submittals" />
           </FormRow>
           <FormRow label={t('fields.drawingReference')} hint={t('fields.drawingReferenceHint')}>
             <Input name="drawingReference" maxLength={300} />

@@ -302,6 +302,51 @@
       "notes": "Notes"
     }
   },
+  "supplierRfqLink": {
+    "invitedAs": "Quote request for {vendor}",
+    "dueDate": "Due",
+    "requestedLines": "Requested items",
+    "submitSection": "Your quote",
+    "staff": {
+      "title": "Supplier quote link",
+      "description": "Generate a one-time link so this vendor can submit a quote online. The link works once and expires automatically.",
+      "vendorLabel": "Vendor",
+      "vendorPlaceholder": "Select vendor",
+      "createLink": "Create link",
+      "linkReady": "Copy this link now — it is shown only once.",
+      "expiresAt": "Expires",
+      "copy": "Copy link",
+      "copied": "Link copied.",
+      "copyFailed": "Could not copy. Select the link and copy manually.",
+      "created": "Link created.",
+      "createFailed": "Could not create link.",
+      "oneTimeHint": "Each link accepts one quote submission.",
+      "rfqMustBeSent": "Mark the RFQ as sent before inviting a supplier."
+    },
+    "form": {
+      "receivedOnLabel": "Quote date",
+      "linesTitle": "Quote lines",
+      "addLine": "Add line",
+      "removeLine": "Remove",
+      "lineDescription": "Description",
+      "lineQuantity": "Qty",
+      "lineUnitAmount": "Unit price",
+      "lineTotal": "Line total",
+      "totalLabel": "Quote total",
+      "notesLabel": "Notes",
+      "submit": "Submit quote",
+      "success": "Thank you — your quote was submitted."
+    },
+    "errors": {
+      "invalid": "This quote link is not valid.",
+      "expired": "This quote link has expired.",
+      "used": "This quote link was already used.",
+      "unavailable": "Online supplier quotes are not available right now.",
+      "rfqNotOpen": "This request is no longer accepting quotes.",
+      "rfqNotSent": "Mark the RFQ as sent before creating a supplier link.",
+      "rateLimited": "Too many attempts. Please wait a moment and try again."
+    }
+  },
   "materialTrade": {
     "sectionTitle": "Market Classification",
     "label": "Market trade category",

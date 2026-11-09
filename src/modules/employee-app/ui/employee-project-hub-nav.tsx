@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
+import type { ProjectOperationalToolLink } from '@/modules/project-workspace/domain/project-operational-tool-links';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import { employeeHubCardClass, employeeIconTileClass } from './employee-surface-styles';
 
@@ -33,6 +34,12 @@ function iconForHref(href: string): LucideIcon {
   if (href.includes('/meetings')) return ClipboardList;
   if (href.includes('/financials')) return Wallet;
   if (href.includes('/infrastructure')) return Camera;
+  if (href.includes('/rfi')) return ClipboardList;
+  if (href.includes('/inspections')) return ClipboardList;
+  if (href.includes('/defects')) return ClipboardList;
+  if (href.includes('/plans')) return FileStack;
+  if (href.includes('/submittals')) return FileStack;
+  if (href.includes('/site-log') || href.includes('/field-ops/logs')) return ClipboardList;
   return FileStack;
 }
 
@@ -44,11 +51,19 @@ export async function buildEmployeeProjectHubLinks(input: {
   canLogTime: boolean;
   canFinancials?: boolean;
   canProjectTeam?: boolean;
+  operationalToolLinks?: readonly ProjectOperationalToolLink[];
 }): Promise<EmployeeProjectHubLink[]> {
   const t = await getTranslations('employeeApp.projects');
   const tNav = await getTranslations('employeeApp.nav');
+  const tTools = await getTranslations('projectWorkspace');
   const { projectId, openTasks, canMeetings, canDocuments, canLogTime, canFinancials, canProjectTeam } =
     input;
+
+  const operationalCards: EmployeeProjectHubLink[] = (input.operationalToolLinks ?? []).map((link) => ({
+    href: link.href,
+    label: tTools(`execution.hubLinks.${link.labelKey}` as never),
+    visible: true,
+  }));
 
   return [
     {
@@ -93,6 +108,7 @@ export async function buildEmployeeProjectHubLinks(input: {
       label: t('hub.infra'),
       visible: true,
     },
+    ...operationalCards,
   ];
 }
 

@@ -69,7 +69,12 @@
       "placeholder": "معرف المهمة (UUID)",
       "linkButton": "ربط",
       "linked": "المهمة المرتبطة:",
-      "unlink": "فك الربط"
+      "unlink": "فك الربط",
+      "copyDatesToTask": "نسخ تواريخ الصف → المهمة",
+      "copyDatesToPlanning": "نسخ تواريخ المهمة → الصف",
+      "copyDatesToTaskAria": "نسخ تاريخي البدء والانتهاء المستهدف من صف التخطيط إلى المهمة المرتبطة",
+      "copyDatesToPlanningAria": "نسخ تاريخي البدء والاستحقاق من المهمة المرتبطة إلى صف التخطيط",
+      "dateCopyRequiresLink": "اربط مهمة قبل نسخ التواريخ."
     }
   }
 }

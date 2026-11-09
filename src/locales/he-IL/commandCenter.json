@@ -95,6 +95,7 @@
     "task_overdue": "משימה באיחור",
     "task_due_today": "משימה ליעד היום",
     "task_unassigned": "משימה ללא שיוך",
+    "project_decision_recent": "החלטת פרויקט",
     "storage_attention": "אחסון קבצים",
     "statutory_attention": "מסמך מס",
     "dg_claim_awaiting_review": "חשבון קבלן לבדיקה",
@@ -410,6 +411,10 @@
     "recurringTaskGenerated": {
       "what": "נוצרה משימה חוזרת - {title}",
       "why": "נוצרה עותק חדש מתבנית חוזרת."
+    },
+    "projectDecisionRecent": {
+      "what": "נרשמה החלטה — {excerpt}",
+      "why": "בפרויקט {projectName}."
     },
     "reportMonthLabel": "{month} {year}",
     "reportMonths": {

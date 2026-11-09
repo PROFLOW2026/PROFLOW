@@ -18,6 +18,10 @@ import {
   updateMaterialVendorPriceForOrg,
   updateRfqStatus,
 } from '@/modules/procurement';
+import {
+  createSupplierRfqAccessLink,
+  SupplierRfqAccessLinkError,
+} from '@/modules/procurement/application/supplier-rfq-access-links';
 import { withOrgContext } from '@/shared/auth/session';
 import { mapServerActionError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
@@ -425,3 +429,38 @@ export async function createPurchaseOrderFromQuoteAction(
 /** Alias matching Wave 3 action naming. */
 export const updateSupplierQuoteStatusAction = setSupplierQuoteStatusAction;
 export const createPurchaseOrderFromAcceptedQuoteAction = createPurchaseOrderFromQuoteAction;
+
+export interface SupplierRfqLinkActionResult {
+  error?: string;
+  rawToken?: string;
+  expiresAt?: string;
+}
+
+export async function createSupplierRfqAccessLinkAction(input: {
+  rfqId: string;
+  vendorId: string;
+}): Promise<SupplierRfqLinkActionResult> {
+  const t = await getTranslations('procurement');
+  try {
+    const result = await withOrgContext((context) =>
+      createSupplierRfqAccessLink(context, {
+        rfqId: input.rfqId,
+        vendorId: input.vendorId,
+      }),
+    );
+    return {
+      rawToken: result.rawToken,
+      expiresAt: result.expiresAt.toISOString(),
+    };
+  } catch (error) {
+    if (error instanceof SupplierRfqAccessLinkError) {
+      return {
+        error: t(
+          `supplierRfqLink.errors.${error.publicReason}` as 'supplierRfqLink.errors.invalid',
+        ),
+      };
+    }
+    const mapped = await mapAppError(error);
+    return { error: mapped.error };
+  }
+}

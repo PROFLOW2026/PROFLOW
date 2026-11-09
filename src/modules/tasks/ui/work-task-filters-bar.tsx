@@ -19,6 +19,7 @@ export interface WorkTaskClientOption {
 interface WorkTaskFiltersBarProps {
   currentParams: Record<string, string | undefined>;
   clients: readonly WorkTaskClientOption[];
+  assignees?: readonly WorkTaskClientOption[];
   taskCount: number;
 }
 
@@ -27,6 +28,7 @@ interface WorkTaskFilterDraft {
   status: string;
   priority: string;
   clientId: string;
+  assigneeOrgMemberId: string;
   dueFrom: string;
   dueTo: string;
   overdue: boolean;
@@ -42,6 +44,7 @@ const DEFAULT_DRAFT: WorkTaskFilterDraft = {
   status: '',
   priority: '',
   clientId: '',
+  assigneeOrgMemberId: '',
   dueFrom: '',
   dueTo: '',
   overdue: false,
@@ -56,6 +59,7 @@ function parseDraft(params: Record<string, string | undefined>): WorkTaskFilterD
     status: params.status ?? '',
     priority: params.priority ?? '',
     clientId: params.clientId ?? '',
+    assigneeOrgMemberId: params.assigneeOrgMemberId ?? '',
     dueFrom: params.dueFrom ?? '',
     dueTo: params.dueTo ?? '',
     overdue: params.overdue === 'true' || params.overdue === '1',
@@ -71,6 +75,7 @@ function isActive(draft: WorkTaskFilterDraft): boolean {
     draft.status !== DEFAULT_DRAFT.status ||
     draft.priority !== DEFAULT_DRAFT.priority ||
     draft.clientId !== DEFAULT_DRAFT.clientId ||
+    draft.assigneeOrgMemberId !== DEFAULT_DRAFT.assigneeOrgMemberId ||
     draft.dueFrom !== DEFAULT_DRAFT.dueFrom ||
     draft.dueTo !== DEFAULT_DRAFT.dueTo ||
     draft.overdue !== DEFAULT_DRAFT.overdue ||
@@ -86,6 +91,7 @@ function buildQuery(draft: WorkTaskFilterDraft): URLSearchParams {
   if (draft.status) params.set('status', draft.status);
   if (draft.priority) params.set('priority', draft.priority);
   if (draft.clientId) params.set('clientId', draft.clientId);
+  if (draft.assigneeOrgMemberId) params.set('assigneeOrgMemberId', draft.assigneeOrgMemberId);
   if (draft.dueFrom) params.set('dueFrom', draft.dueFrom);
   if (draft.dueTo) params.set('dueTo', draft.dueTo);
   if (draft.overdue) params.set('overdue', 'true');
@@ -101,6 +107,7 @@ function activeCountFromDraft(draft: WorkTaskFilterDraft): number {
     draft.status,
     draft.priority,
     draft.clientId,
+    draft.assigneeOrgMemberId,
     draft.dueFrom,
     draft.dueTo,
     draft.overdue ? 'overdue' : '',
@@ -110,7 +117,12 @@ function activeCountFromDraft(draft: WorkTaskFilterDraft): number {
   ].filter(Boolean).length;
 }
 
-export function WorkTaskFiltersBar({ currentParams, clients, taskCount }: WorkTaskFiltersBarProps) {
+export function WorkTaskFiltersBar({
+  currentParams,
+  clients,
+  assignees = [],
+  taskCount,
+}: WorkTaskFiltersBarProps) {
   const t = useTranslations('tasks.workFilters');
   const tTasks = useTranslations('tasks');
   const router = useRouter();
@@ -128,6 +140,7 @@ export function WorkTaskFiltersBar({ currentParams, clients, taskCount }: WorkTa
       key={appliedKey}
       applied={applied}
       clients={clients}
+      assignees={assignees}
       taskCount={taskCount}
       onApply={(draft) => pushQuery(buildQuery(draft))}
       onClear={() => {
@@ -146,6 +159,7 @@ export function WorkTaskFiltersBar({ currentParams, clients, taskCount }: WorkTa
 function WorkTaskFilterControls({
   applied,
   clients,
+  assignees,
   taskCount,
   onApply,
   onClear,
@@ -154,6 +168,7 @@ function WorkTaskFilterControls({
 }: {
   applied: WorkTaskFilterDraft;
   clients: readonly WorkTaskClientOption[];
+  assignees: readonly WorkTaskClientOption[];
   taskCount: number;
   onApply: (draft: WorkTaskFilterDraft) => void;
   onClear: () => void;
@@ -268,6 +283,25 @@ function WorkTaskFilterControls({
             </select>
           </OwnerFilterField>
 
+          {assignees.length > 0 ? (
+            <OwnerFilterField label={tTasks('boardFilters.assignee')}>
+              <select
+                value={draft.assigneeOrgMemberId}
+                className={uwmFilterInputClass}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, assigneeOrgMemberId: event.target.value }))
+                }
+              >
+                <option value="">{tTasks('boardFilters.allAssignees')}</option>
+                {assignees.map((assignee) => (
+                  <option key={assignee.id} value={assignee.id}>
+                    {assignee.name}
+                  </option>
+                ))}
+              </select>
+            </OwnerFilterField>
+          ) : null}
+
           <OwnerFilterField label={t('client')}>
             <select
               value={draft.clientId}
@@ -288,6 +322,7 @@ function WorkTaskFilterControls({
           <OwnerFilterField label={t('dueFrom')}>
             <input
               type="date"
+              dir="ltr"
               value={draft.dueFrom}
               className={uwmFilterInputClass}
               onChange={(event) => setDraft((current) => ({ ...current, dueFrom: event.target.value }))}
@@ -297,6 +332,7 @@ function WorkTaskFilterControls({
           <OwnerFilterField label={t('dueTo')}>
             <input
               type="date"
+              dir="ltr"
               value={draft.dueTo}
               className={uwmFilterInputClass}
               onChange={(event) => setDraft((current) => ({ ...current, dueTo: event.target.value }))}

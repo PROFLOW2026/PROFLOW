@@ -86,6 +86,22 @@
       "withdrawn": "ملغاة"
     }
   },
+  "sheetMarks": {
+    "title": "مراجعة الورقة",
+    "previewPdf": "معاينة",
+    "toolView": "عرض",
+    "toolPin": "دبوس",
+    "toolNote": "ملاحظة",
+    "toolMeasure": "قياس",
+    "notePrompt": "نص الملاحظة",
+    "boqPrompt": "معرّف بند BOQ (اختياري)",
+    "scalePrompt": "أمتار لكل بكسل على الشاشة",
+    "scaleLabel": "م/بكسل",
+    "compareTitle": "مقارنة المراجعات",
+    "compareLeft": "يسار",
+    "compareRight": "يمين",
+    "compareAction": "مقارنة"
+  },
   "revision": {
     "uploadTitle": "مراجعة جديدة",
     "label": "تسمية المراجعة",

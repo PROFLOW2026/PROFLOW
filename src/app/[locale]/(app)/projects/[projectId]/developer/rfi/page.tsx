@@ -6,6 +6,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { requireConnectedDeveloperSession } from '@/modules/connected-projects';
+import { listContractorDrawingPickerOptions } from '@/modules/project-plans';
 import { getContractorRfiSummary, listContractorRfis, listProjectLocationOptions, listProjectWorkPackageOptions } from '@/modules/rfi';
 import { ContractorRfiCreateForm } from '@/modules/rfi/ui/contractor-rfi-create-form';
 import { RfiList } from '@/modules/rfi/ui/rfi-list';
@@ -35,11 +36,17 @@ export default async function ConnectedDeveloperRfiPage({
   const base = `/projects/${contractorProjectId}/developer/rfi`;
   const portalRfiBase = `/contractor/projects/${developerProjectId}/rfi`;
 
-  const [items, summary, locations, workPackages, t, locale] = await Promise.all([
+  const [items, summary, locations, workPackages, drawings, t, locale] = await Promise.all([
     listContractorRfis(session.externalContext, { organizationId, projectId: developerProjectId }),
     getContractorRfiSummary(session.externalContext, { organizationId, projectId: developerProjectId }),
     listProjectLocationOptions(session.externalContext.db, organizationId, developerProjectId),
     listProjectWorkPackageOptions(session.externalContext.db, organizationId, developerProjectId),
+    wantsCreate
+      ? listContractorDrawingPickerOptions(session.externalContext, {
+          organizationId,
+          projectId: developerProjectId,
+        })
+      : Promise.resolve([]),
     getTranslations('rfi'),
     getLocale(),
   ]);
@@ -63,6 +70,7 @@ export default async function ConnectedDeveloperRfiPage({
                   basePath={base}
                   locations={locations}
                   workPackages={workPackages}
+                  drawings={drawings}
                 />
               ) : (
                 <Link href={`${base}?new=1`} className={buttonVariants({ variant: 'primary' })}>

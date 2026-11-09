@@ -70,6 +70,7 @@ export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCen
   milestone_approaching: 'medium',
   project_stale: 'low',
   recurring_task_generated: 'low',
+  project_decision_recent: 'medium',
   storage_attention: 'high',
   statutory_attention: 'high',
   // ── Developer / GC ─────────────────────────────────────────────────────────

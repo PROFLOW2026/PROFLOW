@@ -153,6 +153,7 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
         showAmounts,
       },
       baseCurrency: context.organization.baseCurrency,
+      organizationId: context.organizationId,
     };
   });
 
@@ -171,6 +172,7 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
     approvedChangeOrders,
     importKinds,
     permissions,
+    organizationId,
   } = view;
   const currency = workspace.totals.currency;
   const boq = workspace.activeBoq;
@@ -345,6 +347,7 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
       ) : null}
 
       <BoqPanelClient
+        organizationId={organizationId}
         projectId={projectId}
         currency={currency}
         boq={
