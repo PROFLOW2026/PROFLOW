@@ -29,9 +29,6 @@ export function StorageLoadingOverlay({
       role="status"
       aria-live="polite"
       aria-busy="true"
-      aria-valuenow={pct ?? undefined}
-      aria-valuemin={pct !== null ? 0 : undefined}
-      aria-valuemax={pct !== null ? 100 : undefined}
       className={cn(
         'absolute inset-0 z-20 flex items-center justify-center',
         'bg-[var(--pf-bg-elevated)]/55 backdrop-blur-[1px]',
@@ -42,7 +39,14 @@ export function StorageLoadingOverlay({
       <div className="flex w-full max-w-xs flex-col items-center gap-3 px-4">
         <Spinner className="size-6" label={label} />
         {pct !== null ? (
-          <div className="w-full">
+          <div
+            className="w-full"
+            role="progressbar"
+            aria-valuenow={pct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={label}
+          >
             <div className="h-1.5 overflow-hidden rounded-full bg-[var(--pf-border-default)]">
               <div
                 className="h-full rounded-full bg-[var(--pf-accent-default)] transition-[width] duration-200 ease-out"

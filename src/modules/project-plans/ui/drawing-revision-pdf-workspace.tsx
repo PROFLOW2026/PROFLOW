@@ -280,7 +280,7 @@ export function DrawingRevisionPdfWorkspace({
     >
       <div className="flex min-h-0 flex-1 flex-col">
         {loadError ? (
-          <p className="shrink-0 px-3 py-2 text-xs text-[var(--pf-status-danger)]">{loadError}</p>
+          <p className="shrink-0 px-3 py-2 text-xs text-[var(--pf-status-danger-fg)]">{loadError}</p>
         ) : null}
         <PdfJsViewer
           url={contentUrl}

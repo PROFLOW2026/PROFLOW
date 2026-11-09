@@ -277,14 +277,17 @@ export function TaskDetailSheet({
   const assigneeOptions =
     assigneeOptionsProp.length > 0 ? assigneeOptionsProp : loadedAssigneeOptions;
 
-  const onAssigneesChange =
-    onAssigneesChangeProp ??
-    (canAssign
-      ? async (input: { assigneeKeys: string[]; assignAllProjectTeam: boolean }) => {
-          if (!taskId) return;
-          await syncTaskAssigneesAction(taskId, input);
-        }
-      : undefined);
+  const onAssigneesChange = useMemo(
+    () =>
+      onAssigneesChangeProp ??
+      (canAssign
+        ? async (input: { assigneeKeys: string[]; assignAllProjectTeam: boolean }) => {
+            if (!taskId) return;
+            await syncTaskAssigneesAction(taskId, input);
+          }
+        : undefined),
+    [onAssigneesChangeProp, canAssign, taskId],
+  );
 
   const baselineDraft = useMemo((): TaskEditDraft | null => {
     if (!task) return null;

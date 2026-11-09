@@ -138,7 +138,7 @@ export function DrawingSheetMarksPageOverlay({
                 y={midY - 6}
                 textAnchor="middle"
                 className="fill-[var(--pf-text-primary)] text-[11px] font-medium"
-                style={{ paintOrder: 'stroke', stroke: 'var(--pf-surface-canvas)', strokeWidth: 3 }}
+                style={{ paintOrder: 'stroke', stroke: 'var(--pf-bg-surface)', strokeWidth: 3 }}
               >
                 {label}
               </text>
@@ -155,7 +155,7 @@ export function DrawingSheetMarksPageOverlay({
                 y1={y1 * pageHeight}
                 x2={x2 * pageWidth}
                 y2={y2 * pageHeight}
-                stroke="var(--pf-status-warning)"
+                stroke="var(--pf-status-warning-fg)"
                 strokeWidth={2}
               />
             );
@@ -214,8 +214,8 @@ function MarkHandle({
   return (
     <span
       className={cn(
-        'pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--pf-surface-canvas)]',
-        draft ? 'bg-[var(--pf-status-warning)]' : 'bg-[var(--pf-text-brand)]',
+        'pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--pf-bg-surface)]',
+        draft ? 'bg-[var(--pf-status-warning-fg)]' : 'bg-[var(--pf-text-brand)]',
       )}
       style={{ left: `${left * 100}%`, top: `${top * 100}%` }}
       aria-hidden
@@ -250,14 +250,14 @@ function MarkBubble({
         <Icon
           className={cn(
             'size-6 drop-shadow',
-            kind === 'pin' ? 'text-[var(--pf-status-danger)]' : 'text-[var(--pf-status-info)]',
+            kind === 'pin' ? 'text-[var(--pf-status-danger-fg)]' : 'text-[var(--pf-status-info-fg)]',
           )}
           aria-hidden
         />
         {canDelete && onDelete ? (
           <button
             type="button"
-            className="absolute -end-2 -top-2 hidden size-5 items-center justify-center rounded-full border border-[var(--pf-border-default)] bg-[var(--pf-surface-canvas)] text-[var(--pf-text-secondary)] group-hover:flex"
+            className="absolute -end-2 -top-2 hidden size-5 items-center justify-center rounded-full border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] text-[var(--pf-text-secondary)] group-hover:flex"
             onClick={(event) => {
               event.stopPropagation();
               onDelete();
@@ -277,7 +277,7 @@ function MarkBubble({
 
 function CardMini({ note, linkedEntityId }: { readonly note: string | null; readonly linkedEntityId: string | null }) {
   return (
-    <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-surface-canvas)] px-2 py-1 text-[10px] leading-snug text-[var(--pf-text-primary)] shadow-sm">
+    <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 py-1 text-[10px] leading-snug text-[var(--pf-text-primary)] shadow-sm">
       {note ? <p>{note}</p> : null}
       {linkedEntityId ? (
         <p className="mt-0.5 font-mono text-[var(--pf-text-secondary)]">

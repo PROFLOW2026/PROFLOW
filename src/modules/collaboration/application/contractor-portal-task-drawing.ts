@@ -1,5 +1,5 @@
 import { storedDrawingVisibleToContractor } from '@/modules/project-plans/application/drawing-visibility';
-import { findDrawing, findRevision } from '@/modules/project-plans/data/plans.repository';
+import { findDrawing, findRevision } from '@/modules/project-plans';
 import { asServiceRoleWrite } from '@/shared/db';
 import {
   EXTERNAL_CAPABILITIES as X,

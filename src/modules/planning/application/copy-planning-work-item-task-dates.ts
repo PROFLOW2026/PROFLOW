@@ -2,7 +2,7 @@ import { and, eq, isNull } from 'drizzle-orm';
 import { tasks } from '@drizzle/schema';
 import type { WorkKind } from '@/modules/projects/domain/types';
 import { updateTask } from '@/modules/tasks/application/update-task';
-import { findTaskById } from '@/modules/tasks/data/tasks.repository';
+import { findTaskById } from '@/modules/tasks';
 import type { OrgContext } from '@/shared/auth/context';
 import type { DbExecutor } from '@/shared/db/types';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';

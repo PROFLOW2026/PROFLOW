@@ -16,6 +16,7 @@ import { revalidatePath } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
 import { taskComments } from '@drizzle/schema';
 import { serializeError } from '@/shared/errors';
+import type { TaskActivityViewRow } from './task-activity-client';
 import { withOrgContext } from '@/shared/auth/session';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -91,7 +92,7 @@ export type TaskCommentsPanelPayload = {
 
 export async function loadTaskActivityPanelAction(
   taskId: string,
-): Promise<{ rows: import('./task-activity-client').TaskActivityViewRow[]; error?: string }> {
+): Promise<{ rows: TaskActivityViewRow[]; error?: string }> {
   const tErrors = await getTranslations('errors');
   try {
     const { loadTaskActivityViewRows } = await import('./task-activity');
