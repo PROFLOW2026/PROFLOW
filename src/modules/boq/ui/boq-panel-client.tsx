@@ -8,7 +8,7 @@ import { Field } from '@/components/ui/field';
 import { fromNumericString, type MoneyValue } from '@/shared/money';
 import { cn } from '@/shared/ui/cn';
 import type { ContractBoqReconStatus } from '../domain/types';
-import { EvidenceUploader } from '@/modules/evidence/ui';
+import { EvidenceUploader } from '@/modules/evidence/ui/evidence-uploader';
 import {
   activateBoqAction,
   allocateApprovedChangeToBoqAction,
