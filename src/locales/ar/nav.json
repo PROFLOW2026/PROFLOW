@@ -103,7 +103,8 @@
   "organizationSwitcher": {
     "label": "منظمة",
     "current": "المنظمة الحالية: {name}",
-    "createNew": "إنشاء منظمة"
+    "createNew": "إنشاء منظمة",
+    "openTasks": "{count, plural, =1 {مهمة معيّنة مفتوحة #} other {# مهام معيّنة مفتوحة}}"
   },
   "user": {
     "profile": "الملف الشخصي",

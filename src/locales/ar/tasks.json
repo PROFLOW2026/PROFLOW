@@ -634,8 +634,12 @@
     "toggleOff": "إيقاف",
     "chipSearch": "بحث: {value}",
     "chipStatus": "الحالة: {value}",
-    "chipClient": "العميل: {value}"
+    "chipClient": "العميل: {value}",
+    "workPackage": "حزمة العمل",
+    "allWorkPackages": "كل حزم العمل",
+    "chipWorkPackage": "حزمة العمل: {value}"
   },
+  "workPackageLabel": "حزمة العمل",
   "filters": {
     "search": "بحث في المهام",
     "searchPlaceholder": "بحث بالعنوان أو المشروع…",
@@ -646,7 +650,8 @@
     "overdueOnly": "المتأخرة فقط",
     "blockedOnly": "المحجوبة فقط",
     "noProjectOnly": "بدون مشروع",
-    "archivedOnly": "المهام المؤرشفة فقط"
+    "archivedOnly": "المهام المؤرشفة فقط",
+    "allWorkPackages": "بدون حزمة عمل"
   },
   "calendar": {
     "pageTitle": "تقويم المهام",

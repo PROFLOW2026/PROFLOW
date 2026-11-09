@@ -634,8 +634,12 @@
     "toggleOff": "Выкл.",
     "chipSearch": "Поиск: {value}",
     "chipStatus": "Статус: {value}",
-    "chipClient": "Клиент: {value}"
+    "chipClient": "Клиент: {value}",
+    "workPackage": "Рабочий пакет",
+    "allWorkPackages": "Все рабочие пакеты",
+    "chipWorkPackage": "Рабочий пакет: {value}"
   },
+  "workPackageLabel": "Рабочий пакет",
   "filters": {
     "search": "Поиск задач",
     "searchPlaceholder": "Поиск по названию или проекту…",
@@ -646,7 +650,8 @@
     "overdueOnly": "Только просроченные",
     "blockedOnly": "Только заблокированные",
     "noProjectOnly": "Без проекта",
-    "archivedOnly": "Только архивные задачи"
+    "archivedOnly": "Только архивные задачи",
+    "allWorkPackages": "Без рабочего пакета"
   },
   "calendar": {
     "pageTitle": "Календарь задач",
