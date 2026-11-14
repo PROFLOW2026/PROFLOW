@@ -136,6 +136,53 @@ describe('PdfJsViewer mobile toolbar', () => {
     expect(scrollRoot.setPointerCapture).toHaveBeenCalledWith(1);
   });
 
+  it('two-finger pinch applies CSS scale around an origin (not live pageWidth remount)', async () => {
+    const { container } = renderViewer();
+    await waitFor(() => expect(screen.getByTestId('pdf-document')).toBeInTheDocument());
+
+    const scrollRoot = container.querySelector('.overflow-auto') as HTMLDivElement | null;
+    expect(scrollRoot).toBeTruthy();
+    if (!scrollRoot) return;
+
+    const pageWidthBefore = lazyPageProps.mock.calls.at(-1)?.[0]?.pageWidth;
+
+    fireEvent.touchStart(scrollRoot, {
+      touches: [
+        { identifier: 1, clientX: 120, clientY: 200 },
+        { identifier: 2, clientX: 220, clientY: 200 },
+      ],
+      targetTouches: [
+        { identifier: 1, clientX: 120, clientY: 200 },
+        { identifier: 2, clientX: 220, clientY: 200 },
+      ],
+      changedTouches: [
+        { identifier: 1, clientX: 120, clientY: 200 },
+        { identifier: 2, clientX: 220, clientY: 200 },
+      ],
+    });
+    fireEvent.touchMove(scrollRoot, {
+      touches: [
+        { identifier: 1, clientX: 80, clientY: 200 },
+        { identifier: 2, clientX: 280, clientY: 200 },
+      ],
+      targetTouches: [
+        { identifier: 1, clientX: 80, clientY: 200 },
+        { identifier: 2, clientX: 280, clientY: 200 },
+      ],
+      changedTouches: [
+        { identifier: 1, clientX: 80, clientY: 200 },
+        { identifier: 2, clientX: 280, clientY: 200 },
+      ],
+    });
+
+    const scaled = container.querySelector('[style*="scale("]') as HTMLElement | null;
+    expect(scaled).toBeTruthy();
+    expect(scaled?.style.transform).toMatch(/scale\(/);
+    expect(scaled?.style.transformOrigin.length).toBeGreaterThan(0);
+    // Live pinch must not remount pages via pageWidth — that froze Android.
+    expect(lazyPageProps.mock.calls.at(-1)?.[0]?.pageWidth).toBe(pageWidthBefore);
+  });
+
   it('one-finger TouchEvent pan updates scroll (Android path, BUG-03)', async () => {
     const { container } = renderViewer();
     await waitFor(() => expect(screen.getByTestId('pdf-document')).toBeInTheDocument());

@@ -136,6 +136,21 @@ export function touchPairMidpoint(
   return { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
 }
 
+/** Content-local transform-origin so CSS pinch scale stays under the finger midpoint. */
+export function pdfPinchTransformOrigin(input: {
+  readonly scrollLeft: number;
+  readonly scrollTop: number;
+  readonly focalX: number;
+  readonly focalY: number;
+  readonly contentOffsetLeft: number;
+  readonly contentOffsetTop: number;
+}): { x: number; y: number } {
+  return {
+    x: input.scrollLeft + input.focalX - input.contentOffsetLeft,
+    y: input.scrollTop + input.focalY - input.contentOffsetTop,
+  };
+}
+
 /** Midpoint in scrollport client coordinates (LTR viewport). */
 export function viewportFocalFromClientMidpoint(
   midpoint: { readonly x: number; readonly y: number },

@@ -16,7 +16,7 @@ Probe: `pdf-transform-scroll-probe.test.ts` (jsdom `scale(2)` on inner node).
 | Input | Pan mechanism | Notes |
 |-------|---------------|--------|
 | Touch 1-finger | **TouchEvent** → `applyPdfScrollPan` (clamped LTR) | Android Chrome pointer-capture was unreliable on canvas; touch path owns pan |
-| Touch 2-finger | Pinch → live `zoomFactor` + `scrollAfterScaleAtFocal` (finger midpoint) | No CSS top-center transform; no post-pinch auto-center; disabled when `handToolActive` |
+| Touch 2-finger | Pinch → CSS `gestureScale` + origin at finger midpoint; commit layout zoom on finger-up | Live `zoomFactor` remounted PDF pages and froze Android (f1f22c73 regression); restored CSS preview |
 | Mouse drag | Pointer-capture pan via `applyPdfScrollPan` | Touch/pen pointer path skipped to avoid double-scroll |
 | Wheel | Browser default scroll | No PDF-specific wheel zoom |
 
@@ -30,9 +30,13 @@ Probe: `pdf-transform-scroll-probe.test.ts` (jsdom `scale(2)` on inner node).
 
 **Cause:** CSS `transform-origin: top center` during pinch + auto-`scrollLeft` center on commit moved the view away from the finger midpoint.
 
-**Fix:** pinch applies live `zoomFactor` with `scrollAfterScaleAtFocal` (LTR scrollport); no CSS scale preview; no post-pinch auto-center. Toolbar +/- zooms about viewport center; presets still center.
+**Failed fix (f1f22c73):** live `zoomFactor` on every touchmove remounted `PdfLazyPage` (key includes `pageWidth`) → pinch appeared dead on Android.
+
+**Current fix:** restore CSS `gestureScale` preview with `transform-origin` at finger midpoint; commit `zoomFactor` once on finger-up with `scrollAfterScaleAtFocal` (no auto-center). Toolbar +/- zooms about viewport center; presets still center.
 
 **SW:** shell cache `projectflow-shell-v9` (SW never cached PDF/API bytes).
+
+**Device QA:** Real Android multi-touch on Production after next deploy — required. jsdom/unit cannot prove gesture feel.
 
 ## Shell interaction
 

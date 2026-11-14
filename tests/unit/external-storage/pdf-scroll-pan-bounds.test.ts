@@ -4,6 +4,7 @@ import {
   centeredPdfScrollLeft,
   clampPdfScrollLeft,
   pdfMaxScrollLeft,
+  pdfPinchTransformOrigin,
   scrollAfterScaleAtFocal,
   touchPairMidpoint,
   viewportFocalFromClientMidpoint,
@@ -83,5 +84,18 @@ describe('pdf pinch zoom focal anchor', () => {
       x: 160,
       y: 240,
     });
+  });
+
+  it('computes CSS pinch transform-origin under the finger midpoint (not top-center)', () => {
+    expect(
+      pdfPinchTransformOrigin({
+        scrollLeft: 120,
+        scrollTop: 80,
+        focalX: 200,
+        focalY: 150,
+        contentOffsetLeft: 8,
+        contentOffsetTop: 16,
+      }),
+    ).toEqual({ x: 312, y: 214 });
   });
 });

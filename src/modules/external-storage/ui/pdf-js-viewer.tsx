@@ -59,6 +59,7 @@ import {
   elapsedMs,
   estimatePageHeight,
   readDevicePixelRatio,
+  pdfPinchTransformOrigin,
   scrollAfterScaleAtFocal,
   touchPairMidpoint,
   viewportFocalFromClientMidpoint,
@@ -130,10 +131,12 @@ function PdfJsViewerInner({
   const scrollRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const loadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /**
+   * Pinch uses CSS `gestureScale` for instant visual feedback (live zoomFactor re-renders
+   * every PDF page and froze Android). Layout zoom commits once on finger-up with focal scroll.
+   */
   const pinchRef = useRef<{
     startDistance: number;
-    startZoomFactor: number;
-    lastZoomFactor: number;
     lastFocalX: number;
     lastFocalY: number;
   } | null>(null);
@@ -145,6 +148,7 @@ function PdfJsViewerInner({
     pointerId: number;
     moved: boolean;
   } | null>(null);
+  const contentStackRef = useRef<HTMLDivElement>(null);
   /**
    * After layout zoom: either preserve pinch/toolbar focal (`pendingScrollRef`) or
    * center for discrete toolbar presets only (`centerScrollAfterZoomRef`).
@@ -153,6 +157,7 @@ function PdfJsViewerInner({
   const pendingScrollRef = useRef<{ scrollLeft: number; scrollTop: number } | null>(null);
   const centerScrollAfterZoomRef = useRef(false);
   const zoomFactorRef = useRef(1);
+  const gestureScaleRef = useRef(1);
   const timingsRef = useRef<PdfPreviewTimings>(createPdfPreviewTimings());
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
   const [numPages, setNumPages] = useState(0);
@@ -163,6 +168,9 @@ function PdfJsViewerInner({
   const [containerHeight, setContainerHeight] = useState(480);
   const [fitMode, setFitMode] = useState<PdfFitMode>('width');
   const [zoomFactor, setZoomFactor] = useState(1);
+  /** Relative CSS scale during an active pinch (1 = no preview). */
+  const [gestureScale, setGestureScale] = useState(1);
+  const [pinchOrigin, setPinchOrigin] = useState<{ x: number; y: number } | null>(null);
   const [isPinching, setIsPinching] = useState(false);
   const [handToolActive, setHandToolActive] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
@@ -212,6 +220,9 @@ function PdfJsViewerInner({
     // Discrete toolbar presets: center is intentional (not a pinch focal).
     centerScrollAfterZoomRef.current = true;
     pendingScrollRef.current = null;
+    setGestureScale(1);
+    gestureScaleRef.current = 1;
+    setPinchOrigin(null);
     setFitMode('custom');
     setZoomFactor(clampPdfZoom(fraction));
   }, []);
@@ -232,8 +243,31 @@ function PdfJsViewerInner({
       });
       centerScrollAfterZoomRef.current = false;
     }
+    setGestureScale(1);
+    gestureScaleRef.current = 1;
+    setPinchOrigin(null);
     setFitMode('custom');
     setZoomFactor(next);
+  }, []);
+
+  /** Merge CSS pinch preview into layout zoom once — keeps focal, never auto-centers. */
+  const commitGestureZoom = useCallback((focal: { x: number; y: number }) => {
+    const el = scrollRef.current;
+    const scale = gestureScaleRef.current;
+    setGestureScale(1);
+    gestureScaleRef.current = 1;
+    setPinchOrigin(null);
+    if (!el || scale === 1) return;
+    pendingScrollRef.current = scrollAfterScaleAtFocal({
+      scrollLeft: el.scrollLeft,
+      scrollTop: el.scrollTop,
+      focalX: focal.x,
+      focalY: focal.y,
+      scaleRatio: scale,
+    });
+    centerScrollAfterZoomRef.current = false;
+    setFitMode('custom');
+    setZoomFactor((current) => clampPdfZoom(current * scale));
   }, []);
 
   useLayoutEffect(() => {
@@ -314,12 +348,9 @@ function PdfJsViewerInner({
     if (!el) return;
 
     /**
-     * Android Chrome often fails to deliver reliable pointermove after setPointerCapture
-     * on a scroll container that wraps a PDF canvas. Drive one-finger pan + pinch via
-     * TouchEvents (non-passive touchmove + preventDefault).
-     *
-     * Pinch zooms layout around the live finger midpoint (no CSS top-center transform,
-     * no post-pinch auto-center) so the focal stays put in the LTR scrollport.
+     * Android Chrome: one-finger pan + pinch via TouchEvents (non-passive touchmove).
+     * Pinch preview = CSS scale around finger midpoint (instant). Layout zoomFactor
+     * commits only on finger-up — live zoomFactor remounts PDF pages and broke Android.
      */
     const onTouchStart = (event: TouchEvent) => {
       if (isInteractiveSheetMarkTarget(event.target)) return;
@@ -329,18 +360,28 @@ function PdfJsViewerInner({
         setIsPanning(false);
         if (handToolActive) return;
         const [a, b] = [event.touches[0]!, event.touches[1]!];
+        const distance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+        if (!(distance > 0)) return;
         const mid = touchPairMidpoint(a, b);
         const focal = viewportFocalFromClientMidpoint(mid, el.getBoundingClientRect());
-        const startZoom = zoomFactorRef.current;
+        const content = contentStackRef.current;
+        const origin = pdfPinchTransformOrigin({
+          scrollLeft: el.scrollLeft,
+          scrollTop: el.scrollTop,
+          focalX: focal.x,
+          focalY: focal.y,
+          contentOffsetLeft: content?.offsetLeft ?? 0,
+          contentOffsetTop: content?.offsetTop ?? 0,
+        });
         pinchRef.current = {
-          startDistance: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
-          startZoomFactor: startZoom,
-          lastZoomFactor: startZoom,
+          startDistance: distance,
           lastFocalX: focal.x,
           lastFocalY: focal.y,
         };
+        gestureScaleRef.current = 1;
+        setGestureScale(1);
+        setPinchOrigin(origin);
         setIsPinching(true);
-        setFitMode('custom');
         return;
       }
 
@@ -364,39 +405,27 @@ function PdfJsViewerInner({
         const [a, b] = [event.touches[0]!, event.touches[1]!];
         const distance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
         if (!(pinch.startDistance > 0)) return;
-        const nextZoom = clampPdfZoom(
-          pinch.startZoomFactor * (distance / pinch.startDistance),
-        );
+        const nextScale = Math.min(4, Math.max(0.25, distance / pinch.startDistance));
         const mid = touchPairMidpoint(a, b);
         const focal = viewportFocalFromClientMidpoint(mid, el.getBoundingClientRect());
-        const ratio = nextZoom / pinch.lastZoomFactor;
-        const baseScroll = pendingScrollRef.current ?? {
-          scrollLeft: el.scrollLeft,
-          scrollTop: el.scrollTop,
-        };
-        const nextScroll = scrollAfterScaleAtFocal({
-          scrollLeft: baseScroll.scrollLeft,
-          scrollTop: baseScroll.scrollTop,
-          focalX: focal.x,
-          focalY: focal.y,
-          prevFocalX: pinch.lastFocalX,
-          prevFocalY: pinch.lastFocalY,
-          scaleRatio: ratio,
-        });
-        centerScrollAfterZoomRef.current = false;
-        pinch.lastZoomFactor = nextZoom;
+        // Follow a moving pinch midpoint without changing the CSS transform-origin mid-gesture.
+        const dFocalX = focal.x - pinch.lastFocalX;
+        const dFocalY = focal.y - pinch.lastFocalY;
+        if (dFocalX !== 0 || dFocalY !== 0) {
+          const next = clampPdfScrollPosition(
+            {
+              scrollLeft: el.scrollLeft - dFocalX,
+              scrollTop: el.scrollTop - dFocalY,
+            },
+            el,
+          );
+          el.scrollLeft = next.scrollLeft;
+          el.scrollTop = next.scrollTop;
+        }
         pinch.lastFocalX = focal.x;
         pinch.lastFocalY = focal.y;
-        if (nextZoom !== zoomFactorRef.current) {
-          pendingScrollRef.current = nextScroll;
-          setZoomFactor(nextZoom);
-        } else {
-          // Midpoint moved without scale change — pan now (layout size unchanged).
-          pendingScrollRef.current = null;
-          const clamped = clampPdfScrollPosition(nextScroll, el);
-          el.scrollLeft = clamped.scrollLeft;
-          el.scrollTop = clamped.scrollTop;
-        }
+        gestureScaleRef.current = nextScale;
+        setGestureScale(nextScale);
         return;
       }
 
@@ -417,20 +446,28 @@ function PdfJsViewerInner({
     const onTouchEnd = (event: TouchEvent) => {
       if (pinchRef.current) {
         if (event.touches.length >= 2) return;
+        const focal = {
+          x: pinchRef.current.lastFocalX,
+          y: pinchRef.current.lastFocalY,
+        };
         pinchRef.current = null;
         setIsPinching(false);
-        // Hand off to one-finger pan without resetting the pinch focal scroll.
+        commitGestureZoom(focal);
+        // Hand off to one-finger pan after layout commit (scroll applied in useLayoutEffect).
         if (event.touches.length === 1) {
           const touch = event.touches[0]!;
-          panRef.current = {
-            x: touch.clientX,
-            y: touch.clientY,
-            scrollLeft: el.scrollLeft,
-            scrollTop: el.scrollTop,
-            pointerId: touch.identifier,
-            moved: true,
-          };
-          setIsPanning(true);
+          // Defer pan capture until after pending focal scroll is applied.
+          requestAnimationFrame(() => {
+            panRef.current = {
+              x: touch.clientX,
+              y: touch.clientY,
+              scrollLeft: el.scrollLeft,
+              scrollTop: el.scrollTop,
+              pointerId: touch.identifier,
+              moved: true,
+            };
+            setIsPanning(true);
+          });
           return;
         }
       }
@@ -458,7 +495,7 @@ function PdfJsViewerInner({
       el.removeEventListener('touchend', onTouchEnd);
       el.removeEventListener('touchcancel', onTouchEnd);
     };
-  }, [handToolActive]);
+  }, [commitGestureZoom, handToolActive]);
 
   useEffect(() => {
     const onFullscreenChange = () => {
@@ -666,6 +703,9 @@ function PdfJsViewerInner({
           setFitMode('width');
           pendingScrollRef.current = null;
           centerScrollAfterZoomRef.current = false;
+          setGestureScale(1);
+          gestureScaleRef.current = 1;
+          setPinchOrigin(null);
           setZoomFactor(1);
         }}
       >
@@ -680,6 +720,9 @@ function PdfJsViewerInner({
           setFitMode('page');
           pendingScrollRef.current = null;
           centerScrollAfterZoomRef.current = false;
+          setGestureScale(1);
+          gestureScaleRef.current = 1;
+          setPinchOrigin(null);
           setZoomFactor(1);
         }}
       >
@@ -817,8 +860,17 @@ function PdfJsViewerInner({
             className="block px-2 py-4"
           >
             <div
+              ref={contentStackRef}
               className="mx-auto flex flex-col items-stretch gap-4"
-              style={{ width: pageWidth }}
+              style={{
+                width: pageWidth,
+                ...(gestureScale !== 1 && pinchOrigin
+                  ? {
+                      transform: `scale(${gestureScale})`,
+                      transformOrigin: `${pinchOrigin.x}px ${pinchOrigin.y}px`,
+                    }
+                  : null),
+              }}
             >
               {Array.from({ length: numPages }, (_, index) => {
                 const pageNumber = index + 1;
