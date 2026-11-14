@@ -104,10 +104,15 @@
   "filter": {
     "aria": "Component type filters",
     "all": "All types",
-    "hideHint": "Long-press a chip to hide a type"
+    "hideHint": "Long-press a chip to hide a type",
+    "searchPlaceholder": "Search symbol type…",
+    "hiddenCount": "{count} types hidden (from earlier session)"
   },
   "boq": {
     "title": "Bill of quantities",
+    "classifiedSummary": "{lines} classified lines · {quantity} units counted",
+    "showUnclassified": "Show {count} unclassified BOQ lines",
+    "hideUnclassified": "Hide unclassified lines",
     "summary": "{unclassified} unclassified · {review} need review",
     "empty": "No lines yet",
     "verified": "Verified quantity",

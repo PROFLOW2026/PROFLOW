@@ -9,6 +9,8 @@ export function TakeoffBoqPanel({
   focusKey,
   onLineClick,
   suppressVerified,
+  showUnclassified,
+  onToggleUnclassified,
 }: {
   boq: Boq;
   lines: readonly BoqLine[];
@@ -16,16 +18,34 @@ export function TakeoffBoqPanel({
   onLineClick: (lineKey: string, detectionIds: string[]) => void;
   /** When worker warnings block verification, never show “verified” badges. */
   suppressVerified?: boolean;
+  showUnclassified?: boolean;
+  onToggleUnclassified?: () => void;
 }) {
   const t = useTranslations('takeoff');
+  const classifiedQty = boq.lines.filter((l) => l.typeKey != null && !l.excluded).reduce((s, l) => s + l.quantity, 0);
 
   return (
     <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col overflow-hidden rounded-lg border border-[var(--pf-border-default)]">
       <header className="border-b border-[var(--pf-border-default)] px-3 py-2">
         <h2 className="text-sm font-semibold text-[var(--pf-text-primary)]">{t('boq.title')}</h2>
         <p className="text-xs text-[var(--pf-text-muted)]">
+          {t('boq.classifiedSummary', {
+            lines: boq.lines.filter((l) => l.typeKey != null).length,
+            quantity: classifiedQty,
+          })}
+        </p>
+        <p className="text-xs text-[var(--pf-text-muted)]">
           {t('boq.summary', { unclassified: boq.unclassifiedCount, review: boq.needsReviewCount })}
         </p>
+        {boq.unclassifiedCount > 0 && onToggleUnclassified ? (
+          <button
+            type="button"
+            className="mt-1 text-xs text-[var(--pf-text-brand)] underline"
+            onClick={onToggleUnclassified}
+          >
+            {showUnclassified ? t('boq.hideUnclassified') : t('boq.showUnclassified', { count: boq.unclassifiedCount })}
+          </button>
+        ) : null}
         {boq.counting ? (
           <p className="mt-1 text-xs text-[var(--pf-text-secondary)]" data-testid="takeoff-boq-counting">
             {t('boq.countingSummary', {

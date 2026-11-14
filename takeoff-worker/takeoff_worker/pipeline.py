@@ -199,6 +199,7 @@ def run_job(
         finally:
             extract_stats[f"timing_extract_{wf.fileId}_sec"] = time.perf_counter() - t_file
     timings["extract"] = time.perf_counter() - t_extract
+    prog("extract", 32, "השלמת חילוץ סמלים")
 
     sheets: list[WorkerSheet] = []
     detections: list[WorkerDetection] = []
@@ -219,6 +220,7 @@ def run_job(
         dwg_legend=dwg_legend,
     )
     attach_mask_artifacts(detections, artifacts)
+    prog("classify", 55, "הכנת מקרא ותבניות")
 
     t_classify = time.perf_counter()
     prog("classify", 72, "סיווג")

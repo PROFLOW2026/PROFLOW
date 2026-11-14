@@ -55,13 +55,18 @@ export function TakeoffWorkspace({
   const [conflictBanner, setConflictBanner] = useState<string | null>(null);
   const [exportBusy, setExportBusy] = useState<string | null>(null);
   const [exportLinks, setExportLinks] = useState<Partial<Record<'xlsx' | 'boq-pdf' | 'annotated-pdf', { url: string; fileName: string }>>>({});
+  const [showUnclassifiedBoq, setShowUnclassifiedBoq] = useState(false);
   const sheetsPanelRef = useRef<HTMLElement>(null);
 
   const load = useCallback(async () => {
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
       const view = await api.getAnalysisView(analysisId);
-      const defaultSheet = view.sheets.find((sh) => sh.fileId === 'lightg') ?? view.sheets[0] ?? null;
+      const defaultSheet =
+        view.sheets.find((sh) => sh.previewUrl) ??
+        view.sheets.find((sh) => sh.kind === 'pdf_page') ??
+        view.sheets[0] ??
+        null;
       setState((s) => ({
         ...s,
         view,
@@ -96,6 +101,12 @@ export function TakeoffWorkspace({
     () => state.view?.detections.filter((d) => d.needsReview || !d.typeKey) ?? [],
     [state.view?.detections],
   );
+
+  const boqDisplayLines = useMemo(() => {
+    const lines = state.view?.boq.lines ?? [];
+    if (showUnclassifiedBoq) return lines;
+    return lines.filter((l) => l.typeKey != null);
+  }, [showUnclassifiedBoq, state.view?.boq.lines]);
 
   const flushEdits = useCallback(
     async (edits: TakeoffEdit[]) => {
@@ -358,10 +369,12 @@ export function TakeoffWorkspace({
             </section>
             <TakeoffBoqPanel
               boq={state.view.boq}
-              lines={state.view.boq.lines}
+              lines={boqDisplayLines}
               focusKey={state.focusBoqLineKey}
               onLineClick={focusBoqLine}
               suppressVerified={hasBlockingWorkerWarnings(view)}
+              showUnclassified={showUnclassifiedBoq}
+              onToggleUnclassified={() => setShowUnclassifiedBoq((v) => !v)}
             />
 
             <div className="max-h-40 overflow-y-auto rounded-lg border border-[var(--pf-border-default)] p-2">

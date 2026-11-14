@@ -26,6 +26,8 @@ import { loadPermissionFacts } from './access';
 import { isOrganizationStorageConfigured } from '@/modules/external-storage/application/org-storage-gate';
 import { TAKEOFF_PERSISTENCE } from './takeoff-persistence';
 import { takeoffNotFound } from '../domain/errors';
+import { attachSheetPreviewUrls } from './resolve-sheet-previews';
+import { formatTakeoffDisplayName } from '../domain/format-display-name';
 
 export async function buildAnalysisView(actor: TakeoffActor, analysisId: string): Promise<AnalysisView> {
   const orgId = actor.kind === 'internal' ? actor.context.organizationId : actor.context.grants[0]?.organizationId;
@@ -50,7 +52,7 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
   const sheetDtos: SheetDto[] = workerSheets.map((s) => ({
     sheetKey: s.sheetKey,
     fileId: s.fileId,
-    name: s.name,
+    name: formatTakeoffDisplayName(s.name),
     kind: s.kind,
     index: s.index,
     widthPx: s.widthPx,
@@ -72,7 +74,7 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
 
   const fileDtos = files.map((f) => ({
     id: f.id,
-    name: f.name,
+    name: formatTakeoffDisplayName(f.name),
     kind: f.kind as 'pdf' | 'dwg' | 'dxf',
     sizeBytes: f.sizeBytes,
     uploadedAtIso: f.createdAt.toISOString(),
@@ -140,6 +142,8 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
       }
     : null;
 
+  const sheetsForView = job ? await attachSheetPreviewUrls(db, orgId, job.id, sheetDtos) : sheetDtos;
+
   const persistenceMode =
     (analysis.persistenceMode as 'persistent' | 'ephemeral' | null) ?? TAKEOFF_PERSISTENCE.persistent;
   const canPickFromProjectCloud =
@@ -165,7 +169,7 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
       uploadedAtIso: f.createdAt.toISOString(),
       sha256: f.sha256,
     })),
-    sheets: sheetDtos.map((s) => ({ ...s, previewUrl: null })),
+    sheets: sheetsForView,
     detections,
     areas: areas.map((a) => ({
       id: a.id,

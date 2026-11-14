@@ -14,6 +14,7 @@ import {
   insertDocument,
   updateDocumentById,
 } from '@/modules/documents';
+import type { DbExecutor } from '@/shared/db/types';
 import { isAllowedMimeType, validateUploadConstraints } from '@/modules/documents/domain/file-rules';
 import type { DocumentRecord } from '@/modules/documents/domain/types';
 import { noteModuleUsage } from '@/modules/tenancy';
@@ -32,6 +33,25 @@ export type EnsureDocumentForProviderFileInput = {
   readonly parentFolderId: string;
   readonly semanticFolderType?: SemanticFolderType;
 };
+
+/** Reconcile version 1 / currentVersionId before metadata updates (deferred PG guards). */
+async function prepareDocumentForProviderMetadata(
+  db: DbExecutor,
+  organizationId: string,
+  documentId: string,
+): Promise<DocumentRecord> {
+  let doc = await findDocumentById(db, organizationId, documentId);
+  if (!doc) throw new NotFoundError('Document');
+  const version = await ensureFirstDocumentVersion(db, doc);
+  if (doc.currentVersionId !== version.id) {
+    const updated = await updateDocumentById(db, organizationId, documentId, {
+      currentVersionId: version.id,
+    });
+    doc = updated ?? { ...doc, currentVersionId: version.id };
+    await flushDocumentCurrentVersionGuards(db);
+  }
+  return doc;
+}
 
 /**
  * Registers an existing cloud provider file as a ProjectFlow document without re-uploading bytes.
@@ -82,6 +102,7 @@ export async function ensureDocumentForProviderFile(
       existingStorageFile.documentId,
     );
     if (existingDocument && existingDocument.status !== 'deleted') {
+      await prepareDocumentForProviderMetadata(context.db, context.organizationId, existingDocument.id);
       await updateStorageFile(context.db, context.organizationId, existingStorageFile.id, {
         originalFilename: fileName,
         mimeType,
@@ -98,6 +119,7 @@ export async function ensureDocumentForProviderFile(
         externalParentFolderId: parentFolderId,
         status: 'available',
       });
+      await flushDocumentCurrentVersionGuards(context.db);
       const refreshed = await findDocumentById(
         context.db,
         context.organizationId,
@@ -122,6 +144,8 @@ export async function ensureDocumentForProviderFile(
       uploadedByUserId: context.userId,
     });
   }
+
+  await prepareDocumentForProviderMetadata(context.db, context.organizationId, documentId);
 
   await updateDocumentById(context.db, context.organizationId, documentId, {
     storageBackend: 'external',

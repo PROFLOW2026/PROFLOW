@@ -448,6 +448,13 @@ export async function findArtifactByJobAndName(db: DbExecutor, organizationId: s
   return row ?? null;
 }
 
+export async function listArtifactsForJob(db: DbExecutor, organizationId: string, jobId: string) {
+  return db
+    .select()
+    .from(takeoffArtifacts)
+    .where(and(eq(takeoffArtifacts.organizationId, organizationId), eq(takeoffArtifacts.jobId, jobId)));
+}
+
 export function editsFromRows(rows: { op: unknown }[]): TakeoffEdit[] {
   return rows.map((r) => r.op as TakeoffEdit);
 }

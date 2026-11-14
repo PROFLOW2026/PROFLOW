@@ -7,6 +7,7 @@ import hmac
 import json
 import logging
 import os
+import time
 import shutil
 import tempfile
 import threading
@@ -40,9 +41,23 @@ def _verify_secret(x_takeoff_secret: str | None = Header(default=None)) -> None:
 
 def _post_json(url: str, token: str, payload: dict[str, Any]) -> None:
     data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(url, data=data, method="POST", headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=120) as resp:
-        resp.read()
+    last: urllib.error.URLError | None = None
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(
+                url,
+                data=data,
+                method="POST",
+                headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                resp.read()
+            return
+        except urllib.error.URLError as exc:
+            last = exc
+            time.sleep(0.5 * (attempt + 1))
+    if last:
+        raise last
 
 
 def _post_multipart(url: str, token: str, name: str, mime: str, body: bytes) -> None:

@@ -31,6 +31,7 @@ import {
   listFilesForAnalysis,
   updateFileUpload,
   markJobStarted,
+  markJobIngestFailed,
   nextEditSeq,
   attachApprovalToAnalysis,
   markLatestApprovalReopened,
@@ -277,10 +278,25 @@ export async function startAnalysisUseCase(
   return { jobId };
 }
 
+const TAKEOFF_JOB_PROGRESS_STALL_MS = 12 * 60 * 1000;
+
 export async function getJobProgressUseCase(context: OrgContext, jobId: string): Promise<TakeoffJobDto> {
-  const row = await findJob(context.db, context.organizationId, jobId);
+  let row = await findJob(context.db, context.organizationId, jobId);
   if (!row) throw new TakeoffError('not_found');
   await assertAnalysisAccess(internalActor(context), row.analysisId, 'view');
+  if (
+    (row.status === 'running' || row.status === 'queued') &&
+    row.updatedAt &&
+    Date.now() - row.updatedAt.getTime() > TAKEOFF_JOB_PROGRESS_STALL_MS
+  ) {
+    await markJobIngestFailed(
+      context.db,
+      context.organizationId,
+      jobId,
+      'worker_progress_stalled',
+    );
+    row = (await findJob(context.db, context.organizationId, jobId)) ?? row;
+  }
   return {
     id: row.id,
     status: row.status as TakeoffJobDto['status'],

@@ -1,5 +1,7 @@
 FROM python:3.12-slim AS build
-RUN apt-get update && apt-get install -y --no-install-recommends git build-essential ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl git build-essential ca-certificates pkg-config automake libtool \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY tools/install_libredwg.sh tools/install_libredwg.sh
 RUN bash tools/install_libredwg.sh /usr/local

@@ -104,10 +104,15 @@
   "filter": {
     "aria": "סינון לפי סוג רכיב",
     "all": "כל הסוגים",
-    "hideHint": "לחיצה ארוכה על תגית מסתירה סוג"
+    "hideHint": "לחיצה ארוכה על תגית מסתירה סוג",
+    "searchPlaceholder": "חיפוש סוג סמל…",
+    "hiddenCount": "{count} סוגים מוסתרים (מהסשן הקודם)"
   },
   "boq": {
     "title": "כתב כמויות",
+    "classifiedSummary": "{lines} שורות מסווגות · {quantity} יחידות לספירה",
+    "showUnclassified": "הצג {count} לא מסווגים בכתב הכמויות",
+    "hideUnclassified": "הסתר שורות לא מסווגות",
     "summary": "{unclassified} לא מסווגים · {review} דורשים בקרה",
     "empty": "אין שורות עדיין",
     "verified": "כמות מאומתת",

@@ -104,10 +104,15 @@
   "filter": {
     "aria": "تصفية حسب نوع الرمز",
     "all": "كل الأنواع",
-    "hideHint": "اضغط مطولاً على الوسم لإخفاء النوع"
+    "hideHint": "اضغط مطولاً على الوسم لإخفاء النوع",
+    "searchPlaceholder": "بحث عن نوع رمز…",
+    "hiddenCount": "{count} أنواع مخفية (من جلسة سابقة)"
   },
   "boq": {
     "title": "جدول الكميات",
+    "classifiedSummary": "{lines} بنود مصنّفة · {quantity} وحدة للعد",
+    "showUnclassified": "عرض {count} غير مصنّف في جدول الكميات",
+    "hideUnclassified": "إخفاء البنود غير المصنّفة",
     "summary": "{unclassified} غير مصنّف · {review} تحتاج مراجعة",
     "empty": "لا توجد بنود بعد",
     "verified": "كمية معتمدة",
