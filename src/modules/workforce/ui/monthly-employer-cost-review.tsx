@@ -72,6 +72,8 @@ export interface MonthlyEmployerCostReviewProps {
   readonly initialReview?: MonthlyEmployerCostReviewData | null;
   /** When true, show payroll month-end approval copy (salary alert path). */
   readonly payrollApprovalMode?: boolean;
+  /** When true, offer optional sync of an already-recorded payroll payment amount. */
+  readonly payrollObligationPaid?: boolean;
   /** Owner app actions by default; Employee App passes guarded equivalents. */
   readonly reviewActions?: Partial<MonthlyEmployerCostReviewActions>;
 }
@@ -133,6 +135,7 @@ export function MonthlyEmployerCostReview({
   isOwner = false,
   initialReview = null,
   payrollApprovalMode = false,
+  payrollObligationPaid = false,
   reviewActions,
 }: MonthlyEmployerCostReviewProps) {
   const actions = { ...ownerMonthlyEmployerCostReviewActions, ...reviewActions };
@@ -764,7 +767,7 @@ export function MonthlyEmployerCostReview({
         {ready ? t('monthReview.saveDraft') : t('monthReview.saveLater')}
       </Button>
 
-      {ready && canManage && hasAppliedMonth ? (
+      {ready && canManage && hasAppliedMonth && payrollObligationPaid ? (
         <label className="flex items-start gap-2 text-sm text-[var(--pf-text-secondary)]">
           <input
             type="checkbox"

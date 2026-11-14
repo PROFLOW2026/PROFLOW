@@ -93,9 +93,13 @@ describe('PdfJsViewer mobile toolbar', () => {
     });
   });
 
-  it('pointer-capture pan updates scrollLeft/scrollTop (BUG-03)', async () => {
+  it('mouse hand-tool pointer pan updates scrollLeft/scrollTop (BUG-03)', async () => {
+    const user = userEvent.setup();
     const { container } = renderViewer();
     await waitFor(() => expect(screen.getByTestId('pdf-document')).toBeInTheDocument());
+
+    const handButton = screen.getByRole('button', { name: /יד|Hand|hand/i });
+    await user.click(handButton);
 
     const scrollRoot = container.querySelector('.overflow-auto') as HTMLDivElement | null;
     expect(scrollRoot).toBeTruthy();
@@ -111,19 +115,45 @@ describe('PdfJsViewer mobile toolbar', () => {
       clientX: 200,
       clientY: 200,
       pointerId: 1,
-      pointerType: 'touch',
+      pointerType: 'mouse',
       button: 0,
     });
     fireEvent.pointerMove(scrollRoot, {
       clientX: 140,
       clientY: 160,
       pointerId: 1,
-      pointerType: 'touch',
+      pointerType: 'mouse',
       button: 0,
     });
 
     expect(scrollRoot.scrollLeft).toBe(60);
     expect(scrollRoot.scrollTop).toBe(40);
     expect(scrollRoot.setPointerCapture).toHaveBeenCalledWith(1);
+  });
+
+  it('one-finger TouchEvent pan updates scroll (Android path, BUG-03)', async () => {
+    const { container } = renderViewer();
+    await waitFor(() => expect(screen.getByTestId('pdf-document')).toBeInTheDocument());
+
+    const scrollRoot = container.querySelector('.overflow-auto') as HTMLDivElement | null;
+    expect(scrollRoot).toBeTruthy();
+    if (!scrollRoot) return;
+
+    scrollRoot.scrollLeft = 0;
+    scrollRoot.scrollTop = 0;
+
+    fireEvent.touchStart(scrollRoot, {
+      touches: [{ identifier: 7, clientX: 200, clientY: 200 }],
+      targetTouches: [{ identifier: 7, clientX: 200, clientY: 200 }],
+      changedTouches: [{ identifier: 7, clientX: 200, clientY: 200 }],
+    });
+    fireEvent.touchMove(scrollRoot, {
+      touches: [{ identifier: 7, clientX: 150, clientY: 170 }],
+      targetTouches: [{ identifier: 7, clientX: 150, clientY: 170 }],
+      changedTouches: [{ identifier: 7, clientX: 150, clientY: 170 }],
+    });
+
+    expect(scrollRoot.scrollLeft).toBe(50);
+    expect(scrollRoot.scrollTop).toBe(30);
   });
 });

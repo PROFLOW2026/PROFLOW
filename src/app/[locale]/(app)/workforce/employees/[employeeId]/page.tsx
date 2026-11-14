@@ -657,6 +657,7 @@ export default async function EmployeeDetailPage({
                 isOwner={data.isOwner}
                 initialReview={monthReview}
                 payrollApprovalMode
+                payrollObligationPaid={Boolean(payrollPayment.paidAt)}
               />
             </div>
           ) : null}

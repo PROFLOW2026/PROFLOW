@@ -685,6 +685,14 @@ export async function correctMonthlyEmployerCostActual(
   );
   await tryRecomputeOpenGeneralCostMonth(context, { yearMonth: parsed.data.yearMonth });
 
+  const { syncPayrollExpectedFromLaborRecompute } = await import('./payroll-payments');
+  await syncPayrollExpectedFromLaborRecompute(context, {
+    employeeId: parsed.data.employeeId,
+    yearMonth: parsed.data.yearMonth,
+    expectedAmount: result.month.knownAmount,
+    currency: result.month.currency,
+  });
+
   return result;
 }
 

@@ -1,4 +1,4 @@
-import type { BusinessDate } from '@/shared/dates';
+import { compareBusinessDates, type BusinessDate } from '@/shared/dates';
 
 /** Provenance for employee_payroll_payments rows (migration 0092+). */
 export const PAYROLL_OBLIGATION_SOURCES = [
@@ -35,6 +35,34 @@ export function displayedPayrollAmount(input: {
     return input.paidAmount;
   }
   return input.expectedAmount;
+}
+
+/** Command Center + alerts: unpaid obligation urgency from due date vs org today. */
+export type UnpaidPayrollAlertStatus = 'pending_review' | 'overdue' | 'due' | 'upcoming';
+
+export type DisplayedPayrollPaymentStatus = 'paid' | UnpaidPayrollAlertStatus;
+
+export function resolveUnpaidPayrollAlertStatus(
+  dueDate: BusinessDate | null,
+  today: BusinessDate,
+): UnpaidPayrollAlertStatus {
+  if (!dueDate) return 'pending_review';
+  if (compareBusinessDates(dueDate, today) < 0) return 'overdue';
+  if (dueDate === today) return 'due';
+  return 'upcoming';
+}
+
+/**
+ * Badge / panel status. Paid only when paidAt is set — never inferred from employer-cost edits.
+ * Unpaid rows use due date vs today (stored payment_status may stay stale as `upcoming`).
+ */
+export function resolveDisplayedPayrollPaymentStatus(input: {
+  readonly paidAt: string | null;
+  readonly dueDate: BusinessDate | null;
+  readonly today: BusinessDate;
+}): DisplayedPayrollPaymentStatus {
+  if (input.paidAt) return 'paid';
+  return resolveUnpaidPayrollAlertStatus(input.dueDate, input.today);
 }
 
 export function isPayrollObligationGenerationEligible(

@@ -12,7 +12,10 @@ import { formatBusinessDate } from '@/shared/dates/format';
 import { businessDate } from '@/shared/dates';
 import { money } from '@/shared/money';
 import { confirmPayrollPaymentAction } from '@/app/[locale]/(app)/workforce/employees/actions';
-import { displayedPayrollAmount } from '@/modules/workforce/domain/payroll-obligation';
+import {
+  displayedPayrollAmount,
+  resolveDisplayedPayrollPaymentStatus,
+} from '@/modules/workforce/domain/payroll-obligation';
 import { EmployeePayrollRetroactiveEdit } from '@/modules/workforce/ui/employee-payroll-retroactive-edit';
 
 export interface EmployeePayrollMonthPanelProps {
@@ -28,11 +31,13 @@ export interface EmployeePayrollMonthPanelProps {
   readonly employerCostFullMonthAmount?: string | null;
   readonly currency: string;
   readonly dueDate: string | null;
+  /** Stored DB status — display prefers due-date urgency when unpaid. */
   readonly paymentStatus: string | null;
   readonly paidAt: string | null;
   readonly locale: string;
   readonly canManage: boolean;
   readonly isOwner?: boolean;
+  /** Org-timezone today (also used as default confirm-paid date). */
   readonly defaultPaymentDate: string;
 }
 
@@ -47,7 +52,7 @@ export function EmployeePayrollMonthPanel({
   employerCostFullMonthAmount = null,
   currency,
   dueDate,
-  paymentStatus,
+  paymentStatus: _storedPaymentStatus,
   paidAt,
   locale,
   canManage,
@@ -59,7 +64,11 @@ export function EmployeePayrollMonthPanel({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
-  const status = paidAt ? 'paid' : (paymentStatus ?? 'upcoming');
+  const status = resolveDisplayedPayrollPaymentStatus({
+    paidAt,
+    dueDate: dueDate ? businessDate(dueDate) : null,
+    today: businessDate(defaultPaymentDate),
+  });
   const statusShape: StatusShape =
     status === 'paid'
       ? 'approved'
@@ -86,6 +95,10 @@ export function EmployeePayrollMonthPanel({
           value={dueDate ? formatBusinessDate(businessDate(dueDate), locale) : '—'}
         />
 
+        {!paidAt && (status === 'overdue' || status === 'due') ? (
+          <Alert tone={status === 'overdue' ? 'warning' : 'info'}>{t('unpaidDueHint')}</Alert>
+        ) : null}
+
         <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-surface-subtle)] px-3 py-2 text-xs text-[var(--pf-text-secondary)]">
           <p className="font-medium text-[var(--pf-text-primary)]">{t('threeConceptsTitle')}</p>
           <ul className="mt-1 list-inside list-disc space-y-0.5">
@@ -93,6 +106,7 @@ export function EmployeePayrollMonthPanel({
             <li>{t('conceptEmployerCost')}</li>
             <li>{t('conceptPaidAmount')}</li>
           </ul>
+          <p className="mt-2 text-[var(--pf-text-muted)]">{t('costCorrectionNotPaymentHint')}</p>
         </div>
 
         {baseSalaryAmount ? (
@@ -138,25 +152,28 @@ export function EmployeePayrollMonthPanel({
         ) : null}
 
         {canManage && !paidAt ? (
-          <ConfirmPaymentButton
-            label={tActions('actions.confirmPaid')}
-            paymentDateLabel={tActions('actions.paymentDateLabel')}
-            paymentDateHint={tActions('actions.paymentDateHint')}
-            confirmLabel={tActions('actions.paymentConfirm')}
-            cancelLabel={tActions('actions.cancel')}
-            defaultPaymentDate={defaultPaymentDate}
-            disabled={pending}
-            onConfirm={async (paidAtDate) => {
-              startTransition(async () => {
-                await confirmPayrollPaymentAction({
-                  employeeId,
-                  paymentId,
-                  paidAt: paidAtDate,
+          <>
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('confirmPaidOnlyHint')}</p>
+            <ConfirmPaymentButton
+              label={tActions('actions.confirmPaid')}
+              paymentDateLabel={tActions('actions.paymentDateLabel')}
+              paymentDateHint={tActions('actions.paymentDateHint')}
+              confirmLabel={tActions('actions.paymentConfirm')}
+              cancelLabel={tActions('actions.cancel')}
+              defaultPaymentDate={defaultPaymentDate}
+              disabled={pending}
+              onConfirm={async (paidAtDate) => {
+                startTransition(async () => {
+                  await confirmPayrollPaymentAction({
+                    employeeId,
+                    paymentId,
+                    paidAt: paidAtDate,
+                  });
+                  router.refresh();
                 });
-                router.refresh();
-              });
-            }}
-          />
+              }}
+            />
+          </>
         ) : null}
 
         {!canManage && !paidAt ? (

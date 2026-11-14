@@ -11,14 +11,16 @@
 
 Probe: `pdf-transform-scroll-probe.test.ts` (jsdom `scale(2)` on inner node).
 
-## Input matrix (after BUG-03 fix in `pdf-js-viewer.tsx`)
+## Input matrix (after BUG-03 Android follow-up in `pdf-js-viewer.tsx`)
 
 | Input | Pan mechanism | Notes |
 |-------|---------------|--------|
-| Touch 1-finger | Pointer-capture → `scrollLeft` / `scrollTop` | `touch-none` on scroll root; mirrors `ZoomablePreviewImage` |
-| Touch 2-finger | Pinch → `gestureScale` preview, then sync `commitGestureZoom` into layout | Disabled when `handToolActive` |
-| Mouse drag | Pointer-capture pan (threshold unless hand tool) | Annotate/measure `.cursor-crosshair` skipped |
+| Touch 1-finger | **TouchEvent** non-passive `touchmove` → `scrollLeft` / `scrollTop` | Android Chrome pointer-capture was unreliable on canvas; touch path owns pan |
+| Touch 2-finger | Pinch → `gestureScale` preview, then sync `commitGestureZoom` into layout | Cancels one-finger pan; disabled when `handToolActive` |
+| Mouse drag | Pointer-capture pan (hand tool immediate; else threshold) | Touch/pen pointer path skipped to avoid double-scroll |
 | Wheel | Browser default scroll | No PDF-specific wheel zoom |
+
+**SW:** shell cache bumped `projectflow-shell-v8` → `v9` so installed PWA reclaims clients after deploy (SW never cached PDF/API bytes).
 
 ## Shell interaction
 

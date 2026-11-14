@@ -251,41 +251,86 @@ function PdfJsViewerInner({
     const el = scrollRef.current;
     if (!el) return;
 
+    /**
+     * Android Chrome often fails to deliver reliable pointermove after setPointerCapture
+     * on a scroll container that wraps a PDF canvas. Drive one-finger pan via TouchEvents
+     * (non-passive touchmove + preventDefault) — same pattern as pinch.
+     */
     const onTouchStart = (event: TouchEvent) => {
-      if (handToolActive) return;
-      if (event.touches.length !== 2) return;
-      // Two-finger pinch takes over; cancel any one-finger pan draft.
-      panRef.current = null;
-      setIsPanning(false);
-      const [a, b] = [event.touches[0]!, event.touches[1]!];
-      pinchRef.current = {
-        distance: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
-        zoom: gestureScaleRef.current,
+      if (isInteractiveSheetMarkTarget(event.target)) return;
+
+      if (event.touches.length >= 2) {
+        // Two-finger pinch takes over; cancel any one-finger pan draft.
+        panRef.current = null;
+        setIsPanning(false);
+        if (handToolActive) return;
+        const [a, b] = [event.touches[0]!, event.touches[1]!];
+        pinchRef.current = {
+          distance: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
+          zoom: gestureScaleRef.current,
+        };
+        setIsPinching(true);
+        setFitMode('custom');
+        return;
+      }
+
+      if (event.touches.length !== 1) return;
+      const touch = event.touches[0]!;
+      panRef.current = {
+        x: touch.clientX,
+        y: touch.clientY,
+        scrollLeft: el.scrollLeft,
+        scrollTop: el.scrollTop,
+        pointerId: touch.identifier,
+        moved: true,
       };
-      setIsPinching(true);
-      setFitMode('custom');
+      setIsPanning(true);
     };
 
     const onTouchMove = (event: TouchEvent) => {
-      if (handToolActive) return;
-      if (event.touches.length !== 2 || !pinchRef.current) return;
+      if (event.touches.length >= 2 && pinchRef.current && !handToolActive) {
+        event.preventDefault();
+        const [a, b] = [event.touches[0]!, event.touches[1]!];
+        const distance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+        const next = Math.min(
+          4,
+          Math.max(0.25, (pinchRef.current.zoom * distance) / pinchRef.current.distance),
+        );
+        gestureScaleRef.current = next;
+        setGestureScale(next);
+        return;
+      }
+
+      if (event.touches.length !== 1 || !panRef.current || pinchRef.current) return;
+      const touch = event.touches[0]!;
+      if (touch.identifier !== panRef.current.pointerId) return;
       event.preventDefault();
-      const [a, b] = [event.touches[0]!, event.touches[1]!];
-      const distance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-      const next = Math.min(4, Math.max(0.25, (pinchRef.current.zoom * distance) / pinchRef.current.distance));
-      gestureScaleRef.current = next;
-      setGestureScale(next);
+      const dx = touch.clientX - panRef.current.x;
+      const dy = touch.clientY - panRef.current.y;
+      el.scrollLeft = panRef.current.scrollLeft - dx;
+      el.scrollTop = panRef.current.scrollTop - dy;
     };
 
     const onTouchEnd = (event: TouchEvent) => {
-      if (!pinchRef.current) return;
-      // Keep preview alive until both fingers are up, then commit into layout zoom
-      // so scrollWidth/scrollHeight match the visual scale and free pan works.
-      if (event.touches.length >= 2) return;
-      pinchRef.current = null;
-      setIsPinching(false);
-      // Commit into zoomFactor/pageWidth immediately so scroll extents match visual zoom for pan.
-      commitGestureZoom();
+      if (pinchRef.current) {
+        // Keep preview alive until both fingers are up, then commit into layout zoom
+        // so scrollWidth/scrollHeight match the visual scale and free pan works.
+        if (event.touches.length >= 2) return;
+        pinchRef.current = null;
+        setIsPinching(false);
+        commitGestureZoom();
+      }
+
+      if (event.touches.length === 0) {
+        panRef.current = null;
+        setIsPanning(false);
+      } else if (
+        panRef.current &&
+        ![...event.touches].some((touch) => touch.identifier === panRef.current?.pointerId)
+      ) {
+        panRef.current = null;
+        setIsPanning(false);
+      }
     };
 
     el.addEventListener('touchstart', onTouchStart, { passive: true });
@@ -384,15 +429,19 @@ function PdfJsViewerInner({
     await node.requestFullscreen();
   }, []);
 
-  /** Free pan after zoom (and whenever content overflows): pointer-capture like ZoomablePreviewImage. */
+  /**
+   * Mouse pan via pointer capture. Touch/pen pan is owned by the native TouchEvent
+   * listeners above — Android Chrome double-fires pointer+touch and would double-scroll.
+   */
   const onPanPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== 'mouse') return;
     if (isPinching || pinchRef.current) return;
-    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if (event.button !== 0) return;
     if (isInteractiveSheetMarkTarget(event.target)) return;
     const el = scrollRef.current;
     if (!el) return;
     // Hand tool: grab immediately. Otherwise wait for a small move so annotate/measure clicks still fire.
-    const captureNow = handToolActive || event.pointerType === 'touch' || event.pointerType === 'pen';
+    const captureNow = handToolActive;
     panRef.current = {
       x: event.clientX,
       y: event.clientY,

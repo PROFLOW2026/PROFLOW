@@ -5,7 +5,8 @@
 import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { costCategories, projects } from '@drizzle/schema';
 import { getTranslations } from 'next-intl/server';
-import { compareBusinessDates, formatBusinessDate, type BusinessDate } from '@/shared/dates';
+import { formatBusinessDate, type BusinessDate } from '@/shared/dates';
+import { resolveUnpaidPayrollAlertStatus } from '@/modules/workforce/domain/payroll-obligation';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { hasPermission } from '@/shared/permissions/assert';
 import { formatMoneyDisplay } from '@/shared/money/format';
@@ -319,16 +320,6 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
   return items;
 }
 
-function payrollStatus(
-  dueDate: BusinessDate | null,
-  today: BusinessDate,
-): 'pending_review' | 'overdue' | 'due' | 'upcoming' {
-  if (!dueDate) return 'pending_review';
-  if (compareBusinessDates(dueDate, today) < 0) return 'overdue';
-  if (dueDate === today) return 'due';
-  return 'upcoming';
-}
-
 export async function collectPayrollDueToday(ctx: CollectContext): Promise<CommandCenterItem[]> {
   if (!hasPermission(ctx.context, PERMISSIONS.WORKFORCE_READ)) return [];
 
@@ -344,7 +335,7 @@ export async function collectPayrollDueToday(ctx: CollectContext): Promise<Comma
 
   for (const row of rows) {
     if (items.length >= 20) break;
-    const status = payrollStatus(
+    const status = resolveUnpaidPayrollAlertStatus(
       (row.dueDate as BusinessDate | null) ?? null,
       ctx.today,
     );
