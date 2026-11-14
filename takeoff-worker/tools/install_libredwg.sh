@@ -1,4 +1,4 @@
-#!/usr/sh
+#!/usr/bin/env bash
 # Build LibreDWG dwg2dxf from source (Docker/Linux worker image). GPLv3 CLI only.
 set -eu
 TAG="${LIBREDWG_TAG:-0.14.0}"
