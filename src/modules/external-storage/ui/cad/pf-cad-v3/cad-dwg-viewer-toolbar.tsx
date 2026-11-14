@@ -38,12 +38,19 @@ export function CadDwgViewerToolbar({
   return (
     <div
       dir="ltr"
-      className="pointer-events-none absolute inset-x-0 top-0 z-10 grid grid-cols-[auto_minmax(0,1fr)] items-start gap-2 px-2 py-1.5 sm:gap-3"
+      className="pointer-events-none absolute inset-x-0 top-0 z-10 grid grid-cols-[minmax(0,auto)_minmax(0,1fr)] items-center gap-1.5 px-1.5 py-1.5 sm:items-start sm:gap-3 sm:px-2"
     >
-      <div className="pointer-events-auto flex min-w-0 items-center justify-self-start gap-1">
+      <div className="pointer-events-auto flex min-w-0 max-w-[30%] items-center justify-self-start gap-1 sm:max-w-none">
         <CadDwgCompactAlerts banners={visibleBanners} locale={locale} />
       </div>
-      <div className="pointer-events-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+      {/*
+        Mobile: single nowrap row (Model was wrapping to a second line).
+        sm+: keep prior spacing; nowrap is fine on desktop width.
+      */}
+      <div
+        data-testid="cad-dwg-toolbar-controls"
+        className="pointer-events-auto flex min-w-0 max-w-full flex-nowrap items-center justify-end gap-1 overflow-hidden sm:gap-2"
+      >
         {viewerVersion && onViewerVersionChange ? (
           <CadViewerVersionSelect value={viewerVersion} onChange={onViewerVersionChange} />
         ) : null}
@@ -51,17 +58,19 @@ export function CadDwgViewerToolbar({
           type="button"
           size="sm"
           variant={plotView ? 'primary' : 'secondary'}
-          className="h-9 min-h-9 px-2.5 text-xs font-medium"
+          className="h-8 min-h-8 shrink-0 px-1.5 text-[11px] font-medium sm:h-9 sm:min-h-9 sm:px-2.5 sm:text-xs"
           onClick={() => onPlotViewChange(!plotView)}
         >
-          <span dir="auto">{cadPlotViewLabel(locale)}</span>
+          <span dir="auto" className="max-w-[4.5rem] truncate sm:max-w-none">
+            {cadPlotViewLabel(locale)}
+          </span>
         </Button>
         {showSpace ? (
           <CadDwgSpaceSelect
             spaces={spaces}
             value={activeSpace}
             onValueChange={onSpaceChange}
-            triggerClassName="h-9 min-h-9 w-auto min-w-[7.5rem] max-w-[min(100vw-8rem,14rem)] sm:max-w-xs"
+            triggerClassName="h-8 min-h-8 min-w-0 w-auto flex-1 basis-[6.5rem] max-w-[min(42vw,9.5rem)] truncate sm:h-9 sm:min-h-9 sm:min-w-[7.5rem] sm:max-w-xs sm:flex-none sm:basis-auto"
           />
         ) : null}
       </div>

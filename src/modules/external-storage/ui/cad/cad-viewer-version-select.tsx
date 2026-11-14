@@ -21,18 +21,25 @@ export function CadViewerVersionSelect({
   onChange: (version: CadViewerVersion) => void;
 }) {
   return (
-    <div role="group" aria-label="גרסת מציג" className="inline-flex shrink-0 items-center gap-1">
+    <div
+      role="group"
+      aria-label="גרסת מציג"
+      className="inline-flex shrink-0 items-center gap-0.5 sm:gap-1"
+    >
       {OPTIONS.map((option) => (
         <Button
           key={option.id}
           type="button"
           size="sm"
           variant={value === option.id ? 'primary' : 'secondary'}
-          className="h-9 min-h-9 whitespace-nowrap px-2 text-xs font-medium"
+          className="h-8 min-h-8 min-w-8 whitespace-nowrap px-1.5 text-[11px] font-medium sm:h-9 sm:min-h-9 sm:min-w-0 sm:px-2 sm:text-xs"
+          aria-label={option.label}
           aria-pressed={value === option.id}
           onClick={() => onChange(option.id)}
         >
-          {option.label}
+          {/* Mobile: short digits so Model/Plot stay on one row; desktop keeps full labels. */}
+          <span className="sm:hidden">{option.id.slice(1)}</span>
+          <span className="hidden sm:inline">{option.label}</span>
         </Button>
       ))}
     </div>
