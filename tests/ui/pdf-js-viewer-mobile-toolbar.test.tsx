@@ -105,6 +105,11 @@ describe('PdfJsViewer mobile toolbar', () => {
     expect(scrollRoot).toBeTruthy();
     if (!scrollRoot) return;
 
+    Object.defineProperty(scrollRoot, 'scrollWidth', { configurable: true, value: 1200 });
+    Object.defineProperty(scrollRoot, 'clientWidth', { configurable: true, value: 400 });
+    Object.defineProperty(scrollRoot, 'scrollHeight', { configurable: true, value: 2000 });
+    Object.defineProperty(scrollRoot, 'clientHeight', { configurable: true, value: 700 });
+
     scrollRoot.scrollLeft = 0;
     scrollRoot.scrollTop = 0;
     scrollRoot.setPointerCapture = vi.fn();
@@ -139,21 +144,43 @@ describe('PdfJsViewer mobile toolbar', () => {
     expect(scrollRoot).toBeTruthy();
     if (!scrollRoot) return;
 
-    scrollRoot.scrollLeft = 0;
-    scrollRoot.scrollTop = 0;
+    expect(scrollRoot.getAttribute('dir')).toBe('ltr');
+
+    Object.defineProperty(scrollRoot, 'scrollWidth', { configurable: true, value: 1200 });
+    Object.defineProperty(scrollRoot, 'clientWidth', { configurable: true, value: 400 });
+    Object.defineProperty(scrollRoot, 'scrollHeight', { configurable: true, value: 2000 });
+    Object.defineProperty(scrollRoot, 'clientHeight', { configurable: true, value: 700 });
+
+    scrollRoot.scrollLeft = 400;
+    scrollRoot.scrollTop = 100;
 
     fireEvent.touchStart(scrollRoot, {
       touches: [{ identifier: 7, clientX: 200, clientY: 200 }],
       targetTouches: [{ identifier: 7, clientX: 200, clientY: 200 }],
       changedTouches: [{ identifier: 7, clientX: 200, clientY: 200 }],
     });
+    // Finger moves left → content scrolls right (toward opposite edge).
     fireEvent.touchMove(scrollRoot, {
-      touches: [{ identifier: 7, clientX: 150, clientY: 170 }],
-      targetTouches: [{ identifier: 7, clientX: 150, clientY: 170 }],
-      changedTouches: [{ identifier: 7, clientX: 150, clientY: 170 }],
+      touches: [{ identifier: 7, clientX: 100, clientY: 170 }],
+      targetTouches: [{ identifier: 7, clientX: 100, clientY: 170 }],
+      changedTouches: [{ identifier: 7, clientX: 100, clientY: 170 }],
     });
 
-    expect(scrollRoot.scrollLeft).toBe(50);
-    expect(scrollRoot.scrollTop).toBe(30);
+    expect(scrollRoot.scrollLeft).toBe(500);
+    expect(scrollRoot.scrollTop).toBe(130);
+
+    fireEvent.touchStart(scrollRoot, {
+      touches: [{ identifier: 8, clientX: 200, clientY: 200 }],
+      targetTouches: [{ identifier: 8, clientX: 200, clientY: 200 }],
+      changedTouches: [{ identifier: 8, clientX: 200, clientY: 200 }],
+    });
+    // Opposite horizontal direction still moves (not stuck at an edge).
+    fireEvent.touchMove(scrollRoot, {
+      touches: [{ identifier: 8, clientX: 350, clientY: 200 }],
+      targetTouches: [{ identifier: 8, clientX: 350, clientY: 200 }],
+      changedTouches: [{ identifier: 8, clientX: 350, clientY: 200 }],
+    });
+
+    expect(scrollRoot.scrollLeft).toBe(350);
   });
 });

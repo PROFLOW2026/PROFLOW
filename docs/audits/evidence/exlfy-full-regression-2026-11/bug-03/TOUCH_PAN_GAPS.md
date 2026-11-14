@@ -15,12 +15,18 @@ Probe: `pdf-transform-scroll-probe.test.ts` (jsdom `scale(2)` on inner node).
 
 | Input | Pan mechanism | Notes |
 |-------|---------------|--------|
-| Touch 1-finger | **TouchEvent** non-passive `touchmove` → `scrollLeft` / `scrollTop` | Android Chrome pointer-capture was unreliable on canvas; touch path owns pan |
+| Touch 1-finger | **TouchEvent** → `applyPdfScrollPan` (clamped LTR) | Android Chrome pointer-capture was unreliable on canvas; touch path owns pan |
 | Touch 2-finger | Pinch → `gestureScale` preview, then sync `commitGestureZoom` into layout | Cancels one-finger pan; disabled when `handToolActive` |
-| Mouse drag | Pointer-capture pan (hand tool immediate; else threshold) | Touch/pen pointer path skipped to avoid double-scroll |
+| Mouse drag | Pointer-capture pan via `applyPdfScrollPan` | Touch/pen pointer path skipped to avoid double-scroll |
 | Wheel | Browser default scroll | No PDF-specific wheel zoom |
 
-**SW:** shell cache bumped `projectflow-shell-v8` → `v9` so installed PWA reclaims clients after deploy (SW never cached PDF/API bytes).
+## Horizontal one-direction stuck (2026-11-14)
+
+**Cause:** he-IL RTL shell + `items-center` / `w-full` on a page wider than the viewport made `scrollLeft` asymmetric after zoom. Vertical worked; one horizontal edge was unreachable.
+
+**Fix:** scrollport `dir="ltr"`; page stack width = `pageWidth` (not centered flex fill); pan clamped with `applyPdfScrollPan`; after zoom, `scrollLeft` recentered so both edges are reachable.
+
+**SW:** shell cache `projectflow-shell-v9` (SW never cached PDF/API bytes).
 
 ## Shell interaction
 

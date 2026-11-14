@@ -68,6 +68,67 @@ export function elapsedMs(from: number, to = performance.now()): number {
   return Math.round(to - from);
 }
 
+/**
+ * Horizontal scroll range in an LTR scrollport (PDF geometry is always LTR).
+ * Returns max scrollLeft (>= 0). Used to clamp pan so both edges stay reachable.
+ */
+export function pdfMaxScrollLeft(scrollWidth: number, clientWidth: number): number {
+  return Math.max(0, scrollWidth - clientWidth);
+}
+
+export function clampPdfScrollLeft(
+  next: number,
+  scrollWidth: number,
+  clientWidth: number,
+): number {
+  const max = pdfMaxScrollLeft(scrollWidth, clientWidth);
+  if (!Number.isFinite(next)) return 0;
+  return Math.min(max, Math.max(0, next));
+}
+
+export function clampPdfScrollTop(
+  next: number,
+  scrollHeight: number,
+  clientHeight: number,
+): number {
+  const max = Math.max(0, scrollHeight - clientHeight);
+  if (!Number.isFinite(next)) return 0;
+  return Math.min(max, Math.max(0, next));
+}
+
+/** Center the viewport so left and right overflow are both reachable after zoom. */
+export function centeredPdfScrollLeft(scrollWidth: number, clientWidth: number): number {
+  return pdfMaxScrollLeft(scrollWidth, clientWidth) / 2;
+}
+
+/**
+ * Apply one-finger / mouse pan deltas onto an LTR overflow scroller.
+ * Avoids RTL inverted scrollLeft and keeps both horizontal directions in range.
+ */
+export function applyPdfScrollPan(
+  el: {
+    scrollLeft: number;
+    scrollTop: number;
+    scrollWidth: number;
+    scrollHeight: number;
+    clientWidth: number;
+    clientHeight: number;
+  },
+  origin: { readonly scrollLeft: number; readonly scrollTop: number },
+  delta: { readonly dx: number; readonly dy: number },
+): void {
+  el.scrollLeft = clampPdfScrollLeft(
+    origin.scrollLeft - delta.dx,
+    el.scrollWidth,
+    el.clientWidth,
+  );
+  el.scrollTop = clampPdfScrollTop(
+    origin.scrollTop - delta.dy,
+    el.scrollHeight,
+    el.clientHeight,
+  );
+}
+
 /** PDF files begin with the ASCII signature `%PDF-` (may follow optional BOM/whitespace). */
 export function isPdfFileBytes(data: Uint8Array): boolean {
   let i = 0;

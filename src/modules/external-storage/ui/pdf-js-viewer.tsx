@@ -14,7 +14,15 @@ import {
   Square,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { Document, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -41,6 +49,8 @@ import { StorageLoadingOverlay } from './storage-loading-overlay';
 import {
   PDF_LOAD_TIMEOUT_MS,
   PDF_ZOOM_PRESETS,
+  applyPdfScrollPan,
+  centeredPdfScrollLeft,
   clampPdfZoom,
   computePdfPageWidth,
   computePdfZoomPercent,
@@ -125,6 +135,8 @@ function PdfJsViewerInner({
     pointerId: number;
     moved: boolean;
   } | null>(null);
+  /** After layout zoom, recenter so left+right overflow are both reachable (LTR scrollport). */
+  const centerScrollAfterZoomRef = useRef(false);
   const gestureScaleRef = useRef(1);
   const timingsRef = useRef<PdfPreviewTimings>(createPdfPreviewTimings());
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
@@ -183,6 +195,7 @@ function PdfJsViewerInner({
   const commitGestureZoom = useCallback(() => {
     const scale = gestureScaleRef.current;
     if (scale === 1) return;
+    centerScrollAfterZoomRef.current = true;
     setZoomFactor((current) => clampPdfZoom(current * scale));
     setGestureScale(1);
     gestureScaleRef.current = 1;
@@ -190,11 +203,25 @@ function PdfJsViewerInner({
   }, []);
 
   const applyZoomPreset = useCallback((fraction: number) => {
+    centerScrollAfterZoomRef.current = true;
     setFitMode('custom');
     setGestureScale(1);
     gestureScaleRef.current = 1;
     setZoomFactor(clampPdfZoom(fraction));
   }, []);
+
+  useLayoutEffect(() => {
+    if (!centerScrollAfterZoomRef.current) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    const frame = requestAnimationFrame(() => {
+      if (!centerScrollAfterZoomRef.current) return;
+      centerScrollAfterZoomRef.current = false;
+      // LTR scrollport: center so both horizontal edges are reachable after zoom-in.
+      el.scrollLeft = centeredPdfScrollLeft(el.scrollWidth, el.clientWidth);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [pageWidth, zoomFactor]);
 
   useEffect(() => {
     setScrollRoot(scrollRef.current);
@@ -305,10 +332,14 @@ function PdfJsViewerInner({
       const touch = event.touches[0]!;
       if (touch.identifier !== panRef.current.pointerId) return;
       event.preventDefault();
-      const dx = touch.clientX - panRef.current.x;
-      const dy = touch.clientY - panRef.current.y;
-      el.scrollLeft = panRef.current.scrollLeft - dx;
-      el.scrollTop = panRef.current.scrollTop - dy;
+      applyPdfScrollPan(
+        el,
+        { scrollLeft: panRef.current.scrollLeft, scrollTop: panRef.current.scrollTop },
+        {
+          dx: touch.clientX - panRef.current.x,
+          dy: touch.clientY - panRef.current.y,
+        },
+      );
     };
 
     const onTouchEnd = (event: TouchEvent) => {
@@ -469,8 +500,11 @@ function PdfJsViewerInner({
       setIsPanning(true);
     }
     event.preventDefault();
-    el.scrollLeft = panRef.current.scrollLeft - dx;
-    el.scrollTop = panRef.current.scrollTop - dy;
+    applyPdfScrollPan(
+      el,
+      { scrollLeft: panRef.current.scrollLeft, scrollTop: panRef.current.scrollTop },
+      { dx, dy },
+    );
   };
 
   const endPan = (event?: React.PointerEvent<HTMLDivElement>) => {
@@ -681,8 +715,10 @@ function PdfJsViewerInner({
 
       <div
         ref={scrollRef}
+        dir="ltr"
         className={cn(
-          // touch-none: own one-finger pan via pointer capture (native pan fails under preview shell on some mobile browsers).
+          // LTR scrollport: PDF geometry must not inherit RTL scrollLeft inversion from he-IL shell.
+          // touch-none: own one-finger pan (native pan fails under preview shell on some Android browsers).
           // Pinch still uses non-passive touchmove + preventDefault below.
           'relative min-h-0 flex-1 touch-none overflow-auto overscroll-contain bg-[var(--pf-surface-muted)]',
           handToolActive && 'cursor-grab',
@@ -714,15 +750,18 @@ function PdfJsViewerInner({
             }
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
-            className="flex flex-col items-center gap-4 px-2 py-4"
+            // Block layout sized to pageWidth (not w-full + items-center): centered wide
+            // children under RTL/flex make horizontal scroll one-directional after zoom.
+            className="block px-2 py-4"
           >
             <div
-              className="flex w-full flex-col items-center gap-4 origin-top"
-              style={
-                visualScale !== 1
+              className="mx-auto flex flex-col items-stretch gap-4 origin-top"
+              style={{
+                width: pageWidth,
+                ...(visualScale !== 1
                   ? { transform: `scale(${visualScale})`, transformOrigin: 'top center' }
-                  : undefined
-              }
+                  : null),
+              }}
             >
               {Array.from({ length: numPages }, (_, index) => {
                 const pageNumber = index + 1;
@@ -736,7 +775,7 @@ function PdfJsViewerInner({
                     }}
                     data-page={pageNumber}
                     className={pageOverlay ? 'relative' : undefined}
-                    style={pageOverlay ? { width: pageWidth, minHeight: pageHeight } : undefined}
+                    style={{ width: pageWidth, ...(pageOverlay ? { minHeight: pageHeight } : null) }}
                   >
                     <PdfLazyPage
                       pageNumber={pageNumber}
