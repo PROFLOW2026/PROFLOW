@@ -129,6 +129,61 @@ export function applyPdfScrollPan(
   );
 }
 
+export function touchPairMidpoint(
+  a: { readonly clientX: number; readonly clientY: number },
+  b: { readonly clientX: number; readonly clientY: number },
+): { x: number; y: number } {
+  return { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
+}
+
+/** Midpoint in scrollport client coordinates (LTR viewport). */
+export function viewportFocalFromClientMidpoint(
+  midpoint: { readonly x: number; readonly y: number },
+  viewport: { readonly left: number; readonly top: number },
+): { x: number; y: number } {
+  return { x: midpoint.x - viewport.left, y: midpoint.y - viewport.top };
+}
+
+/**
+ * Keep the content point under the focal on-screen when scale changes, and follow a
+ * moving focal (pinch midpoint drag) in the same step.
+ *
+ * scaleRatio = newScale / oldScale. focal values are relative to the scrollport client box.
+ */
+export function scrollAfterScaleAtFocal(input: {
+  readonly scrollLeft: number;
+  readonly scrollTop: number;
+  readonly focalX: number;
+  readonly focalY: number;
+  readonly prevFocalX?: number;
+  readonly prevFocalY?: number;
+  readonly scaleRatio: number;
+}): { scrollLeft: number; scrollTop: number } {
+  const ratio =
+    Number.isFinite(input.scaleRatio) && input.scaleRatio > 0 ? input.scaleRatio : 1;
+  const prevX = input.prevFocalX ?? input.focalX;
+  const prevY = input.prevFocalY ?? input.focalY;
+  return {
+    scrollLeft: (input.scrollLeft + prevX) * ratio - input.focalX,
+    scrollTop: (input.scrollTop + prevY) * ratio - input.focalY,
+  };
+}
+
+export function clampPdfScrollPosition(
+  next: { readonly scrollLeft: number; readonly scrollTop: number },
+  el: {
+    readonly scrollWidth: number;
+    readonly scrollHeight: number;
+    readonly clientWidth: number;
+    readonly clientHeight: number;
+  },
+): { scrollLeft: number; scrollTop: number } {
+  return {
+    scrollLeft: clampPdfScrollLeft(next.scrollLeft, el.scrollWidth, el.clientWidth),
+    scrollTop: clampPdfScrollTop(next.scrollTop, el.scrollHeight, el.clientHeight),
+  };
+}
+
 /** PDF files begin with the ASCII signature `%PDF-` (may follow optional BOM/whitespace). */
 export function isPdfFileBytes(data: Uint8Array): boolean {
   let i = 0;

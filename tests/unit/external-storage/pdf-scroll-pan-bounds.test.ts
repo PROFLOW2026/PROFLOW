@@ -4,6 +4,9 @@ import {
   centeredPdfScrollLeft,
   clampPdfScrollLeft,
   pdfMaxScrollLeft,
+  scrollAfterScaleAtFocal,
+  touchPairMidpoint,
+  viewportFocalFromClientMidpoint,
 } from '@/modules/external-storage/ui/pdf-viewer-utils';
 
 describe('pdf scroll pan bounds (LTR)', () => {
@@ -36,5 +39,49 @@ describe('pdf scroll pan bounds (LTR)', () => {
 
     applyPdfScrollPan(el, origin, { dx: -400, dy: 0 });
     expect(el.scrollLeft).toBe(800);
+  });
+});
+
+describe('pdf pinch zoom focal anchor', () => {
+  it('keeps the content point under a fixed focal after scale-up (not jump to top)', () => {
+    const focalX = 200;
+    const focalY = 300;
+    const before = { scrollLeft: 100, scrollTop: 400 };
+    const after = scrollAfterScaleAtFocal({
+      ...before,
+      focalX,
+      focalY,
+      scaleRatio: 2,
+    });
+    // Content under focal before: (300, 700). After ×2 with same focal → scroll (400, 1100).
+    expect(after.scrollLeft).toBe(400);
+    expect(after.scrollTop).toBe(1100);
+    expect(after.scrollTop).not.toBe(0);
+  });
+
+  it('follows a moving pinch midpoint while scaling', () => {
+    const after = scrollAfterScaleAtFocal({
+      scrollLeft: 100,
+      scrollTop: 200,
+      prevFocalX: 150,
+      prevFocalY: 180,
+      focalX: 180,
+      focalY: 220,
+      scaleRatio: 1.5,
+    });
+    expect(after.scrollLeft).toBe((100 + 150) * 1.5 - 180);
+    expect(after.scrollTop).toBe((200 + 180) * 1.5 - 220);
+  });
+
+  it('maps client midpoint into the LTR scrollport', () => {
+    const mid = touchPairMidpoint(
+      { clientX: 100, clientY: 200 },
+      { clientX: 300, clientY: 400 },
+    );
+    expect(mid).toEqual({ x: 200, y: 300 });
+    expect(viewportFocalFromClientMidpoint(mid, { left: 40, top: 60 })).toEqual({
+      x: 160,
+      y: 240,
+    });
   });
 });

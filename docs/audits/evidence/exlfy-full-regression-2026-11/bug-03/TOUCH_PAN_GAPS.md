@@ -16,7 +16,7 @@ Probe: `pdf-transform-scroll-probe.test.ts` (jsdom `scale(2)` on inner node).
 | Input | Pan mechanism | Notes |
 |-------|---------------|--------|
 | Touch 1-finger | **TouchEvent** → `applyPdfScrollPan` (clamped LTR) | Android Chrome pointer-capture was unreliable on canvas; touch path owns pan |
-| Touch 2-finger | Pinch → `gestureScale` preview, then sync `commitGestureZoom` into layout | Cancels one-finger pan; disabled when `handToolActive` |
+| Touch 2-finger | Pinch → live `zoomFactor` + `scrollAfterScaleAtFocal` (finger midpoint) | No CSS top-center transform; no post-pinch auto-center; disabled when `handToolActive` |
 | Mouse drag | Pointer-capture pan via `applyPdfScrollPan` | Touch/pen pointer path skipped to avoid double-scroll |
 | Wheel | Browser default scroll | No PDF-specific wheel zoom |
 
@@ -24,7 +24,13 @@ Probe: `pdf-transform-scroll-probe.test.ts` (jsdom `scale(2)` on inner node).
 
 **Cause:** he-IL RTL shell + `items-center` / `w-full` on a page wider than the viewport made `scrollLeft` asymmetric after zoom. Vertical worked; one horizontal edge was unreachable.
 
-**Fix:** scrollport `dir="ltr"`; page stack width = `pageWidth` (not centered flex fill); pan clamped with `applyPdfScrollPan`; after zoom, `scrollLeft` recentered so both edges are reachable.
+**Fix:** scrollport `dir="ltr"`; page stack width = `pageWidth` (not centered flex fill); pan clamped with `applyPdfScrollPan`; toolbar presets may still center horizontally.
+
+## Pinch jumps to page top (2026-11-14)
+
+**Cause:** CSS `transform-origin: top center` during pinch + auto-`scrollLeft` center on commit moved the view away from the finger midpoint.
+
+**Fix:** pinch applies live `zoomFactor` with `scrollAfterScaleAtFocal` (LTR scrollport); no CSS scale preview; no post-pinch auto-center. Toolbar +/- zooms about viewport center; presets still center.
 
 **SW:** shell cache `projectflow-shell-v9` (SW never cached PDF/API bytes).
 
