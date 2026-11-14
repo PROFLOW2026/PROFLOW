@@ -1,12 +1,10 @@
 import { MainAppPage, MainAppSection } from '@/components/patterns/main-app';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
-import { listProjectGoals } from '@/modules/project-goals';
-import { ProjectGoalsPanel, type ProjectGoalListItem } from '@/modules/project-goals/ui/project-goals-panel';
+import { loadInternalProjectGoalsPanelData } from '@/modules/project-goals';
+import { ProjectGoalsPanel } from '@/modules/project-goals/ui/project-goals-panel';
 import { loadOrNotFound } from '@/modules/site-log/shared/page-guard';
 import { withOrgContext } from '@/shared/auth/session';
-import { hasAnyPermission } from '@/shared/permissions/assert';
-import { PERMISSIONS } from '@/shared/permissions/catalog';
 
 export default async function ProjectGoalsPage({
   params,
@@ -17,21 +15,7 @@ export default async function ProjectGoalsPage({
   const t = await getTranslations('projectGoals');
 
   const data = await loadOrNotFound(() =>
-    withOrgContext(async (context) => {
-      const goals = await listProjectGoals(context, projectId);
-      const canUpdate = hasAnyPermission(context, [
-        PERMISSIONS.PROJECTS_UPDATE,
-        PERMISSIONS.PLANNING_WRITE,
-      ]);
-      const items: ProjectGoalListItem[] = goals.map((row) => ({
-        id: row.id,
-        title: row.title,
-        dueOn: row.dueOn,
-        status: row.status,
-        progressPercent: row.progressPercent,
-      }));
-      return { items, canUpdate };
-    }),
+    withOrgContext((context) => loadInternalProjectGoalsPanelData(context, projectId)),
   );
 
   return (
@@ -43,6 +27,7 @@ export default async function ProjectGoalsPage({
           projectId={projectId}
           initialRows={data.items}
           canUpdate={data.canUpdate}
+          viewOnly={data.viewOnly}
         />
       </MainAppSection>
     </MainAppPage>

@@ -1,0 +1,55 @@
+[
+  {
+    "surface": "contractor",
+    "step": "sign-in + RTL shell",
+    "status": "VERIFIED PASS",
+    "classification": "PRODUCT",
+    "evidence": "portal-diagnosis/contractor-login.png"
+  },
+  {
+    "surface": "contractor",
+    "step": "overflow assert (scrollWidth vs clientWidth)",
+    "status": "VERIFIED PASS",
+    "classification": "HARNESS",
+    "evidence": "portal-diagnosis/contractor-home-overflow.json",
+    "note": "Prior FAIL was html overflow-x clip/hidden guard; scrollWidth=390 clientWidth=390"
+  },
+  {
+    "surface": "contractor",
+    "step": "projects / tasks / documents / plans / notifications",
+    "status": "UNVERIFIED",
+    "classification": "ENVIRONMENT",
+    "evidence": "portal-diagnosis/steps.json (prior run)",
+    "note": "Login+overflow PASS; extended routes aborted under next-dev timeouts / concurrent harness contention"
+  },
+  {
+    "surface": "employee",
+    "step": "seed + auth stub (opspm)",
+    "status": "VERIFIED PASS",
+    "classification": "HARNESS",
+    "evidence": "portal-diagnosis/auth-token-probe.json"
+  },
+  {
+    "surface": "employee",
+    "step": "sign-in opspm",
+    "status": "VERIFIED FAIL",
+    "classification": "HARNESS",
+    "evidence": "portal-diagnosis/employee-probe-ops.json",
+    "note": "notConfigured mapping; prior authentication_required from setActiveOrganization; env CONNECTION_CLOSED also observed"
+  },
+  {
+    "surface": "employee",
+    "step": "sign-in single99",
+    "status": "VERIFIED PASS",
+    "classification": "PRODUCT",
+    "evidence": "portal-diagnosis/employee-probe-single.json"
+  },
+  {
+    "surface": "employee",
+    "step": "projects / tasks / documents / plans / notifications",
+    "status": "UNVERIFIED",
+    "classification": "ENVIRONMENT",
+    "evidence": "portal-diagnosis/employee-probe-single.json",
+    "note": "Shell reachable via single99; GC-project parity path blocked by opspm login"
+  }
+]

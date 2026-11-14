@@ -159,6 +159,31 @@ export function bidiIsolate(text: string): string {
   return `\u2066${text}\u2069`;
 }
 
+/**
+ * Narrow currency glyph for inline inputs (₪, $, €).
+ * Prefer this over passing ISO codes like `ILS` into MoneyInput.
+ */
+export function narrowCurrencySymbol(
+  currency: string,
+  locale: string = DEFAULT_LOCALE,
+): string {
+  const code = currency.trim().toUpperCase();
+  if (!code) return currency;
+  try {
+    const parts = getFormatter(resolveIntlLocale(locale), {
+      style: 'currency',
+      currency: code,
+      currencyDisplay: 'narrowSymbol',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).formatToParts(0);
+    const symbol = stripBidiMarks(parts.find((part) => part.type === 'currency')?.value ?? '').trim();
+    return symbol || code;
+  } catch {
+    return code;
+  }
+}
+
 /** Server-side display helper — always 2 decimal places (presentation only). */
 export function formatMoneyDisplay(value: MoneyValue, locale: string = DEFAULT_LOCALE): string {
   return formatMoney(value, locale, { decimals: 'minor-units' });

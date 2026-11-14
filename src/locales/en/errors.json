@@ -28,5 +28,10 @@
     "title": "Something went wrong",
     "body": "We hit an unexpected problem. Nothing you entered was lost.",
     "retry": "Try again"
+  },
+  "workforceTimeApprovals": {
+    "title": "Time approvals could not load",
+    "body": "The approvals list failed to load. Try again. If it keeps failing, check permissions or reopen from Workforce → Time.",
+    "retry": "Try again"
   }
 }

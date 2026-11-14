@@ -1,0 +1,17 @@
+{
+  "url": "/he-IL/workforce/employees/36bf199e-d0b8-4a4c-a7e7-d00fc06f22b3?yearMonth=2026-10&focus=payroll",
+  "label": "without-paymentId",
+  "consoleLines": [
+    "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+  ],
+  "pageErrors": [],
+  "documentStatus": 500,
+  "documentUrl": "http://127.0.0.1:3100/he-IL/workforce/employees/36bf199e-d0b8-4a4c-a7e7-d00fc06f22b3?yearMonth=2026-10&focus=payroll",
+  "sawGenericError": false,
+  "errorPageBodyVisible": false,
+  "payrollPanelVisible": false,
+  "monthReviewTitleVisible": false,
+  "confirmPaidVisible": false,
+  "pageTitle": "עובד · EXLFY",
+  "bodySnippet": ""
+}

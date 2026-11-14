@@ -35,6 +35,7 @@ import {
   kindsVisibleToPermissions,
   type QueriedSearchKind,
 } from '../domain/search-scope';
+import { flattenSettledSearchKindJobs } from '../domain/settle-search-kind-jobs';
 import type { GlobalSearchHit, GlobalSearchResult } from '../domain/types';
 import { searchProjectCapabilityHits } from './project-search';
 import {
@@ -456,8 +457,10 @@ async function fetchAllowedHits(
   if (kinds.has('work_permit')) jobs.push(fetchWorkPermitHits(context, query, limit, scope));
   if (kinds.has('project_risk')) jobs.push(fetchProjectRiskHits(context, query, limit, scope));
 
-  const lists = await Promise.all(jobs);
-  return lists.flat();
+  // Optional kinds (risks/permits) may be absent pre-migrate; one rejection must
+  // not fail the whole search. Probes in search.repository also soft-degrade.
+  const settled = await Promise.allSettled(jobs);
+  return flattenSettledSearchKindJobs(settled);
 }
 
 /**

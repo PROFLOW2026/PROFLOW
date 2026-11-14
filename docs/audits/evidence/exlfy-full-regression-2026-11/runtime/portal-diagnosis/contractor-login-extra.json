@@ -1,0 +1,16 @@
+{
+  "url": "http://127.0.0.1:3100/he-IL/contractor",
+  "dir": "rtl",
+  "overflow": {
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "viewportWidth": 390,
+    "bodyOverflowX": "hidden",
+    "htmlOverflowX": "hidden",
+    "hasHorizontalScroll": false
+  },
+  "world": {
+    "gcProjectId": "cee8e6bd-9a87-4efc-a8c4-6537f7748a4c",
+    "gcContractorUsername": "kablan1"
+  }
+}

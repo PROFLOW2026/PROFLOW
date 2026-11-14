@@ -1,0 +1,20 @@
+{
+  "url": "http://127.0.0.1:3100/he-IL/employee/login",
+  "alertText": "",
+  "account": [
+    {
+      "failed_login_count": 0,
+      "last_login_at": "2026-11-14T01:07:09.433Z",
+      "auth_email": "65aa6588-1c97-4295-8c79-6df51812a16e.opspm@employees.pf.internal",
+      "organization_id": "65aa6588-1c97-4295-8c79-6df51812a16e",
+      "user_id": "12121212-1212-4212-8212-121212121212"
+    }
+  ],
+  "audit": [
+    {
+      "action": "login_success",
+      "detail_json": null,
+      "created_at": "2026-11-14T01:07:09.444Z"
+    }
+  ]
+}

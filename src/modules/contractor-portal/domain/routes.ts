@@ -63,6 +63,9 @@ export const PORTAL_ROUTES = [
   { key: 'project.schedule', track: 'H', scope: 'project', path: 'projects/[projectId]/schedule', pageFile: '(portal)/projects/[projectId]/schedule/page.tsx', capability: CAP.SCHEDULE_VIEW, placement: 'project', labelKey: 'nav.schedule', implemented: true },
   { key: 'project.event', track: 'H', scope: 'project', path: 'projects/[projectId]/events/[eventId]', pageFile: '(portal)/projects/[projectId]/events/[eventId]/page.tsx', capability: CAP.SCHEDULE_VIEW, placement: 'detail', labelKey: 'nav.schedule', implemented: true },
 
+  // Project goals — route gate is ext.project.view for discovery; data is visibility-filtered (fail-closed)
+  { key: 'project.goals', track: 'H', scope: 'project', path: 'projects/[projectId]/goals', pageFile: '(portal)/projects/[projectId]/goals/page.tsx', capability: CAP.PROJECT_VIEW, placement: 'project', labelKey: 'nav.goals', implemented: true },
+
   // Track IJ - documents / plans
   {
     key: 'project.documents',

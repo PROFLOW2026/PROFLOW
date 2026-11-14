@@ -8,7 +8,7 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { findActiveBoqForProject, listBoqNodes } from '@/modules/boq';
 import { findRevision } from '../data/plans.repository';
-import { assertNoDuplicateBoqNodeLink } from './sheet-mark-boq-link';
+import { assertBoqNodeInActiveProjectBoq, assertNoDuplicateBoqNodeLink } from './sheet-mark-boq-link';
 import { parseOrThrow, uuid } from './shared';
 
 export const SHEET_MARK_KINDS = ['pin', 'note', 'measure'] as const;
@@ -188,6 +188,12 @@ export async function createDrawingSheetMark(
       : pointGeometrySchema.parse(input.geometry);
 
   if (input.linkedEntityType === 'boq_node' && input.linkedEntityId) {
+    await assertBoqNodeInActiveProjectBoq(
+      context.db,
+      context.organizationId,
+      input.projectId,
+      input.linkedEntityId,
+    );
     await assertNoDuplicateBoqNodeLink(
       context.db,
       context.organizationId,

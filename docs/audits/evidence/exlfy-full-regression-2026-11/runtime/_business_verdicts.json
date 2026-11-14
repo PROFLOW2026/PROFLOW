@@ -1,0 +1,38 @@
+[
+  {
+    "title": "authenticate owner",
+    "status": "passed",
+    "anns": []
+  },
+  {
+    "title": "expenses: list → open seeded → create draft → note payment UI",
+    "status": "passed",
+    "anns": [
+      "expenses.list|VERIFIED_PASS|list + seeded row visible",
+      "expenses.open|HARNESS|page.goto: Timeout 45000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:3100/he-IL/expenses/36806136-ae21-490f-b882-e65c377f3acf\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    ]
+  },
+  {
+    "title": "projects: hubs + seeded task + create/status if feasible",
+    "status": "passed",
+    "anns": [
+      "projects.hubs|VERIFIED_PASS|five hubs visible",
+      "projects.work_hub|HARNESS|\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('tab', { name: 'עבודה' })\nExpected: \u001b[32m\"\u001b[7mtru\u001b[27me\"\u001b[39m\nReceived: \u001b["
+    ]
+  },
+  {
+    "title": "procurement / RFQ: open if seed supports",
+    "status": "passed",
+    "anns": [
+      "procurement.list|HARNESS|page.goto: Timeout 45000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:3100/he-IL/procurement\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    ]
+  },
+  {
+    "title": "RFI / defects: open project routes if present",
+    "status": "passed",
+    "anns": [
+      "quality.rfis|HARNESS|HTTP 0 — route missing or gated; fixtures use placeholder rfiId",
+      "quality.defects|HARNESS|HTTP 0 — route missing or gated; fixtures use placeholder defectId"
+    ]
+  }
+]

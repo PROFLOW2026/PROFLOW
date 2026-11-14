@@ -1,0 +1,460 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\ERAN YOSEF\\Desktop\\final projects\\FINAL-WEB\\projectflow\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--config",
+      "docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright.regression.config.ts",
+      "--workers=1",
+      "--project=setup-owner",
+      "--project=regression-pdf"
+    ],
+    "configFile": "C:\\Users\\ERAN YOSEF\\Desktop\\final projects\\FINAL-WEB\\projectflow\\docs\\audits\\evidence\\exlfy-full-regression-2026-11\\runtime\\playwright.regression.config.ts",
+    "rootDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "C:\\Users\\ERAN YOSEF\\Desktop\\final projects\\FINAL-WEB\\projectflow\\docs\\audits\\evidence\\exlfy-full-regression-2026-11\\runtime\\portal-clear-next-cache.mjs",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "setup-owner",
+        "name": "setup-owner",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/auth\\/owner\\.setup\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "setup-worker",
+        "name": "setup-worker",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/auth\\/worker\\.setup\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop-he",
+        "name": "desktop-he",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [
+          "/auth\\//",
+          "/authenticated\\//",
+          "/mobile\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop-he-authenticated",
+        "name": "desktop-he-authenticated",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/authenticated\\/(owner|regression|performance-verify|performance-signoff|jobs-flows|master-completion-journeys|pwa-startup|ocr-review|boq-happy-path|capture-marketing-screenshots|branding|hebrew-runtime-closure|overnight-surfaces|billing-plan|project-time-mobile-gate|project-centric-money-chain|release-smoke|locale-profile-persistence)\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop-he-worker",
+        "name": "desktop-he-worker",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/authenticated\\/worker\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop-he-personas",
+        "name": "desktop-he-personas",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/authenticated\\/persona-matrix\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile-he",
+        "name": "mobile-he",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/mobile\\.spec\\.ts|mobile-shell-audit\\.spec\\.ts|authenticated\\/workforce-discoverability\\.spec\\.ts|authenticated\\/ocr-review\\.spec\\.ts|authenticated\\/hebrew-runtime-closure\\.spec\\.ts|authenticated\\/overnight-surfaces\\.spec\\.ts|authenticated\\/billing-plan\\.spec\\.ts|authenticated\\/mobile-money-journeys\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "audit-verification",
+        "name": "audit-verification",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/audit\\/verification.*\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "design-v2-specimen",
+        "name": "design-v2-specimen",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/tests/design-v2/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "regression-viewport",
+        "name": "regression-viewport",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime",
+        "testIgnore": [],
+        "testMatch": [
+          "/exlfy-viewport-coverage\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "regression-viewport-gaps",
+        "name": "regression-viewport-gaps",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime",
+        "testIgnore": [],
+        "testMatch": [
+          "/exlfy-viewport-gaps\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "regression-business",
+        "name": "regression-business",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime",
+        "testIgnore": [],
+        "testMatch": [
+          "/exlfy-business-flows\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "regression-pdf",
+        "name": "regression-pdf",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime",
+        "testIgnore": [],
+        "testMatch": [
+          "/exlfy-pdf-touch-probe\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "regression-portal",
+        "name": "regression-portal",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime",
+        "testIgnore": [],
+        "testMatch": [
+          "/exlfy-portal-smoke\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "bug02-setup-owner",
+        "name": "bug02-setup-owner",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/bug-02",
+        "testIgnore": [],
+        "testMatch": [
+          "/owner-auth-stub\\.setup\\.ts/"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "bug02-payroll",
+        "name": "bug02-payroll",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/bug-02",
+        "testIgnore": [],
+        "testMatch": [
+          "/bug-02-payroll-deep-link\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "C:\\Users\\ERAN YOSEF\\Desktop\\final projects\\FINAL-WEB\\projectflow\\docs\\audits\\evidence\\exlfy-full-regression-2026-11\\runtime\\playwright-results.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "open": "never",
+          "outputFolder": "C:\\Users\\ERAN YOSEF\\Desktop\\final projects\\FINAL-WEB\\projectflow\\docs\\audits\\evidence\\exlfy-full-regression-2026-11\\runtime\\playwright-report"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "auth\\owner.setup.ts",
+      "file": "auth/owner.setup.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "authenticate owner",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "setup-owner",
+              "projectName": "setup-owner",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1562,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T01:33:06.429Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05bdfe672bfa15875c05-b87a36a758ff1f59028b",
+          "file": "auth/owner.setup.ts",
+          "line": 5,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "..\\..\\docs\\audits\\evidence\\exlfy-full-regression-2026-11\\runtime\\exlfy-pdf-touch-probe.spec.ts",
+      "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime/exlfy-pdf-touch-probe.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "EXLFY PDF touch/pointer probe (owner, audit)",
+          "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime/exlfy-pdf-touch-probe.spec.ts",
+          "line": 33,
+          "column": 6,
+          "specs": [
+            {
+              "title": "PdfJsViewer pointer + synthetic touch via OCR viewOriginal",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "pdf.seeded_url|UNVERIFIED|world seed has no document/PDF URL; OCR upload → viewOriginal → DocumentPreviewDialog"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "pdf.open_viewer|HARNESS|OCR upload did not select a job (mock/provider); company-files browse also reconnects — no live PdfJsViewer URL"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "pdf.touch_pan_gap|UNVERIFIED|code evidence only (bug-03/TOUCH_PAN_GAPS.md): no touch drag-pan; mouse hand-tool only; transform zoom ≠ layout scroll"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "pdf.real_device|UNVERIFIED|Android/iOS not exercised"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "regression-pdf",
+                  "projectName": "regression-pdf",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 91153,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-14T01:33:08.924Z",
+                      "annotations": [
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "pdf.seeded_url|UNVERIFIED|world seed has no document/PDF URL; OCR upload → viewOriginal → DocumentPreviewDialog"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "pdf.open_viewer|HARNESS|OCR upload did not select a job (mock/provider); company-files browse also reconnects — no live PdfJsViewer URL"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "pdf.touch_pan_gap|UNVERIFIED|code evidence only (bug-03/TOUCH_PAN_GAPS.md): no touch drag-pan; mouse hand-tool only; transform zoom ≠ layout scroll"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "pdf.real_device|UNVERIFIED|Android/iOS not exercised"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "758ea5622750958c8054-6cc4905bbe84279e316f",
+              "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime/exlfy-pdf-touch-probe.spec.ts",
+              "line": 36,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-14T01:32:20.269Z",
+    "duration": 140354.687,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

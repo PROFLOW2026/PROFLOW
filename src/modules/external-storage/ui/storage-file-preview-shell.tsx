@@ -21,7 +21,8 @@ function lockBodyScroll(): () => void {
   body.style.position = 'fixed';
   body.style.top = `-${scrollY}px`;
   body.style.width = '100%';
-  body.style.touchAction = 'none';
+  // Do not set body touch-action: none — it breaks nested one-finger pan/scroll inside
+  // the PDF viewer on iOS Safari. Overflow + position fixed already lock background scroll.
 
   return () => {
     body.style.overflow = previous.overflow;

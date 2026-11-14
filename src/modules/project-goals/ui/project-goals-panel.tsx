@@ -31,10 +31,16 @@ export function ProjectGoalsPanel({
   projectId,
   initialRows,
   canUpdate,
+  viewOnly = false,
+  emptyMessageKey = 'list.empty',
 }: {
   projectId: string;
   initialRows: readonly ProjectGoalListItem[];
   canUpdate: boolean;
+  /** When true, show an explicit view-only notice (BUG-009). */
+  viewOnly?: boolean;
+  /** Override empty copy (contractor uses shared-only messaging). */
+  emptyMessageKey?: 'list.empty' | 'list.emptyContractor';
 }) {
   const t = useTranslations('projectGoals');
   const router = useRouter();
@@ -91,6 +97,14 @@ export function ProjectGoalsPanel({
 
   return (
     <div className="flex flex-col gap-6">
+      {viewOnly && !canUpdate ? (
+        <p
+          role="status"
+          className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm text-[var(--pf-text-secondary)]"
+        >
+          {t('viewOnly.banner')}
+        </p>
+      ) : null}
       {canUpdate ? (
         <Card>
           <CardHeader>
@@ -157,7 +171,7 @@ export function ProjectGoalsPanel({
         </CardHeader>
         <CardContent>
           {rows.length === 0 ? (
-            <p className="text-sm text-[var(--pf-text-secondary)]">{t('list.empty')}</p>
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t(emptyMessageKey)}</p>
           ) : (
             <ul className="flex flex-col gap-4">
               {rows.map((row) => (

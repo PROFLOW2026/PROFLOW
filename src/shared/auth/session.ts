@@ -18,6 +18,7 @@ import {
   runInOrgRequestTxFrame,
   type OrgRequestTxFrame,
 } from '@/shared/auth/org-request-tx';
+import { canReuseNestedOrgRequestFrame } from '@/shared/auth/org-context-nesting';
 import { setActiveOrganizationPreference } from '@/modules/identity/application/ensure-profile';
 import { getModuleVisibility } from '@/modules/tenancy/application/read-module-visibility';
 import { loadShellOrgSettings } from '@/modules/tenancy/application/shell-org-settings';
@@ -164,7 +165,13 @@ export async function runInOrgContext<T>(
   const nested = getOrgRequestTxFrame();
   const locale = await getLocale();
 
-  if (nested) {
+  // Nested reuse is only safe for the *same* organization. Reusing the active
+  // org snapshot when callers pass another organizationId (e.g. multi-org
+  // switcher open-task badges) would attribute counts/permissions to the wrong tenant.
+  if (
+    nested &&
+    canReuseNestedOrgRequestFrame(nested.snapshot.organizationId, organizationId)
+  ) {
     const { enrichOrgContextWithEmployeeApp } = await import(
       '@/modules/employee-app/application/enrich-context'
     );
@@ -241,7 +248,7 @@ export const getShellContext = cache(async () => {
   if (session.status !== 'authenticated' || !session.activeOrganizationId) return null;
 
   try {
-    return await runInOrgContext(session.user.id, session.activeOrganizationId, async (context) => {
+    const shell = await runInOrgContext(session.user.id, session.activeOrganizationId, async (context) => {
       const { assertOwnerAppSurface } = await import(
         '@/modules/employee-app/application/session-guard'
       );
@@ -308,21 +315,9 @@ export const getShellContext = cache(async () => {
         ) as ModuleVisibility;
       }
 
-      const organizationOpenTaskCounts =
-        session.memberships.length > 1
-          ? await (
-              await import('@/modules/tenancy/application/organization-switcher-open-tasks')
-            ).loadOrganizationSwitcherOpenTaskCounts(
-              session.user.id,
-              session.memberships,
-              context.organizationId,
-            )
-          : {};
-
       return {
         user: session.user,
         memberships: session.memberships,
-        organizationOpenTaskCounts,
         organization: context.organization,
         organizationId: context.organizationId,
         organizationLogoUrl,
@@ -347,6 +342,21 @@ export const getShellContext = cache(async () => {
         },
       };
     });
+
+    // Load other-org badges *outside* the active-org tx frame so nested
+    // runInOrgContext cannot reuse the active snapshot for a different org.
+    const organizationOpenTaskCounts =
+      session.memberships.length > 1
+        ? await (
+            await import('@/modules/tenancy/application/organization-switcher-open-tasks')
+          ).loadOrganizationSwitcherOpenTaskCounts(
+            session.user.id,
+            session.memberships,
+            shell.organizationId,
+          )
+        : {};
+
+    return { ...shell, organizationOpenTaskCounts };
   } catch (error) {
     // A revoked membership should show the org picker, not an error page.
     if (error instanceof AppError) return null;

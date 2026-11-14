@@ -40,7 +40,6 @@ import { PDFJS_WORKER_PUBLIC_PATH } from './pdf-viewer-config';
 import { StorageLoadingOverlay } from './storage-loading-overlay';
 import {
   PDF_LOAD_TIMEOUT_MS,
-  PDF_PINCH_COMMIT_MS,
   PDF_ZOOM_PRESETS,
   clampPdfZoom,
   computePdfPageWidth,
@@ -55,6 +54,9 @@ import {
 } from './pdf-viewer-utils';
 
 pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_PUBLIC_PATH;
+
+/** Mouse drag distance before free-pan captures the pointer (preserves annotate/measure clicks). */
+const PDF_PAN_THRESHOLD_PX = 4;
 
 export type PdfPageOverlayRenderProps = {
   readonly pageNumber: number;
@@ -114,11 +116,15 @@ function PdfJsViewerInner({
   const scrollRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const loadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pinchCommitRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pinchRef = useRef<{ distance: number; zoom: number } | null>(null);
-  const panRef = useRef<{ x: number; y: number; scrollLeft: number; scrollTop: number } | null>(
-    null,
-  );
+  const panRef = useRef<{
+    x: number;
+    y: number;
+    scrollLeft: number;
+    scrollTop: number;
+    pointerId: number;
+    moved: boolean;
+  } | null>(null);
   const gestureScaleRef = useRef(1);
   const timingsRef = useRef<PdfPreviewTimings>(createPdfPreviewTimings());
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
@@ -218,7 +224,6 @@ function PdfJsViewerInner({
 
     return () => {
       clearLoadTimeout();
-      if (pinchCommitRef.current) clearTimeout(pinchCommitRef.current);
     };
   }, [url, reloadKey, clearLoadTimeout, failLoad, t]);
 
@@ -249,14 +254,16 @@ function PdfJsViewerInner({
     const onTouchStart = (event: TouchEvent) => {
       if (handToolActive) return;
       if (event.touches.length !== 2) return;
+      // Two-finger pinch takes over; cancel any one-finger pan draft.
+      panRef.current = null;
+      setIsPanning(false);
       const [a, b] = [event.touches[0]!, event.touches[1]!];
       pinchRef.current = {
         distance: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
-        zoom: gestureScale,
+        zoom: gestureScaleRef.current,
       };
       setIsPinching(true);
       setFitMode('custom');
-      if (pinchCommitRef.current) clearTimeout(pinchCommitRef.current);
     };
 
     const onTouchMove = (event: TouchEvent) => {
@@ -270,14 +277,15 @@ function PdfJsViewerInner({
       setGestureScale(next);
     };
 
-    const onTouchEnd = () => {
+    const onTouchEnd = (event: TouchEvent) => {
       if (!pinchRef.current) return;
+      // Keep preview alive until both fingers are up, then commit into layout zoom
+      // so scrollWidth/scrollHeight match the visual scale and free pan works.
+      if (event.touches.length >= 2) return;
       pinchRef.current = null;
       setIsPinching(false);
-      if (pinchCommitRef.current) clearTimeout(pinchCommitRef.current);
-      pinchCommitRef.current = setTimeout(() => {
-        commitGestureZoom();
-      }, PDF_PINCH_COMMIT_MS);
+      // Commit into zoomFactor/pageWidth immediately so scroll extents match visual zoom for pan.
+      commitGestureZoom();
     };
 
     el.addEventListener('touchstart', onTouchStart, { passive: true });
@@ -291,7 +299,7 @@ function PdfJsViewerInner({
       el.removeEventListener('touchend', onTouchEnd);
       el.removeEventListener('touchcancel', onTouchEnd);
     };
-  }, [commitGestureZoom, gestureScale, handToolActive]);
+  }, [commitGestureZoom, handToolActive]);
 
   useEffect(() => {
     const onFullscreenChange = () => {
@@ -376,32 +384,51 @@ function PdfJsViewerInner({
     await node.requestFullscreen();
   }, []);
 
-  const onPanMouseDown = (event: React.MouseEvent) => {
-    if (!handToolActive || event.button !== 0) return;
+  /** Free pan after zoom (and whenever content overflows): pointer-capture like ZoomablePreviewImage. */
+  const onPanPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (isPinching || pinchRef.current) return;
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if (isInteractiveSheetMarkTarget(event.target)) return;
     const el = scrollRef.current;
     if (!el) return;
-    event.preventDefault();
+    // Hand tool: grab immediately. Otherwise wait for a small move so annotate/measure clicks still fire.
+    const captureNow = handToolActive || event.pointerType === 'touch' || event.pointerType === 'pen';
     panRef.current = {
       x: event.clientX,
       y: event.clientY,
       scrollLeft: el.scrollLeft,
       scrollTop: el.scrollTop,
+      pointerId: event.pointerId,
+      moved: captureNow,
     };
-    setIsPanning(true);
+    if (captureNow) {
+      event.currentTarget.setPointerCapture(event.pointerId);
+      setIsPanning(true);
+    }
   };
 
-  const onPanMouseMove = (event: React.MouseEvent) => {
-    if (!panRef.current) return;
+  const onPanPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!panRef.current || panRef.current.pointerId !== event.pointerId) return;
     const el = scrollRef.current;
     if (!el) return;
-    event.preventDefault();
     const dx = event.clientX - panRef.current.x;
     const dy = event.clientY - panRef.current.y;
+    if (!panRef.current.moved) {
+      if (Math.hypot(dx, dy) < PDF_PAN_THRESHOLD_PX) return;
+      panRef.current.moved = true;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      setIsPanning(true);
+    }
+    event.preventDefault();
     el.scrollLeft = panRef.current.scrollLeft - dx;
     el.scrollTop = panRef.current.scrollTop - dy;
   };
 
-  const endPan = () => {
+  const endPan = (event?: React.PointerEvent<HTMLDivElement>) => {
+    if (event && panRef.current && panRef.current.pointerId !== event.pointerId) return;
+    if (event?.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
     panRef.current = null;
     setIsPanning(false);
   };
@@ -606,15 +633,16 @@ function PdfJsViewerInner({
       <div
         ref={scrollRef}
         className={cn(
-          'relative min-h-0 flex-1 overflow-auto overscroll-contain bg-[var(--pf-surface-muted)]',
-          isPinching ? 'touch-none' : 'touch-pan-x touch-pan-y',
+          // touch-none: own one-finger pan via pointer capture (native pan fails under preview shell on some mobile browsers).
+          // Pinch still uses non-passive touchmove + preventDefault below.
+          'relative min-h-0 flex-1 touch-none overflow-auto overscroll-contain bg-[var(--pf-surface-muted)]',
           handToolActive && 'cursor-grab',
           isPanning && 'cursor-grabbing select-none',
         )}
-        onMouseDown={onPanMouseDown}
-        onMouseMove={onPanMouseMove}
-        onMouseUp={endPan}
-        onMouseLeave={endPan}
+        onPointerDown={onPanPointerDown}
+        onPointerMove={onPanPointerMove}
+        onPointerUp={endPan}
+        onPointerCancel={endPan}
       >
         {showLoadingOverlay ? <StorageLoadingOverlay label={t('loading')} /> : null}
 
@@ -690,6 +718,13 @@ function PdfJsViewerInner({
       </div>
     </div>
   );
+}
+
+/** Sheet-mark annotate/measure overlay uses Tailwind `cursor-crosshair` while interactive. */
+function isInteractiveSheetMarkTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  if (target.closest('button, a, input, textarea, select, [role="button"]')) return true;
+  return Boolean(target.closest('.cursor-crosshair'));
 }
 
 function nearestZoomLabel(percent: number): string {

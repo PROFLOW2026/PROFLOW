@@ -152,6 +152,12 @@ export async function updateEmployeeMonthCostDraft(
   return row ?? null;
 }
 
+/**
+ * @deprecated Do not use for amount corrections.
+ * In-place amount UPDATE on applied/closed hits `employee_month_costs_immutability_guard`
+ * (BUG-002). Use supersede → `insertEmployeeMonthCostAdjustment` → apply instead.
+ * Kept only so accidental callers fail closed at the DB guard rather than silently diverging.
+ */
 export async function updateAppliedEmployeeMonthCostAmounts(
   db: DbExecutor,
   organizationId: string,
@@ -260,6 +266,32 @@ export async function supersedeEmployeeMonthCost(
         eq(employeeMonthCosts.id, id),
         eq(employeeMonthCosts.organizationId, organizationId),
         inArray(employeeMonthCosts.status, ['applied', 'closed']),
+      ),
+    )
+    .returning();
+  return row ?? null;
+}
+
+/**
+ * Correction path after run supersede demotes applied → draft, or for closed rows.
+ * Frees the active (employee, year_month) slot so an adjustment draft can be inserted.
+ */
+export async function supersedeActiveEmployeeMonthCostForCorrection(
+  db: DbExecutor,
+  organizationId: string,
+  id: string,
+): Promise<EmployeeMonthCostRow | null> {
+  const [row] = await db
+    .update(employeeMonthCosts)
+    .set({
+      status: 'superseded',
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(employeeMonthCosts.id, id),
+        eq(employeeMonthCosts.organizationId, organizationId),
+        inArray(employeeMonthCosts.status, ['draft', 'applied', 'closed']),
       ),
     )
     .returning();

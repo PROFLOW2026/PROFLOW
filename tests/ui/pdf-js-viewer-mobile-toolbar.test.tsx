@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NextIntlClientProvider } from 'next-intl';
 import { useEffect, type ReactNode } from 'react';
@@ -91,5 +91,39 @@ describe('PdfJsViewer mobile toolbar', () => {
     await waitFor(() => {
       expect(lazyPageProps.mock.calls.some((call) => call[0]?.rotation === 90)).toBe(true);
     });
+  });
+
+  it('pointer-capture pan updates scrollLeft/scrollTop (BUG-03)', async () => {
+    const { container } = renderViewer();
+    await waitFor(() => expect(screen.getByTestId('pdf-document')).toBeInTheDocument());
+
+    const scrollRoot = container.querySelector('.overflow-auto') as HTMLDivElement | null;
+    expect(scrollRoot).toBeTruthy();
+    if (!scrollRoot) return;
+
+    scrollRoot.scrollLeft = 0;
+    scrollRoot.scrollTop = 0;
+    scrollRoot.setPointerCapture = vi.fn();
+    scrollRoot.releasePointerCapture = vi.fn();
+    scrollRoot.hasPointerCapture = vi.fn(() => true);
+
+    fireEvent.pointerDown(scrollRoot, {
+      clientX: 200,
+      clientY: 200,
+      pointerId: 1,
+      pointerType: 'touch',
+      button: 0,
+    });
+    fireEvent.pointerMove(scrollRoot, {
+      clientX: 140,
+      clientY: 160,
+      pointerId: 1,
+      pointerType: 'touch',
+      button: 0,
+    });
+
+    expect(scrollRoot.scrollLeft).toBe(60);
+    expect(scrollRoot.scrollTop).toBe(40);
+    expect(scrollRoot.setPointerCapture).toHaveBeenCalledWith(1);
   });
 });

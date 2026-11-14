@@ -1,0 +1,13 @@
+>> GET http://127.0.0.1:3100/he-IL/employee/login
+<< 200 GET http://127.0.0.1:3100/he-IL/employee/login
+>> POST http://127.0.0.1:3100/he-IL/employee/login
+<< 303 POST http://127.0.0.1:3100/he-IL/employee/login
+>> GET http://127.0.0.1:3100/he-IL/employee
+>> GET http://127.0.0.1:3100/_next/static/webpack/7f3e1ecd74cca838.webpack.hot-update.json
+<< 200 GET http://127.0.0.1:3100/_next/static/webpack/7f3e1ecd74cca838.webpack.hot-update.json
+>> GET http://127.0.0.1:3100/_next/static/webpack/f5e33a0c56470e94.webpack.hot-update.json
+<< 200 GET http://127.0.0.1:3100/_next/static/webpack/f5e33a0c56470e94.webpack.hot-update.json
+>> GET http://127.0.0.1:3100/_next/static/webpack/b07df493a3cc8a93.webpack.hot-update.json
+<< 200 GET http://127.0.0.1:3100/_next/static/webpack/b07df493a3cc8a93.webpack.hot-update.json
+>> GET http://127.0.0.1:3100/he-IL/employee/login
+<< 200 GET http://127.0.0.1:3100/he-IL/employee/login

@@ -7,6 +7,7 @@ import {
   FolderOpen,
   Kanban,
   ListChecks,
+  Target,
   Users,
   Wallet,
   type LucideIcon,
@@ -39,6 +40,7 @@ function iconForHref(href: string): LucideIcon {
   if (href.includes('/defects')) return ClipboardList;
   if (href.includes('/plans')) return FileStack;
   if (href.includes('/submittals')) return FileStack;
+  if (href.includes('/goals')) return Target;
   if (href.includes('/site-log') || href.includes('/field-ops/logs')) return ClipboardList;
   return FileStack;
 }
@@ -51,13 +53,23 @@ export async function buildEmployeeProjectHubLinks(input: {
   canLogTime: boolean;
   canFinancials?: boolean;
   canProjectTeam?: boolean;
+  /** project.view — same capability as main goals list (BUG-015). */
+  canGoals?: boolean;
   operationalToolLinks?: readonly ProjectOperationalToolLink[];
 }): Promise<EmployeeProjectHubLink[]> {
   const t = await getTranslations('employeeApp.projects');
   const tNav = await getTranslations('employeeApp.nav');
   const tTools = await getTranslations('projectWorkspace');
-  const { projectId, openTasks, canMeetings, canDocuments, canLogTime, canFinancials, canProjectTeam } =
-    input;
+  const {
+    projectId,
+    openTasks,
+    canMeetings,
+    canDocuments,
+    canLogTime,
+    canFinancials,
+    canProjectTeam,
+    canGoals,
+  } = input;
 
   const operationalCards: EmployeeProjectHubLink[] = (input.operationalToolLinks ?? []).map((link) => ({
     href: link.href,
@@ -107,6 +119,11 @@ export async function buildEmployeeProjectHubLinks(input: {
       href: `/employee/projects/${projectId}/infrastructure`,
       label: t('hub.infra'),
       visible: true,
+    },
+    {
+      href: `/employee/projects/${projectId}/goals`,
+      label: t('hub.goals'),
+      visible: Boolean(canGoals),
     },
     ...operationalCards,
   ];

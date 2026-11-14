@@ -1,0 +1,15 @@
+>> GET http://127.0.0.1:3100/he-IL/contractor/sign-in
+<< 200 GET http://127.0.0.1:3100/he-IL/contractor/sign-in
+>> POST http://127.0.0.1:3100/he-IL/contractor/sign-in
+<< 303 POST http://127.0.0.1:3100/he-IL/contractor/sign-in
+>> GET http://127.0.0.1:3100/he-IL/contractor
+>> GET http://127.0.0.1:3100/_next/static/webpack/47d40e27aaf6dad5.webpack.hot-update.json
+<< 200 GET http://127.0.0.1:3100/_next/static/webpack/47d40e27aaf6dad5.webpack.hot-update.json
+>> GET http://127.0.0.1:3100/he-IL/contractor/sign-in?_rsc=XOVW4jUrZmcXuP7p
+>> GET http://127.0.0.1:3100/_next/static/webpack/493fc9abe1753a67.webpack.hot-update.json
+<< 200 GET http://127.0.0.1:3100/_next/static/webpack/493fc9abe1753a67.webpack.hot-update.json
+<< 200 GET http://127.0.0.1:3100/he-IL/contractor/sign-in?_rsc=XOVW4jUrZmcXuP7p
+>> GET http://127.0.0.1:3100/he-IL/contractor/sign-in
+<< 200 GET http://127.0.0.1:3100/he-IL/contractor/sign-in
+>> GET http://127.0.0.1:3100/he-IL/contractor
+<< 200 GET http://127.0.0.1:3100/he-IL/contractor

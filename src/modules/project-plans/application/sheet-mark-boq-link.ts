@@ -1,12 +1,41 @@
 import { sql } from 'drizzle-orm';
 import type { DbExecutor } from '@/shared/db/types';
-import { ConflictError } from '@/shared/errors';
+import { ConflictError, NotFoundError } from '@/shared/errors';
 
 function rowsFromExecute(result: unknown): Record<string, unknown>[] {
   return (Array.isArray(result) ? result : ((result as { rows?: unknown[] }).rows ?? [])) as Record<
     string,
     unknown
   >[];
+}
+
+/**
+ * Assert the BOQ line belongs to the organization's active BOQ for this project.
+ * Rejects cross-project links and nodes on non-active / archived BOQs.
+ */
+export async function assertBoqNodeInActiveProjectBoq(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  boqNodeId: string,
+): Promise<void> {
+  const result = await db.execute(sql`
+    SELECT n.id
+    FROM public.boq_nodes_secure n
+    INNER JOIN public.project_boqs b
+      ON b.id = n.boq_id
+     AND b.organization_id = n.organization_id
+    WHERE n.id = ${boqNodeId}::uuid
+      AND n.organization_id = ${organizationId}::uuid
+      AND n.archived_at IS NULL
+      AND b.project_id = ${projectId}::uuid
+      AND b.status = 'active'
+      AND b.archived_at IS NULL
+    LIMIT 1
+  `);
+  if (!rowsFromExecute(result)[0]) {
+    throw new NotFoundError('BOQ node');
+  }
 }
 
 /** Returns an existing mark id when this BOQ node is already linked on the revision. */

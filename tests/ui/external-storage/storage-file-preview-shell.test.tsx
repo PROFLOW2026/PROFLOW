@@ -42,6 +42,8 @@ describe('StorageFilePreviewShell', () => {
     await waitFor(() => {
       expect(document.body.style.position).toBe('fixed');
       expect(document.body.style.overflow).toBe('hidden');
+      // Nested PDF pan must not be blocked by a global touch-action lock (BUG-03).
+      expect(document.body.style.touchAction).not.toBe('none');
     });
 
     rerender(

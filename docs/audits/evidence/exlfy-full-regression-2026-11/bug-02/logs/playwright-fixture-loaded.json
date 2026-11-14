@@ -1,0 +1,20 @@
+{
+  "seededAt": "2026-11-14T00:43:57.828Z",
+  "database": "projectflow_e2e",
+  "organizationId": "1198d422-1d2e-45d4-96f2-aab474bd8b6b",
+  "employeeId": "36bf199e-d0b8-4a4c-a7e7-d00fc06f22b3",
+  "employeeName": "BUG02 EMC Payroll Employee",
+  "yearMonth": "2026-10",
+  "historyMonth": "2026-09",
+  "emcHistoryId": "cfc4c92f-e921-4dad-a8e3-101ca9e99d1c",
+  "emcTargetId": "971d4263-d151-407b-aacd-be2c6fbc58db",
+  "paymentId": "ada0e0fc-f0ec-4128-aaa5-7dd0651e1b99",
+  "amount": "8250.000000",
+  "deepLinkWithPayment": "/he-IL/workforce/employees/36bf199e-d0b8-4a4c-a7e7-d00fc06f22b3?yearMonth=2026-10&focus=payroll&paymentId=ada0e0fc-f0ec-4128-aaa5-7dd0651e1b99",
+  "deepLinkWithoutPayment": "/he-IL/workforce/employees/36bf199e-d0b8-4a4c-a7e7-d00fc06f22b3?yearMonth=2026-10&focus=payroll",
+  "verify": {
+    "emc_count": 2,
+    "payment_status": "due",
+    "created_at_pg_type": "timestamp with time zone"
+  }
+}

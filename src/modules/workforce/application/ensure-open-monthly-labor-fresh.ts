@@ -1,12 +1,16 @@
 /**
  * Refresh open-month monthly labor Actual before project financial reads.
- * Bounded: only monthly employees that already touch this project (allocation or time).
+ * Bounded: project-touching monthly employees + company_only owners.
  * Does not touch closed org months / closed employee-month rows.
+ *
+ * Month-boundary: `rollForwardPastMonthEmployerAccrualsForOrg` promotes past
+ * open-month accruals to full recognition (includes company_only owners).
  */
 
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import {
   employeeMonthCosts,
+  employees,
   laborAllocationRunLines,
   laborAllocationRuns,
   rateVersions,
@@ -19,7 +23,7 @@ import { recomputeMonthlyEmployeeCostForOpenMonth } from './monthly-cost-recompu
 
 const freshByTx = new WeakMap<object, Map<string, Promise<void>>>();
 
-function priorCalendarYearMonth(yearMonth: string): string {
+export function priorCalendarYearMonth(yearMonth: string): string {
   const [yearRaw, monthRaw] = yearMonth.split('-');
   const year = Number(yearRaw);
   const month = Number(monthRaw);
@@ -29,7 +33,8 @@ function priorCalendarYearMonth(yearMonth: string): string {
 
 /**
  * Ensure current + prior open calendar months for project-touching monthly
- * employees are recomputed so Project Actual is not stale after the accrual fix.
+ * employees (and company_only owners) are recomputed so Project Actual is not
+ * stale after the accrual fix.
  *
  * Historical employee-months are not recomputed on every Financials read.
  * One in-flight promise per transaction + project.
@@ -51,6 +56,29 @@ export async function ensureOpenMonthlyLaborFreshForProject(
   const pending = ensureOpenMonthlyLaborFreshForProjectUncached(context, projectId);
   byProject.set(projectId, pending);
   return pending;
+}
+
+async function listCompanyOnlyMonthlyOwnerIds(context: OrgContext): Promise<readonly string[]> {
+  const rows = await context.db
+    .selectDistinct({ employeeId: employees.id })
+    .from(employees)
+    .innerJoin(
+      rateVersions,
+      and(
+        eq(rateVersions.employeeId, employees.id),
+        eq(rateVersions.organizationId, employees.organizationId),
+        eq(rateVersions.rateUnit, 'monthly'),
+      ),
+    )
+    .where(
+      and(
+        eq(employees.organizationId, context.organizationId),
+        eq(employees.compensationClass, 'owner_manager'),
+        eq(employees.defaultLaborAllocationIntent, 'company_only'),
+        isNull(employees.archivedAt),
+      ),
+    );
+  return rows.map((row) => row.employeeId);
 }
 
 async function ensureOpenMonthlyLaborFreshForProjectUncached(
@@ -133,6 +161,12 @@ async function ensureOpenMonthlyLaborFreshForProjectUncached(
     });
   }
 
+  // company_only owners never appear on project lines — still refresh current + prior.
+  for (const employeeId of await listCompanyOnlyMonthlyOwnerIds(context)) {
+    keys.set(`${employeeId}:${currentYearMonth}`, { employeeId, yearMonth: currentYearMonth });
+    keys.set(`${employeeId}:${minYearMonth}`, { employeeId, yearMonth: minYearMonth });
+  }
+
   const items = [...keys.values()]
     .filter((item) => item.yearMonth >= minYearMonth)
     .sort((a, b) =>
@@ -154,4 +188,72 @@ async function ensureOpenMonthlyLaborFreshForProjectUncached(
       `[labor-fresh] project=${projectId} employeeMonths=${items.length} ms=${Math.round(performance.now() - t0)}`,
     );
   }
+}
+
+export interface PastMonthAccrualRollForwardResult {
+  readonly yearMonth: string;
+  readonly scanned: number;
+  readonly recomputed: number;
+  readonly skipped: number;
+  readonly failed: number;
+}
+
+/**
+ * Month-boundary roll-forward: recompute the prior calendar month for every
+ * monthly-rate employee, including company_only owners with no project touch.
+ * Preserves known_quality=actual via shouldPreserveRecordedActualEmployerCost.
+ */
+export async function rollForwardPastMonthEmployerAccrualsForOrg(
+  context: OrgContext,
+): Promise<PastMonthAccrualRollForwardResult> {
+  if (!areEmployeeMonthCostsAvailable()) {
+    return { yearMonth: '', scanned: 0, recomputed: 0, skipped: 0, failed: 0 };
+  }
+
+  const today = todayInTimeZone(context.organization.timezone);
+  const currentYearMonth = today.slice(0, 7);
+  const yearMonth = priorCalendarYearMonth(currentYearMonth);
+
+  const monthlyIds = await context.db
+    .selectDistinct({ employeeId: rateVersions.employeeId })
+    .from(rateVersions)
+    .innerJoin(
+      employees,
+      and(
+        eq(employees.id, rateVersions.employeeId),
+        eq(employees.organizationId, rateVersions.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(rateVersions.organizationId, context.organizationId),
+        eq(rateVersions.rateUnit, 'monthly'),
+        isNull(employees.archivedAt),
+      ),
+    );
+
+  let recomputed = 0;
+  let skipped = 0;
+  let failed = 0;
+
+  for (const row of monthlyIds) {
+    try {
+      const result = await recomputeMonthlyEmployeeCostForOpenMonth(context, {
+        employeeId: row.employeeId,
+        yearMonth,
+      });
+      if (result.skipped) skipped += 1;
+      else recomputed += 1;
+    } catch {
+      failed += 1;
+    }
+  }
+
+  return {
+    yearMonth,
+    scanned: monthlyIds.length,
+    recomputed,
+    skipped,
+    failed,
+  };
 }

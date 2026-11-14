@@ -1,0 +1,86 @@
+{
+  "world": {
+    "gcOrganizationId": "2dd4d40a-fd9f-4ec8-8e8f-29928dfa77cf",
+    "gcOpsUsername": "opspm",
+    "gcContractorUsername": "kablan1",
+    "gcProjectId": "95851731-32ce-4b48-8a2b-a053aba7be31"
+  },
+  "accounts": [
+    {
+      "id": "758b42ce-174d-4a7b-b47c-72cf610c6746",
+      "organization_id": "2dd4d40a-fd9f-4ec8-8e8f-29928dfa77cf",
+      "username": "opspm",
+      "auth_email": "2dd4d40a-fd9f-4ec8-8e8f-29928dfa77cf.opspm@employees.pf.internal",
+      "status": "active",
+      "pin_must_change": false
+    }
+  ],
+  "memberships": [
+    {
+      "organization_id": "2dd4d40a-fd9f-4ec8-8e8f-29928dfa77cf",
+      "status": "active",
+      "name": "קבלן ראשי בדיקה"
+    }
+  ],
+  "prefs": [
+    {
+      "user_id": "12121212-1212-4212-8212-121212121212",
+      "active_organization_id": "2dd4d40a-fd9f-4ec8-8e8f-29928dfa77cf"
+    }
+  ],
+  "contractorTables": [
+    {
+      "table_name": "boq_subcontractor_schedule_lines"
+    },
+    {
+      "table_name": "boq_subcontractor_schedule_lines_secure"
+    },
+    {
+      "table_name": "boq_subcontractor_schedules"
+    },
+    {
+      "table_name": "boq_subcontractor_valuation_lines"
+    },
+    {
+      "table_name": "boq_subcontractor_valuation_lines_secure"
+    },
+    {
+      "table_name": "boq_subcontractor_valuations"
+    },
+    {
+      "table_name": "contractor_compliance_documents"
+    },
+    {
+      "table_name": "contractor_compliance_reminders"
+    },
+    {
+      "table_name": "contractor_compliance_requirements"
+    },
+    {
+      "table_name": "contractor_performance_snapshots"
+    },
+    {
+      "table_name": "contractor_tender_invitations"
+    },
+    {
+      "table_name": "contractor_tender_offer_financials"
+    },
+    {
+      "table_name": "contractor_tender_offers"
+    },
+    {
+      "table_name": "contractor_tender_packages"
+    },
+    {
+      "table_name": "contractor_warranty_reports"
+    },
+    {
+      "table_name": "safety_record_contractor_links"
+    },
+    {
+      "table_name": "site_meeting_contractors"
+    }
+  ],
+  "orgMatch": true,
+  "membershipIncludesAccountOrg": true
+}

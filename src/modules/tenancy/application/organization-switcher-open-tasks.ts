@@ -7,6 +7,10 @@ export type OrganizationOpenTaskCounts = Readonly<Record<string, number>>;
 
 /**
  * Per-org open assigned task counts for the organization switcher (count only, org-isolated).
+ *
+ * Each membership opens its own `runInOrgContext(userId, membership.id, …)`.
+ * Callers must not rely on nesting under a different org's tx frame — prefer
+ * invoking this outside the active-org frame (see `getShellContext`).
  */
 export async function loadOrganizationSwitcherOpenTaskCounts(
   userId: string,

@@ -3,16 +3,35 @@
 import * as React from 'react';
 import Decimal from 'decimal.js';
 import { Input, type InputProps } from '@/components/ui/input';
-import { displayScaleFor, MONEY_STORAGE_SCALE } from '@/shared/money';
+import { displayScaleFor, MONEY_STORAGE_SCALE, narrowCurrencySymbol } from '@/shared/money';
 import { cn } from '@/shared/ui/cn';
 
 export interface MoneyInputProps extends Omit<InputProps, 'type' | 'numeric' | 'onChange' | 'value'> {
   value: string;
   /** Receives the raw decimal string; never a parsed float (doc 04). */
   onValueChange: (value: string) => void;
+  /**
+   * Prefix glyph (₪). Prefer a local symbol — ISO codes like `ILS` are auto-narrowed
+   * so they never glue onto digits (`ILS8250`).
+   */
   currencySymbol?: string;
   /** ISO currency used to round storage-scale amounts to minor units (e.g. 2 for ILS). */
   currency?: string;
+}
+
+/** Resolve a short input prefix; ISO codes become narrow symbols (ILS → ₪). */
+export function resolveMoneyInputCurrencySymbol(
+  currencySymbol?: string,
+  currency?: string,
+): string | undefined {
+  const raw = currencySymbol?.trim();
+  const code = currency?.trim();
+  if (raw && /^[A-Za-z]{3}$/.test(raw)) {
+    return narrowCurrencySymbol(raw.toUpperCase());
+  }
+  if (raw) return raw;
+  if (code) return narrowCurrencySymbol(code);
+  return undefined;
 }
 
 /**
@@ -81,6 +100,11 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(fu
   { value, onValueChange, currencySymbol, currency, className, ...props },
   ref,
 ) {
+  const displaySymbol = resolveMoneyInputCurrencySymbol(currencySymbol, currency);
+  const roundingCurrency = currency?.trim() || (/^[A-Za-z]{3}$/.test(currencySymbol?.trim() ?? '')
+    ? currencySymbol!.trim().toUpperCase()
+    : undefined);
+
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     const normalized = normalizeMoneyInputText(event.target.value);
     if (normalized !== null) {
@@ -92,12 +116,12 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(fu
   // padding share one direction (avoids RTL start + LTR input mismatch).
   return (
     <div className="relative pf-ltr-island" dir="ltr">
-      {currencySymbol ? (
+      {displaySymbol ? (
         <span
           className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-sm text-[var(--pf-text-muted)]"
           aria-hidden
         >
-          {currencySymbol}
+          {displaySymbol}
         </span>
       ) : null}
       <Input
@@ -105,9 +129,12 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(fu
         numeric
         inputMode="decimal"
         autoComplete="off"
-        value={formatMoneyAmountForInput(value, currency)}
+        value={formatMoneyAmountForInput(value, roundingCurrency)}
         onChange={handleChange}
-        className={cn(currencySymbol && 'ps-8', className)}
+        className={cn(
+          displaySymbol && (displaySymbol.length > 1 ? 'ps-10' : 'ps-8'),
+          className,
+        )}
         {...props}
       />
     </div>

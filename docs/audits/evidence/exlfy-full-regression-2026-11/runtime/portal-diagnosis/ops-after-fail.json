@@ -1,0 +1,43 @@
+{
+  "account": [
+    {
+      "id": "e398715b-9b19-4fc8-837b-f651da588209",
+      "organization_id": "65aa6588-1c97-4295-8c79-6df51812a16e",
+      "username": "opspm",
+      "auth_email": "65aa6588-1c97-4295-8c79-6df51812a16e.opspm@employees.pf.internal",
+      "status": "active",
+      "failed_login_count": 0,
+      "locked_until": null,
+      "last_login_at": null,
+      "pin_must_change": false
+    }
+  ],
+  "audit": [],
+  "org": [
+    {
+      "id": "65aa6588-1c97-4295-8c79-6df51812a16e",
+      "name": "קבלן ראשי בדיקה",
+      "archived_at": null
+    }
+  ],
+  "mem": [
+    {
+      "id": "8e3eeffe-2055-4865-9ce8-01abb2241c19",
+      "organization_id": "65aa6588-1c97-4295-8c79-6df51812a16e",
+      "user_id": "12121212-1212-4212-8212-121212121212",
+      "status": "active",
+      "joined_at": "2026-11-14T01:04:14.626Z",
+      "created_at": "2026-11-14T01:04:14.626Z",
+      "updated_at": "2026-11-14T01:04:14.626Z",
+      "archived_at": null,
+      "name": "קבלן ראשי בדיקה"
+    }
+  ],
+  "profile": [
+    {
+      "id": "12121212-1212-4212-8212-121212121212",
+      "email": "ops@e2e.test",
+      "display_name": "מנהל תפעול"
+    }
+  ]
+}

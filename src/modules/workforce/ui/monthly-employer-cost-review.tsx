@@ -31,7 +31,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { MoneyText } from '@/components/patterns/money-text';
-import { money } from '@/shared/money/money';
+import { formatMoneyString, money } from '@/shared/money';
 import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 import {
   MONTHLY_ALLOCATION_METHODS,
@@ -264,8 +264,10 @@ export function MonthlyEmployerCostReview({
     if (estimated !== (monthRow.estimatedAmount ?? '')) {
       rows.push({
         fieldLabel: t('monthReview.estimatedInput'),
-        before: monthRow.estimatedAmount ?? '—',
-        after: estimated || '—',
+        before: monthRow.estimatedAmount
+          ? formatMoneyString(monthRow.estimatedAmount, currency, locale)
+          : '—',
+        after: estimated ? formatMoneyString(estimated, currency, locale) : '—',
       });
     }
     const priorActual = monthRow.actualAmount ?? '';
@@ -273,8 +275,8 @@ export function MonthlyEmployerCostReview({
     if (nextActual !== priorActual) {
       rows.push({
         fieldLabel: t('monthReview.actualInput'),
-        before: priorActual || '—',
-        after: nextActual || '—',
+        before: priorActual ? formatMoneyString(priorActual, currency, locale) : '—',
+        after: nextActual ? formatMoneyString(nextActual, currency, locale) : '—',
       });
     }
     if (syncPaidAmount) {
@@ -285,7 +287,7 @@ export function MonthlyEmployerCostReview({
       });
     }
     return rows;
-  }, [actual, estimated, hasAppliedMonth, monthRow, syncPaidAmount, t]);
+  }, [actual, currency, estimated, hasAppliedMonth, locale, monthRow, syncPaidAmount, t]);
 
   if (!canReview) return null;
 
@@ -458,10 +460,10 @@ export function MonthlyEmployerCostReview({
       <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-surface-subtle)] px-3 py-2 text-xs text-[var(--pf-text-secondary)]">
         <p className="font-medium text-[var(--pf-text-primary)]">{t('monthReview.costConceptsTitle')}</p>
         <ul className="mt-1 list-inside list-disc space-y-0.5">
-          <li>{t('monthReview.costConceptFullMonthPool')}</li>
+          <li>{t('monthReview.costConceptBaseSalary')}</li>
+          <li>{t('monthReview.costConceptEmployerCostFullMonth')}</li>
+          <li>{t('monthReview.costConceptPaidAmount')}</li>
           <li>{t('monthReview.costConceptOpenMonthAccrual')}</li>
-          <li>{t('monthReview.costConceptActualOverride')}</li>
-          <li>{t('monthReview.costConceptCashPayment')}</li>
         </ul>
       </div>
 
@@ -533,6 +535,7 @@ export function MonthlyEmployerCostReview({
               {...control}
               value={estimated}
               onValueChange={setEstimated}
+              currency={currency}
               currencySymbol={currency}
             />
           )}
@@ -547,6 +550,7 @@ export function MonthlyEmployerCostReview({
               {...control}
               value={actual}
               onValueChange={setActual}
+              currency={currency}
               currencySymbol={currency}
             />
           )}
@@ -697,6 +701,7 @@ export function MonthlyEmployerCostReview({
                               ),
                             )
                           }
+                          currency={currency}
                           currencySymbol={currency}
                         />
                       )}
@@ -730,6 +735,7 @@ export function MonthlyEmployerCostReview({
                   {...control}
                   value={allocated}
                   onValueChange={setAllocated}
+                  currency={currency}
                   currencySymbol={currency}
                 />
               )}
@@ -743,6 +749,7 @@ export function MonthlyEmployerCostReview({
           employeeId={employeeId}
           yearMonth={yearMonth}
           initialNotes={monthRow.notes ?? null}
+          currency={currency}
         />
       ) : null}
 
@@ -777,10 +784,14 @@ export function MonthlyEmployerCostReview({
           disabled={pending || loadingMonth || preview.status === 'over' || preview.status === 'not_started'}
           onClick={handleApply}
         >
-          {payrollApprovalMode
-            ? t('monthReview.confirmPayrollMonth')
+          {hasAppliedMonth
+            ? t('monthReview.correctEmployerCost')
             : t('monthReview.applyAllocation')}
         </Button>
+      ) : null}
+
+      {payrollApprovalMode ? (
+        <p className="text-xs text-[var(--pf-text-muted)]">{t('monthReview.payrollConfirmSeparateHint')}</p>
       ) : null}
 
       {ready && canManage && monthRow?.actualAmount ? (

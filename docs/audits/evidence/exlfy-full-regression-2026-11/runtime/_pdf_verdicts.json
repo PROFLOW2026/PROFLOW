@@ -1,0 +1,17 @@
+[
+  {
+    "title": "authenticate owner",
+    "status": "passed",
+    "anns": []
+  },
+  {
+    "title": "PdfJsViewer pointer + synthetic touch via OCR viewOriginal",
+    "status": "passed",
+    "anns": [
+      "pdf.seeded_url|UNVERIFIED|world seed has no document/PDF URL; OCR upload → viewOriginal → DocumentPreviewDialog",
+      "pdf.open_viewer|HARNESS|OCR upload did not select a job (mock/provider); company-files browse also reconnects — no live PdfJsViewer URL",
+      "pdf.touch_pan_gap|UNVERIFIED|code evidence only (bug-03/TOUCH_PAN_GAPS.md): no touch drag-pan; mouse hand-tool only; transform zoom ≠ layout scroll",
+      "pdf.real_device|UNVERIFIED|Android/iOS not exercised"
+    ]
+  }
+]

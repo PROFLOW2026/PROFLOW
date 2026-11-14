@@ -1,0 +1,47 @@
+[
+  {
+    "label": "ops",
+    "username": "opspm",
+    "finalUrl": "http://127.0.0.1:3100/he-IL/employee/login",
+    "leftLogin": false,
+    "dir": "rtl",
+    "hasEmployeeShell": false,
+    "alertText": "מערכת ההתחברות לא מוגדרת",
+    "overflow": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "htmlOverflowX": "visible",
+      "bodyOverflowX": "visible"
+    },
+    "network": [
+      "200 GET http://127.0.0.1:3100/he-IL/employee/login",
+      "200 GET http://127.0.0.1:3100/_next/static/css/app/%5Blocale%5D/employee/(public)/login/page.css?v=1794618156347",
+      "200 POST http://127.0.0.1:3100/he-IL/employee/login",
+      "200 GET http://127.0.0.1:3100/_next/static/css/app/%5Blocale%5D/employee/(public)/login/page.css?v=1794618157063",
+      "200 GET http://127.0.0.1:3100/_next/static/chunks/app/%5Blocale%5D/employee/(public)/login/page.js",
+      "200 GET http://127.0.0.1:3100/_next/static/chunks/app/%5Blocale%5D/employee/(shell)/layout.js"
+    ]
+  },
+  {
+    "label": "single",
+    "username": "single99",
+    "finalUrl": "http://127.0.0.1:3100/he-IL/employee",
+    "leftLogin": true,
+    "dir": "rtl",
+    "hasEmployeeShell": true,
+    "alertText": "אפליקציית עובדים · EXLFY",
+    "overflow": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "htmlOverflowX": "hidden",
+      "bodyOverflowX": "hidden"
+    },
+    "network": [
+      "200 GET http://127.0.0.1:3100/he-IL/employee/login",
+      "200 GET http://127.0.0.1:3100/_next/static/chunks/app/%5Blocale%5D/employee/(public)/login/page-940001ce5a782dfd.js",
+      "200 GET http://127.0.0.1:3100/_next/static/chunks/app/%5Blocale%5D/employee/(shell)/layout-667a786e294a1709.js",
+      "200 GET http://127.0.0.1:3100/_next/static/chunks/app/%5Blocale%5D/employee/(shell)/page-523d9873a5862c29.js",
+      "200 POST http://127.0.0.1:3100/he-IL/employee/login"
+    ]
+  }
+]

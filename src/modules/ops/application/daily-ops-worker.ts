@@ -18,6 +18,7 @@ import {
 import { runDocumentCleanupOpsWorker } from '@/modules/documents/application/document-cleanup-ops-worker';
 import { runAutomationScanOpsWorker } from '@/modules/automations/application/automation-scan-ops-worker';
 import { runWebhookDeliveryOpsWorker } from '@/modules/api/application/webhook-delivery-ops-worker';
+import { runPastMonthAccrualRollForwardOpsWorker } from '@/modules/workforce/application/past-month-accrual-roll-forward-ops-worker';
 import { runWithMaxConcurrency } from '@/shared/async/run-with-concurrency';
 import { logUsageKickFailure } from '@/shared/observability/runtime-usage-diag';
 
@@ -45,6 +46,9 @@ export interface DailyOpsWorkerPayload {
   readonly documentCleanup: Awaited<ReturnType<typeof runDocumentCleanupOpsWorker>>;
   readonly automationScan: Awaited<ReturnType<typeof runAutomationScanOpsWorker>>;
   readonly webhookDelivery: Awaited<ReturnType<typeof runWebhookDeliveryOpsWorker>>;
+  readonly pastMonthAccrualRollForward: Awaited<
+    ReturnType<typeof runPastMonthAccrualRollForwardOpsWorker>
+  >;
 }
 
 function remainingOpsBudgetMs(startedMs: number): number {
@@ -79,7 +83,11 @@ export async function runDailyOpsWorker(startedMs: number = Date.now()): Promise
   const jobs: readonly {
     readonly key: keyof Omit<
       DailyOpsWorkerPayload,
-      'crossOrgOutbox' | 'documentCleanup' | 'automationScan' | 'webhookDelivery'
+      | 'crossOrgOutbox'
+      | 'documentCleanup'
+      | 'automationScan'
+      | 'webhookDelivery'
+      | 'pastMonthAccrualRollForward'
     >;
     readonly run: () => Promise<unknown>;
   }[] = [
@@ -293,6 +301,24 @@ export async function runDailyOpsWorker(startedMs: number = Date.now()): Promise
     () => runWebhookDeliveryOpsWorker(),
   );
 
+  const pastMonthAccrualBudgetMs = Math.min(45_000, remainingOpsBudgetMs(startedMs));
+  const pastMonthAccrualRollForward = await safeJob(
+    'pastMonthAccrualRollForward',
+    {
+      orgsScanned: 0,
+      employeeMonthsScanned: 0,
+      recomputed: 0,
+      skipped: 0,
+      failed: 1,
+      deferredOrgs: 0,
+      failures: [{ organizationId: 'ops-bundle', error: 'sub_worker_failed' }],
+    },
+    () =>
+      runPastMonthAccrualRollForwardOpsWorker({
+        deadlineMs: pastMonthAccrualBudgetMs > 0 ? Date.now() + pastMonthAccrualBudgetMs : undefined,
+      }),
+  );
+
   return {
     expenseRecurrence: results[0] as DailyOpsWorkerPayload['expenseRecurrence'],
     taskRecurrence: results[1] as DailyOpsWorkerPayload['taskRecurrence'],
@@ -309,5 +335,6 @@ export async function runDailyOpsWorker(startedMs: number = Date.now()): Promise
     documentCleanup,
     automationScan,
     webhookDelivery,
+    pastMonthAccrualRollForward,
   };
 }

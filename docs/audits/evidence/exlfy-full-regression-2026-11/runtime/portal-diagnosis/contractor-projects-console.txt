@@ -1,0 +1,6 @@
+[log] [Fast Refresh] rebuilding
+[log] [Fast Refresh] done in 435ms
+[log] [Fast Refresh] rebuilding
+[log] [Fast Refresh] done in 512ms
+[warning] The resource http://127.0.0.1:3100/_next/static/css/app/layout.css?v=1794617858893 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+[warning] The resource http://127.0.0.1:3100/_next/static/css/app/layout.css?v=1794617870694 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.

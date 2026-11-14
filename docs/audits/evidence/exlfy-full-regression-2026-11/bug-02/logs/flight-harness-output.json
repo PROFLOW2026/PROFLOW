@@ -1,0 +1,9 @@
+{
+  "hypothesis": "Date fields in initialReview break Flight RSC→client serialization",
+  "reviewHadDateInstances": true,
+  "flightErrors": [],
+  "flightSucceeded": true,
+  "payloadBytes": 4148,
+  "payloadContainsFlightDateTag": true,
+  "jsonStringifyCoercesDatesToStrings": true
+}

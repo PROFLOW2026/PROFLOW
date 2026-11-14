@@ -10,9 +10,9 @@ import { INFRA_ENTITY_TYPE, type InfraActor } from './ports';
 
 /**
  * One authorization surface for both callers.
- *  - internal (owner app / employee app): project capability (`project.view` to see and document;
- *    `documents.share` / `project.manage` to manage other people's captures; `project.manage` for
- *    locations and folders).
+ *  - internal (owner app / employee app): `project.view` to browse (`need: 'view'`); `documents.view`
+ *    on top of that to document / host Live Share (`need: 'document'`); `documents.share` /
+ *    `project.manage` to manage other people's captures; `project.manage` for locations and folders.
  *  - external (contractor): a grant carrying `ext.document.upload` / `ext.document.view` that covers
  *    the project. Contractors never see another company's captures (RLS) and never browse storage.
  * Nothing here needs a personal cloud connection: bytes go to the owning organization's storage.
@@ -65,13 +65,17 @@ export async function authorizeLocation(
   };
 }
 
-/** Access to a project as a whole (gallery, location tree, comparisons list). */
+/** Access to a project as a whole (gallery, location tree, comparisons list, Live Share host). */
 export async function authorizeProject(
   actor: InfraActor,
   input: { organizationId: string; projectId: string; need: 'view' | 'document' },
 ): Promise<InfraAccess> {
   if (actor.kind === 'internal') {
     await assertProjectCapability(actor.context, input.projectId, PROJECT_CAPABILITIES.PROJECT_VIEW);
+    // Live Share host / document writes require documents.view — PROJECT_VIEW alone is not enough.
+    if (input.need === 'document') {
+      await assertProjectCapability(actor.context, input.projectId, PROJECT_CAPABILITIES.DOCUMENTS_VIEW);
+    }
     return {
       organizationId: input.organizationId,
       projectId: input.projectId,

@@ -1415,6 +1415,13 @@
             "when": 1794266401000,
             "tag": "0203_tasks_work_package_id",
             "breakpoints": true
+        },
+        {
+            "idx": 202,
+            "version": "7",
+            "when": 1794266402000,
+            "tag": "0204_tasks_work_package_composite_fk",
+            "breakpoints": true
         }
     ]
 }

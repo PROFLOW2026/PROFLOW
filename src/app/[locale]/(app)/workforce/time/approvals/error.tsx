@@ -12,7 +12,8 @@ export default function TimesheetApprovalsError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const t = useTranslations('errors.errorPage');
+  const t = useTranslations('errors.workforceTimeApprovals');
+  const tGeneric = useTranslations('errors.errorPage');
 
   useEffect(() => {
     console.error(
@@ -20,6 +21,7 @@ export default function TimesheetApprovalsError({
         level: 'error',
         event: 'workforce.timesheet-approvals.error',
         digest: error.digest ?? null,
+        name: error.name,
       }),
     );
   }, [error]);
@@ -29,6 +31,7 @@ export default function TimesheetApprovalsError({
     <div className="flex flex-col items-start gap-3 py-8">
       <h1 className="text-xl font-semibold">{t('title')}</h1>
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('body')}</p>
+      <p className="text-xs text-[var(--pf-text-muted)]">{tGeneric('body')}</p>
       <Button variant="secondary" onClick={reset}>
         {t('retry')}
       </Button>

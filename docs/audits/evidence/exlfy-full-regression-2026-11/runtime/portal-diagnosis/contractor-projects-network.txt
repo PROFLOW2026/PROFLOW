@@ -1,0 +1,9 @@
+>> GET http://127.0.0.1:3100/he-IL/contractor
+>> GET http://127.0.0.1:3100/he-IL/contractor?_rsc=lagVI01Mxhpbr9wt
+>> GET http://127.0.0.1:3100/_next/static/webpack/874893fccce22356.webpack.hot-update.json
+<< 200 GET http://127.0.0.1:3100/_next/static/webpack/874893fccce22356.webpack.hot-update.json
+<< 200 GET http://127.0.0.1:3100/he-IL/contractor?_rsc=lagVI01Mxhpbr9wt
+>> GET http://127.0.0.1:3100/he-IL/contractor?_rsc=lagVI01Mxhpbr9wt
+>> GET http://127.0.0.1:3100/_next/static/webpack/4c5499b9f45e2273.webpack.hot-update.json
+<< 200 GET http://127.0.0.1:3100/_next/static/webpack/4c5499b9f45e2273.webpack.hot-update.json
+<< 200 GET http://127.0.0.1:3100/he-IL/contractor?_rsc=lagVI01Mxhpbr9wt

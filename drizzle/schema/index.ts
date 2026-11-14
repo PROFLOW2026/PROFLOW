@@ -43,6 +43,7 @@ export * from './banking';
 export * from './planning';
 export * from './planning-baselines';
 export * from './project-goals';
+export * from './exlfy-evolution';
 export * from './ocr';
 export * from './ops-finance';
 export * from './invoicing-integration';

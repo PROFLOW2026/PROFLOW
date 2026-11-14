@@ -96,10 +96,22 @@ describe('start (broadcaster)', () => {
   });
 
   it('refuses without the right, and when LiveKit is not configured', async () => {
-    authorizeProject.mockRejectedValueOnce(new AuthorizationError('project:view'));
+    authorizeProject.mockRejectedValueOnce(new AuthorizationError('project:documents.view'));
     await expect(startLiveShare(actor('u1'), { projectId: PROJECT }, fakeGateway().deps)).rejects.toBeInstanceOf(AuthorizationError);
     const off = fakeGateway({ isConfigured: () => false });
     await expect(startLiveShare(actor('u1'), { projectId: PROJECT }, off.deps)).rejects.toMatchObject({ code: 'not_configured' });
+  });
+
+  it('internal host start/control/end all require authorizeProject need:document (BUG-011)', async () => {
+    const { deps } = fakeGateway();
+    const started = await startLiveShare(actor('u1'), { projectId: PROJECT }, deps);
+    await setLiveShareControl(actor('u1'), { shareToken: started.shareToken, enabled: true }, deps);
+    await endLiveShare(actor('u1'), { shareToken: started.shareToken }, deps);
+    expect(authorizeProject).toHaveBeenCalledTimes(3);
+    for (const call of authorizeProject.mock.calls) {
+      expect(call[0]).toMatchObject({ kind: 'internal' });
+      expect(call[1]).toMatchObject({ need: 'document', projectId: PROJECT });
+    }
   });
 });
 

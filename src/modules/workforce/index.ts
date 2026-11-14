@@ -37,7 +37,14 @@ export {
   recomputeMonthlyEmployeeCostForOpenMonth,
   recomputeMonthlyEmployeeCostsForDates,
   recomputeOpenMonthsAfterCompensationChange,
+  shouldPreserveRecordedActualEmployerCost,
 } from './application/monthly-cost-recompute';
+export {
+  ensureOpenMonthlyLaborFreshForProject,
+  priorCalendarYearMonth,
+  rollForwardPastMonthEmployerAccrualsForOrg,
+} from './application/ensure-open-monthly-labor-fresh';
+export type { PastMonthAccrualRollForwardResult } from './application/ensure-open-monthly-labor-fresh';
 export {
   recomputeDailyEmployeeCostForDate,
   recomputeDailyEmployeeCostsForDates,

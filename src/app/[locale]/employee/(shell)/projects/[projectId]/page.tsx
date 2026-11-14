@@ -51,6 +51,7 @@ export default async function EmployeeProjectOverviewPage({ params }: PageProps)
       canLogTime: employeeHasPermission(context, PERMISSIONS.TIME_MANAGE),
       canFinancials: employeeHasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
       canProjectTeam: projectCapabilities.has(PROJECT_CAPABILITIES.PROJECT_VIEW),
+      canGoals: projectCapabilities.has(PROJECT_CAPABILITIES.PROJECT_VIEW),
       operationalToolLinks,
     });
 

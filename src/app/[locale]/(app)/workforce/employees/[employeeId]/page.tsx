@@ -58,6 +58,7 @@ import { formatBusinessDate } from '@/shared/dates/format';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { NotFoundError } from '@/shared/errors';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import { upsertEntityFieldValueAction } from '../../../settings/custom-fields/actions';
@@ -240,8 +241,10 @@ export default async function EmployeeDetailPage({
         avatarAvailability,
         avatarPreviewUrl,
       };
-    } catch {
-      return null;
+    } catch (error) {
+      // BUG-010: only missing employee → notFound; do not mask AppError as 404.
+      if (error instanceof NotFoundError) return null;
+      throw error;
     }
   });
 
@@ -664,6 +667,13 @@ export default async function EmployeeDetailPage({
             paymentId={payrollPayment.id}
             expectedAmount={payrollPayment.expectedAmount}
             paidAmount={payrollPayment.paidAmount}
+            baseSalaryAmount={currentRate?.baseRate ?? null}
+            employerCostFullMonthAmount={
+              compensationSummary?.employerCostPool ??
+              monthReview?.month?.estimatedAmount ??
+              monthReview?.month?.knownAmount ??
+              null
+            }
             currency={payrollPayment.currency}
             dueDate={payrollPayment.dueDate}
             paymentStatus={payrollPayment.paymentStatus}

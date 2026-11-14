@@ -181,7 +181,8 @@ export const tasks = pgTable(
      * NULL = workspace-wide task (not attributed to any single project).
      */
     projectId: uuid('project_id').references(() => projects.id, { onDelete: 'set null' }),
-    workPackageId: uuid('work_package_id').references(() => workPackages.id, { onDelete: 'set null' }),
+    /** Same org+project as work_packages — composite FK in 0204 (BUG-008). */
+    workPackageId: uuid('work_package_id'),
 
     title: text('title').notNull(),
     description: text('description'),
@@ -269,6 +270,9 @@ export const tasks = pgTable(
     index('tasks_bucket_idx').on(t.bucketId, t.sortKey),
     index('tasks_parent_idx').on(t.parentTaskId).where(sql`${t.parentTaskId} IS NOT NULL`),
     index('tasks_created_by_idx').on(t.organizationId, t.createdByOrgMemberId),
+    index('tasks_work_package_idx')
+      .on(t.organizationId, t.projectId, t.workPackageId)
+      .where(sql`${t.workPackageId} IS NOT NULL`),
     uniqueIndex('tasks_project_org_project_task_template_unique')
       .on(t.projectId, t.generatedFromOrgProjectTaskTemplateId)
       .where(
@@ -282,6 +286,12 @@ export const tasks = pgTable(
       columns: [t.generatedFromOrgProjectTaskTemplateId, t.organizationId],
       foreignColumns: [orgProjectTaskTemplates.id, orgProjectTaskTemplates.organizationId],
     }).onDelete('restrict'),
+    // SQL: ON DELETE SET NULL (work_package_id) — never organization_id / project_id (0204)
+    foreignKey({
+      name: 'tasks_work_package_org_project_fk',
+      columns: [t.workPackageId, t.organizationId, t.projectId],
+      foreignColumns: [workPackages.id, workPackages.organizationId, workPackages.projectId],
+    }).onDelete('set null'),
     index('tasks_portfolio_rollup_idx').on(
       t.organizationId,
       t.workspaceId,
@@ -299,6 +309,10 @@ export const tasks = pgTable(
     check(
       'tasks_progress_weight_non_negative',
       sql`${t.progressWeight} IS NULL OR ${t.progressWeight} >= 0`,
+    ),
+    check(
+      'tasks_work_package_requires_project',
+      sql`${t.workPackageId} IS NULL OR ${t.projectId} IS NOT NULL`,
     ),
     foreignKey({
       columns: [t.workspaceId, t.projectId],

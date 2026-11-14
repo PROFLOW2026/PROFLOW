@@ -10,9 +10,11 @@ import type { OrgContext } from '@/shared/auth/context';
 import { findEmployeeById } from '../data/employees.repository';
 import {
   findEmployeeMonthCostByEmployeeMonth,
+  insertEmployeeMonthCostAdjustment,
   insertEmployeeMonthCostDraft,
   listEmployeeMonthCostsForEmployee,
-  updateAppliedEmployeeMonthCostAmounts,
+  supersedeActiveEmployeeMonthCostForCorrection,
+  supersedeEmployeeMonthCost,
   updateEmployeeMonthCostDraft,
   updateEmployeeMonthCostNotes,
   type EmployeeMonthCostRow,
@@ -24,7 +26,6 @@ import {
   findLaborAllocationRunById,
   insertDraftLaborAllocationRun,
   listLaborAllocationRunLines,
-  rewriteAppliedLaborAllocationAmounts,
   supersedeActiveLaborRunsForMonth,
   type LaborAllocationRunLineRow,
   type LaborAllocationRunRow,
@@ -474,7 +475,10 @@ function emptyToNull(value: string | null | undefined): string | null {
   return trimmed === '' ? null : trimmed;
 }
 
-/** Retro correction: supersede applied/closed month row and open adjustment draft. */
+/**
+ * Retro correction: never UPDATE amounts on applied/closed (immutability guard).
+ * Path: supersede prior month → insert adjustment draft → apply allocation run.
+ */
 export async function correctMonthlyEmployerCostActual(
   context: OrgContext,
   rawInput: SaveMonthlyEmployerCostDraftInput & {
@@ -533,17 +537,58 @@ export async function correctMonthlyEmployerCostActual(
   const employee = await findEmployeeById(context.db, context.organizationId, parsed.data.employeeId);
   if (!employee) throw new NotFoundError('Employee');
 
+  const correctionNotes = rawInput.correctionNote ?? parsed.data.notes ?? null;
+  const useCompanyOnly =
+    (priorRun != null && Number(priorRun.companyOnlyAmount) > 0) ||
+    (employee.compensationClass === 'owner_manager' &&
+      employee.defaultLaborAllocationIntent === 'company_only');
+
   const result = await withTransaction(context.db, async (tx) => {
-    const month = await updateAppliedEmployeeMonthCostAmounts(tx, context.organizationId, existing.id, {
+    // Closed months cannot demote via run supersede — supersede the month row first.
+    if (existing.status === 'closed') {
+      const closedSuperseded = await supersedeEmployeeMonthCost(
+        tx,
+        context.organizationId,
+        existing.id,
+      );
+      if (!closedSuperseded) throw new NotFoundError('Employee month cost');
+    } else {
+      if (priorRun) {
+        if (priorRun.status === 'applied') {
+          await supersedeActiveLaborRunsForMonth(tx, context.organizationId, existing.id);
+        } else if (priorRun.status === 'draft') {
+          await deleteDraftLaborAllocationRun(tx, context.organizationId, priorRun.id);
+        }
+      }
+      const freed = await supersedeActiveEmployeeMonthCostForCorrection(
+        tx,
+        context.organizationId,
+        existing.id,
+      );
+      if (!freed) throw new NotFoundError('Employee month cost');
+    }
+
+    const month = await insertEmployeeMonthCostAdjustment(tx, {
+      organizationId: context.organizationId,
+      employeeId: parsed.data.employeeId,
+      yearMonth: parsed.data.yearMonth,
+      currency,
       estimatedAmount: derived.estimatedAmount ?? existing.estimatedAmount,
       actualAmount: derived.actualAmount,
       knownAmount: derived.knownAmount.amount,
       knownQuality: derived.knownQuality,
-      notes: rawInput.correctionNote ?? parsed.data.notes ?? null,
+      adjustsMonthId: existing.id,
+      notes: correctionNotes,
     });
-    if (!month) throw new NotFoundError('Employee month cost');
 
-    let run: LaborAllocationRunRow | null = priorRun;
+    let method: MonthlyAllocationMethod = 'fixed_amount';
+    let resolution = resolveMonthlyAllocationAmounts({
+      knownAmount: money(month.knownAmount, month.currency),
+      method,
+      lines: [],
+      remainderAllocationIntent: useCompanyOnly ? 'company_only' : 'auto_pool',
+    });
+
     if (priorLines.length > 0 && priorRun) {
       const priorSnapshots = priorLines.map((line) => ({
         projectId: line.projectId,
@@ -553,7 +598,7 @@ export async function correctMonthlyEmployerCostActual(
         basisDays: line.basisDays,
         notes: line.notes,
       }));
-      const method = resolvePriorCorrectionAllocationMethod(
+      method = resolvePriorCorrectionAllocationMethod(
         (priorRun.method as MonthlyAllocationMethod | undefined) ?? null,
         priorSnapshots,
       );
@@ -563,50 +608,46 @@ export async function correctMonthlyEmployerCostActual(
         month.knownAmount,
         priorSnapshots,
       );
-      const resolution = resolveMonthlyAllocationAmounts({
+      resolution = resolveMonthlyAllocationAmounts({
         knownAmount: money(month.knownAmount, month.currency),
         method,
         lines: lineInputs,
       });
-      const rewritten = await rewriteAppliedLaborAllocationAmounts(tx, context.organizationId, priorRun.id, {
-        allocatedAmount: resolution.allocatedAmount.amount,
-        unallocatedAmount: resolution.unallocatedAmount.amount,
-        companyOnlyAmount: resolution.companyOnlyAmount.amount,
-        lines: resolution.lines.map((line) => ({
-          projectId: line.projectId,
-          amount: line.amount.amount,
-          currency: month.currency,
-          percent: line.percent,
-          basisHours: line.basisHours,
-          basisDays: line.basisDays,
-          sortOrder: line.sortOrder,
-          notes: line.notes,
-        })),
-      });
-      if (!rewritten) throw new NotFoundError('Labor allocation run');
-      run = rewritten;
-    } else if (priorRun) {
-      const useCompanyOnly =
-        Number(priorRun.companyOnlyAmount) > 0 ||
-        (employee.compensationClass === 'owner_manager' &&
-          employee.defaultLaborAllocationIntent === 'company_only');
-      const resolution = resolveMonthlyAllocationAmounts({
-        knownAmount: money(month.knownAmount, month.currency),
-        method: 'fixed_amount',
-        lines: [],
-        remainderAllocationIntent: useCompanyOnly ? 'company_only' : 'auto_pool',
-      });
-      const rewritten = await rewriteAppliedLaborAllocationAmounts(tx, context.organizationId, priorRun.id, {
-        allocatedAmount: resolution.allocatedAmount.amount,
-        unallocatedAmount: resolution.unallocatedAmount.amount,
-        companyOnlyAmount: resolution.companyOnlyAmount.amount,
-        lines: [],
-      });
-      if (!rewritten) throw new NotFoundError('Labor allocation run');
-      run = rewritten;
     }
 
-    return { month, run };
+    const draftRun = await insertDraftLaborAllocationRun(tx, {
+      organizationId: context.organizationId,
+      employeeMonthCostId: month.id,
+      method,
+      currency: month.currency,
+      allocatedAmount: resolution.allocatedAmount.amount,
+      unallocatedAmount: resolution.unallocatedAmount.amount,
+      companyOnlyAmount: resolution.companyOnlyAmount.amount,
+      supersedesRunId: priorRun?.status === 'applied' ? priorRun.id : null,
+      lines: resolution.lines.map((line) => ({
+        projectId: line.projectId,
+        amount: line.amount.amount,
+        currency: month.currency,
+        percent: line.percent,
+        basisHours: line.basisHours,
+        basisDays: line.basisDays,
+        sortOrder: line.sortOrder,
+        notes: line.notes,
+      })),
+    });
+
+    const applied = await applyLaborAllocationRun(tx, context.organizationId, draftRun.id);
+    if (!applied) throw new NotFoundError('Labor allocation run');
+
+    const refreshed = await findEmployeeMonthCostByEmployeeMonth(
+      tx,
+      context.organizationId,
+      parsed.data.employeeId,
+      parsed.data.yearMonth,
+    );
+    if (!refreshed) throw new NotFoundError('Employee month cost');
+
+    return { month: refreshed, run: applied };
   });
 
   await recordAuditEvent(context, {
@@ -617,11 +658,13 @@ export async function correctMonthlyEmployerCostActual(
       priorMonthId: existing.id,
       knownAmount: existing.knownAmount,
       knownQuality: existing.knownQuality,
+      correctionKind: 'supersede_adjustment',
     },
     after: {
       knownAmount: result.month.knownAmount,
       knownQuality: result.month.knownQuality,
       actualAmount: result.month.actualAmount,
+      adjustsMonthId: existing.id,
     },
   });
 

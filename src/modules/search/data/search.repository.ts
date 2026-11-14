@@ -781,6 +781,34 @@ export interface WorkPermitSearchHit {
   readonly projectName: string | null;
 }
 
+/** Cache only positive probes — missing tables may appear after a later migrate. */
+let workPermitsRelationReady: boolean | null = null;
+let projectRisksRelationReady: boolean | null = null;
+
+async function workPermitsSearchRelationReady(db: DbExecutor): Promise<boolean> {
+  if (workPermitsRelationReady === true) return true;
+  const rows = readSqlRows(
+    await db.execute(
+      sql`select to_regclass('public.work_permits') is not null as present`,
+    ),
+  );
+  const ready = rows[0]?.present === true;
+  if (ready) workPermitsRelationReady = true;
+  return ready;
+}
+
+async function projectRisksSearchRelationReady(db: DbExecutor): Promise<boolean> {
+  if (projectRisksRelationReady === true) return true;
+  const rows = readSqlRows(
+    await db.execute(
+      sql`select to_regclass('public.project_risks') is not null as present`,
+    ),
+  );
+  const ready = rows[0]?.present === true;
+  if (ready) projectRisksRelationReady = true;
+  return ready;
+}
+
 export async function searchWorkPermits(
   db: DbExecutor,
   organizationId: string,
@@ -790,6 +818,7 @@ export async function searchWorkPermits(
 ): Promise<WorkPermitSearchHit[]> {
   const exact = trimmed(query);
   if (!exact) return [];
+  if (!(await workPermitsSearchRelationReady(db))) return [];
   const term = ilikeContainsPattern(exact);
   const projectFilter =
     accessibleProjectIds != null && accessibleProjectIds.length > 0
@@ -848,6 +877,7 @@ export async function searchProjectRisks(
 ): Promise<ProjectRiskSearchHit[]> {
   const exact = trimmed(query);
   if (!exact) return [];
+  if (!(await projectRisksSearchRelationReady(db))) return [];
   const term = ilikeContainsPattern(exact);
   const projectFilter =
     accessibleProjectIds != null && accessibleProjectIds.length > 0

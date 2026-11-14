@@ -22,6 +22,10 @@ export interface EmployeePayrollMonthPanelProps {
   readonly paymentId: string;
   readonly expectedAmount: string;
   readonly paidAmount?: string | null;
+  /** Base salary to pay (compensation rate) — distinct from employer cost. */
+  readonly baseSalaryAmount?: string | null;
+  /** Full-month employer cost pool (rate + burden) — distinct from cash paid. */
+  readonly employerCostFullMonthAmount?: string | null;
   readonly currency: string;
   readonly dueDate: string | null;
   readonly paymentStatus: string | null;
@@ -39,6 +43,8 @@ export function EmployeePayrollMonthPanel({
   paymentId,
   expectedAmount,
   paidAmount = null,
+  baseSalaryAmount = null,
+  employerCostFullMonthAmount = null,
   currency,
   dueDate,
   paymentStatus,
@@ -79,9 +85,40 @@ export function EmployeePayrollMonthPanel({
           label={t('dueDate')}
           value={dueDate ? formatBusinessDate(businessDate(dueDate), locale) : '—'}
         />
+
+        <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-surface-subtle)] px-3 py-2 text-xs text-[var(--pf-text-secondary)]">
+          <p className="font-medium text-[var(--pf-text-primary)]">{t('threeConceptsTitle')}</p>
+          <ul className="mt-1 list-inside list-disc space-y-0.5">
+            <li>{t('conceptBaseSalary')}</li>
+            <li>{t('conceptEmployerCost')}</li>
+            <li>{t('conceptPaidAmount')}</li>
+          </ul>
+        </div>
+
+        {baseSalaryAmount ? (
+          <div>
+            <span className="text-xs text-[var(--pf-text-muted)]">{t('baseSalaryAmount')}</span>
+            <div>
+              <MoneyText value={money(baseSalaryAmount, currency)} className="font-medium" />
+            </div>
+          </div>
+        ) : null}
+
+        {employerCostFullMonthAmount ? (
+          <div>
+            <span className="text-xs text-[var(--pf-text-muted)]">{t('employerCostFullMonth')}</span>
+            <div>
+              <MoneyText
+                value={money(employerCostFullMonthAmount, currency)}
+                className="font-medium"
+              />
+            </div>
+          </div>
+        ) : null}
+
         <div>
           <span className="text-xs text-[var(--pf-text-muted)]">
-            {paidAt ? t('paidAmount') : t('expectedAmount')}
+            {paidAt ? t('paidAmount') : t('obligationExpectedAmount')}
           </span>
           <div>
             <MoneyText
@@ -92,6 +129,9 @@ export function EmployeePayrollMonthPanel({
               className="font-medium"
             />
           </div>
+          {!paidAt ? (
+            <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('obligationHint')}</p>
+          ) : null}
         </div>
         {paidAt ? (
           <Detail label={t('paidAt')} value={formatBusinessDate(businessDate(paidAt), locale)} />

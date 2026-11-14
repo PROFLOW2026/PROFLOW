@@ -185,6 +185,14 @@ export const EXECUTION_HUB_CHILDREN: readonly ExecutionHubChildLink[] = [
     groupKey: 'planning',
   },
   {
+    id: 'planning-goals',
+    hub: 'planning',
+    path: 'goals',
+    anyOf: [C.PROJECT_VIEW],
+    labelKey: 'goals',
+    groupKey: 'planning',
+  },
+  {
     id: 'quality-plans',
     hub: 'quality',
     path: 'plans',
@@ -306,6 +314,7 @@ const EMPLOYEE_HUB_PATHS = new Set([
   'tasks',
   'board',
   'calendar',
+  'goals',
   'plans',
   'files',
   'rfi',

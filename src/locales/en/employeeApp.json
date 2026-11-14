@@ -479,6 +479,7 @@
       "meetings": "Meetings",
       "financials": "Financials",
       "infra": "Infrastructure mapping",
+      "goals": "Project goals",
       "navAriaLabel": "Project hub"
     },
     "openTaskDetail": "Open task details",

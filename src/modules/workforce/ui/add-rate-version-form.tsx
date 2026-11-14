@@ -114,8 +114,8 @@ export function AddRateVersionForm({
                 {...control}
                 value={baseRate}
                 onValueChange={setBaseRate}
-                currencySymbol={defaultCurrency}
                 currency={defaultCurrency}
+                currencySymbol={defaultCurrency}
               />
             </>
           )}

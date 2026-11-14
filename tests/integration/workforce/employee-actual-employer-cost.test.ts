@@ -191,6 +191,17 @@ describe('employee actual monthly employer cost', () => {
       });
       await applyMonthlyEmployerCostAllocation(context, { employeeId, yearMonth });
 
+      const [priorActive] = await tx
+        .select({ id: employeeMonthCosts.id })
+        .from(employeeMonthCosts)
+        .where(
+          and(
+            eq(employeeMonthCosts.employeeId, employeeId),
+            eq(employeeMonthCosts.yearMonth, yearMonth),
+            eq(employeeMonthCosts.status, 'applied'),
+          ),
+        );
+
       await correctMonthlyEmployerCostActual(context, {
         employeeId,
         yearMonth,
@@ -222,12 +233,20 @@ describe('employee actual monthly employer cost', () => {
       expect(lineA?.amount).toBe('14800.000000');
 
       const monthRows = await tx
-        .select({ knownAmount: employeeMonthCosts.knownAmount, status: employeeMonthCosts.status })
+        .select({
+          id: employeeMonthCosts.id,
+          knownAmount: employeeMonthCosts.knownAmount,
+          status: employeeMonthCosts.status,
+          adjustsMonthId: employeeMonthCosts.adjustsMonthId,
+        })
         .from(employeeMonthCosts)
         .where(eq(employeeMonthCosts.employeeId, employeeId));
       expect(monthRows.filter((row) => row.status === 'applied')).toHaveLength(1);
-      expect(monthRows.filter((row) => row.status === 'superseded')).toHaveLength(0);
-      expect(monthRows.find((row) => row.status === 'applied')?.knownAmount).toBe('14800.000000');
+      expect(monthRows.filter((row) => row.status === 'superseded')).toHaveLength(1);
+      const active = monthRows.find((row) => row.status === 'applied');
+      expect(active?.knownAmount).toBe('14800.000000');
+      expect(active?.adjustsMonthId).toBe(priorActive?.id);
+      expect(active?.id).not.toBe(priorActive?.id);
     });
   });
 
@@ -252,6 +271,17 @@ describe('employee actual monthly employer cost', () => {
       });
       await applyMonthlyEmployerCostAllocation(context, { employeeId, yearMonth });
 
+      const [priorActive] = await tx
+        .select({ id: employeeMonthCosts.id })
+        .from(employeeMonthCosts)
+        .where(
+          and(
+            eq(employeeMonthCosts.employeeId, employeeId),
+            eq(employeeMonthCosts.yearMonth, yearMonth),
+            eq(employeeMonthCosts.status, 'applied'),
+          ),
+        );
+
       await correctMonthlyEmployerCostActual(context, {
         employeeId,
         yearMonth,
@@ -262,10 +292,12 @@ describe('employee actual monthly employer cost', () => {
 
       const [month] = await tx
         .select({
+          id: employeeMonthCosts.id,
           estimatedAmount: employeeMonthCosts.estimatedAmount,
           actualAmount: employeeMonthCosts.actualAmount,
           knownAmount: employeeMonthCosts.knownAmount,
           status: employeeMonthCosts.status,
+          adjustsMonthId: employeeMonthCosts.adjustsMonthId,
         })
         .from(employeeMonthCosts)
         .where(
@@ -278,6 +310,8 @@ describe('employee actual monthly employer cost', () => {
       expect(month?.estimatedAmount).toBe('8250.000000');
       expect(month?.actualAmount).toBe('8205.000000');
       expect(month?.knownAmount).toBe('8205.000000');
+      expect(month?.adjustsMonthId).toBe(priorActive?.id);
+      expect(month?.id).not.toBe(priorActive?.id);
 
       const appliedLines = await tx
         .select({ amount: laborAllocationRunLines.amount })
@@ -307,7 +341,7 @@ describe('employee actual monthly employer cost', () => {
         .from(employeeMonthCosts)
         .where(eq(employeeMonthCosts.employeeId, employeeId));
       expect(monthRows.filter((row) => row.status === 'applied')).toHaveLength(1);
-      expect(monthRows.filter((row) => row.status === 'superseded')).toHaveLength(0);
+      expect(monthRows.filter((row) => row.status === 'superseded')).toHaveLength(1);
     });
   });
 

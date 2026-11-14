@@ -1,37 +1,64 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { BusinessChangeConfirmDialog } from '@/components/patterns/business-change-confirm-dialog';
 import type { BusinessChangeFieldDiff } from '@/shared/business-change/types';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
 import { updateAppliedEmployerMonthCostNotesAction } from '@/app/[locale]/(app)/workforce/employees/actions';
+import { localizeEmployerCostRecognitionNote } from '@/modules/workforce/ui/localize-employer-cost-recognition-note';
 
 export function EmployerMonthCostNotesEdit({
   employeeId,
   yearMonth,
   initialNotes,
+  currency,
 }: {
   readonly employeeId: string;
   readonly yearMonth: string;
   readonly initialNotes: string | null;
+  readonly currency: string;
 }) {
   const t = useTranslations('workforce.retroactiveEdit');
+  const tMonth = useTranslations('workforce.monthReview');
   const tCommon = useTranslations('common');
-  const [notes, setNotes] = useState(initialNotes ?? '');
+  const locale = useLocale();
+  const recognitionLabels = useMemo(
+    () => ({
+      recognitionNoteFullMonth: (values: { defined: string; recognized: string }) =>
+        tMonth('recognitionNoteFullMonth', values),
+      recognitionNoteAccrued: (values: {
+        defined: string;
+        recognized: string;
+        days: number;
+        workingDays: string;
+      }) => tMonth('recognitionNoteAccrued', values),
+    }),
+    [tMonth],
+  );
+  const localizedInitial = useMemo(
+    () =>
+      localizeEmployerCostRecognitionNote(initialNotes, {
+        currency,
+        locale,
+        labels: recognitionLabels,
+      }),
+    [currency, initialNotes, locale, recognitionLabels],
+  );
+  const [notes, setNotes] = useState(localizedInitial);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
   const diffs = useMemo((): BusinessChangeFieldDiff[] => {
-    const before = (initialNotes ?? '').trim() || '—';
+    const before = localizedInitial.trim() || '—';
     const after = notes.trim() || '—';
     if (before === after) return [];
     return [{ fieldLabel: tCommon('labels.notes'), before, after }];
-  }, [initialNotes, notes, tCommon]);
+  }, [localizedInitial, notes, tCommon]);
 
   async function confirmSave() {
     setPending(true);

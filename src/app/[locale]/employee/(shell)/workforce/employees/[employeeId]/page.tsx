@@ -17,6 +17,7 @@ import { MonthlyEmployerCostReview } from '@/modules/workforce/ui/monthly-employ
 import { employeeMonthlyEmployerCostReviewActions } from '@/app/[locale]/employee/(shell)/workforce/employee-monthly-cost-review-actions';
 import { todayInTimeZone } from '@/shared/dates';
 import { employeePageStackClass, employeePanelClass } from '@/modules/employee-app/ui/employee-surface-styles';
+import { NotFoundError } from '@/shared/errors';
 
 export default async function EmployeeWorkforceEmployeePage({
   params,
@@ -62,8 +63,9 @@ export default async function EmployeeWorkforceEmployeePage({
         projects,
         currency: context.organization.baseCurrency,
       };
-    } catch {
-      return null;
+    } catch (error) {
+      if (error instanceof NotFoundError) return null;
+      throw error;
     }
   });
 

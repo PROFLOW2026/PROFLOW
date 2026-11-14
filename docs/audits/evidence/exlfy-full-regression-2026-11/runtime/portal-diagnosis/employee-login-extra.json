@@ -1,0 +1,10 @@
+{
+  "error": "browserContext.clearCookies: Protocol error (Storage.clearCookies): Failed to find browser context for id F452DA0DDE979156E68217C6AEC8E0F4",
+  "url": "http://127.0.0.1:3100/he-IL/employee/login",
+  "usernameUsed": "opspm",
+  "worldGcOps": "opspm",
+  "configUsername": "opspm",
+  "configPin": "135790",
+  "alertText": "",
+  "bodySnippet": ""
+}

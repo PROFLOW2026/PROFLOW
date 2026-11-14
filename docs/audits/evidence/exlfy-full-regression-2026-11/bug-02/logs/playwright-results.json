@@ -1,0 +1,94 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\ERAN YOSEF\\Desktop\\final projects\\FINAL-WEB\\projectflow\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--config",
+      "docs/audits/evidence/exlfy-full-regression-2026-11/bug-02/playwright.bug02.config.ts",
+      "--workers=1"
+    ],
+    "configFile": "C:\\Users\\ERAN YOSEF\\Desktop\\final projects\\FINAL-WEB\\projectflow\\docs\\audits\\evidence\\exlfy-full-regression-2026-11\\bug-02\\playwright.bug02.config.ts",
+    "rootDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/bug-02",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/bug-02/logs/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "setup-owner",
+        "name": "setup-owner",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/bug-02",
+        "testIgnore": [],
+        "testMatch": [
+          "/owner-auth-stub\\.setup\\.ts/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/bug-02/logs/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "bug02-payroll",
+        "name": "bug02-payroll",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/bug-02",
+        "testIgnore": [],
+        "testMatch": [
+          "/bug-02-payroll-deep-link\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "C:\\Users\\ERAN YOSEF\\Desktop\\final projects\\FINAL-WEB\\projectflow\\docs\\audits\\evidence\\exlfy-full-regression-2026-11\\bug-02\\logs\\playwright-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [],
+  "errors": [
+    {
+      "message": "Error: Process from config.webServer was not able to start. Exit code: 1",
+      "stack": "Error: Process from config.webServer was not able to start. Exit code: 1"
+    }
+  ],
+  "stats": {
+    "startTime": "2026-11-14T09:22:52.196Z",
+    "duration": 10552.275,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

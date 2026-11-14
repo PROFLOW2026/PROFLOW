@@ -15,6 +15,7 @@ vi.mock('@/modules/project-team', () => ({
     PROJECT_VIEW: 'project.view',
     PROJECT_MANAGE: 'project.manage',
     DOCUMENTS_SHARE: 'documents.share',
+    DOCUMENTS_VIEW: 'documents.view',
   },
   assertProjectCapability,
   hasProjectCapability,
@@ -123,5 +124,32 @@ describe('contractor access to a project (documentation and files)', () => {
 
     authorizeExternalEntity.mockRejectedValue(new NotFoundError('Entity'));
     await expect(authorizeLocation(actor, { organizationId: ORG_A, projectId: PROJECT, locationId: LOCATION, need: 'view' })).rejects.toBeInstanceOf(NotFoundError);
+  });
+});
+
+describe('internal project access respects need (BUG-011)', () => {
+  it('need:view requires only project.view', async () => {
+    assertProjectCapability.mockResolvedValue(undefined);
+    hasProjectCapability.mockResolvedValue(false);
+    await authorizeProject(employee(), { organizationId: ORG_A, projectId: PROJECT, need: 'view' });
+    expect(assertProjectCapability).toHaveBeenCalledTimes(1);
+    expect(assertProjectCapability).toHaveBeenCalledWith(expect.anything(), PROJECT, 'project.view');
+  });
+
+  it('need:document requires documents.view on top of project.view (Live Share host)', async () => {
+    assertProjectCapability.mockResolvedValue(undefined);
+    hasProjectCapability.mockResolvedValue(false);
+    await authorizeProject(employee(), { organizationId: ORG_A, projectId: PROJECT, need: 'document' });
+    expect(assertProjectCapability).toHaveBeenCalledWith(expect.anything(), PROJECT, 'project.view');
+    expect(assertProjectCapability).toHaveBeenCalledWith(expect.anything(), PROJECT, 'documents.view');
+  });
+
+  it('rejects an internal host who has project.view but not documents.view', async () => {
+    assertProjectCapability.mockImplementation(async (_ctx, _projectId, capability: string) => {
+      if (capability === 'documents.view') throw new AuthorizationError('project:documents.view');
+    });
+    await expect(
+      authorizeProject(employee(), { organizationId: ORG_A, projectId: PROJECT, need: 'document' }),
+    ).rejects.toBeInstanceOf(AuthorizationError);
   });
 });

@@ -210,6 +210,7 @@ export function EmployeeForm({
                     {...control}
                     value={baseRate}
                     onValueChange={setBaseRate}
+                    currency={defaultCurrency}
                     currencySymbol={defaultCurrency}
                   />
                 </>

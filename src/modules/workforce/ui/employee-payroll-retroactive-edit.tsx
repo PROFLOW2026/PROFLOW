@@ -4,6 +4,7 @@ import { useRouter } from '@/shared/i18n/navigation';
 import { useMemo, useState, useTransition, type FormEvent } from 'react';
 import { useTranslations } from 'next-intl';
 import { BusinessChangeConfirmDialog } from '@/components/patterns/business-change-confirm-dialog';
+import { MoneyInput } from '@/components/patterns/money-input';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -14,6 +15,7 @@ import { yearMonthFromBusinessDate } from '@/modules/month-close/domain/year-mon
 import type { BusinessChangeFieldDiff, BusinessChangeImpactLine } from '@/shared/business-change/types';
 import { businessDate } from '@/shared/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
+import { formatMoneyString } from '@/shared/money';
 
 export interface EmployeePayrollRetroactiveEditProps {
   readonly employeeId: string;
@@ -54,8 +56,8 @@ export function EmployeePayrollRetroactiveEdit({
     if (paidAmount.trim() !== initialPaidAmount.trim()) {
       rows.push({
         fieldLabel: tPayroll('paidAmount'),
-        before: `${initialPaidAmount} ${currency}`,
-        after: `${paidAmount.trim()} ${currency}`,
+        before: formatMoneyString(initialPaidAmount, currency, locale),
+        after: formatMoneyString(paidAmount.trim(), currency, locale),
       });
     }
     return rows;
@@ -127,13 +129,13 @@ export function EmployeePayrollRetroactiveEdit({
           </Field>
           <Field label={tPayroll('paidAmount')} required>
             {(control) => (
-              <Input
+              <MoneyInput
                 {...control}
                 name="paidAmount"
-                inputMode="decimal"
-                numeric
                 value={paidAmount}
-                onChange={(event) => setPaidAmount(event.target.value)}
+                onValueChange={setPaidAmount}
+                currency={currency}
+                currencySymbol={currency}
                 required
               />
             )}

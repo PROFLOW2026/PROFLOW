@@ -16,7 +16,7 @@ import { useLocaleDir } from '@/shared/i18n/direction';
 import { Link, usePathname } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { projectIdFromPathname } from './quick-create-project';
-import { shouldHideQuickCreateForRoute } from './navigation';
+import { isFocusedComposerPath, shouldHideQuickCreateForRoute } from './navigation';
 
 export interface QuickCreateAction {
   key: string;
@@ -74,7 +74,12 @@ function QuickCreateMenu({
       ? loadedProjectActions.actions
       : [];
 
-  if (shouldHideQuickCreateForRoute(pathname, searchParams)) {
+  // Hide on focused /new|/edit composers (FAB would cover Save) and on time-tab
+  // surfaces that already expose a primary time-entry CTA.
+  if (
+    isFocusedComposerPath(pathname) ||
+    shouldHideQuickCreateForRoute(pathname, searchParams)
+  ) {
     return null;
   }
 

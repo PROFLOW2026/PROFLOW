@@ -25,7 +25,10 @@ function mapError(error: unknown): ProjectGoalActionResult {
 
 async function revalidateProjectGoals(projectId: string): Promise<void> {
   const locale = await getLocale();
+  // Three-surface parity: same goals data on main, employee, and contractor routes.
   revalidatePath(`/${locale}/projects/${projectId}/goals`);
+  revalidatePath(`/${locale}/employee/projects/${projectId}/goals`);
+  revalidatePath(`/${locale}/contractor/projects/${projectId}/goals`);
 }
 
 export async function createProjectGoalAction(input: {

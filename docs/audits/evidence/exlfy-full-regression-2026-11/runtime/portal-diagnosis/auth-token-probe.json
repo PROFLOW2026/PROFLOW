@@ -1,0 +1,63 @@
+{
+  "worldGcOrg": "65aa6588-1c97-4295-8c79-6df51812a16e",
+  "results": [
+    {
+      "username": "single99",
+      "authEmail": "16168c94-4791-47be-9614-871bd77e62c0.single99@employees.pf.internal",
+      "userId": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+      "organizationId": "16168c94-4791-47be-9614-871bd77e62c0",
+      "memberships": [
+        {
+          "organization_id": "16168c94-4791-47be-9614-871bd77e62c0",
+          "status": "active"
+        }
+      ],
+      "token": {
+        "status": 200,
+        "userId": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        "email": "16168c94-4791-47be-9614-871bd77e62c0.single99@employees.pf.internal",
+        "error": null,
+        "hasAccessToken": true
+      }
+    },
+    {
+      "username": "opspm",
+      "authEmail": "65aa6588-1c97-4295-8c79-6df51812a16e.opspm@employees.pf.internal",
+      "userId": "12121212-1212-4212-8212-121212121212",
+      "organizationId": "65aa6588-1c97-4295-8c79-6df51812a16e",
+      "memberships": [
+        {
+          "organization_id": "65aa6588-1c97-4295-8c79-6df51812a16e",
+          "status": "active"
+        }
+      ],
+      "token": {
+        "status": 200,
+        "userId": "12121212-1212-4212-8212-121212121212",
+        "email": "65aa6588-1c97-4295-8c79-6df51812a16e.opspm@employees.pf.internal",
+        "error": null,
+        "hasAccessToken": true
+      }
+    },
+    {
+      "label": "ops@e2e.test seed password",
+      "token": {
+        "status": 200,
+        "userId": "12121212-1212-4212-8212-121212121212",
+        "email": "ops@e2e.test",
+        "error": null,
+        "hasAccessToken": true
+      }
+    },
+    {
+      "label": "ops@e2e.test peppered pin",
+      "token": {
+        "status": 400,
+        "userId": null,
+        "email": null,
+        "error": "invalid_grant",
+        "hasAccessToken": false
+      }
+    }
+  ]
+}

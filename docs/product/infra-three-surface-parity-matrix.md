@@ -64,3 +64,19 @@ replaced by the permission rule above:
 - The chunk relay holds service-role access only inside the organization/project of the evidence row and never
   returns provider tokens or URLs.
 - No permission is granted automatically; no SQL or schema change was needed.
+
+## Project goals (BUG-009 / BUG-015) — three-surface policy
+
+Shared UI: `ProjectGoalsPanel` + `resolveProjectGoalsCapabilities` (`src/modules/project-goals/domain/permissions.ts`).
+Routes: main `/projects/[id]/goals`, employee `/employee/projects/[id]/goals`, contractor `/contractor/projects/[id]/goals`.
+
+| Capability | Main | Employee | Contractor | Gated by |
+|---|---|---|---|---|
+| VIEW goals | yes | yes | yes (shared subset only) | Internal: `project.view`. Contractor: project-covering `ext.project.view` for route discovery **plus** per-goal contractor visibility — never a full list via generic project view. |
+| EDIT goals (create / status) | yes | yes | no (documented limit G1) | `projects.update` **or** `planning.write` (same as RLS 0201; view alone is insufficient — BUG-009 by design) |
+
+### Intentional goals limitations
+
+1. **G1 — Contractor edit.** Contractors never mutate goals; managers edit on internal surfaces only.
+2. **G2 — Contractor visibility fail-closed.** Until a contractor-visibility mark exists on `project_goals` (schema/migration not in this change set), `listContractorVisibleProjectGoals` returns an empty list after grant check. Opening the route with `ext.project.view` does **not** leak the internal goals list.
+3. **View vs edit asymmetry (BUG-009).** Authorized employees/office users with `project.view` can list goals; mutation UI and server actions require `projects.update` or `planning.write`. The panel shows an explicit view-only banner when applicable.

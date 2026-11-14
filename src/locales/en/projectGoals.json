@@ -1,6 +1,12 @@
 {
   "title": "Project goals",
   "description": "Track outcome targets for this project — separate from the task list and Gantt.",
+  "contractor": {
+    "description": "Goals the project team has shared with your company. Full project goals are not listed here."
+  },
+  "viewOnly": {
+    "banner": "View only — you can see goals, but editing requires projects.update or planning.write."
+  },
   "fields": {
     "title": "Goal title",
     "dueOn": "Due date",
@@ -21,7 +27,8 @@
   "list": {
     "title": "Goals",
     "description": "Sorted by due date.",
-    "empty": "No goals recorded for this project yet."
+    "empty": "No goals recorded for this project yet.",
+    "emptyContractor": "No goals have been shared with you for this project yet."
   },
   "errors": {
     "not_allowed": "You do not have permission to change goals on this project.",

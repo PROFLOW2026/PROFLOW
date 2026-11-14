@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   formatMoneyAmountForInput,
   normalizeMoneyInputText,
+  resolveMoneyInputCurrencySymbol,
 } from '@/components/patterns/money-input';
 import { aggregateProjectCosts } from '@/modules/financials/domain/cost-aggregation';
 import { computeProfitPosition } from '@/modules/financials/domain/profit';
-import { money } from '@/shared/money';
+import { money, narrowCurrencySymbol } from '@/shared/money';
 
 describe('money input thousands separators', () => {
   it('treats commas as thousands so 52,000 becomes 52000', () => {
@@ -19,6 +20,16 @@ describe('money input thousands separators', () => {
 
   it('rejects invalid characters', () => {
     expect(normalizeMoneyInputText('12a')).toBeNull();
+  });
+});
+
+describe('money input currency symbol', () => {
+  it('narrows ISO currency codes so ILS is not glued as a prefix', () => {
+    expect(narrowCurrencySymbol('ILS')).toBe('₪');
+    expect(resolveMoneyInputCurrencySymbol('ILS')).toBe('₪');
+    expect(resolveMoneyInputCurrencySymbol('ILS', 'ILS')).toBe('₪');
+    expect(resolveMoneyInputCurrencySymbol(undefined, 'ILS')).toBe('₪');
+    expect(resolveMoneyInputCurrencySymbol('₪', 'ILS')).toBe('₪');
   });
 });
 

@@ -1,0 +1,1040 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\ERAN YOSEF\\Desktop\\final projects\\FINAL-WEB\\projectflow\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--config",
+      "docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/playwright.fix-verify.config.ts",
+      "--workers=1",
+      "--project=setup-owner",
+      "--project=fix-verify-owner",
+      "--project=fix-verify-surfaces",
+      "--project=fix-verify-pdf"
+    ],
+    "configFile": "C:\\Users\\ERAN YOSEF\\Desktop\\final projects\\FINAL-WEB\\projectflow\\docs\\audits\\evidence\\exlfy-full-regression-2026-11\\runtime-fix-verify\\playwright.fix-verify.config.ts",
+    "rootDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "C:\\Users\\ERAN YOSEF\\Desktop\\final projects\\FINAL-WEB\\projectflow\\docs\\audits\\evidence\\exlfy-full-regression-2026-11\\runtime\\portal-clear-next-cache.mjs",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "setup-owner",
+        "name": "setup-owner",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/auth\\/owner\\.setup\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "setup-worker",
+        "name": "setup-worker",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/auth\\/worker\\.setup\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop-he",
+        "name": "desktop-he",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [
+          "/auth\\//",
+          "/authenticated\\//",
+          "/mobile\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop-he-authenticated",
+        "name": "desktop-he-authenticated",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/authenticated\\/(owner|regression|performance-verify|performance-signoff|jobs-flows|master-completion-journeys|pwa-startup|ocr-review|boq-happy-path|capture-marketing-screenshots|branding|hebrew-runtime-closure|overnight-surfaces|billing-plan|project-time-mobile-gate|project-centric-money-chain|release-smoke|locale-profile-persistence)\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop-he-worker",
+        "name": "desktop-he-worker",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/authenticated\\/worker\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop-he-personas",
+        "name": "desktop-he-personas",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/authenticated\\/persona-matrix\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile-he",
+        "name": "mobile-he",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/mobile\\.spec\\.ts|mobile-shell-audit\\.spec\\.ts|authenticated\\/workforce-discoverability\\.spec\\.ts|authenticated\\/ocr-review\\.spec\\.ts|authenticated\\/hebrew-runtime-closure\\.spec\\.ts|authenticated\\/overnight-surfaces\\.spec\\.ts|authenticated\\/billing-plan\\.spec\\.ts|authenticated\\/mobile-money-journeys\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "audit-verification",
+        "name": "audit-verification",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/audit\\/verification.*\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "design-v2-specimen",
+        "name": "design-v2-specimen",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/tests/design-v2/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "fix-verify-owner",
+        "name": "fix-verify-owner",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify",
+        "testIgnore": [],
+        "testMatch": [
+          "/exlfy-fix-verify\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "fix-verify-surfaces",
+        "name": "fix-verify-surfaces",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify",
+        "testIgnore": [],
+        "testMatch": [
+          "/exlfy-fix-verify-surfaces\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/playwright-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "fix-verify-pdf",
+        "name": "fix-verify-pdf",
+        "testDir": "C:/Users/ERAN YOSEF/Desktop/final projects/FINAL-WEB/projectflow/docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify",
+        "testIgnore": [],
+        "testMatch": [
+          "/exlfy-fix-verify-pdf-mobile\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "C:\\Users\\ERAN YOSEF\\Desktop\\final projects\\FINAL-WEB\\projectflow\\docs\\audits\\evidence\\exlfy-full-regression-2026-11\\runtime-fix-verify\\playwright-results.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "open": "never",
+          "outputFolder": "C:\\Users\\ERAN YOSEF\\Desktop\\final projects\\FINAL-WEB\\projectflow\\docs\\audits\\evidence\\exlfy-full-regression-2026-11\\runtime-fix-verify\\playwright-report"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "auth\\owner.setup.ts",
+      "file": "auth/owner.setup.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "authenticate owner",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "setup-owner",
+              "projectName": "setup-owner",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2090,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T09:20:34.770Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "05bdfe672bfa15875c05-b87a36a758ff1f59028b",
+          "file": "auth/owner.setup.ts",
+          "line": 5,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "..\\..\\docs\\audits\\evidence\\exlfy-full-regression-2026-11\\runtime-fix-verify\\exlfy-fix-verify.spec.ts",
+      "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "EXLFY fix-verify (owner)",
+          "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify.spec.ts",
+          "line": 69,
+          "column": 6,
+          "specs": [
+            {
+              "title": "payroll three concepts + month review split (BUG-001,002,004)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "payroll.navigation|VERIFIED_PASS|bug-02 EMC fixture deep link"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "payroll.confirm_ui|UNVERIFIED|payroll panel not mounted for employee/month"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "payroll.month_review_cta|UNVERIFIED|no payrollPayment — month review may be collapsed"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "fix-verify-owner",
+                  "projectName": "fix-verify-owner",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1069,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-14T09:20:42.893Z",
+                      "annotations": [
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "payroll.navigation|VERIFIED_PASS|bug-02 EMC fixture deep link"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "payroll.confirm_ui|UNVERIFIED|payroll panel not mounted for employee/month"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "payroll.month_review_cta|UNVERIFIED|no payrollPayment — month review may be collapsed"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d78cf71e9169726826af-e563b0f9b4520c33b979",
+              "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify.spec.ts",
+              "line": 72,
+              "column": 3
+            },
+            {
+              "title": "applied cost correction + paid amount + retro history (BUG-002)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "payroll.applied_cost_correction|VERIFIED_PASS|payroll route loads without crash"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "payroll.paid_amount_ui|UNVERIFIED|amount labels not visible"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "payroll.retro_history|UNVERIFIED|EMC fixture present but retro/correction UI not shown (payment may be unpaid)"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "fix-verify-owner",
+                  "projectName": "fix-verify-owner",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 974,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-14T09:20:44.077Z",
+                      "annotations": [
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "payroll.applied_cost_correction|VERIFIED_PASS|payroll route loads without crash"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "payroll.paid_amount_ui|UNVERIFIED|amount labels not visible"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "payroll.retro_history|UNVERIFIED|EMC fixture present but retro/correction UI not shown (payment may be unpaid)"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d78cf71e9169726826af-f83a83159c3632cba9ec",
+              "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify.spec.ts",
+              "line": 132,
+              "column": 3
+            },
+            {
+              "title": "past-month roll-forward probe (BUG-001)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "payroll.past_month_rollforward|UNVERIFIED_E2E|cannot time-travel month boundary in harness; covered by tests/unit/workforce/past-month-accrual-roll-forward.test.ts"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "fix-verify-owner",
+                  "projectName": "fix-verify-owner",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1127,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-14T09:20:45.062Z",
+                      "annotations": [
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "payroll.past_month_rollforward|UNVERIFIED_E2E|cannot time-travel month boundary in harness; covered by tests/unit/workforce/past-month-accrual-roll-forward.test.ts"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d78cf71e9169726826af-2570c098770347d30cfb",
+              "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify.spec.ts",
+              "line": 191,
+              "column": 3
+            },
+            {
+              "title": "FAB hidden on composer routes (BUG-005)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "fab.hide.expenses_new|VERIFIED_PASS|FAB absent on composer"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "fab.hide.projects_new|VERIFIED_PASS|FAB absent on composer"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "fab.hide.employees_new|VERIFIED_PASS|FAB absent on composer"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "fab.control_list|UNVERIFIED|FAB hidden on expenses list too"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "fix-verify-owner",
+                  "projectName": "fix-verify-owner",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2739,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-14T09:20:46.205Z",
+                      "annotations": [
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "fab.hide.expenses_new|VERIFIED_PASS|FAB absent on composer"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "fab.hide.projects_new|VERIFIED_PASS|FAB absent on composer"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "fab.hide.employees_new|VERIFIED_PASS|FAB absent on composer"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "fab.control_list|UNVERIFIED|FAB hidden on expenses list too"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d78cf71e9169726826af-9c93972d6d3c72819256",
+              "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify.spec.ts",
+              "line": 210,
+              "column": 3
+            },
+            {
+              "title": "Live Share entry + authz soft probe (BUG-011)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "live_share.entry|UNVERIFIED|Live Share control not in infra hub (module off or layout)"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "fix-verify-owner",
+                  "projectName": "fix-verify-owner",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2048,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-14T09:20:48.959Z",
+                      "annotations": [
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "live_share.entry|UNVERIFIED|Live Share control not in infra hub (module off or layout)"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d78cf71e9169726826af-6dbd7848e8a6c4451def",
+              "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify.spec.ts",
+              "line": 240,
+              "column": 3
+            },
+            {
+              "title": "BOQ sheet-mark link UI (BUG-013)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "boq.sheet_mark_link|UNVERIFIED|no drawing revision in seed for sheet-mark BOQ probe"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "fix-verify-owner",
+                  "projectName": "fix-verify-owner",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1384,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-14T09:20:51.020Z",
+                      "annotations": [
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "boq.sheet_mark_link|UNVERIFIED|no drawing revision in seed for sheet-mark BOQ probe"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d78cf71e9169726826af-81b767684fe626f99660",
+              "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify.spec.ts",
+              "line": 276,
+              "column": 3
+            },
+            {
+              "title": "multi-org switcher badges (BUG-012)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "multi_org.badges|UNVERIFIED|multi-org seed but switcher not visible in shell"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "fix-verify-owner",
+                  "projectName": "fix-verify-owner",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1113,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-14T09:20:52.418Z",
+                      "annotations": [
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "multi_org.badges|UNVERIFIED|multi-org seed but switcher not visible in shell"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d78cf71e9169726826af-7bbed4d1ec29572f6f6c",
+              "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify.spec.ts",
+              "line": 300,
+              "column": 3
+            },
+            {
+              "title": "global search resilient query (BUG-014)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "global_search|UNVERIFIED|search dialog not opened"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "fix-verify-owner",
+                  "projectName": "fix-verify-owner",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 961,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-14T09:20:53.543Z",
+                      "annotations": [
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "global_search|UNVERIFIED|search dialog not opened"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d78cf71e9169726826af-3172591ed285acf4f426",
+              "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify.spec.ts",
+              "line": 333,
+              "column": 3
+            },
+            {
+              "title": "project goals main app (BUG-009,015)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "goals.main|VERIFIED_PASS|main goals page loads"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "fix-verify-owner",
+                  "projectName": "fix-verify-owner",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1378,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-14T09:20:54.516Z",
+                      "annotations": [
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "goals.main|VERIFIED_PASS|main goals page loads"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d78cf71e9169726826af-87f8d3d62355287145d7",
+              "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify.spec.ts",
+              "line": 365,
+              "column": 3
+            },
+            {
+              "title": "Today decisions lens + workforce error routes (BUG-010,016)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "today.decisions_lens|UNVERIFIED|Today lens toggle not visible (gated role)"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "workforce.errors.time|VERIFIED_PASS|route reachable"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "workforce.errors.approvals|VERIFIED_PASS|route reachable"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "fix-verify-owner",
+                  "projectName": "fix-verify-owner",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2502,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-14T09:20:55.905Z",
+                      "annotations": [
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "today.decisions_lens|UNVERIFIED|Today lens toggle not visible (gated role)"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "workforce.errors.time|VERIFIED_PASS|route reachable"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "workforce.errors.approvals|VERIFIED_PASS|route reachable"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d78cf71e9169726826af-b1f25bd97e26bbd02acd",
+              "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify.spec.ts",
+              "line": 378,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "..\\..\\docs\\audits\\evidence\\exlfy-full-regression-2026-11\\runtime-fix-verify\\exlfy-fix-verify-surfaces.spec.ts",
+      "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify-surfaces.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "EXLFY fix-verify surfaces (employee + contractor)",
+          "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify-surfaces.spec.ts",
+          "line": 70,
+          "column": 6,
+          "specs": [
+            {
+              "title": "contractor: login + goals route (BUG-015)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "contractor.auth|VERIFIED_PASS|contractor sign-in OK"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "contractor.goals|HARNESS|HTTP 404"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "fix-verify-surfaces",
+                  "projectName": "fix-verify-surfaces",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1989,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-14T09:20:38.278Z",
+                      "annotations": [
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "contractor.auth|VERIFIED_PASS|contractor sign-in OK"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "contractor.goals|HARNESS|HTTP 404"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "dd8b64c102895cbdfed1-216665c425a07a37a60e",
+              "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify-surfaces.spec.ts",
+              "line": 73,
+              "column": 3
+            },
+            {
+              "title": "employee: login + goals route (BUG-009,015)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "employee.auth|VERIFIED_PASS|ops employee opspm"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "employee.goals|HARNESS|HTTP 404"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "fix-verify-surfaces",
+                  "projectName": "fix-verify-surfaces",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1512,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-14T09:20:40.506Z",
+                      "annotations": [
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "employee.auth|VERIFIED_PASS|ops employee opspm"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "employee.goals|HARNESS|HTTP 404"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "dd8b64c102895cbdfed1-abfec987e1f9511fc454",
+              "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify-surfaces.spec.ts",
+              "line": 111,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "..\\..\\docs\\audits\\evidence\\exlfy-full-regression-2026-11\\runtime-fix-verify\\exlfy-fix-verify-pdf-mobile.spec.ts",
+      "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify-pdf-mobile.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "EXLFY fix-verify PDF mobile (BUG-003)",
+          "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify-pdf-mobile.spec.ts",
+          "line": 38,
+          "column": 6,
+          "specs": [
+            {
+              "title": "PdfJsViewer zoom + pointer/touch on mobile viewport",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "pdf.real_device|DEVICE_UNAVAILABLE|real iOS/Android hardware not attached — Chromium touch emulation + synthetic TouchEvents only (BUG-003)"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "pdf.open_viewer|HARNESS|OCR mock job not selected"
+                    },
+                    {
+                      "type": "exlfy-verdict",
+                      "description": "pdf.zoom_pan|UNVERIFIED|no viewer without OCR job"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "fix-verify-pdf",
+                  "projectName": "fix-verify-pdf",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 91391,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-14T09:20:59.147Z",
+                      "annotations": [
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "pdf.real_device|DEVICE_UNAVAILABLE|real iOS/Android hardware not attached — Chromium touch emulation + synthetic TouchEvents only (BUG-003)"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "pdf.open_viewer|HARNESS|OCR mock job not selected"
+                        },
+                        {
+                          "type": "exlfy-verdict",
+                          "description": "pdf.zoom_pan|UNVERIFIED|no viewer without OCR job"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "007e8b1d95784d62808a-27072a00e2a9e08fda60",
+              "file": "../../docs/audits/evidence/exlfy-full-regression-2026-11/runtime-fix-verify/exlfy-fix-verify-pdf-mobile.spec.ts",
+              "line": 45,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-14T09:20:09.650Z",
+    "duration": 141752.634,
+    "expected": 14,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -1,0 +1,17 @@
+# git log --oneline -- pdf-js-viewer.tsx pdf-viewer-utils.ts (2026-11-14)
+
+6b156d1f Ship the approved EXLFY work evolution and migration 0200.
+adae59d6 design-v2: anchor the three apps without changing Classic.
+451fa133 Add in-app CAD preview (DWG/DWF/DXF) and harden PDF storage preview.
+c1f94611 fix(i18n): targeted cleanup for top suspect UI literals
+3db98bde fix: close i18n foundation CI regressions
+7b89d660 fix: restore CI green — lint imports, vendor ignore, and unit test
+bdaa9099 fix(ui): company files shortcuts label and mobile PDF more menu
+5cd8a858 Polish OneDrive PDF viewer UX and add native file sharing.
+f6c45b02 perf: lazy PDF pages, sharp zoom, faster delivery
+f742c697 fix: PDF.js viewer Suspense boundary and same-origin worker
+94b88763 fix: replace iframe PDF preview with fullscreen PDF.js viewer
+
+Key pan/zoom behavior introductions:
+- f6c45b02: gestureScale, pinch commit, transform preview, PdfLazyPage
+- 5cd8a858: hand tool (mouse pan), zoom presets, fullscreen
