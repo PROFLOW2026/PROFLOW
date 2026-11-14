@@ -5,7 +5,7 @@
 import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { costCategories, projects } from '@drizzle/schema';
 import { getTranslations } from 'next-intl/server';
-import { formatBusinessDate, type BusinessDate } from '@/shared/dates';
+import { compareBusinessDates, formatBusinessDate, type BusinessDate } from '@/shared/dates';
 import { resolveUnpaidPayrollAlertStatus } from '@/modules/workforce/domain/payroll-obligation';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { hasPermission } from '@/shared/permissions/assert';
