@@ -161,6 +161,8 @@
       "closeout": "Closeout",
       "warranty": "Warranty",
       "infra": "Infrastructure locator",
+      "takeoff": "Smart electrical BOQ",
+      "takeoffEntryHint": "Upload PDF/DWG plans, review detections, and approve electrical quantities.",
       "details": "Details"
     },
     "hubs": {
@@ -186,6 +188,8 @@
       "team": "Team",
       "time": "Time",
       "documents": "Documents",
+      "takeoff": "Smart electrical BOQ",
+      "takeoffEntryHint": "Upload PDF/DWG plans, review detections, and approve electrical quantities.",
       "usage": "Materials and equipment",
       "details": "Details",
       "schedule": "Schedule",

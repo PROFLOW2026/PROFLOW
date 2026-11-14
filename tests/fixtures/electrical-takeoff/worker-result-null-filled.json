@@ -1,0 +1,130 @@
+{
+  "contractVersion": 2,
+  "jobId": "null-fuzz",
+  "status": "succeeded",
+  "startedAtIso": "2026-01-01T00:00:00.000Z",
+  "finishedAtIso": "2026-01-01T00:00:01.000Z",
+  "engineVersions": {
+    "engine": "0"
+  },
+  "sheets": [
+    {
+      "sheetKey": "p1",
+      "fileId": "f1",
+      "name": "n",
+      "kind": "pdf_page",
+      "index": 0,
+      "widthPx": 100,
+      "heightPx": 100,
+      "previewArtifact": null,
+      "scale": {
+        "ratio": null,
+        "metersPerPreviewPx": null,
+        "verified": false,
+        "source": "none",
+        "note": null
+      },
+      "analyzed": "full",
+      "note": null,
+      "floorHint": null,
+      "xrefsMissing": [
+        {
+          "name": "x",
+          "path": null
+        }
+      ],
+      "hiddenByLayers": 0
+    }
+  ],
+  "detections": [
+    {
+      "id": "p1#1",
+      "sheetKey": "p1",
+      "fileId": "f1",
+      "source": "pdf",
+      "x": 1,
+      "y": 2,
+      "w": 1,
+      "h": 1,
+      "angleDeg": null,
+      "signature": "sig",
+      "signatureKind": "pdf-shape",
+      "rawClass": "L1",
+      "legendKey": null,
+      "blockName": null,
+      "layer": null,
+      "colorHex": null,
+      "tagText": null,
+      "typeKey": null,
+      "classifiedBy": "none",
+      "confidence": "none",
+      "score": null,
+      "margin": null,
+      "reasons": [],
+      "twinId": null,
+      "maskB64": null,
+      "native": null
+    }
+  ],
+  "legend": [
+    {
+      "key": "L1",
+      "fileId": "f1",
+      "sheetKey": null,
+      "rowIndex": null,
+      "rawText": null,
+      "decodedText": null,
+      "decodedBy": null,
+      "textBox": null,
+      "reasons": [],
+      "signature": "sig",
+      "signatureKind": "pdf-shape",
+      "previewArtifact": null,
+      "typeKey": null,
+      "confidence": null,
+      "count": null
+    }
+  ],
+  "linear": [
+    {
+      "id": "l1",
+      "sheetKey": "p1",
+      "fileId": "f1",
+      "layer": null,
+      "typeKey": null,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "lengthMeters": null,
+      "lengthPreviewPx": 1.0,
+      "scaleVerified": false
+    }
+  ],
+  "warnings": [
+    {
+      "code": "x",
+      "severity": "warning",
+      "message": "m",
+      "fileId": null,
+      "sheetKey": null
+    }
+  ],
+  "errors": [
+    {
+      "code": "e",
+      "message": "m",
+      "fileId": null,
+      "sheetKey": null
+    }
+  ],
+  "stats": {
+    "n": 1.0
+  }
+}

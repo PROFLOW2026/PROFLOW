@@ -1,4 +1,8 @@
 {
+  "takeoff": {
+    "identityTitle": "بيئة حصر كميات كهربائي ذكي",
+    "navAriaLabel": "تنقل حصر الكميات الكهربائي"
+  },
   "execution": {
     "groupTitle": "التنفيذ",
     "identityTitle": "إدارة التنفيذ",

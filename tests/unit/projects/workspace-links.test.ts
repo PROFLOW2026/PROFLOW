@@ -14,6 +14,21 @@ describe('project workspace links', () => {
     expect(links.map((link) => link.key)).toEqual(['overview', 'expenses', 'details']);
   });
 
+  it('surfaces takeoff route when takeoff.view is granted', () => {
+    const links = selectProjectWorkspaceLinks({
+      projectId: 'p1',
+      modules: {},
+      permissions: new Set([PERMISSIONS.TAKEOFF_VIEW]),
+      showWorkPackages: false,
+      canReadFinancials: false,
+    });
+    expect(links.find((link) => link.key === 'takeoff')).toEqual({
+      key: 'takeoff',
+      href: '/projects/p1/takeoff',
+      inProject: false,
+    });
+  });
+
   it('surfaces schedule as a real project tab when planning.read is granted', () => {
     const links = selectProjectWorkspaceLinks({
       projectId: 'p1',

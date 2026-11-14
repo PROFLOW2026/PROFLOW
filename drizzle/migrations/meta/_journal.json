@@ -1422,6 +1422,27 @@
             "when": 1794266402000,
             "tag": "0204_tasks_work_package_composite_fk",
             "breakpoints": true
+        },
+        {
+            "idx": 203,
+            "version": "7",
+            "when": 1794352800000,
+            "tag": "0205_electrical_takeoff",
+            "breakpoints": true
+        },
+        {
+            "idx": 204,
+            "version": "7",
+            "when": 1794356400000,
+            "tag": "0206_takeoff_sheets_unique_per_file",
+            "breakpoints": true
+        },
+        {
+            "idx": 205,
+            "version": "7",
+            "when": 1794442800000,
+            "tag": "0207_takeoff_persistence_modes",
+            "breakpoints": true
         }
     ]
 }

@@ -90,6 +90,17 @@ export const PORTAL_ROUTES = [
     implemented: true,
   },
   { key: 'project.infrastructure', track: 'IJ', scope: 'project', path: 'projects/[projectId]/infrastructure', pageFile: '(portal)/projects/[projectId]/infrastructure/page.tsx', capability: { anyOf: [CAP.DOCUMENT_UPLOAD, CAP.DOCUMENT_VIEW] }, placement: 'project', labelKey: 'nav.infrastructure', implemented: true },
+  {
+    key: 'project.takeoff',
+    track: 'IJ',
+    scope: 'project',
+    path: 'projects/[projectId]/takeoff',
+    pageFile: '(portal)/projects/[projectId]/takeoff/page.tsx',
+    capability: CAP.TAKEOFF_VIEW,
+    placement: 'project',
+    labelKey: 'nav.takeoff',
+    implemented: true,
+  },
   { key: 'project.plans', track: 'IJ', scope: 'project', path: 'projects/[projectId]/plans', pageFile: '(portal)/projects/[projectId]/plans/page.tsx', capability: CAP.PLAN_VIEW, placement: 'project', labelKey: 'nav.plans', implemented: true },
   { key: 'project.plan', track: 'IJ', scope: 'project', path: 'projects/[projectId]/plans/[drawingId]', pageFile: '(portal)/projects/[projectId]/plans/[drawingId]/page.tsx', capability: CAP.PLAN_VIEW, placement: 'detail', labelKey: 'nav.plans', implemented: true },
 

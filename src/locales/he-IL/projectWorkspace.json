@@ -1,4 +1,8 @@
 {
+  "takeoff": {
+    "identityTitle": "סביבת כתב כמויות חכם לחשמל",
+    "navAriaLabel": "ניווט כתב כמויות חשמל"
+  },
   "execution": {
     "groupTitle": "ביצוע",
     "identityTitle": "ניהול ביצוע",

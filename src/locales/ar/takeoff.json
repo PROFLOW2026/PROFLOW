@@ -1,0 +1,316 @@
+{
+  "nav": {
+    "title": "جدول كميات كهربائي ذكي"
+  },
+  "common": {
+    "loading": "جارٍ التحميل…",
+    "cancel": "إلغاء",
+    "close": "إغلاق"
+  },
+  "list": {
+    "title": "جدول كميات كهربائي ذكي",
+    "subtitle": "رفع المخططات، مراجعة الرموز، والموافقة على الكميات.",
+    "newAnalysis": "تحليل جديد",
+    "empty": "لا توجد تحليلات بعد. ابدأ بتحليل جديد.",
+    "defaultName": "تحليل كهربائي جديد"
+  },
+  "status": {
+    "draft": "مسودة",
+    "processing": "قيد المعالجة",
+    "in_review": "قيد المراجعة",
+    "approved": "معتمد"
+  },
+  "upload": {
+    "title": "رفع المخططات",
+    "dropHint": "اسحب الملفات هنا أو اضغط للاختيار",
+    "typesHint": "PDF أو DWG أو DXF — يمكن اختيار عدة ملفات",
+    "analyze": "تحليل المخطط",
+    "pickFromProject": "اختيار من ملفات المشروع / السحابة",
+    "pickFromProjectHint": "اختر PDF أو DWG موجوداً في التخزين المتصل — بدون رفع مكرر.",
+    "ephemeralHint": "لا يوجد تخزين مؤسسي: الملفات مؤقتة لهذه الجلسة فقط. احذف التحليل عند الانتهاء.",
+    "errors": {
+      "cloudLinkFailed": "تعذّر ربط ملف السحابة. تحقق من الصلاحيات أو ارفع من جهازك.",
+      "unsupportedType": "نوع ملف غير مدعوم. استخدم PDF أو DWG أو DXF.",
+      "tooLarge": "الملف كبير جداً.",
+      "empty": "الملف فارغ.",
+      "noFiles": "أضف ملفاً واحداً على الأقل.",
+      "failed": "فشل الرفع. حاول مرة أخرى."
+    },
+    "plannerKey": "مفتاح المخطط",
+    "plannerPlaceholder": "مثال: planner-7155",
+    "ruleSet": "مجموعة قواعد القياس",
+    "aiOff": "قراءة المفتاح بالذكاء الاصطناعي معطّلة ما لم تُفعَّل في المؤسسة.",
+    "aiToggle": "طلب مساعدة AI لقراءة المفتاح (عند التوفّر)",
+    "pairing": "ربط PDF مع ملف DWG المصدر",
+    "pickPdf": "اختر PDF",
+    "pickDwg": "اختر DWG/DXF",
+    "includeSheet": "تضمين في التحليل",
+    "pairingHint": "اختر PDF وDWG متطابقين قبل التحليل.",
+    "pairingReady": "مربوط: {pdf} ↔ {dwg}",
+    "unpairedWarning": "بدون ربط PDF↔DWG قبل التحليل — يُحسب DWG في الكميات؛ وPDF غير المربوط يُعامل PDF فقط (بدون عد مزدوج). بعد الرفع يمكن الربط من لوحة الصفحات.",
+    "dwgLayouts": "تخطيطات DWG للتحليل",
+    "dwgLayoutsPlaceholder": "مثال: legend, lighting",
+    "dwgLayoutsHint": "أسماء التخطيط مفصولة بفاصلة أو سطر. فارغ = كل التخطيطات. بعد الرفع يمكن التضمين/الاستبعاد من لوحة الصفحات."
+  },
+  "jobStage": {
+    "queued": "في الانتظار",
+    "downloading": "تنزيل الملفات",
+    "detect_type": "تحديد النوع",
+    "sheets": "قراءة الأوراق",
+    "legend": "قراءة المفتاح",
+    "extract": "استخراج الرموز",
+    "classify": "التصنيف",
+    "merge": "دمج PDF/DWG",
+    "render": "عرض المعاينة",
+    "upload": "رفع النتائج",
+    "done": "انتهى"
+  },
+  "ephemeral": {
+    "banner": "جلسة مؤقتة — ملفات المصدر لا تُحفظ طويلاً. نزّل التصديرات قبل الإنهاء.",
+    "purge": "إنهاء وحذف الملفات",
+    "purgeDone": "أُزيل التحليل والملفات المؤقتة."
+  },
+  "progress": {
+    "title": "تقدّم التحليل",
+    "percent": "‏{value}٪",
+    "failed": "فشل التحليل",
+    "failedTitle": "لم يكتمل التحليل",
+    "failedHint": "تعذّر تحميل النتائج. الملفات والتحليل محفوظان — يمكنك المحاولة مجدداً.",
+    "failedReason": "السبب: {reason}",
+    "cancelledTitle": "أُلغي التحليل",
+    "retry": "حاول مجدداً",
+    "close": "إغلاق",
+    "cancel": "إلغاء التحليل",
+    "stalledTitle": "يستغرق التحليل وقتاً أطول",
+    "stalledHint": "وصل التقدّم إلى 100% لكن النتائج غير جاهزة بعد. جدّد الحالة أو عُد بعد قليل.",
+    "refresh": "تحديث الحالة"
+  },
+  "viewer": {
+    "zoomIn": "تكبير",
+    "zoomOut": "تصغير",
+    "fit": "ملاءمة للعرض",
+    "aria": "عارض المخطط",
+    "noPreview": "لا معاينة متاحة"
+  },
+  "tools": {
+    "navigate": "تنقل",
+    "add": "إضافة رمز",
+    "area": "رسم منطقة"
+  },
+  "mobile": {
+    "plan": "المخطط",
+    "boq": "جدول الكميات"
+  },
+  "filter": {
+    "aria": "تصفية حسب نوع الرمز",
+    "all": "كل الأنواع",
+    "hideHint": "اضغط مطولاً على الوسم لإخفاء النوع"
+  },
+  "boq": {
+    "title": "جدول الكميات",
+    "summary": "{unclassified} غير مصنّف · {review} تحتاج مراجعة",
+    "empty": "لا توجد بنود بعد",
+    "verified": "كمية معتمدة",
+    "suggested": "اقتراح للاعتماد",
+    "countingSummary": "المحسوب: {counted} (PDF {pdf}، DWG {dwg}، دمج {merged}) · توائم {twins} · PDF فقط {pdfOnly} · المفتاح {legend} · صفحات مستثناة {sheetExcluded}"
+  },
+  "detection": {
+    "listTitle": "الرموز المكتشفة",
+    "rowAria": "رمز {id}، النوع {type}",
+    "title": "تفاصيل الرمز",
+    "confidence": "مستوى الثقة",
+    "source": "المصدر",
+    "tag": "نص الوسم",
+    "reasons": "أسباب المراجعة",
+    "pickType": "النوع",
+    "searchTypes": "بحث في الأنواع…",
+    "unclassified": "غير مصنّف",
+    "saveToLibrary": "حفظ في مكتبة رموز المخطط",
+    "applyType": "تطبيق التصنيف",
+    "delete": "حذف",
+    "restore": "استعادة",
+    "rawClass": "الصنف الأصلي",
+    "twin": "ربط PDF/DWG",
+    "twinState": {
+      "merged": "دمج PDF+DWG (توأم)",
+      "pdf_only": "PDF فقط",
+      "dwg_only": "DWG فقط"
+    },
+    "libraryRequiresLegend": "الحفظ في المكتبة يتطلب هوية من المفتاح أو البلوك (rawClass أو وسم).",
+    "libraryMaskHint": "يستخدم الحفظ قناع الرمز (maskB64) من الخادم عند توفره."
+  },
+  "confidence": {
+    "high": "عالٍ",
+    "medium": "متوسط",
+    "low": "منخفض",
+    "none": "بلا",
+    "suggestedApproval": "اقتراح للاعتماد"
+  },
+  "source": {
+    "pdf": "PDF",
+    "dwg": "DWG",
+    "merged": "دمج PDF+DWG",
+    "manual": "يدوي"
+  },
+  "review": {
+    "title": "قائمة المراجعة",
+    "empty": "لا عناصر للمراجعة",
+    "position": "عنصر {current} من {total}",
+    "confirm": "اعتماد",
+    "bulkTitle": "تصنيف جماعي",
+    "bulkAssign": "تعيين نوع لـ {count}",
+    "toggleSelect": "إضافة العنصر الحالي للاختيار"
+  },
+  "reviewReason": {
+    "low_confidence": "ثقة منخفضة",
+    "unclassified": "غير مصنّف",
+    "type_ambiguous": "نوع غامض",
+    "possible_duplicate": "تكرار محتمل",
+    "xref_missing": "xref مفقود",
+    "dynamic_block_unresolved": "بلوك ديناميكي غير محلول",
+    "scale_unverified": "مقياس غير متحقق",
+    "sheet_partial": "ورقة جزئية",
+    "tag_unread": "وسم غير مقروء",
+    "pdf_dwg_mismatch": "عدم تطابق PDF/DWG",
+    "legend_unmapped": "مفتاح غير مربوط",
+    "overlapping_symbols_peeled": "رموز متداخلة",
+    "possible_exploded_symbol": "رمز مفكك محتمل",
+    "pdf_only": "في PDF فقط (بلا توأم DWG)",
+    "dwg_only": "في DWG فقط (بلا توأم PDF)"
+  },
+  "workspace": {
+    "saved": "تم حفظ التغييرات",
+    "revisionConflict": "حُفظ تحديث متزامن — إعادة تحميل",
+    "saveNow": "حفظ الآن"
+  },
+  "approval": {
+    "approve": "اعتماد جدول الكميات",
+    "reopen": "إعادة فتح للتحرير",
+    "blocked": "الاعتماد محظور — أغلق بنود المراجعة",
+    "blockedHint": "لا يزال هناك بنود تحتاج مراجعة قبل الاعتماد",
+    "readyHint": "يمكن الاعتماد عند إغلاق كل بنود المراجعة"
+  },
+  "export": {
+    "excel": "تصدير Excel",
+    "disabledHint": "اعتمد التحليل للتصدير",
+    "boqPdf": "PDF جدول الكميات",
+    "annotatedPdf": "PDF موسوم",
+    "ready": "جاهز للتنزيل: {name}",
+    "pending": "جارٍ التحضير…",
+    "open": "فتح التنزيل",
+    "failed": "فشل التصدير"
+  },
+  "area": {
+    "defaultName": "منطقة",
+    "save": "حفظ المنطقة"
+  },
+  "limitations": {
+    "partialSheet": "ورقة جزئية: {sheet}",
+    "skippedSheet": "ورقة متخطاة: {sheet}",
+    "xrefMissing": "xref مفقود: {name}",
+    "scaleUnverified": "مقياس غير متحقق في {sheet}",
+    "countingComposition": "تركيب العد: {counted} (PDF {pdf}، DWG {dwg}، دمج {merged}) · توائم {twins} · مستثنى PDF فقط {pdfOnly} · المفتاح {legend} · صفحات مستثناة {sheetExcluded} — اضغط للتعديل",
+    "unclassified": "{count} رموز غير مصنّفة",
+    "aiOn": "مساعدة AI للمفتاح مفعّلة في هذا التحليل.",
+    "aiOff": "مساعدة AI للمفتاح معطّلة في هذا التحليل.",
+    "aiUnavailable": "مساعدة AI للمفتاح غير متاحة (ai_unavailable).",
+    "severityError": "خطأ",
+    "summaryOne": "ملاحظة واحدة حول التحليل",
+    "summaryMany": "{count} ملاحظات حول التحليل",
+    "attention": "{count} تتطلب الانتباه",
+    "attentionError": "{count} أخطاء أو عوائق",
+    "expand": "عرض التفاصيل",
+    "collapse": "إخفاء التفاصيل",
+    "workerWarning": {
+      "default": "تنبيه: {message}",
+      "sheet_partial": "ورقة جزئية: {sheet}",
+      "xref_missing": "مرجع xref مفقود: {message}",
+      "ai_unavailable": "قراءة المفتاح بالذكاء الاصطناعي غير متاحة.",
+      "ai_active": "استُخدمت قراءة المفتاح بالذكاء الاصطناعي.",
+      "legend_ai": "استُخدمت قراءة المفتاح بالذكاء الاصطناعي.",
+      "merge_failed": "فشل دمج PDF/DWG: {message}",
+      "classify_failed": "فشل التصنيف: {message}",
+      "extract_time_budget": "انتهى وقت الاستخراج: {message}",
+      "pdf_dwg_unpaired": "لم يُربط PDF وDWG قبل التحليل.",
+      "pdf_plan_too_heavy": "المخطط ثقيل جداً؛ خُفِّض نطاق التحليل.",
+      "pdf_candidates_capped": "حُدّ عدد مرشحي الرموز لسلامة الذاكرة.",
+      "legend_row_cap_exceeded": "حُدّت صفوف المفتاح المضمّنة.",
+      "pdf_text_truncated": "قُصّ نص الورقة أثناء المسح.",
+      "pdf_noise_pruned": "أُزيلت بقايا متجهات صغيرة من مخطط ثقيل.",
+      "dwg_hidden_layers": "رموز في طبقات مخفية/مجمدة لم تُحسب في DWG (ليس نقصاً في BoQ).",
+      "pdf_dwg_merge": "دمج PDF/DWG: {message}"
+    }
+  },
+  "errors": {
+    "loadFailed": "تعذّر تحميل التحليل"
+  },
+  "rules": {
+    "open": "قواعد القياس",
+    "title": "مجموعة قواعد القياس",
+    "hint": "افتراضياً: كل رمز يُحسب مرة واحدة.",
+    "name": "الاسم",
+    "save": "حفظ",
+    "addRule": "إضافة قاعدة",
+    "removeRule": "إزالة",
+    "newRuleLabel": "قاعدة جديدة",
+    "appliesTypes": "مفاتيح النوع (مفصولة بفاصلة)",
+    "proximityPx": "نصف قطر القرب (px)",
+    "mode": {
+      "count_each": "عدّ كل رمز",
+      "group_by_proximity": "تجميع بالقرب",
+      "exclude": "استبعاد من جدول الكميات"
+    }
+  },
+  "library": {
+    "open": "مكتبة الرموز",
+    "title": "مكتبة رموز المخطط",
+    "planner": "مخطط: {key}",
+    "empty": "لا رموز محفوظة",
+    "delete": "حذف"
+  },
+  "scale": {
+    "unverified": "غير متحقق"
+  },
+  "sheets": {
+    "title": "الصفحات والتخطيطات",
+    "hint": "اختر الصفحات الداخلة في جدول الكميات. الافتراضي: الكل ما عدا المفتاح.",
+    "search": "بحث في الصفحات…",
+    "selectAll": "تحديد الكل",
+    "selectNone": "إلغاء الكل",
+    "empty": "لا توجد صفحات مطابقة",
+    "includeToggle": "تضمين في جدول الكميات",
+    "stats": "{detections} رموز · محسوب {counted} · {analyzed} · {scale}",
+    "pairedTo": "مربوط بـ DWG: {target}",
+    "pairedFrom": "مربوط من PDF: {target}",
+    "unpairedPdf": "PDF بلا زوج DWG",
+    "pairSuggest": "ربط مع {name}",
+    "unpair": "فك الربط",
+    "pairDefer": "يُحفظ الربط كتعديل؛ إعادة الدمج في الخادم تتطلب تحليلاً جديداً (لاحقاً).",
+    "scaleVerified": "مقياس متحقق",
+    "scaleUnverified": "مقياس غير متحقق",
+    "filter": {
+      "all": "الكل",
+      "included": "مضمّن",
+      "excluded": "مستثنى",
+      "pdf": "PDF",
+      "dwg": "DWG",
+      "unpaired": "غير مربوط"
+    },
+    "kind": {
+      "pdf_page": "صفحة PDF",
+      "dwg_layout": "تخطيط DWG",
+      "dwg_model": "نموذج DWG"
+    },
+    "analyzed": {
+      "full": "محلّل بالكامل",
+      "partial": "جزئي",
+      "skipped": "متخطى"
+    }
+  },
+  "sheet": {
+    "floor": "الطابق / المستوى",
+    "floorPlaceholder": "مثال: الطابق 2",
+    "scaleRatio": "مقياس الرسم (1:N)",
+    "verifyScale": "اعتماد المقياس"
+  }
+}

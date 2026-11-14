@@ -130,6 +130,11 @@ export const PERMISSIONS = {
   BOQ_PROGRESS_APPROVE: 'boq.progress.approve',
   BOQ_BILLING_CREATE: 'boq.billing.create',
 
+  TAKEOFF_VIEW: 'takeoff.view',
+  TAKEOFF_MANAGE: 'takeoff.manage',
+  TAKEOFF_APPROVE: 'takeoff.approve',
+  TAKEOFF_LIBRARY_MANAGE: 'takeoff.library.manage',
+
   FORMS_READ: 'forms.read',
   FORMS_SUBMIT: 'forms.submit',
   FORMS_MANAGE: 'forms.manage',
@@ -411,6 +416,15 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
     key: PERMISSIONS.BOQ_BILLING_CREATE,
     category: 'billing',
     description: 'Create progress billing from approved BOQ progress',
+  },
+
+  { key: PERMISSIONS.TAKEOFF_VIEW, category: 'commercial', description: 'View electrical takeoff analyses and results' },
+  { key: PERMISSIONS.TAKEOFF_MANAGE, category: 'commercial', description: 'Run analyses and edit takeoff detections' },
+  { key: PERMISSIONS.TAKEOFF_APPROVE, category: 'commercial', description: 'Approve takeoff bill of quantities' },
+  {
+    key: PERMISSIONS.TAKEOFF_LIBRARY_MANAGE,
+    category: 'commercial',
+    description: 'Manage planner symbol library entries',
   },
 
   { key: PERMISSIONS.FORMS_READ, category: 'projects', description: 'View field forms and submissions' },

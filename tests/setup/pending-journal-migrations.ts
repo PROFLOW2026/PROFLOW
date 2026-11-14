@@ -80,3 +80,13 @@ export const GATE_A_FIN_INTEGRATION_PREPARED = [
   ...GATE_A_FIN_PREPARED_LEDGER_RLS,
   ...GATE_A_FIN_PREPARED_0189,
 ] as const;
+
+/** Electrical takeoff module (0205–0206). */
+export const ELECTRICAL_TAKEOFF_PREPARED = [
+  '0205_electrical_takeoff',
+  '0206_takeoff_sheets_unique_per_file',
+  '0207_takeoff_persistence_modes',
+] as const;
+
+/** PGlite journal snapshot includes 0205–0206; apply 0207 only in tests. */
+export const ELECTRICAL_TAKEOFF_PG_LITE_PENDING = ['0207_takeoff_persistence_modes'] as const;

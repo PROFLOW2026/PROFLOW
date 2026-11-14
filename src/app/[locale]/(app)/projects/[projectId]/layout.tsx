@@ -34,6 +34,7 @@ import { ProjectOperationalContextHeader } from '@/modules/project-workspace/ui/
 import { ProjectWorkManagementEntry } from '@/modules/project-workspace/ui/project-work-management-entry';
 import { ProjectWorkNav } from '@/modules/project-workspace/ui/project-work-nav';
 import { ProjectOwnerWorkspaceShell } from './project-owner-workspace-shell';
+import { ProjectTakeoffEntry } from '@/modules/electrical-takeoff/ui/project-takeoff-entry';
 import { ProjectReportActions } from '@/modules/reports/ui/project-report-actions';
 import {
   Project360Summary,
@@ -313,6 +314,10 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
       ) : null}
 
       {projectWorkEntryHref ? <ProjectWorkManagementEntry href={projectWorkEntryHref} /> : null}
+
+      {can(PERMISSIONS.TAKEOFF_VIEW) ? (
+        <ProjectTakeoffEntry projectId={projectId} />
+      ) : null}
 
       {connectedProject ? <ConnectedProjectBanner connected={connectedProject} /> : null}
 

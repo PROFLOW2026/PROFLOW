@@ -5,6 +5,7 @@ import {
   ProjectOwnerWorkspaceShell,
   resolveProjectOwnerWorkspaceMode,
 } from '@/app/[locale]/(app)/projects/[projectId]/project-owner-workspace-shell';
+import { isOwnerTakeoffWorkspacePath } from '@/app/[locale]/(app)/projects/[projectId]/owner-takeoff-workspace-path';
 import { EXECUTION_HUB_KEYS } from '@/modules/project-workspace/domain/execution-hubs';
 import { PROJECT_WORK_NAV_LINKS } from '@/modules/project-workspace/domain/project-work-nav-links';
 
@@ -32,12 +33,23 @@ vi.mock('@/app/[locale]/(app)/projects/[projectId]/tab-panel-skeleton', () => ({
 const projectId = 'proj-1';
 
 describe('resolveProjectOwnerWorkspaceMode', () => {
-  it('classifies commercial, work, and execution paths', () => {
+  it('classifies commercial, work, execution, and takeoff paths', () => {
     expect(resolveProjectOwnerWorkspaceMode('/he-IL/projects/proj-1', projectId)).toBe('commercial');
     expect(resolveProjectOwnerWorkspaceMode('/he-IL/projects/proj-1/tasks', projectId)).toBe('work');
     expect(resolveProjectOwnerWorkspaceMode('/he-IL/projects/proj-1/execution', projectId)).toBe(
       'execution',
     );
+    expect(resolveProjectOwnerWorkspaceMode('/he-IL/projects/proj-1/takeoff', projectId)).toBe('takeoff');
+    expect(resolveProjectOwnerWorkspaceMode('/he-IL/projects/proj-1/takeoff/an-1', projectId)).toBe('takeoff');
+  });
+});
+
+describe('isOwnerTakeoffWorkspacePath', () => {
+  it('matches list and nested analysis routes only', () => {
+    expect(isOwnerTakeoffWorkspacePath(`/projects/${projectId}/takeoff`, projectId)).toBe(true);
+    expect(isOwnerTakeoffWorkspacePath(`/he-IL/projects/${projectId}/takeoff/abc`, projectId)).toBe(true);
+    expect(isOwnerTakeoffWorkspacePath(`/projects/${projectId}/financials`, projectId)).toBe(false);
+    expect(isOwnerTakeoffWorkspacePath(`/projects/${projectId}/tasks`, projectId)).toBe(false);
   });
 });
 
@@ -90,6 +102,14 @@ describe('ProjectOwnerWorkspaceShell client navigation', () => {
     expect(screen.getByTestId('work-chrome')).toBeInTheDocument();
     expect(screen.queryByTestId('commercial-top')).not.toBeInTheDocument();
     expect(screen.queryByTestId('commercial-tabs')).not.toBeInTheDocument();
+  });
+
+  it('uses focused chrome on takeoff without commercial tabs', () => {
+    shell('/he-IL/projects/proj-1/takeoff');
+    expect(screen.getByTestId('page-body')).toBeInTheDocument();
+    expect(screen.queryByTestId('commercial-top')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('commercial-tabs')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('work-chrome')).not.toBeInTheDocument();
   });
 
   it('switches between work and execution chrome', () => {

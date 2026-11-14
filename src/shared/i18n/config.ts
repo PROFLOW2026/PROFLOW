@@ -91,6 +91,7 @@ export const MESSAGE_NAMESPACES = [
   'marketing',
   'budgets',
   'boq',
+  'takeoff',
   'approvals',
   'monthClose',
   'forms',
@@ -269,6 +270,7 @@ export const PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES = [
   'submittals',
   'handover',
   'awards',
+  'takeoff',
 ] as const satisfies readonly MessageNamespace[];
 
 export const CONTRACTOR_PORTAL_CLIENT_MESSAGE_NAMESPACES = [

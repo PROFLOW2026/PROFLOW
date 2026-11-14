@@ -12,12 +12,16 @@ export async function ProjectOperationalContextHeader({
   readonly projectName: string;
   readonly documentNumber: string;
   readonly backToProjectHref: string;
-  readonly workspaceKind: 'work' | 'execution';
+  readonly workspaceKind: 'work' | 'execution' | 'takeoff';
 }) {
   const tWork = await getTranslations('tasks');
-  const tExec = await getTranslations('projectWorkspace');
+  const tPw = await getTranslations('projectWorkspace');
   const subtitle =
-    workspaceKind === 'work' ? tWork('projectWork.identityTitle') : tExec('execution.identityTitle');
+    workspaceKind === 'work'
+      ? tWork('projectWork.identityTitle')
+      : workspaceKind === 'execution'
+        ? tPw('execution.identityTitle')
+        : tPw('takeoff.identityTitle');
 
   return (
     <header className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

@@ -1,0 +1,34 @@
+{
+  "contractVersion": 2,
+  "jobId": "job-sample-1",
+  "plannerKey": "gav-yam",
+  "files": [
+    {
+      "fileId": "file-pdf-1",
+      "name": "7155-A1-תאורה ג.pdf",
+      "kind": "pdf",
+      "sizeBytes": 1200000,
+      "downloadUrl": "https://example.invalid/plan.pdf",
+      "xrefs": []
+    },
+    {
+      "fileId": "file-dwg-1",
+      "name": "7155-A1.dwg",
+      "kind": "dwg",
+      "sizeBytes": 6400000,
+      "downloadUrl": "https://example.invalid/plan.dwg",
+      "xrefs": []
+    }
+  ],
+  "pairing": [{ "pdfFileId": "file-pdf-1", "dwgFileId": "file-dwg-1" }],
+  "sheetSelection": [],
+  "options": { "previewMaxEdgePx": 6000, "renderPreview": true, "useAi": false, "legendRegionHints": [] },
+  "catalog": [],
+  "symbolLibrary": [],
+  "callback": {
+    "progressUrl": "https://example.invalid/progress",
+    "resultUrl": "https://example.invalid/result",
+    "artifactUrl": "https://example.invalid/artifact",
+    "token": "test-token"
+  }
+}

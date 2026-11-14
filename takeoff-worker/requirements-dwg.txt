@@ -1,0 +1,6 @@
+# DWG engine runtime (Agent 2). Agent 5 merges into worker requirements.
+ezdxf>=1.3.0,<2
+numpy>=1.26,<3
+matplotlib>=3.8,<4
+Pillow>=10.0,<12
+pytest>=8.0,<9

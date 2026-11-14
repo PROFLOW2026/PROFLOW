@@ -30,7 +30,8 @@ export type ProjectWorkspaceLinkKey =
   | 'workforce'
   | 'vendors'
   | 'assets'
-  | 'compliance';
+  | 'compliance'
+  | 'takeoff';
 
 export interface ProjectWorkspaceLink {
   readonly key: ProjectWorkspaceLinkKey;
@@ -116,6 +117,14 @@ export function selectProjectWorkspaceLinks(input: WorkspaceLinkInput): ProjectW
 
   if (can(input.permissions, PERMISSIONS.DOCUMENTS_READ)) {
     links.push({ key: 'documents', href: tab('documents'), inProject: true });
+  }
+
+  if (can(input.permissions, PERMISSIONS.TAKEOFF_VIEW)) {
+    links.push({
+      key: 'takeoff',
+      href: `/projects/${projectId}/takeoff`,
+      inProject: false,
+    });
   }
 
   if (input.showWorkPackages) {

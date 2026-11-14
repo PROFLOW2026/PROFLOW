@@ -35,6 +35,7 @@ function iconForHref(href: string): LucideIcon {
   if (href.includes('/meetings')) return ClipboardList;
   if (href.includes('/financials')) return Wallet;
   if (href.includes('/infrastructure')) return Camera;
+  if (href.includes('/takeoff')) return FileStack;
   if (href.includes('/rfi')) return ClipboardList;
   if (href.includes('/inspections')) return ClipboardList;
   if (href.includes('/defects')) return ClipboardList;
@@ -55,6 +56,7 @@ export async function buildEmployeeProjectHubLinks(input: {
   canProjectTeam?: boolean;
   /** project.view — same capability as main goals list (BUG-015). */
   canGoals?: boolean;
+  canTakeoff?: boolean;
   operationalToolLinks?: readonly ProjectOperationalToolLink[];
 }): Promise<EmployeeProjectHubLink[]> {
   const t = await getTranslations('employeeApp.projects');
@@ -69,6 +71,7 @@ export async function buildEmployeeProjectHubLinks(input: {
     canFinancials,
     canProjectTeam,
     canGoals,
+    canTakeoff,
   } = input;
 
   const operationalCards: EmployeeProjectHubLink[] = (input.operationalToolLinks ?? []).map((link) => ({
@@ -119,6 +122,11 @@ export async function buildEmployeeProjectHubLinks(input: {
       href: `/employee/projects/${projectId}/infrastructure`,
       label: t('hub.infra'),
       visible: true,
+    },
+    {
+      href: `/employee/projects/${projectId}/takeoff`,
+      label: t('hub.takeoff'),
+      visible: Boolean(canTakeoff),
     },
     {
       href: `/employee/projects/${projectId}/goals`,

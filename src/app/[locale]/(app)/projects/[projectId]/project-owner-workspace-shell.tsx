@@ -3,18 +3,20 @@
 import { Suspense, type ReactNode } from 'react';
 import { isOwnerExecutionWorkspacePath } from '@/modules/project-workspace/domain/execution-workspace-path';
 import { isOwnerProjectWorkWorkspacePath } from '@/modules/project-workspace/domain/project-work-workspace-path';
+import { isOwnerTakeoffWorkspacePath } from './owner-takeoff-workspace-path';
 import { usePathname } from '@/shared/i18n/navigation';
 import { ProjectCommercialTabFrame } from './project-commercial-tab-frame';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { type ProjectHubKey } from './project-hub-order';
 
-export type ProjectOwnerWorkspaceMode = 'commercial' | 'work' | 'execution';
+export type ProjectOwnerWorkspaceMode = 'commercial' | 'work' | 'execution' | 'takeoff';
 
 export function resolveProjectOwnerWorkspaceMode(
   pathname: string,
   projectId: string,
 ): ProjectOwnerWorkspaceMode {
   if (isOwnerProjectWorkWorkspacePath(pathname, projectId)) return 'work';
+  if (isOwnerTakeoffWorkspacePath(pathname, projectId)) return 'takeoff';
   if (isOwnerExecutionWorkspacePath(pathname, projectId)) return 'execution';
   return 'commercial';
 }
@@ -70,6 +72,14 @@ export function ProjectOwnerWorkspaceShell({
     return (
       <div className="flex flex-col gap-3">
         {executionChrome}
+        <Suspense fallback={panelFallback}>{children}</Suspense>
+      </div>
+    );
+  }
+
+  if (mode === 'takeoff') {
+    return (
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <Suspense fallback={panelFallback}>{children}</Suspense>
       </div>
     );

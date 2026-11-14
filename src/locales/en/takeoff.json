@@ -1,0 +1,316 @@
+{
+  "nav": {
+    "title": "Smart electrical BOQ"
+  },
+  "common": {
+    "loading": "Loading…",
+    "cancel": "Cancel",
+    "close": "Close"
+  },
+  "list": {
+    "title": "Smart electrical BOQ",
+    "subtitle": "Upload plans, review detections, and approve quantities.",
+    "newAnalysis": "New analysis",
+    "empty": "No analyses yet. Start with a new analysis.",
+    "defaultName": "New electrical analysis"
+  },
+  "status": {
+    "draft": "Draft",
+    "processing": "Processing",
+    "in_review": "In review",
+    "approved": "Approved"
+  },
+  "upload": {
+    "title": "Upload plans",
+    "dropHint": "Drag files here or tap to choose",
+    "typesHint": "PDF, DWG, or DXF — multiple files allowed",
+    "analyze": "Analyze plan",
+    "pickFromProject": "Pick from project / cloud",
+    "pickFromProjectHint": "Choose an existing PDF or DWG in connected storage — no duplicate upload.",
+    "ephemeralHint": "No org storage connected: files are kept only for this session. Purge the analysis when done.",
+    "errors": {
+      "cloudLinkFailed": "Could not link the cloud file. Check permissions or upload from your device.",
+      "unsupportedType": "Unsupported file type. Use PDF, DWG, or DXF.",
+      "tooLarge": "File is too large.",
+      "empty": "File is empty.",
+      "noFiles": "Add at least one file.",
+      "failed": "Upload failed. Try again."
+    },
+    "plannerKey": "Planner key",
+    "plannerPlaceholder": "e.g. planner-7155",
+    "ruleSet": "Measurement rule set",
+    "aiOff": "AI legend reading is off unless configured by the organization.",
+    "aiToggle": "Request legend AI assist (when supported)",
+    "pairing": "Pair PDF with source DWG",
+    "pickPdf": "Choose PDF",
+    "pickDwg": "Choose DWG/DXF",
+    "includeSheet": "Include in analysis",
+    "pairingHint": "Choose matching PDF and DWG before analysis.",
+    "pairingReady": "Paired: {pdf} ↔ {dwg}",
+    "unpairedWarning": "Without PDF↔DWG pairing before analysis, only DWG drives quantities; unpaired PDF is counted as PDF-only (no double count). After ingest, pair sheets in the Sheets panel.",
+    "dwgLayouts": "DWG layouts to analyze",
+    "dwgLayoutsPlaceholder": "e.g. legend, lighting floor C",
+    "dwgLayoutsHint": "Comma- or line-separated DWG layout names. Empty = all layouts in the DWG. After ingest, include/exclude sheets in the Sheets panel."
+  },
+  "jobStage": {
+    "queued": "Queued",
+    "downloading": "Downloading files",
+    "detect_type": "Detecting format",
+    "sheets": "Reading sheets",
+    "legend": "Reading legend",
+    "extract": "Extracting symbols",
+    "classify": "Classifying",
+    "merge": "Merging PDF/DWG",
+    "render": "Rendering preview",
+    "upload": "Uploading results",
+    "done": "Done"
+  },
+  "ephemeral": {
+    "banner": "Temporary session — source files are not kept long-term. Download exports before finishing.",
+    "purge": "Finish and delete files",
+    "purgeDone": "Analysis and temporary files were removed."
+  },
+  "progress": {
+    "title": "Analysis progress",
+    "percent": "{value}%",
+    "failed": "Analysis failed",
+    "failedTitle": "Analysis did not complete",
+    "failedHint": "Results could not be loaded. Your files and analysis were kept — you can try again.",
+    "failedReason": "Reason: {reason}",
+    "cancelledTitle": "Analysis cancelled",
+    "retry": "Try again",
+    "close": "Close",
+    "cancel": "Cancel analysis",
+    "stalledTitle": "This is taking longer than expected",
+    "stalledHint": "Progress reached 100% but results are not ready yet. Refresh status or check again shortly.",
+    "refresh": "Refresh status"
+  },
+  "viewer": {
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "fit": "Fit to view",
+    "aria": "Plan viewer",
+    "noPreview": "No preview available"
+  },
+  "tools": {
+    "navigate": "Navigate",
+    "add": "Add component",
+    "area": "Draw area"
+  },
+  "mobile": {
+    "plan": "Plan",
+    "boq": "BOQ"
+  },
+  "filter": {
+    "aria": "Component type filters",
+    "all": "All types",
+    "hideHint": "Long-press a chip to hide a type"
+  },
+  "boq": {
+    "title": "Bill of quantities",
+    "summary": "{unclassified} unclassified · {review} need review",
+    "empty": "No lines yet",
+    "verified": "Verified quantity",
+    "suggested": "Suggested for approval",
+    "countingSummary": "Counted {counted} (PDF {pdf}, DWG {dwg}, merged {merged}) · twins {twins} · PDF-only {pdfOnly} · legend {legend} · sheets excluded {sheetExcluded}"
+  },
+  "detection": {
+    "listTitle": "Detections",
+    "rowAria": "Detection {id}, type {type}",
+    "title": "Detection details",
+    "confidence": "Confidence",
+    "source": "Source",
+    "tag": "Tag text",
+    "reasons": "Review reasons",
+    "pickType": "Type",
+    "searchTypes": "Search types…",
+    "unclassified": "Unclassified",
+    "saveToLibrary": "Save to planner symbol library",
+    "applyType": "Apply classification",
+    "delete": "Delete",
+    "restore": "Restore",
+    "rawClass": "Raw class",
+    "twin": "PDF/DWG pairing",
+    "twinState": {
+      "merged": "PDF+DWG merged (twin)",
+      "pdf_only": "PDF only",
+      "dwg_only": "DWG only"
+    },
+    "libraryRequiresLegend": "Saving to the library requires engine legend/block identity (rawClass or tag).",
+    "libraryMaskHint": "Save uses the detection symbol mask (maskB64) on the server when available."
+  },
+  "confidence": {
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "none": "None",
+    "suggestedApproval": "Suggested for approval"
+  },
+  "source": {
+    "pdf": "PDF",
+    "dwg": "DWG",
+    "merged": "PDF + DWG merged",
+    "manual": "Manual"
+  },
+  "review": {
+    "title": "Review queue",
+    "empty": "Nothing needs review",
+    "position": "Item {current} of {total}",
+    "confirm": "Confirm",
+    "bulkTitle": "Bulk classify selection",
+    "bulkAssign": "Assign type to {count}",
+    "toggleSelect": "Add current item to selection"
+  },
+  "reviewReason": {
+    "low_confidence": "Low confidence",
+    "unclassified": "Unclassified",
+    "type_ambiguous": "Ambiguous type",
+    "possible_duplicate": "Possible duplicate",
+    "xref_missing": "Missing xref",
+    "dynamic_block_unresolved": "Dynamic block unresolved",
+    "scale_unverified": "Scale not verified",
+    "sheet_partial": "Partial sheet",
+    "tag_unread": "Tag unread",
+    "pdf_dwg_mismatch": "PDF/DWG mismatch",
+    "legend_unmapped": "Legend not mapped",
+    "overlapping_symbols_peeled": "Overlapping symbols",
+    "possible_exploded_symbol": "Possible exploded symbol",
+    "pdf_only": "PDF only (no DWG twin)",
+    "dwg_only": "DWG only (no PDF twin)"
+  },
+  "workspace": {
+    "saved": "Changes saved",
+    "revisionConflict": "Someone else saved changes — reloaded latest version",
+    "saveNow": "Save now"
+  },
+  "approval": {
+    "approve": "Approve BOQ",
+    "reopen": "Reopen for editing",
+    "blocked": "Approval blocked — resolve review items first",
+    "blockedHint": "Items still need review before approval",
+    "readyHint": "You can approve when all review items are resolved"
+  },
+  "export": {
+    "excel": "Export Excel",
+    "disabledHint": "Approve the analysis to export",
+    "boqPdf": "BOQ PDF",
+    "annotatedPdf": "Annotated PDF",
+    "ready": "Download ready: {name}",
+    "pending": "Preparing export…",
+    "open": "Open download",
+    "failed": "Export failed"
+  },
+  "area": {
+    "defaultName": "Area",
+    "save": "Save area"
+  },
+  "limitations": {
+    "partialSheet": "Partial sheet: {sheet}",
+    "skippedSheet": "Skipped sheet: {sheet}",
+    "xrefMissing": "Missing xref: {name}",
+    "scaleUnverified": "Scale not verified on {sheet}",
+    "countingComposition": "Counting: {counted} (PDF {pdf}, DWG {dwg}, merged {merged}) · twins collapsed {twins} · PDF-only excluded {pdfOnly} · legend zone {legend} · sheets excluded {sheetExcluded} — tap to edit",
+    "unclassified": "{count} unclassified detections",
+    "aiOn": "Legend AI assist is active for this analysis.",
+    "aiOff": "Legend AI assist is off for this analysis.",
+    "aiUnavailable": "Legend AI assist is unavailable (ai_unavailable).",
+    "severityError": "Error",
+    "summaryOne": "1 note about the analysis",
+    "summaryMany": "{count} notes about the analysis",
+    "attention": "{count} need attention",
+    "attentionError": "{count} errors or blockers",
+    "expand": "Show details",
+    "collapse": "Hide details",
+    "workerWarning": {
+      "default": "{message}",
+      "sheet_partial": "Partial sheet: {sheet}",
+      "xref_missing": "Missing xref: {message}",
+      "ai_unavailable": "Legend AI is not available.",
+      "ai_active": "Legend AI was used in this analysis.",
+      "legend_ai": "Legend AI was used in this analysis.",
+      "merge_failed": "PDF/DWG merge failed: {message}",
+      "classify_failed": "Classification failed: {message}",
+      "extract_time_budget": "Extraction hit time budget: {message}",
+      "pdf_dwg_unpaired": "PDF and DWG were not paired before analysis.",
+      "pdf_plan_too_heavy": "This plan has too many vector objects; analysis was reduced.",
+      "pdf_candidates_capped": "Symbol candidate count was capped for memory safety.",
+      "legend_row_cap_exceeded": "Embedded legend rows were capped; not all rows were extracted.",
+      "pdf_text_truncated": "Text on this sheet was truncated during scan.",
+      "pdf_noise_pruned": "Sub-symbol vector crumbs were pruned from a heavy plan.",
+      "dwg_hidden_layers": "Symbols on frozen/hidden layers were not counted in the DWG (not a BOQ miss).",
+      "pdf_dwg_merge": "PDF/DWG merge: {message}"
+    }
+  },
+  "errors": {
+    "loadFailed": "Could not load analysis"
+  },
+  "rules": {
+    "open": "Measurement rules",
+    "title": "Measurement rule set",
+    "hint": "Default mode: count each detection once.",
+    "name": "Name",
+    "save": "Save",
+    "addRule": "Add rule",
+    "removeRule": "Remove",
+    "newRuleLabel": "New rule",
+    "appliesTypes": "Type keys (comma-separated)",
+    "proximityPx": "Proximity radius (px)",
+    "mode": {
+      "count_each": "Count each",
+      "group_by_proximity": "Group by proximity",
+      "exclude": "Exclude from BOQ"
+    }
+  },
+  "library": {
+    "open": "Symbol library",
+    "title": "Planner symbol library",
+    "planner": "Planner: {key}",
+    "empty": "No saved symbols yet",
+    "delete": "Delete"
+  },
+  "scale": {
+    "unverified": "Not verified"
+  },
+  "sheets": {
+    "title": "Sheets & layouts",
+    "hint": "Choose which sheets feed the BOQ. Default: all except legend sheets.",
+    "search": "Search sheets…",
+    "selectAll": "Select all",
+    "selectNone": "Select none",
+    "empty": "No sheets match the filter",
+    "includeToggle": "Include in BOQ",
+    "stats": "{detections} detections · counted {counted} · {analyzed} · {scale}",
+    "pairedTo": "Paired to DWG: {target}",
+    "pairedFrom": "Paired from PDF: {target}",
+    "unpairedPdf": "PDF without DWG pair",
+    "pairSuggest": "Pair with {name}",
+    "unpair": "Unpair",
+    "pairDefer": "Sheet pairing is saved as an edit; worker re-merge requires re-analysis (deferred this wave).",
+    "scaleVerified": "Scale verified",
+    "scaleUnverified": "Scale unverified",
+    "filter": {
+      "all": "All",
+      "included": "Included",
+      "excluded": "Excluded",
+      "pdf": "PDF",
+      "dwg": "DWG",
+      "unpaired": "Unpaired"
+    },
+    "kind": {
+      "pdf_page": "PDF page",
+      "dwg_layout": "DWG layout",
+      "dwg_model": "DWG model"
+    },
+    "analyzed": {
+      "full": "Fully analyzed",
+      "partial": "Partial",
+      "skipped": "Skipped"
+    }
+  },
+  "sheet": {
+    "floor": "Floor / level",
+    "floorPlaceholder": "e.g. Level 2",
+    "scaleRatio": "Scale denominator (1:N)",
+    "verifyScale": "Confirm scale"
+  }
+}

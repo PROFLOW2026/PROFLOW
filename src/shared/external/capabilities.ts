@@ -26,6 +26,10 @@ export const EXTERNAL_CAPABILITIES = {
   DOCUMENT_UPLOAD: 'ext.document.upload',
   PLAN_VIEW: 'ext.plan.view',
   PLAN_ACKNOWLEDGE: 'ext.plan.acknowledge',
+  TAKEOFF_VIEW: 'ext.takeoff.view',
+  TAKEOFF_MANAGE: 'ext.takeoff.manage',
+  TAKEOFF_APPROVE: 'ext.takeoff.approve',
+  TAKEOFF_LIBRARY_MANAGE: 'ext.takeoff.library.manage',
   // Per project semantic folder (1:1). Stored in existing scopes jsonb — no schema change.
   // Not included in operational templates; managers grant each folder explicitly (custom).
   FOLDER_QUOTES: 'ext.folder.quotes',

@@ -1,0 +1,62 @@
+{
+  "contractVersion": 2,
+  "jobId": "job-sample-1",
+  "status": "succeeded",
+  "startedAtIso": "2026-11-14T10:00:00+00:00",
+  "finishedAtIso": "2026-11-14T10:01:30+00:00",
+  "engineVersions": { "pdf": "0.0.0-fake" },
+  "sheets": [
+    {
+      "sheetKey": "p1",
+      "fileId": "file-pdf-1",
+      "name": "קומה 1",
+      "kind": "pdf_page",
+      "index": 0,
+      "widthPx": 2000,
+      "heightPx": 1500,
+      "previewArtifact": "preview-p1.png",
+      "scale": { "ratio": 100, "metersPerPreviewPx": 0.008, "verified": true, "source": "title_text" },
+      "analyzed": "full",
+      "xrefsMissing": [],
+      "hiddenByLayers": 0
+    }
+  ],
+  "detections": [
+    {
+      "id": "p1#1",
+      "sheetKey": "p1",
+      "fileId": "file-pdf-1",
+      "source": "pdf",
+      "x": 320.5,
+      "y": 410.2,
+      "w": 12,
+      "h": 12,
+      "signature": "shape:deadbeef",
+      "signatureKind": "pdf-shape",
+      "rawClass": "L3",
+      "legendKey": "L3",
+      "typeKey": "power.socket.single",
+      "classifiedBy": "legend_text",
+      "confidence": "medium",
+      "reasons": []
+    }
+  ],
+  "legend": [
+    {
+      "key": "L3",
+      "fileId": "file-pdf-1",
+      "sheetKey": "p1",
+      "rawText": "שקע יחיד תה\"ט",
+      "decodedText": "שקע יחיד תה\"ט",
+      "decodedBy": "pdf_text",
+      "signature": "legend:abc",
+      "signatureKind": "legend-key",
+      "typeKey": "power.socket.single",
+      "confidence": "medium"
+    }
+  ],
+  "linear": [],
+  "warnings": [],
+  "errors": [],
+  "stats": { "detection_count": 1 }
+}

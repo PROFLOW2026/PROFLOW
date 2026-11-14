@@ -1,0 +1,316 @@
+{
+  "nav": {
+    "title": "Умная электрическая ведомость объёмов"
+  },
+  "common": {
+    "loading": "Загрузка…",
+    "cancel": "Отмена",
+    "close": "Закрыть"
+  },
+  "list": {
+    "title": "Умная электрическая ведомость объёмов",
+    "subtitle": "Загрузите чертежи, проверьте обозначения и утвердите количества.",
+    "newAnalysis": "Новый анализ",
+    "empty": "Анализов пока нет. Начните с нового анализа.",
+    "defaultName": "Новый электрический анализ"
+  },
+  "status": {
+    "draft": "Черновик",
+    "processing": "Обработка",
+    "in_review": "На проверке",
+    "approved": "Утверждён"
+  },
+  "upload": {
+    "title": "Загрузка чертежей",
+    "dropHint": "Перетащите файлы сюда или нажмите для выбора",
+    "typesHint": "PDF, DWG или DXF — можно выбрать несколько файлов",
+    "analyze": "Анализировать чертёж",
+    "pickFromProject": "Выбрать из проекта / облака",
+    "pickFromProjectHint": "Выберите существующий PDF или DWG в подключённом хранилище — без повторной загрузки.",
+    "ephemeralHint": "Нет облака организации: файлы хранятся только для этой сессии. По окончании удалите анализ.",
+    "errors": {
+      "cloudLinkFailed": "Не удалось привязать облачный файл. Проверьте права или загрузите с устройства.",
+      "unsupportedType": "Неподдерживаемый тип файла. Используйте PDF, DWG или DXF.",
+      "tooLarge": "Файл слишком большой.",
+      "empty": "Файл пустой.",
+      "noFiles": "Добавьте хотя бы один файл.",
+      "failed": "Ошибка загрузки. Попробуйте снова."
+    },
+    "plannerKey": "Ключ плана",
+    "plannerPlaceholder": "например, planner-7155",
+    "ruleSet": "Набор правил подсчёта",
+    "aiOff": "Чтение ключа ИИ отключено, пока организация его не включит.",
+    "aiToggle": "Запросить помощь ИИ для чтения ключа (если доступно)",
+    "pairing": "Связка PDF с исходным DWG",
+    "pickPdf": "Выбрать PDF",
+    "pickDwg": "Выбрать DWG/DXF",
+    "includeSheet": "Включить в анализ",
+    "pairingHint": "Выберите пару PDF и DWG перед анализом.",
+    "pairingReady": "Связано: {pdf} ↔ {dwg}",
+    "unpairedWarning": "Без связки PDF↔DWG до анализа в количества входит DWG; несвязанный PDF — только PDF (без двойного счёта). После загрузки свяжите листы в панели листов.",
+    "dwgLayouts": "Layout-листы DWG для анализа",
+    "dwgLayoutsPlaceholder": "напр. legend, lighting",
+    "dwgLayoutsHint": "Имена layout через запятую или с новой строки. Пусто — все layout в DWG. После загрузки — включение/исключение в панели листов."
+  },
+  "jobStage": {
+    "queued": "В очереди",
+    "downloading": "Загрузка файлов",
+    "detect_type": "Определение типа",
+    "sheets": "Чтение листов",
+    "legend": "Чтение ключа",
+    "extract": "Извлечение обозначений",
+    "classify": "Классификация",
+    "merge": "Слияние PDF/DWG",
+    "render": "Превью",
+    "upload": "Выгрузка результатов",
+    "done": "Готово"
+  },
+  "ephemeral": {
+    "banner": "Временная сессия — исходники не хранятся долго. Скачайте экспорт до завершения.",
+    "purge": "Завершить и удалить файлы",
+    "purgeDone": "Анализ и временные файлы удалены."
+  },
+  "progress": {
+    "title": "Ход анализа",
+    "percent": "Выполнено: {value} %",
+    "failed": "Анализ не выполнен",
+    "failedTitle": "Анализ не завершён",
+    "failedHint": "Не удалось загрузить результаты. Файлы и анализ сохранены — можно повторить.",
+    "failedReason": "Причина: {reason}",
+    "cancelledTitle": "Анализ отменён",
+    "retry": "Повторить",
+    "close": "Закрыть",
+    "cancel": "Отменить анализ",
+    "stalledTitle": "Анализ занимает больше времени",
+    "stalledHint": "Прогресс 100%, но результаты ещё не готовы. Обновите статус или зайдите позже.",
+    "refresh": "Обновить статус"
+  },
+  "viewer": {
+    "zoomIn": "Увеличить",
+    "zoomOut": "Уменьшить",
+    "fit": "Вписать",
+    "aria": "Просмотр чертежа",
+    "noPreview": "Превью недоступно"
+  },
+  "tools": {
+    "navigate": "Навигация",
+    "add": "Добавить обозначение",
+    "area": "Нарисовать область"
+  },
+  "mobile": {
+    "plan": "Чертёж",
+    "boq": "Ведомость"
+  },
+  "filter": {
+    "aria": "Фильтр по типу обозначения",
+    "all": "Все типы",
+    "hideHint": "Долгое нажатие на метку, чтобы скрыть тип"
+  },
+  "boq": {
+    "title": "Ведомость объёмов",
+    "summary": "{unclassified} без класса · {review} на проверке",
+    "empty": "Позиций пока нет",
+    "verified": "Утверждённое количество",
+    "suggested": "Предложение к утверждению",
+    "countingSummary": "Подсчитано: {counted} (PDF {pdf}, DWG {dwg}, слияние {merged}) · пары {twins} · только PDF {pdfOnly} · ключ {legend} · листы искл. {sheetExcluded}"
+  },
+  "detection": {
+    "listTitle": "Найденные обозначения",
+    "rowAria": "Обозначение {id}, тип {type}",
+    "title": "Сведения об обозначении",
+    "confidence": "Достоверность",
+    "source": "Источник",
+    "tag": "Текст метки",
+    "reasons": "Причины проверки",
+    "pickType": "Тип",
+    "searchTypes": "Поиск типов…",
+    "unclassified": "Без класса",
+    "saveToLibrary": "Сохранить в библиотеку обозначений",
+    "applyType": "Применить класс",
+    "delete": "Удалить",
+    "restore": "Восстановить",
+    "rawClass": "Исходный класс",
+    "twin": "Связка PDF/DWG",
+    "twinState": {
+      "merged": "Слияние PDF+DWG (пара)",
+      "pdf_only": "Только PDF",
+      "dwg_only": "Только DWG"
+    },
+    "libraryRequiresLegend": "Для библиотеки нужна идентификация из ключа или блока (rawClass или метка).",
+    "libraryMaskHint": "При сохранении используется маска символа (maskB64) с сервера, если доступна."
+  },
+  "confidence": {
+    "high": "Высокая",
+    "medium": "Средняя",
+    "low": "Низкая",
+    "none": "Нет",
+    "suggestedApproval": "Предложение к утверждению"
+  },
+  "source": {
+    "pdf": "PDF",
+    "dwg": "DWG",
+    "merged": "Слияние PDF+DWG",
+    "manual": "Вручную"
+  },
+  "review": {
+    "title": "Очередь проверки",
+    "empty": "Нет элементов для проверки",
+    "position": "Элемент {current} из {total}",
+    "confirm": "Утвердить",
+    "bulkTitle": "Массовая классификация",
+    "bulkAssign": "Назначить тип для {count}",
+    "toggleSelect": "Добавить текущий элемент в выбор"
+  },
+  "reviewReason": {
+    "low_confidence": "Низкая достоверность",
+    "unclassified": "Без класса",
+    "type_ambiguous": "Неоднозначный тип",
+    "possible_duplicate": "Возможный дубликат",
+    "xref_missing": "Отсутствует xref",
+    "dynamic_block_unresolved": "Динамический блок не разрешён",
+    "scale_unverified": "Масштаб не проверен",
+    "sheet_partial": "Частичный лист",
+    "tag_unread": "Метка не прочитана",
+    "pdf_dwg_mismatch": "Расхождение PDF/DWG",
+    "legend_unmapped": "Ключ не сопоставлен",
+    "overlapping_symbols_peeled": "Перекрывающиеся обозначения",
+    "possible_exploded_symbol": "Возможный разнесённый символ",
+    "pdf_only": "Только в PDF (без пары DWG)",
+    "dwg_only": "Только в DWG (без пары PDF)"
+  },
+  "workspace": {
+    "saved": "Изменения сохранены",
+    "revisionConflict": "Сохранена параллельная правка — обновите данные",
+    "saveNow": "Сохранить"
+  },
+  "approval": {
+    "approve": "Утвердить ведомость",
+    "reopen": "Открыть для правки",
+    "blocked": "Утверждение заблокировано — закройте позиции проверки",
+    "blockedHint": "Есть позиции на проверке — сначала закройте их",
+    "readyHint": "Утверждение доступно, когда все позиции проверки закрыты"
+  },
+  "export": {
+    "excel": "Экспорт Excel",
+    "disabledHint": "Утвердите анализ для экспорта",
+    "boqPdf": "PDF ведомости",
+    "annotatedPdf": "Размеченный PDF",
+    "ready": "Готово к скачиванию: {name}",
+    "pending": "Подготовка…",
+    "open": "Открыть загрузку",
+    "failed": "Ошибка экспорта"
+  },
+  "area": {
+    "defaultName": "Область",
+    "save": "Сохранить область"
+  },
+  "limitations": {
+    "partialSheet": "Частичный лист: {sheet}",
+    "skippedSheet": "Пропущенный лист: {sheet}",
+    "xrefMissing": "Отсутствует xref: {name}",
+    "scaleUnverified": "Масштаб не проверен на {sheet}",
+    "countingComposition": "Состав подсчёта: {counted} (PDF {pdf}, DWG {dwg}, слияние {merged}) · пары {twins} · искл. только PDF {pdfOnly} · ключ {legend} · листы искл. {sheetExcluded} — нажмите для правки",
+    "unclassified": "{count} обозначений без класса",
+    "aiOn": "Помощь ИИ для ключа включена в этом анализе.",
+    "aiOff": "Помощь ИИ для ключа отключена в этом анализе.",
+    "aiUnavailable": "Помощь ИИ для ключа недоступна (ai_unavailable).",
+    "severityError": "Ошибка",
+    "summaryOne": "1 замечание к анализу",
+    "summaryMany": "Замечаний к анализу: {count}",
+    "attention": "Требуют внимания: {count}",
+    "attentionError": "Ошибок или блокировок: {count}",
+    "expand": "Показать подробности",
+    "collapse": "Скрыть подробности",
+    "workerWarning": {
+      "default": "Предупреждение: {message}",
+      "sheet_partial": "Частичный лист: {sheet}",
+      "xref_missing": "Отсутствует ссылка xref: {message}",
+      "ai_unavailable": "Чтение ключа ИИ недоступно.",
+      "ai_active": "Использовалось чтение ключа ИИ.",
+      "legend_ai": "Использовалось чтение ключа ИИ.",
+      "merge_failed": "Ошибка слияния PDF/DWG: {message}",
+      "classify_failed": "Ошибка классификации: {message}",
+      "extract_time_budget": "Истекло время извлечения: {message}",
+      "pdf_dwg_unpaired": "PDF и DWG не были связаны до анализа.",
+      "pdf_plan_too_heavy": "План слишком тяжёлый; область анализа сужена.",
+      "pdf_candidates_capped": "Число кандидатов символов ограничено для памяти.",
+      "legend_row_cap_exceeded": "Встроенные строки ключа урезаны.",
+      "pdf_text_truncated": "Текст листа обрезан при сканировании.",
+      "pdf_noise_pruned": "Мелкий мусор векторов убран на тяжёлом плане.",
+      "dwg_hidden_layers": "Символы на скрытых/замороженных слоях DWG не считались (не недосчёт BoQ).",
+      "pdf_dwg_merge": "Слияние PDF/DWG: {message}"
+    }
+  },
+  "errors": {
+    "loadFailed": "Не удалось загрузить анализ"
+  },
+  "rules": {
+    "open": "Правила подсчёта",
+    "title": "Набор правил подсчёта",
+    "hint": "По умолчанию: каждое обозначение считается один раз.",
+    "name": "Название",
+    "save": "Сохранить",
+    "addRule": "Добавить правило",
+    "removeRule": "Удалить",
+    "newRuleLabel": "Новое правило",
+    "appliesTypes": "Ключи типа (через запятую)",
+    "proximityPx": "Радиус близости (px)",
+    "mode": {
+      "count_each": "Считать каждое",
+      "group_by_proximity": "Группировать по близости",
+      "exclude": "Исключить из ведомости"
+    }
+  },
+  "library": {
+    "open": "Библиотека обозначений",
+    "title": "Библиотека обозначений плана",
+    "planner": "План: {key}",
+    "empty": "Сохранённых обозначений нет",
+    "delete": "Удалить"
+  },
+  "scale": {
+    "unverified": "Не проверен"
+  },
+  "sheets": {
+    "title": "Листы и компоновки",
+    "hint": "Выберите листы для ведомости. По умолчанию: все, кроме ключа.",
+    "search": "Поиск листов…",
+    "selectAll": "Выбрать все",
+    "selectNone": "Снять все",
+    "empty": "Нет листов по фильтру",
+    "includeToggle": "Включить в ведомость",
+    "stats": "{detections} обознач. · подсчитано {counted} · {analyzed} · {scale}",
+    "pairedTo": "Связан с DWG: {target}",
+    "pairedFrom": "Связан с PDF: {target}",
+    "unpairedPdf": "PDF без пары DWG",
+    "pairSuggest": "Связать с {name}",
+    "unpair": "Отвязать",
+    "pairDefer": "Связка сохраняется как правка; повторное слияние worker требует нового анализа (отложено).",
+    "scaleVerified": "Масштаб проверен",
+    "scaleUnverified": "Масштаб не проверен",
+    "filter": {
+      "all": "Все",
+      "included": "Включены",
+      "excluded": "Исключены",
+      "pdf": "PDF",
+      "dwg": "DWG",
+      "unpaired": "Без пары"
+    },
+    "kind": {
+      "pdf_page": "Страница PDF",
+      "dwg_layout": "Компоновка DWG",
+      "dwg_model": "Модель DWG"
+    },
+    "analyzed": {
+      "full": "Полный анализ",
+      "partial": "Частичный",
+      "skipped": "Пропущен"
+    }
+  },
+  "sheet": {
+    "floor": "Этаж / уровень",
+    "floorPlaceholder": "например, Этаж 2",
+    "scaleRatio": "Масштаб (1:N)",
+    "verifyScale": "Подтвердить масштаб"
+  }
+}

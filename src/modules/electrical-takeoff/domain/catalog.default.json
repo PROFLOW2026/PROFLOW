@@ -1,0 +1,1262 @@
+[
+  {
+    "key": "light.recessed",
+    "category": "lighting",
+    "role": "fixture",
+    "nameHe": "גוף תאורה שקוע",
+    "unit": "יח'",
+    "keywordsHe": [
+      "גוף תאורה שקוע",
+      "תאורה שקועה",
+      "ג\"ת שקוע",
+      "לד שקוע",
+      "פס לד שקוע"
+    ],
+    "colorHex": "#e6194b",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "light.surface",
+    "category": "lighting",
+    "role": "fixture",
+    "nameHe": "גוף תאורה צמוד תקרה",
+    "unit": "יח'",
+    "keywordsHe": [
+      "גוף תאורה צמוד",
+      "תאורה צמודה",
+      "ג\"ת צמוד",
+      "מנורת תקרה"
+    ],
+    "colorHex": "#3cb44b",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "light.pendant",
+    "category": "lighting",
+    "role": "fixture",
+    "nameHe": "גוף תאורה תלוי",
+    "unit": "יח'",
+    "keywordsHe": [
+      "גוף תאורה תלוי",
+      "תליה",
+      "מנורה תלויה"
+    ],
+    "colorHex": "#ffe119",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "light.wall",
+    "category": "lighting",
+    "role": "fixture",
+    "nameHe": "גוף תאורה קיר",
+    "unit": "יח'",
+    "keywordsHe": [
+      "גוף תאורה קיר",
+      "קירי",
+      "מנורת קיר",
+      "ברקת"
+    ],
+    "colorHex": "#4363d8",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "light.linear_led",
+    "category": "lighting",
+    "role": "fixture",
+    "nameHe": "פס לד",
+    "unit": "יח'",
+    "keywordsHe": [
+      "פס לד",
+      "פס תאורה",
+      "לינארי לד",
+      "LED strip",
+      "פס"
+    ],
+    "colorHex": "#f58231",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "light.downlight",
+    "category": "lighting",
+    "role": "fixture",
+    "nameHe": "דאונלייט",
+    "unit": "יח'",
+    "keywordsHe": [
+      "דאונלייט",
+      "נקודתי שקוע",
+      "spot",
+      "ספוט"
+    ],
+    "colorHex": "#911eb4",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "light.track",
+    "category": "lighting",
+    "role": "fixture",
+    "nameHe": "פס מסילה",
+    "unit": "יח'",
+    "keywordsHe": [
+      "פס מסילה",
+      "מסילת תאורה",
+      "track light"
+    ],
+    "colorHex": "#46f0f0",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "light.exit_sign",
+    "category": "lighting",
+    "role": "fixture",
+    "nameHe": "שלט יציאה",
+    "unit": "יח'",
+    "keywordsHe": [
+      "שלט יציאה",
+      "יציאה",
+      "exit sign",
+      "שלט חירום יציאה"
+    ],
+    "colorHex": "#f032e6",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "light.emergency",
+    "category": "lighting",
+    "role": "fixture",
+    "nameHe": "תאורת חירום",
+    "unit": "יח'",
+    "keywordsHe": [
+      "תאורת חירום",
+      "ג\"ת חירום",
+      "חירום תאורה",
+      "מנורת חירום"
+    ],
+    "colorHex": "#bcf60c",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "light.emergency_combo",
+    "category": "lighting",
+    "role": "fixture",
+    "nameHe": "תאורת חירום משולבת",
+    "unit": "יח'",
+    "keywordsHe": [
+      "חירום משולב",
+      "ג\"ת דו תכליתי",
+      "תאורה ושלט יציאה"
+    ],
+    "colorHex": "#fabebe",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "light.stair",
+    "category": "lighting",
+    "role": "fixture",
+    "nameHe": "תאורת מדרגות",
+    "unit": "יח'",
+    "keywordsHe": [
+      "תאורת מדרגות",
+      "מדרגות",
+      "דרגן"
+    ],
+    "colorHex": "#008080",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "light.outdoor",
+    "category": "lighting",
+    "role": "fixture",
+    "nameHe": "תאורת חוץ",
+    "unit": "יח'",
+    "keywordsHe": [
+      "תאורת חוץ",
+      "חוץ",
+      "השלמה חיצונית",
+      "עמוד תאורה"
+    ],
+    "colorHex": "#e6beff",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "light.projector",
+    "category": "lighting",
+    "role": "fixture",
+    "nameHe": "פרוזקטור",
+    "unit": "יח'",
+    "keywordsHe": [
+      "פרוזקטור",
+      "הזרקת אור",
+      "floodlight",
+      "ספוטליט"
+    ],
+    "colorHex": "#9a6324",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "light.decorative",
+    "category": "lighting",
+    "role": "fixture",
+    "nameHe": "תאורה דקורטיבית",
+    "unit": "יח'",
+    "keywordsHe": [
+      "דקורטיבי",
+      "נברשת",
+      "אביזר תאורה דקורטיבי"
+    ],
+    "colorHex": "#fffac8",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "light.emergency_central",
+    "category": "emergency_lighting",
+    "role": "equipment",
+    "nameHe": "מרכזיית תאורת חירום",
+    "unit": "יח'",
+    "keywordsHe": [
+      "מרכזיית חירום",
+      "מצבר חירום",
+      "מרכזיה"
+    ],
+    "colorHex": "#800000",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "light.emergency_battery",
+    "category": "emergency_lighting",
+    "role": "equipment",
+    "nameHe": "סוללת חירום",
+    "unit": "יח'",
+    "keywordsHe": [
+      "סוללת חירום",
+      "נורת חירום עם סוללה"
+    ],
+    "colorHex": "#aaffc3",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "power.socket.single",
+    "category": "power",
+    "role": "device",
+    "nameHe": "שקע יחיד",
+    "unit": "יח'",
+    "keywordsHe": [
+      "שקע יחיד",
+      "שקע חשמל",
+      "שקע כח",
+      "נקודת כח",
+      "מ\"ז יחיד"
+    ],
+    "colorHex": "#808000",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "power.socket.double",
+    "category": "power",
+    "role": "device",
+    "nameHe": "שקע כפול",
+    "unit": "יח'",
+    "keywordsHe": [
+      "שקע כפול",
+      "ח\"ק כפול",
+      "שקע כפול תה\"ט"
+    ],
+    "colorHex": "#ffd8b1",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "power.socket.triple",
+    "category": "power",
+    "role": "device",
+    "nameHe": "שקע משולש",
+    "unit": "יח'",
+    "keywordsHe": [
+      "שקע משולש",
+      "שקע שלושה"
+    ],
+    "colorHex": "#000075",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "power.socket.ip",
+    "category": "power",
+    "role": "device",
+    "nameHe": "שקע מוגן מים",
+    "unit": "יח'",
+    "keywordsHe": [
+      "שקע מוגן מים",
+      "שקע תה\"ט מוגן מים",
+      "IP",
+      "מוגן מים",
+      "ןפ-55"
+    ],
+    "colorHex": "#808080",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "power.socket.floor",
+    "category": "power",
+    "role": "device",
+    "nameHe": "שקע רצפה",
+    "unit": "יח'",
+    "keywordsHe": [
+      "שקע רצפה",
+      "שקע בלטי רצפה",
+      "רצפתי"
+    ],
+    "colorHex": "#1f77b4",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "power.socket.dedicated",
+    "category": "power",
+    "role": "device",
+    "nameHe": "שקע ייעודי",
+    "unit": "יח'",
+    "keywordsHe": [
+      "שקע ייעודי",
+      "שקע למכשיר",
+      "שקע מקרר",
+      "שקע מייבש"
+    ],
+    "colorHex": "#ff7f0e",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "power.socket.three_phase",
+    "category": "power",
+    "role": "device",
+    "nameHe": "שקע תלת פאזי",
+    "unit": "יח'",
+    "keywordsHe": [
+      "שקע תלת פאזי",
+      "תלת פאזי",
+      "32A",
+      "63A"
+    ],
+    "colorHex": "#2ca02c",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "power.socket.ups",
+    "category": "power",
+    "role": "device",
+    "nameHe": "שקע UPS",
+    "unit": "יח'",
+    "keywordsHe": [
+      "שקע ups",
+      "שקע גיבוי",
+      "שקע ללא הפרעה"
+    ],
+    "colorHex": "#d62728",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "power.socket.island",
+    "category": "power",
+    "role": "device",
+    "nameHe": "עמדת עבודה",
+    "unit": "יח'",
+    "keywordsHe": [
+      "עמדת עבודה",
+      "עדאפלסט",
+      "עמדה עם שקעים"
+    ],
+    "colorHex": "#9467bd",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "power.outlet.commercial",
+    "category": "power",
+    "role": "device",
+    "nameHe": "נקודת כוח מסחרית",
+    "unit": "יח'",
+    "keywordsHe": [
+      "נקודת כוח",
+      "שקע כוח",
+      "שקע כח",
+      "כוח"
+    ],
+    "colorHex": "#8c564b",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "power.heavy",
+    "category": "power",
+    "role": "device",
+    "nameHe": "נקודת עומס",
+    "unit": "יח'",
+    "keywordsHe": [
+      "עומס כבד",
+      "מנוע",
+      "מזגן"
+    ],
+    "colorHex": "#e377c2",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "control.switch.single",
+    "category": "control",
+    "role": "device",
+    "nameHe": "מפסק יחיד",
+    "unit": "יח'",
+    "keywordsHe": [
+      "מפסק יחיד",
+      "מפסק תאורה",
+      "מפסק חד אורי"
+    ],
+    "colorHex": "#7f7f7f",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "control.switch.double",
+    "category": "control",
+    "role": "device",
+    "nameHe": "מפסק כפול",
+    "unit": "יח'",
+    "keywordsHe": [
+      "מפסק כפול",
+      "שני אורות"
+    ],
+    "colorHex": "#bcbd22",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "control.switch.two_way",
+    "category": "control",
+    "role": "device",
+    "nameHe": "מפסק חילוף",
+    "unit": "יח'",
+    "keywordsHe": [
+      "מפסק חילוף",
+      "חילוף",
+      "two way",
+      "שתי נקודות"
+    ],
+    "colorHex": "#17becf",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "control.switch.intermediate",
+    "category": "control",
+    "role": "device",
+    "nameHe": "מפסק ביניים",
+    "unit": "יח'",
+    "keywordsHe": [
+      "מפסח ביניים",
+      "intermediate"
+    ],
+    "colorHex": "#393b79",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "control.dimmer",
+    "category": "control",
+    "role": "device",
+    "nameHe": "דימר",
+    "unit": "יח'",
+    "keywordsHe": [
+      "דימר",
+      "עמעום",
+      "dimmer"
+    ],
+    "colorHex": "#637939",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "control.shutter",
+    "category": "control",
+    "role": "device",
+    "nameHe": "מפסק תריס",
+    "unit": "יח'",
+    "keywordsHe": [
+      "מפסק תריס",
+      "תריס",
+      "shutter",
+      "מסך נגלל"
+    ],
+    "colorHex": "#8c6d31",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "control.knx",
+    "category": "control",
+    "role": "device",
+    "nameHe": "לחצן KNX",
+    "unit": "יח'",
+    "keywordsHe": [
+      "knx",
+      "בקר knx",
+      "חיישן knx"
+    ],
+    "colorHex": "#843c39",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "control.timer",
+    "category": "control",
+    "role": "device",
+    "nameHe": "טיימר",
+    "unit": "יח'",
+    "keywordsHe": [
+      "טיימר",
+      "שעון שבת"
+    ],
+    "colorHex": "#7b4173",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "control.photocell",
+    "category": "control",
+    "role": "device",
+    "nameHe": "פוטוסל",
+    "unit": "יח'",
+    "keywordsHe": [
+      "פוטוסל",
+      "חיישן אור",
+      "twilight"
+    ],
+    "colorHex": "#3182bd",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "control.motion_light",
+    "category": "control",
+    "role": "device",
+    "nameHe": "חיישן תנועה לתאורה",
+    "unit": "יח'",
+    "keywordsHe": [
+      "חיישן תנועה תאורה",
+      "PIR תאורה"
+    ],
+    "colorHex": "#31a354",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "control.fan",
+    "category": "control",
+    "role": "device",
+    "nameHe": "מפסק מאוורר",
+    "unit": "יח'",
+    "keywordsHe": [
+      "מפסק מאוורר",
+      "מאוורר תקרה"
+    ],
+    "colorHex": "#756bb1",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "comm.data",
+    "category": "communication",
+    "role": "device",
+    "nameHe": "נקודת תקשורת",
+    "unit": "יח'",
+    "keywordsHe": [
+      "נקודת תקשורת",
+      "נק תקשורת",
+      "לנ\"א",
+      "data",
+      "RJ45",
+      "UTP"
+    ],
+    "colorHex": "#636363",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "comm.data_quad",
+    "category": "communication",
+    "role": "device",
+    "nameHe": "נקודת תקשורת רבעית",
+    "unit": "יח'",
+    "keywordsHe": [
+      "4 נקודת תקשורת",
+      "רבעית תקשורת"
+    ],
+    "colorHex": "#6baed6",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "comm.phone",
+    "category": "communication",
+    "role": "device",
+    "nameHe": "נקודת טלפון",
+    "unit": "יח'",
+    "keywordsHe": [
+      "טלפון",
+      "נקודת טלפון",
+      "RJ11"
+    ],
+    "colorHex": "#74c476",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "comm.tv",
+    "category": "communication",
+    "role": "device",
+    "nameHe": "נקודת TV",
+    "unit": "יח'",
+    "keywordsHe": [
+      "טלוויזיה",
+      "טלויזיה",
+      "אנטנה",
+      "coax",
+      "TV"
+    ],
+    "colorHex": "#9e9ac8",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "comm.intercom",
+    "category": "communication",
+    "role": "device",
+    "nameHe": "אינטרקום",
+    "unit": "יח'",
+    "keywordsHe": [
+      "אינטרקום",
+      "אינטרפון",
+      "דלת כניסה"
+    ],
+    "colorHex": "#969696",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "comm.wifi_ap",
+    "category": "communication",
+    "role": "device",
+    "nameHe": "נקודת WiFi",
+    "unit": "יח'",
+    "keywordsHe": [
+      "wifi",
+      "נקודת גישה",
+      "access point",
+      "WI-FI"
+    ],
+    "colorHex": "#c49c94",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "comm.rack",
+    "category": "communication",
+    "role": "equipment",
+    "nameHe": "ארון תקשורת",
+    "unit": "יח'",
+    "keywordsHe": [
+      "ארון תקשורת",
+      "ארון רשת",
+      "rack",
+      "19\""
+    ],
+    "colorHex": "#de9ed6",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "comm.patch_panel",
+    "category": "communication",
+    "role": "equipment",
+    "nameHe": "פאנל פצ'",
+    "unit": "יח'",
+    "keywordsHe": [
+      "פאנל פצ'",
+      "patch panel"
+    ],
+    "colorHex": "#98df8a",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "lowv.cctv",
+    "category": "low_voltage",
+    "role": "device",
+    "nameHe": "מצלמת CCTV",
+    "unit": "יח'",
+    "keywordsHe": [
+      "מצלמה",
+      "cctv",
+      "מעגל סגור",
+      "מצלמת אבטחה"
+    ],
+    "colorHex": "#ff9896",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "lowv.access_control",
+    "category": "low_voltage",
+    "role": "device",
+    "nameHe": "קורא כרטיסים",
+    "unit": "יח'",
+    "keywordsHe": [
+      "בקר כניסה",
+      "access control",
+      "קורא כרטיס",
+      "בקר דלת"
+    ],
+    "colorHex": "#c5b0d5",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "lowv.pir_sensor",
+    "category": "low_voltage",
+    "role": "device",
+    "nameHe": "חיישן נוכחות",
+    "unit": "יח'",
+    "keywordsHe": [
+      "חיישן נוכחות",
+      "PIR",
+      "חיישן תנועה"
+    ],
+    "colorHex": "#aec7e8",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "lowv.speaker",
+    "category": "low_voltage",
+    "role": "device",
+    "nameHe": "רמקול",
+    "unit": "יח'",
+    "keywordsHe": [
+      "רמקול",
+      "שמע",
+      "הגברה",
+      "speaker"
+    ],
+    "colorHex": "#ffbb78",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "lowv.alarm_sensor",
+    "category": "low_voltage",
+    "role": "device",
+    "nameHe": "גלאי אזעקה",
+    "unit": "יח'",
+    "keywordsHe": [
+      "אזעקה",
+      "מגע",
+      "גלאי מגע",
+      "חיישן פריצה"
+    ],
+    "colorHex": "#dbdb8d",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "lowv.intercom_panel",
+    "category": "low_voltage",
+    "role": "device",
+    "nameHe": "לוח אינטרקום",
+    "unit": "יח'",
+    "keywordsHe": [
+      "לוח אינטרקום",
+      "מסך כניסה"
+    ],
+    "colorHex": "#c7c7c7",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "lowv.bell",
+    "category": "low_voltage",
+    "role": "device",
+    "nameHe": "פעמון",
+    "unit": "יח'",
+    "keywordsHe": [
+      "פעמון",
+      "צלצול"
+    ],
+    "colorHex": "#f7b6d2",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "fire.smoke_detector",
+    "category": "fire_detection",
+    "role": "device",
+    "nameHe": "גלאי עשן",
+    "unit": "יח'",
+    "keywordsHe": [
+      "גלאי עשן",
+      "גלאי עשן אופטי",
+      "עשן"
+    ],
+    "colorHex": "#c7e9c0",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "fire.heat_detector",
+    "category": "fire_detection",
+    "role": "device",
+    "nameHe": "גלאי חום",
+    "unit": "יח'",
+    "keywordsHe": [
+      "גלאי חום",
+      "חום"
+    ],
+    "colorHex": "#fd8d3c",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "fire.multi_detector",
+    "category": "fire_detection",
+    "role": "device",
+    "nameHe": "גלאי מרובה",
+    "unit": "יח'",
+    "keywordsHe": [
+      "גלאי משולב",
+      "מרובה חיישנים"
+    ],
+    "colorHex": "#6b6ecf",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "fire.call_point",
+    "category": "fire_detection",
+    "role": "device",
+    "nameHe": "כפתור מפוצץ",
+    "unit": "יח'",
+    "keywordsHe": [
+      "כפתור מפוצץ",
+      "כפתור ידני",
+      "ידני",
+      "מפוצץ"
+    ],
+    "colorHex": "#e7ba52",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "fire.siren",
+    "category": "fire_detection",
+    "role": "device",
+    "nameHe": "סירנה",
+    "unit": "יח'",
+    "keywordsHe": [
+      "סירנה",
+      "אזעקת שריפה",
+      "horn"
+    ],
+    "colorHex": "#cedb9c",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "fire.strobe",
+    "category": "fire_detection",
+    "role": "device",
+    "nameHe": "נצנץ",
+    "unit": "יח'",
+    "keywordsHe": [
+      "נצנץ",
+      "strobe",
+      "אור מהבהב"
+    ],
+    "colorHex": "#ad494a",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "fire.panel",
+    "category": "fire_detection",
+    "role": "equipment",
+    "nameHe": "לוח בקרת אש",
+    "unit": "יח'",
+    "keywordsHe": [
+      "לוח אש",
+      "פאנל אש",
+      "בקר שריפה"
+    ],
+    "colorHex": "#8ca252",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "fire.sprinkler_flow",
+    "category": "fire_detection",
+    "role": "device",
+    "nameHe": "שסתום זרימה",
+    "unit": "יח'",
+    "keywordsHe": [
+      "שסתום זרימה",
+      "sprinkler flow",
+      "ספרינקלר"
+    ],
+    "colorHex": "#bd9e39",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "fire.sprinkler_head",
+    "category": "fire_detection",
+    "role": "device",
+    "nameHe": "ראש ספרינקלר",
+    "unit": "יח'",
+    "keywordsHe": [
+      "ראש ספרינקלר",
+      "מתז"
+    ],
+    "colorHex": "#9c755f",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "fire.damper",
+    "category": "fire_detection",
+    "role": "device",
+    "nameHe": "בלם עשן",
+    "unit": "יח'",
+    "keywordsHe": [
+      "בלם עשן",
+      "smoke damper",
+      "פתיחת עשן"
+    ],
+    "colorHex": "#63717f",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "panel.main",
+    "category": "panels_distribution",
+    "role": "equipment",
+    "nameHe": "לוח ראשי",
+    "unit": "יח'",
+    "keywordsHe": [
+      "לוח ראשי",
+      "לוח מבוא",
+      "לוח חשמל ראשי",
+      "MSB"
+    ],
+    "colorHex": "#5254a3",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "panel.sub",
+    "category": "panels_distribution",
+    "role": "equipment",
+    "nameHe": "לוח משני",
+    "unit": "יח'",
+    "keywordsHe": [
+      "לוח משני",
+      "לוח חלוקה",
+      "תת לוח",
+      "SDP"
+    ],
+    "colorHex": "#b5cf6b",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "panel.floor",
+    "category": "panels_distribution",
+    "role": "equipment",
+    "nameHe": "לוח קומתי",
+    "unit": "יח'",
+    "keywordsHe": [
+      "לוח קומה",
+      "לוח קומתי"
+    ],
+    "colorHex": "#ced4de",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "panel.meter",
+    "category": "panels_distribution",
+    "role": "equipment",
+    "nameHe": "לוח מדידה",
+    "unit": "יח'",
+    "keywordsHe": [
+      "לוח מונים",
+      "מדידה",
+      "מונה"
+    ],
+    "colorHex": "#e7969c",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "equipment.ups",
+    "category": "panels_distribution",
+    "role": "equipment",
+    "nameHe": "ספק כוח חירום UPS",
+    "unit": "יח'",
+    "keywordsHe": [
+      "ups",
+      "ספק ללא הפסקה",
+      "ייבוי חשמלי"
+    ],
+    "colorHex": "#7b6888",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "equipment.generator",
+    "category": "panels_distribution",
+    "role": "equipment",
+    "nameHe": "גנרטור",
+    "unit": "יח'",
+    "keywordsHe": [
+      "גנרטור",
+      "גיבוי דיזל"
+    ],
+    "colorHex": "#d6616b",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "equipment.transformer",
+    "category": "panels_distribution",
+    "role": "equipment",
+    "nameHe": "שנאי",
+    "unit": "יח'",
+    "keywordsHe": [
+      "שנאי",
+      "transformer"
+    ],
+    "colorHex": "#8b949e",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "equipment.capacitor",
+    "category": "panels_distribution",
+    "role": "equipment",
+    "nameHe": "בנק קבלים",
+    "unit": "יח'",
+    "keywordsHe": [
+      "בנק קבלים",
+      "קבלים",
+      "תיקון מקדם"
+    ],
+    "colorHex": "#b07aa1",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "equipment.ats",
+    "category": "panels_distribution",
+    "role": "equipment",
+    "nameHe": "מעבר אוטומטי",
+    "unit": "יח'",
+    "keywordsHe": [
+      "ATS",
+      "מעבר אוטומטי",
+      "מעבר גנרטור"
+    ],
+    "colorHex": "#59a14f",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "linear.tray",
+    "category": "conduit_tray",
+    "role": "linear",
+    "nameHe": "פס צבירה",
+    "unit": "מ\"א",
+    "keywordsHe": [
+      "פס צבירה",
+      "תעלה",
+      "cable tray",
+      "צבירה"
+    ],
+    "colorHex": "#edc948",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "linear.tray_ladder",
+    "category": "conduit_tray",
+    "role": "linear",
+    "nameHe": "סולם כבלים",
+    "unit": "מ\"א",
+    "keywordsHe": [
+      "סולם כבלים",
+      "ladder tray"
+    ],
+    "colorHex": "#76b7b2",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "linear.conduit",
+    "category": "conduit_tray",
+    "role": "linear",
+    "nameHe": "צנור",
+    "unit": "מ\"א",
+    "keywordsHe": [
+      "צנור",
+      "conduit",
+      "צנור פלסטיק",
+      "צנור מתכת"
+    ],
+    "colorHex": "#af7aa1",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "linear.conduit_emt",
+    "category": "conduit_tray",
+    "role": "linear",
+    "nameHe": "צנור EMT",
+    "unit": "מ\"א",
+    "keywordsHe": [
+      "emt",
+      "צנור דק"
+    ],
+    "colorHex": "#4e79a7",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "linear.cable",
+    "category": "conduit_tray",
+    "role": "linear",
+    "nameHe": "כבל",
+    "unit": "מ\"א",
+    "keywordsHe": [
+      "כבל",
+      "מוליך",
+      "כבל חשמל"
+    ],
+    "colorHex": "#f28e2b",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "linear.busbar",
+    "category": "conduit_tray",
+    "role": "linear",
+    "nameHe": "פסי הזנה",
+    "unit": "מ\"א",
+    "keywordsHe": [
+      "פס הזנה",
+      "busbar",
+      "פס שוקולד"
+    ],
+    "colorHex": "#e15759",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "linear.underfloor",
+    "category": "conduit_tray",
+    "role": "linear",
+    "nameHe": "מערכת רצפה טכנית",
+    "unit": "מ\"א",
+    "keywordsHe": [
+      "רצפה טכנית",
+      "רצפה מוגבהת",
+      "underfloor"
+    ],
+    "colorHex": "#ab63fa",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "other.junction_box",
+    "category": "other",
+    "role": "device",
+    "nameHe": "קופסת חיבור",
+    "unit": "יח'",
+    "keywordsHe": [
+      "קופסת חיבור",
+      "קופסה",
+      "junction box"
+    ],
+    "colorHex": "#ffa15a",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "other.grounding",
+    "category": "other",
+    "role": "device",
+    "nameHe": "נקודת הארקה",
+    "unit": "יח'",
+    "keywordsHe": [
+      "הארקה",
+      "נקודת הארקה",
+      "ארקה"
+    ],
+    "colorHex": "#19d3f3",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "other.equipment_mark",
+    "category": "other",
+    "role": "device",
+    "nameHe": "סימון ציוד",
+    "unit": "יח'",
+    "keywordsHe": [
+      "סימון ציוד",
+      "ציוד כללי"
+    ],
+    "colorHex": "#ff6692",
+    "builtIn": true,
+    "archived": false
+  },
+  {
+    "key": "unknown.unclassified",
+    "category": "unknown",
+    "role": "device",
+    "nameHe": "לא מסווג",
+    "unit": "יח'",
+    "keywordsHe": [
+      "לא מסווג",
+      "אחר"
+    ],
+    "colorHex": "#b6e880",
+    "builtIn": true,
+    "archived": false
+  }
+]

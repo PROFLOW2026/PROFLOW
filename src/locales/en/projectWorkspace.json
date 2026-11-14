@@ -1,4 +1,8 @@
 {
+  "takeoff": {
+    "identityTitle": "Smart electrical BOQ workspace",
+    "navAriaLabel": "Electrical takeoff navigation"
+  },
   "execution": {
     "groupTitle": "Execution",
     "identityTitle": "Execution management",

@@ -1,0 +1,316 @@
+{
+  "nav": {
+    "title": "כתב כמויות חכם לחשמל"
+  },
+  "common": {
+    "loading": "טוען…",
+    "cancel": "ביטול",
+    "close": "סגירה"
+  },
+  "list": {
+    "title": "כתב כמויות חכם לחשמל",
+    "subtitle": "העלאת תוכניות, בקרת זיהויים ואישור כמויות.",
+    "newAnalysis": "ניתוח חדש",
+    "empty": "אין עדיין ניתוחים. התחילו בניתוח חדש.",
+    "defaultName": "ניתוח חשמל חדש"
+  },
+  "status": {
+    "draft": "טיוטה",
+    "processing": "בעיבוד",
+    "in_review": "בבקרה",
+    "approved": "מאושר"
+  },
+  "upload": {
+    "title": "העלאת תוכניות",
+    "dropHint": "גררו קבצים לכאן או לחצו לבחירה",
+    "typesHint": "PDF, DWG או DXF — ניתן לבחור כמה קבצים",
+    "analyze": "ניתוח תוכנית",
+    "pickFromProject": "בחירה מקבצי הפרויקט / הענן",
+    "pickFromProjectHint": "בחרו PDF או DWG שכבר שמורים באחסון המחובר — בלי העלאה כפולה.",
+    "ephemeralHint": "אין אחסון ארגוני מחובר: הקבצים יישמרו זמנית לצורך הניתוח בלבד. לאחר סיום ניתן למחוק את הניתוח כדי לנקות קבצים.",
+    "errors": {
+      "cloudLinkFailed": "לא ניתן לקשר את הקובץ מהענן. בדקו הרשאות או העלו מהמחשב.",
+      "unsupportedType": "סוג קובץ לא נתמך. השתמשו ב-PDF, DWG או DXF.",
+      "tooLarge": "הקובץ גדול מדי.",
+      "empty": "הקובץ ריק.",
+      "noFiles": "הוסיפו לפחות קובץ אחד.",
+      "failed": "ההעלאה נכשלה. נסו שוב."
+    },
+    "plannerKey": "מפתח מתכנן",
+    "plannerPlaceholder": "לדוגמה planner-7155",
+    "ruleSet": "סט כללי מדידה",
+    "aiOff": "קריאת מקרא ב-AI כבויה אלא אם הוגדרה בארגון.",
+    "aiToggle": "בקשת סיוע AI במקרא (כשזמין)",
+    "pairing": "התאמת PDF ל-DWG מקור",
+    "pickPdf": "בחרו PDF",
+    "pickDwg": "בחרו DWG/DXF",
+    "includeSheet": "כלול בניתוח",
+    "pairingHint": "בחרו PDF ו-DWG מקושרים לפני הניתוח.",
+    "pairingReady": "מותאם: {pdf} ↔ {dwg}",
+    "unpairedWarning": "בלי קישור PDF↔DWG לפני הניתוח — רק DWG ייספר בכמויות; PDF לא מזווג ייספר כ-PDF בלבד (לא כפילות). לאחר העלאה ניתן לקשר גליונות בפאנל הגליונות.",
+    "dwgLayouts": "גליונות DWG לניתוח",
+    "dwgLayoutsPlaceholder": "לדוגמה: מקרא, תאורה ג",
+    "dwgLayoutsHint": "שמות layout ב-DWG מופרדים בפסיק או שורה. ריק = כל הגליונות ב-DWG. לאחר הניתוח ניתן לכלול/להחריג גליונות בפאנל הגליונות."
+  },
+  "jobStage": {
+    "queued": "בתור",
+    "downloading": "מוריד קבצים",
+    "detect_type": "זיהוי סוג",
+    "sheets": "קריאת גליונות",
+    "legend": "קריאת מקרא",
+    "extract": "חילוץ סמלים",
+    "classify": "סיווג",
+    "merge": "מיזוג PDF/DWG",
+    "render": "רינדור תצוגה",
+    "upload": "העלאת תוצאות",
+    "done": "הסתיים"
+  },
+  "ephemeral": {
+    "banner": "מצב זמני — קבצי המקור לא נשמרים לטווח ארוך. הורידו את הייצואים לפני סיום.",
+    "purge": "סיום ומחיקת קבצים",
+    "purgeDone": "הניתוח והקבצים הזמניים נמחקו."
+  },
+  "progress": {
+    "title": "התקדמות הניתוח",
+    "percent": "{value}%",
+    "failed": "הניתוח נכשל",
+    "failedTitle": "הניתוח לא הושלם",
+    "failedHint": "לא ניתן לטעון את תוצאות הניתוח. הקבצים והניתוח נשמרו — אפשר לנסות שוב.",
+    "failedReason": "סיבה: {reason}",
+    "cancelledTitle": "הניתוח בוטל",
+    "retry": "נסה שוב",
+    "close": "סגור",
+    "cancel": "ביטול ניתוח",
+    "stalledTitle": "הניתוח לוקח זמן רב",
+    "stalledHint": "ההתקדמות הגיעה ל-100% אך התוצאה עדיין לא מוכנה. נסו לרענן או בדקו שוב בעוד רגע.",
+    "refresh": "רענון סטטוס"
+  },
+  "viewer": {
+    "zoomIn": "הגדלה",
+    "zoomOut": "הקטנה",
+    "fit": "התאמה למסך",
+    "aria": "מציג תוכנית",
+    "noPreview": "אין תצוגה מקדימה"
+  },
+  "tools": {
+    "navigate": "ניווט",
+    "add": "הוספת רכיב",
+    "area": "שרטוט אזור"
+  },
+  "mobile": {
+    "plan": "תוכנית",
+    "boq": "כתב כמויות"
+  },
+  "filter": {
+    "aria": "סינון לפי סוג רכיב",
+    "all": "כל הסוגים",
+    "hideHint": "לחיצה ארוכה על תגית מסתירה סוג"
+  },
+  "boq": {
+    "title": "כתב כמויות",
+    "summary": "{unclassified} לא מסווגים · {review} דורשים בקרה",
+    "empty": "אין שורות עדיין",
+    "verified": "כמות מאומתת",
+    "suggested": "המלצה לאישור",
+    "countingSummary": "נספרו {counted} (PDF {pdf}, DWG {dwg}, מיזוג {merged}) · תאומים {twins} · PDF בלבד {pdfOnly} · מקרא {legend} · גליונות מוחרגים {sheetExcluded}"
+  },
+  "detection": {
+    "listTitle": "זיהויים",
+    "rowAria": "זיהוי {id}, סוג {type}",
+    "title": "פרטי זיהוי",
+    "confidence": "רמת ביטחון",
+    "source": "מקור",
+    "tag": "טקסט תיוג",
+    "reasons": "סיבות לבקרה",
+    "pickType": "סוג",
+    "searchTypes": "חיפוש סוגים…",
+    "unclassified": "לא מסווג",
+    "saveToLibrary": "שמור בספריית הסמלים של המתכנן",
+    "applyType": "החל סיווג",
+    "delete": "מחק",
+    "restore": "שחזר",
+    "rawClass": "מחלקת מקור",
+    "twin": "התאמת PDF/DWG",
+    "twinState": {
+      "merged": "מיזוג PDF+DWG (twin)",
+      "pdf_only": "רק ב-PDF",
+      "dwg_only": "רק ב-DWG"
+    },
+    "libraryRequiresLegend": "לשמירה בספרייה נדרש מקרא/בלוק מהמנוע (rawClass או תיוג).",
+    "libraryMaskHint": "השמירה תשתמש במסכת הסמל מהזיהוי (maskB64) כשקיימת בשרת."
+  },
+  "confidence": {
+    "high": "גבוה",
+    "medium": "בינוני",
+    "low": "נמוך",
+    "none": "ללא",
+    "suggestedApproval": "המלצה לאישור"
+  },
+  "source": {
+    "pdf": "PDF",
+    "dwg": "DWG",
+    "merged": "מיזוג PDF+DWG",
+    "manual": "ידני"
+  },
+  "review": {
+    "title": "תור בקרה",
+    "empty": "אין פריטים לבקרה",
+    "position": "פריט {current} מתוך {total}",
+    "confirm": "אשר",
+    "bulkTitle": "סיווג מרובה",
+    "bulkAssign": "הקצה סוג ל-{count}",
+    "toggleSelect": "הוסף פריט נוכחי לבחירה"
+  },
+  "reviewReason": {
+    "low_confidence": "ביטחון נמוך",
+    "unclassified": "לא מסווג",
+    "type_ambiguous": "סוג עמום",
+    "possible_duplicate": "כפילות אפשרית",
+    "xref_missing": "xref חסר",
+    "dynamic_block_unresolved": "בלוק דינמי לא נפתר",
+    "scale_unverified": "קנה מידה לא מאומת",
+    "sheet_partial": "גיליון חלקי",
+    "tag_unread": "תיוג לא נקרא",
+    "pdf_dwg_mismatch": "אי-התאמה PDF/DWG",
+    "legend_unmapped": "מקרא לא ממופה",
+    "overlapping_symbols_peeled": "סמלים חופפים",
+    "possible_exploded_symbol": "סמל מפורק אפשרי",
+    "pdf_only": "נמצא רק ב-PDF (ללא התאמה ל-DWG)",
+    "dwg_only": "נמצא רק ב-DWG (ללא התאמה ל-PDF)"
+  },
+  "workspace": {
+    "saved": "השינויים נשמרו",
+    "revisionConflict": "נשמר עדכון במקביל — נטען מחדש",
+    "saveNow": "שמירה עכשיו"
+  },
+  "approval": {
+    "approve": "אישור כתב כמויות",
+    "reopen": "פתח מחדש לעריכה",
+    "blocked": "אישור חסום — יש לסגור פריטי בקרה",
+    "blockedHint": "עדיין יש פריטים שדורשים בקרה לפני אישור",
+    "readyHint": "ניתן לאשר כשכל פריטי הבקרה טופלו"
+  },
+  "export": {
+    "excel": "ייצוא Excel",
+    "disabledHint": "אשרו את הניתוח כדי לייצא",
+    "boqPdf": "PDF כתב כמויות",
+    "annotatedPdf": "PDF מתויג",
+    "ready": "הורדה מוכנה: {name}",
+    "pending": "מכין ייצוא…",
+    "open": "פתח הורדה",
+    "failed": "הייצוא נכשל"
+  },
+  "area": {
+    "defaultName": "אזור",
+    "save": "שמור אזור"
+  },
+  "limitations": {
+    "partialSheet": "גיליון חלקי: {sheet}",
+    "skippedSheet": "גיליון דולג: {sheet}",
+    "xrefMissing": "xref חסר: {name}",
+    "scaleUnverified": "קנה מידה לא מאומת ב-{sheet}",
+    "countingComposition": "הרכב ספירה: {counted} (PDF {pdf}, DWG {dwg}, מיזוג {merged}) · תאומים {twins} · לא נספרו PDF בלבד {pdfOnly} · מקרא {legend} · גליונות מוחרגים {sheetExcluded} — לחץ לעריכה",
+    "unclassified": "{count} זיהויים לא מסווגים",
+    "aiOn": "סיוע AI במקרא פעיל בניתוח זה.",
+    "aiOff": "סיוע AI במקרא כבוי בניתוח זה.",
+    "aiUnavailable": "סיוע AI במקרא אינו זמין (ai_unavailable).",
+    "severityError": "שגיאה",
+    "summaryOne": "הערה אחת על הניתוח",
+    "summaryMany": "{count} הערות על הניתוח",
+    "attention": "{count} דורשות תשומת לב",
+    "attentionError": "{count} שגיאות או חסימות",
+    "expand": "הצג פרטים",
+    "collapse": "הסתר פרטים",
+    "workerWarning": {
+      "default": "{message}",
+      "sheet_partial": "גיליון חלקי: {sheet}",
+      "xref_missing": "חסר קובץ ייחוס (xref): {message}",
+      "ai_unavailable": "קריאת מקרא ב-AI לא זמינה.",
+      "ai_active": "קריאת מקרא ב-AI שימשה בניתוח.",
+      "legend_ai": "קריאת מקרא ב-AI שימשה בניתוח.",
+      "merge_failed": "מיזוג PDF/DWG נכשל: {message}",
+      "classify_failed": "סיווג נכשל: {message}",
+      "extract_time_budget": "חילוץ הוגבל בזמן: {message}",
+      "pdf_dwg_unpaired": "PDF ו-DWG לא הותאמו לפני הניתוח.",
+      "pdf_plan_too_heavy": "תוכנית כבדה מדי; הניתוח צומצם.",
+      "pdf_candidates_capped": "מספר המועמדים לסמלים הוגבל.",
+      "legend_row_cap_exceeded": "שורות המקרא המוטבע הוגבלו.",
+      "pdf_text_truncated": "סריקת הטקסט בגיליון נחתכה.",
+      "pdf_noise_pruned": "גרוטאות וקטור קטנות הוסרו מתוכנית כבדה.",
+      "dwg_hidden_layers": "סמלים בשכבות מוקפאות/מוסתרות לא נספרו ב-DWG (לא חסר ב-BoQ).",
+      "pdf_dwg_merge": "מיזוג PDF/DWG: {message}"
+    }
+  },
+  "errors": {
+    "loadFailed": "לא ניתן לטעון את הניתוח"
+  },
+  "rules": {
+    "open": "כללי מדידה",
+    "title": "סט כללי מדידה",
+    "hint": "ברירת מחדל: כל זיהוי נספר פעם אחת.",
+    "name": "שם",
+    "save": "שמור",
+    "addRule": "הוסף כלל",
+    "removeRule": "הסר",
+    "newRuleLabel": "כלל חדש",
+    "appliesTypes": "מפתחי סוג (מופרדים בפסיק)",
+    "proximityPx": "רדיוס קירבה (px)",
+    "mode": {
+      "count_each": "ספירה לכל זיהוי",
+      "group_by_proximity": "קיבוץ לפי קירבה",
+      "exclude": "החרג מכתב כמויות"
+    }
+  },
+  "library": {
+    "open": "ספריית סמלים",
+    "title": "ספריית סמלים של המתכנן",
+    "planner": "מתכנן: {key}",
+    "empty": "אין סמלים שמורים",
+    "delete": "מחק"
+  },
+  "scale": {
+    "unverified": "לא מאומת"
+  },
+  "sheets": {
+    "title": "גליונות ופריסות",
+    "hint": "בחרו אילו גליונות נכנסים לכתב הכמויות. ברירת מחדל: כל הגליונות פרט למקרא.",
+    "search": "חיפוש גליון…",
+    "selectAll": "בחר הכל",
+    "selectNone": "נקה הכל",
+    "empty": "אין גליונות תואמים לסינון",
+    "includeToggle": "כלול בכמויות",
+    "stats": "{detections} זיהויים · נספרו {counted} · {analyzed} · {scale}",
+    "pairedTo": "מקושר ל-DWG: {target}",
+    "pairedFrom": "מקושר מ-PDF: {target}",
+    "unpairedPdf": "PDF ללא התאמת DWG",
+    "pairSuggest": "קשר ל־{name}",
+    "unpair": "נתק",
+    "pairDefer": "קישור גליונות נשמר כעריכה; מיזוג מחדש ב-worker דורש ניתוח מחדש (לא בגל זה).",
+    "scaleVerified": "קנ״מ מאומת",
+    "scaleUnverified": "קנ״מ לא מאומת",
+    "filter": {
+      "all": "הכל",
+      "included": "כלולים",
+      "excluded": "מוחרגים",
+      "pdf": "PDF",
+      "dwg": "DWG",
+      "unpaired": "ללא התאמה"
+    },
+    "kind": {
+      "pdf_page": "עמוד PDF",
+      "dwg_layout": "פריסת DWG",
+      "dwg_model": "מודל DWG"
+    },
+    "analyzed": {
+      "full": "נותח במלואו",
+      "partial": "חלקי",
+      "skipped": "דולג"
+    }
+  },
+  "sheet": {
+    "floor": "קומה / מפלס",
+    "floorPlaceholder": "לדוגמה קומה 2",
+    "scaleRatio": "מכנה קנה מידה (1:N)",
+    "verifyScale": "אשר קנה מידה"
+  }
+}

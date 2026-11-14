@@ -3,6 +3,7 @@ import {
   ANON_KEY,
   APP_URL,
   AUTH_URL,
+  DATABASE_PORT,
   DATABASE_URL as PGLITE_DATABASE_URL,
   E2E_STORAGE_TOKEN_ENCRYPTION_KEY,
   E2E_SUPABASE_SERVICE_ROLE_KEY,
@@ -32,6 +33,12 @@ const harnessEnv: Record<string, string> = {
   SUPABASE_SERVICE_ROLE_KEY: E2E_SUPABASE_SERVICE_ROLE_KEY,
   EMPLOYEE_AUTH_PASSWORD_PEPPER: E2E_EMPLOYEE_AUTH_PASSWORD_PEPPER,
   PF_DESIGN_SPECIMEN: '1',
+  TAKEOFF_USE_FAKE_WORKER:
+    process.env.TAKEOFF_E2E_REAL === '1' ? '0' : (process.env.TAKEOFF_USE_FAKE_WORKER ?? '1'),
+  TAKEOFF_WORKER_URL: process.env.TAKEOFF_WORKER_URL ?? '',
+  TAKEOFF_FILE_STORE: process.env.TAKEOFF_FILE_STORE ?? 'memory',
+  TAKEOFF_WORKER_SECRET: process.env.TAKEOFF_WORKER_SECRET ?? 'e2e-takeoff-worker-secret-32chars!!',
+  TAKEOFF_E2E_CORPUS_7155_LIGHT_G: process.env.TAKEOFF_E2E_CORPUS_7155_LIGHT_G ?? '',
 };
 
 // PGlite socket backend: single wire connection. Real Postgres smoke uses app default pool (5).
@@ -41,12 +48,18 @@ if (!isPostgresHarnessMode()) {
 
 const harnessServerEnv: Record<string, string> = {
   E2E_DATABASE_MODE: e2eDatabaseMode(),
+  E2E_DATABASE_PORT: String(DATABASE_PORT),
   DATABASE_URL: harnessDatabaseUrl,
   DIRECT_DATABASE_URL: harnessDatabaseUrl,
   STORAGE_TOKEN_ENCRYPTION_KEY: E2E_STORAGE_TOKEN_ENCRYPTION_KEY,
   SUPABASE_SERVICE_ROLE_KEY: E2E_SUPABASE_SERVICE_ROLE_KEY,
   EMPLOYEE_AUTH_PASSWORD_PEPPER: E2E_EMPLOYEE_AUTH_PASSWORD_PEPPER,
   APP_ENV: 'local',
+};
+
+const harnessEnvWithPort: Record<string, string> = {
+  ...harnessEnv,
+  E2E_DATABASE_PORT: String(DATABASE_PORT),
 };
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? APP_URL;
@@ -86,7 +99,7 @@ export default defineConfig({
     },
     {
       name: 'desktop-he-authenticated',
-      testMatch: /authenticated\/(owner|regression|performance-verify|performance-signoff|jobs-flows|master-completion-journeys|pwa-startup|ocr-review|boq-happy-path|capture-marketing-screenshots|branding|hebrew-runtime-closure|overnight-surfaces|billing-plan|project-time-mobile-gate|project-centric-money-chain|release-smoke|locale-profile-persistence)\.spec\.ts/,
+      testMatch: /authenticated\/(owner|regression|performance-verify|performance-signoff|jobs-flows|master-completion-journeys|pwa-startup|ocr-review|boq-happy-path|capture-marketing-screenshots|branding|hebrew-runtime-closure|overnight-surfaces|billing-plan|project-time-mobile-gate|project-centric-money-chain|release-smoke|locale-profile-persistence|electrical-takeoff|electrical-takeoff-real)\.spec\.ts/,
       dependencies:
         process.env.CAPTURE_MARKETING === '1' ? ['setup-owner', 'setup-worker'] : ['setup-owner'],
       use: {
@@ -152,12 +165,12 @@ export default defineConfig({
         {
           command:
             process.env.CAPTURE_MARKETING === '1' || process.env.E2E_SKIP_BUILD === '1'
-              ? 'node tests/e2e/harness/start-app-for-playwright.mjs'
-              : 'node tests/e2e/harness/build-for-playwright.mjs && node tests/e2e/harness/start-app-for-playwright.mjs',
+              ? 'node tests/e2e/harness/wait-and-start-app.mjs'
+              : 'node tests/e2e/harness/build-for-playwright.mjs && node tests/e2e/harness/wait-and-start-app.mjs',
           url: baseURL,
           reuseExistingServer: !process.env.CI && !process.env.E2E_FORCE_FRESH_SERVER,
           timeout: 720_000,
-          env: harnessEnv,
+          env: harnessEnvWithPort,
         },
       ],
 });

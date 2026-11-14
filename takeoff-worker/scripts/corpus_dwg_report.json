@@ -1,0 +1,4036 @@
+{
+  "files": {
+    "3031-M": {
+      "path": "C:\\Users\\ERAN YOSEF\\Downloads\\בדיקה\\3031-M.dwg",
+      "convert_secs": 4.467,
+      "cache_hit": true,
+      "unstable": 2959.0,
+      "warnings": [
+        "dwg_unstable_objects",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate"
+      ],
+      "layouts": {
+        "GND": {
+          "shown": 98,
+          "hiddenByLayers": 832,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "WP",
+                "S-GND"
+              ],
+              73
+            ],
+            [
+              [
+                "gndE",
+                "S-GND"
+              ],
+              16
+            ],
+            [
+              [
+                "44ce",
+                "S-GND"
+              ],
+              6
+            ],
+            [
+              [
+                "gndC",
+                "S-GND"
+              ],
+              3
+            ]
+          ]
+        },
+        "IEC": {
+          "shown": 0,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": []
+        },
+        "M0": {
+          "shown": 0,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": []
+        },
+        "M1C": {
+          "shown": 797,
+          "hiddenByLayers": 112,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "8-L",
+                "S-LIGHT"
+              ],
+              230
+            ],
+            [
+              [
+                "4-L",
+                "S-LIGHT"
+              ],
+              88
+            ],
+            [
+              [
+                "14e",
+                "S-LIGHT"
+              ],
+              77
+            ],
+            [
+              [
+                "1e",
+                "S-LIGHT"
+              ],
+              66
+            ],
+            [
+              [
+                "RR",
+                "S-SAFETY"
+              ],
+              39
+            ],
+            [
+              [
+                "pir",
+                "S-PIRIM"
+              ],
+              39
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              36
+            ],
+            [
+              [
+                "fz",
+                "S-SAFETY"
+              ],
+              30
+            ]
+          ]
+        },
+        "M1F": {
+          "shown": 306,
+          "hiddenByLayers": 603,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "6e",
+                "S-ELECTRIC"
+              ],
+              66
+            ],
+            [
+              [
+                "RR",
+                "S-SAFETY"
+              ],
+              39
+            ],
+            [
+              [
+                "pir",
+                "S-PIRIM"
+              ],
+              39
+            ],
+            [
+              [
+                "CO",
+                "S-ELECTRIC"
+              ],
+              33
+            ],
+            [
+              [
+                "fz",
+                "S-SAFETY"
+              ],
+              30
+            ],
+            [
+              [
+                "02A",
+                "S-SAFETY"
+              ],
+              21
+            ],
+            [
+              [
+                "21e",
+                "S-SAFETY"
+              ],
+              15
+            ],
+            [
+              [
+                "26ee",
+                "S-SW"
+              ],
+              10
+            ]
+          ]
+        },
+        "M2C": {
+          "shown": 744,
+          "hiddenByLayers": 96,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "8-L",
+                "S-LIGHT"
+              ],
+              229
+            ],
+            [
+              [
+                "4-L",
+                "S-LIGHT"
+              ],
+              76
+            ],
+            [
+              [
+                "1e",
+                "S-LIGHT"
+              ],
+              69
+            ],
+            [
+              [
+                "14e",
+                "S-LIGHT"
+              ],
+              69
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              39
+            ],
+            [
+              [
+                "fz",
+                "S-SAFETY"
+              ],
+              34
+            ],
+            [
+              [
+                "RR",
+                "S-SAFETY"
+              ],
+              33
+            ],
+            [
+              [
+                "5-E-L",
+                "S-LIGHT"
+              ],
+              30
+            ]
+          ]
+        },
+        "M2F": {
+          "shown": 245,
+          "hiddenByLayers": 595,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "6e",
+                "S-ELECTRIC"
+              ],
+              69
+            ],
+            [
+              [
+                "fz",
+                "S-SAFETY"
+              ],
+              34
+            ],
+            [
+              [
+                "RR",
+                "S-SAFETY"
+              ],
+              33
+            ],
+            [
+              [
+                "CO",
+                "S-ELECTRIC"
+              ],
+              27
+            ],
+            [
+              [
+                "pir",
+                "S-PIRIM"
+              ],
+              21
+            ],
+            [
+              [
+                "21e",
+                "S-SAFETY"
+              ],
+              18
+            ],
+            [
+              [
+                "02A",
+                "S-SAFETY"
+              ],
+              14
+            ],
+            [
+              [
+                "nfpa72",
+                "S-SAFETY"
+              ],
+              9
+            ]
+          ]
+        },
+        "M3C": {
+          "shown": 739,
+          "hiddenByLayers": 190,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "8-L",
+                "S-LIGHT"
+              ],
+              219
+            ],
+            [
+              [
+                "4-L",
+                "S-LIGHT"
+              ],
+              73
+            ],
+            [
+              [
+                "1e",
+                "S-LIGHT"
+              ],
+              62
+            ],
+            [
+              [
+                "14e",
+                "S-LIGHT"
+              ],
+              62
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              39
+            ],
+            [
+              [
+                "RR",
+                "S-SAFETY"
+              ],
+              37
+            ],
+            [
+              [
+                "fz",
+                "S-SAFETY"
+              ],
+              34
+            ],
+            [
+              [
+                "5-E-L",
+                "S-LIGHT"
+              ],
+              32
+            ]
+          ]
+        },
+        "M3F": {
+          "shown": 354,
+          "hiddenByLayers": 575,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "WP",
+                "S-GND"
+              ],
+              73
+            ],
+            [
+              [
+                "6e",
+                "S-ELECTRIC"
+              ],
+              62
+            ],
+            [
+              [
+                "RR",
+                "S-SAFETY"
+              ],
+              37
+            ],
+            [
+              [
+                "fz",
+                "S-SAFETY"
+              ],
+              34
+            ],
+            [
+              [
+                "CO",
+                "S-ELECTRIC"
+              ],
+              28
+            ],
+            [
+              [
+                "pir",
+                "S-PIRIM"
+              ],
+              20
+            ],
+            [
+              [
+                "21e",
+                "S-SAFETY"
+              ],
+              18
+            ],
+            [
+              [
+                "26eee",
+                "S-SW"
+              ],
+              17
+            ]
+          ]
+        },
+        "PIT": {
+          "shown": 133,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "pir2",
+                "S-PIRIM"
+              ],
+              51
+            ],
+            [
+              [
+                "12-L",
+                "S-LIGHT"
+              ],
+              26
+            ],
+            [
+              [
+                "amudTeura1",
+                "S-LIGHT"
+              ],
+              21
+            ],
+            [
+              [
+                "14-L",
+                "S-LIGHT"
+              ],
+              17
+            ],
+            [
+              [
+                "10-L",
+                "S-LIGHT"
+              ],
+              7
+            ],
+            [
+              [
+                "26ee",
+                "S-SW"
+              ],
+              3
+            ],
+            [
+              [
+                "EL-371",
+                "S-LIGHT"
+              ],
+              2
+            ],
+            [
+              [
+                "28e",
+                "S-ELECTRIC"
+              ],
+              1
+            ]
+          ]
+        }
+      },
+      "analyze_secs": 220.133,
+      "legend_decoded": 0,
+      "legend_total": 0,
+      "elapsed": 220.17
+    },
+    "3031-SW": {
+      "path": "C:\\Users\\ERAN YOSEF\\Downloads\\בדיקה\\3031-SW.dwg",
+      "convert_secs": 0.558,
+      "cache_hit": true,
+      "unstable": 1687.0,
+      "warnings": [
+        "dwg_unstable_objects",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate"
+      ],
+      "layouts": {
+        "SW1": {
+          "shown": 829,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              164
+            ],
+            [
+              [
+                "111",
+                "S-LINE"
+              ],
+              164
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              136
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              109
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              85
+            ],
+            [
+              [
+                "1Pchangeover",
+                "S-SWITCH"
+              ],
+              59
+            ],
+            [
+              [
+                "1X2A",
+                "S-SWITCH"
+              ],
+              28
+            ],
+            [
+              [
+                "phaseLED",
+                "S-SWITCH"
+              ],
+              18
+            ]
+          ]
+        },
+        "SW2": {
+          "shown": 762,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              200
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              155
+            ],
+            [
+              [
+                "111",
+                "S-LINE"
+              ],
+              107
+            ],
+            [
+              [
+                "3X32A",
+                "S-SWITCH"
+              ],
+              42
+            ],
+            [
+              [
+                "3PRCD",
+                "S-SWITCH"
+              ],
+              37
+            ],
+            [
+              [
+                "3PBreaker",
+                "S-SWITCH"
+              ],
+              34
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              27
+            ],
+            [
+              [
+                "3X40A",
+                "S-SWITCH"
+              ],
+              23
+            ]
+          ]
+        },
+        "SW3": {
+          "shown": 880,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              221
+            ],
+            [
+              [
+                "111",
+                "S-LINE"
+              ],
+              176
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              172
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              103
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              84
+            ],
+            [
+              [
+                "1Pchangeover",
+                "S-SWITCH"
+              ],
+              48
+            ],
+            [
+              [
+                "3X20A",
+                "S-SWITCH"
+              ],
+              13
+            ],
+            [
+              [
+                "maga",
+                "S-SWITCH"
+              ],
+              8
+            ]
+          ]
+        },
+        "SW4": {
+          "shown": 884,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              220
+            ],
+            [
+              [
+                "111",
+                "S-LINE"
+              ],
+              181
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              172
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              103
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              84
+            ],
+            [
+              [
+                "1Pchangeover",
+                "S-SWITCH"
+              ],
+              48
+            ],
+            [
+              [
+                "3X20A",
+                "S-SWITCH"
+              ],
+              13
+            ],
+            [
+              [
+                "maga",
+                "S-SWITCH"
+              ],
+              8
+            ]
+          ]
+        },
+        "SW5": {
+          "shown": 1054,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              270
+            ],
+            [
+              [
+                "111",
+                "S-LINE"
+              ],
+              206
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              205
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              123
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              108
+            ],
+            [
+              [
+                "1Pchangeover",
+                "S-SWITCH"
+              ],
+              60
+            ],
+            [
+              [
+                "3X20A",
+                "S-SWITCH"
+              ],
+              13
+            ],
+            [
+              [
+                "maga",
+                "S-SWITCH"
+              ],
+              8
+            ]
+          ]
+        }
+      },
+      "analyze_secs": 79.206,
+      "legend_decoded": 0,
+      "legend_total": 0,
+      "elapsed": 79.23
+    },
+    "3031-GND": {
+      "path": "C:\\Users\\ERAN YOSEF\\Downloads\\בדיקה\\3031-GND.dwg",
+      "convert_secs": 0.996,
+      "cache_hit": false,
+      "unstable": 47.0,
+      "warnings": [
+        "dwg_unstable_objects",
+        "xref_missing",
+        "xref_missing"
+      ],
+      "layouts": {
+        "IEC": {
+          "shown": 0,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": []
+        },
+        "M0": {
+          "shown": 0,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": []
+        },
+        "M1C": {
+          "shown": 12,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "gndD",
+                "S-GND"
+              ],
+              12
+            ]
+          ]
+        },
+        "M1F": {
+          "shown": 12,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "gndD",
+                "S-GND"
+              ],
+              12
+            ]
+          ]
+        },
+        "M2C": {
+          "shown": 12,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "gndD",
+                "S-GND"
+              ],
+              12
+            ]
+          ]
+        },
+        "M2F": {
+          "shown": 12,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "gndD",
+                "S-GND"
+              ],
+              12
+            ]
+          ]
+        },
+        "M3C": {
+          "shown": 116,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "WP",
+                "S-GND"
+              ],
+              104
+            ],
+            [
+              [
+                "gndD",
+                "S-GND"
+              ],
+              12
+            ]
+          ]
+        },
+        "M3F": {
+          "shown": 116,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "WP",
+                "S-GND"
+              ],
+              104
+            ],
+            [
+              [
+                "gndD",
+                "S-GND"
+              ],
+              12
+            ]
+          ]
+        }
+      },
+      "analyze_secs": 6.617,
+      "legend_decoded": 0,
+      "legend_total": 0,
+      "elapsed": 7.64
+    },
+    "3031-PIT": {
+      "path": "C:\\Users\\ERAN YOSEF\\Downloads\\בדיקה\\3031-PIT.dwg",
+      "convert_secs": 0.066,
+      "cache_hit": false,
+      "unstable": 35.0,
+      "warnings": [
+        "dwg_unstable_objects"
+      ],
+      "layouts": {
+        "F1": {
+          "shown": 0,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": []
+        },
+        "IEC": {
+          "shown": 0,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": []
+        },
+        "M0": {
+          "shown": 0,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": []
+        }
+      },
+      "analyze_secs": 0.394,
+      "legend_decoded": 0,
+      "legend_total": 0,
+      "elapsed": 0.47
+    },
+    "3031-D123": {
+      "path": "C:\\Users\\ERAN YOSEF\\Downloads\\בדיקה\\3031-DIROT 123.dwg",
+      "convert_secs": 0.935,
+      "cache_hit": true,
+      "unstable": 683.0,
+      "warnings": [
+        "dwg_unstable_objects",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate"
+      ],
+      "layouts": {
+        "B1-F0": {
+          "shown": 407,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "WP",
+                "S-GND"
+              ],
+              57
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              53
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              36
+            ],
+            [
+              [
+                "3-L",
+                "S-LIGHT"
+              ],
+              34
+            ],
+            [
+              [
+                "4-L",
+                "S-LIGHT"
+              ],
+              24
+            ],
+            [
+              [
+                "02A",
+                "S-SAFETY"
+              ],
+              21
+            ],
+            [
+              [
+                "pir2",
+                "S-PIRIM"
+              ],
+              21
+            ],
+            [
+              [
+                "RR",
+                "S-SAFETY"
+              ],
+              20
+            ]
+          ]
+        },
+        "B1-F1": {
+          "shown": 145,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "1e",
+                "S-PIRIM"
+              ],
+              4
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ]
+          ]
+        },
+        "B1-F10-14": {
+          "shown": 191,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "WP",
+                "S-GND"
+              ],
+              76
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              19
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              16
+            ],
+            [
+              [
+                "RR",
+                "S-SAFETY"
+              ],
+              13
+            ],
+            [
+              [
+                "gndD",
+                "S-GND"
+              ],
+              8
+            ],
+            [
+              [
+                "02A",
+                "S-SAFETY"
+              ],
+              8
+            ],
+            [
+              [
+                "7-L",
+                "S-LIGHT"
+              ],
+              7
+            ],
+            [
+              [
+                "24e",
+                "S-ELECTRIC"
+              ],
+              6
+            ]
+          ]
+        },
+        "B1-F15": {
+          "shown": 193,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "WP",
+                "S-GND"
+              ],
+              76
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              19
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              16
+            ],
+            [
+              [
+                "RR",
+                "S-SAFETY"
+              ],
+              13
+            ],
+            [
+              [
+                "gndD",
+                "S-GND"
+              ],
+              8
+            ],
+            [
+              [
+                "02A",
+                "S-SAFETY"
+              ],
+              8
+            ],
+            [
+              [
+                "7-L",
+                "S-LIGHT"
+              ],
+              7
+            ],
+            [
+              [
+                "24e",
+                "S-ELECTRIC"
+              ],
+              6
+            ]
+          ]
+        },
+        "B1-F16": {
+          "shown": 145,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "1e",
+                "S-PIRIM"
+              ],
+              4
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ]
+          ]
+        },
+        "B1-F17": {
+          "shown": 145,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "1e",
+                "S-PIRIM"
+              ],
+              3
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ]
+          ]
+        },
+        "B1-F18-22": {
+          "shown": 197,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "WP",
+                "S-GND"
+              ],
+              76
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              19
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              16
+            ],
+            [
+              [
+                "RR",
+                "S-SAFETY"
+              ],
+              13
+            ],
+            [
+              [
+                "gndD",
+                "S-GND"
+              ],
+              8
+            ],
+            [
+              [
+                "02A",
+                "S-SAFETY"
+              ],
+              8
+            ],
+            [
+              [
+                "7-L",
+                "S-LIGHT"
+              ],
+              7
+            ],
+            [
+              [
+                "24e",
+                "S-ELECTRIC"
+              ],
+              6
+            ]
+          ]
+        },
+        "B1-F2-9": {
+          "shown": 190,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "WP",
+                "S-GND"
+              ],
+              76
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              19
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              16
+            ],
+            [
+              [
+                "RR",
+                "S-SAFETY"
+              ],
+              13
+            ],
+            [
+              [
+                "gndD",
+                "S-GND"
+              ],
+              8
+            ],
+            [
+              [
+                "02A",
+                "S-SAFETY"
+              ],
+              8
+            ],
+            [
+              [
+                "7-L",
+                "S-LIGHT"
+              ],
+              7
+            ],
+            [
+              [
+                "24e",
+                "S-ELECTRIC"
+              ],
+              6
+            ]
+          ]
+        },
+        "B1-F23-25": {
+          "shown": 202,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "WP",
+                "S-GND"
+              ],
+              76
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              19
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              16
+            ],
+            [
+              [
+                "RR",
+                "S-SAFETY"
+              ],
+              13
+            ],
+            [
+              [
+                "gndD",
+                "S-GND"
+              ],
+              8
+            ],
+            [
+              [
+                "02A",
+                "S-SAFETY"
+              ],
+              8
+            ],
+            [
+              [
+                "7-L",
+                "S-LIGHT"
+              ],
+              7
+            ],
+            [
+              [
+                "34e",
+                "S-ELECTRIC"
+              ],
+              6
+            ]
+          ]
+        },
+        "B1-F26": {
+          "shown": 202,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "WP",
+                "S-GND"
+              ],
+              76
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              19
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              16
+            ],
+            [
+              [
+                "RR",
+                "S-SAFETY"
+              ],
+              13
+            ],
+            [
+              [
+                "gndD",
+                "S-GND"
+              ],
+              8
+            ],
+            [
+              [
+                "02A",
+                "S-SAFETY"
+              ],
+              8
+            ],
+            [
+              [
+                "7-L",
+                "S-LIGHT"
+              ],
+              7
+            ],
+            [
+              [
+                "34e",
+                "S-ELECTRIC"
+              ],
+              6
+            ]
+          ]
+        },
+        "B1-F27": {
+          "shown": 355,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "6e",
+                "S-ELECTRIC"
+              ],
+              43
+            ],
+            [
+              [
+                "1e",
+                "S-LIGHT"
+              ],
+              28
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              21
+            ],
+            [
+              [
+                "14e",
+                "S-LIGHT"
+              ],
+              20
+            ],
+            [
+              [
+                "18Se",
+                "S-LIGHT"
+              ],
+              16
+            ],
+            [
+              [
+                "18Me",
+                "S-ELECTRIC"
+              ],
+              16
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              15
+            ],
+            [
+              [
+                "60e",
+                "S-ELECTRIC"
+              ],
+              14
+            ]
+          ]
+        },
+        "B1-F28": {
+          "shown": 438,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "WP",
+                "S-GND"
+              ],
+              46
+            ],
+            [
+              [
+                "6e",
+                "S-ELECTRIC"
+              ],
+              45
+            ],
+            [
+              [
+                "1e",
+                "S-LIGHT"
+              ],
+              34
+            ],
+            [
+              [
+                "14e",
+                "S-LIGHT"
+              ],
+              24
+            ],
+            [
+              [
+                "18Se",
+                "S-LIGHT"
+              ],
+              20
+            ],
+            [
+              [
+                "18Me",
+                "S-ELECTRIC"
+              ],
+              20
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              19
+            ],
+            [
+              [
+                "60e",
+                "S-ELECTRIC"
+              ],
+              14
+            ]
+          ]
+        },
+        "B1-F29": {
+          "shown": 221,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "WP",
+                "S-GND"
+              ],
+              169
+            ],
+            [
+              [
+                "4-L",
+                "S-LIGHT"
+              ],
+              5
+            ],
+            [
+              [
+                "13-L",
+                "S-LIGHT"
+              ],
+              5
+            ],
+            [
+              [
+                "8-L",
+                "S-LIGHT"
+              ],
+              4
+            ],
+            [
+              [
+                "3-L",
+                "S-LIGHT"
+              ],
+              4
+            ],
+            [
+              [
+                "4pol",
+                "S-ELECTRIC"
+              ],
+              4
+            ],
+            [
+              [
+                "02A",
+                "S-SAFETY"
+              ],
+              3
+            ],
+            [
+              [
+                "RR",
+                "S-SAFETY"
+              ],
+              3
+            ]
+          ]
+        },
+        "B1-F30": {
+          "shown": 144,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "1e",
+                "S-PIRIM"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              3
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ]
+          ]
+        },
+        "B1-MIS": {
+          "shown": 257,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "1e",
+                "S-LIGHT"
+              ],
+              32
+            ],
+            [
+              [
+                "14e",
+                "S-LIGHT"
+              ],
+              32
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              32
+            ],
+            [
+              [
+                "6e",
+                "S-ELECTRIC"
+              ],
+              32
+            ],
+            [
+              [
+                "3-L",
+                "S-LIGHT"
+              ],
+              25
+            ],
+            [
+              [
+                "RR",
+                "S-SAFETY"
+              ],
+              14
+            ],
+            [
+              [
+                "4-L",
+                "S-LIGHT"
+              ],
+              14
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              14
+            ]
+          ]
+        }
+      },
+      "analyze_secs": 65.343,
+      "legend_decoded": 39,
+      "legend_total": 232,
+      "elapsed": 65.36
+    },
+    "3031-D124": {
+      "path": "C:\\Users\\ERAN YOSEF\\Downloads\\בדיקה\\3031-DIROT 124.dwg",
+      "convert_secs": 1.582,
+      "cache_hit": false,
+      "unstable": 933.0,
+      "warnings": [
+        "dwg_unstable_objects",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate",
+        "possible_duplicate"
+      ],
+      "layouts": {
+        "B2-F0": {
+          "shown": 593,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "6e",
+                "S-ELECTRIC"
+              ],
+              47
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              43
+            ],
+            [
+              [
+                "WP",
+                "S-GND"
+              ],
+              38
+            ],
+            [
+              [
+                "14e",
+                "S-LIGHT"
+              ],
+              37
+            ],
+            [
+              [
+                "1e",
+                "S-LIGHT"
+              ],
+              35
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              33
+            ],
+            [
+              [
+                "3-L",
+                "S-LIGHT"
+              ],
+              32
+            ],
+            [
+              [
+                "4-L",
+                "S-LIGHT"
+              ],
+              27
+            ]
+          ]
+        },
+        "B2-F1": {
+          "shown": 143,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              3
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ],
+            [
+              [
+                "FAN",
+                "S-ELECTRIC"
+              ],
+              2
+            ]
+          ]
+        },
+        "B2-F14": {
+          "shown": 143,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              3
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ],
+            [
+              [
+                "FAN",
+                "S-ELECTRIC"
+              ],
+              2
+            ]
+          ]
+        },
+        "B2-F15": {
+          "shown": 144,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "1e",
+                "S-PIRIM"
+              ],
+              3
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ]
+          ]
+        },
+        "B2-F16": {
+          "shown": 273,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "6e",
+                "S-ELECTRIC"
+              ],
+              37
+            ],
+            [
+              [
+                "1e",
+                "S-LIGHT"
+              ],
+              16
+            ],
+            [
+              [
+                "14e",
+                "S-LIGHT"
+              ],
+              15
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              13
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              13
+            ],
+            [
+              [
+                "gndD",
+                "S-GND"
+              ],
+              11
+            ],
+            [
+              [
+                "T",
+                "S-ELECTRIC"
+              ],
+              11
+            ],
+            [
+              [
+                "111e",
+                "S-LIGHT"
+              ],
+              10
+            ]
+          ]
+        },
+        "B2-F17": {
+          "shown": 230,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "1e",
+                "S-LIGHT"
+              ],
+              17
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              16
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              13
+            ],
+            [
+              [
+                "14e",
+                "S-LIGHT"
+              ],
+              13
+            ],
+            [
+              [
+                "6e",
+                "S-ELECTRIC"
+              ],
+              12
+            ],
+            [
+              [
+                "222e",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "18Me",
+                "S-ELECTRIC"
+              ],
+              11
+            ],
+            [
+              [
+                "18Se",
+                "S-LIGHT"
+              ],
+              11
+            ]
+          ]
+        },
+        "B2-F18": {
+          "shown": 144,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ],
+            [
+              [
+                "FAN",
+                "S-ELECTRIC"
+              ],
+              2
+            ]
+          ]
+        },
+        "B2-F19": {
+          "shown": 144,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              3
+            ],
+            [
+              [
+                "1e",
+                "S-PIRIM"
+              ],
+              3
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ]
+          ]
+        },
+        "B2-F2-8": {
+          "shown": 144,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              3
+            ],
+            [
+              [
+                "1e",
+                "S-PIRIM"
+              ],
+              3
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ]
+          ]
+        },
+        "B2-F9-13": {
+          "shown": 144,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              3
+            ],
+            [
+              [
+                "1e",
+                "S-PIRIM"
+              ],
+              3
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ]
+          ]
+        },
+        "B2-MIS": {
+          "shown": 338,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "6e",
+                "S-ELECTRIC"
+              ],
+              50
+            ],
+            [
+              [
+                "1e",
+                "S-LIGHT"
+              ],
+              42
+            ],
+            [
+              [
+                "14e",
+                "S-LIGHT"
+              ],
+              34
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              23
+            ],
+            [
+              [
+                "3-L",
+                "S-LIGHT"
+              ],
+              18
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              13
+            ],
+            [
+              [
+                "4-L",
+                "S-LIGHT"
+              ],
+              11
+            ],
+            [
+              [
+                "16e",
+                "S-LIGHT"
+              ],
+              10
+            ]
+          ]
+        },
+        "B3-F0": {
+          "shown": 528,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "6e",
+                "S-ELECTRIC"
+              ],
+              41
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              40
+            ],
+            [
+              [
+                "WP",
+                "S-GND"
+              ],
+              34
+            ],
+            [
+              [
+                "14e",
+                "S-LIGHT"
+              ],
+              33
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              33
+            ],
+            [
+              [
+                "1e",
+                "S-LIGHT"
+              ],
+              32
+            ],
+            [
+              [
+                "4-L",
+                "S-LIGHT"
+              ],
+              23
+            ],
+            [
+              [
+                "3-L",
+                "S-LIGHT"
+              ],
+              23
+            ]
+          ]
+        },
+        "B3-F1": {
+          "shown": 143,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ],
+            [
+              [
+                "FAN",
+                "S-ELECTRIC"
+              ],
+              2
+            ]
+          ]
+        },
+        "B3-F14": {
+          "shown": 142,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              3
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ],
+            [
+              [
+                "FAN",
+                "S-ELECTRIC"
+              ],
+              2
+            ]
+          ]
+        },
+        "B3-F15": {
+          "shown": 144,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              3
+            ],
+            [
+              [
+                "1e",
+                "S-PIRIM"
+              ],
+              3
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ]
+          ]
+        },
+        "B3-F16": {
+          "shown": 271,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "6e",
+                "S-ELECTRIC"
+              ],
+              37
+            ],
+            [
+              [
+                "1e",
+                "S-LIGHT"
+              ],
+              16
+            ],
+            [
+              [
+                "14e",
+                "S-LIGHT"
+              ],
+              15
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              13
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              13
+            ],
+            [
+              [
+                "T",
+                "S-ELECTRIC"
+              ],
+              11
+            ],
+            [
+              [
+                "60e",
+                "S-ELECTRIC"
+              ],
+              10
+            ],
+            [
+              [
+                "111e",
+                "S-LIGHT"
+              ],
+              10
+            ]
+          ]
+        },
+        "B3-F17": {
+          "shown": 230,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "1e",
+                "S-LIGHT"
+              ],
+              17
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              16
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              13
+            ],
+            [
+              [
+                "14e",
+                "S-LIGHT"
+              ],
+              13
+            ],
+            [
+              [
+                "6e",
+                "S-ELECTRIC"
+              ],
+              12
+            ],
+            [
+              [
+                "222e",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "18Me",
+                "S-ELECTRIC"
+              ],
+              11
+            ],
+            [
+              [
+                "18Se",
+                "S-LIGHT"
+              ],
+              11
+            ]
+          ]
+        },
+        "B3-F18": {
+          "shown": 144,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              3
+            ],
+            [
+              [
+                "1e",
+                "S-PIRIM"
+              ],
+              3
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ]
+          ]
+        },
+        "B3-F19": {
+          "shown": 144,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              3
+            ],
+            [
+              [
+                "1e",
+                "S-PIRIM"
+              ],
+              3
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ]
+          ]
+        },
+        "B3-F2-8": {
+          "shown": 144,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              3
+            ],
+            [
+              [
+                "1e",
+                "S-PIRIM"
+              ],
+              3
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ]
+          ]
+        },
+        "B3-F9-13": {
+          "shown": 141,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "lightNumber",
+                "S-LIGHT"
+              ],
+              12
+            ],
+            [
+              [
+                "contact",
+                "S-LINE"
+              ],
+              11
+            ],
+            [
+              [
+                "1X10A",
+                "S-SWITCH"
+              ],
+              7
+            ],
+            [
+              [
+                "LU24",
+                "S-LINE"
+              ],
+              7
+            ],
+            [
+              [
+                "maga",
+                "S-LINE"
+              ],
+              4
+            ],
+            [
+              [
+                "hibur",
+                "S-LINE"
+              ],
+              3
+            ],
+            [
+              [
+                "fi3",
+                "S-SAFETY"
+              ],
+              2
+            ],
+            [
+              [
+                "FAN",
+                "S-ELECTRIC"
+              ],
+              2
+            ]
+          ]
+        },
+        "B3-MIS": {
+          "shown": 335,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "6e",
+                "S-ELECTRIC"
+              ],
+              49
+            ],
+            [
+              [
+                "1e",
+                "S-LIGHT"
+              ],
+              41
+            ],
+            [
+              [
+                "14e",
+                "S-LIGHT"
+              ],
+              33
+            ],
+            [
+              [
+                "23e",
+                "S-LIGHT"
+              ],
+              22
+            ],
+            [
+              [
+                "3-L",
+                "S-LIGHT"
+              ],
+              18
+            ],
+            [
+              [
+                "6-L",
+                "S-LIGHT"
+              ],
+              13
+            ],
+            [
+              [
+                "4-L",
+                "S-LIGHT"
+              ],
+              11
+            ],
+            [
+              [
+                "16e",
+                "S-LIGHT"
+              ],
+              10
+            ]
+          ]
+        },
+        "IEC": {
+          "shown": 0,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": []
+        }
+      },
+      "analyze_secs": 125.856,
+      "legend_decoded": 152,
+      "legend_total": 601,
+      "elapsed": 127.51
+    },
+    "3096-EL": {
+      "path": "C:\\Users\\ERAN YOSEF\\Downloads\\3096-EL - 12.04.26\\3096-EL.dwg",
+      "convert_secs": 0.226,
+      "cache_hit": false,
+      "unstable": 205.0,
+      "warnings": [
+        "dwg_unstable_objects",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "xref_missing",
+        "possible_duplicate"
+      ],
+      "layouts": {
+        "BEZEQ": {
+          "shown": 51,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "pir",
+                "S-PIRIM"
+              ],
+              22
+            ],
+            [
+              [
+                "26ee",
+                "S-SW"
+              ],
+              10
+            ],
+            [
+              [
+                "rikuzMonim",
+                "S-IEC"
+              ],
+              8
+            ],
+            [
+              [
+                "27e",
+                "S-SW"
+              ],
+              4
+            ],
+            [
+              [
+                "*geom:aaa6f9c775bbeaa0",
+                "S-PIRIM"
+              ],
+              1
+            ],
+            [
+              [
+                "*geom:9edcb588798ba80e",
+                "S-PIRIM"
+              ],
+              1
+            ],
+            [
+              [
+                "*geom:e9a73d0995388242",
+                "S-IEC"
+              ],
+              1
+            ],
+            [
+              [
+                "*geom:4cf8957bdf9beb82",
+                "S-IEC"
+              ],
+              1
+            ]
+          ]
+        },
+        "IEC": {
+          "shown": 6,
+          "hiddenByLayers": 2,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "pir",
+                "S-PIRIM"
+              ],
+              3
+            ],
+            [
+              [
+                "fd-panel",
+                "S-SAFETY"
+              ],
+              1
+            ],
+            [
+              [
+                "fd-alarm",
+                "S-SAFETY"
+              ],
+              1
+            ],
+            [
+              [
+                "12e",
+                "S-ELECTRIC"
+              ],
+              1
+            ]
+          ]
+        },
+        "M0": {
+          "shown": 0,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": []
+        }
+      },
+      "analyze_secs": 2.263,
+      "legend_decoded": 0,
+      "legend_total": 0,
+      "elapsed": 2.51
+    },
+    "3621-EL": {
+      "path": "C:\\Users\\ERAN YOSEF\\Downloads\\3621-EL.dwg",
+      "convert_secs": 0.429,
+      "cache_hit": false,
+      "unstable": 61.0,
+      "warnings": [
+        "dwg_unstable_objects",
+        "xref_missing",
+        "xref_missing"
+      ],
+      "layouts": {
+        "F1": {
+          "shown": 0,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": []
+        },
+        "IEC": {
+          "shown": 0,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": []
+        },
+        "M0": {
+          "shown": 0,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": []
+        }
+      },
+      "analyze_secs": 3.969,
+      "legend_decoded": 0,
+      "legend_total": 0,
+      "elapsed": 4.41
+    },
+    "3621-G1": {
+      "path": "C:\\Users\\ERAN YOSEF\\Downloads\\3621-EL - 29.03.26\\G1.dwg",
+      "convert_secs": 5.517,
+      "cache_hit": false,
+      "unstable": 9.0,
+      "warnings": [
+        "dwg_unstable_objects"
+      ],
+      "layouts": {
+        "Layout1": {
+          "shown": 0,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": []
+        }
+      },
+      "analyze_secs": 32.5,
+      "legend_decoded": 0,
+      "legend_total": 0,
+      "elapsed": 38.07
+    },
+    "3621-G2": {
+      "path": "C:\\Users\\ERAN YOSEF\\Downloads\\3621-EL - 29.03.26\\G2.dwg",
+      "convert_secs": 5.299,
+      "cache_hit": false,
+      "unstable": 9.0,
+      "warnings": [
+        "dwg_unstable_objects"
+      ],
+      "layouts": {
+        "Layout1": {
+          "shown": 0,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": []
+        }
+      },
+      "analyze_secs": 22.833,
+      "legend_decoded": 0,
+      "legend_total": 0,
+      "elapsed": 28.17
+    },
+    "7155-A1": {
+      "path": "C:\\Users\\ERAN YOSEF\\Downloads\\FW__בניין_הנדסה_אזרחית_+_מאיץ_+_חקר_היין_-_תוכניות_חשמל___מנ_מ_+_מפרטים_+_כמויות_ומחירי_יעד\\חשמל חקר היין\\חשמל\\7155-A1 - Standard\\7155-A1.dwg",
+      "convert_secs": 0.783,
+      "cache_hit": true,
+      "unstable": 41.0,
+      "warnings": [
+        "dwg_unstable_objects",
+        "xref_missing"
+      ],
+      "layouts": {
+        "חשמל ג": {
+          "shown": 51,
+          "hiddenByLayers": 219,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "S1-2",
+                "שקעים"
+              ],
+              16
+            ],
+            [
+              [
+                "s24a",
+                "שקעים"
+              ],
+              11
+            ],
+            [
+              [
+                "34",
+                "שקעים"
+              ],
+              9
+            ],
+            [
+              [
+                "S2-2",
+                "שקעים"
+              ],
+              5
+            ],
+            [
+              [
+                "WiFi",
+                "שקעים"
+              ],
+              3
+            ],
+            [
+              [
+                "s26",
+                "שקעים"
+              ],
+              3
+            ],
+            [
+              [
+                "S7",
+                "שקעים"
+              ],
+              2
+            ],
+            [
+              [
+                "s25",
+                "שקעים"
+              ],
+              1
+            ]
+          ]
+        },
+        "חשמל ד": {
+          "shown": 29,
+          "hiddenByLayers": 92,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "S1-2",
+                "שקעים"
+              ],
+              13
+            ],
+            [
+              [
+                "S2-2",
+                "שקעים"
+              ],
+              3
+            ],
+            [
+              [
+                "S7",
+                "שקעים"
+              ],
+              2
+            ],
+            [
+              [
+                "s24a",
+                "שקעים"
+              ],
+              2
+            ],
+            [
+              [
+                "WiFi",
+                "שקעים"
+              ],
+              2
+            ],
+            [
+              [
+                "B18A",
+                "מדיה"
+              ],
+              2
+            ],
+            [
+              [
+                "s25",
+                "שקעים"
+              ],
+              1
+            ],
+            [
+              [
+                "s27-a",
+                "שקעים"
+              ],
+              1
+            ]
+          ]
+        },
+        "לוחות": {
+          "shown": 24,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "MAMT",
+                "0"
+              ],
+              8
+            ],
+            [
+              [
+                "CONTACTOR",
+                "0"
+              ],
+              8
+            ],
+            [
+              [
+                "M",
+                "0"
+              ],
+              4
+            ],
+            [
+              [
+                "mz3",
+                "0"
+              ],
+              2
+            ],
+            [
+              [
+                "L1",
+                "0"
+              ],
+              2
+            ]
+          ]
+        },
+        "מקרא": {
+          "shown": 31,
+          "hiddenByLayers": 0,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "F1",
+                "גילוי אש"
+              ],
+              1
+            ],
+            [
+              [
+                "F4",
+                "גילוי אש"
+              ],
+              1
+            ],
+            [
+              [
+                "F6",
+                "גילוי אש"
+              ],
+              1
+            ],
+            [
+              [
+                "f10",
+                "גילוי אש"
+              ],
+              1
+            ],
+            [
+              [
+                "led1",
+                "תאורה"
+              ],
+              1
+            ],
+            [
+              [
+                "T18",
+                "תאורה"
+              ],
+              1
+            ],
+            [
+              [
+                "T20",
+                "תאורה"
+              ],
+              1
+            ],
+            [
+              [
+                "T20A",
+                "תאורה"
+              ],
+              1
+            ]
+          ]
+        },
+        "תאורה ג": {
+          "shown": 219,
+          "hiddenByLayers": 51,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "T1",
+                "תאורה"
+              ],
+              68
+            ],
+            [
+              [
+                "T32",
+                "תאורה"
+              ],
+              47
+            ],
+            [
+              [
+                "F1",
+                "גילוי אש"
+              ],
+              31
+            ],
+            [
+              [
+                "led1",
+                "תאורה"
+              ],
+              24
+            ],
+            [
+              [
+                "B18",
+                "בטחון"
+              ],
+              14
+            ],
+            [
+              [
+                "T20",
+                "תאורה"
+              ],
+              9
+            ],
+            [
+              [
+                "T19",
+                "תאורה"
+              ],
+              6
+            ],
+            [
+              [
+                "T18",
+                "תאורה"
+              ],
+              4
+            ]
+          ]
+        },
+        "תאורה ד": {
+          "shown": 92,
+          "hiddenByLayers": 29,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "T32",
+                "תאורה"
+              ],
+              27
+            ],
+            [
+              [
+                "led1",
+                "תאורה"
+              ],
+              14
+            ],
+            [
+              [
+                "F1",
+                "גילוי אש"
+              ],
+              12
+            ],
+            [
+              [
+                "t6",
+                "תאורה"
+              ],
+              6
+            ],
+            [
+              [
+                "B18",
+                "בטחון"
+              ],
+              5
+            ],
+            [
+              [
+                "T22",
+                "תאורה"
+              ],
+              5
+            ],
+            [
+              [
+                "T1",
+                "תאורה"
+              ],
+              4
+            ],
+            [
+              [
+                "T29",
+                "תאורה"
+              ],
+              4
+            ]
+          ]
+        },
+        "תעלות ג": {
+          "shown": 0,
+          "hiddenByLayers": 270,
+          "analyzed": "full",
+          "top": []
+        },
+        "תעלות ד": {
+          "shown": 2,
+          "hiddenByLayers": 119,
+          "analyzed": "full",
+          "top": [
+            [
+              [
+                "B18A",
+                "מדיה"
+              ],
+              2
+            ]
+          ]
+        }
+      },
+      "analyze_secs": 17.447,
+      "legend_decoded": 28,
+      "legend_total": 31,
+      "elapsed": 17.45
+    }
+  },
+  "generatedAt": "2026-11-14T15:52:35"
+}
