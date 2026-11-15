@@ -25,6 +25,11 @@ import {
   insertFile,
   insertJob,
   listAnalysesForProject,
+  deleteAnalysis,
+  updateAnalysisName,
+  setAnalysisArchived,
+  isTakeoffArchivedAnalysisName,
+  takeoffArchivedDisplayName,
   listCatalogOverrides,
   listLibrary,
   listRuleSets,
@@ -67,20 +72,51 @@ function externalActor(context: ExternalContext): TakeoffActor {
   return { kind: 'external', context };
 }
 
-export async function listAnalysesUseCase(context: OrgContext, projectId: string): Promise<AnalysisSummary[]> {
+export async function listAnalysesUseCase(
+  context: OrgContext,
+  projectId: string,
+  options?: { includeArchived?: boolean },
+): Promise<AnalysisSummary[]> {
   await authorizeTakeoffProject(internalActor(context), projectId, 'view');
-  const rows = await listAnalysesForProject(context.db, context.organizationId, projectId);
+  const rows = await listAnalysesForProject(context.db, context.organizationId, projectId, options);
   return rows.map((a) => ({
-      id: a.id,
-      name: a.name,
-      status: a.status as AnalysisSummary['status'],
-      plannerKey: a.plannerKey,
-      revision: a.revision,
-      updatedAtIso: a.updatedAt.toISOString(),
-      fileCount: 0,
-      approvedAtIso: a.approvedAt?.toISOString() ?? null,
-      persistenceMode: (a.persistenceMode ?? TAKEOFF_PERSISTENCE.persistent) as AnalysisSummary['persistenceMode'],
-    }));
+    id: a.id,
+    name: takeoffArchivedDisplayName(a.name),
+    status: a.status as AnalysisSummary['status'],
+    plannerKey: a.plannerKey,
+    revision: a.revision,
+    updatedAtIso: a.updatedAt.toISOString(),
+    fileCount: 0,
+    approvedAtIso: a.approvedAt?.toISOString() ?? null,
+    persistenceMode: (a.persistenceMode ?? TAKEOFF_PERSISTENCE.persistent) as AnalysisSummary['persistenceMode'],
+    archivedAtIso: isTakeoffArchivedAnalysisName(a.name) ? a.updatedAt.toISOString() : null,
+  }));
+}
+
+export async function renameAnalysisUseCase(context: OrgContext, analysisId: string, name: string): Promise<void> {
+  const trimmed = name.trim();
+  if (!trimmed) throw new TakeoffError('forbidden');
+  const analysis = await assertAnalysisAccess(internalActor(context), analysisId, 'manage');
+  const baseName = isTakeoffArchivedAnalysisName(analysis.name) ? `[ARCHIVED] ${trimmed}` : trimmed;
+  await updateAnalysisName(context.db, context.organizationId, analysis.id, baseName);
+}
+
+export async function archiveAnalysisUseCase(context: OrgContext, analysisId: string): Promise<void> {
+  await assertAnalysisAccess(internalActor(context), analysisId, 'manage');
+  await setAnalysisArchived(context.db, context.organizationId, analysisId, true);
+}
+
+export async function restoreAnalysisUseCase(context: OrgContext, analysisId: string): Promise<void> {
+  await assertAnalysisAccess(internalActor(context), analysisId, 'manage');
+  await setAnalysisArchived(context.db, context.organizationId, analysisId, false);
+}
+
+export async function deleteAnalysisUseCase(context: OrgContext, analysisId: string): Promise<void> {
+  const analysis = await assertAnalysisAccess(internalActor(context), analysisId, 'manage');
+  if (analysis.status === 'approved') throw new TakeoffError('analysis_locked_approved');
+  const { purgeEphemeralAnalysisBytes } = await import('./takeoff-persistence');
+  await purgeEphemeralAnalysisBytes(context.db, context.organizationId, analysisId);
+  await deleteAnalysis(context.db, context.organizationId, analysisId);
 }
 
 export async function getTakeoffInputCapabilitiesUseCase(

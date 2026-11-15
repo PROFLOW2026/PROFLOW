@@ -525,6 +525,7 @@ export const analysisSummarySchema = z.object({
   fileCount: z.number(),
   approvedAtIso: z.string().nullable(),
   persistenceMode: takeoffPersistenceModeSchema.default('persistent'),
+  archivedAtIso: z.string().nullable().optional(),
 });
 export type AnalysisSummary = z.infer<typeof analysisSummarySchema>;
 
@@ -596,7 +597,11 @@ export type ExportKind = 'xlsx' | 'boq-pdf' | 'annotated-pdf';
 
 /** What server actions expose. Server actions implement it (Agent 5); the UI consumes it (Agent 4). */
 export interface TakeoffClientApi {
-  listAnalyses(projectId: string): Promise<AnalysisSummary[]>;
+  listAnalyses(projectId: string, options?: { includeArchived?: boolean }): Promise<AnalysisSummary[]>;
+  renameAnalysis(analysisId: string, name: string): Promise<void>;
+  archiveAnalysis(analysisId: string): Promise<void>;
+  restoreAnalysis(analysisId: string): Promise<void>;
+  deleteAnalysis(analysisId: string): Promise<void>;
   createAnalysis(projectId: string, input: { name: string; plannerKey?: string }): Promise<AnalysisSummary>;
   /** Includes `workerWarnings` and `workerStats` from the latest successful job (default empty). */
   getAnalysisView(analysisId: string): Promise<AnalysisView>;

@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { formatTakeoffDisplayName } from '@/modules/electrical-takeoff/domain/format-display-name';
+import {
+  formatTakeoffDisplayName,
+  sanitizeWorkerSheetName,
+} from '@/modules/electrical-takeoff/domain/format-display-name';
 
 describe('formatTakeoffDisplayName', () => {
   it('returns Hebrew strings unchanged', () => {
@@ -13,5 +16,11 @@ describe('formatTakeoffDisplayName', () => {
 
   it('keeps ASCII filenames', () => {
     expect(formatTakeoffDisplayName('electrical-plan.pdf')).toBe('electrical-plan.pdf');
+  });
+});
+
+describe('sanitizeWorkerSheetName', () => {
+  it('replaces Autodesk educational watermark with a neutral sheet label', () => {
+    expect(sanitizeWorkerSheetName('PRODUCED BY AN AUTODESK EDUCATIONAL PRODUCT', 2)).toBe('גיליון 3');
   });
 });

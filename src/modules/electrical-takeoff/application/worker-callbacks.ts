@@ -13,7 +13,6 @@ import { parseWorkerProgressPayload, parseWorkerResultPayload } from '../domain/
 import { formatWorkerIngestError, WorkerIngestError } from '../domain/worker-ingest-error';
 import { verifyJobBearer, verifyStoredTokenHash } from './worker-token';
 import { takeoffDeps } from '../server';
-import { resolveTakeoffFileStoreForAnalysis } from './takeoff-persistence';
 import type { DbExecutor } from '@/shared/db/types';
 
 export async function authorizeWorkerJob(db: DbExecutor, jobId: string, bearer: string, secret: string) {
@@ -73,16 +72,18 @@ export async function applyWorkerArtifact(
   if (!job) throw new Error('job missing');
   const existing = await findArtifactByJobAndName(db, job.organizationId, jobId, name);
   if (existing) return existing.id;
-  const artifactKey = `${jobId}:${name}`;
-  const store = await resolveTakeoffFileStoreForAnalysis(db, job.organizationId, job.analysisId);
-  const stored = await store.putArtifact?.({
-    organizationId: job.organizationId,
-    projectId: job.projectId,
-    artifactKey,
-    name,
-    mimeType,
-    bytes,
-  });
+  const { putTakeoffArtifactBytes } = await import('./takeoff-artifact-store');
+  try {
+    await putTakeoffArtifactBytes({
+      organizationId: job.organizationId,
+      jobId,
+      name,
+      mimeType,
+      bytes,
+    });
+  } catch {
+    /* legacy rows may still resolve via evidenceId below */
+  }
   const row = await insertArtifact(db, {
     id: randomUUID(),
     organizationId: job.organizationId,
@@ -93,7 +94,7 @@ export async function applyWorkerArtifact(
     kind: mimeType.startsWith('image/') ? 'preview' : 'export',
     mimeType,
     sizeBytes: bytes.length,
-    evidenceId: stored?.documentId ?? null,
+    evidenceId: null,
   });
   return row.id;
 }

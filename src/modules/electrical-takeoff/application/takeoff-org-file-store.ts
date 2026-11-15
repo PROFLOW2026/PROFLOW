@@ -1,7 +1,6 @@
 import 'server-only';
 
-import { randomUUID } from 'node:crypto';
-import { createPendingProjectDocument, markProjectDocumentStored } from '@/modules/evidence/application/document-records';
+import { markProjectDocumentStored } from '@/modules/evidence/application/document-records';
 import { externalProviderFileStore } from '@/modules/evidence/server';
 import { runCommittedStorageWrite } from '@/modules/external-storage/server';
 import { takeoffNotFound } from '../domain/errors';
@@ -68,6 +67,18 @@ export function createOrgCloudTakeoffFileStore(): TakeoffFileStore {
     },
 
     async openReadStream(input) {
+      const colon = input.fileId.indexOf(':');
+      if (colon > 0) {
+        const jobId = input.fileId.slice(0, colon);
+        const name = input.fileId.slice(colon + 1);
+        const { openTakeoffArtifactReadStream } = await import('./takeoff-artifact-store');
+        const fromSupabase = await openTakeoffArtifactReadStream({
+          organizationId: input.organizationId,
+          jobId,
+          artifactName: name,
+        });
+        if (fromSupabase) return fromSupabase;
+      }
       const documentId = await resolveDocumentId(input.organizationId, input.fileId);
       const opened = await externalProviderFileStore.open({
         organizationId: input.organizationId,
@@ -82,39 +93,17 @@ export function createOrgCloudTakeoffFileStore(): TakeoffFileStore {
     },
 
     async putArtifact(input) {
-      const documentId = randomUUID();
-      await runCommittedStorageWrite(async (db) => {
-        const connection = await externalProviderFileStore.resolveConnection(input.organizationId);
-        await createPendingProjectDocument(db, {
-          documentId,
-          organizationId: input.organizationId,
-          connection,
-          fileName: input.name,
-          mimeType: input.mimeType,
-          sizeBytes: input.bytes.length,
-          uploadedByUserId: null,
-          owner: { type: 'project', id: input.projectId },
-          label: 'takeoff_artifact',
-        });
-        const put = await externalProviderFileStore.put({
-          organizationId: input.organizationId,
-          projectId: input.projectId,
-          documentId,
-          folder: 'plans',
-          fileName: input.name,
-          mimeType: input.mimeType,
-          bytes: input.bytes,
-        });
-        await markProjectDocumentStored(db, {
-          organizationId: input.organizationId,
-          documentId,
-          fileName: input.name,
-          mimeType: input.mimeType,
-          stored: put,
-          uploadedByUserId: null,
-        });
+      const colon = input.artifactKey.indexOf(':');
+      const jobId = colon > 0 ? input.artifactKey.slice(0, colon) : 'job';
+      const { putTakeoffArtifactBytes } = await import('./takeoff-artifact-store');
+      await putTakeoffArtifactBytes({
+        organizationId: input.organizationId,
+        jobId,
+        name: input.name,
+        mimeType: input.mimeType,
+        bytes: input.bytes,
       });
-      return { artifactKey: input.artifactKey, documentId };
+      return { artifactKey: input.artifactKey };
     },
   };
 }

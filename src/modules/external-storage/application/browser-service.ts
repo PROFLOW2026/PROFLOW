@@ -2,7 +2,7 @@ import 'server-only';
 
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { DomainRuleError, NotFoundError, ServiceUnavailableError } from '@/shared/errors';
-import { assertPermission } from '@/shared/permissions/assert';
+import { assertAnyPermission, assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { updateDocumentById } from '@/modules/documents';
@@ -445,7 +445,7 @@ export async function getProjectStorageBrowserContext(
   context: OrgContext,
   projectId: string,
 ): Promise<ProjectStorageBrowserContext> {
-  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  assertAnyPermission(context, [PERMISSIONS.DOCUMENTS_READ, PERMISSIONS.TAKEOFF_MANAGE]);
   const runtime = await resolveProjectBrowserRuntime(context, projectId);
   return buildBrowserContext(context, runtime);
 }
@@ -455,7 +455,7 @@ export async function loadProjectFileBrowserInitial(
   context: OrgContext,
   projectId: string,
 ): Promise<ProjectFileBrowserInitialLoad> {
-  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  assertAnyPermission(context, [PERMISSIONS.DOCUMENTS_READ, PERMISSIONS.TAKEOFF_MANAGE]);
   const runtime = await resolveProjectBrowserRuntime(context, projectId);
   const listing = await runtime.adapter.listFolder(
     runtime.accessToken,
@@ -487,7 +487,7 @@ export async function browseProjectStorageFolder(
     folderName?: string | null;
   },
 ): Promise<ProjectBrowserListingResult> {
-  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  assertAnyPermission(context, [PERMISSIONS.DOCUMENTS_READ, PERMISSIONS.TAKEOFF_MANAGE]);
   const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
   const folderExternalId = input.folderExternalId?.trim() || runtime.projectRootFolderId;
   const isProjectRoot = folderExternalId === runtime.projectRootFolderId;
@@ -873,7 +873,7 @@ export async function assertProjectProviderFileAccess(
   projectId: string,
   providerFileId: string,
 ): Promise<{ connection: StorageConnectionRecord; file: ProviderFileItem }> {
-  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  assertAnyPermission(context, [PERMISSIONS.DOCUMENTS_READ, PERMISSIONS.TAKEOFF_MANAGE]);
   const runtime = await resolveProjectBrowserRuntime(context, projectId);
   const file = await assertFileScope(runtime, providerFileId);
   if (file.parentId) {

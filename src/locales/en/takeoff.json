@@ -12,7 +12,17 @@
     "subtitle": "Upload plans, review detections, and approve quantities.",
     "newAnalysis": "New analysis",
     "empty": "No analyses yet. Start with a new analysis.",
-    "defaultName": "New electrical analysis"
+    "defaultName": "New electrical analysis",
+    "showArchived": "Show archive",
+    "hideArchived": "Hide archive",
+    "archivedBadge": "Archived",
+    "actionsMenu": "Analysis actions",
+    "rename": "Rename",
+    "renamePrompt": "New analysis name",
+    "archive": "Move to archive",
+    "restore": "Restore from archive",
+    "delete": "Delete",
+    "deleteConfirm": "Delete analysis \"{name}\"? Cloud source files are not removed."
   },
   "status": {
     "draft": "Draft",

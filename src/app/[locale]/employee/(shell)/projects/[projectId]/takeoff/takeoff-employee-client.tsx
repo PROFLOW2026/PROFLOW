@@ -3,13 +3,13 @@
 import { createEmployeeProjectCloudBrowserActions } from '@/modules/external-storage/client/project-cloud-file-browser-actions';
 import { TakeoffShell } from '@/modules/electrical-takeoff/ui/takeoff-shell';
 import {
-  browseEmployeeProjectFolderAction,
-  loadEmployeeProjectFileBrowserInitialAction,
-} from '../../project-files-actions';
+  browseTakeoffCloudFolderAction,
+  loadTakeoffCloudBrowserInitialAction,
+} from '@/modules/electrical-takeoff/actions/cloud-browser-actions';
 
 const cloudBrowserActions = createEmployeeProjectCloudBrowserActions({
-  loadInitial: loadEmployeeProjectFileBrowserInitialAction,
-  browseFolder: browseEmployeeProjectFolderAction,
+  loadInitial: loadTakeoffCloudBrowserInitialAction,
+  browseFolder: browseTakeoffCloudFolderAction,
 });
 
 export function TakeoffEmployeeClient({

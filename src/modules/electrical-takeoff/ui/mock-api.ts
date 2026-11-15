@@ -94,11 +94,40 @@ export function resetTakeoffMockStore(fixture: TakeoffMockFixture = activeFixtur
 export function createMockTakeoffApi(fixture: TakeoffMockFixture = 'default'): TakeoffClientApi {
   if (fixture !== activeFixture) resetTakeoffMockStore(fixture);
   return {
-    async listAnalyses(projectId: string) {
+    async listAnalyses(projectId: string, options?: { includeArchived?: boolean }) {
       const ids = store.projectIndex.get(projectId) ?? [];
       return ids
         .map((id) => store.analyses.get(id)?.view.summary)
-        .filter((s): s is AnalysisSummary => Boolean(s));
+        .filter((s): s is AnalysisSummary => Boolean(s))
+        .filter((s) => options?.includeArchived || !s.archivedAtIso);
+    },
+
+    async renameAnalysis(analysisId: string, name: string) {
+      const record = store.analyses.get(analysisId);
+      if (!record) throw new Error('not_found');
+      record.view = { ...record.view, summary: { ...record.view.summary, name } };
+    },
+
+    async archiveAnalysis(analysisId: string) {
+      const record = store.analyses.get(analysisId);
+      if (!record) throw new Error('not_found');
+      record.view = {
+        ...record.view,
+        summary: { ...record.view.summary, archivedAtIso: new Date().toISOString() },
+      };
+    },
+
+    async restoreAnalysis(analysisId: string) {
+      const record = store.analyses.get(analysisId);
+      if (!record) throw new Error('not_found');
+      record.view = {
+        ...record.view,
+        summary: { ...record.view.summary, archivedAtIso: null },
+      };
+    },
+
+    async deleteAnalysis(analysisId: string) {
+      store.analyses.delete(analysisId);
     },
 
     async createAnalysis(projectId: string, input: { name: string; plannerKey?: string }) {

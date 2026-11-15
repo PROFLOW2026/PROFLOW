@@ -157,16 +157,17 @@ async function streamArtifact(context: OrgContext, artifactId: string): Promise<
   const artifact = await findArtifact(context.db, context.organizationId, artifactId);
   if (!artifact) return new Response(null, { status: 404 });
   await assertAnalysisAccess(internalActorFrom(context), artifact.analysisId, 'view');
-  const key = `${artifact.jobId}:${artifact.name}`;
-  const store = await resolveTakeoffFileStoreForAnalysis(context.db, context.organizationId, artifact.analysisId);
-  const stream = await store.openReadStream({
-    organizationId: context.organizationId,
-    fileId: key,
-    rangeHeader: null,
-  });
+  const { streamTakeoffArtifact } = await import('./application/takeoff-artifact-store');
+  const stream = await streamTakeoffArtifact(
+    context.db,
+    context.organizationId,
+    artifact.jobId,
+    artifact.name,
+    artifact.mimeType,
+  );
   return new Response(stream.body, {
     headers: {
-      'Content-Type': artifact.mimeType ?? stream.contentType,
+      'Content-Type': stream.contentType,
       'Cache-Control': 'private, max-age=300',
     },
   });
@@ -190,9 +191,8 @@ export async function handleExternalArtifactDownload(request: Request, artifactI
     const artifact = await findArtifact(external.db, orgId, artifactId);
     if (!artifact) return new Response(null, { status: 404 });
     await assertAnalysisAccess(externalActorFrom(external), artifact.analysisId, 'view');
-    const key = `${artifact.jobId}:${artifact.name}`;
-    const store = await resolveTakeoffFileStoreForAnalysis(external.db, orgId, artifact.analysisId);
-    const stream = await store.openReadStream({ organizationId: orgId, fileId: key, rangeHeader: null });
+    const { streamTakeoffArtifact } = await import('./application/takeoff-artifact-store');
+    const stream = await streamTakeoffArtifact(external.db, orgId, artifact.jobId, artifact.name, artifact.mimeType);
     return new Response(stream.body, {
       headers: { 'Content-Type': artifact.mimeType ?? stream.contentType, 'Cache-Control': 'private, max-age=300' },
     });

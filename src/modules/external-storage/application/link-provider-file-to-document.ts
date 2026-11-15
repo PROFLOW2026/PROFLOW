@@ -3,7 +3,7 @@ import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
-import { assertPermission } from '@/shared/permissions/assert';
+import { assertAnyPermission, assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import type { SemanticFolderType } from '@drizzle/schema/external-storage';
@@ -61,7 +61,7 @@ export async function ensureDocumentForProviderFile(
   context: OrgContext,
   input: EnsureDocumentForProviderFileInput,
 ): Promise<DocumentRecord> {
-  assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
+  assertAnyPermission(context, [PERMISSIONS.DOCUMENTS_MANAGE, PERMISSIONS.TAKEOFF_MANAGE]);
 
   const { connection, file } = await assertProjectProviderFileAccess(
     context,

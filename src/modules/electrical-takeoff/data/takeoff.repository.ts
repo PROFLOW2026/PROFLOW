@@ -21,12 +21,61 @@ import { collectWorkerWarningsFromResult, warningRowPayload } from '../domain/wo
 export const TAKEOFF_CHUNK_BYTES = 4 * 1024 * 1024;
 export const TAKEOFF_MAX_FILE_BYTES = 250 * 1024 * 1024;
 
-export async function listAnalysesForProject(db: DbExecutor, organizationId: string, projectId: string) {
-  return db
+const TAKEOFF_ARCHIVED_PREFIX = '[ARCHIVED] ';
+
+export function isTakeoffArchivedAnalysisName(name: string): boolean {
+  return name.startsWith(TAKEOFF_ARCHIVED_PREFIX);
+}
+
+export function takeoffArchivedDisplayName(name: string): string {
+  return isTakeoffArchivedAnalysisName(name) ? name.slice(TAKEOFF_ARCHIVED_PREFIX.length) : name;
+}
+
+export async function listAnalysesForProject(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  options?: { includeArchived?: boolean },
+) {
+  const rows = await db
     .select()
     .from(takeoffAnalyses)
     .where(and(eq(takeoffAnalyses.organizationId, organizationId), eq(takeoffAnalyses.projectId, projectId)))
     .orderBy(desc(takeoffAnalyses.updatedAt));
+  if (options?.includeArchived === true) return rows;
+  return rows.filter((row) => !isTakeoffArchivedAnalysisName(row.name));
+}
+
+export async function updateAnalysisName(
+  db: DbExecutor,
+  organizationId: string,
+  analysisId: string,
+  name: string,
+): Promise<void> {
+  await db
+    .update(takeoffAnalyses)
+    .set({ name: name.trim(), updatedAt: new Date() })
+    .where(and(eq(takeoffAnalyses.organizationId, organizationId), eq(takeoffAnalyses.id, analysisId)));
+}
+
+export async function setAnalysisArchived(
+  db: DbExecutor,
+  organizationId: string,
+  analysisId: string,
+  archived: boolean,
+): Promise<void> {
+  const [row] = await db
+    .select({ name: takeoffAnalyses.name })
+    .from(takeoffAnalyses)
+    .where(and(eq(takeoffAnalyses.organizationId, organizationId), eq(takeoffAnalyses.id, analysisId)))
+    .limit(1);
+  if (!row) return;
+  const display = takeoffArchivedDisplayName(row.name);
+  const nextName = archived ? `${TAKEOFF_ARCHIVED_PREFIX}${display}` : display;
+  await db
+    .update(takeoffAnalyses)
+    .set({ name: nextName, updatedAt: new Date() })
+    .where(and(eq(takeoffAnalyses.organizationId, organizationId), eq(takeoffAnalyses.id, analysisId)));
 }
 
 export async function insertAnalysis(

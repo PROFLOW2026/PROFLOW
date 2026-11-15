@@ -38,6 +38,10 @@ function makeApi(
     getTakeoffInputCapabilities: vi.fn(),
     linkCloudFile: vi.fn(),
     purgeEphemeralTakeoff: vi.fn(),
+    renameAnalysis: vi.fn(),
+    archiveAnalysis: vi.fn(),
+    restoreAnalysis: vi.fn(),
+    deleteAnalysis: vi.fn(),
   };
 }
 

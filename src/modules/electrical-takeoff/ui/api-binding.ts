@@ -5,7 +5,11 @@ import { wrapTakeoffAction } from './takeoff-action-wrap';
 /** Production UI binding: server actions (Agent 5) satisfy `TakeoffClientApi`. */
 export function createProductionTakeoffApi(): TakeoffClientApi {
   return {
-    listAnalyses: (projectId) => wrapTakeoffAction(() => actions.listAnalyses(projectId)),
+    listAnalyses: (projectId, options) => wrapTakeoffAction(() => actions.listAnalyses(projectId, options)),
+    renameAnalysis: (analysisId, name) => wrapTakeoffAction(() => actions.renameAnalysis(analysisId, name)),
+    archiveAnalysis: (analysisId) => wrapTakeoffAction(() => actions.archiveAnalysis(analysisId)),
+    restoreAnalysis: (analysisId) => wrapTakeoffAction(() => actions.restoreAnalysis(analysisId)),
+    deleteAnalysis: (analysisId) => wrapTakeoffAction(() => actions.deleteAnalysisAction(analysisId)),
     createAnalysis: (projectId, input) => wrapTakeoffAction(() => actions.createAnalysis(projectId, input)),
     getAnalysisView: (analysisId) => wrapTakeoffAction(() => actions.getAnalysisView(analysisId)),
     beginFileUpload: (analysisId, input) => wrapTakeoffAction(() => actions.beginFileUpload(analysisId, input)),

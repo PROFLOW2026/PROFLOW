@@ -1,3 +1,14 @@
+const EDUCATIONAL_WATERMARK = /produced\s+by\s+an\s+autodesk\s+educational\s+product/i;
+
+/** Drop CAD watermark lines mis-tagged as sheet titles. */
+export function sanitizeWorkerSheetName(raw: string, index: number): string {
+  const trimmed = raw.trim();
+  if (!trimmed || EDUCATIONAL_WATERMARK.test(trimmed)) {
+    return `גיליון ${index + 1}`;
+  }
+  return formatTakeoffDisplayName(trimmed);
+}
+
 /** Fix common UTF-8-as-Latin1 mojibake in worker/file names without inventing labels. */
 export function formatTakeoffDisplayName(raw: string): string {
   const trimmed = raw.trim();

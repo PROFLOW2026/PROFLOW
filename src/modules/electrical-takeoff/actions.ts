@@ -36,6 +36,10 @@ import {
   getTakeoffInputCapabilitiesUseCase,
   linkTakeoffCloudFile,
   purgeEphemeralTakeoff,
+  renameAnalysisUseCase,
+  archiveAnalysisUseCase,
+  restoreAnalysisUseCase,
+  deleteAnalysisUseCase,
 } from './application/use-cases';
 
 async function withOrg<T>(run: (ctx: OrgContext) => Promise<T>): Promise<T> {
@@ -48,8 +52,27 @@ async function withOrg<T>(run: (ctx: OrgContext) => Promise<T>): Promise<T> {
   }
 }
 
-export async function listAnalyses(projectId: string): Promise<AnalysisSummary[]> {
-  return withOrg((ctx) => listAnalysesUseCase(ctx, projectId));
+export async function listAnalyses(
+  projectId: string,
+  options?: { includeArchived?: boolean },
+): Promise<AnalysisSummary[]> {
+  return withOrg((ctx) => listAnalysesUseCase(ctx, projectId, options));
+}
+
+export async function renameAnalysis(analysisId: string, name: string): Promise<void> {
+  return withOrg((ctx) => renameAnalysisUseCase(ctx, analysisId, name));
+}
+
+export async function archiveAnalysis(analysisId: string): Promise<void> {
+  return withOrg((ctx) => archiveAnalysisUseCase(ctx, analysisId));
+}
+
+export async function restoreAnalysis(analysisId: string): Promise<void> {
+  return withOrg((ctx) => restoreAnalysisUseCase(ctx, analysisId));
+}
+
+export async function deleteAnalysisAction(analysisId: string): Promise<void> {
+  return withOrg((ctx) => deleteAnalysisUseCase(ctx, analysisId));
 }
 
 export async function createAnalysis(

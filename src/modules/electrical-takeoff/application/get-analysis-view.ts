@@ -27,7 +27,7 @@ import { isOrganizationStorageConfigured } from '@/modules/external-storage/appl
 import { TAKEOFF_PERSISTENCE } from './takeoff-persistence';
 import { takeoffNotFound } from '../domain/errors';
 import { attachSheetPreviewUrls } from './resolve-sheet-previews';
-import { formatTakeoffDisplayName } from '../domain/format-display-name';
+import { formatTakeoffDisplayName, sanitizeWorkerSheetName } from '../domain/format-display-name';
 
 export async function buildAnalysisView(actor: TakeoffActor, analysisId: string): Promise<AnalysisView> {
   const orgId = actor.kind === 'internal' ? actor.context.organizationId : actor.context.grants[0]?.organizationId;
@@ -49,10 +49,10 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
   const editList = editsFromRows(editRows);
   const { detections } = applyEdits(baseDetections, editList);
 
-  const sheetDtos: SheetDto[] = workerSheets.map((s) => ({
+  const sheetDtos: SheetDto[] = workerSheets.map((s, index) => ({
     sheetKey: s.sheetKey,
     fileId: s.fileId,
-    name: formatTakeoffDisplayName(s.name),
+    name: sanitizeWorkerSheetName(s.name, index),
     kind: s.kind,
     index: s.index,
     widthPx: s.widthPx,

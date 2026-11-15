@@ -12,7 +12,17 @@
     "subtitle": "העלאת תוכניות, בקרת זיהויים ואישור כמויות.",
     "newAnalysis": "ניתוח חדש",
     "empty": "אין עדיין ניתוחים. התחילו בניתוח חדש.",
-    "defaultName": "ניתוח חשמל חדש"
+    "defaultName": "ניתוח חשמל חדש",
+    "showArchived": "הצג ארכיון",
+    "hideArchived": "הסתר ארכיון",
+    "archivedBadge": "בארכיון",
+    "actionsMenu": "פעולות על ניתוח",
+    "rename": "שינוי שם",
+    "renamePrompt": "שם הניתוח החדש",
+    "archive": "העברה לארכיון",
+    "restore": "שחזור מהארכיון",
+    "delete": "מחיקה",
+    "deleteConfirm": "למחוק את הניתוח \"{name}\"? פעולה זו לא מוחקת קבצים בענן."
   },
   "status": {
     "draft": "טיוטה",
