@@ -24,10 +24,13 @@ describe('takeoff-analysis-view helpers', () => {
     expect(detectionTwinLabel({ ...d, source: 'pdf', reasons: ['pdf_only' as never] })).toBe('pdf_only');
   });
 
-  it('gates library save on legend identity', () => {
+  it('allows library save for an unclassified worker symbol once a catalog type is chosen', () => {
     const view = buildDemoAnalysisView();
     const d = view.detections[0]!;
-    expect(canSaveReclassifyToLibrary({ ...d, rawClass: 'L7', tagText: null }, 'light.recessed')).toBe(true);
-    expect(canSaveReclassifyToLibrary({ ...d, rawClass: '', tagText: null, reasons: ['legend_unmapped'] }, 'light.recessed')).toBe(false);
+    expect(canSaveReclassifyToLibrary({ ...d, signature: 'shape:socket', rawClass: '', tagText: null, source: 'pdf', reasons: ['unclassified'] }, 'control.switch.single')).toBe(true);
+    expect(canSaveReclassifyToLibrary({ ...d, signature: 'shape:light', rawClass: '', tagText: null, reasons: ['legend_unmapped'] }, 'light.recessed')).toBe(true);
+    expect(canSaveReclassifyToLibrary({ ...d, signature: null, rawClass: 'L7' }, 'light.recessed')).toBe(false);
+    expect(canSaveReclassifyToLibrary({ ...d, source: 'manual', signature: 'shape:x', rawClass: 'L7' }, 'light.recessed')).toBe(false);
+    expect(canSaveReclassifyToLibrary({ ...d, rawClass: 'L7' }, null)).toBe(false);
   });
 });

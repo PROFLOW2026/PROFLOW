@@ -9,18 +9,20 @@ import type {
   EffectiveDetection,
   TakeoffEdit,
 } from '../../domain/contracts';
+import { devicesFromNote } from '../../domain/quantity-notes';
 
 const deletedIds = new Set<string>();
 
 function recomputeBoq(view: AnalysisView, detections: EffectiveDetection[]): Boq {
-  const byType = new Map<string, { ids: string[]; label: string; category: BoqLine['category'] }>();
+  const byType = new Map<string, { ids: string[]; devices: number; label: string; category: BoqLine['category'] }>();
   for (const d of detections) {
     if (deletedIds.has(d.id)) continue;
     const key = d.typeKey ?? '__unclassified__';
     const cat = view.catalog.find((c) => c.key === d.typeKey)?.category ?? 'unknown';
     const label = view.catalog.find((c) => c.key === d.typeKey)?.nameHe ?? 'לא מסווג';
-    const row = byType.get(key) ?? { ids: [], label, category: cat };
+    const row = byType.get(key) ?? { ids: [], devices: 0, label, category: cat };
     row.ids.push(d.id);
+    row.devices += devicesFromNote(d.tagText);
     byType.set(key, row);
   }
   const lines: BoqLine[] = [...byType.entries()].map(([typeKey, row]) => ({
@@ -30,7 +32,8 @@ function recomputeBoq(view: AnalysisView, detections: EffectiveDetection[]): Boq
     category: row.category,
     lineKind: 'device_count',
     unit: "יח'",
-    quantity: row.ids.length,
+    quantity: row.devices,
+    symbolCount: row.ids.length,
     floor: null,
     areaId: null,
     ruleId: 'default',
@@ -77,6 +80,8 @@ function applyOne(base: EffectiveDetection[], edit: TakeoffEdit): EffectiveDetec
             }
           : d,
       );
+    case 'save_legend':
+      return base;
     case 'confirm':
       return base.map((d) =>
         edit.detectionIds.includes(d.id)
@@ -95,18 +100,21 @@ function applyOne(base: EffectiveDetection[], edit: TakeoffEdit): EffectiveDetec
           h: 18,
           typeKey: edit.typeKey,
           origin: 'user_added' as const,
-          status: 'confirmed' as const,
+          status: edit.typeKey ? ('confirmed' as const) : ('suggested' as const),
           confidence: 'high' as const,
-          reasons: [],
+          reasons: edit.typeKey ? [] : ['unclassified'],
           rawClass: 'manual',
           tagText: null,
+          signature: null,
           source: 'manual' as const,
           areaId: null,
-          needsReview: false,
+          needsReview: edit.typeKey == null,
         },
       ];
     case 'move':
       return base.map((d) => (d.id === edit.detectionId ? { ...d, x: edit.x, y: edit.y } : d));
+    case 'set_note':
+      return base.map((d) => (d.id === edit.detectionId ? { ...d, tagText: edit.tagText } : d));
     case 'upsert_area':
     case 'delete_area':
     case 'set_floor':
@@ -114,6 +122,7 @@ function applyOne(base: EffectiveDetection[], edit: TakeoffEdit): EffectiveDetec
     case 'set_sheet_included':
     case 'pair_sheets':
     case 'unpair_sheets':
+    case 'confirm_plan_review':
       return base;
   }
 }

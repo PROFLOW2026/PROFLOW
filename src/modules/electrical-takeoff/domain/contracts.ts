@@ -415,6 +415,8 @@ export const effectiveDetectionSchema = z.object({
   reasons: z.array(reviewReasonSchema),
   rawClass: z.string(),
   tagText: z.string().nullable(),
+  /** Stable symbol identity from the worker. Missing on a hand-added mark, so it cannot be saved to the library. */
+  signature: z.string().min(1).nullable().optional(),
   source: z.enum(['pdf', 'dwg', 'manual', 'merged']),
   areaId: z.string().nullable(),
   needsReview: z.boolean(),
@@ -444,6 +446,8 @@ export const boqLineSchema = z.object({
   lineKind: lineKindSchema,
   unit: z.string(),
   quantity: z.number(),
+  /** Drawn symbols in this line. Differs from `quantity` when an X2 note makes one symbol two devices. */
+  symbolCount: z.number().optional(),
   floor: z.string().nullable(),
   areaId: z.string().nullable(),
   ruleId: z.string().nullable(),
@@ -534,10 +538,14 @@ export type AnalysisSummary = z.infer<typeof analysisSummarySchema>;
 /** User edits are APPEND-ONLY events; the effective state is `applyEdits(base, edits)` (pure, see edits.ts). */
 export const takeoffEditSchema = z.discriminatedUnion('op', [
   z.object({ op: z.literal('reclassify'), detectionId: z.string(), typeKey: z.string().nullable(), saveToLibrary: z.boolean().default(false) }),
+  /** Set or clear an X2 note on one symbol. Null clears the note and leaves the type. */
+  z.object({ op: z.literal('set_note'), detectionId: z.string(), tagText: z.string().nullable() }),
+  /** Save a legend key to the planner library. No detection is required (zero plan occurrences). */
+  z.object({ op: z.literal('save_legend'), legendKey: z.string().min(1), typeKey: z.string().min(1) }),
   z.object({ op: z.literal('confirm'), detectionIds: z.array(z.string()).min(1) }),
   z.object({ op: z.literal('delete'), detectionId: z.string() }),
   z.object({ op: z.literal('restore'), detectionId: z.string() }),
-  z.object({ op: z.literal('add'), tempId: z.string(), sheetKey: z.string(), x: z.number(), y: z.number(), typeKey: z.string() }),
+  z.object({ op: z.literal('add'), tempId: z.string(), sheetKey: z.string(), x: z.number(), y: z.number(), typeKey: z.string().nullable() }),
   z.object({ op: z.literal('move'), detectionId: z.string(), x: z.number(), y: z.number() }),
   z.object({ op: z.literal('set_floor'), sheetKey: z.string(), floorLabel: z.string().nullable() }),
   z.object({ op: z.literal('set_scale'), sheetKey: z.string(), ratio: z.number().positive() }),
@@ -563,6 +571,8 @@ export const takeoffEditSchema = z.discriminatedUnion('op', [
     dwgFileId: z.string(),
     dwgSheetKey: z.string(),
   }),
+  /** Separate from per-item review: the user checked the plan for devices the engine missed. */
+  z.object({ op: z.literal('confirm_plan_review'), confirmed: z.boolean() }),
 ]);
 export type TakeoffEdit = z.infer<typeof takeoffEditSchema>;
 
@@ -592,6 +602,8 @@ export const analysisViewSchema = z.object({
   }),
   /** Append-only edit log (when server sends it). Drives sheet inclusion / pairing UI. */
   appliedEdits: z.array(takeoffEditSchema).optional(),
+  /** True only after an explicit plan-completeness confirmation that later quantity edits have not cleared. */
+  planReviewConfirmed: z.boolean().optional(),
 });
 export type AnalysisView = z.infer<typeof analysisViewSchema>;
 
@@ -657,5 +669,6 @@ export const TAKEOFF_ERROR_CODES = [
   'forbidden',
   'not_found',
   'approval_blocked_review',
+  'approval_blocked_plan_review',
 ] as const;
 export type TakeoffErrorCode = (typeof TAKEOFF_ERROR_CODES)[number];

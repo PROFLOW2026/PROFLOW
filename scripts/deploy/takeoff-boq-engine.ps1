@@ -118,7 +118,7 @@ function Start-WorkerContainer([string]$Secret) {
   if (-not $images) {
     throw "אימג' Docker $Image לא קיים. הרץ פעם אחת: docker build -t $Image takeoff-worker"
   }
-  docker run -d --restart unless-stopped --name $ContainerName -p "${Port}:8765" -e "TAKEOFF_WORKER_SECRET=$Secret" $Image | Out-Null
+  docker run -d --restart unless-stopped --name $ContainerName -p "${Port}:8765" -e "TAKEOFF_WORKER_SECRET=$Secret" -e "TAKEOFF_DWG_CACHE=/tmp/takeoff-dwg-cache" $Image | Out-Null
   $deadline = (Get-Date).AddSeconds(45)
   while ((Get-Date) -lt $deadline) {
     if (Test-WorkerLocal) { return }

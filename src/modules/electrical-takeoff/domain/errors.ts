@@ -12,6 +12,8 @@ export const TAKEOFF_MESSAGES_HE: Record<TakeoffErrorCode, string> = {
   not_found: 'הפריט לא נמצא.',
   approval_blocked_review:
     'אי אפשר לאשר כתב כמויות כל עוד יש פריטים ללא סוג או פריטים שדורשים אישור.',
+  approval_blocked_plan_review:
+    'אי אפשר לאשר כתב כמויות לפני אישור שבדקתם גם אביזרים שלא זוהו אוטומטית.',
 };
 
 export class TakeoffError extends DomainRuleError {

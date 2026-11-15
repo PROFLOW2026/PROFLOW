@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from takeoff_worker.classify.legend_map import match_legend_text
-from takeoff_worker.classify.pipeline_classify import classify_detections, classify_legend_entries
+from takeoff_worker.classify.pipeline_classify import classify_detections, classify_legend_entries, legend_key_signature
 from takeoff_worker.classify.symbol_groups import assign_symbol_group_labels
 from takeoff_worker.data.catalog_loader import load_default_catalog
 from takeoff_worker.models import SymbolLibraryEntry, WorkerDetection, WorkerLegendEntry
@@ -65,6 +65,41 @@ def test_library_precedence():
     out = classify_detections([det], catalog=catalog, library=lib, legend=legend_list)[0]
     assert out.typeKey == "power.socket.ip"
     assert out.classifiedBy == "library"
+
+
+def test_legend_key_library_labels_every_occurrence():
+    catalog = load_default_catalog()
+    sig = legend_key_signature("L6")
+    lib = [
+        SymbolLibraryEntry(
+            id="lib-l6",
+            plannerKey="test",
+            signatureKind="legend-key",
+            signature=sig,
+            typeKey="light.recessed",
+        )
+    ]
+    dets = [
+        WorkerDetection(
+            id=f"p1#{i}",
+            sheetKey="p1",
+            fileId="f",
+            source="pdf",
+            x=float(i),
+            y=1,
+            signature=f"shape:unique-{i}",
+            signatureKind="pdf-shape",
+            rawClass="L6",
+            legendKey="L6",
+            typeKey=None,
+            classifiedBy="none",
+            confidence="none",
+        )
+        for i in (1, 2)
+    ]
+    out = classify_detections(dets, catalog=catalog, library=lib, legend=[])
+    assert [d.typeKey for d in out] == ["light.recessed", "light.recessed"]
+    assert {d.classifiedBy for d in out} == {"library"}
 
 
 def test_undecodable_legend_skips_catalog_match():

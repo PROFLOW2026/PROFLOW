@@ -12,6 +12,7 @@ from pathlib import Path
 
 import ezdxf
 
+from ..data.catalog_loader import load_default_catalog
 from ..engine_api import EngineOutput, ProgressFn
 from ..models import (
     JobOptions,
@@ -32,7 +33,8 @@ from .xref_merge import collect_merged_xref_inserts, sheet_has_missing_xref_cont
 from .detections import collect_sheet_inserts, raw_to_worker
 from .doc_context import DocContext
 from .exploded import find_exploded_symbols
-from .legend import find_legend_layout, legend_viewport_region, pair_legend_rows
+from .legend import collect_drawing_legend_rows
+from .legend_types import socket_bank_signatures, type_map_from_legend_rows
 from .linear_extract import extract_linear
 from .preview import render_viewport_png
 from .rules import LayerRules
@@ -149,6 +151,25 @@ class DwgEngine:
             loaded_xrefs, xref_docs = self._load_xrefs(xref_paths, warnings, file_id)
             missing_xrefs = self._missing_xrefs(ctx, loaded_xrefs, warnings, file_id)
 
+            legend_rows = collect_drawing_legend_rows(ctx)
+            try:
+                catalog = load_default_catalog()
+            except FileNotFoundError:
+                catalog = []
+            legend_types = type_map_from_legend_rows(legend_rows, catalog)
+            bank_sigs = socket_bank_signatures(legend_rows)
+            legend_names: set[str] = set()
+            anchors: list[tuple[float, float]] = []
+            for row in legend_rows:
+                if not (row.get("rawText") or row.get("decodedText")):
+                    continue
+                if row.get("resolved"):
+                    legend_names.add(str(row["resolved"]).lower())
+                if row.get("blockName"):
+                    legend_names.add(str(row["blockName"]).lower())
+                if row.get("x") is not None and row.get("y") is not None:
+                    anchors.append((float(row["x"]), float(row["y"])))
+
             sheets_out: list[WorkerSheet] = []
             detections: list[WorkerDetection] = []
             linear: list[WorkerLinear] = []
@@ -166,10 +187,17 @@ class DwgEngine:
             plan_layouts = [n for n in layout_names if n != "Model"]
             if not plan_layouts:
                 plan_layouts = ["Model"]
+            # A default Layout1 viewport often contains extra copies of the model.
+            # When the drawing also has a named issued sheet, count that sheet only.
+            issued = [n for n in plan_layouts if n.casefold() not in {"layout1", "layout"}]
+            if issued:
+                plan_layouts = issued
 
             index = 0
             det_seq = 0
             n_layouts = len(plan_layouts)
+            # One model insert shown on two layouts is one device.
+            seen_model: set[tuple] = set()
 
             for i, lname in enumerate(plan_layouts):
                 sheet_key = f"layout:{lname}" if lname != "Model" else "model"
@@ -250,6 +278,7 @@ class DwgEngine:
                         xref_missing=missing_xrefs,
                         layout_name=lname,
                         extra=xref_extra,
+                        legend_names=legend_names,
                     )
                     if dup_extra:
                         warnings.append(
@@ -269,12 +298,17 @@ class DwgEngine:
                         else find_exploded_symbols(ctx, reg, layout_name=lname)
                     )
                     vis = vis + exploded
+                    vis = [r for r in vis if not _is_legend_anchor(r.x, r.y, anchors)]
 
                     analyzed = "full"
                     if sheet_has_missing_xref_content(ctx, reg, missing_xrefs, lname):
                         analyzed = "partial"
 
                     for raw in vis:
+                        model_key = (raw.resolved, round(raw.x, 1), round(raw.y, 1))
+                        if model_key in seen_model:
+                            continue
+                        seen_model.add(model_key)
                         det_seq += 1
                         d = raw_to_worker(
                             raw,
@@ -285,7 +319,17 @@ class DwgEngine:
                             width_px=width_px,
                             height_px=height_px,
                             library_map=library_map,
+                            legend_types=legend_types,
                         )
+                        # A socket bank has no catalog type until someone counts it.
+                        # Do not multiply the insert by an assumed number of sockets.
+                        if d["typeKey"] is None and (
+                            d["signature"] in bank_sigs or d["signature"].lower() in bank_sigs
+                        ):
+                            d["classifiedBy"] = "none"
+                            d["confidence"] = "none"
+                            if "unclassified" not in d["reasons"]:
+                                d["reasons"].append("unclassified")
                         det = WorkerDetection(**d)
                         if "xref_missing" in det.reasons and analyzed != "partial":
                             analyzed = "partial"
@@ -368,7 +412,9 @@ class DwgEngine:
 
             if progress:
                 progress("legend", 85, "Legend")
-            legend_entries = self._build_legend(ctx, file_id, plan_layouts, block_counts, artifacts)
+            legend_entries = self._build_legend(
+                file_id, legend_rows, legend_types, block_counts, bank_sigs
+            )
 
             stats["detections"] = float(len(detections))
             stats["analyze_secs"] = round(time.perf_counter() - t0, 3)
@@ -453,27 +499,23 @@ class DwgEngine:
 
     def _build_legend(
         self,
-        ctx: DocContext,
         file_id: str,
-        plan_layouts: list[str],
+        rows: list[dict],
+        legend_types: dict[str, tuple[str, str]],
         block_counts: Counter,
-        artifacts: dict[str, bytes],
+        bank_sigs: set[str] | None = None,
     ) -> list[WorkerLegendEntry]:
-        lay = find_legend_layout(ctx)
-        if not lay:
-            return []
-        reg = legend_viewport_region(ctx, lay)
-        if reg is None:
-            return []
-        rows = pair_legend_rows(ctx, reg)
+        bank_sigs = bank_sigs or set()
         out: list[WorkerLegendEntry] = []
         for row in rows:
             sig = row["signature"]
+            hit = legend_types.get(sig) or legend_types.get(sig.lower())
+            is_bank = sig in bank_sigs or sig.lower() in bank_sigs
             out.append(
                 WorkerLegendEntry(
                     key=sig,
                     fileId=file_id,
-                    sheetKey=f"layout:{lay}",
+                    sheetKey=row.get("sheetKey") or "model",
                     rowIndex=row.get("rowIndex"),
                     rawText=row.get("rawText"),
                     decodedText=row.get("decodedText"),
@@ -481,9 +523,19 @@ class DwgEngine:
                     signature=sig,
                     signatureKind="dwg-block",
                     count=int(block_counts.get(sig, 0)),
+                    typeKey=hit[0] if hit else None,
+                    confidence=hit[1] if hit else ("none" if is_bank else None),
+                    reasons=["unclassified"] if is_bank and not hit else [],
                 )
             )
         return out
+
+
+def _is_legend_anchor(x: float, y: float, anchors: list[tuple[float, float]]) -> bool:
+    for ax, ay in anchors:
+        if abs(x - ax) <= 12.0 and abs(y - ay) <= 12.0:
+            return True
+    return False
 
 
 def corpus_7155_path() -> str | None:

@@ -47,5 +47,44 @@ describe('computeBoq sheet inclusion', () => {
     expect(boqAll.counting?.countedTotal).toBe(3);
     expect(boqScoped.counting?.countedTotal).toBe(1);
     expect(boqScoped.counting?.excluded.sheetExcluded).toBe(2);
+    const excludedAll = computeBoq({
+      detections,
+      sheets: [sA, sB],
+      areas: [],
+      catalog,
+      ruleSet: DEFAULT_RULE_SET,
+      linear: [],
+      state: 'draft',
+      detectionFileIdById,
+      includedSheetRefIds: new Set(),
+    });
+    expect(excludedAll.counting?.countedTotal).toBe(0);
+  });
+
+  it('counts a mark added on an included sheet even though the mark has no file id', () => {
+    const sheet = sheetDto({ fileId: 'pdf', sheetKey: 'p1' });
+    const base = [workerDet({ id: 'p1#1', sheetKey: 'p1', fileId: 'pdf', typeKey: 'control.switch.single' })];
+    const files = [{ id: 'pdf', name: 'plan.pdf', kind: 'pdf' as const, sizeBytes: 1, uploadedAtIso: '', sha256: null }];
+    const edits = [
+      { op: 'add' as const, tempId: 'user-1', sheetKey: 'p1', x: 10, y: 20, typeKey: 'control.switch.single' },
+    ];
+    const includedSheetRefIds = new Set(
+      [...resolveSheetInclusion([sheet], files, []).entries()].filter(([, on]) => on).map(([k]) => k),
+    );
+    const detections = applyEdits(base, edits);
+    const boq = computeBoq({
+      detections,
+      sheets: [sheet],
+      areas: [],
+      catalog,
+      ruleSet: DEFAULT_RULE_SET,
+      linear: [],
+      state: 'draft',
+      detectionFileIdById: new Map(base.map((d) => [d.id, d.fileId])),
+      includedSheetRefIds,
+    });
+    const switches = boq.lines.find((line) => line.typeKey === 'control.switch.single');
+    expect(switches?.quantity).toBe(2);
+    expect(boq.counting?.excluded.sheetExcluded).toBe(0);
   });
 });

@@ -73,8 +73,14 @@ describe('electrical takeoff integration', () => {
 
       const edited = await applyEditsUseCase(context, analysis.id, [{ op: 'confirm', detectionIds: [view0.detections[0]!.id] }], view0.summary.revision);
       expect(edited.summary.revision).toBeGreaterThan(analysis.revision);
+      const confirmedPlan = await applyEditsUseCase(
+        context,
+        analysis.id,
+        [{ op: 'confirm_plan_review', confirmed: true }],
+        edited.summary.revision,
+      );
 
-      const approved = await approveAnalysisUseCase(context, analysis.id, edited.summary.revision);
+      const approved = await approveAnalysisUseCase(context, analysis.id, confirmedPlan.summary.revision);
       expect(approved.summary.status).toBe('approved');
 
       const reopened = await reopenAnalysisUseCase(context, analysis.id, approved.summary.revision);

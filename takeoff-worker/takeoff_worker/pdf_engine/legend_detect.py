@@ -50,7 +50,155 @@ def auto_legend_components(drawings, M, page_size: tuple[float, float], hint: Op
     leg_b = core_components(drawings, M, bottom, min_ext=4.0, max_ext=50.0, merge_small_tol=2.0)
     if len(leg_b) >= 8:
         return leg_b, bottom
+    mono, mono_rect = _monochrome_legend_column(drawings, M, (w, h))
+    if len(mono) >= 8 and len(mono) >= len(sym):
+        return mono, mono_rect
     return sym, region
+
+
+def _monochrome_legend_column(drawings, M, page_size: tuple[float, float]) -> tuple[list[E.Comp], Optional[PdfRect]]:
+    """Black legend rows beside a tall rule when the text layer has no Hebrew.
+
+    A legend table is a long thin vertical stroke with a stack of symbol-sized
+    marks on one side. Letter shapes on the other side are not returned.
+    """
+    from collections import Counter
+
+    w, h = page_size
+    best: list[E.Comp] = []
+    best_rect: Optional[PdfRect] = None
+    for rule in _vertical_rules(drawings, M, w, h):
+        for side in ("right", "left"):
+            rows = _symbols_beside_rule(drawings, M, rule, side, Counter)
+            if len(rows) > len(best):
+                best = rows
+                best_rect = rule
+    best.sort(key=lambda c: ((c.rect.y0 + c.rect.y1) / 2, (c.rect.x0 + c.rect.x1) / 2))
+    return best, best_rect
+
+
+def _vertical_rules(drawings, M, page_w: float, page_h: float) -> list[PdfRect]:
+    rules: list[PdfRect] = []
+    for drawing in drawings:
+        if not E.is_dark(E.item_color(drawing)):
+            continue
+        rect = E.drect(drawing, M)
+        if rect.height < max(180.0, page_h * 0.12):
+            continue
+        if rect.width > 8.0 or rect.height < rect.width * 12.0:
+            continue
+        cx = (rect.x0 + rect.x1) / 2
+        if cx < page_w * 0.08 or cx > page_w * 0.96:
+            continue
+        rules.append(rect)
+    rules.sort(key=lambda r: -r.height)
+    return rules[:12]
+
+
+def _symbols_beside_rule(drawings, M, rule: PdfRect, side: str, counter_cls) -> list[E.Comp]:
+    # Symbol cells sit in a narrow band. A wider window swallows the Hebrew labels.
+    if side == "right":
+        x0, x1 = rule.x1 + 1.5, rule.x1 + 90.0
+    else:
+        x0, x1 = rule.x0 - 90.0, rule.x0 - 1.5
+    pieces: list[tuple[int, PdfRect]] = []
+    for i, drawing in enumerate(drawings):
+        if not E.is_dark(E.item_color(drawing)):
+            continue
+        rect = E.drect(drawing, M)
+        if rect.x1 < x0 or rect.x0 > x1:
+            continue
+        if rect.y1 < rule.y0 - 2 or rect.y0 > rule.y1 + 2:
+            continue
+        if max(rect.width, rect.height) > 48.0:
+            continue
+        # Row rules and leader lines are not symbols.
+        if rect.width > 26.0 and rect.height < 4.5:
+            continue
+        pieces.append((i, rect))
+    if len(pieces) < 8:
+        return []
+    # Stroke centers inside one symbol sit within ~5pt. The next legend row is
+    # farther. A 12pt center gap merges the tighter switch/socket rows into one
+    # blob taller than a symbol, and that blob is then discarded.
+    pieces.sort(key=lambda item: ((item[1].y0 + item[1].y1) / 2, item[1].x0))
+    raw_bands: list[list[tuple[int, PdfRect]]] = []
+    current: list[tuple[int, PdfRect]] = []
+    for item in pieces:
+        cy = (item[1].y0 + item[1].y1) / 2
+        prev = (current[-1][1].y0 + current[-1][1].y1) / 2 if current else cy
+        if current and cy - prev > 8.0:
+            raw_bands.append(current)
+            current = []
+        current.append(item)
+    if current:
+        raw_bands.append(current)
+    comps: list[E.Comp] = []
+    for band in raw_bands:
+        for group in _split_symbol_band(band):
+            for row in _split_tall_row(group):
+                comp = _comp_if_symbol(row, drawings, M, counter_cls)
+                if comp is not None:
+                    comps.append(comp)
+    if len(comps) < 8:
+        return []
+    ys = sorted((c.rect.y0 + c.rect.y1) / 2 for c in comps)
+    gaps = sorted(ys[i + 1] - ys[i] for i in range(len(ys) - 1))
+    if not gaps or gaps[len(gaps) // 2] > 55.0:
+        return []
+    return comps
+
+
+def _split_symbol_band(band: list[tuple[int, PdfRect]]) -> list[list[tuple[int, PdfRect]]]:
+    """Split two symbols drawn side by side on one legend row."""
+    ordered = sorted(band, key=lambda item: item[1].x0)
+    groups: list[list[tuple[int, PdfRect]]] = [[ordered[0]]]
+    edge = ordered[0][1].x1
+    for item in ordered[1:]:
+        if item[1].x0 - edge > 7.0:
+            groups.append([item])
+        else:
+            groups[-1].append(item)
+        edge = max(edge, item[1].x1)
+    return groups
+
+
+def _split_tall_row(group: list[tuple[int, PdfRect]]) -> list[list[tuple[int, PdfRect]]]:
+    """Break a stack that the center gap still joined, at its widest internal gap."""
+    if len(group) < 2:
+        return [group]
+    union = group[0][1]
+    for item in group[1:]:
+        union = union | item[1]
+    if union.height <= 26.0:
+        return [group]
+    ordered = sorted(group, key=lambda item: (item[1].y0 + item[1].y1) / 2)
+    gaps = []
+    for i in range(len(ordered) - 1):
+        a = (ordered[i][1].y0 + ordered[i][1].y1) / 2
+        b = (ordered[i + 1][1].y0 + ordered[i + 1][1].y1) / 2
+        gaps.append((b - a, i))
+    gap, at = max(gaps)
+    if gap < 4.5:
+        return [group]
+    return _split_tall_row(ordered[: at + 1]) + _split_tall_row(ordered[at + 1 :])
+
+
+def _comp_if_symbol(group, drawings, M, counter_cls) -> Optional[E.Comp]:
+    ids = [item[0] for item in group]
+    union = group[0][1]
+    for item in group[1:]:
+        union = union | item[1]
+    if union.height > 26.0 or union.width > 46.0:
+        return None
+    ext = max(union.width, union.height)
+    if ext < 5.0 or ext > 40.0:
+        return None
+    if union.width > 26.0 and union.height < 4.5:
+        return None
+    if len(ids) < 2 and ext < 6.0:
+        return None
+    return E.Comp(ids, drawings, M, counter_cls((0.0, 0.0, 0.0) for _ in ids))
 
 
 def is_legend_sheet(legend_comps: list[E.Comp], page_area: float) -> bool:

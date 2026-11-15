@@ -112,11 +112,25 @@ export function TakeoffBoqPanel({
                         }`}
                         onClick={() => onLineClick(line.key, line.detectionIds)}
                       >
+                        <span
+                          className="size-2.5 shrink-0 rounded-full"
+                          style={{
+                            backgroundColor: line.typeKey
+                              ? (catalog.find((c) => c.key === line.typeKey)?.colorHex ?? '#64748b')
+                              : '#94a3b8',
+                          }}
+                          aria-hidden
+                        />
                         <span className="min-w-0 truncate font-medium text-[var(--pf-text-primary)]">{displayName}</span>
                       </button>
                     </td>
                     <td className="px-2 py-2 text-end align-middle font-semibold tabular-nums text-[var(--pf-text-brand)]">
                       {line.quantity}
+                      {line.symbolCount != null && line.symbolCount !== line.quantity ? (
+                        <span className="block text-xs font-normal text-[var(--pf-text-secondary)]">
+                          {t('boq.symbolCount', { count: line.symbolCount })}
+                        </span>
+                      ) : null}
                     </td>
                     <td className="px-2 py-2 align-middle text-xs text-[var(--pf-text-secondary)]">{status}</td>
                   </tr>

@@ -26,4 +26,13 @@ describe('applyEdits', () => {
     const out = applyEdits(base, [{ op: 'add', tempId: 'user-1', sheetKey: 'p1', x: 10, y: 10, typeKey: 'comm.data' }]);
     expect(out.some((d) => d.id === 'user-1' && d.origin === 'user_added')).toBe(true);
   });
+
+  it('adds a visible mark without inventing a type', () => {
+    const out = applyEdits(base, [{ op: 'add', tempId: 'user-2', sheetKey: 'p1', x: 4, y: 8, typeKey: null }]);
+    const added = out.find((d) => d.id === 'user-2');
+    expect(added?.typeKey).toBeNull();
+    expect(added?.needsReview).toBe(true);
+    expect(added?.w).toBe(18);
+    expect(added?.h).toBe(18);
+  });
 });

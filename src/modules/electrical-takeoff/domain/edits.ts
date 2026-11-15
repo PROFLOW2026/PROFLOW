@@ -32,6 +32,7 @@ type MutableRow = {
   tagText: string | null;
   source: EffectiveDetection['source'];
   rawClass: string;
+  signature: string | null;
 };
 
 export function deriveNeedsReview(input: {
@@ -73,6 +74,7 @@ function toRow(d: WorkerDetection): MutableRow {
     tagText: d.tagText ?? null,
     source: detectionSource(d),
     rawClass: d.rawClass,
+    signature: d.signature,
   };
 }
 
@@ -98,8 +100,15 @@ export function applyEdits(
         row.userChangedType = true;
         row.origin = 'user_changed';
         row.status = 'suggested';
+        if (edit.typeKey) {
+          row.reasons = row.reasons.filter((reason) => reason !== 'unclassified');
+        } else if (!row.reasons.includes('unclassified')) {
+          row.reasons = ['unclassified', ...row.reasons];
+        }
         break;
       }
+      case 'save_legend':
+        break;
       case 'confirm': {
         for (const id of edit.detectionIds) {
           const row = byId.get(id);
@@ -132,13 +141,14 @@ export function applyEdits(
           typeKey: edit.typeKey,
           x: edit.x,
           y: edit.y,
-          w: 0,
-          h: 0,
+          w: 18,
+          h: 18,
           confidence: 'high',
-          reasons: [],
+          reasons: edit.typeKey ? [] : ['unclassified'],
           tagText: null,
           source: 'manual',
           rawClass: 'user',
+          signature: null,
         });
         break;
       }
@@ -150,6 +160,13 @@ export function applyEdits(
         row.origin = row.userAdded ? 'user_added' : 'user_changed';
         break;
       }
+      case 'set_note': {
+        const row = byId.get(edit.detectionId);
+        if (!row || row.deleted) break;
+        row.tagText = edit.tagText;
+        row.origin = row.userAdded ? 'user_added' : 'user_changed';
+        break;
+      }
       case 'set_floor':
       case 'set_scale':
       case 'upsert_area':
@@ -157,6 +174,7 @@ export function applyEdits(
       case 'set_sheet_included':
       case 'pair_sheets':
       case 'unpair_sheets':
+      case 'confirm_plan_review':
         break;
       default: {
         const _exhaustive: never = edit;
@@ -242,6 +260,7 @@ function toEffective(
     reasons: row.reasons,
     rawClass: row.rawClass,
     tagText: row.tagText,
+    signature: row.signature,
     source: row.source,
     areaId: resolveAreaId(row.x, row.y, sheetKey, areas),
     needsReview,

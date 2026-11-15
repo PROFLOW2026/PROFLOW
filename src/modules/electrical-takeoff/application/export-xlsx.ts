@@ -30,7 +30,7 @@ export async function exportTakeoffBoqXlsx(input: ExportTakeoffXlsxInput): Promi
     { header: 'כמות', key: 'quantity', width: 12 },
     { header: 'מאומת', key: 'verified', width: 10 },
   ];
-  const summaryRows = input.boq.lines.filter((l) => !l.excluded && l.lineKind !== 'manual');
+  const summaryRows = input.boq.lines.filter((l) => !l.excluded);
   for (const line of summaryRows) {
     summary.addRow({
       label: line.label,

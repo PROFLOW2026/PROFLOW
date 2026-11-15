@@ -17,6 +17,8 @@ import {
   type ViewportState,
 } from './viewer-math';
 import { formatTakeoffDisplayName } from '../../domain/format-display-name';
+import { detectionDisplayLabel } from '../boq-display';
+import { devicesFromNote } from '../../domain/quantity-notes';
 import { colorForDetection, detectionVisible, type TypeFilterState } from '../workspace/takeoff-workspace-state';
 
 interface PlanViewerProps {
@@ -225,8 +227,12 @@ export function PlanViewer({
         }}
       >
         <div
-          className="absolute start-0 top-0 origin-top-left"
+          className="absolute top-0 origin-top-left"
           style={{
+            // Physical left. Logical start is the right edge under dir=rtl, which
+            // shifts this layer away from screenToPlan and misses mark clicks.
+            left: 0,
+            right: 'auto',
             transform: `translate(${viewport.offsetX}px, ${viewport.offsetY}px) scale(${viewport.scale})`,
             width: sheet.widthPx,
             height: sheet.heightPx,
@@ -250,7 +256,6 @@ export function PlanViewer({
           <svg
             className="pointer-events-none absolute inset-0 h-full w-full"
             viewBox={`0 0 ${sheet.widthPx} ${sheet.heightPx}`}
-            aria-hidden
           >
             {areas.map((area) => (
               <polygon
@@ -263,11 +268,24 @@ export function PlanViewer({
             ))}
             {visibleMarkers.map((d) => {
               const color = colorForDetection(d, catalog);
+              const count = devicesFromNote(d.tagText);
+              const label = `${detectionDisplayLabel(d, catalog, t('detection.unclassified'))}${count > 1 ? ` · ${count}` : ''}`;
               const selected = d.id === selectedId;
               const hl = highlightedIds.has(d.id);
               const opacity = dimOthers && !hl ? 0.25 : 1;
               return (
-                <g key={d.id} opacity={opacity}>
+                <g
+                  key={d.id}
+                  data-testid="takeoff-plan-mark"
+                  data-mark-id={d.id}
+                  data-x={d.x}
+                  data-y={d.y}
+                  data-mark-label={label}
+                  opacity={opacity}
+                  role="img"
+                  aria-label={label}
+                >
+                  <title>{label}</title>
                   <rect
                     x={d.x - d.w / 2}
                     y={d.y - d.h / 2}

@@ -19,7 +19,9 @@ import {
   buildEmptyAnalysisSummary,
 } from './fixtures/demo-fixture';
 import { REAL7155_ANALYSIS_ID, getReal7155Fixture } from './fixtures/real7155-fixture';
+import { PINS_ANALYSIS_ID, getPinsFixture } from './fixtures/pins-fixture';
 import { effectiveToWorker, rebuildViewFromEdits } from './domain-preview';
+import { buildLegendLibraryEntry } from '../domain/library';
 import { TakeoffError } from '../domain/errors';
 import { TakeoffRevisionConflictError } from './takeoff-errors';
 
@@ -54,7 +56,7 @@ function bumpRecord(record: AnalysisRecord, edits: TakeoffEdit[]): AnalysisRecor
   return { view, workerBase: record.workerBase, edits: mergedEdits };
 }
 
-export type TakeoffMockFixture = 'default' | 'real7155';
+export type TakeoffMockFixture = 'default' | 'real7155' | 'pins';
 
 function freshStore(fixture: TakeoffMockFixture = 'default'): Store {
   const detections = buildDemoDetections();
@@ -75,6 +77,13 @@ function freshStore(fixture: TakeoffMockFixture = 'default'): Store {
     projectList.unshift(REAL7155_ANALYSIS_ID);
   }
 
+  if (fixture === 'pins') {
+    const { view, workerBase } = getPinsFixture();
+    const pinsView = rebuildViewFromEdits({ view, workerBase, edits: [] });
+    analyses.set(PINS_ANALYSIS_ID, { view: pinsView, workerBase, edits: [] });
+    projectList.unshift(PINS_ANALYSIS_ID);
+  }
+
   return {
     analyses,
     projectIndex: new Map([[DEMO_PROJECT_ID, projectList]]),
@@ -86,6 +95,25 @@ function freshStore(fixture: TakeoffMockFixture = 'default'): Store {
 
 let activeFixture: TakeoffMockFixture = 'default';
 let store = freshStore(activeFixture);
+
+function storeLegendLibrarySaves(plannerKey: string, edits: readonly TakeoffEdit[]): void {
+  const existing = store.libraries.get(plannerKey) ?? [];
+  let next = existing;
+  for (const edit of edits) {
+    if (edit.op !== 'save_legend') continue;
+    const entry = buildLegendLibraryEntry({
+      id: `legend-lib-${edit.legendKey}`,
+      plannerKey,
+      legendKey: edit.legendKey,
+      typeKey: edit.typeKey,
+    });
+    next = [
+      ...next.filter((row) => !(row.signatureKind === entry.signatureKind && row.signature === entry.signature)),
+      entry,
+    ];
+  }
+  if (next !== existing) store.libraries.set(plannerKey, next);
+}
 
 export function resetTakeoffMockStore(fixture: TakeoffMockFixture = activeFixture): void {
   activeFixture = fixture;
@@ -221,6 +249,7 @@ export function createMockTakeoffApi(fixture: TakeoffMockFixture = 'default'): T
         throw new TakeoffRevisionConflictError();
       }
       if (record.view.summary.status === 'approved') throw new Error('analysis_locked_approved');
+      storeLegendLibrarySaves(record.view.summary.plannerKey, edits);
       const next = bumpRecord(record, edits);
       store.analyses.set(analysisId, next);
       return structuredClone({ ...next.view, appliedEdits: [...next.edits] });
@@ -233,6 +262,7 @@ export function createMockTakeoffApi(fixture: TakeoffMockFixture = 'default'): T
       if (record.view.boq.needsReviewCount > 0 || record.view.boq.unclassifiedCount > 0) {
         throw new TakeoffError('approval_blocked_review');
       }
+      if (!record.view.planReviewConfirmed) throw new TakeoffError('approval_blocked_plan_review');
       record.view.summary.status = 'approved';
       record.view.summary.approvedAtIso = new Date().toISOString();
       record.view.boq = rebuildViewFromEdits({
@@ -361,4 +391,4 @@ function delay(ms: number) {
   return new Promise<void>((r) => setTimeout(r, ms));
 }
 
-export { DEMO_ANALYSIS_ID, DEMO_PROJECT_ID, REAL7155_ANALYSIS_ID };
+export { DEMO_ANALYSIS_ID, DEMO_PROJECT_ID, PINS_ANALYSIS_ID, REAL7155_ANALYSIS_ID };

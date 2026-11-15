@@ -13,7 +13,14 @@ import {
 import { TakeoffWorkspace } from '@/modules/electrical-takeoff/ui/takeoff-workspace';
 
 /** Repeated per list item / per-sheet — allowed duplicates in the mounted tree. */
-const ALLOW_MULTIPLE = new Set(['takeoff-detection-row', 'takeoff-sheet-pair-suggest']);
+const ALLOW_MULTIPLE = new Set([
+  'takeoff-detection-row',
+  'takeoff-sheet-pair-suggest',
+  'takeoff-plan-mark',
+  'takeoff-boq-line',
+  'takeoff-boq-line-unclassified',
+  'takeoff-detection-reason',
+]);
 
 function isAllowedDuplicate(id: string): boolean {
   if (ALLOW_MULTIPLE.has(id)) return true;

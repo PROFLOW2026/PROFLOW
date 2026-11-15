@@ -66,7 +66,6 @@ describe('migration journal', () => {
       '0205_electrical_takeoff',
       '0206_takeoff_sheets_unique_per_file',
       '0207_takeoff_persistence_modes',
-      '0209_takeoff_analysis_delete',
       '0210_takeoff_delete_archive_version_guard',
     ] as const;
     const tags = (await loadJournal()).entries.map((entry) => entry.tag);
@@ -479,10 +478,9 @@ describe('migration journal', () => {
       tags.indexOf('0172_notification_attention_badge_snapshot'),
     );
     expect(tags.at(-1)).toBe('0210_takeoff_delete_archive_version_guard');
-    expect(tags.at(-2)).toBe('0209_takeoff_analysis_delete');
-    expect(tags.at(-3)).toBe('0207_takeoff_persistence_modes');
-    expect(tags.at(-4)).toBe('0206_takeoff_sheets_unique_per_file');
-    expect(tags.at(-5)).toBe('0205_electrical_takeoff');
+    expect(tags.at(-2)).toBe('0207_takeoff_persistence_modes');
+    expect(tags.at(-3)).toBe('0206_takeoff_sheets_unique_per_file');
+    expect(tags.at(-4)).toBe('0205_electrical_takeoff');
     expect(tags.indexOf('0181_owner_bms_installment_payment_backfill')).toBeLessThan(
       tags.indexOf('0182_expense_installment_payments_grants'),
     );

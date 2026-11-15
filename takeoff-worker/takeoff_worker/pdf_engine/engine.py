@@ -25,13 +25,29 @@ from takeoff_worker.models import (
 
 from .cluster import leader_cluster
 from . import generic_ops as G
-from .geometry import PdfMatrix, PdfRect, rotation_matrix
+from .geometry import PdfMatrix, PdfRect, media_size_from_view, rotation_matrix
 from .hebrew import collect_text_blob, decode_pdf_text
 from . import legend as legend_mod
 from .legend_detect import filter_glyph_candidates, is_legend_sheet, plan_region
 from .library_match import library_templates
 from .masks import dominant_hex, is_drawing_noise_mask, mask_signature, mask_to_b64
-from .monochrome import black_symbol_candidates
+from .fixture_marks import lighting_point, on_sheet_border, socket_symbol
+from .fixture_marks import SocketSymbolFeatures
+from .monochrome import (
+    attached_symbol_marks,
+    black_symbol_candidates,
+    lighting_point_features,
+    open_circle_marks,
+    stair_core_socket_flags,
+    stair_marker_ring,
+    stroked_symbol_candidates,
+    switch_head_and_direction,
+    switch_stem_options,
+)
+from .note_read import read_symbol_words
+from .visual_context import visual_context_enabled
+from .quantity_notes import SymbolMark, multiplier_notes, socket_quantity
+from .switch_identity import SwitchMark, collapse_same_head
 from .dedupe import collapse_duplicates
 from .heavy_guard import (
     HeavyBudget,
@@ -56,6 +72,7 @@ from .pdfium_extract import (
 from .preview import render_page_png
 from .scale_parse import parse_scale
 from . import shape_engine as E
+from .symbol_match import best_stem_match, head_center_pt, stemmed_templates
 from .templates import comp_from_legend_template, legend_template_from_comp
 
 ENGINE_VERSION = "pdf_vector/0.1.0"
@@ -76,6 +93,38 @@ def _pt_to_px(x: float, y: float, scale: float) -> tuple[float, float]:
     return x * scale, y * scale
 
 
+def _clear_device_type(det: dict) -> None:
+    """Drop a type the geometry does not support. The mark stays for review."""
+    det["cls"] = "UNK"
+    det["score"] = None
+    det["margin"] = None
+    det["conf"] = "none"
+
+
+def _collapse_same_switch_head(dets: list[dict], stem_origin: set[int]) -> tuple[list[dict], int]:
+    """One drawn head is one switch. A bank of heads a gap apart stays a bank."""
+    indexed: list[dict] = []
+    marks: list[SwitchMark] = []
+    for det in dets:
+        if id(det["comp"]) not in stem_origin:
+            continue
+        radius = det.get("head_r")
+        if not isinstance(radius, (int, float)) or isinstance(radius, bool) or radius <= 0:
+            continue
+        dx = float(det.get("stem_dx") or 0.0)
+        dy = float(det.get("stem_dy") or 0.0)
+        stem = (dx, dy) if dx or dy else None
+        indexed.append(det)
+        marks.append(SwitchMark(float(det["cx"]), float(det["cy"]), float(radius), stem))
+    if len(marks) < 2:
+        return dets, 0
+    kept = {id(mark) for mark in collapse_same_head(marks)}
+    drop = {id(det["comp"]) for det, mark in zip(indexed, marks) if id(mark) not in kept}
+    if not drop:
+        return dets, 0
+    return [det for det in dets if id(det["comp"]) not in drop], len(drop)
+
+
 def _near_tag(words: list[dict], cx: float, cy: float, limit: float = 22.0) -> Optional[str]:
     best, bd = None, limit
     for w in words:
@@ -83,6 +132,29 @@ def _near_tag(words: list[dict], cx: float, cy: float, limit: float = 22.0) -> O
             bd = abs(w["cx"] - cx) + abs(w["cy"] - cy)
             best = w["text"]
     return best
+
+
+def _refresh_legend_template_text(artifacts: dict, file_id: str, rows: list) -> None:
+    """Keep the legend-template artifact aligned with OCR-updated row text."""
+    import json
+
+    name = f"legend-templates-{file_id}.json"
+    raw = artifacts.get(name)
+    if not raw:
+        return
+    try:
+        payload = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return
+    by_key = {row.key: row for row in rows}
+    for item in payload:
+        row = by_key.get(item.get("key"))
+        if row is None:
+            continue
+        item["decoded_text"] = row.decodedText
+        if row.rawText:
+            item["tag_text"] = row.rawText
+    artifacts[name] = json.dumps(payload, ensure_ascii=False).encode("utf-8")
 
 
 def _legend_crop_png(comp: E.Comp, pad: float = 3.0) -> bytes:
@@ -197,11 +269,12 @@ class PdfVectorEngine:
         prog: Callable,
     ) -> None:
         page = doc[page_index]
-        rot_deg = page.get_rotation()
-        pw, ph = page.get_width(), page.get_height()
+        rot_deg = int(page.get_rotation() or 0) % 360
+        # pdfium width/height are the rotated view. rotation_matrix needs the media box.
+        vis_w, vis_h = float(page.get_width()), float(page.get_height())
+        pw, ph = media_size_from_view(rot_deg, vis_w, vis_h)
         M = rotation_matrix(rot_deg, pw, ph)
-        disp_w = ph if rot_deg in (90, 270) else pw
-        disp_h = pw if rot_deg in (90, 270) else ph
+        disp_w, disp_h = vis_w, vis_h
 
         budget = 120.0 if len(doc) == 1 else 75.0
 
@@ -210,7 +283,7 @@ class PdfVectorEngine:
 
         vst = page_vector_stats(page)
         drawings, extract_s = extract_page_drawings(
-            page, rot_deg, pw, ph, budget_sec=budget, progress=_extract_prog
+            page, rot_deg, vis_w, vis_h, budget_sec=budget, progress=_extract_prog
         )
         if len(drawings) == 0 and vst["images"] > 0 and vst["paths"] < 50:
             out.sheets.append(
@@ -306,8 +379,8 @@ class PdfVectorEngine:
             )
 
         prog("extract", 25, f"paths={len(drawings)}")
-        words = extract_page_text_words(page, rot_deg, pw, ph)
-        text_chars, chars_truncated = extract_page_text_chars(page, rot_deg, pw, ph)
+        words = extract_page_text_words(page, rot_deg, vis_w, vis_h)
+        text_chars, chars_truncated = extract_page_text_chars(page, rot_deg, vis_w, vis_h)
         if chars_truncated:
             out.stats[f"pdf_text_chars_truncated_{sheet_key}"] = 1.0
             out.warnings.append(
@@ -386,12 +459,38 @@ class PdfVectorEngine:
             legend_rows.extend(lrows)
             out.artifacts.update(arts)
             out.stats.update(lstats)
-            embed_pairs, n_dec = legend_mod.templates_for_plan_matching(lrows, legend_comps)
+            from .legend_ocr import enrich_legend_rows
+
+            ocr_info = enrich_legend_rows(
+                lrows,
+                page=page,
+                comps=legend_comps[: len(lrows)],
+                view_w=disp_w,
+                view_h=disp_h,
+            )
+            for stat_key, stat_val in ocr_info.stats.items():
+                out.stats[f"{stat_key}_{sheet_key}"] = stat_val
+            if ocr_info.needed and not ocr_info.ran:
+                out.warnings.append(
+                    WorkerWarning(
+                        code="legend_ocr_unavailable",
+                        severity="info",
+                        message=(
+                            "Hebrew legend OCR did not run "
+                            "(tesseract with heb is not on PATH, and Windows OCR is unavailable)"
+                        ),
+                        fileId=file_id,
+                        sheetKey=sheet_key,
+                    )
+                )
+            _refresh_legend_template_text(out.artifacts, file_id, lrows)
+            out.stats["legend_text_usable"] = float(sum(1 for r in lrows if r.decodedText))
+            out.stats["legend_text_undecodable_count"] = float(
+                sum(1 for r in lrows if "legend_text_undecodable" in (r.reasons or []))
+            )
+            embed_pairs, n_dec = legend_mod.plan_template_pairs(lrows, legend_comps)
             out.stats[f"legend_rows_decodable_{sheet_key}"] = float(n_dec)
-            if embed_pairs:
-                legend_tpl_pairs = embed_pairs
-            else:
-                legend_tpl_pairs = [(r.key, legend_comps[i]) for i, r in enumerate(lrows)]
+            legend_tpl_pairs = embed_pairs
 
         for lt in extra_templates:
             legend_tpl_pairs.append((lt.key, comp_from_legend_template(lt)))
@@ -412,11 +511,36 @@ class PdfVectorEngine:
             plan = E.build_components(drawings, M, colored, tol=0.6, min_extent=3.0, max_extent=120.0, region=plan_rect)
 
         mono_mode = False
+        stroked_plan = False
         if len(plan) < 25:
             mono = black_symbol_candidates(drawings, M, plan_rect)
             if len(mono) > len(plan):
                 plan = mono
                 mono_mode = True
+            # Black architectural sheets: walls swallow symbols unless only short strokes are clustered.
+            if len(plan) < 40:
+                stroked = stroked_symbol_candidates(drawings, M, plan_rect)
+                if len(stroked) > max(len(plan), 12):
+                    plan = stroked
+                    stroked_plan = True
+                    mono_mode = True
+        # A switch is a circle plus a stem. The stem is often just clear of the
+        # head, and a wall-touching cluster throws the whole mark away.
+        attached_pairs = attached_symbol_marks(drawings, M, plan_rect, plan)
+        stem_origin = {id(comp) for comp, kind in attached_pairs if kind == "stem"}
+        socket_origin = {id(comp) for comp, kind in attached_pairs if kind == "socket"}
+        if attached_pairs:
+            # Keep the plan circles. A rebuilt mark replaces one only after it
+            # actually matches the legend stem or the legend socket.
+            plan = plan + [comp for comp, _kind in attached_pairs]
+            out.stats[f"attached_symbol_marks_{sheet_key}"] = float(len(attached_pairs))
+        # An open circle buried in a wall or a caption. A switch stem that
+        # matches the legend removes this ring at the same head.
+        bare_circles = open_circle_marks(drawings, M, plan_rect, plan, words)
+        circle_origin = {id(comp) for comp in bare_circles}
+        if bare_circles:
+            plan = plan + bare_circles
+            out.stats[f"open_circle_marks_{sheet_key}"] = float(len(bare_circles))
         plan = filter_glyph_candidates(plan)
         plan, plan_dropped = cap_plan_candidates(plan, heavy_budget.max_plan_candidates)
         if plan_dropped:
@@ -473,8 +597,59 @@ class PdfVectorEngine:
                 )
                 sheet_degraded = True
 
+        stem_keys: set[str] = set()
+        stem_heads: list[tuple[float, float]] = []
         if match_tpls:
             dets_raw = G.classify_components(plan, legend_comps, match_tpls, tau=TAU)
+            prepared = stemmed_templates(match_tpls)
+            stem_keys = set(prepared.keys)
+            for det in dets_raw:
+                # A switch is one empty round head, one short stem that touches
+                # it, and a match to a switch row of this sheet's legend.
+                # A filled tip or lines that only meet at a tip fail that test
+                # even when the chamfer score would pass. Long lines are stripped
+                # inside the test so they are neither the stem nor a reason to hide it.
+                options = switch_stem_options(drawings, M, det["comp"])
+                hits = []
+                for cleaned in options:
+                    hit = best_stem_match(cleaned, prepared, TAU)
+                    if hit is not None:
+                        hits.append((cleaned, hit))
+                # Geometry can leave more than one stem on a crowded head.
+                # The legend agrees with one of them, or the mark is not a switch.
+                if len(hits) != 1:
+                    if det["cls"] in stem_keys:
+                        det["cls"] = "UNK"
+                        det["score"] = None
+                        det["margin"] = None
+                    continue
+                cleaned, hit = hits[0]
+                key, score, margin = hit
+                rect = cleaned.rect
+                det["comp"] = cleaned
+                det["cls"] = key
+                det["best_name"] = key
+                det["score"] = score
+                det["margin"] = margin
+                conf, _ok = E.confidence_from_score(score, margin, TAU)
+                det["conf"] = conf
+                det["cx"] = (rect.x0 + rect.x1) / 2
+                det["cy"] = (rect.y0 + rect.y1) / 2
+                det["w"] = rect.width
+                det["h"] = rect.height
+                head = switch_head_and_direction(drawings, M, cleaned)
+                if head is not None:
+                    # The viewer mark sits on the head. The box center is pulled down the stem.
+                    det["cx"], det["cy"] = head[0], head[1]
+                    det["head_r"] = head[2]
+                    det["stem_dx"], det["stem_dy"] = head[3], head[4]
+                det["n"] = cleaned.n
+                det["rad"] = cleaned.rad
+                stem_origin.add(id(cleaned))
+                head_pt = head_center_pt(cleaned)
+                if head_pt is not None:
+                    stem_heads.append(head_pt)
+                stem_heads.append((det["cx"], det["cy"]))
         else:
             dets_raw = [
                 dict(
@@ -494,6 +669,126 @@ class PdfVectorEngine:
                 )
                 for i, c in enumerate(plan)
             ]
+
+        # A rebuilt stem is kept only when it matches a stemmed legend symbol,
+        # and then it replaces the plain circle underneath it. A rebuilt socket
+        # is kept only when it matches a legend symbol that is not itself a
+        # switch. Anything else from this pass is not a device.
+        accepted: list[tuple[float, float]] = []
+        confirmed: list[dict] = []
+        socket_dets = [det for det in dets_raw if id(det["comp"]) in socket_origin]
+        core_flags = stair_core_socket_flags(
+            drawings, M, [(det["cx"], det["cy"]) for det in socket_dets]
+        )
+        core_ids = {id(det["comp"]) for det, on_core in zip(socket_dets, core_flags) if on_core}
+        for det in dets_raw:
+            origin = id(det["comp"])
+            score = det.get("score")
+            matched = det["cls"] != "UNK" and score is not None and score <= TAU
+            if origin in stem_origin:
+                if matched and det["cls"] in stem_keys:
+                    accepted.append((det["cx"], det["cy"]))
+                    confirmed.append(det)
+                continue
+            if origin in socket_origin:
+                # The goalpost with a note drawn on the arch (the entrance X,
+                # a digit sitting in the bowl) chamfers just past the usual
+                # line. The same arch without that note matches cleanly.
+                # Keep it when it is still the socket and not a switch.
+                best = det.get("best_name")
+                margin = det.get("margin") or 0.0
+                socket_hit = (
+                    score is not None
+                    and score <= 2.60
+                    and margin >= 0.25
+                    and best not in (None, "UNK")
+                    and best not in stem_keys
+                )
+                if socket_hit and origin not in core_ids:
+                    det["cls"] = best
+                    confirmed.append(det)
+                continue
+            confirmed.append(det)
+        dets_raw = []
+        for det in confirmed:
+            origin = id(det["comp"])
+            if origin in stem_origin or origin in socket_origin:
+                dets_raw.append(det)
+                continue
+            cx, cy = det["cx"], det["cy"]
+            if any(abs(cx - x) < 10.0 and abs(cy - y) < 10.0 for x, y in accepted):
+                continue
+            # The bare lighting ring sits on the switch head, not on the stem's
+            # bbox center. A matched switch removes it. Anything else stays.
+            if origin in circle_origin and any(abs(cx - x) < 8.0 and abs(cy - y) < 8.0 for x, y in stem_heads):
+                continue
+            dets_raw.append(det)
+
+        dets_raw, collapsed = _collapse_same_switch_head(dets_raw, stem_origin)
+        if collapsed:
+            out.stats[f"switch_same_head_collapsed_{sheet_key}"] = float(collapsed)
+
+        # A double ring in a fan of stair arrows is the core marker. The same
+        # ring is the lowered-ceiling legend, so the match is perfect, and the
+        # manual core still has no lighting point. Leave the mark on the sheet
+        # without a device type.
+        for det in dets_raw:
+            if det["cls"] in ("UNK",):
+                continue
+            comp = det["comp"]
+            if len(comp.ids) > 6:
+                continue
+            if stair_marker_ring(comp, drawings, M):
+                det["cls"] = "UNK"
+                det["score"] = None
+                det["margin"] = None
+                det["conf"] = "none"
+
+        for det in dets_raw:
+            origin = id(det["comp"])
+            if det["cls"] in ("UNK",):
+                continue
+            if origin in circle_origin:
+                features = lighting_point_features(det["comp"], drawings, M, words, disp_w, disp_h)
+                if not lighting_point(features):
+                    _clear_device_type(det)
+                continue
+            if origin in socket_origin:
+                rect = det["comp"].rect
+                cx, cy = det["cx"], det["cy"]
+                ink = rect.x0 <= 1.5 or rect.y0 <= 1.5 or rect.x1 >= disp_w - 1.5 or rect.y1 >= disp_h - 1.5
+                socket_features = SocketSymbolFeatures(
+                    arch=True,
+                    stem=True,
+                    on_sheet_border=on_sheet_border(cx, cy, disp_w, disp_h, ink),
+                    in_arrow_fan=stair_marker_ring(det["comp"], drawings, M),
+                )
+                if not socket_symbol(socket_features):
+                    _clear_device_type(det)
+
+        device_pair: dict[str, int] = {}
+        socket_symbols = [
+            SymbolMark(
+                id=str(id(det["comp"])),
+                x=float(det["cx"]),
+                y=float(det["cy"]),
+                extent=max(float(det["w"]), float(det["h"]), 8.0),
+            )
+            for det in dets_raw
+            if id(det["comp"]) in socket_origin and det["cls"] not in ("UNK",)
+        ]
+        if socket_symbols:
+            crops = [(mark.x, mark.y, mark.extent) for mark in socket_symbols]
+            notes = multiplier_notes(read_symbol_words(page, disp_w, disp_h, crops))
+            counted = socket_quantity(socket_symbols, notes)
+            device_pair = {sid: count for sid, count in counted.assigned if count == 2}
+            out.stats[f"socket_symbols_{sheet_key}"] = float(counted.symbol_count)
+            out.stats[f"socket_devices_{sheet_key}"] = float(counted.device_count)
+            out.stats[f"x2_unassigned_{sheet_key}"] = float(counted.unassigned_notes)
+
+        # Visual context is a second opinion. It is not called unless a provider
+        # is configured, so an unset key leaves every legend match as it is.
+        out.stats[f"visual_context_{sheet_key}"] = 1.0 if visual_context_enabled() else 0.0
 
         detections: list[WorkerDetection] = []
         det_id = 0
@@ -543,6 +838,10 @@ class PdfVectorEngine:
             if noise:
                 # Vector scraps are not devices. Do not emit them for the bill of quantities.
                 continue
+            if stroked_plan and raw_class in ("UNK",) and type_key is None:
+                # Short-stroke fragments that do not match a legend symbol stay off the sheet.
+                # Matches keep their legend key so a manual assignment can label the group.
+                continue
             elif type_key is None:
                 if "unclassified" not in reasons:
                     reasons.append("unclassified")
@@ -551,6 +850,8 @@ class PdfVectorEngine:
                 reasons.append("type_ambiguous")
 
             tag = _near_tag(words, cx, cy)
+            if device_pair.get(str(id(comp))) == 2:
+                tag = f"{tag} X2".strip() if tag else "X2"
             sig = mask_signature(comp.mask)
 
             det_pk = f"{sheet_key}#{det_id}"
@@ -637,38 +938,54 @@ class PdfVectorEngine:
                 )
             )
 
-        # shape cluster fallback for unclassified
-        unk_idx = [i for i, d in enumerate(detections) if d.confidence in ("none", "low") and "unclassified" in d.reasons]
-        if unk_idx and len(unk_idx) >= 5 and not sheet_degraded:
-            unk_comps = [dets_raw[i]["comp"] for i in range(len(dets_raw)) if detections[i].confidence == "none"]
+        # Shape clusters only for symbols that matched neither a legend row nor a library.
+        # Legend matches keep their legend key and mask signature for a later manual label.
+        # Index by center: noise and unmatched fragments are not emitted, so dets_raw and
+        # detections are not the same length.
+        unk_dets = [
+            d
+            for d in detections
+            if d.confidence in ("none", "low")
+            and "unclassified" in d.reasons
+            and not d.legendKey
+            and "legend_zone" not in d.reasons
+        ]
+        if len(unk_dets) >= 5 and not sheet_degraded:
+            centers: list[tuple[float, float, E.Comp]] = []
+            for raw in dets_raw:
+                comp = raw["comp"]
+                centers.append(
+                    (
+                        (comp.rect.x0 + comp.rect.x1) / 2,
+                        (comp.rect.y0 + comp.rect.y1) / 2,
+                        comp,
+                    )
+                )
+            unk_comps: list[E.Comp] = []
+            paired: list[WorkerDetection] = []
+            for det in unk_dets:
+                match_comp = None
+                for ccx, ccy, comp in centers:
+                    if abs(det.native.x - ccx) < 0.5 and abs(det.native.y - ccy) < 0.5:
+                        match_comp = comp
+                        break
+                if match_comp is None:
+                    continue
+                unk_comps.append(match_comp)
+                paired.append(det)
             if len(unk_comps) >= 5:
                 clusters = leader_cluster(unk_comps)
-                for ci, mem in enumerate(clusters, start=1):
-                    leader = unk_comps[mem[0]]
-                    sig = mask_signature(leader.mask)
-                    for mi in mem:
-                        # map back to detection index — same order as unk_comps subset
-                        pass
-                # mark clustered detections
-                cnum = 0
-                for cl in clusters:
-                    cnum += 1
+                for cnum, cl in enumerate(clusters, start=1):
                     sig = mask_signature(unk_comps[cl[0]].mask)
                     for mi in cl:
-                        # find matching detection by comp center
-                        comp = unk_comps[mi]
-                        ccx, ccy = (comp.rect.x0 + comp.rect.x1) / 2, (comp.rect.y0 + comp.rect.y1) / 2
-                        for det in detections:
-                            if det.sheetKey != sheet_key:
-                                continue
-                            if abs(det.native.x - ccx) < 0.5 and abs(det.native.y - ccy) < 0.5:
-                                det.rawClass = f"C{cnum}"
-                                det.signature = sig
-                                det.classifiedBy = "shape_cluster"
-                                det.typeKey = None
-                                det.confidence = "none"
-                                if "unclassified" not in det.reasons:
-                                    det.reasons.append("unclassified")
+                        det = paired[mi]
+                        det.rawClass = f"C{cnum}"
+                        det.signature = sig
+                        det.classifiedBy = "shape_cluster"
+                        det.typeKey = None
+                        det.confidence = "none"
+                        if "unclassified" not in det.reasons:
+                            det.reasons.append("unclassified")
 
         base = os.path.basename(path)
         title = decode_pdf_text(text_blob)[:80] if text_blob else None

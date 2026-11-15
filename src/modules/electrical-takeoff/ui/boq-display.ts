@@ -9,19 +9,7 @@ export function boqLineDisplayLabel(
   catalog: readonly CatalogType[],
   unclassifiedLabel: string,
 ): string {
-  if (!line.typeKey) {
-    const trimmed = line.label.trim();
-    if (
-      trimmed &&
-      trimmed !== unclassifiedLabel &&
-      !trimmed.startsWith('לא מסווג') &&
-      !TECHNICAL_ID_LABEL.test(trimmed) &&
-      !trimmed.includes('#')
-    ) {
-      return trimmed;
-    }
-    return unclassifiedLabel;
-  }
+  if (!line.typeKey) return unclassifiedLabel;
   const fromCatalog = catalog.find((c) => c.key === line.typeKey)?.nameHe?.trim();
   if (fromCatalog) return fromCatalog;
   const trimmed = line.label.trim();
@@ -32,7 +20,8 @@ export function boqLineDisplayLabel(
 }
 
 export function boqLineStatus(line: BoqLine, suppressVerified: boolean): BoqLineStatus {
-  if (!line.typeKey || line.breakdown.unclassified > 0) return 'needsReview';
+  if (!line.typeKey) return 'forReview';
+  if (line.breakdown.unclassified > 0) return 'needsReview';
   if (line.verified && !suppressVerified) return 'verified';
   if (line.breakdown.low > 0 || line.breakdown.medium > 0) return 'needsReview';
   return 'forReview';
@@ -44,11 +33,7 @@ export function detectionDisplayLabel(
   unclassifiedLabel: string,
 ): string {
   if (detection.typeKey) {
-    return catalog.find((c) => c.key === detection.typeKey)?.nameHe ?? detection.typeKey;
-  }
-  const raw = detection.rawClass?.trim() || detection.tagText?.trim() || '';
-  if (raw && raw !== 'UNK' && raw !== 'drawing_noise' && !TECHNICAL_ID_LABEL.test(raw) && !raw.includes('#')) {
-    return raw;
+    return catalog.find((c) => c.key === detection.typeKey)?.nameHe?.trim() || detection.typeKey;
   }
   return unclassifiedLabel;
 }

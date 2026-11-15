@@ -130,6 +130,7 @@
     "suggested": "Suggested for approval",
     "columnType": "Device type",
     "columnQuantity": "Quantity",
+    "symbolCount": "{count} symbols",
     "columnStatus": "Status",
     "statusVerified": "Verified",
     "statusForReview": "For review",
@@ -143,14 +144,24 @@
     "confidence": "Confidence",
     "source": "Source",
     "tag": "Tag text",
+    "devicePair": "X2 — two devices for this symbol",
+    "devicePairHint": "The symbol stays one. Quantity increases by 1 only when the note was read or marked.",
     "reasons": "Review reasons",
     "pickType": "Type",
     "searchTypes": "Search types…",
-    "unclassified": "Unclassified",
+    "unclassified": "Unclassified — for review",
     "saveToLibrary": "Save to planner symbol library",
+    "applyToSymbolGroup": "Apply to every instance of this symbol ({count})",
+    "selectSymbolGroup": "Select every instance of this symbol ({count})",
+    "undecodedLegendTitle": "Unread legend symbols",
+    "undecodedLegendHint": "Pick one symbol, choose a catalog type, and apply it to every matching mark on the plan.",
+    "undecodedLegendRow": "Symbol {key} · {count} on the plan",
     "applyType": "Apply classification",
-    "delete": "Delete",
-    "restore": "Restore",
+    "delete": "Remove from quantities",
+    "restore": "Put back in quantities",
+    "confirmMark": "Confirm mark",
+    "deviceCount": "Devices for this symbol",
+    "deviceCountHint": "The symbol stays one. X2 counts as 2. Any other number is saved only after you set it.",
     "rawClass": "Raw class",
     "twin": "PDF/DWG pairing",
     "twinState": {
@@ -158,8 +169,8 @@
       "pdf_only": "PDF only",
       "dwg_only": "DWG only"
     },
-    "libraryRequiresLegend": "Saving to the library requires engine legend/block identity (rawClass or tag).",
-    "libraryMaskHint": "Save uses the detection symbol mask (maskB64) on the server when available."
+    "libraryRequiresLegend": "Only a symbol found on the plan, with a signature, can be saved to the library. A mark added by hand is not saved.",
+    "libraryMaskHint": "Saving stores this symbol signature in the library so the same symbol is labeled next time."
   },
   "confidence": {
     "high": "High",
@@ -210,6 +221,9 @@
     "reopen": "Reopen for editing",
     "blocked": "Approval blocked — resolve review items first",
     "blockedHint": "Items still need review before approval",
+    "blockedPlanHint": "Before approval, confirm you also checked devices the detection missed",
+    "planReviewLabel": "I checked the plan for devices that were not detected",
+    "planReviewHint": "This confirmation is separate from review items. It means you inspected the drawing itself, including devices the engine missed.",
     "readyHint": "You can approve when all review items are resolved"
   },
   "export": {
@@ -265,7 +279,8 @@
   },
   "errors": {
     "loadFailed": "Could not load analysis",
-    "approval_blocked_review": "BOQ cannot be approved while items have no type or still need review."
+    "approval_blocked_review": "BOQ cannot be approved while items have no type or still need review.",
+    "approval_blocked_plan_review": "BOQ cannot be approved before you confirm that missed devices were checked on the plan."
   },
   "rules": {
     "open": "Measurement rules",

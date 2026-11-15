@@ -8,7 +8,7 @@ from typing import Any, Callable, Optional
 import pypdfium2.raw as pdfium_c
 from pypdfium2._helpers.matrix import PdfMatrix as PdfiumMatrix
 
-from .geometry import PdfMatrix, PdfPoint, PdfRect, display_bounds_from_pdf
+from .geometry import PdfMatrix, PdfPoint, PdfRect, map_user_box_to_display, media_size_from_view
 
 FPDF_SEGMENT_MOVETO = 2
 FPDF_SEGMENT_BEZIERTO = 1
@@ -91,7 +91,8 @@ def _path_items(obj, matrix: PdfMatrix, rot_m: PdfMatrix, page_h: float) -> tupl
     if not pts:
         l, b, r, t = ctypes.c_float(), ctypes.c_float(), ctypes.c_float(), ctypes.c_float()
         if pdfium_c.FPDFPageObj_GetBounds(obj, l, b, r, t):
-            rect = display_bounds_from_pdf(l.value, b.value, r.value, t.value, page_h)
+            rect = PdfRect(l.value, page_h - t.value, r.value, page_h - b.value)
+            rect.normalize()
         else:
             rect = PdfRect(0, 0, 0, 0)
         return items, rect, close_path
@@ -122,7 +123,9 @@ def extract_path_drawing(obj, page_h: float, rot_m: PdfMatrix) -> Optional[dict[
     l, b, r, t = ctypes.c_float(), ctypes.c_float(), ctypes.c_float(), ctypes.c_float()
     bounds_rect = rect
     if pdfium_c.FPDFPageObj_GetBounds(obj, l, b, r, t):
-        bounds_rect = display_bounds_from_pdf(l.value, b.value, r.value, t.value, page_h)
+        # Unrotated y-down media space. Callers apply ``rotation_matrix`` once.
+        bounds_rect = PdfRect(l.value, page_h - t.value, r.value, page_h - b.value)
+        bounds_rect.normalize()
     if bounds_rect.width > 0 or bounds_rect.height > 0:
         rect = bounds_rect
     area = rect.width * rect.height
@@ -142,6 +145,8 @@ def extract_path_drawing(obj, page_h: float, rot_m: PdfMatrix) -> Optional[dict[
         "closePath": close_path,
         "width": 1.0,
         "dashes": "[] 0",
+        # Item points are y-up. The rect is already y-down in this media height.
+        "media_h": page_h,
     }
 
 
@@ -157,15 +162,16 @@ def extract_page_drawings(
 ) -> tuple[list[dict[str, Any]], float]:
     """Enumerate path pageobjects and return drawing dicts + seconds elapsed."""
     t0 = time.perf_counter()
-    from .geometry import rotation_matrix
-
-    rot_m = rotation_matrix(rotation_deg, page_w, page_h)
+    # pdfium view size is already rotated. Bounds stay in unrotated y-down space so the
+    # engine can apply rotation_matrix exactly once (a second rotation mirrors masks).
+    _media_w, media_h = media_size_from_view(rotation_deg, page_w, page_h)
+    rot_m = PdfMatrix()
     out: list[dict[str, Any]] = []
     n = 0
     for obj in page.get_objects(filter=[pdfium_c.FPDF_PAGEOBJ_PATH]):
         if time.perf_counter() - t0 > budget_sec:
             break
-        d = extract_path_drawing(obj, page_h, rot_m)
+        d = extract_path_drawing(obj, media_h, rot_m)
         if d is not None:
             out.append(d)
         n += 1
@@ -201,7 +207,7 @@ def extract_page_text_chars(
             if not box or len(box) < 4:
                 continue
             l, b, r, t = float(box[0]), float(box[1]), float(box[2]), float(box[3])
-            rect = display_bounds_from_pdf(l, b, r, t, page_h)
+            rect = map_user_box_to_display(l, b, r, t, rotation_deg, page_w, page_h)
             ch = tp.get_text_range(i, 1) or ""
             if not ch or ch in ("\u0000",):
                 continue
@@ -224,9 +230,6 @@ def extract_page_text_chars(
 
 def extract_page_text_words(page, rotation_deg: int, page_w: float, page_h: float) -> list[dict[str, Any]]:
     """Text words with bounds in display space (for legend/scale/tag)."""
-    from .geometry import rotation_matrix
-
-    rot_m = rotation_matrix(rotation_deg, page_w, page_h)
     words: list[dict[str, Any]] = []
     try:
         tp = page.get_textpage()
@@ -244,10 +247,9 @@ def extract_page_text_words(page, rotation_deg: int, page_w: float, page_h: floa
                 l, b, r, t = obj.get_bounds()
             except Exception:
                 continue
-            rect = display_bounds_from_pdf(l, b, r, t, page_h)
+            rect = map_user_box_to_display(l, b, r, t, rotation_deg, page_w, page_h)
             cx, cy = (rect.x0 + rect.x1) / 2, (rect.y0 + rect.y1) / 2
-            tx, ty = rot_m.transform_point(cx, page_h - cy)  # already display; identity rot ok
-            _ = tx, ty
+            _ = cx, cy
             words.append({"text": text, "rect": rect, "cx": (rect.x0 + rect.x1) / 2, "cy": (rect.y0 + rect.y1) / 2})
         if not words:
             plain = (tp.get_text_range() or "").replace("\r\n", "\n").strip()

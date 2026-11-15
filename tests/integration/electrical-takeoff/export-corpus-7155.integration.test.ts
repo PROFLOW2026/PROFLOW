@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { buildExportBytes } from '@/modules/electrical-takeoff/application/export-download';
 import { internalActorFrom } from '@/modules/electrical-takeoff/application/access';
-import { approveAnalysisUseCase, createAnalysisUseCase } from '@/modules/electrical-takeoff/application/use-cases';
+import { approveAnalysisUseCase, applyEditsUseCase, createAnalysisUseCase } from '@/modules/electrical-takeoff/application/use-cases';
 import { parseWorkerResultPayload } from '@/modules/electrical-takeoff/domain/worker-json';
 import { insertFile, insertJob } from '@/modules/electrical-takeoff/data/takeoff.repository';
 import { applyWorkerResult } from '@/modules/electrical-takeoff/application/worker-callbacks';
@@ -86,7 +86,8 @@ describe('buildExportBytes after corpus ingest', () => {
 
     await database.asUser(owner.id, async (tx) => {
       const ctx = await resolveOrgContext(tx, { userId: owner.id, organizationId: organization.id, locale: 'he' });
-      const approved = await approveAnalysisUseCase(ctx, analysisId, 0);
+      const confirmedPlan = await applyEditsUseCase(ctx, analysisId, [{ op: 'confirm_plan_review', confirmed: true }], 0);
+      const approved = await approveAnalysisUseCase(ctx, analysisId, confirmedPlan.summary.revision);
       expect(approved.summary.status).toBe('approved');
       const bytes = await buildExportBytes(internalActorFrom(ctx), analysisId, 'xlsx');
       expect(bytes.bytes.byteLength).toBeGreaterThan(10_000);

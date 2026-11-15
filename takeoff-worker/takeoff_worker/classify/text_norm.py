@@ -8,7 +8,20 @@ HEBKEY = dict(zip("qwertyuiop[]asdfghjkl;'zxcvbnm,./", "/'קראטוןםפ][שד
 
 
 def decode_kbd(s: str) -> str:
-    return "".join(HEBKEY.get(ch, ch) for ch in s.lower())
+    return _repair_shx_final_tsadi("".join(HEBKEY.get(ch, ch) for ch in s.lower()))
+
+
+def _repair_shx_final_tsadi(t: str) -> str:
+    """cob/heb SHX draws the '[' key as final tsadi; the keyboard map yields ']'."""
+    return re.sub(r"(?<=[\u0590-\u05FF])\]", "ץ", t)
+
+
+# Dotted ב.ת only. A period between other letters is not this abbreviation.
+_BET_TAKA = re.compile(r"(?<![\u0590-\u05FF])ב\s*\.\s*ת(?![\u0590-\u05FF])")
+# ג"ת is גוף תאורה. OCR keeps the quote, which otherwise splits the abbreviation.
+_GIMEL_TAV = re.compile(r"ג\s*[\"״']\s*ת")
+# בית-תקע must stay one phrase. A hyphen is not a letter boundary the catalog knows.
+_HEB_HYPHEN = re.compile(r"(?<=[\u0590-\u05FF])[-\u05be](?=[\u0590-\u05FF])")
 
 
 def _tokenize_mixed(s: str) -> list[str]:
@@ -48,6 +61,19 @@ def _expand_abbreviations(t: str) -> str:
     return t
 
 
+def _expand_bet_taka(t: str) -> str:
+    """ב.ת is בית תקע. Expand before the visual reverse so the dot cannot split the word."""
+    return _BET_TAKA.sub("בית תקע", t)
+
+
+def _expand_gimel_tav(t: str) -> str:
+    return _GIMEL_TAV.sub("גוף תאורה", t)
+
+
+def _join_hebrew_hyphen(t: str) -> str:
+    return _HEB_HYPHEN.sub(" ", t)
+
+
 def _final_to_standard(s: str) -> str:
     return (
         s.replace("\u05dd", "\u05de")
@@ -65,7 +91,12 @@ def normalize_legend_text(raw: str, *, decoded_by: str | None = None) -> str:
     t = re.sub(r"\s*([0-9]+(?:\.[0-9]+)?)\s*", r" \1 ", t)
     if decoded_by == "dwg_kbd":
         t = decode_kbd(t)
+    else:
+        t = _repair_shx_final_tsadi(t)
     t = _expand_abbreviations(t)
+    t = _expand_gimel_tav(t)
+    t = _join_hebrew_hyphen(t)
+    t = _expand_bet_taka(t)
     t = reverse_visual_hebrew(t)
     if HEB.search(t):
         t = _final_to_standard(t)

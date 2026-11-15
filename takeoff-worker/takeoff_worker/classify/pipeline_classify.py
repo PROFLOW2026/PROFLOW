@@ -1,6 +1,7 @@
 """Apply catalog, legend, library to engine outputs."""
 from __future__ import annotations
 
+import hashlib
 import logging
 import re
 
@@ -33,6 +34,12 @@ def _detection_catalog_text_allowed(det: WorkerDetection, blob: str) -> bool:
     if not filled:
         return False
     return not all(_looks_like_short_cad_tag(p) for p in filled)
+
+
+def legend_key_signature(legend_key: str) -> str:
+    """Same identity the app stores: legend: + first 16 hex chars of SHA1(utf-8 key)."""
+    digest = hashlib.sha1(legend_key.strip().encode("utf-8")).hexdigest()[:16]
+    return f"legend:{digest}"
 
 
 def _planner_library_index(library: list[SymbolLibraryEntry]) -> dict[tuple[str, str], SymbolLibraryEntry]:
@@ -145,6 +152,9 @@ def classify_detections(
             engine_conf = engine_conf or d.confidence
 
         lib_hit = lib.get((d.signatureKind, d.signature)) or lib.get((d.signatureKind, d.signature.lower()))
+        if lib_hit is None and d.legendKey:
+            legend_sig = legend_key_signature(d.legendKey)
+            lib_hit = lib.get(("legend-key", legend_sig)) or lib.get(("legend-key", legend_sig.lower()))
         if lib_hit:
             d.typeKey = lib_hit.typeKey
             d.classifiedBy = "library"

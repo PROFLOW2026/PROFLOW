@@ -28,15 +28,54 @@ class LegendMatch:
     ambiguous: bool = False
 
 
+def _phrase_in(hay: str, phrase: str) -> bool:
+    """A keyword must not match inside a longer Hebrew word (אחר inside אחרת)."""
+    if not phrase:
+        return False
+    return re.search(rf"(?<![\u0590-\u05FF]){re.escape(phrase)}(?![\u0590-\u05FF])", hay) is not None
+
+
 def _tokens(text: str) -> set[str]:
     t = re.sub(r"[^\w\u0590-\u05FF]+", " ", text.lower())
     return {w for w in t.split() if len(w) >= 2}
+
+
+_STATED_SOCKETS = re.compile(r"(?<!\d)(\d+)\s*שקע")
+_STATED_SOCKETS_AFTER = re.compile(r"שקע[א-ת]*\s+(\d+)(?!\d)")
+
+
+def is_socket_bank(text: str) -> bool:
+    """A socket cluster (מקבץ שקעים). Not one outlet, and not a count by itself."""
+    if not text.strip():
+        return False
+    folded = normalize_legend_text(text, decoded_by="pdf_text")
+    return "מקבצ" in folded and "שקע" in folded
+
+
+def stated_socket_count(text: str) -> int | None:
+    """Sockets the legend actually writes, as in '4 שקעים'.
+
+    A module count ('4 מודולים') or a model code ('ג-17') is not a socket count.
+    None means the quantity is unknown and must not be invented.
+    """
+    if not text.strip():
+        return None
+    folded = normalize_legend_text(text, decoded_by="pdf_text")
+    restored = normalize_legend_text(folded, decoded_by="pdf_text")
+    for blob in (folded, restored):
+        found = _STATED_SOCKETS.search(blob) or _STATED_SOCKETS_AFTER.search(blob)
+        if found:
+            return int(found.group(1))
+    return None
 
 
 def match_legend_text(text: str, catalog: list[CatalogType]) -> LegendMatch | None:
     if not text.strip():
         return None
     text = normalize_legend_text(text, decoded_by="pdf_text")
+    # A bank stays untyped. '4 שקעים' may name a count; it is still not one single socket.
+    if "מקבצ" in text and "שקע" in text:
+        return None
     lower = text.lower()
     tokens = _tokens(text)
     best: LegendMatch | None = None
@@ -47,11 +86,12 @@ def match_legend_text(text: str, catalog: list[CatalogType]) -> LegendMatch | No
             continue
         score = 0.0
         matched_kw = 0
+        overlap_tokens: set[str] = set()
         for kw in item.keywordsHe:
             kwt = kw.lower().strip()
             if not kwt:
                 continue
-            if kwt in lower:
+            if _phrase_in(lower, kwt):
                 score += 3.0 + min(len(kwt) / 20.0, 1.5)
                 matched_kw += 1
             elif len(lower) >= 2 and len(lower) <= 12 and lower in kwt:
@@ -60,9 +100,25 @@ def match_legend_text(text: str, catalog: list[CatalogType]) -> LegendMatch | No
             elif len(kwt) >= 4 and kwt[:4] in lower:
                 score += 2.0
                 matched_kw += 1
-            elif _tokens(kwt) & tokens:
-                score += 1.5
-                matched_kw += 1
+            else:
+                # One shared word across several keywords must not stack into a type.
+                # "פאזי" alone is not "תלת פאזי".
+                overlap_tokens |= _tokens(kwt) & tokens
+        if overlap_tokens:
+            score += 1.5
+            matched_kw += 1
+        # "פאזי" is shared by single-phase and three-phase lines. A sealed outlet
+        # needs a word that actually says it is sealed.
+        if item.key == "power.socket.three_phase" and "תלת" not in lower:
+            score = 0.0
+            matched_kw = 0
+        if item.key == "power.socket.ip" and not any(w in lower for w in ("הרמטי", "מוגן", "ip", "ןפ")):
+            score = 0.0
+            matched_kw = 0
+        # חד-תכליתי is a single-purpose emergency light, not a combo fixture.
+        if item.key == "light.emergency_combo" and "חד" in lower and "תכלית" in lower and "דו" not in lower:
+            score = 0.0
+            matched_kw = 0
         for neg in NEGATIVE_PAIRS.get(item.key, ()):
             if neg in text:
                 score -= 5.0

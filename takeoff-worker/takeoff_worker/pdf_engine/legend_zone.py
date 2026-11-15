@@ -66,6 +66,21 @@ def detect_legend_zones(
             else:
                 zones.append(PdfRect(r.x0 - 25, r.y0 - 25, r.x1 + 160, r.y1 + 80))
 
+    # In-sheet legend column (not the left plan field). RTL labels sit just left of the symbols.
+    if legend_comps:
+        col = _union_rect(legend_comps, pad=6)
+        if col and col.width < w * 0.22 and col.height > h * 0.12:
+            cx = (col.x0 + col.x1) / 2
+            if 0.40 * w < cx < 0.82 * w:
+                zones.append(
+                    PdfRect(
+                        max(0.0, col.x0 - min(200.0, w * 0.10)),
+                        max(0.0, col.y0 - 8),
+                        min(w, col.x1 + 16),
+                        min(h, col.y1 + 8),
+                    )
+                )
+
     # Right-margin column (3643 / AS1749 full-height) — exclude from plan quantities only
     margin = _margin_legend_comps(legend_comps, w, h)
     if 6 <= len(margin) < 100:

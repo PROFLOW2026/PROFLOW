@@ -222,6 +222,39 @@ describe('computeBoq', () => {
     const inArea = boq.lines.find((l) => l.areaId === 'area-a');
     expect(inArea?.quantity).toBe(1);
   });
+
+  it('counts X2 as two devices and keeps the symbol count', () => {
+    const base = [
+      workerDet({ id: 'a', sheetKey: 'p1', tagText: 'X2' }),
+      workerDet({ id: 'b', sheetKey: 'p1', tagText: '2X16A' }),
+      workerDet({ id: 'c', sheetKey: 'p1' }),
+    ];
+    const boq = computeBoq({
+      detections: applyEdits(base, []),
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+      areas: [],
+      catalog,
+      ruleSet: DEFAULT_RULE_SET,
+      linear: [],
+      state: 'draft',
+    });
+    const line = boq.lines.find((entry) => entry.typeKey === 'power.socket.single');
+    expect(line?.symbolCount).toBe(3);
+    expect(line?.quantity).toBe(4);
+
+    const corrected = computeBoq({
+      detections: applyEdits(base, [{ op: 'set_note', detectionId: 'c', tagText: 'X2' }]),
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+      areas: [],
+      catalog,
+      ruleSet: DEFAULT_RULE_SET,
+      linear: [],
+      state: 'draft',
+    });
+    const correctedLine = corrected.lines.find((entry) => entry.typeKey === 'power.socket.single');
+    expect(correctedLine?.symbolCount).toBe(3);
+    expect(correctedLine?.quantity).toBe(5);
+  });
 });
 
 describe('PROXIMITY_SOCKET_RULE_SET', () => {

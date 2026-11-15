@@ -1,7 +1,6 @@
-import { createHash } from 'node:crypto';
-
 import type { SymbolLibraryEntry, WorkerDetection } from './contracts';
 import { normalizePlannerKey } from './planner-key';
+import { sha1Hex } from './sha1';
 
 export type LibraryMatchInput = {
   readonly signature: string;
@@ -15,14 +14,37 @@ export function blockSignature(blockName: string): string {
 
 export function legendKeySignature(legendKey: string): string {
   const key = legendKey.trim();
-  const hash = createHash('sha1').update(key, 'utf8').digest('hex').slice(0, 16);
-  return `legend:${hash}`;
+  return `legend:${sha1Hex(key).slice(0, 16)}`;
 }
 
 export function shapeSignatureFromMaskB64(maskB64: string): string {
   const norm = maskB64.trim();
-  const hash = createHash('sha1').update(norm, 'utf8').digest('hex');
-  return `shape:${hash}`;
+  return `shape:${sha1Hex(norm)}`;
+}
+
+/**
+ * Planner library row for a legend key, including a symbol that has no plan marks.
+ * The worker matches `signatureKind` + `signature` on the next analysis.
+ */
+export function buildLegendLibraryEntry(input: {
+  readonly id: string;
+  readonly plannerKey: string;
+  readonly legendKey: string;
+  readonly typeKey: string;
+  readonly label?: string;
+  readonly createdAtIso?: string;
+}): SymbolLibraryEntry {
+  const legendKey = input.legendKey.trim();
+  const typeKey = input.typeKey.trim();
+  return {
+    id: input.id,
+    plannerKey: normalizePlannerKey(input.plannerKey),
+    signatureKind: 'legend-key',
+    signature: legendKeySignature(legendKey),
+    typeKey,
+    label: input.label ?? legendKey,
+    createdAtIso: input.createdAtIso,
+  };
 }
 
 /**
@@ -53,13 +75,12 @@ export function buildLibraryEntry(input: {
   }
 
   const mask = input.detection.maskB64 ?? input.maskB64 ?? null;
-  if (mask && signatureKind !== 'dwg-block') {
+  if (mask && signatureKind === 'pdf-shape') {
     signature = shapeSignatureFromMaskB64(mask);
-    signatureKind = 'pdf-shape';
   }
 
   const template =
-    signatureKind === 'pdf-shape' && mask
+    mask && signatureKind !== 'dwg-block'
       ? { size: 64 as const, maskB64: mask, colorHex: input.colorHex ?? null }
       : null;
 

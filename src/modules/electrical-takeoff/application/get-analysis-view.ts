@@ -32,6 +32,7 @@ import { TAKEOFF_PERSISTENCE } from './takeoff-persistence';
 import { takeoffNotFound } from '../domain/errors';
 import { attachSheetPreviewUrls } from './resolve-sheet-previews';
 import { formatTakeoffDisplayName, sanitizeWorkerSheetName } from '../domain/format-display-name';
+import { planReviewConfirmed } from '../domain/plan-review';
 
 export async function buildAnalysisView(actor: TakeoffActor, analysisId: string): Promise<AnalysisView> {
   const orgId = actor.kind === 'internal' ? actor.context.organizationId : actor.context.grants[0]?.organizationId;
@@ -189,6 +190,7 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
     workerStats,
     permissions,
     appliedEdits: editList,
+    planReviewConfirmed: planReviewConfirmed(editList),
   };
 }
 

@@ -12,11 +12,30 @@ HEB_KEYBOARD: dict[str, str] = dict(
     )
 )
 
-HEBREW_SHX_HINTS = ("hebrew", "sivan", "miryl", "narkis", "david")
+# Israeli CAD SHX faces store Hebrew as Latin keystrokes. Names are font files,
+# not block names — a block tag is never translated into a catalog type here.
+HEBREW_SHX_HINTS = (
+    "hebrew",
+    "heb",
+    "sivan",
+    "miryl",
+    "mirym",
+    "miryam",
+    "narkis",
+    "david",
+    "caes",
+    "cob",
+    "oron",
+    "moran",
+    "hb1",
+    "grm",
+)
 
 
 def decode_kbd(s: str) -> str:
-    return "".join(HEB_KEYBOARD.get(ch, ch) for ch in s.lower())
+    # '[' in cob/heb SHX is final tsadi. The keyboard map turns that key into ']'.
+    t = "".join(HEB_KEYBOARD.get(ch, ch) for ch in s.lower())
+    return re.sub(r"(?<=[\u0590-\u05FF])\]", "ץ", t)
 
 
 def _hebrew_score(s: str) -> int:

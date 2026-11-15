@@ -224,6 +224,23 @@ def templates_for_plan_matching(rows: list, comps: list) -> tuple[list[tuple[str
     return pairs, len(decodable_idx)
 
 
+def plan_template_pairs(rows: list, comps: list) -> tuple[list[tuple[str, E.Comp]], int]:
+    """Legend shapes used to group plan symbols.
+
+    Decodable rows come first. Rows OCR could not read stay in the list so each
+    matching symbol keeps a stable legend key for a later manual assignment.
+    Type keys are not invented here.
+    """
+    embed, n_dec = templates_for_plan_matching(rows, comps)
+    limit = min(len(rows), len(comps))
+    all_pairs = [(rows[i].key, comps[i]) for i in range(limit)]
+    if not embed:
+        return all_pairs, n_dec
+    seen = {key for key, _comp in embed}
+    extra = [(key, comp) for key, comp in all_pairs if key not in seen]
+    return embed + extra, n_dec
+
+
 def build_legend_templates(output: EngineOutput) -> list[LegendTemplate]:
     """Primary API for Agent 3: masks + metadata from a legend-only (or legend-rich) ``EngineOutput``."""
     for name, data in output.artifacts.items():

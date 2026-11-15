@@ -80,8 +80,11 @@ describe('takeoff mobile overflow containment (~390px)', () => {
           catalog={view.catalog}
           readOnly={false}
           reasonLabel={(r) => r}
+          groupSize={1}
           onClose={() => {}}
           onReclassify={() => {}}
+          onSetNote={() => {}}
+          onConfirm={() => {}}
           onDelete={() => {}}
           onRestore={() => {}}
         />,

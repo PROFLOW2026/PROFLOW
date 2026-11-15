@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { blockSignature, buildLibraryEntry, findLibraryMatch, shapeSignatureFromMaskB64 } from '@/modules/electrical-takeoff/domain/library';
+import { blockSignature, buildLibraryEntry, findLibraryMatch, legendKeySignature, shapeSignatureFromMaskB64 } from '@/modules/electrical-takeoff/domain/library';
 import { workerDet } from './fixtures';
 
 describe('library', () => {
@@ -35,8 +35,8 @@ describe('library', () => {
       detection: det,
       typeKey: 'light.recessed',
     });
-    expect(entry.signatureKind).toBe('pdf-shape');
+    expect(entry.signatureKind).toBe('legend-key');
+    expect(entry.signature).toBe(legendKeySignature('L4'));
     expect(entry.template?.maskB64).toBe('AQIDBA==');
-    expect(entry.signature).toBe(shapeSignatureFromMaskB64('AQIDBA=='));
   });
 });

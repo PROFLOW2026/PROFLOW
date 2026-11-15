@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import tempfile
 from pathlib import Path
 
 from .convert import ConvertResult, convert_dwg_to_dxf
@@ -21,9 +22,18 @@ def sha256_file(path: str | Path) -> str:
 
 
 def cache_dir() -> Path:
+    """Prefer the configured cache. A worker image may not be allowed to write under /app."""
     d = Path(os.environ.get("TAKEOFF_DWG_CACHE", DEFAULT_CACHE))
-    d.mkdir(parents=True, exist_ok=True)
-    return d
+    try:
+        d.mkdir(parents=True, exist_ok=True)
+        probe = d / ".write-probe"
+        probe.write_text("ok", encoding="utf-8")
+        probe.unlink()
+        return d
+    except OSError:
+        fallback = Path(tempfile.gettempdir()) / "takeoff-dwg-cache"
+        fallback.mkdir(parents=True, exist_ok=True)
+        return fallback
 
 
 def ensure_dxf(dwg_path: str | Path, *, cache: Path | None = None) -> tuple[Path, ConvertResult | None, bool]:

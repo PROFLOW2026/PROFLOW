@@ -11,6 +11,8 @@ import type {
   WorkerDetection,
   WorkerLinear,
 } from './contracts';
+import { devicesFromNote } from './quantity-notes';
+import { parseSheetRefId } from './sheet-selection';
 import {
   BOQ_WARNING_DRAFT,
   BOQ_WARNING_NEEDS_REVIEW,
@@ -157,7 +159,9 @@ export function computeBoq(input: ComputeBoqInput): Boq {
 
     const lineKind = rule.output.lineKind ?? (cat ? roleToLineKind(cat.role) : 'device_count');
     const flatIds = clusters.flat().map((d) => d.id).sort();
-    const quantity = rule.mode === 'group_by_proximity' ? clusters.length : group.length;
+    const symbolCount = group.length;
+    const deviceCount = group.reduce((sum, detection) => sum + devicesFromNote(detection.tagText), 0);
+    const quantity = rule.mode === 'group_by_proximity' ? clusters.length : deviceCount;
     const rep = group[0]!;
     lines.push(
       buildQuantityLine({
@@ -174,6 +178,7 @@ export function computeBoq(input: ComputeBoqInput): Boq {
         completeness,
         excluded: false,
         quantityOverride: quantity,
+        symbolCount,
         detectionIds: flatIds,
       }),
     );
@@ -221,16 +226,21 @@ function scopeDetectionsForBoq(input: ComputeBoqInput): {
   sheetExcludedCount: number;
 } {
   const included = input.includedSheetRefIds;
-  if (!included?.size) {
+  if (!included) {
     return { scopedDetections: input.detections, sheetExcludedCount: 0 };
   }
   const fileById = input.detectionFileIdById ?? new Map<string, string>();
+  const includedSheetKeys = new Set([...included].map((ref) => parseSheetRefId(ref).sheetKey));
   let sheetExcludedCount = 0;
   const scoped: EffectiveDetection[] = [];
   for (const d of input.detections) {
     const fileId = fileById.get(d.id);
     const ref = fileId ? `${fileId}:${d.sheetKey}` : d.sheetKey;
-    if (included.has(ref) || (!fileId && included.has(d.sheetKey))) {
+    // A mark added on the open sheet has no file id. Include it when that sheet is included.
+    const onIncludedSheet =
+      included.has(ref) ||
+      (!fileId && (included.has(d.sheetKey) || includedSheetKeys.has(d.sheetKey)));
+    if (onIncludedSheet) {
       scoped.push(d);
     } else if (isDetectionCountable(d)) {
       sheetExcludedCount += 1;
@@ -350,6 +360,7 @@ function buildQuantityLine(input: {
   completeness: Boq['completeness'];
   excluded: boolean;
   quantityOverride?: number;
+  symbolCount?: number;
   detectionIds?: string[];
 }): BoqLine {
   const quantity = input.quantityOverride ?? (input.rule.mode === 'group_by_proximity' ? 1 : input.cluster.length);
@@ -367,6 +378,7 @@ function buildQuantityLine(input: {
     lineKind: input.lineKind,
     unit: input.unit,
     quantity,
+    symbolCount: input.symbolCount,
     floor: input.floor,
     areaId: input.areaId,
     ruleId: input.rule.id,

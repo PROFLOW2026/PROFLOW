@@ -1,6 +1,7 @@
 import { applyEdits, type ApplyEditsContext } from '../domain/edits';
 import { computeBoq, type ComputeBoqInput } from '../domain/boq-engine';
 import { resolveSheetInclusion } from '../domain/sheet-selection';
+import { planReviewConfirmed } from '../domain/plan-review';
 import type {
   AnalysisView,
   EffectiveDetection,
@@ -98,6 +99,8 @@ export function rebuildViewFromEdits(input: {
     areas,
     detections,
     boq,
+    appliedEdits: [...input.edits],
+    planReviewConfirmed: planReviewConfirmed(input.edits),
   };
 }
 

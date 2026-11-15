@@ -130,6 +130,7 @@
     "suggested": "המלצה לאישור",
     "columnType": "סוג מכשיר",
     "columnQuantity": "כמות",
+    "symbolCount": "{count} סמלים",
     "columnStatus": "סטטוס",
     "statusVerified": "מאומת",
     "statusForReview": "לבדיקה",
@@ -143,14 +144,24 @@
     "confidence": "רמת ביטחון",
     "source": "מקור",
     "tag": "טקסט תיוג",
+    "devicePair": "X2 — שני אביזרים לסמל זה",
+    "devicePairHint": "הסמל נשאר אחד. הכמות עולה ב־1 רק כשההערה נקראה או סומנה.",
     "reasons": "סיבות לבקרה",
     "pickType": "סוג",
     "searchTypes": "חיפוש סוגים…",
-    "unclassified": "לא מסווג",
+    "unclassified": "לא מסווג — לבדיקה",
     "saveToLibrary": "שמור בספריית הסמלים של המתכנן",
+    "applyToSymbolGroup": "החל על כל המופעים של אותו סמל ({count})",
+    "selectSymbolGroup": "בחר את כל המופעים של אותו סמל ({count})",
+    "undecodedLegendTitle": "סמלי מקרא שלא נקראו",
+    "undecodedLegendHint": "בחרו סמל אחד, בחרו סוג מהקטלוג, והחילו אותו על כל המופעים בתוכנית.",
+    "undecodedLegendRow": "סמל {key} · {count} מופעים בתוכנית",
     "applyType": "החל סיווג",
-    "delete": "מחק",
-    "restore": "שחזר",
+    "delete": "הסר מהכמות",
+    "restore": "החזר לכמות",
+    "confirmMark": "אשר סימון",
+    "deviceCount": "כמות אביזרים לסמל",
+    "deviceCountHint": "הסמל נשאר אחד. X2 נספר כ־2. מספר אחר נשמר רק אחרי שסימנתם אותו.",
     "rawClass": "מחלקת מקור",
     "twin": "התאמת PDF/DWG",
     "twinState": {
@@ -158,8 +169,8 @@
       "pdf_only": "רק ב-PDF",
       "dwg_only": "רק ב-DWG"
     },
-    "libraryRequiresLegend": "לשמירה בספרייה נדרש מקרא/בלוק מהמנוע (rawClass או תיוג).",
-    "libraryMaskHint": "השמירה תשתמש במסכת הסמל מהזיהוי (maskB64) כשקיימת בשרת."
+    "libraryRequiresLegend": "אפשר לשמור בספרייה רק סמל שזוהה בתוכנית ויש לו חתימה. סימון שנוסף ידנית לא נשמר.",
+    "libraryMaskHint": "השמירה רושמת את חתימת הסמל בספרייה, כדי שאותו סמל יסווג בניתוח הבא."
   },
   "confidence": {
     "high": "גבוה",
@@ -210,6 +221,9 @@
     "reopen": "פתח מחדש לעריכה",
     "blocked": "אישור חסום — יש לסגור פריטי בקרה",
     "blockedHint": "עדיין יש פריטים שדורשים בקרה לפני אישור",
+    "blockedPlanHint": "לפני אישור יש לאשר שבדקתם גם אביזרים שלא זוהו אוטומטית",
+    "planReviewLabel": "בדקתי את התוכנית גם לאביזרים שלא זוהו",
+    "planReviewHint": "האישור הזה נפרד מפריטי הבקרה. הוא מאשר שבדקתם את התוכנית עצמה, כולל אביזרים שהזיהוי פספס.",
     "readyHint": "ניתן לאשר כשכל פריטי הבקרה טופלו"
   },
   "export": {
@@ -265,7 +279,8 @@
   },
   "errors": {
     "loadFailed": "לא ניתן לטעון את הניתוח",
-    "approval_blocked_review": "אי אפשר לאשר כתב כמויות כל עוד יש פריטים ללא סוג או פריטים שדורשים אישור."
+    "approval_blocked_review": "אי אפשר לאשר כתב כמויות כל עוד יש פריטים ללא סוג או פריטים שדורשים אישור.",
+    "approval_blocked_plan_review": "אי אפשר לאשר כתב כמויות לפני אישור שבדקתם גם אביזרים שלא זוהו אוטומטית."
   },
   "rules": {
     "open": "כללי מדידה",

@@ -37,6 +37,7 @@ export function takeoffErrorCode(error: unknown): string | null {
     }
   }
   if (error instanceof Error) {
+    if (error.message === 'approval_blocked_plan_review') return 'approval_blocked_plan_review';
     if (error.message === 'needs_review_remaining' || error.message === 'approval_blocked_review') {
       return 'approval_blocked_review';
     }

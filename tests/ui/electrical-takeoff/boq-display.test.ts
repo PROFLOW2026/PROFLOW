@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { boqLineDisplayLabel } from '@/modules/electrical-takeoff/ui/boq-display';
+import { boqLineDisplayLabel, boqLineStatus, detectionDisplayLabel } from '@/modules/electrical-takeoff/ui/boq-display';
 import type { BoqLine, CatalogType } from '@/modules/electrical-takeoff/domain/contracts';
 
 const catalog: CatalogType[] = [
@@ -42,6 +42,28 @@ describe('boqLineDisplayLabel', () => {
   });
 
   it('shows unclassified label when type is missing', () => {
-    expect(boqLineDisplayLabel(line({ typeKey: null, label: 'p2#3' }), catalog, 'לא מסווג')).toBe('לא מסווג');
+    expect(boqLineDisplayLabel(line({ typeKey: null, label: 'p2#3' }), catalog, 'לא מסווג — לבדיקה')).toBe(
+      'לא מסווג — לבדיקה',
+    );
+  });
+
+  it('does not present a raw block name as the device type', () => {
+    expect(
+      boqLineDisplayLabel(line({ typeKey: null, label: 'SOCKET_BLOCK — לבדיקה' }), catalog, 'לא מסווג — לבדיקה'),
+    ).toBe('לא מסווג — לבדיקה');
+    expect(boqLineStatus(line({ typeKey: null, verified: true }), false)).toBe('forReview');
+  });
+
+  it('uses the catalog Hebrew name on a typed detection', () => {
+    expect(
+      detectionDisplayLabel(
+        { id: 'p1#1', typeKey: 'power.socket.single', rawClass: 'BLOCK_SOCKET' },
+        catalog,
+        'לא מסווג — לבדיקה',
+      ),
+    ).toBe('שקע');
+    expect(
+      detectionDisplayLabel({ id: 'p1#4', typeKey: null, rawClass: 'BLOCK_SOCKET', tagText: 'T22' }, catalog, 'לא מסווג — לבדיקה'),
+    ).toBe('לא מסווג — לבדיקה');
   });
 });

@@ -7,8 +7,11 @@ from dataclasses import dataclass
 
 from ezdxf.entities import Insert
 
+from .blocks import is_xref_block
 from .doc_context import DocContext
 from .viewport import ViewportRegion, model_to_preview
+
+_CONF_ORDER = ("high", "medium", "low", "none")
 
 
 @dataclass
@@ -85,13 +88,15 @@ def collect_sheet_inserts(
     xref_missing: set[str] | None = None,
     layout_name: str = "",
     extra: list[RawInsert] | None = None,
+    legend_names: set[str] | None = None,
 ) -> tuple[list[RawInsert], int, int]:
     xref_missing = xref_missing or set()
     layout_name = layout_name or reg.layout_name
+    legend_names = {n.lower() for n in (legend_names or set()) if n}
     visible: list[RawInsert] = []
     hidden = 0
     for ins in ctx.inserts:
-        if not ctx.is_symbol_insert(ins, layout_name=layout_name):
+        if not _insert_is_device_candidate(ctx, ins, layout_name, legend_names):
             continue
         layer = ins.dxf.layer
         if ctx.rules.is_panel_layout(layout_name) and layer != "0":
@@ -129,6 +134,27 @@ def collect_sheet_inserts(
     return visible, hidden, extras
 
 
+def _insert_is_device_candidate(ctx: DocContext, ins: Insert, layout_name: str, legend_names: set[str]) -> bool:
+    """Symbol-layer inserts, plus blocks a legend row on this drawing actually names.
+
+    A block name by itself is not enough — ``legend_names`` is filled only from legend rows.
+    """
+    if ctx.is_symbol_insert(ins, layout_name=layout_name):
+        return True
+    if ctx.rules.is_excluded_block(ins.dxf.name):
+        return False
+    if ins.dxf.name.startswith("*") or is_xref_block(ctx.doc, ins.dxf.name):
+        return False
+    resolved, _, _ = ctx.resolved_name(ins.dxf.name)
+    if resolved.startswith("*"):
+        return False
+    return resolved.lower() in legend_names or ins.dxf.name.lower() in legend_names
+
+
+def _worse_confidence(a: str, b: str) -> str:
+    return _CONF_ORDER[max(_CONF_ORDER.index(a), _CONF_ORDER.index(b))]
+
+
 def _layer_from_missing_xref(layer: str, missing: set[str]) -> bool:
     if "|" not in layer:
         return False
@@ -161,6 +187,15 @@ def signature_and_class(resolved: str) -> tuple[str, str]:
     return f"block:{resolved}", resolved
 
 
+def _lookup_type(table: dict, signature: str) -> object | None:
+    if signature in table:
+        return table[signature]
+    low = signature.lower()
+    if low in table:
+        return table[low]
+    return None
+
+
 def raw_to_worker(
     raw: RawInsert,
     *,
@@ -171,23 +206,45 @@ def raw_to_worker(
     width_px: int,
     height_px: int,
     library_map: dict[str, str],
+    legend_types: dict[str, tuple[str, str]] | None = None,
 ) -> dict:
+    """typeKey comes from a library signature or from a legend row on this drawing.
+
+    Block names such as sw1 / l60 / parabolic never become a type on their own.
+    Confidence stays ``none`` when typeKey is null, except geometry that is only a
+    candidate (exploded / unresolved dynamic / missing xref) which stays low and untyped.
+    """
     signature, raw_class = signature_and_class(raw.resolved)
     px, py = model_to_preview(raw.x, raw.y, reg, width_px, height_px)
-    type_key = library_map.get(signature)
-    classified = "library" if type_key else "none"
-    if type_key and not raw.reasons:
-        conf = "high"
-    elif type_key:
-        conf = "low"
-    elif raw.reasons:
-        conf = "low"
-    else:
+    legend_types = legend_types or {}
+    scrap = "possible_exploded_symbol" in raw.reasons
+    type_key = None
+    classified = "none"
+    conf = "none"
+    if not scrap:
+        type_key = _lookup_type(library_map, signature)
+        if type_key:
+            classified = "library"
+            conf = "high" if not raw.reasons else "low"
+        else:
+            hit = _lookup_type(legend_types, signature)
+            if hit:
+                type_key, leg_conf = hit
+                classified = "legend_text"
+                conf = leg_conf or "low"
+                if raw.reasons:
+                    conf = _worse_confidence(conf, "low")
+    if not type_key:
+        classified = "none"
         conf = "none"
-    if "possible_exploded_symbol" in raw.reasons:
-        conf = "low"
-    elif "dynamic_block_unresolved" in raw.reasons or "xref_missing" in raw.reasons:
-        conf = "low"
+    if scrap or "dynamic_block_unresolved" in raw.reasons or "xref_missing" in raw.reasons:
+        if not type_key:
+            conf = "low"
+        else:
+            conf = _worse_confidence(conf, "low")
+    reasons = list(dict.fromkeys(raw.reasons))
+    if type_key and conf == "low" and "low_confidence" not in reasons:
+        reasons.append("low_confidence")
     return dict(
         id=f"{sheet_key}#{seq}",
         sheetKey=sheet_key,
@@ -207,6 +264,6 @@ def raw_to_worker(
         typeKey=type_key,
         classifiedBy=classified,
         confidence=conf,
-        reasons=list(dict.fromkeys(raw.reasons)),
+        reasons=reasons,
         native=dict(x=raw.x, y=raw.y),
     )

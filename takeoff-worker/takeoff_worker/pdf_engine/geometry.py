@@ -82,7 +82,10 @@ class PdfMatrix:
 
 
 def rotation_matrix(rotation_deg: int, page_w: float, page_h: float) -> PdfMatrix:
-    """Same semantics as PyMuPDF ``Page.rotation_matrix``: map path coords to display space."""
+    """Same semantics as PyMuPDF ``Page.rotation_matrix``: map path coords to display space.
+
+    ``page_w`` / ``page_h`` are the unrotated media size, not the on-screen view.
+    """
     rot = rotation_deg % 360
     if rot == 0:
         return PdfMatrix()
@@ -93,6 +96,47 @@ def rotation_matrix(rotation_deg: int, page_w: float, page_h: float) -> PdfMatri
     if rot == 270:
         return PdfMatrix(0, -1, 1, 0, 0, page_w)
     raise ValueError(f"unsupported page rotation: {rotation_deg}")
+
+
+def media_size_from_view(rotation_deg: int, view_w: float, view_h: float) -> tuple[float, float]:
+    """Unrotated media size.
+
+    pdfium ``get_width`` / ``get_height`` are the rotated view (what a viewer shows).
+    For 90° and 270° the media box swaps those edges.
+    """
+    rot = rotation_deg % 360
+    if rot in (90, 270):
+        return view_h, view_w
+    return view_w, view_h
+
+
+def map_user_box_to_display(
+    left: float,
+    bottom: float,
+    right: float,
+    top: float,
+    rotation_deg: int,
+    view_w: float,
+    view_h: float,
+) -> PdfRect:
+    """pdfium user-space box (origin bottom-left) → viewer display space (origin top-left)."""
+    media_w, media_h = media_size_from_view(rotation_deg, view_w, view_h)
+    rect = display_bounds_from_pdf(left, bottom, right, top, media_h)
+    rot = rotation_deg % 360
+    if rot == 0:
+        return rect
+    matrix = rotation_matrix(rot, media_w, media_h)
+    pts = [
+        matrix.transform_point(rect.x0, rect.y0),
+        matrix.transform_point(rect.x1, rect.y0),
+        matrix.transform_point(rect.x1, rect.y1),
+        matrix.transform_point(rect.x0, rect.y1),
+    ]
+    xs = [p[0] for p in pts]
+    ys = [p[1] for p in pts]
+    out = PdfRect(min(xs), min(ys), max(xs), max(ys))
+    out.normalize()
+    return out
 
 
 def display_bounds_from_pdf(l: float, b: float, r: float, t: float, page_h: float) -> PdfRect:

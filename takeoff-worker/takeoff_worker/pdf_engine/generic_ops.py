@@ -193,6 +193,7 @@ def classify_components(
                         dict(
                             i=ci,
                             cls=pc["name"],
+                            best_name=pc["name"],
                             score=2.0 - pc["cov"],
                             margin=pc["prec"],
                             conf="medium",
@@ -211,6 +212,7 @@ def classify_components(
             dict(
                 i=ci,
                 cls=cls_name,
+                best_name=tpl[t1][0],
                 score=s1,
                 margin=margin,
                 conf=conf if cls_name != "UNK" else "none",

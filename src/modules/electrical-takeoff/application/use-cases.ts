@@ -52,6 +52,7 @@ import {
   setAnalysisStatus,
 } from '../data/takeoff.repository';
 import { TakeoffError, takeoffApprovedLocked, takeoffRevisionConflict, takeoffWorkerUnavailable } from '../domain/errors';
+import { buildLegendLibraryEntry, buildLibraryEntry } from '../domain/library';
 import { assertAnyPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
@@ -75,6 +76,7 @@ import { isOrganizationStorageConfigured } from '@/modules/external-storage/appl
 import { ingestFakeWorkerResult } from './fake-worker-client';
 import { loadDefaultCatalog } from './domain-runtime';
 import { TAKEOFF_CONTRACT_VERSION, workerJobRequestSchema } from '../domain/contracts';
+import { symbolLibraryForWorker } from './symbol-library-request';
 
 function internalActor(context: OrgContext): TakeoffActor {
   return { kind: 'internal', context };
@@ -282,6 +284,9 @@ export async function startAnalysisUseCase(
 
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? 'http://127.0.0.1:3000';
   const catalog = await loadDefaultCatalog();
+  const symbolLibrary = symbolLibraryForWorker(
+    await listLibrary(context.db, context.organizationId, analysis.plannerKey),
+  );
   const request = workerJobRequestSchema.parse({
     contractVersion: TAKEOFF_CONTRACT_VERSION,
     jobId,
@@ -309,6 +314,7 @@ export async function startAnalysisUseCase(
       token: token.bearer,
     },
     catalog,
+    symbolLibrary,
   });
 
   if (fake) {
@@ -396,24 +402,51 @@ async function persistLibraryFromReclassify(
   analysisId: string,
   edits: TakeoffEdit[],
 ): Promise<void> {
+  const legendSaves = edits.filter((op) => op.op === 'save_legend');
   const saves = edits.filter((op) => op.op === 'reclassify' && op.saveToLibrary && op.typeKey);
-  if (saves.length === 0) return;
-  const job = await latestSuccessfulJob(context.db, context.organizationId, analysisId);
-  if (!job) return;
-  const detections = await listDetectionsForJob(context.db, context.organizationId, job.id);
+  if (legendSaves.length === 0 && saves.length === 0) return;
+
+  const job = saves.length > 0 ? await latestSuccessfulJob(context.db, context.organizationId, analysisId) : null;
+  const detections = job ? await listDetectionsForJob(context.db, context.organizationId, job.id) : [];
+
   await asServiceRoleWrite(context.db, async () => {
-    for (const op of saves) {
-      if (op.op !== 'reclassify' || !op.typeKey) continue;
-      const detection = detections.find((row) => row.id === op.detectionId);
-      if (!detection?.signature) continue;
+    for (const op of legendSaves) {
+      const entry = buildLegendLibraryEntry({
+        id: crypto.randomUUID(),
+        plannerKey,
+        legendKey: op.legendKey,
+        typeKey: op.typeKey,
+      });
       await upsertLibraryEntry(context.db, {
         organizationId: context.organizationId,
         plannerKey,
-        signatureKind: detection.signatureKind,
-        signature: detection.signature,
+        signatureKind: entry.signatureKind,
+        signature: entry.signature,
+        typeKey: entry.typeKey,
+        label: entry.label ?? null,
+        template: null,
+        createdByUserId: context.userId,
+      });
+    }
+    for (const op of saves) {
+      if (op.op !== 'reclassify' || !op.typeKey) continue;
+      const detection = detections.find((row) => row.id === op.detectionId);
+      if (!detection || (!detection.signature && !detection.legendKey)) continue;
+      const entry = buildLibraryEntry({
+        id: detection.id,
+        plannerKey,
+        detection,
         typeKey: op.typeKey,
-        label: detection.tagText ?? null,
-        template: detection.maskB64 ? { maskB64: detection.maskB64 } : null,
+        label: detection.tagText ?? undefined,
+      });
+      await upsertLibraryEntry(context.db, {
+        organizationId: context.organizationId,
+        plannerKey,
+        signatureKind: entry.signatureKind,
+        signature: entry.signature,
+        typeKey: entry.typeKey,
+        label: entry.label ?? null,
+        template: entry.template ?? null,
         createdByUserId: context.userId,
       });
     }
@@ -428,6 +461,7 @@ export async function approveAnalysisUseCase(context: OrgContext, analysisId: st
   const openReview = preview.boq.unclassifiedCount > 0 || preview.boq.needsReviewCount > 0;
   const hasQuantity = preview.boq.lines.some((line) => !line.excluded && line.quantity > 0 && line.typeKey != null);
   if (openReview || !hasQuantity) throw new TakeoffError('approval_blocked_review');
+  if (!preview.planReviewConfirmed) throw new TakeoffError('approval_blocked_plan_review');
   const bumped = await bumpAnalysisRevision(context.db, context.organizationId, analysisId, expectedRevision);
   if (bumped === null) takeoffRevisionConflict();
   const view = await buildAnalysisView(internalActor(context), analysisId);
