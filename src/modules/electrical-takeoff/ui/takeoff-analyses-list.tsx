@@ -37,6 +37,7 @@ export function TakeoffAnalysesList({
   const [loading, setLoading] = useState(true);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [listError, setListError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -89,6 +90,12 @@ export function TakeoffAnalysesList({
         </div>
       </header>
 
+      {listError ? (
+        <p className="rounded-md border border-[var(--pf-border-danger)] bg-[var(--pf-bg-danger-subtle)] px-3 py-2 text-sm text-[var(--pf-text-danger)]" role="alert">
+          {listError}
+        </p>
+      ) : null}
+
       {loading ? (
         <p className="text-sm text-[var(--pf-text-muted)]" role="status">
           {t('common.loading')}
@@ -137,6 +144,7 @@ export function TakeoffAnalysesList({
                       onClick={async () => {
                         const next = window.prompt(t('list.renamePrompt'), row.name);
                         if (next == null || !next.trim()) return;
+                        setListError(null);
                         await api.renameAnalysis(row.id, next.trim());
                         void refresh();
                       }}
@@ -147,6 +155,7 @@ export function TakeoffAnalysesList({
                     {row.archivedAtIso ? (
                       <DropdownMenuItem
                         onClick={async () => {
+                          setListError(null);
                           await api.restoreAnalysis(row.id);
                           void refresh();
                         }}
@@ -157,6 +166,7 @@ export function TakeoffAnalysesList({
                     ) : (
                       <DropdownMenuItem
                         onClick={async () => {
+                          setListError(null);
                           await api.archiveAnalysis(row.id);
                           void refresh();
                         }}
@@ -170,8 +180,13 @@ export function TakeoffAnalysesList({
                       destructive
                       onClick={async () => {
                         if (!window.confirm(t('list.deleteConfirm', { name: row.name }))) return;
-                        await api.deleteAnalysis(row.id);
-                        void refresh();
+                        try {
+                          setListError(null);
+                          await api.deleteAnalysis(row.id);
+                          void refresh();
+                        } catch {
+                          setListError(t('list.deleteFailed'));
+                        }
                       }}
                     >
                       <Trash2 className="size-4" />

@@ -43,6 +43,7 @@ import {
   setAnalysisStatus,
 } from '../data/takeoff.repository';
 import { TakeoffError, takeoffApprovedLocked, takeoffRevisionConflict, takeoffWorkerUnavailable } from '../domain/errors';
+import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import { buildWorkerPairingAndSheetSelection } from '../domain/worker-job-request-build';
 import { buildAnalysisView } from './get-analysis-view';
 import { authorizeTakeoffProject, assertAnalysisAccess, type TakeoffActor } from './access';
@@ -115,8 +116,10 @@ export async function deleteAnalysisUseCase(context: OrgContext, analysisId: str
   const analysis = await assertAnalysisAccess(internalActor(context), analysisId, 'manage');
   if (analysis.status === 'approved') throw new TakeoffError('analysis_locked_approved');
   const { purgeEphemeralAnalysisBytes } = await import('./takeoff-persistence');
-  await purgeEphemeralAnalysisBytes(context.db, context.organizationId, analysisId);
-  await deleteAnalysis(context.db, context.organizationId, analysisId);
+  await asServiceRoleWrite(context.db, async () => {
+    await purgeEphemeralAnalysisBytes(context.db, context.organizationId, analysisId);
+    await deleteAnalysis(context.db, context.organizationId, analysisId);
+  });
 }
 
 export async function getTakeoffInputCapabilitiesUseCase(

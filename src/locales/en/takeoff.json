@@ -22,7 +22,8 @@
     "archive": "Move to archive",
     "restore": "Restore from archive",
     "delete": "Delete",
-    "deleteConfirm": "Delete analysis \"{name}\"? Cloud source files are not removed."
+    "deleteConfirm": "Delete analysis \"{name}\"? Cloud source files are not removed.",
+    "deleteFailed": "Could not delete the analysis. Try again or contact your admin."
   },
   "status": {
     "draft": "Draft",

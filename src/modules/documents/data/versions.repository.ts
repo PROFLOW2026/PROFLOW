@@ -140,7 +140,20 @@ export async function ensureFirstDocumentVersion(
 ): Promise<DocumentVersion> {
   const existing = await listDocumentVersions(db, document.organizationId, document.id);
   if (existing.length > 0) {
-    return existing.find((version) => version.isCurrent) ?? existing[0]!;
+    const current = existing.find((version) => version.isCurrent);
+    if (current) return current;
+    const pick = existing[0]!;
+    await clearCurrentDocumentVersion(db, document.organizationId, document.id);
+    await db
+      .update(documentVersions)
+      .set({ isCurrent: true, updatedAt: new Date() })
+      .where(
+        and(
+          eq(documentVersions.organizationId, document.organizationId),
+          eq(documentVersions.id, pick.id),
+        ),
+      );
+    return { ...pick, isCurrent: true };
   }
 
   return insertDocumentVersion(db, {

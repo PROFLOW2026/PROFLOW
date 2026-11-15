@@ -34,23 +34,23 @@ export type EnsureDocumentForProviderFileInput = {
   readonly semanticFolderType?: SemanticFolderType;
 };
 
-/** Reconcile version 1 / currentVersionId before metadata updates (deferred PG guards). */
-async function prepareDocumentForProviderMetadata(
+/** After external metadata changes, align current_version_id and flush deferred guards. */
+async function finalizeLinkedProviderDocument(
   db: DbExecutor,
   organizationId: string,
   documentId: string,
 ): Promise<DocumentRecord> {
-  let doc = await findDocumentById(db, organizationId, documentId);
+  const doc = await findDocumentById(db, organizationId, documentId);
   if (!doc) throw new NotFoundError('Document');
   const version = await ensureFirstDocumentVersion(db, doc);
-  if (doc.currentVersionId !== version.id) {
-    const updated = await updateDocumentById(db, organizationId, documentId, {
-      currentVersionId: version.id,
-    });
-    doc = updated ?? { ...doc, currentVersionId: version.id };
-    await flushDocumentCurrentVersionGuards(db);
-  }
-  return doc;
+  const synced =
+    doc.currentVersionId === version.id
+      ? doc
+      : ((await updateDocumentById(db, organizationId, documentId, {
+          currentVersionId: version.id,
+        })) ?? { ...doc, currentVersionId: version.id });
+  await flushDocumentCurrentVersionGuards(db);
+  return synced;
 }
 
 /**
@@ -102,7 +102,6 @@ export async function ensureDocumentForProviderFile(
       existingStorageFile.documentId,
     );
     if (existingDocument && existingDocument.status !== 'deleted') {
-      await prepareDocumentForProviderMetadata(context.db, context.organizationId, existingDocument.id);
       await updateStorageFile(context.db, context.organizationId, existingStorageFile.id, {
         originalFilename: fileName,
         mimeType,
@@ -119,13 +118,7 @@ export async function ensureDocumentForProviderFile(
         externalParentFolderId: parentFolderId,
         status: 'available',
       });
-      await flushDocumentCurrentVersionGuards(context.db);
-      const refreshed = await findDocumentById(
-        context.db,
-        context.organizationId,
-        existingDocument.id,
-      );
-      return refreshed!;
+      return finalizeLinkedProviderDocument(context.db, context.organizationId, existingDocument.id);
     }
   }
 
@@ -145,8 +138,6 @@ export async function ensureDocumentForProviderFile(
     });
   }
 
-  await prepareDocumentForProviderMetadata(context.db, context.organizationId, documentId);
-
   await updateDocumentById(context.db, context.organizationId, documentId, {
     storageBackend: 'external',
     externalConnectionId: connection.id,
@@ -161,8 +152,6 @@ export async function ensureDocumentForProviderFile(
     status: 'available',
     deletedAt: null,
   });
-
-  await flushDocumentCurrentVersionGuards(context.db);
 
   if (existingStorageFile) {
     await updateStorageFile(context.db, context.organizationId, existingStorageFile.id, {
@@ -190,11 +179,11 @@ export async function ensureDocumentForProviderFile(
     });
   }
 
-  const finalized = (await findDocumentById(context.db, context.organizationId, documentId))!;
-  if (!finalized) {
-    throw new NotFoundError('Document');
-  }
-  await ensureFirstDocumentVersion(context.db, finalized);
+  const finalized = await finalizeLinkedProviderDocument(
+    context.db,
+    context.organizationId,
+    documentId,
+  );
   await noteModuleUsage(context.db, context.organizationId, 'documents');
 
   await recordAuditEvent(context, {
