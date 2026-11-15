@@ -20,6 +20,7 @@ import {
 } from './fixtures/demo-fixture';
 import { REAL7155_ANALYSIS_ID, getReal7155Fixture } from './fixtures/real7155-fixture';
 import { effectiveToWorker, rebuildViewFromEdits } from './domain-preview';
+import { TakeoffError } from '../domain/errors';
 import { TakeoffRevisionConflictError } from './takeoff-errors';
 
 export { TakeoffRevisionConflictError };
@@ -230,7 +231,7 @@ export function createMockTakeoffApi(fixture: TakeoffMockFixture = 'default'): T
       if (!record) throw new Error('not_found');
       if (record.view.summary.revision !== expectedRevision) throw new TakeoffRevisionConflictError();
       if (record.view.boq.needsReviewCount > 0 || record.view.boq.unclassifiedCount > 0) {
-        throw new Error('needs_review_remaining');
+        throw new TakeoffError('approval_blocked_review');
       }
       record.view.summary.status = 'approved';
       record.view.summary.approvedAtIso = new Date().toISOString();

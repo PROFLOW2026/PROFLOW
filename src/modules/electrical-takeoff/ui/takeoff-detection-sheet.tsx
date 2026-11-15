@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import type { CatalogType, EffectiveDetection, TakeoffReviewReason } from '../domain/contracts';
 import { canSaveReclassifyToLibrary, detectionTwinLabel } from './takeoff-analysis-view';
+import { detectionDisplayLabel } from './boq-display';
 
 export function TakeoffDetectionSheet({
   detection,
@@ -61,8 +62,13 @@ export function TakeoffDetectionSheet({
     >
       <header className="mb-3 flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="text-sm font-semibold">{t('detection.title')}</h3>
-          <p className="text-xs text-[var(--pf-text-muted)]">{detection.id}</p>
+          <h3 className="text-sm font-semibold">
+            {detectionDisplayLabel(detection, catalog, t('detection.unclassified'))}
+          </h3>
+          <p className="text-xs text-[var(--pf-text-muted)]">
+            <span className="text-[var(--pf-text-secondary)]">{t('detection.title')}</span>
+            <span className="ms-1 font-mono">{detection.id}</span>
+          </p>
         </div>
         <Button
           type="button"

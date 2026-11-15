@@ -30,7 +30,7 @@ from .hebrew import collect_text_blob, decode_pdf_text
 from . import legend as legend_mod
 from .legend_detect import filter_glyph_candidates, is_legend_sheet, plan_region
 from .library_match import library_templates
-from .masks import dominant_hex, mask_signature, mask_to_b64
+from .masks import dominant_hex, is_drawing_noise_mask, mask_signature, mask_to_b64
 from .monochrome import black_symbol_candidates
 from .dedupe import collapse_duplicates
 from .heavy_guard import (
@@ -507,14 +507,15 @@ class PdfVectorEngine:
             classified_by = "none"
             type_key = None
             raw_class = d["cls"]
-            conf: Confidence = d["conf"] if d["cls"] != "UNK" else "none"
+            conf: Confidence = "none"
             reasons: list = []
             legend_key = None
             score = d.get("score")
             margin = d.get("margin")
+            noise = is_drawing_noise_mask(comp.mask, comp.rect.width, comp.rect.height)
 
             # library override: re-score vs library only
-            if lib_tpls:
+            if lib_tpls and not noise:
                 lib_names = [(n, c) for n, c, _ in lib_tpls]
                 S, _A, _R = E.match([comp], lib_names)
                 if S.size:
@@ -531,18 +532,20 @@ class PdfVectorEngine:
                         ent = lib_by_name.get(tn)
                         raw_class = ent.signature if ent else tn
 
-            if type_key is None and d["cls"] not in ("UNK",):
+            if type_key is None and not noise and d["cls"] not in ("UNK",):
                 legend_key = d["cls"]
                 raw_class = legend_key
                 classified_by = "none"
-                if conf != "none":
-                    reasons = [r for r in reasons if r != "unclassified"]
 
             if d["via"] == "peel":
                 reasons.append("overlapping_symbols_peeled")
 
-            if type_key is None and conf == "none":
-                reasons.append("unclassified")
+            if noise:
+                # Vector scraps are not devices. Do not emit them for the bill of quantities.
+                continue
+            elif type_key is None:
+                if "unclassified" not in reasons:
+                    reasons.append("unclassified")
 
             if margin is not None and margin < 0.08 and conf in ("medium", "low"):
                 reasons.append("type_ambiguous")
@@ -663,7 +666,7 @@ class PdfVectorEngine:
                                 det.signature = sig
                                 det.classifiedBy = "shape_cluster"
                                 det.typeKey = None
-                                det.confidence = "low"
+                                det.confidence = "none"
                                 if "unclassified" not in det.reasons:
                                     det.reasons.append("unclassified")
 

@@ -9,6 +9,7 @@ import logging
 import os
 import time
 import shutil
+import subprocess
 import tempfile
 import threading
 import urllib.error
@@ -81,6 +82,20 @@ def _download(url: str, token: str, dest: Path) -> Path:
     return dest
 
 
+def _libredwg_status() -> str:
+    exe = shutil.which("dwg2dxf") or os.getenv("LIBREDWG_DWG2DXF")
+    if not exe:
+        return "missing"
+    try:
+        proc = subprocess.run([exe, "--version"], capture_output=True, text=True, timeout=8)
+    except (OSError, subprocess.TimeoutExpired):
+        return "missing"
+    err = proc.stderr or ""
+    if proc.returncode == 127 or "cannot open shared" in err or "not found" in err.lower():
+        return "missing"
+    return "ok"
+
+
 @app.get("/healthz")
 def healthz() -> dict[str, Any]:
     engines: dict[str, str] = {}
@@ -90,7 +105,7 @@ def healthz() -> dict[str, Any]:
             engines[mod] = "ok"
         except Exception:
             engines[mod] = "missing"
-    engines["libredwg_cli"] = "ok" if shutil.which("dwg2dxf") or os.getenv("LIBREDWG_DWG2DXF") else "missing"
+    engines["libredwg_cli"] = _libredwg_status()
     return {"status": "ok", "engines": engines}
 
 

@@ -20,6 +20,7 @@ ReviewReason = Literal[
     "legend_zone",
     "legend_text_undecodable",
     "symbol_group_candidate",
+    "drawing_noise",
 ]
 ElectricalCategory = Literal[
     "lighting", "emergency_lighting", "power", "communication", "low_voltage", "fire_detection",

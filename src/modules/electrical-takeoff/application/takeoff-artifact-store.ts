@@ -1,15 +1,18 @@
 import 'server-only';
 
-import type { StoragePort } from '@/shared/ports/storage';
 import { getStoragePort } from '@/shared/ports/storage';
 import { takeoffNotFound } from '../domain/errors';
 import { findArtifactByJobAndName } from '../data/takeoff.repository';
 import { externalProviderFileStore } from '@/modules/evidence/server';
 import type { DbExecutor } from '@/shared/db/types';
 
+/** Storage keys cannot keep '#': Supabase treats it as a URL fragment and collapses names. */
+export function takeoffArtifactStorageName(artifactName: string): string {
+  return artifactName.replaceAll(/[/\\?#]/g, '_');
+}
+
 function storageObjectKey(organizationId: string, jobId: string, artifactName: string): string {
-  const safeName = artifactName.replaceAll(/[/\\]/g, '_');
-  return `${organizationId}/takeoff-artifacts/${jobId}/${safeName}`;
+  return `${organizationId}/takeoff-artifacts/${jobId}/${takeoffArtifactStorageName(artifactName)}`;
 }
 
 export async function putTakeoffArtifactBytes(input: {

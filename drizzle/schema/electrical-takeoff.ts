@@ -62,6 +62,7 @@ export const takeoffAnalyses = pgTable(
       .notNull()
       .default('persistent'),
     ephemeralExpiresAt: ts('ephemeral_expires_at'),
+    archivedAt: ts('archived_at'),
     createdAt: ts('created_at').notNull().defaultNow(),
     updatedAt: ts('updated_at').notNull().defaultNow(),
   },

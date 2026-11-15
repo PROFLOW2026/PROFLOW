@@ -14,10 +14,14 @@ import {
   listFilesForAnalysis,
   listSheetsForJob,
   listWarningsForJob,
+  listCatalogOverrides,
+  findRuleSet,
 } from '../data/takeoff.repository';
 import { warningFromRow } from '../domain/worker-warnings';
 import { computeBoq } from '../domain/boq-engine';
 import { DEFAULT_RULE_SET } from '../domain/measurement';
+import type { CatalogType, MeasurementRuleSet } from '../domain/contracts';
+import type { DbExecutor } from '@/shared/db/types';
 import { resolveSheetInclusion } from '../domain/sheet-selection';
 import { loadApplyEdits, loadDefaultCatalog } from './domain-runtime';
 import type { SheetDto } from '../domain/contracts';
@@ -42,7 +46,7 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
   const areas = await listAreas(db, orgId, analysisId);
 
   const applyEdits = await loadApplyEdits();
-  const catalog = await loadDefaultCatalog();
+  const catalog = await loadCatalogForOrg(db, orgId);
 
   const baseDetections = job ? await listDetectionsForJob(db, orgId, job.id) : [];
   const workerSheets = job ? await listSheetsForJob(db, orgId, job.id) : [];
@@ -85,7 +89,7 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
     [...inclusion.entries()].filter(([, on]) => on).map(([ref]) => ref),
   );
 
-  const ruleSet = DEFAULT_RULE_SET;
+  const ruleSet = await loadRuleSetForAnalysis(db, orgId, analysis.ruleSetId);
   const approved = analysis.status === 'approved';
   const workerStats = (job?.resultStats ?? {}) as Record<string, number>;
   const boq = computeBoq({
@@ -185,5 +189,37 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
     workerStats,
     permissions,
     appliedEdits: editList,
+  };
+}
+
+async function loadCatalogForOrg(db: DbExecutor, organizationId: string): Promise<CatalogType[]> {
+  const base = await loadDefaultCatalog();
+  const overrides = await listCatalogOverrides(db, organizationId);
+  if (overrides.length === 0) return [...base];
+  const map = new Map(base.map((type) => [type.key, type]));
+  for (const row of overrides) {
+    if (row.archived) {
+      map.delete(row.key);
+      continue;
+    }
+    map.set(row.key, row.payload as unknown as CatalogType);
+  }
+  return [...map.values()];
+}
+
+async function loadRuleSetForAnalysis(
+  db: DbExecutor,
+  organizationId: string,
+  ruleSetId: string | null,
+): Promise<MeasurementRuleSet> {
+  if (!ruleSetId) return DEFAULT_RULE_SET;
+  const row = await findRuleSet(db, organizationId, ruleSetId);
+  if (!row) return DEFAULT_RULE_SET;
+  return {
+    id: row.id,
+    name: row.name,
+    scope: row.scope,
+    version: row.version,
+    rules: (row.rules as MeasurementRuleSet['rules']) ?? [],
   };
 }

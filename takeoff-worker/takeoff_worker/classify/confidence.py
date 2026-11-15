@@ -15,6 +15,15 @@ def calibrate_confidences(
     out: list[WorkerDetection] = []
     for d in detections:
         det = d.model_copy(deep=True)
+        if "drawing_noise" in det.reasons:
+            det.typeKey = None
+            det.confidence = "none"
+            det.classifiedBy = "none"
+            out.append(det)
+            continue
+        if det.classifiedBy == "shape_cluster":
+            det.typeKey = None
+            det.confidence = "none"
         if det.classifiedBy == "library":
             det.confidence = "high"
             out.append(det)
@@ -23,7 +32,14 @@ def calibrate_confidences(
         twin_ok = det.twinId is not None and "pdf_dwg_mismatch" not in det.reasons
         legend_ok = False
         if det.legendKey:
-            h = indices["key"].get(det.legendKey)
+            h = indices["key"].get(det.legendKey) or indices["key"].get(
+                det.legendKey.lower()
+            )
+            legend_ok = h is not None and h.type_key == det.typeKey
+        elif det.classifiedBy == "legend_text" and det.signature:
+            h = indices["signature"].get(det.signature) or indices["signature"].get(
+                det.signature.lower()
+            )
             legend_ok = h is not None and h.type_key == det.typeKey
 
         engine_margin = det.margin if det.margin is not None else None

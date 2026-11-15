@@ -329,6 +329,7 @@ export function TakeoffUploadWizard({
                     open={cloudPickerOpen}
                     onOpenChange={setCloudPickerOpen}
                     browserActions={cloudBrowserActions}
+                    scopedToInitialFolder
                     title={t('upload.pickFromProject')}
                     description={t('upload.pickFromProjectHint')}
                     onSelect={(ref) => void linkCloudFile(ref)}

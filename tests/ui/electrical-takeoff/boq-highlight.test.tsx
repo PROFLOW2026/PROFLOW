@@ -42,6 +42,7 @@ describe('TakeoffBoqPanel', () => {
         <TakeoffBoqPanel
           boq={view.boq}
           lines={view.boq.lines}
+          catalog={view.catalog}
           focusKey={null}
           onLineClick={(_key, detectionIds) => {
             ids = detectionIds;

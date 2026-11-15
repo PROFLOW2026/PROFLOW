@@ -48,6 +48,8 @@ export const reviewReasonSchema = z.enum([
   'legend_text_undecodable',
   /** Unclassified plan symbol grouped by shape signature for review / library naming. */
   'symbol_group_candidate',
+  /** Line, text, or near-empty vector fragment. Not an electrical device and not counted. */
+  'drawing_noise',
 ]);
 export type TakeoffReviewReason = z.infer<typeof reviewReasonSchema>;
 
@@ -654,5 +656,6 @@ export const TAKEOFF_ERROR_CODES = [
   'job_failed',
   'forbidden',
   'not_found',
+  'approval_blocked_review',
 ] as const;
 export type TakeoffErrorCode = (typeof TAKEOFF_ERROR_CODES)[number];

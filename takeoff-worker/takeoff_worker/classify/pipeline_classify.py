@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import re
 
 from ..models import CatalogType, Confidence, SymbolLibraryEntry, WorkerDetection, WorkerLegendEntry
 from .indices import TypeHint, build_legend_indices, combined_detection_text
@@ -9,6 +10,29 @@ from .legend_map import LegendMatch, match_legend_text
 from .text_norm import normalize_legend_text
 
 log = logging.getLogger(__name__)
+
+_HEB = re.compile(r"[\u0590-\u05FF]")
+_CAD_TAG = re.compile(r"^[\w.\-*]+$", re.IGNORECASE)
+
+
+def _looks_like_short_cad_tag(text: str) -> bool:
+    t = text.strip()
+    if not t or len(t) > 12 or _HEB.search(t):
+        return False
+    return bool(_CAD_TAG.fullmatch(t))
+
+
+def _detection_catalog_text_allowed(det: WorkerDetection, blob: str) -> bool:
+    """Skip bare CAD block/layer tags — catalog match needs real legend/hebrew text."""
+    if _HEB.search(blob):
+        return True
+    if det.source != "dwg":
+        return True
+    parts = [det.blockName or "", det.rawClass or "", det.layer or "", det.tagText or ""]
+    filled = [p.strip() for p in parts if p and p.strip()]
+    if not filled:
+        return False
+    return not all(_looks_like_short_cad_tag(p) for p in filled)
 
 
 def _planner_library_index(library: list[SymbolLibraryEntry]) -> dict[tuple[str, str], SymbolLibraryEntry]:
@@ -109,6 +133,13 @@ def classify_detections(
     for det in detections:
         d = det.model_copy(deep=True)
         reasons = list(d.reasons)
+        if "drawing_noise" in reasons:
+            d.typeKey = None
+            d.classifiedBy = "none"
+            d.confidence = "none"
+            d.reasons = list(dict.fromkeys(reasons))
+            out.append(d)
+            continue
         engine_conf: Confidence | None = d.confidence if d.confidence != "none" else None
         if d.typeKey:
             engine_conf = engine_conf or d.confidence
@@ -143,7 +174,7 @@ def classify_detections(
 
             if d.typeKey is None:
                 blob = combined_detection_text(d)
-                if blob:
+                if blob and _detection_catalog_text_allowed(d, blob):
                     match = match_legend_text(blob, catalog)
                     if match:
                         conf = match.confidence if not match.ambiguous else "low"

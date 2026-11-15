@@ -30,7 +30,11 @@ def build_legend_indices(legend: list[WorkerLegendEntry]) -> dict[str, dict[str,
     for row in legend:
         if not row.typeKey:
             continue
-        conf: Confidence = row.confidence or "medium"
+        conf: Confidence = (
+            row.confidence
+            if row.confidence not in (None, "none")
+            else "low"
+        )
         hint = TypeHint(row.typeKey, conf, "legend_row")
         if row.signature:
             by_sig[row.signature] = hint

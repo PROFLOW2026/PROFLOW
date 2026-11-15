@@ -19,3 +19,29 @@ export function isRevisionConflictError(error: unknown): boolean {
   }
   return false;
 }
+
+export function takeoffErrorCode(error: unknown): string | null {
+  if (error && typeof error === 'object') {
+    const o = error as { takeoffCode?: string; code?: string; message?: string };
+    if (o.takeoffCode) return o.takeoffCode;
+    if (o.code?.startsWith('takeoff.')) {
+      const tail = o.code.split('.').pop();
+      if (tail) return tail;
+    }
+    if (typeof o.message === 'string') {
+      const m = o.message;
+      if (m.includes('takeoff.errors.')) {
+        const match = /takeoff\.errors\.([a-z_]+)/.exec(m);
+        if (match?.[1]) return match[1];
+      }
+    }
+  }
+  if (error instanceof Error) {
+    if (error.message === 'needs_review_remaining' || error.message === 'approval_blocked_review') {
+      return 'approval_blocked_review';
+    }
+    if (error.message.includes('takeoff.errors.approval_blocked_review')) return 'approval_blocked_review';
+    if (error.message.includes('אי אפשר לאשר כתב כמויות')) return 'approval_blocked_review';
+  }
+  return null;
+}

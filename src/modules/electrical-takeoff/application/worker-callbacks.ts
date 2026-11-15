@@ -12,7 +12,6 @@ import {
 import { parseWorkerProgressPayload, parseWorkerResultPayload } from '../domain/worker-json';
 import { formatWorkerIngestError, WorkerIngestError } from '../domain/worker-ingest-error';
 import { verifyJobBearer, verifyStoredTokenHash } from './worker-token';
-import { takeoffDeps } from '../server';
 import type { DbExecutor } from '@/shared/db/types';
 
 export async function authorizeWorkerJob(db: DbExecutor, jobId: string, bearer: string, secret: string) {
@@ -73,17 +72,13 @@ export async function applyWorkerArtifact(
   const existing = await findArtifactByJobAndName(db, job.organizationId, jobId, name);
   if (existing) return existing.id;
   const { putTakeoffArtifactBytes } = await import('./takeoff-artifact-store');
-  try {
-    await putTakeoffArtifactBytes({
-      organizationId: job.organizationId,
-      jobId,
-      name,
-      mimeType,
-      bytes,
-    });
-  } catch {
-    /* legacy rows may still resolve via evidenceId below */
-  }
+  await putTakeoffArtifactBytes({
+    organizationId: job.organizationId,
+    jobId,
+    name,
+    mimeType,
+    bytes,
+  });
   const row = await insertArtifact(db, {
     id: randomUUID(),
     organizationId: job.organizationId,

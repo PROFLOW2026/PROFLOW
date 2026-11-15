@@ -88,10 +88,14 @@ interface ProjectBrowserRuntime {
 
 function buildSemanticShortcuts(
   mappings: readonly FolderMappingRecord[],
+  connectionId: string,
 ): ProjectStorageBrowserContext['semanticShortcuts'] {
   return PROJECT_SEMANTIC_FOLDERS.flatMap((semanticFolderType) => {
     const mapping = mappings.find(
-      (m) => m.semanticFolderType === semanticFolderType && m.status === 'ready',
+      (m) =>
+        m.connectionId === connectionId &&
+        m.semanticFolderType === semanticFolderType &&
+        m.status === 'ready',
     );
     if (!mapping) return [];
     return [
@@ -114,9 +118,75 @@ function buildBrowserContext(
     projectRootFolderName: runtime.projectRootMapping.displayName,
     semanticShortcuts: filterAccessibleSemanticShortcuts(
       context,
-      buildSemanticShortcuts(runtime.mappings),
+      buildSemanticShortcuts(runtime.mappings, runtime.connection.id),
     ),
   };
+}
+
+/** Ready semantic folder mapping for the active project storage connection only. */
+export async function getActiveConnectionSemanticFolder(
+  context: OrgContext,
+  projectId: string,
+  semanticFolderType: SemanticFolderType,
+): Promise<{
+  browserContext: ProjectStorageBrowserContext;
+  externalFolderId: string;
+  displayName: string;
+}> {
+  assertAnyPermission(context, [PERMISSIONS.DOCUMENTS_READ, PERMISSIONS.TAKEOFF_MANAGE]);
+  const runtime = await resolveProjectBrowserRuntime(context, projectId);
+  const mapping = runtime.mappings.find(
+    (m) =>
+      m.connectionId === runtime.connection.id &&
+      m.semanticFolderType === semanticFolderType &&
+      m.status === 'ready',
+  );
+  if (!mapping) {
+    throw new ServiceUnavailableError(
+      'Semantic project folder not provisioned',
+      'externalStorage.errors.fileUnavailable',
+    );
+  }
+  return {
+    browserContext: buildBrowserContext(context, runtime),
+    externalFolderId: mapping.externalFolderId,
+    displayName: mapping.displayName,
+  };
+}
+
+export async function assertFolderUnderActiveConnectionSemanticFolder(
+  context: OrgContext,
+  projectId: string,
+  folderExternalId: string,
+  semanticFolderType: SemanticFolderType,
+): Promise<void> {
+  assertAnyPermission(context, [PERMISSIONS.DOCUMENTS_READ, PERMISSIONS.TAKEOFF_MANAGE]);
+  const runtime = await resolveProjectBrowserRuntime(context, projectId);
+  const mapping = runtime.mappings.find(
+    (m) =>
+      m.connectionId === runtime.connection.id &&
+      m.semanticFolderType === semanticFolderType &&
+      m.status === 'ready',
+  );
+  if (!mapping) {
+    throw new NotFoundError('Folder');
+  }
+  const rootId = mapping.externalFolderId;
+  if (folderExternalId === rootId) return;
+  if (
+    await isFolderDescendantOf(
+      runtime.adapter,
+      runtime.accessToken,
+      folderExternalId,
+      rootId,
+    )
+  ) {
+    return;
+  }
+  throw new DomainRuleError(
+    'Folder is outside project storage scope',
+    'externalStorage.errors.outOfScope',
+  );
 }
 
 async function resolveSemanticFolderInTree(

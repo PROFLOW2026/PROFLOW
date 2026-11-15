@@ -23,6 +23,28 @@ def test_pdf_only_not_countable():
     assert not is_countable(d)
 
 
+def test_drawing_noise_excluded_from_boq():
+    d = WorkerDetection(
+        id="n",
+        sheetKey="s",
+        fileId="f",
+        source="pdf",
+        x=1,
+        y=1,
+        signature="x",
+        signatureKind="pdf-shape",
+        rawClass="scrap",
+        typeKey=None,
+        classifiedBy="none",
+        confidence="none",
+        reasons=["drawing_noise"],
+    )
+    assert not is_countable(d)
+    s = boq_count_summary([d])
+    assert s["boq_countable"] == 0.0
+    assert s["boq_excluded_drawing_noise"] == 1.0
+
+
 def test_twin_dedupe_in_summary():
     dets = [
         WorkerDetection(

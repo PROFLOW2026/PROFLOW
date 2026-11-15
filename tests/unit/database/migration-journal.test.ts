@@ -63,6 +63,11 @@ describe('migration journal', () => {
       '0202_automation_task_scan_presets',
       '0203_tasks_work_package_id',
       '0204_tasks_work_package_composite_fk',
+      '0205_electrical_takeoff',
+      '0206_takeoff_sheets_unique_per_file',
+      '0207_takeoff_persistence_modes',
+      '0209_takeoff_analysis_delete',
+      '0210_takeoff_delete_archive_version_guard',
     ] as const;
     const tags = (await loadJournal()).entries.map((entry) => entry.tag);
     const tail = tags.slice(tags.indexOf('0182_expense_installment_payments_grants') + 1);
@@ -473,11 +478,11 @@ describe('migration journal', () => {
     expect(tags.indexOf('0171_retention_release_service_grant')).toBeLessThan(
       tags.indexOf('0172_notification_attention_badge_snapshot'),
     );
-    expect(tags.at(-1)).toBe('0204_tasks_work_package_composite_fk');
-    expect(tags.at(-2)).toBe('0203_tasks_work_package_id');
-    expect(tags.at(-3)).toBe('0202_automation_task_scan_presets');
-    expect(tags.at(-4)).toBe('0201_planning_baselines_project_goals');
-    expect(tags.at(-5)).toBe('0200_exlfy_evolution_local');
+    expect(tags.at(-1)).toBe('0210_takeoff_delete_archive_version_guard');
+    expect(tags.at(-2)).toBe('0209_takeoff_analysis_delete');
+    expect(tags.at(-3)).toBe('0207_takeoff_persistence_modes');
+    expect(tags.at(-4)).toBe('0206_takeoff_sheets_unique_per_file');
+    expect(tags.at(-5)).toBe('0205_electrical_takeoff');
     expect(tags.indexOf('0181_owner_bms_installment_payment_backfill')).toBeLessThan(
       tags.indexOf('0182_expense_installment_payments_grants'),
     );

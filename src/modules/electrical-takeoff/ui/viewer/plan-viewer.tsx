@@ -16,6 +16,7 @@ import {
   zoomAtPoint,
   type ViewportState,
 } from './viewer-math';
+import { formatTakeoffDisplayName } from '../../domain/format-display-name';
 import { colorForDetection, detectionVisible, type TypeFilterState } from '../workspace/takeoff-workspace-state';
 
 interface PlanViewerProps {
@@ -56,7 +57,8 @@ export function PlanViewer({
   const activePointers = useRef(new Map<number, { x: number; y: number }>());
 
   const sheetDetections = useMemo(
-    () => detections.filter((d) => d.sheetKey === sheet.sheetKey),
+    () =>
+      detections.filter((d) => d.sheetKey === sheet.sheetKey && !d.reasons.includes('drawing_noise')),
     [detections, sheet.sheetKey],
   );
 
@@ -141,7 +143,7 @@ export function PlanViewer({
     const dy = e.clientY - start.y;
     dragRef.current = { x: e.clientX, y: e.clientY };
     setViewport((v) => panBy(v, dx, dy));
-  }, []);
+  }, [viewport.scale]);
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
     activePointers.current.delete(e.pointerId);
@@ -188,7 +190,7 @@ export function PlanViewer({
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]">
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-[var(--pf-border-default)] px-2 py-1.5">
-        <p className="truncate text-xs text-[var(--pf-text-secondary)]">{sheet.name}</p>
+        <p className="truncate text-xs text-[var(--pf-text-secondary)]">{formatTakeoffDisplayName(sheet.name)}</p>
         <div className="flex shrink-0 items-center gap-1">
           <Button type="button" variant="ghost" size="sm" className="min-h-11 min-w-11" onClick={() => setViewport((v) => zoomAtPoint(v, 1.2, 0, 0))} aria-label={t('viewer.zoomIn')}>
             <Plus className="size-4" />

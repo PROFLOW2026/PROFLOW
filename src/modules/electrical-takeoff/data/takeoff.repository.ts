@@ -31,6 +31,10 @@ export function takeoffArchivedDisplayName(name: string): string {
   return isTakeoffArchivedAnalysisName(name) ? name.slice(TAKEOFF_ARCHIVED_PREFIX.length) : name;
 }
 
+export function isTakeoffAnalysisArchived(row: { name: string; archivedAt?: Date | null }): boolean {
+  return row.archivedAt != null || isTakeoffArchivedAnalysisName(row.name);
+}
+
 export async function listAnalysesForProject(
   db: DbExecutor,
   organizationId: string,
@@ -43,7 +47,7 @@ export async function listAnalysesForProject(
     .where(and(eq(takeoffAnalyses.organizationId, organizationId), eq(takeoffAnalyses.projectId, projectId)))
     .orderBy(desc(takeoffAnalyses.updatedAt));
   if (options?.includeArchived === true) return rows;
-  return rows.filter((row) => !isTakeoffArchivedAnalysisName(row.name));
+  return rows.filter((row) => !isTakeoffAnalysisArchived(row));
 }
 
 export async function updateAnalysisName(
@@ -71,10 +75,24 @@ export async function setAnalysisArchived(
     .limit(1);
   if (!row) return;
   const display = takeoffArchivedDisplayName(row.name);
-  const nextName = archived ? `${TAKEOFF_ARCHIVED_PREFIX}${display}` : display;
   await db
     .update(takeoffAnalyses)
-    .set({ name: nextName, updatedAt: new Date() })
+    .set({
+      name: display,
+      archivedAt: archived ? new Date() : null,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(takeoffAnalyses.organizationId, organizationId), eq(takeoffAnalyses.id, analysisId)));
+}
+
+export async function clearAnalysisApprovalPointer(
+  db: DbExecutor,
+  organizationId: string,
+  analysisId: string,
+): Promise<void> {
+  await db
+    .update(takeoffAnalyses)
+    .set({ currentApprovalId: null, updatedAt: new Date() })
     .where(and(eq(takeoffAnalyses.organizationId, organizationId), eq(takeoffAnalyses.id, analysisId)));
 }
 
@@ -448,6 +466,103 @@ export async function insertApproval(db: DbExecutor, row: typeof takeoffApproval
   const [created] = await db.insert(takeoffApprovals).values(row).returning();
   if (!created) throw new Error('insertApproval');
   return created;
+}
+
+export async function upsertLibraryEntry(
+  db: DbExecutor,
+  row: typeof takeoffPlannerSymbolLibrary.$inferInsert,
+) {
+  const [saved] = await db
+    .insert(takeoffPlannerSymbolLibrary)
+    .values(row)
+    .onConflictDoUpdate({
+      target: [
+        takeoffPlannerSymbolLibrary.organizationId,
+        takeoffPlannerSymbolLibrary.plannerKey,
+        takeoffPlannerSymbolLibrary.signatureKind,
+        takeoffPlannerSymbolLibrary.signature,
+      ],
+      set: {
+        typeKey: row.typeKey,
+        label: row.label ?? null,
+        template: row.template ?? null,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+  if (!saved) throw new Error('upsertLibraryEntry failed');
+  return saved;
+}
+
+export async function deleteLibraryEntry(db: DbExecutor, organizationId: string, entryId: string): Promise<void> {
+  await db
+    .delete(takeoffPlannerSymbolLibrary)
+    .where(and(eq(takeoffPlannerSymbolLibrary.organizationId, organizationId), eq(takeoffPlannerSymbolLibrary.id, entryId)));
+}
+
+export async function upsertCatalogType(
+  db: DbExecutor,
+  row: typeof takeoffCatalogTypes.$inferInsert,
+) {
+  const [saved] = await db
+    .insert(takeoffCatalogTypes)
+    .values(row)
+    .onConflictDoUpdate({
+      target: [takeoffCatalogTypes.organizationId, takeoffCatalogTypes.key],
+      set: {
+        payload: row.payload,
+        archived: row.archived ?? false,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+  if (!saved) throw new Error('upsertCatalogType failed');
+  return saved;
+}
+
+export async function findRuleSet(db: DbExecutor, organizationId: string, ruleSetId: string) {
+  const [row] = await db
+    .select()
+    .from(takeoffRuleSets)
+    .where(and(eq(takeoffRuleSets.organizationId, organizationId), eq(takeoffRuleSets.id, ruleSetId)))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function saveRuleSetRow(
+  db: DbExecutor,
+  row: typeof takeoffRuleSets.$inferInsert,
+) {
+  const [saved] = await db
+    .insert(takeoffRuleSets)
+    .values(row)
+    .onConflictDoUpdate({
+      target: [takeoffRuleSets.id, takeoffRuleSets.organizationId],
+      set: {
+        name: row.name,
+        scope: row.scope,
+        projectId: row.projectId ?? null,
+        analysisId: row.analysisId ?? null,
+        rules: row.rules,
+        version: row.version,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+  if (!saved) throw new Error('saveRuleSetRow failed');
+  return saved;
+}
+
+export async function setAnalysisRuleSetId(
+  db: DbExecutor,
+  organizationId: string,
+  analysisId: string,
+  ruleSetId: string | null,
+): Promise<void> {
+  await db
+    .update(takeoffAnalyses)
+    .set({ ruleSetId, updatedAt: new Date() })
+    .where(and(eq(takeoffAnalyses.organizationId, organizationId), eq(takeoffAnalyses.id, analysisId)));
 }
 
 export async function listLibrary(db: DbExecutor, organizationId: string, plannerKey: string) {

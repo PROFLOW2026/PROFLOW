@@ -3,7 +3,7 @@ import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
-import { assertAnyPermission, assertPermission } from '@/shared/permissions/assert';
+import { assertAnyPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import type { SemanticFolderType } from '@drizzle/schema/external-storage';
@@ -43,12 +43,14 @@ async function finalizeLinkedProviderDocument(
   const doc = await findDocumentById(db, organizationId, documentId);
   if (!doc) throw new NotFoundError('Document');
   const version = await ensureFirstDocumentVersion(db, doc);
-  const synced =
-    doc.currentVersionId === version.id
-      ? doc
-      : ((await updateDocumentById(db, organizationId, documentId, {
-          currentVersionId: version.id,
-        })) ?? { ...doc, currentVersionId: version.id });
+  if (doc.currentVersionId === version.id) {
+    await flushDocumentCurrentVersionGuards(db);
+    return doc;
+  }
+  const synced = await updateDocumentById(db, organizationId, documentId, {
+    currentVersionId: version.id,
+  });
+  if (!synced) throw new NotFoundError('Document');
   await flushDocumentCurrentVersionGuards(db);
   return synced;
 }

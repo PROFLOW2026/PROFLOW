@@ -149,5 +149,5 @@ def test_symbol_group_labels():
     ]
     n = assign_symbol_group_labels(dets)
     assert n == 1
-    assert dets[0].tagText == "symbol group #1"
+    assert dets[0].tagText == "סמל ללא סווג"
     assert "symbol_group_candidate" in dets[0].reasons

@@ -1,11 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { Boq, BoqLine } from '../domain/contracts';
+import type { Boq, BoqLine, CatalogType } from '../domain/contracts';
+import { boqLineDisplayLabel, boqLineStatus } from './boq-display';
 
 export function TakeoffBoqPanel({
   boq,
   lines,
+  catalog,
   focusKey,
   onLineClick,
   suppressVerified,
@@ -14,6 +16,7 @@ export function TakeoffBoqPanel({
 }: {
   boq: Boq;
   lines: readonly BoqLine[];
+  catalog: readonly CatalogType[];
   focusKey: string | null;
   onLineClick: (lineKey: string, detectionIds: string[]) => void;
   /** When worker warnings block verification, never show “verified” badges. */
@@ -23,9 +26,20 @@ export function TakeoffBoqPanel({
 }) {
   const t = useTranslations('takeoff');
   const classifiedQty = boq.lines.filter((l) => l.typeKey != null && !l.excluded).reduce((s, l) => s + l.quantity, 0);
+  const unclassifiedLabel = t('detection.unclassified');
+
+  const statusLabel = (line: BoqLine) => {
+    const status = boqLineStatus(line, Boolean(suppressVerified));
+    if (status === 'verified') return t('boq.statusVerified');
+    if (status === 'needsReview') return t('boq.statusNeedsReview');
+    return t('boq.statusForReview');
+  };
 
   return (
-    <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col overflow-hidden rounded-lg border border-[var(--pf-border-default)]">
+    <div
+      className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col overflow-hidden rounded-lg border border-[var(--pf-border-default)]"
+      data-testid="takeoff-boq-panel"
+    >
       <header className="border-b border-[var(--pf-border-default)] px-3 py-2">
         <h2 className="text-sm font-semibold text-[var(--pf-text-primary)]">{t('boq.title')}</h2>
         <p className="text-xs text-[var(--pf-text-muted)]">
@@ -61,33 +75,57 @@ export function TakeoffBoqPanel({
           </p>
         ) : null}
       </header>
-      <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1">
-        {lines.length === 0 ? (
-          <li className="p-3 text-xs text-[var(--pf-text-muted)]">{t('boq.empty')}</li>
-        ) : (
-          lines.map((line) => (
-            <li key={line.key}>
-              <button
-                type="button"
-                className={`flex min-h-11 w-full min-w-0 items-center justify-between gap-2 rounded-md px-2 py-2 text-start text-sm hover:bg-[var(--pf-action-subtle-hover)] ${
-                  focusKey === line.key ? 'bg-[var(--pf-action-subtle-active)]' : ''
-                }`}
-                onClick={() => onLineClick(line.key, line.detectionIds)}
-              >
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-medium text-[var(--pf-text-primary)]">{line.label}</span>
-                  <span className="text-xs text-[var(--pf-text-muted)]">
-                    {line.verified && !suppressVerified ? t('boq.verified') : t('boq.suggested')}
-                  </span>
-                </span>
-                <span className="shrink-0 font-semibold tabular-nums text-[var(--pf-text-brand)]">
-                  {line.quantity} {line.unit}
-                </span>
-              </button>
-            </li>
-          ))
-        )}
-      </ul>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <table className="w-full min-w-0 table-fixed border-collapse text-sm">
+          <thead className="sticky top-0 z-[1] bg-[var(--pf-bg-surface)]">
+            <tr className="border-b border-[var(--pf-border-default)] text-xs text-[var(--pf-text-muted)]">
+              <th scope="col" className="px-2 py-2 text-start font-medium">
+                {t('boq.columnType')}
+              </th>
+              <th scope="col" className="w-16 px-2 py-2 text-end font-medium">
+                {t('boq.columnQuantity')}
+              </th>
+              <th scope="col" className="w-[7.5rem] px-2 py-2 text-start font-medium">
+                {t('boq.columnStatus')}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {lines.length === 0 ? (
+              <tr>
+                <td colSpan={3} className="p-3 text-xs text-[var(--pf-text-muted)]">
+                  {t('boq.empty')}
+                </td>
+              </tr>
+            ) : (
+              lines.map((line) => {
+                const displayName = boqLineDisplayLabel(line, catalog, unclassifiedLabel);
+                const status = statusLabel(line);
+                return (
+                  <tr key={line.key}>
+                    <td className="p-0">
+                      <button
+                        type="button"
+                        data-testid={line.typeKey == null ? 'takeoff-boq-line-unclassified' : 'takeoff-boq-line'}
+                        className={`flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md px-2 py-2 text-start hover:bg-[var(--pf-action-subtle-hover)] ${
+                          focusKey === line.key ? 'bg-[var(--pf-action-subtle-active)]' : ''
+                        }`}
+                        onClick={() => onLineClick(line.key, line.detectionIds)}
+                      >
+                        <span className="min-w-0 truncate font-medium text-[var(--pf-text-primary)]">{displayName}</span>
+                      </button>
+                    </td>
+                    <td className="px-2 py-2 text-end align-middle font-semibold tabular-nums text-[var(--pf-text-brand)]">
+                      {line.quantity}
+                    </td>
+                    <td className="px-2 py-2 align-middle text-xs text-[var(--pf-text-secondary)]">{status}</td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

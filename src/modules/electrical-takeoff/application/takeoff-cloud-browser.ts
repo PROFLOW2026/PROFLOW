@@ -2,9 +2,9 @@ import 'server-only';
 
 import type { OrgContext } from '@/shared/auth/context';
 import {
+  assertFolderUnderActiveConnectionSemanticFolder,
   browseProjectStorageFolder,
-  getProjectStorageBrowserContext,
-  loadProjectFileBrowserInitial,
+  getActiveConnectionSemanticFolder,
   type ProjectFileBrowserInitialLoad,
 } from '@/modules/external-storage/application/browser-service';
 import { assertAnyPermission } from '@/shared/permissions/assert';
@@ -15,33 +15,33 @@ function assertTakeoffCloudBrowse(context: OrgContext): void {
   assertAnyPermission(context, [PERMISSIONS.DOCUMENTS_READ, PERMISSIONS.TAKEOFF_MANAGE]);
 }
 
-export type TakeoffCloudBrowserInitialLoad = ProjectFileBrowserInitialLoad;
+export type TakeoffCloudBrowserInitialLoad = ProjectFileBrowserInitialLoad & {
+  readonly plansRootFolderId: string;
+};
 
 export async function loadTakeoffSourceBrowserInitial(
   context: OrgContext,
   projectId: string,
 ): Promise<TakeoffCloudBrowserInitialLoad> {
   assertTakeoffCloudBrowse(context);
-  const browserContext = await getProjectStorageBrowserContext(context, projectId);
-  const plans = browserContext.semanticShortcuts.find((s) => s.semanticFolderType === 'plans');
-  if (plans) {
-    const listing = await browseProjectStorageFolder(context, {
-      projectId,
-      folderExternalId: plans.externalFolderId,
-      folderName: plans.displayName,
-    });
-    return {
-      context: browserContext,
-      folderExternalId: listing.folderExternalId,
-      folderName: listing.folderName,
-      folders: listing.listing.folders,
-      files: filterTakeoffSourceCloudFiles(listing.listing.files),
-    };
-  }
-  const fallback = await loadProjectFileBrowserInitial(context, projectId);
+  const plans = await getActiveConnectionSemanticFolder(context, projectId, 'plans');
+  const listing = await browseProjectStorageFolder(context, {
+    projectId,
+    folderExternalId: plans.externalFolderId,
+    folderName: plans.displayName,
+  });
   return {
-    ...fallback,
-    files: filterTakeoffSourceCloudFiles(fallback.files),
+    context: {
+      ...plans.browserContext,
+      semanticShortcuts: plans.browserContext.semanticShortcuts.filter(
+        (shortcut) => shortcut.semanticFolderType === 'plans',
+      ),
+    },
+    folderExternalId: listing.folderExternalId,
+    folderName: listing.folderName,
+    plansRootFolderId: plans.externalFolderId,
+    folders: listing.listing.folders,
+    files: filterTakeoffSourceCloudFiles(listing.listing.files),
   };
 }
 
@@ -56,15 +56,29 @@ export async function browseTakeoffSourceFolder(
   folderExternalId: string;
   folderName: string;
   projectRootFolderId: string;
+  plansRootFolderId: string;
   folders: TakeoffCloudBrowserInitialLoad['folders'];
   files: TakeoffCloudBrowserInitialLoad['files'];
 }> {
   assertTakeoffCloudBrowse(context);
-  const listing = await browseProjectStorageFolder(context, input);
+  const plans = await getActiveConnectionSemanticFolder(context, input.projectId, 'plans');
+  const folderExternalId = input.folderExternalId?.trim() || plans.externalFolderId;
+  await assertFolderUnderActiveConnectionSemanticFolder(
+    context,
+    input.projectId,
+    folderExternalId,
+    'plans',
+  );
+  const listing = await browseProjectStorageFolder(context, {
+    projectId: input.projectId,
+    folderExternalId,
+    folderName: input.folderName,
+  });
   return {
     folderExternalId: listing.folderExternalId,
     folderName: listing.folderName,
-    projectRootFolderId: listing.projectRootFolderId,
+    projectRootFolderId: plans.externalFolderId,
+    plansRootFolderId: plans.externalFolderId,
     folders: listing.listing.folders,
     files: filterTakeoffSourceCloudFiles(listing.listing.files),
   };

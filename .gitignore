@@ -38,6 +38,8 @@ scripts/.migration-manifest-tokyo.json
 scripts/.migration-validation-eu.json
 scripts/.migration-legacy-file.jpg
 scripts/.env.vercel.production
+scripts/deploy/takeoff-worker.local.env
+scripts/deploy/.takeoff-engine-state/
 *.pem
 *.key
 

@@ -15,6 +15,7 @@ RUN useradd -m -u 10001 worker
 WORKDIR /app
 COPY --from=build /usr/local /usr/local
 COPY --from=build /app /app
+RUN printf '/usr/local/lib\n' > /etc/ld.so.conf.d/libredwg.conf && ldconfig
 ENV PYTHONUNBUFFERED=1 TAKEOFF_WORKER_CONCURRENCY=2
 USER worker
 EXPOSE 8765

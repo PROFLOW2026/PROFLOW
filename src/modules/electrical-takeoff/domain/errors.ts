@@ -10,6 +10,8 @@ export const TAKEOFF_MESSAGES_HE: Record<TakeoffErrorCode, string> = {
   job_failed: 'הניתוח נכשל. התוצאות הקודמות והעריכות נשמרו.',
   forbidden: 'אין הרשאה לפעולה זו.',
   not_found: 'הפריט לא נמצא.',
+  approval_blocked_review:
+    'אי אפשר לאשר כתב כמויות כל עוד יש פריטים ללא סוג או פריטים שדורשים אישור.',
 };
 
 export class TakeoffError extends DomainRuleError {

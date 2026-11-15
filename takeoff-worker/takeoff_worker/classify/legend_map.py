@@ -7,6 +7,11 @@ from dataclasses import dataclass
 from ..models import CatalogType, Confidence
 from .text_norm import normalize_legend_text
 
+# Single-word legend roots that appear inside many longer catalog keywords.
+_HEB_SHORT_ROOT: dict[str, str] = {
+    "שקע": "power.socket.single",
+}
+
 NEGATIVE_PAIRS: dict[str, tuple[str, ...]] = {
     "light.emergency": ("רגיל", "לא חירום", "לא חירום"),
     "power.socket.single": ("חירום", "גוף תאורה", 'ג"ת'),
@@ -49,6 +54,9 @@ def match_legend_text(text: str, catalog: list[CatalogType]) -> LegendMatch | No
             if kwt in lower:
                 score += 3.0 + min(len(kwt) / 20.0, 1.5)
                 matched_kw += 1
+            elif len(lower) >= 2 and len(lower) <= 12 and lower in kwt:
+                score += 2.5
+                matched_kw += 1
             elif len(kwt) >= 4 and kwt[:4] in lower:
                 score += 2.0
                 matched_kw += 1
@@ -71,6 +79,14 @@ def match_legend_text(text: str, catalog: list[CatalogType]) -> LegendMatch | No
             tied_at_top = 1
         elif best and abs(cand.score - best.score) < 0.01:
             tied_at_top += 1
+
+    canon = _HEB_SHORT_ROOT.get(lower.strip())
+    if canon is not None:
+        if best is None or best.score < 2.5 or best.type_key != canon:
+            conf: Confidence = best.confidence if best and best.type_key == canon else "low"
+            score = best.score if best else 2.5
+            amb = best is not None and best.type_key != canon
+            return LegendMatch(canon, conf, score, ambiguous=amb)
 
     if best is None:
         return None

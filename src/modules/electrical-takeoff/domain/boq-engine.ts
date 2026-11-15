@@ -104,7 +104,8 @@ export function computeBoq(input: ComputeBoqInput): Boq {
   for (const d of withFloor) {
     // floor / area already on d
     if (d.typeKey === null) {
-      const key = bucketKey('unclassified', d.typeKey, d.floor, d.areaId, 'unclassified');
+      const family = unclassifiedFamily(d.rawClass);
+      const key = bucketKey('unclassified', family, d.floor, d.areaId, 'unclassified');
       const list = byBucket.get(key) ?? [];
       list.push(d);
       byBucket.set(key, list);
@@ -132,7 +133,7 @@ export function computeBoq(input: ComputeBoqInput): Boq {
   for (const [, group] of byBucket) {
     const sample = group[0]!;
     if (sample.typeKey === null) {
-      lines.push(buildUnclassifiedLine(group, input.state, completeness));
+      lines.push(buildUnclassifiedLine(group, unclassifiedFamily(sample.rawClass)));
       continue;
     }
     const cat = catalogMap.get(sample.typeKey);
@@ -182,8 +183,8 @@ export function computeBoq(input: ComputeBoqInput): Boq {
 
   const sorted = [...lines].sort((a, b) => a.key.localeCompare(b.key, 'en'));
 
-  const needsReviewCount = scopedDetections.filter((d) => d.needsReview).length;
-  const unclassifiedCount = scopedDetections.filter((d) => d.typeKey === null).length;
+  const needsReviewCount = countable.filter((d) => d.needsReview).length;
+  const unclassifiedCount = countable.filter((d) => d.typeKey === null).length;
   if (unclassifiedCount > 0) warnings.push(BOQ_WARNING_UNCLASSIFIED);
   if (needsReviewCount > 0) warnings.push(BOQ_WARNING_NEEDS_REVIEW);
 
@@ -376,16 +377,33 @@ function buildQuantityLine(input: {
   };
 }
 
+function unclassifiedFamily(rawClass: string | null | undefined): string {
+  const cleaned = (rawClass ?? '').trim();
+  if (!cleaned || cleaned === 'UNK' || cleaned === 'drawing_noise' || /^p\d+#\d+/i.test(cleaned)) return 'unclassified';
+  if (cleaned.startsWith('symbol group') || cleaned.startsWith('סמל ללא')) return 'unclassified';
+  return cleaned;
+}
+
+function unclassifiedLineLabel(family: string): string {
+  if (family === 'unclassified') return 'לא מסווג — לבדיקה';
+  return `${family} — לבדיקה`;
+}
+
 function buildUnclassifiedLine(
   cluster: readonly CountableDetection[],
-  _state: 'draft' | 'approved',
-  _completeness: Boq['completeness'],
+  family: string,
 ): BoqLine {
   const rep = cluster[0]!;
   return {
-    key: lineKey({ lineKind: 'manual', typeKey: null, floor: rep.floor, areaId: rep.areaId, ruleId: 'unclassified' }),
+    key: lineKey({
+      lineKind: 'manual',
+      typeKey: null,
+      floor: rep.floor,
+      areaId: rep.areaId,
+      ruleId: `unclassified:${family}`,
+    }),
     typeKey: null,
-    label: 'לא מסווג — לבדיקה',
+    label: unclassifiedLineLabel(family),
     category: 'unknown',
     lineKind: 'manual',
     unit: "יח'",

@@ -128,6 +128,12 @@
     "empty": "אין שורות עדיין",
     "verified": "כמות מאומתת",
     "suggested": "המלצה לאישור",
+    "columnType": "סוג מכשיר",
+    "columnQuantity": "כמות",
+    "columnStatus": "סטטוס",
+    "statusVerified": "מאומת",
+    "statusForReview": "לבדיקה",
+    "statusNeedsReview": "דורש בדיקה",
     "countingSummary": "נספרו {counted} (PDF {pdf}, DWG {dwg}, מיזוג {merged}) · תאומים {twins} · PDF בלבד {pdfOnly} · מקרא {legend} · גליונות מוחרגים {sheetExcluded}"
   },
   "detection": {
@@ -258,7 +264,8 @@
     }
   },
   "errors": {
-    "loadFailed": "לא ניתן לטעון את הניתוח"
+    "loadFailed": "לא ניתן לטעון את הניתוח",
+    "approval_blocked_review": "אי אפשר לאשר כתב כמויות כל עוד יש פריטים ללא סוג או פריטים שדורשים אישור."
   },
   "rules": {
     "open": "כללי מדידה",

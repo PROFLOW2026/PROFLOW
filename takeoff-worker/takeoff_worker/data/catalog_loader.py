@@ -8,15 +8,23 @@ from pathlib import Path
 from ..models import CatalogType
 
 _PKG = Path(__file__).resolve().parent
-_REPO_CATALOG = _PKG.parents[3] / "src/modules/electrical-takeoff/domain/catalog.default.json"
+
+
+def _repo_catalog() -> Path | None:
+    for ancestor in _PKG.parents:
+        candidate = ancestor / "src/modules/electrical-takeoff/domain/catalog.default.json"
+        if candidate.is_file():
+            return candidate
+    return None
 
 
 def _catalog_path() -> Path:
     local = _PKG / "catalog.default.json"
     if local.is_file():
         return local
-    if _REPO_CATALOG.is_file():
-        return _REPO_CATALOG
+    repo = _repo_catalog()
+    if repo is not None:
+        return repo
     raise FileNotFoundError("catalog.default.json not found")
 
 

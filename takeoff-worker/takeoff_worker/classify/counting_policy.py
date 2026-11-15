@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from ..models import WorkerDetection
 
-_ALWAYS = frozenset({"legend_zone"})
+_ALWAYS = frozenset({"legend_zone", "drawing_noise"})
 
 
 def is_countable(d: WorkerDetection) -> bool:
@@ -26,12 +26,16 @@ def boq_count_summary(detections: list[WorkerDetection], *, hidden_layers: int =
     twin_groups: dict[str, int] = {}
     counted = 0
     excl_legend = 0
+    excl_noise = 0
     excl_pdf_only = 0
     counted_dwg = 0
     counted_pdf = 0
     for d in detections:
         if "legend_zone" in d.reasons:
             excl_legend += 1
+            continue
+        if "drawing_noise" in d.reasons:
+            excl_noise += 1
             continue
         if "pdf_only" in d.reasons:
             excl_pdf_only += 1
@@ -50,6 +54,7 @@ def boq_count_summary(detections: list[WorkerDetection], *, hidden_layers: int =
     return {
         "boq_countable": float(counted),
         "boq_excluded_legend_zone": float(excl_legend),
+        "boq_excluded_drawing_noise": float(excl_noise),
         "boq_excluded_pdf_only": float(excl_pdf_only),
         "boq_hidden_layers_sheet": float(hidden_layers),
         "boq_counted_dwg": float(counted_dwg),

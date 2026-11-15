@@ -19,7 +19,9 @@ import {
 import type { TakeoffEdit, TakeoffReviewReason } from '../domain/contracts';
 import { useTakeoffApi } from './api-provider';
 import { PlanViewer } from './viewer/plan-viewer';
-import { isRevisionConflictError } from './takeoff-errors';
+import { formatTakeoffDisplayName } from '../domain/format-display-name';
+import { detectionDisplayLabel } from './boq-display';
+import { isRevisionConflictError, takeoffErrorCode } from './takeoff-errors';
 import { TakeoffConflictBanner, TakeoffLibraryDialog, TakeoffRuleSetDialog } from './takeoff-workspace-panels';
 import { initialWorkspaceState, type TypeFilterState } from './workspace/takeoff-workspace-state';
 import { TakeoffTypeFilterChips } from './takeoff-type-filter-chips';
@@ -55,7 +57,7 @@ export function TakeoffWorkspace({
   const [conflictBanner, setConflictBanner] = useState<string | null>(null);
   const [exportBusy, setExportBusy] = useState<string | null>(null);
   const [exportLinks, setExportLinks] = useState<Partial<Record<'xlsx' | 'boq-pdf' | 'annotated-pdf', { url: string; fileName: string }>>>({});
-  const [showUnclassifiedBoq, setShowUnclassifiedBoq] = useState(false);
+  const [showUnclassifiedBoq, setShowUnclassifiedBoq] = useState(true);
   const sheetsPanelRef = useRef<HTMLElement>(null);
 
   const load = useCallback(async () => {
@@ -175,6 +177,8 @@ export function TakeoffWorkspace({
   const view = state.view;
   const readOnly = !view.permissions.canEdit || view.summary.status === 'approved';
   const dimOthers = state.highlightedDetectionIds.size > 0;
+  const approvalBlockedByBoq = view.boq.unclassifiedCount > 0 || view.boq.needsReviewCount > 0;
+  const canClickApprove = view.permissions.canApprove && !approvalBlockedByBoq;
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
@@ -217,7 +221,7 @@ export function TakeoffWorkspace({
                   className="min-h-11 max-w-full truncate"
                   onClick={() => setState((st) => ({ ...st, activeSheetKey: id }))}
                 >
-                  {s.name}
+                  {formatTakeoffDisplayName(s.name)}
                   {!s.scale.verified || hasBlockingWorkerWarnings(view) ? (
                     <span className="ms-1 rounded bg-[var(--pf-status-warning-bg)] px-1 text-[10px]">{t('scale.unverified')}</span>
                   ) : null}
@@ -370,6 +374,7 @@ export function TakeoffWorkspace({
             <TakeoffBoqPanel
               boq={state.view.boq}
               lines={boqDisplayLines}
+              catalog={state.view.catalog}
               focusKey={state.focusBoqLineKey}
               onLineClick={focusBoqLine}
               suppressVerified={hasBlockingWorkerWarnings(view)}
@@ -385,7 +390,10 @@ export function TakeoffWorkspace({
                     <button
                       type="button"
                       data-testid="takeoff-detection-row"
-                      aria-label={t('detection.rowAria', { id: d.id, type: d.typeKey ?? t('detection.unclassified') })}
+                      aria-label={t('detection.rowAria', {
+                        id: d.id,
+                        type: detectionDisplayLabel(d, view.catalog, t('detection.unclassified')),
+                      })}
                       className="flex min-h-11 w-full min-w-0 items-center justify-between gap-2 rounded-md px-2 text-start text-xs hover:bg-[var(--pf-action-subtle-hover)]"
                       onClick={() => setState((s) => ({ ...s, selectedDetectionId: d.id }))}
                       onKeyDown={(e) => {
@@ -395,8 +403,12 @@ export function TakeoffWorkspace({
                         }
                       }}
                     >
-                      <span className="min-w-0 truncate font-mono">{d.id}</span>
-                      <span className="shrink-0 text-[var(--pf-text-muted)]">{d.typeKey ?? t('detection.unclassified')}</span>
+                      <span className="min-w-0 truncate font-medium text-[var(--pf-text-primary)]">
+                        {detectionDisplayLabel(d, view.catalog, t('detection.unclassified'))}
+                      </span>
+                      <span className="shrink-0 font-mono text-[10px] text-[var(--pf-text-muted)]" aria-hidden>
+                        {d.id}
+                      </span>
                     </button>
                   </li>
                 ))}
@@ -573,13 +585,20 @@ export function TakeoffWorkspace({
             type="button"
             data-testid="takeoff-approve"
             className="min-h-11"
-            disabled={!view.permissions.canApprove}
+            disabled={!canClickApprove}
+            title={!canClickApprove && approvalBlockedByBoq ? t('approval.blockedHint') : undefined}
             onClick={() =>
-              void api.approveAnalysis(analysisId, state.view!.summary.revision).then((v) =>
-                setState((s) => ({ ...s, view: v })),
-              ).catch(() =>
-                setState((s) => ({ ...s, saveNotice: t('approval.blocked') })),
-              )
+              void api
+                .approveAnalysis(analysisId, state.view!.summary.revision)
+                .then((v) => setState((s) => ({ ...s, view: v, saveNotice: null })))
+                .catch((err) => {
+                  const code = takeoffErrorCode(err);
+                  const message =
+                    code === 'approval_blocked_review'
+                      ? t('errors.approval_blocked_review')
+                      : t('approval.blocked');
+                  setState((s) => ({ ...s, saveNotice: message }));
+                })
             }
           >
             <Check className="size-4" />

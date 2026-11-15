@@ -20,7 +20,6 @@ import type {
   ProjectCloudFileBrowserContext,
   ProjectCloudFileRef,
 } from '../client/project-cloud-file-picker-types';
-import { toProjectCloudFileRef } from '../client/project-cloud-file-picker-types';
 import type { ProviderFileItem, ProviderFolderItem } from '../client';
 import { StorageLoadingOverlay } from './storage-loading-overlay';
 
@@ -34,6 +33,8 @@ export type ProjectCloudFilePickerProps = {
   readonly browserActions: ProjectCloudFileBrowserActions;
   readonly title?: string;
   readonly description?: string;
+  /** Keep browsing inside the initial folder (e.g. takeoff plans). */
+  readonly scopedToInitialFolder?: boolean;
 };
 
 export function ProjectCloudFilePicker({
@@ -44,6 +45,7 @@ export function ProjectCloudFilePicker({
   browserActions,
   title,
   description,
+  scopedToInitialFolder = false,
 }: ProjectCloudFilePickerProps) {
   const t = useTranslations('externalStorage.projectFiles');
   const tPicker = useTranslations('externalStorage.cloudPicker');
@@ -60,11 +62,32 @@ export function ProjectCloudFilePicker({
   const [loading, startLoad] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<ProjectCloudFileRef | null>(null);
+  const [browseRootFolderId, setBrowseRootFolderId] = useState<string | null>(null);
+  const [browseRootFolderName, setBrowseRootFolderName] = useState('');
+  const [currentFolderExternalId, setCurrentFolderExternalId] = useState<string | null>(null);
+
+  const effectiveBrowseRootId = scopedToInitialFolder
+    ? browseRootFolderId
+    : browserContext?.projectRootFolderId;
 
   const resolveFolderExternalId = useCallback(
     (path: readonly BrowseSegment[]) =>
-      path.length > 0 ? path[path.length - 1]!.id : browserContext?.projectRootFolderId,
-    [browserContext?.projectRootFolderId],
+      path.length > 0 ? path[path.length - 1]!.id : effectiveBrowseRootId,
+    [effectiveBrowseRootId],
+  );
+
+  const cloudFileRef = useCallback(
+    (file: ProviderFileItem): ProjectCloudFileRef | null => {
+      const parentFolderId = file.parentId?.trim() || currentFolderExternalId?.trim() || '';
+      if (!parentFolderId) return null;
+      return {
+        providerFileId: file.id,
+        fileName: file.name,
+        mimeType: file.mimeType ?? 'application/octet-stream',
+        parentFolderId,
+      };
+    },
+    [currentFolderExternalId],
   );
 
   const loadFolder = useCallback(
@@ -88,6 +111,7 @@ export function ProjectCloudFilePicker({
           return;
         }
         setCurrentFolderName(result.folderName ?? '');
+        setCurrentFolderExternalId(result.folderExternalId ?? folderExternalId);
         setFolders(result.folders ?? []);
         setFiles(result.files ?? []);
       });
@@ -106,6 +130,9 @@ export function ProjectCloudFilePicker({
         setBrowsePath([]);
         setSelectedFile(null);
         setError(null);
+        setBrowseRootFolderId(null);
+        setBrowseRootFolderName('');
+        setCurrentFolderExternalId(null);
       });
       return;
     }
@@ -123,11 +150,16 @@ export function ProjectCloudFilePicker({
       }
       setBrowserContext(result.context);
       setCurrentFolderName(result.folderName ?? '');
+      setCurrentFolderExternalId(result.folderExternalId ?? null);
+      if (scopedToInitialFolder && result.folderExternalId) {
+        setBrowseRootFolderId(result.folderExternalId);
+        setBrowseRootFolderName(result.folderName ?? result.context.semanticShortcuts[0]?.displayName ?? '');
+      }
       setFolders(result.folders ?? []);
       setFiles(result.files ?? []);
       setInitialLoaded(true);
     });
-  }, [browserActions, open, projectId, tPicker]);
+  }, [browserActions, open, projectId, scopedToInitialFolder, tPicker]);
 
   useEffect(() => {
     if (!open || !browserContext || !initialLoaded) return;
@@ -158,14 +190,19 @@ export function ProjectCloudFilePicker({
   };
 
   const jumpToSemanticFolder = (folder: { externalFolderId: string; displayName: string }) => {
+    if (scopedToInitialFolder) return;
     setSelectedFile(null);
     setBrowsePath([{ id: folder.externalFolderId, name: folder.displayName }]);
   };
 
+  const topBreadcrumbLabel = scopedToInitialFolder
+    ? browseRootFolderName || browserContext?.semanticShortcuts[0]?.displayName || currentFolderName
+    : browserContext?.projectRootFolderName;
+
   const breadcrumbTitle =
     browsePath.length > 0
       ? browsePath.map((segment) => segment.name).join(' / ')
-      : browserContext?.projectRootFolderName;
+      : topBreadcrumbLabel;
 
   const handleConfirm = () => {
     if (!selectedFile) return;
@@ -189,7 +226,7 @@ export function ProjectCloudFilePicker({
           </div>
         ) : (
           <div className="relative flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
-            {browserContext.semanticShortcuts.length > 0 ? (
+            {!scopedToInitialFolder && browserContext.semanticShortcuts.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {browserContext.semanticShortcuts.map((shortcut) => (
                   <Button
@@ -222,7 +259,7 @@ export function ProjectCloudFilePicker({
                   className="truncate text-[var(--pf-text-secondary)] hover:underline"
                   onClick={() => navigateBreadcrumb(-1)}
                 >
-                  {browserContext.projectRootFolderName}
+                  {topBreadcrumbLabel}
                 </button>
                 {browsePath.map((segment, index) => (
                   <span key={segment.id} className="flex min-w-0 items-center gap-1">
@@ -274,7 +311,7 @@ export function ProjectCloudFilePicker({
                       </li>
                     ))}
                     {files.map((file) => {
-                      const ref = toProjectCloudFileRef(file);
+                      const ref = cloudFileRef(file);
                       const isSelected = selectedFile?.providerFileId === file.id;
                       return (
                         <li key={file.id}>

@@ -26,10 +26,19 @@ import {
   insertJob,
   listAnalysesForProject,
   deleteAnalysis,
+  clearAnalysisApprovalPointer,
   updateAnalysisName,
   setAnalysisArchived,
-  isTakeoffArchivedAnalysisName,
+  isTakeoffAnalysisArchived,
   takeoffArchivedDisplayName,
+  upsertLibraryEntry,
+  deleteLibraryEntry,
+  upsertCatalogType,
+  findRuleSet,
+  saveRuleSetRow,
+  setAnalysisRuleSetId,
+  latestSuccessfulJob,
+  listDetectionsForJob,
   listCatalogOverrides,
   listLibrary,
   listRuleSets,
@@ -43,6 +52,8 @@ import {
   setAnalysisStatus,
 } from '../data/takeoff.repository';
 import { TakeoffError, takeoffApprovedLocked, takeoffRevisionConflict, takeoffWorkerUnavailable } from '../domain/errors';
+import { assertAnyPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import { buildWorkerPairingAndSheetSelection } from '../domain/worker-job-request-build';
 import { buildAnalysisView } from './get-analysis-view';
@@ -90,16 +101,15 @@ export async function listAnalysesUseCase(
     fileCount: 0,
     approvedAtIso: a.approvedAt?.toISOString() ?? null,
     persistenceMode: (a.persistenceMode ?? TAKEOFF_PERSISTENCE.persistent) as AnalysisSummary['persistenceMode'],
-    archivedAtIso: isTakeoffArchivedAnalysisName(a.name) ? a.updatedAt.toISOString() : null,
+    archivedAtIso: isTakeoffAnalysisArchived(a) ? (a.archivedAt ?? a.updatedAt).toISOString() : null,
   }));
 }
 
 export async function renameAnalysisUseCase(context: OrgContext, analysisId: string, name: string): Promise<void> {
   const trimmed = name.trim();
   if (!trimmed) throw new TakeoffError('forbidden');
-  const analysis = await assertAnalysisAccess(internalActor(context), analysisId, 'manage');
-  const baseName = isTakeoffArchivedAnalysisName(analysis.name) ? `[ARCHIVED] ${trimmed}` : trimmed;
-  await updateAnalysisName(context.db, context.organizationId, analysis.id, baseName);
+  await assertAnalysisAccess(internalActor(context), analysisId, 'manage');
+  await updateAnalysisName(context.db, context.organizationId, analysisId, trimmed);
 }
 
 export async function archiveAnalysisUseCase(context: OrgContext, analysisId: string): Promise<void> {
@@ -113,11 +123,11 @@ export async function restoreAnalysisUseCase(context: OrgContext, analysisId: st
 }
 
 export async function deleteAnalysisUseCase(context: OrgContext, analysisId: string): Promise<void> {
-  const analysis = await assertAnalysisAccess(internalActor(context), analysisId, 'manage');
-  if (analysis.status === 'approved') throw new TakeoffError('analysis_locked_approved');
+  await assertAnalysisAccess(internalActor(context), analysisId, 'manage');
   const { purgeEphemeralAnalysisBytes } = await import('./takeoff-persistence');
   await asServiceRoleWrite(context.db, async () => {
     await purgeEphemeralAnalysisBytes(context.db, context.organizationId, analysisId);
+    await clearAnalysisApprovalPointer(context.db, context.organizationId, analysisId);
     await deleteAnalysis(context.db, context.organizationId, analysisId);
   });
 }
@@ -375,14 +385,49 @@ export async function applyEditsUseCase(
     actorType: 'internal' as const,
     op: op as unknown as Record<string, unknown>,
   }));
+  await persistLibraryFromReclassify(context, analysis.plannerKey, analysisId, edits);
   await appendEdits(context.db, rows);
   return getAnalysisViewUseCase(context, analysisId);
+}
+
+async function persistLibraryFromReclassify(
+  context: OrgContext,
+  plannerKey: string,
+  analysisId: string,
+  edits: TakeoffEdit[],
+): Promise<void> {
+  const saves = edits.filter((op) => op.op === 'reclassify' && op.saveToLibrary && op.typeKey);
+  if (saves.length === 0) return;
+  const job = await latestSuccessfulJob(context.db, context.organizationId, analysisId);
+  if (!job) return;
+  const detections = await listDetectionsForJob(context.db, context.organizationId, job.id);
+  await asServiceRoleWrite(context.db, async () => {
+    for (const op of saves) {
+      if (op.op !== 'reclassify' || !op.typeKey) continue;
+      const detection = detections.find((row) => row.id === op.detectionId);
+      if (!detection?.signature) continue;
+      await upsertLibraryEntry(context.db, {
+        organizationId: context.organizationId,
+        plannerKey,
+        signatureKind: detection.signatureKind,
+        signature: detection.signature,
+        typeKey: op.typeKey,
+        label: detection.tagText ?? null,
+        template: detection.maskB64 ? { maskB64: detection.maskB64 } : null,
+        createdByUserId: context.userId,
+      });
+    }
+  });
 }
 
 export async function approveAnalysisUseCase(context: OrgContext, analysisId: string, expectedRevision: number) {
   await assertAnalysisAccess(internalActor(context), analysisId, 'approve');
   const analysis = await findAnalysis(context.db, context.organizationId, analysisId);
   if (!analysis) throw new TakeoffError('not_found');
+  const preview = await buildAnalysisView(internalActor(context), analysisId);
+  const openReview = preview.boq.unclassifiedCount > 0 || preview.boq.needsReviewCount > 0;
+  const hasQuantity = preview.boq.lines.some((line) => !line.excluded && line.quantity > 0 && line.typeKey != null);
+  if (openReview || !hasQuantity) throw new TakeoffError('approval_blocked_review');
   const bumped = await bumpAnalysisRevision(context.db, context.organizationId, analysisId, expectedRevision);
   if (bumped === null) takeoffRevisionConflict();
   const view = await buildAnalysisView(internalActor(context), analysisId);
@@ -431,9 +476,10 @@ export async function listLibraryUseCase(context: OrgContext, plannerKey: string
 }
 
 export async function deleteLibraryEntryUseCase(context: OrgContext, entryId: string): Promise<void> {
-  // service-role delete via repository omitted: lead may wire full delete
-  void entryId;
-  void context;
+  assertAnyPermission(context, [PERMISSIONS.TAKEOFF_LIBRARY_MANAGE, PERMISSIONS.TAKEOFF_MANAGE]);
+  await asServiceRoleWrite(context.db, async () => {
+    await deleteLibraryEntry(context.db, context.organizationId, entryId);
+  });
 }
 
 export async function listRuleSetsUseCase(context: OrgContext, projectId: string): Promise<MeasurementRuleSet[]> {
@@ -454,7 +500,27 @@ export async function saveRuleSetUseCase(
   ruleSet: MeasurementRuleSet,
 ): Promise<MeasurementRuleSet> {
   await authorizeTakeoffProject(internalActor(context), projectId, 'manage');
-  return ruleSet;
+  const id = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(ruleSet.id)
+    ? ruleSet.id
+    : crypto.randomUUID();
+  const saved = await asServiceRoleWrite(context.db, () =>
+    saveRuleSetRow(context.db, {
+      id,
+      organizationId: context.organizationId,
+      projectId: ruleSet.scope === 'organization' || ruleSet.scope === 'default' ? null : projectId,
+      name: ruleSet.name,
+      scope: ruleSet.scope,
+      version: ruleSet.version,
+      rules: ruleSet.rules,
+    }),
+  );
+  return {
+    id: saved.id,
+    name: saved.name,
+    scope: saved.scope as MeasurementRuleSet['scope'],
+    version: saved.version,
+    rules: (saved.rules as MeasurementRuleSet['rules']) ?? [],
+  };
 }
 
 export async function setAnalysisRuleSetUseCase(
@@ -466,8 +532,10 @@ export async function setAnalysisRuleSetUseCase(
   const analysis = await assertAnalysisAccess(internalActor(context), analysisId, 'manage');
   const bumped = await bumpAnalysisRevision(context.db, context.organizationId, analysisId, expectedRevision);
   if (bumped === null) takeoffRevisionConflict();
-  void ruleSetId;
-  void analysis;
+  const ruleSet = await findRuleSet(context.db, context.organizationId, ruleSetId);
+  if (!ruleSet) throw new TakeoffError('not_found');
+  if (ruleSet.projectId && ruleSet.projectId !== analysis.projectId) throw new TakeoffError('forbidden');
+  await setAnalysisRuleSetId(context.db, context.organizationId, analysisId, ruleSetId);
   return getAnalysisViewUseCase(context, analysisId);
 }
 
@@ -484,8 +552,17 @@ export async function listCatalogUseCase(context: OrgContext): Promise<CatalogTy
 }
 
 export async function saveCatalogTypeUseCase(context: OrgContext, type: CatalogType): Promise<CatalogType> {
-  void context;
-  return type;
+  assertAnyPermission(context, [PERMISSIONS.TAKEOFF_MANAGE, PERMISSIONS.TAKEOFF_LIBRARY_MANAGE]);
+  const saved = await asServiceRoleWrite(context.db, () =>
+    upsertCatalogType(context.db, {
+      organizationId: context.organizationId,
+      key: type.key,
+      payload: type as unknown as Record<string, unknown>,
+      builtIn: false,
+      archived: false,
+    }),
+  );
+  return saved.payload as unknown as CatalogType;
 }
 
 export async function requestExportUseCase(

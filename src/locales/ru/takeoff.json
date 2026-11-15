@@ -128,6 +128,12 @@
     "empty": "Позиций пока нет",
     "verified": "Утверждённое количество",
     "suggested": "Предложение к утверждению",
+    "columnType": "Тип устройства",
+    "columnQuantity": "Количество",
+    "columnStatus": "Статус",
+    "statusVerified": "Проверено",
+    "statusForReview": "На проверку",
+    "statusNeedsReview": "Требует проверки",
     "countingSummary": "Подсчитано: {counted} (PDF {pdf}, DWG {dwg}, слияние {merged}) · пары {twins} · только PDF {pdfOnly} · ключ {legend} · листы искл. {sheetExcluded}"
   },
   "detection": {
@@ -258,7 +264,8 @@
     }
   },
   "errors": {
-    "loadFailed": "Не удалось загрузить анализ"
+    "loadFailed": "Не удалось загрузить анализ",
+    "approval_blocked_review": "Нельзя утвердить ведомость, пока есть позиции без типа или требующие проверки."
   },
   "rules": {
     "open": "Правила подсчёта",

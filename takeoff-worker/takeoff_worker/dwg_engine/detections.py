@@ -176,7 +176,14 @@ def raw_to_worker(
     px, py = model_to_preview(raw.x, raw.y, reg, width_px, height_px)
     type_key = library_map.get(signature)
     classified = "library" if type_key else "none"
-    conf = "high" if type_key and not raw.reasons else ("low" if raw.reasons else "medium")
+    if type_key and not raw.reasons:
+        conf = "high"
+    elif type_key:
+        conf = "low"
+    elif raw.reasons:
+        conf = "low"
+    else:
+        conf = "none"
     if "possible_exploded_symbol" in raw.reasons:
         conf = "low"
     elif "dynamic_block_unresolved" in raw.reasons or "xref_missing" in raw.reasons:
