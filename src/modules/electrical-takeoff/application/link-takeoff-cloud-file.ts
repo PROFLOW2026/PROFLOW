@@ -8,7 +8,7 @@ export type LinkTakeoffCloudFileClientInput = Omit<EnsureDocumentForProviderFile
 
 import { TakeoffError } from '../domain/errors';
 import { assertAnalysisAccess, internalActorFrom } from './access';
-import { inferTakeoffSourceKind } from './takeoff-source-kind';
+import { inferTakeoffSourceKind, takeoffLinkedDocumentMime } from './takeoff-source-kind';
 import { TAKEOFF_PERSISTENCE } from './takeoff-persistence';
 import { assertOrgStorage } from '../server';
 import { insertFile } from '../data/takeoff.repository';
@@ -34,7 +34,7 @@ export async function linkTakeoffCloudFileUseCase(
     projectId: analysis.projectId,
     providerFileId: input.providerFileId,
     fileName: safeName,
-    mimeType: input.mimeType,
+    mimeType: takeoffLinkedDocumentMime(safeName, input.mimeType, kind),
     parentFolderId: input.parentFolderId,
     semanticFolderType: input.semanticFolderType,
   });
