@@ -70,6 +70,7 @@ export async function connectSumitTestConfiguration(
   rawInput: ConnectSumitTestInput,
 ): Promise<{ connectionId: string; companyId: number }> {
   assertPermission(context, PERMISSIONS.SETTINGS_MANAGE);
+  await (await import('@/modules/demo/application/guards')).assertNotDemoOrganization(context.db, context.organizationId);
   assertAllowedSumitApiBase(SUMIT_API_BASE);
 
   const input = parseConnectSumitTestInput(rawInput);

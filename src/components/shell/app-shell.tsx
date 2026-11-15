@@ -1,3 +1,4 @@
+import { DemoModeBanner } from '@/modules/demo/ui/demo-mode-banner';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Suspense, type ReactNode } from 'react';
 import { getShellContext } from '@/shared/auth/session';
@@ -81,6 +82,7 @@ export async function AppShell({
             {tCommon('a11y.skipToContent')}
           </a>
 
+          <DemoModeBanner active={shell.demoActive} />
           <ConnectivityBanner />
 
           <TopBar

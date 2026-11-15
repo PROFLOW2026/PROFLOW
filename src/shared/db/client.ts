@@ -62,6 +62,8 @@ function rawSql(): postgres.Sql {
 function rawAdminSql(): postgres.Sql {
   const connectionString = process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL;
   if (!connectionString) throw new DatabaseNotConfiguredError();
+  // One socket cannot serve two clients. Identical URLs are the same role, so they share a client.
+  if (connectionString === process.env.DATABASE_URL) return rawSql();
   globalThis.__projectflowAdminSql ??= createSqlClient(connectionString);
   return globalThis.__projectflowAdminSql;
 }

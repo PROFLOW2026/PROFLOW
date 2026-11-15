@@ -573,6 +573,7 @@ export async function deliverPendingWebhook(
   deliveryId: string,
 ): Promise<WebhookDeliveryRecord> {
   assertPermission(context, PERMISSIONS.API_MANAGE);
+  await (await import('@/modules/demo/application/guards')).assertNotDemoOrganization(context.db, context.organizationId);
 
   const current = await findWebhookDeliveryById(context.db, context.organizationId, deliveryId);
   if (!current) throw new NotFoundError('Webhook delivery');

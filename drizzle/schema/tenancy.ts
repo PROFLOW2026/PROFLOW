@@ -47,6 +47,8 @@ export const organizations = pgTable(
     /** UWM: module-level feature flags scoped to this organization. */
     moduleConfig: jsonb('module_config').notNull().default({}),
     archivedAt: archivedAt(),
+    /** Null for a real organization. template and session are demo markers. */
+    demoKind: text('demo_kind'),
     ...timestamps(),
   },
   (table) => [
@@ -54,6 +56,10 @@ export const organizations = pgTable(
     check(
       'organizations_work_week_start_day_range',
       sql`${table.workWeekStartDay} >= 0 AND ${table.workWeekStartDay} <= 6`,
+    ),
+    check(
+      'organizations_demo_kind_known',
+      sql`${table.demoKind} IS NULL OR ${table.demoKind} IN ('template', 'session')`,
     ),
   ],
 );

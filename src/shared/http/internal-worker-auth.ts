@@ -9,7 +9,8 @@ export type InternalWorkerRoute =
   | 'ops-worker'
   | 'sumit-expense-worker'
   | 'dg-events-worker'
-  | 'ocr-worker';
+  | 'ocr-worker'
+  | 'demo-reset';
 
 function bearerToken(request: Request): string {
   const header = request.headers.get('authorization') ?? '';
@@ -34,6 +35,7 @@ function acceptedSecrets(route: InternalWorkerRoute): readonly string[] {
     case 'ops-worker':
     case 'sumit-expense-worker':
     case 'dg-events-worker':
+    case 'demo-reset':
       return cron ? [cron] : [];
     default: {
       const _exhaustive: never = route;

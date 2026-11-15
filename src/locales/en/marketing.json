@@ -26,7 +26,8 @@
     "shotAlt": "Preview of the Today screen in EXLFY",
     "mobileShotFile": "today-mobile.png",
     "mobileShotCaption": "Today on your phone - the same priorities from the field",
-    "mobileShotAlt": "Preview of Today on mobile"
+    "mobileShotAlt": "Preview of Today on mobile",
+    "demoCta": "Try the demo"
   },
   "questions": {
     "title": "The questions every business owner asks",

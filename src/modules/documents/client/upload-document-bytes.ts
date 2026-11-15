@@ -19,6 +19,30 @@ export type UploadDocumentBytesResult =
   | { ok: true }
   | { ok: false; stage: 'storage_upload'; status?: number; message?: string; messageKey?: string };
 
+
+const DEMO_FILE_DB = "exlfy-demo-local-files";
+
+function demoSessionActive(): boolean {
+  return typeof document !== "undefined" && document.documentElement.dataset.exlfyDemo === "session";
+}
+
+async function saveDemoFileLocally(file: Blob, contentType: string): Promise<void> {
+  const id = crypto.randomUUID();
+  await new Promise<void>((resolve, reject) => {
+    const request = indexedDB.open(DEMO_FILE_DB, 1);
+    request.onupgradeneeded = () => {
+      request.result.createObjectStore("files", { keyPath: "id" });
+    };
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const store = request.result.transaction("files", "readwrite").objectStore("files");
+      const write = store.put({ id, contentType, bytes: file, savedAt: new Date().toISOString() });
+      write.onerror = () => reject(write.error);
+      write.onsuccess = () => resolve();
+    };
+  });
+}
+
 function resolveContentType(file: Blob, explicit?: string): string {
   if (explicit?.trim()) return explicit.trim();
   if (file instanceof File && file.type.trim()) return file.type.trim();
@@ -50,6 +74,10 @@ export async function uploadDocumentBytes(
   options?: { contentType?: string },
 ): Promise<UploadDocumentBytesResult> {
   const contentType = resolveContentType(file, options?.contentType);
+  if (demoSessionActive()) {
+    await saveDemoFileLocally(file, contentType);
+    return { ok: true };
+  }
   const token = target.uploadToken?.trim() || '';
   const path = target.uploadPath?.trim() || '';
   const bucket = target.uploadBucket?.trim() || '';

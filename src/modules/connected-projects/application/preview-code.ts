@@ -26,6 +26,7 @@ const err = (key: string) => new DomainRuleError(key, `connectedProjects.errors.
  */
 export async function previewCode(context: OrgContext, rawCode: string): Promise<PreviewCodeResult> {
   assertPermission(context, PERMISSIONS.PROJECTS_CREATE);
+  await (await import('@/modules/demo/application/guards')).assertNotDemoOrganization(context.db, context.organizationId);
 
   const code = rawCode.trim();
   if (!isPlausibleConnectionCode(code)) throw err('invalid_code');

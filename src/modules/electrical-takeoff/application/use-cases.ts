@@ -246,6 +246,10 @@ export async function startAnalysisUseCase(
     useAi?: boolean;
   },
 ): Promise<{ jobId: string }> {
+  await (await import('@/modules/demo/application/guards')).assertNotDemoOrganization(
+    context.db,
+    context.organizationId,
+  );
   const analysis = await assertAnalysisAccess(internalActor(context), analysisId, 'manage');
   if (analysis.status === 'approved') takeoffApprovedLocked();
   const fake = process.env.TAKEOFF_USE_FAKE_WORKER === '1';

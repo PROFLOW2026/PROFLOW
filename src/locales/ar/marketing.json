@@ -26,7 +26,8 @@
     "shotAlt": "معاينة شاشة اليوم في EXLFY",
     "mobileShotFile": "today-mobile.png",
     "mobileShotCaption": "اليوم على الهاتف — نفس الأولويات من الميدان",
-    "mobileShotAlt": "معاينة اليوم على الجوال"
+    "mobileShotAlt": "معاينة اليوم على الجوال",
+    "demoCta": "تجربة العرض"
   },
   "questions": {
     "title": "الأسئلة التي يسألها كل صاحب عمل",

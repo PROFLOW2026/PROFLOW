@@ -21,6 +21,8 @@ async function attemptDelivery(
     communicationId,
   );
   if (!existing) throw new NotFoundError('Communication');
+  const { assertNotDemoOrganization } = await import('@/modules/demo/application/guards');
+  await assertNotDemoOrganization(context.db, context.organizationId);
   if (existing.status === 'sent') {
     throw new DomainRuleError(
       'Already confirmed delivered',

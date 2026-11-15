@@ -94,7 +94,7 @@ export default defineConfig({
     {
       name: 'desktop-he',
       // Public shell + regression (overflow/locale). Authenticated specs run below.
-      testIgnore: [/auth\//, /authenticated\//, /mobile\.spec\.ts/],
+      testIgnore: [/auth\//, /authenticated\//, /mobile\.spec\.ts/, /demo\//],
       use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
     },
     {

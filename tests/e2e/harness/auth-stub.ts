@@ -1,6 +1,6 @@
 import { createHmac, randomUUID } from 'node:crypto';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { ANON_KEY, SEED_PASSWORD, SEED_USERS } from './config';
+import { ANON_KEY, E2E_SUPABASE_SERVICE_ROLE_KEY, SEED_PASSWORD, SEED_USERS } from './config';
 
 /**
  * A local stand-in for the subset of GoTrue that ProjectFlow actually calls.
@@ -19,6 +19,7 @@ interface StubUser {
 
 const users = new Map<string, StubUser>();
 const tokens = new Map<string, string>();
+const magicLinkTokens = new Map<string, string>();
 /** Per-email password (employee peppered PIN, etc.). Default for seed users is {@link SEED_PASSWORD}. */
 const passwordByEmail = new Map<string, string>();
 
@@ -143,6 +144,13 @@ async function readBody(request: IncomingMessage): Promise<Record<string, unknow
   }
 }
 
+
+function isServiceRole(request: IncomingMessage): boolean {
+  const header = request.headers.authorization ?? '';
+  const token = header.replace(/^Bearer\s+/i, '');
+  return token === E2E_SUPABASE_SERVICE_ROLE_KEY;
+}
+
 function bearerUser(request: IncomingMessage): StubUser | null {
   const header = request.headers.authorization ?? '';
   const token = header.replace(/^Bearer\s+/i, '');
@@ -236,6 +244,63 @@ export function startAuthStub(port: number): Promise<() => Promise<void>> {
           if (metadata.display_name) user.displayName = metadata.display_name;
         }
         return send(response, 200, userPayload(user));
+      }
+
+
+      if (path === '/admin/users' && request.method === 'POST') {
+        if (!isServiceRole(request)) return send(response, 401, { message: 'not admin' });
+        const body = await readBody(request);
+        const email = String(body.email ?? '').toLowerCase();
+        if (!email) return send(response, 400, { message: 'email required' });
+        const existing = users.get(email);
+        const user =
+          existing ??
+          ({
+            id: randomUUID(),
+            email,
+            displayName: email.split('@')[0] ?? email,
+          } satisfies StubUser);
+        users.set(email, user);
+        return send(response, 200, { user: userPayload(user) });
+      }
+
+      if (path.startsWith('/admin/users/') && request.method === 'DELETE') {
+        if (!isServiceRole(request)) return send(response, 401, { message: 'not admin' });
+        const userId = decodeURIComponent(path.slice('/admin/users/'.length));
+        for (const [email, user] of users) {
+          const demoEmployee = email.startsWith('demo.') && (email.endsWith('@employees.pf.internal') || email.endsWith('@contractors.pf.internal'));
+          const demoMember = email.endsWith('@demo.pf.internal');
+          if (user.id === userId && (demoMember || demoEmployee)) users.delete(email);
+        }
+        return send(response, 200, {});
+      }
+
+      if (path === '/admin/generate_link' && request.method === 'POST') {
+        if (!isServiceRole(request)) return send(response, 401, { message: 'not admin' });
+        const body = await readBody(request);
+        const email = String(body.email ?? '').toLowerCase();
+        const user = users.get(email);
+        if (!user) return send(response, 404, { message: 'user not found' });
+        const hashedToken = randomUUID().replace(/-/g, '');
+        magicLinkTokens.set(hashedToken, email);
+        return send(response, 200, {
+          ...userPayload(user),
+          action_link: 'http://127.0.0.1/local-demo',
+          email_otp: '',
+          hashed_token: hashedToken,
+          redirect_to: '',
+          verification_type: 'magiclink',
+        });
+      }
+
+      if (path === '/verify' && request.method === 'POST') {
+        const body = await readBody(request);
+        const hashedToken = String(body.token_hash ?? '');
+        const email = magicLinkTokens.get(hashedToken);
+        const user = email ? users.get(email) : null;
+        if (!user || body.type !== 'magiclink') return send(response, 403, { message: 'invalid token' });
+        magicLinkTokens.delete(hashedToken);
+        return send(response, 200, sessionPayload(user));
       }
 
       if (path === '/logout') return send(response, 204, null);

@@ -15,7 +15,11 @@ export async function downloadReport(
   input: GenerateReportInput,
   _format: 'pdf' | 'html' = 'html',
 ): Promise<ReportDownloadResult> {
-  const payload = await generateReport(context, input);
+  const generated = await generateReport(context, input);
+  const demoKind = await (await import('@/modules/demo/application/guards')).readDemoKind(context.db, context.organizationId);
+  const payload = (await import('@/modules/demo/domain/demo-org')).isDemoOrganization(demoKind)
+    ? { ...generated, demoWatermark: true }
+    : generated;
   const body = renderReportHtmlDocument(payload);
   return {
     payload,

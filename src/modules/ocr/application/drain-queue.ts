@@ -84,6 +84,11 @@ export async function drainDurableOcrQueue(
       .limit(1);
     if (!job) continue;
 
+    if ((await import('@/modules/demo/domain/demo-org')).isDemoOrganization(await (await import('@/modules/demo/application/guards')).readDemoKind(db, job.organizationId))) {
+      await stopReclaimedOcrJob(repo, job.organizationId, job.id, 'demo_blocked', 'Demo organizations do not call OCR');
+      continue;
+    }
+
     if (ocrLeaseReclaimExhausted(job.attemptCount ?? 0)) {
       await stopReclaimedOcrJob(
         repo,

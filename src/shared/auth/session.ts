@@ -254,12 +254,16 @@ export const getShellContext = cache(async () => {
       );
       assertOwnerAppSurface(context);
 
-      const [modules, orgSettings, previewSelection, organizationLogoUrl] = await Promise.all([
+      const { readDemoKind } = await import("@/modules/demo/application/guards");
+      const { isDemoOrganization } = await import("@/modules/demo/domain/demo-org");
+      const [modules, orgSettings, previewSelection, organizationLogoUrl, demoKind] = await Promise.all([
         getModuleVisibility(context),
         loadShellOrgSettings(context.db, context.organizationId),
         readExperiencePreviewCookie(),
         getShellOrgLogoUrl(context).catch(() => null),
+        readDemoKind(context.db, context.organizationId),
       ]);
+      const demoActive = isDemoOrganization(demoKind);
 
       const {
         workMix,
@@ -321,6 +325,7 @@ export const getShellContext = cache(async () => {
         organization: context.organization,
         organizationId: context.organizationId,
         organizationLogoUrl,
+        demoActive,
         permissions: context.permissions,
         roleKeys: context.roleKeys,
         businessProfileKey,

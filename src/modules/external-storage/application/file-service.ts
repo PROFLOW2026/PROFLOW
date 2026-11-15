@@ -84,6 +84,7 @@ export async function uploadDocumentToExternalStorage(
     sizeBytes: number;
   },
 ): Promise<ProviderFileItem> {
+  await (await import('@/modules/demo/application/guards')).assertNotDemoOrganization(context.db, context.organizationId);
   await assertDocumentManagePermission(context, { documentId: input.documentId });
   const connection = await assertOrganizationStorageAvailable(context);
   const document = await findDocumentById(context.db, context.organizationId, input.documentId);

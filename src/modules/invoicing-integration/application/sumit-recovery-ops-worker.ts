@@ -210,6 +210,9 @@ export async function runSumitRecoveryOpsWorker(): Promise<SumitRecoveryOpsWorke
 
   for (const organizationId of allOrgIds) {
     try {
+      if ((await import('@/modules/demo/domain/demo-org')).isDemoOrganization(await (await import('@/modules/demo/application/guards')).readDemoKind(db, organizationId))) {
+        continue;
+      }
       const owner = await findActiveOrgOwnerUserId(db, organizationId);
       if (!owner) {
         failed += 1;

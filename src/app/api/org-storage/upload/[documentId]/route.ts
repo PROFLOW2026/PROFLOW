@@ -15,6 +15,13 @@ export async function POST(
     if (!session.activeOrganizationId) {
       return apiRouteErrorResponse('errors.organizationContextRequired', 403);
     }
+    const demoKind = await (await import('@/modules/demo/application/guards')).readDemoKind(
+      (await import('@/shared/db/client')).getAdminDb(),
+      session.activeOrganizationId,
+    );
+    if ((await import('@/modules/demo/domain/demo-org')).isDemoOrganization(demoKind)) {
+      return apiRouteErrorResponse('demo.errors.externalBlocked', 403);
+    }
 
     const { documentId } = await context.params;
     const url = new URL(request.url);

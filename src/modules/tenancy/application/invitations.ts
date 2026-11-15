@@ -43,6 +43,7 @@ export async function createInvitation(
   rawInput: { email: string; roleKey: string },
 ): Promise<CreateInvitationResult> {
   assertPermission(context, PERMISSIONS.INVITATIONS_MANAGE);
+  await (await import('@/modules/demo/application/guards')).assertNotDemoOrganization(context.db, context.organizationId);
 
   const parsed = inviteMemberSchema.safeParse(rawInput);
   if (!parsed.success) {
@@ -198,6 +199,7 @@ async function acceptInvitationInTransaction(
     throw new DomainRuleError('This invitation has expired', 'errors.invitations.expired');
   }
 
+  await (await import('@/modules/demo/application/guards')).assertNotDemoOrganization(db, invitation.organizationId);
   if (invitation.email.toLowerCase() !== input.userEmail.toLowerCase()) {
     throw new DomainRuleError(
       'This invitation was issued to a different email address',

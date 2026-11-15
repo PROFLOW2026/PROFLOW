@@ -24,6 +24,12 @@ const CRON_GET_WORKERS = [
     path: '/api/internal/sumit-expense-worker',
     workerCall: 'drainSumitExpenseIngestion(',
   },
+  {
+    file: 'src/app/api/internal/demo-reset/route.ts',
+    route: 'demo-reset',
+    path: '/api/internal/demo-reset',
+    workerCall: 'runNightlyReset(',
+  },
 ] as const;
 
 const POST_ONLY_WORKERS = [
@@ -75,7 +81,13 @@ describe('internal workers reject GET (S-06)', () => {
     const vercel = JSON.parse(readFileSync(path.join(process.cwd(), 'vercel.json'), 'utf8')) as {
       crons: { path: string }[];
     };
-    expect(vercel.crons.map((cron) => cron.path)).toEqual(CRON_GET_WORKERS.map((worker) => worker.path));
+    expect(vercel.crons.map((cron) => cron.path)).toEqual([
+      '/api/internal/ocr-worker',
+      '/api/internal/ops-worker',
+      '/api/internal/sumit-expense-worker',
+      '/api/internal/takeoff-ephemeral-cleanup',
+      '/api/internal/demo-reset',
+    ]);
 
     for (const worker of CRON_GET_WORKERS) {
       const source = readFileSync(path.join(process.cwd(), worker.file), 'utf8');

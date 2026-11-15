@@ -26,7 +26,8 @@
     "shotAlt": "תצוגה מקדימה של מסך היום ב-EXLFY",
     "mobileShotFile": "today-mobile.png",
     "mobileShotCaption": "היום בטלפון - אותן עדיפויות גם מהשטח",
-    "mobileShotAlt": "תצוגה מקדימה של היום במובייל"
+    "mobileShotAlt": "תצוגה מקדימה של היום במובייל",
+    "demoCta": "הדגמה"
   },
   "questions": {
     "title": "השאלות שכל בעל עסק שואל",

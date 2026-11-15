@@ -30,6 +30,7 @@ export async function trySendTaskNotificationEmail(
   const channels = resolveTaskDeliveryChannelStatus({
     taskEmailDeliveryEnabled: serverEnv().TASK_EMAIL_DELIVERY_ENABLED === 'true',
   });
+  await (await import('@/modules/demo/application/guards')).assertNotDemoOrganization(context.db, context.organizationId);
   if (channels.email !== 'connected') return;
 
   const port = getEmailPort();

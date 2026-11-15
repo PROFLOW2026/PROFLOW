@@ -1,7 +1,10 @@
 import 'server-only';
 
 import { createClient } from '@supabase/supabase-js';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
+import { shouldRecordEmployeeLockout } from '@/modules/demo/domain/employee-lockout';
+import { isDemoOrganization } from '@/modules/demo/domain/demo-org';
+import { readDemoKind } from '@/modules/demo/application/guards';
 import { permitScopedAuthAttempt } from '@/shared/auth/consume-auth-rate-limit';
 import { getAdminDb } from '@/shared/db/client';
 import { createSupabaseServerClient, isSupabaseConfigured } from '@/shared/supabase/server';
@@ -66,6 +69,36 @@ async function recordLoginFailure(
     action: 'login_failed',
     detailJson: { reason, failedCount: failed, ...detail },
   });
+}
+
+
+async function demoSessionCookiePresent(): Promise<boolean> {
+  try {
+    return Boolean((await cookies()).get('demo_session')?.value);
+  } catch {
+    return false;
+  }
+}
+
+async function recordVerifiedLoginFailure(
+  db: Awaited<ReturnType<typeof getAdminDb>>,
+  account: { organizationId: string; employeeId: string; id: string; failedLoginCount: number },
+  reason: EmployeeLoginFailureReason,
+  detail: Record<string, unknown> = {},
+): Promise<void> {
+  const demoSessionPresent = await demoSessionCookiePresent();
+  const accountOrganizationIsDemo = demoSessionPresent
+    ? isDemoOrganization(await readDemoKind(db, account.organizationId))
+    : false;
+  if (
+    shouldRecordEmployeeLockout({
+      pinVerified: true,
+      demoSessionPresent,
+      accountOrganizationIsDemo,
+    })
+  ) {
+    await recordLoginFailure(db, account, reason, detail);
+  }
 }
 
 export async function signInWithEmployeeCredentials(authEmail: string, pin: string) {
@@ -140,7 +173,6 @@ export async function employeeLogin(input: EmployeeLoginInput): Promise<Employee
   }
 
   if (account.status === 'blocked' || account.status === 'suspended' || account.status === 'inactive') {
-    await recordLoginFailure(db, account, 'account_blocked', { status: account.status });
     noteThrottleFailure();
     throw new DomainRuleError('Account is not active', 'employeeApp.errors.accountBlocked');
   }
@@ -152,12 +184,10 @@ export async function employeeLogin(input: EmployeeLoginInput): Promise<Employee
   }
 
   if (account.accessStartsAt && account.accessStartsAt > now) {
-    await recordLoginFailure(db, account, 'access_not_started');
     noteThrottleFailure();
     throw new DomainRuleError('Access not yet available', 'employeeApp.errors.accessNotStarted');
   }
   if (account.accessEndsAt && account.accessEndsAt < now) {
-    await recordLoginFailure(db, account, 'access_expired');
     noteThrottleFailure();
     throw new DomainRuleError('Access has expired', 'employeeApp.errors.accessExpired');
   }
@@ -167,7 +197,6 @@ export async function employeeLogin(input: EmployeeLoginInput): Promise<Employee
     account.temporaryPinExpiresAt &&
     account.temporaryPinExpiresAt < now
   ) {
-    await recordLoginFailure(db, account, 'temp_pin_expired');
     noteThrottleFailure();
     throw new DomainRuleError('Temporary PIN has expired', 'employeeApp.errors.tempPinExpired');
   }
@@ -176,7 +205,7 @@ export async function employeeLogin(input: EmployeeLoginInput): Promise<Employee
   try {
     signInResult = await signInWithEmployeeCredentials(account.authEmail, input.pin);
   } catch (error) {
-    await recordLoginFailure(db, account, 'unexpected_error', {
+    await recordVerifiedLoginFailure(db, account, 'unexpected_error', {
       phase: 'sign_in',
       message: error instanceof Error ? error.message : String(error),
     });
@@ -190,7 +219,7 @@ export async function employeeLogin(input: EmployeeLoginInput): Promise<Employee
       error.message === 'Invalid login credentials' || error.code === 'invalid_credentials'
         ? 'supabase_invalid_credentials'
         : 'supabase_auth_error';
-    await recordLoginFailure(db, account, reason, {
+    await recordVerifiedLoginFailure(db, account, reason, {
       supabaseCode: error.code ?? null,
       supabaseMessage: error.message,
     });

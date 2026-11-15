@@ -76,6 +76,7 @@ export async function beginStorageOAuth(
   options?: { readonly locale?: string },
 ): Promise<{ authorizationUrl: string }> {
   assertPermission(context, PERMISSIONS.SETTINGS_MANAGE);
+  await (await import('@/modules/demo/application/guards')).assertNotDemoOrganization(context.db, context.organizationId);
   if (!isStorageProviderConfigured(provider)) {
     throw new ServiceUnavailableError(
       'Storage provider is not configured',
@@ -293,6 +294,11 @@ export async function completeStorageOAuth(input: {
       'externalStorage.errors.oauthSessionMismatch',
     );
   }
+  {
+    const { getAdminDb } = await import('@/shared/db/client');
+    await (await import('@/modules/demo/application/guards')).assertNotDemoOrganization(getAdminDb(), parsed.organizationId);
+  }
+
 
   const adapter = getStorageProviderAdapter(input.provider);
   console.info('[org-storage/oauth/callback] step=token_exchange begin', {

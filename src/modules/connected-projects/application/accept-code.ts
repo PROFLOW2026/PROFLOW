@@ -40,6 +40,7 @@ const err = (key: string) => new DomainRuleError(key, `connectedProjects.errors.
 
 export async function acceptCode(context: OrgContext, input: AcceptCodeInput): Promise<AcceptCodeResult> {
   assertPermission(context, PERMISSIONS.PROJECTS_CREATE);
+  await (await import('@/modules/demo/application/guards')).assertNotDemoOrganization(context.db, context.organizationId);
   if (!input.confirmOrganization) throw err('confirm_org_required');
 
   const code = input.code.trim();

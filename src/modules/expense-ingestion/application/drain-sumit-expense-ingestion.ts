@@ -26,6 +26,7 @@ async function listEnabledOrganizationIds(): Promise<string[]> {
       ON c.organization_id = os.organization_id
       AND c.status = 'connected'
       AND c.provider_id = 'sumit'
+    INNER JOIN organizations o ON o.id = os.organization_id AND o.demo_kind IS NULL
     WHERE os.key = ${EXPENSE_INGESTION_PROVIDER_KEY}
       AND os.value::text = '"sumit"'
   `);

@@ -101,6 +101,7 @@ export interface ReportPayload {
   readonly notices: readonly string[];
   readonly sections: readonly ReportSection[];
   readonly omitted: ReportOmitted;
+  readonly demoWatermark?: boolean;
   /**
    * Optional brand snapshot. When present, renderers use branded header/footer.
    * identity.companyName remains populated for backward-compat callers that ignore brand.

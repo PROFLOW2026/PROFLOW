@@ -45,6 +45,7 @@ export async function createInvitation(
   context: OrgContext,
   input: CreateInvitationInput,
 ): Promise<CreateInvitationResult> {
+  await (await import('@/modules/demo/application/guards')).assertNotDemoOrganization(context.db, context.organizationId);
   await requireConnectionCodeIssueAuthority(context, input.projectId);
   await assertDeveloperEngagement(context, input);
 

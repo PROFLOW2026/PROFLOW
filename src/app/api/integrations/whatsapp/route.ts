@@ -60,6 +60,10 @@ export async function POST(request: Request): Promise<Response> {
   if (!organizationId) {
     return NextResponse.json({ ok: true, ignored: true });
   }
+  const demoKind = await (await import('@/modules/demo/application/guards')).readDemoKind(db, organizationId);
+  if ((await import('@/modules/demo/domain/demo-org')).isDemoOrganization(demoKind)) {
+    return NextResponse.json({ ok: true, ignored: true, reason: 'demo' });
+  }
 
   const senderKnown = await isKnownInboundSenderPhone(db, organizationId, message.fromPhone);
   if (!senderKnown) {

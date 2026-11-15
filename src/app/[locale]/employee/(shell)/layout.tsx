@@ -1,3 +1,4 @@
+import { DemoModeBanner } from '@/modules/demo/ui/demo-mode-banner';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { EmployeeQuickCreate } from '@/components/shell/employee-quick-create';
 import { buildEmployeeOrgQuickCreateActions } from '@/components/shell/employee-quick-create-actions';
@@ -29,11 +30,14 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
     redirect({ href: '/employee/login', locale });
   }
 
-  const { shell, quickCreateActions } = await withOrgContext(async (context) => {
+  const { shell, quickCreateActions, demoActive } = await withOrgContext(async (context) => {
     await assertEmployeeAppContext(context);
+    const { readDemoKind } = await import("@/modules/demo/application/guards");
+    const { isDemoOrganization } = await import("@/modules/demo/domain/demo-org");
     return {
       shell: await getEmployeeShellData(context),
       quickCreateActions: buildEmployeeOrgQuickCreateActions(context.permissions),
+      demoActive: isDemoOrganization(await readDemoKind(context.db, context.organizationId)),
     };
   });
 
@@ -48,6 +52,7 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
           >
             {tCommon('a11y.skipToContent')}
           </a>
+          <DemoModeBanner active={demoActive} />
           <EmployeeTopBar
             employeeName={shell.employeeName}
             email={session.user.email}

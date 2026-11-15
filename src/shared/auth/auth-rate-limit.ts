@@ -20,6 +20,7 @@ export const AUTH_RATE_LIMIT_POLICIES = {
   live_share_join: { windowSeconds: 60, limit: 30 },
   calendar_feed: { windowSeconds: 60, limit: 120 },
   supplier_rfq_submit: { windowSeconds: 60, limit: 30 },
+  demo_enter: { windowSeconds: 60 * 60, limit: 3 },
 } as const;
 
 export type AuthRateLimitScope = keyof typeof AUTH_RATE_LIMIT_POLICIES;

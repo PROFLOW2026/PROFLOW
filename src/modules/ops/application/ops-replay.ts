@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { inArray } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { crossOrgSyncOutbox, domainEventRetries, domainEvents } from '@drizzle/schema';
 import { getAdminDb } from '@/shared/db/client';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
@@ -26,14 +26,14 @@ export async function replayOpsQueueItems(
     await db
       .update(domainEvents)
       .set({ attempts: 0, lastError: null, processedAt: null })
-      .where(inArray(domainEvents.id, [...input.ids]));
+      .where(and(eq(domainEvents.organizationId, context.organizationId), inArray(domainEvents.id, [...input.ids])));
     await db.delete(domainEventRetries).where(inArray(domainEventRetries.eventId, [...input.ids]));
     replayed = input.ids.length;
   } else {
     await db
       .update(crossOrgSyncOutbox)
       .set({ status: 'pending', attempts: 0, nextAttemptAt: now, lastError: null })
-      .where(inArray(crossOrgSyncOutbox.id, [...input.ids]));
+      .where(and(eq(crossOrgSyncOutbox.developerOrganizationId, context.organizationId), inArray(crossOrgSyncOutbox.id, [...input.ids])));
     replayed = input.ids.length;
   }
 

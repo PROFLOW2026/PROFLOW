@@ -112,12 +112,21 @@ export async function saveGeneratedReportToStorage(
     projectName: filenameContext.projectName,
   });
 
-  const payload = await generateReport(context, {
+  const generated = await generateReport(context, {
     kind: raw.kind,
     id: raw.entityId,
     locale: context.locale,
   });
+  const demoKind = await (await import('@/modules/demo/application/guards')).readDemoKind(context.db, context.organizationId);
+  const demo = (await import('@/modules/demo/domain/demo-org')).isDemoOrganization(demoKind);
+  const payload = demo ? { ...generated, demoWatermark: true } : generated;
   const pdfBytes = await renderReportPdf(payload);
+  if (demo) {
+    throw new (await import('@/shared/errors')).DomainRuleError(
+      'Demo organizations cannot store generated files',
+      'demo.errors.externalBlocked',
+    );
+  }
   console.info('[generated-save] pdf-rendered', {
     organizationId: context.organizationId,
     kind: raw.kind,

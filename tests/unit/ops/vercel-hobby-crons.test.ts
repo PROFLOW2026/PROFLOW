@@ -27,12 +27,18 @@ describe('Vercel Hobby cron schedules', () => {
   ) as { crons: VercelCron[] };
 
   it('schedules OCR recovery, ops, and SUMIT expense ingest once per day only', () => {
-    expect(vercel.crons).toHaveLength(3);
-    expect(vercel.crons.every((cron) => isOncePerDay(cron.schedule))).toBe(true);
+    expect(vercel.crons).toHaveLength(5);
+    const daily = vercel.crons.filter((cron) => cron.path !== '/api/internal/demo-reset');
+    expect(daily.every((cron) => isOncePerDay(cron.schedule))).toBe(true);
+    expect(vercel.crons.find((cron) => cron.path === '/api/internal/demo-reset')?.schedule).toBe(
+      '0 0,1 * * *',
+    );
     expect(vercel.crons.map((cron) => cron.path).sort()).toEqual([
+      '/api/internal/demo-reset',
       '/api/internal/ocr-worker',
       '/api/internal/ops-worker',
       '/api/internal/sumit-expense-worker',
+      '/api/internal/takeoff-ephemeral-cleanup',
     ]);
     expect(vercel.crons.find((cron) => cron.path === '/api/internal/ocr-worker')?.schedule).toBe(
       '0 5 * * *',

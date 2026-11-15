@@ -6,7 +6,9 @@
       "NODE_OPTIONS": "--max-old-space-size=6144"
     }
   },
-  "regions": ["dub1"],
+  "regions": [
+    "dub1"
+  ],
   "git": {
     "deploymentEnabled": {
       "main": false
@@ -57,6 +59,10 @@
     {
       "path": "/api/internal/takeoff-ephemeral-cleanup",
       "schedule": "15 5 * * *"
+    },
+    {
+      "path": "/api/internal/demo-reset",
+      "schedule": "0 0,1 * * *"
     }
   ]
 }

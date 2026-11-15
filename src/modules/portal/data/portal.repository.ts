@@ -79,14 +79,6 @@ export async function findOrCreateExternalPrincipal(input: {
     .limit(1);
 
   if (existing) {
-    if (input.displayName && input.displayName !== existing.displayName) {
-      const [updated] = await db
-        .update(externalPrincipals)
-        .set({ displayName: input.displayName, updatedAt: new Date() })
-        .where(eq(externalPrincipals.id, existing.id))
-        .returning();
-      return mapPrincipal(updated!);
-    }
     return mapPrincipal(existing);
   }
 

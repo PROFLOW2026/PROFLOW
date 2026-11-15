@@ -96,6 +96,7 @@ export function renderReportHtmlDocument(payload: ReportPayload): string {
   <style>${styles}</style>
 </head>
 <body>
+  ${payload.demoWatermark ? '<p class="note">DEMO</p>' : ''}
   <div class="doc-sheet">
     ${letterhead}
     <h1>${escapeHtml(payload.title)}</h1>

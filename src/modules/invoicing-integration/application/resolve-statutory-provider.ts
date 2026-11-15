@@ -15,6 +15,7 @@ import { SumitStatutoryProvider } from '../providers/sumit/sumit-statutory-provi
 export async function resolveStatutoryProviderForOrg(
   context: Pick<OrgContext, 'db' | 'organizationId'>,
 ): Promise<StatutoryInvoicingProvider> {
+  await (await import('@/modules/demo/application/guards')).assertNotDemoOrganization(context.db, context.organizationId);
   if (!areInvoicingIntegrationTablesAvailable()) {
     return createDefaultStatutoryProvider();
   }
@@ -50,6 +51,7 @@ export async function resolveStatutoryProviderForBillingHook(
   explicit?: StatutoryInvoicingProvider,
 ): Promise<StatutoryInvoicingProvider> {
   if (explicit) return explicit;
+  await (await import('@/modules/demo/application/guards')).assertNotDemoOrganization(context.db, context.organizationId);
   const orgProvider = await resolveStatutoryProviderForOrg(context);
   if (orgProvider.isFeatureEnabled()) return orgProvider;
   const testOrDefaultProvider = getStatutoryInvoicingProvider();

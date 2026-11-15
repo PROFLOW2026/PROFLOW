@@ -1,4 +1,5 @@
-﻿import dynamic from 'next/dynamic';
+import { isDemoEntryEnabled } from '@/modules/demo/application/flags';
+import dynamic from 'next/dynamic';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { marketingScreenshotSrc } from '@/modules/marketing/domain/marketing-screenshots';
@@ -73,6 +74,11 @@ export async function PublicHomepage() {
                 <Button asChild size="lg" className="min-h-12 w-full sm:w-auto">
                   <Link href="/sign-in">{t('hero.primaryCta')}</Link>
                 </Button>
+                {isDemoEntryEnabled() ? (
+                  <Button asChild variant="secondary" size="lg" className="min-h-12 w-full sm:w-auto">
+                    <Link href="/demo">{t('hero.demoCta')}</Link>
+                  </Button>
+                ) : null}
                 <Button asChild variant="secondary" size="lg" className="min-h-12 w-full sm:w-auto">
                   <a href="#how-it-works">{t('hero.secondaryCta')}</a>
                 </Button>

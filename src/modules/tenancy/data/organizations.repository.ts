@@ -177,7 +177,7 @@ export async function listActiveOrganizationIds(db: DbExecutor): Promise<
       defaultLocale: organizations.defaultLocale,
     })
     .from(organizations)
-    .where(isNull(organizations.archivedAt));
+    .where(and(isNull(organizations.archivedAt), isNull(organizations.demoKind)));
   return rows;
 }
 

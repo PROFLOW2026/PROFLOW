@@ -1169,6 +1169,9 @@ export async function renderReportPdf(payload: ReportPayload): Promise<Uint8Arra
   const pages = doc.getPages();
   pages.forEach((page, index) => {
     cursor.page = page;
+    if (payload.demoWatermark) {
+      page.drawText("DEMO", { x: 36, y: page.getHeight() - 28, size: 14 });
+    }
     cursor.drawFooter(index + 1, pages.length, brandAligned);
   });
 
