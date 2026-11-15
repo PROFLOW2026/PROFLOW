@@ -18,11 +18,13 @@ describe("demo rules", () => {
     expect(parseDemoRoleSwitch({ roleKey: "admin" }).ok).toBe(false);
   });
 
-  it("opens the nightly run only at 03:00 Jerusalem", () => {
+  it("opens the nightly run on the single Hobby cron hour", () => {
     expect(jerusalemHour(new Date("2026-07-15T00:00:00Z"))).toBe(3);
     expect(jerusalemHour(new Date("2026-01-15T01:00:00Z"))).toBe(3);
-    expect(isJerusalemResetHour(new Date("2026-07-15T01:00:00Z"))).toBe(false);
+    expect(isJerusalemResetHour(new Date("2026-01-15T01:00:00Z"))).toBe(true);
+    expect(isJerusalemResetHour(new Date("2026-07-15T01:00:00Z"))).toBe(true);
     expect(isJerusalemResetHour(new Date("2026-01-15T00:00:00Z"))).toBe(false);
+    expect(isJerusalemResetHour(new Date("2026-07-15T02:00:00Z"))).toBe(false);
   });
 
   it("resumes a failed run and does not open a second day", () => {

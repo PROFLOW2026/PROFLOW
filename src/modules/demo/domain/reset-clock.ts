@@ -20,7 +20,11 @@ export function jerusalemDateKey(date: Date): string {
   return parts;
 }
 
-/** A new reset run opens only at 03:00 Asia/Jerusalem. */
+/**
+ * Hobby allows one cron per day. `0 1 * * *` is 03:00 Asia/Jerusalem in standard
+ * time and 04:00 during daylight saving, so both hours open the nightly run.
+ */
 export function isJerusalemResetHour(date: Date): boolean {
-  return jerusalemHour(date) === 3;
+  const hour = jerusalemHour(date);
+  return hour === 3 || hour === 4;
 }
