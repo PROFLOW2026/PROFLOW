@@ -134,6 +134,7 @@ export async function seedDemoFixture(
   for (const bill of fixture.billing) {
     const id = randomUUID();
     billingIds.set(bill.key, id);
+    const taxAmount = (Number(bill.totalAmount) - Number(bill.subtotalAmount)).toFixed(2);
     await db.insert(billingRecords).values({
       id,
       organizationId,
@@ -142,7 +143,11 @@ export async function seedDemoFixture(
       reference: bill.reference,
       issueDate: bill.issueDate,
       subtotalAmount: bill.subtotalAmount,
+      taxAmount,
       totalAmount: bill.totalAmount,
+      vatMode: 'exclusive',
+      status: 'finalized',
+      finalizedAt: new Date(`${bill.issueDate}T09:00:00+02:00`),
       currency: 'ILS',
       sourceKind: 'manual',
     });
