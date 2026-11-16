@@ -284,26 +284,44 @@ function SymbolCrop({
         width: image.naturalWidth,
         height: image.naturalHeight,
       });
-      canvas.width = 320;
-      canvas.height = 240;
+      const frame = 320;
+      canvas.width = frame;
+      canvas.height = frame;
       context.fillStyle = '#ffffff';
-      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.fillRect(0, 0, frame, frame);
       try {
-        context.drawImage(image, source.sx, source.sy, source.sw, source.sh, 0, 0, canvas.width, canvas.height);
+        context.drawImage(image, source.sx, source.sy, source.sw, source.sh, 0, 0, frame, frame);
       } catch {
         setFailed(true);
         onAvailability(false);
         return;
       }
-      const scaleX = canvas.width / source.sw;
-      const scaleY = canvas.height / source.sh;
-      const centerX = (detection.x * (image.naturalWidth / sheet.widthPx) - source.sx) * scaleX;
+      try {
+        const pixels = context.getImageData(0, 0, frame, frame).data;
+        let ink = 0;
+        let samples = 0;
+        for (let index = 0; index < pixels.length; index += 16) {
+          samples += 1;
+          const luminance = pixels[index]! * 0.3 + pixels[index + 1]! * 0.59 + pixels[index + 2]! * 0.11;
+          if (luminance < 220) ink += 1;
+        }
+        if (samples > 0 && ink === 0) {
+          setFailed(true);
+          onAvailability(false);
+          return;
+        }
+      } catch {
+        // A same-origin preview can still be unreadable in some browsers. Keep the crop.
+      }
+      const scale = frame / source.sw;
+      const scaleY = frame / source.sh;
+      const boxW = detection.w * (image.naturalWidth / sheet.widthPx) * scale;
+      const boxH = detection.h * (image.naturalHeight / sheet.heightPx) * scaleY;
+      const centerX = (detection.x * (image.naturalWidth / sheet.widthPx) - source.sx) * scale;
       const centerY = (detection.y * (image.naturalHeight / sheet.heightPx) - source.sy) * scaleY;
-      const markW = Math.max(10, detection.w * (image.naturalWidth / sheet.widthPx) * scaleX);
-      const markH = Math.max(10, detection.h * (image.naturalHeight / sheet.heightPx) * scaleY);
       context.strokeStyle = '#ea580c';
-      context.lineWidth = 3;
-      context.strokeRect(centerX - markW / 2, centerY - markH / 2, markW, markH);
+      context.lineWidth = 2;
+      context.strokeRect(centerX - boxW / 2, centerY - boxH / 2, boxW, boxH);
       setFailed(false);
       onAvailability(true);
     };
@@ -334,7 +352,7 @@ function SymbolCrop({
   return (
     <canvas
       ref={canvasRef}
-      className="h-52 w-full rounded-md border-2 border-[var(--pf-status-warning-fg)] bg-white"
+      className="aspect-square h-auto w-full max-w-full rounded-md border border-[var(--pf-border-default)] bg-white"
       data-testid="takeoff-guide-symbol"
       data-symbol-state="ready"
       data-crop-sx={crop.sx}

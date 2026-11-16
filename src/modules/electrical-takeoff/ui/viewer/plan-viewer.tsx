@@ -333,27 +333,16 @@ export function PlanViewer({
                   aria-label={label}
                 >
                   <title>{label}</title>
-                  {selected ? (
-                    <rect
-                      x={d.x - d.w}
-                      y={d.y - d.h}
-                      width={d.w * 2}
-                      height={d.h * 2}
-                      fill="none"
-                      stroke="#ea580c"
-                      strokeWidth={Math.max(d.w, d.h) * 0.18}
-                    />
-                  ) : null}
                   <rect
                     x={d.x - d.w / 2}
                     y={d.y - d.h / 2}
                     width={d.w}
                     height={d.h}
-                    rx={2}
-                    fill={color}
-                    fillOpacity={selected || hl ? 0.85 : 0.55}
+                    fill={selected ? 'none' : color}
+                    fillOpacity={selected ? 0 : hl ? 0.28 : 0.45}
                     stroke={selected ? '#ea580c' : color}
-                    strokeWidth={selected ? Math.max(d.w, d.h) * 0.22 : 1}
+                    strokeWidth={selected ? Math.max(1.25, Math.max(d.w, d.h) * 0.08) : 1}
+                    data-mark-fill={selected ? 'none' : color}
                   />
                 </g>
               );

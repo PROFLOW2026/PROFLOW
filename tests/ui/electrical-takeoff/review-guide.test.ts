@@ -110,11 +110,17 @@ describe('guided review groups', () => {
       h: 12,
     });
     const l39Sheet = { widthPx: 7000, heightPx: 4200 };
-    const l39Crop = symbolCropSource(l39, l39Sheet, { width: l39Sheet.widthPx, height: l39Sheet.heightPx });
+    const l39Image = { width: 400, height: 689 };
+    const l39Crop = symbolCropSource(l39, l39Sheet, l39Image);
+    const l39Focus = occurrenceFocusRect(l39);
+    const sheetWidth = l39Crop.sw / (l39Image.width / l39Sheet.widthPx);
+    const sheetHeight = l39Crop.sh / (l39Image.height / l39Sheet.heightPx);
     expect(symbolIdentityLabel(l39)).toEqual({ kind: 'block', value: 'l39' });
-    expect(l39Crop.sx + l39Crop.sw / 2).toBeCloseTo(l39.x, 3);
-    expect(l39Crop.sw).toBeLessThan(l39Sheet.widthPx * 0.02);
-    expect(occurrenceFocusRect(l39).width).toBeLessThan(l39Sheet.widthPx * 0.05);
+    expect(l39Crop.sx + l39Crop.sw / 2).toBeCloseTo(l39.x * (l39Image.width / l39Sheet.widthPx), 3);
+    expect(l39Crop.sy + l39Crop.sh / 2).toBeCloseTo(l39.y * (l39Image.height / l39Sheet.heightPx), 3);
+    expect(sheetWidth).toBeCloseTo(sheetHeight, 3);
+    expect(sheetWidth).toBeCloseTo(l39Focus.width, 3);
+    expect(l39Focus.width).toBeLessThan(l39Sheet.widthPx * 0.05);
   });
 
   it('counts a group as checked only after it leaves the queue', () => {
