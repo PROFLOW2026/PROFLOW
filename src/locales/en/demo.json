@@ -48,7 +48,8 @@
     "roleLabel": "Role",
     "apply": "Apply",
     "applying": "Applying…",
-    "exit": "Exit demo"
+    "exit": "Exit",
+    "exitAria": "Exit demo"
   },
   "errors": {
     "rateLimited": "Demo entry did not finish. You can try again. There is no limit on how many times you can enter.",

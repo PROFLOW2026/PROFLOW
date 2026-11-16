@@ -1,3 +1,4 @@
+import type { DemoRoleKey } from '@/modules/demo/domain/demo-org';
 import { getBusinessProfile } from '@/modules/tenancy/domain/business-profiles';
 import {
   isOnboardingBusinessType,
@@ -22,4 +23,20 @@ export function resolveDemoBusinessProfileKey(raw: unknown): OnboardingBusinessT
 /** Public marketing homepage for the active locale (`/[locale]`). */
 export function demoExitMarketingHref(): string {
   return '/';
+}
+
+export type DemoSessionApplyPlan = 'none' | 'switch-role' | 'replace-session';
+
+/** One apply covers both selectors. A business change replaces the visitor's session; a role change does not. */
+export function planDemoSessionApply(input: {
+  readonly currentProfileKey: string;
+  readonly currentRoleKey: DemoRoleKey;
+  readonly nextProfileKey: OnboardingBusinessType;
+  readonly nextRoleKey: DemoRoleKey;
+}): DemoSessionApplyPlan {
+  const profileChanged = input.nextProfileKey !== input.currentProfileKey;
+  const roleChanged = input.nextRoleKey !== input.currentRoleKey;
+  if (!profileChanged && !roleChanged) return 'none';
+  if (!profileChanged) return 'switch-role';
+  return 'replace-session';
 }

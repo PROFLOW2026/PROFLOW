@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { getLocale } from 'next-intl/server';
 import {
   demoExitMarketingHref,
+  planDemoSessionApply,
   resolveDemoBusinessProfileKey,
 } from '@/modules/demo/domain/demo-session-decisions';
 import { getAdminDb } from '@/shared/db/client';
@@ -61,7 +62,20 @@ function productionAuth(): DemoAuthPort {
   };
 }
 
-export async function switchDemoBusinessProfileAction(formData: FormData): Promise<void> {
+function writeDemoSessionCookie(
+  jar: Awaited<ReturnType<typeof cookies>>,
+  value: string,
+): void {
+  jar.set('demo_session', value, {
+    httpOnly: true,
+    sameSite: 'lax',
+    path: '/',
+    secure: process.env.APP_ENV === 'production',
+  });
+}
+
+/** Applies the business and role selectors together. An unchanged pair does not create a session. */
+export async function applyDemoSessionChoicesAction(formData: FormData): Promise<void> {
   try {
     if (!isDemoEntryEnabled()) {
       throw new DomainRuleError('Demo entry is disabled', 'demo.errors.disabled');
@@ -73,12 +87,32 @@ export async function switchDemoBusinessProfileAction(formData: FormData): Promi
       throw new DomainRuleError('Demo session missing', 'demo.errors.invalidChoice');
     }
     const profileKey = resolveDemoBusinessProfileKey(formData.get('profileKey'));
-    if (!profileKey) {
+    const roleKey = formData.get('roleKey');
+    if (!profileKey || !isDemoRoleKey(roleKey)) {
       throw new DomainRuleError('Unknown demo choice', 'demo.errors.invalidChoice');
     }
-    const roleKey = previous.roleKey;
-    if (profileKey === previous.profileKey) {
-      redirect({ href: demoRoleHome(roleKey), locale: await getLocale() });
+    const plan = planDemoSessionApply({
+      currentProfileKey: previous.profileKey,
+      currentRoleKey: previous.roleKey,
+      nextProfileKey: profileKey,
+      nextRoleKey: roleKey,
+    });
+    const locale = await getLocale();
+    if (plan === 'none') {
+      redirect({ href: demoRoleHome(previous.roleKey), locale });
+    }
+    if (plan === 'switch-role') {
+      const result = await switchDemoRole(db, productionAuth(), {
+        sessionId: previous.sessionId,
+        body: { roleKey },
+      });
+      const sealed = sealDemoSessionCookie({
+        ...previous,
+        roleKey: result.roleKey as typeof previous.roleKey,
+      });
+      if (!sealed) throw new DomainRuleError('Demo cookie secret is missing', 'demo.errors.notConfigured');
+      writeDemoSessionCookie(jar, sealed);
+      redirect({ href: demoRoleHome(result.roleKey as typeof previous.roleKey), locale });
     }
     const result = await enterDemo(db, productionAuth(), {
       profileKey,
@@ -91,40 +125,8 @@ export async function switchDemoBusinessProfileAction(formData: FormData): Promi
       roleKey: result.roleKey,
     });
     if (!sealed) throw new DomainRuleError('Demo cookie secret is missing', 'demo.errors.notConfigured');
-    jar.set('demo_session', sealed, {
-      httpOnly: true,
-      sameSite: 'lax',
-      path: '/',
-      secure: process.env.APP_ENV === 'production',
-    });
-    redirect({ href: demoRoleHome(result.roleKey), locale: await getLocale() });
-  } catch (error) {
-    await redirectWithDemoEntryError(error);
-  }
-}
-
-export async function switchDemoRoleInSessionAction(formData: FormData): Promise<void> {
-  try {
-    const jar = await cookies();
-    const current = openDemoSessionCookie(jar.get('demo_session')?.value);
-    if (!current) throw new DomainRuleError('Demo session missing', 'demo.errors.roleRejected');
-    const roleKey = formData.get('roleKey');
-    if (!isDemoRoleKey(roleKey)) {
-      throw new DomainRuleError('Demo role switch rejected', 'demo.errors.roleRejected');
-    }
-    const result = await switchDemoRole(getAdminDb(), productionAuth(), {
-      sessionId: current.sessionId,
-      body: { roleKey },
-    });
-    const sealed = sealDemoSessionCookie({ ...current, roleKey: result.roleKey as typeof current.roleKey });
-    if (!sealed) throw new DomainRuleError('Demo cookie secret is missing', 'demo.errors.notConfigured');
-    jar.set('demo_session', sealed, {
-      httpOnly: true,
-      sameSite: 'lax',
-      path: '/',
-      secure: process.env.APP_ENV === 'production',
-    });
-    redirect({ href: demoRoleHome(result.roleKey as typeof current.roleKey), locale: await getLocale() });
+    writeDemoSessionCookie(jar, sealed);
+    redirect({ href: demoRoleHome(result.roleKey), locale });
   } catch (error) {
     await redirectWithDemoEntryError(error);
   }

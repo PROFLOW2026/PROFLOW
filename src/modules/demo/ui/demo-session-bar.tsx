@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import {
+  applyDemoSessionChoicesAction,
   exitDemoAction,
-  switchDemoBusinessProfileAction,
-  switchDemoRoleInSessionAction,
 } from '@/modules/demo/application/session-controls';
 import type { DemoRoleKey } from '@/modules/demo/domain/demo-org';
 import type { OnboardingBusinessType } from '@/modules/tenancy/domain/onboarding-experience';
@@ -17,37 +16,23 @@ type RoleChoice = { readonly key: DemoRoleKey; readonly label: string };
 function ApplyButton({
   label,
   applyingLabel,
-  disabled,
+  locked,
 }: {
   label: string;
   applyingLabel: string;
-  disabled: boolean;
+  locked: boolean;
 }) {
   const { pending } = useFormStatus();
-  const showPending = pending || disabled;
+  const showPending = pending || locked;
   return (
     <button
       type="submit"
       disabled={showPending}
-      className="min-h-11 shrink-0 rounded border border-amber-900/50 bg-white/80 px-2 text-xs font-medium text-amber-950 disabled:opacity-60 sm:px-2.5"
+      aria-busy={showPending}
+      className="h-9 shrink-0 whitespace-nowrap rounded border border-amber-900/50 bg-white/80 px-2 text-[11px] font-semibold text-amber-950 disabled:opacity-60 sm:text-xs"
     >
       {showPending ? applyingLabel : label}
     </button>
-  );
-}
-
-function DemoFormControls({
-  busy,
-  children,
-}: {
-  busy: boolean;
-  children: ReactNode;
-}) {
-  const { pending } = useFormStatus();
-  return (
-    <fieldset className="contents" aria-busy={busy || pending}>
-      {children}
-    </fieldset>
   );
 }
 
@@ -63,79 +48,72 @@ export function DemoSessionBar({
   roleChoices: readonly RoleChoice[];
 }) {
   const t = useTranslations('demo');
-  const [busy, setBusy] = useState(false);
-
+  const [profile, setProfile] = useState(profileKey);
+  const [role, setRole] = useState(roleKey);
+  const [applying, setApplying] = useState(false);
+  const unchanged = profile === profileKey && role === roleKey;
   const selectClass =
-    'min-h-11 max-w-[9.5rem] shrink rounded border border-amber-900/30 bg-white px-1.5 text-xs text-amber-950 sm:max-w-none sm:min-w-[7rem] sm:px-2';
+    'h-9 min-w-0 flex-1 truncate rounded border border-amber-900/30 bg-white px-1 text-[11px] text-amber-950 sm:text-xs';
 
   return (
-    <div
-      className="flex w-full min-w-0 flex-wrap items-center justify-center gap-1.5 sm:gap-2"
-      aria-busy={busy}
-    >
+    <div className="flex w-full min-w-0 flex-nowrap items-center gap-1" aria-busy={applying}>
       <form
-        action={switchDemoBusinessProfileAction}
-        className="flex min-w-0 items-center gap-1"
-        onSubmit={() => setBusy(true)}
+        action={applyDemoSessionChoicesAction}
+        className="contents"
+        onSubmit={(event) => {
+          if (unchanged) {
+            event.preventDefault();
+            return;
+          }
+          setApplying(true);
+        }}
       >
-        <DemoFormControls busy={busy}>
-          <label className="sr-only" htmlFor="demo-business-switch">
-            {t('session.businessLabel')}
-          </label>
-          <select
-            id="demo-business-switch"
-            name="profileKey"
-            defaultValue={profileKey}
-            className={selectClass}
-          >
-            {businessOptions.map((option) => (
-              <option key={option.key} value={option.key}>
-                {t(`businesses.${option.key}`)}
-              </option>
-            ))}
-          </select>
-          <ApplyButton
-            label={t('session.apply')}
-            applyingLabel={t('session.applying')}
-            disabled={busy}
-          />
-        </DemoFormControls>
+        <input type="hidden" name="profileKey" value={profile} />
+        <input type="hidden" name="roleKey" value={role} />
+        <label className="sr-only" htmlFor="demo-business-switch">
+          {t('session.businessLabel')}
+        </label>
+        <select
+          id="demo-business-switch"
+          value={profile}
+          onChange={(event) => setProfile(event.target.value as OnboardingBusinessType)}
+          className={selectClass}
+        >
+          {businessOptions.map((option) => (
+            <option key={option.key} value={option.key}>
+              {t(`businesses.${option.key}`)}
+            </option>
+          ))}
+        </select>
+        <label className="sr-only" htmlFor="demo-role-switch">
+          {t('session.roleLabel')}
+        </label>
+        <select
+          id="demo-role-switch"
+          value={role}
+          onChange={(event) => setRole(event.target.value as DemoRoleKey)}
+          className={`${selectClass} max-w-[34%]`}
+        >
+          {roleChoices.map((choice) => (
+            <option key={choice.key} value={choice.key}>
+              {t(`roles.${choice.key}`)}
+            </option>
+          ))}
+        </select>
+        <ApplyButton
+          label={t('session.apply')}
+          applyingLabel={t('session.applying')}
+          locked={applying || unchanged}
+        />
       </form>
-
-      <form
-        action={switchDemoRoleInSessionAction}
-        className="flex min-w-0 items-center gap-1"
-        onSubmit={() => setBusy(true)}
-      >
-        <DemoFormControls busy={busy}>
-          <label className="sr-only" htmlFor="demo-role-switch">
-            {t('session.roleLabel')}
-          </label>
-          <select id="demo-role-switch" name="roleKey" defaultValue={roleKey} className={selectClass}>
-            {roleChoices.map((choice) => (
-              <option key={choice.key} value={choice.key}>
-                {t(`roles.${choice.key}`)}
-              </option>
-            ))}
-          </select>
-          <ApplyButton
-            label={t('session.apply')}
-            applyingLabel={t('session.applying')}
-            disabled={busy}
-          />
-        </DemoFormControls>
-      </form>
-
-      <form action={exitDemoAction} onSubmit={() => setBusy(true)}>
-        <DemoFormControls busy={busy}>
-          <button
-            type="submit"
-            disabled={busy}
-            className="min-h-11 rounded border border-amber-950/70 bg-amber-50 px-2.5 text-xs font-semibold text-amber-950 disabled:opacity-60 sm:text-sm"
-          >
-            {t('session.exit')}
-          </button>
-        </DemoFormControls>
+      <form action={exitDemoAction} className="contents">
+        <button
+          type="submit"
+          aria-label={t('session.exitAria')}
+          className="h-9 shrink-0 whitespace-nowrap rounded border border-amber-950/70 bg-amber-50 px-2 text-[11px] font-semibold text-amber-950 sm:text-xs"
+        >
+          {t('session.exit')}
+        </button>
       </form>
     </div>
   );

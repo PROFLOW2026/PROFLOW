@@ -15,11 +15,11 @@ export async function DemoModeBanner({ active }: { active: boolean }) {
     <div
       role="status"
       data-demo-banner="active"
-      className="w-full max-w-full overflow-x-hidden bg-amber-100 px-2 py-1.5 text-amber-950 sm:px-3 sm:py-2"
+      className="w-full max-w-full overflow-x-hidden bg-amber-100 px-2 py-1 text-amber-950 sm:px-3"
     >
       <DemoLocalMarker />
-      <div className="mx-auto flex w-full min-w-0 max-w-6xl flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm font-medium">
-        <span className="shrink-0 text-xs sm:text-sm">{t('session.banner')}</span>
+      <div className="mx-auto flex w-full min-w-0 max-w-6xl items-center">
+        <span className="sr-only">{t('session.banner')}</span>
         {current && isOnboardingBusinessType(current.profileKey) ? (
           <DemoSessionBar
             profileKey={current.profileKey}
