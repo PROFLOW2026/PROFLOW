@@ -55,6 +55,18 @@ describe("demo entry creates three surfaces", () => {
     expect(counts.employees).toBe(4);
     expect(counts.grants).toBe(1);
     expect(counts.actors).toBe(6);
+    const linked = await database.asService(async (db) =>
+      resultRows<{ linked: number }>(
+        await db.execute(sql`
+          select count(*)::int as linked
+          from employees
+          where organization_id = ${result.sessionId}::uuid
+            and user_id is not null
+            and name in ('איתי מנהל', 'מיכל כספים', 'דנה משרד', 'יוסי שטח')
+        `),
+      )[0]!,
+    );
+    expect(linked.linked).toBe(4);
     const switched = await database.asService((db) =>
       switchDemoRole(db, auth, { sessionId: result.sessionId, body: { roleKey: "employee" } }),
     );

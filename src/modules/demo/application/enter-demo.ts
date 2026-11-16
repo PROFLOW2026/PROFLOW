@@ -154,6 +154,14 @@ export async function enterDemo(
       if (!actor || !staff || !membershipId) {
         throw new DomainRuleError('Demo employee portal wiring failed', 'demo.errors.roleMissing');
       }
+      // Grants and the home greeting resolve through employees.user_id.
+      await tx
+        .update(employees)
+        .set({
+          userId: actor.userId,
+          name: DEMO_ACTOR_DISPLAY_NAMES[portalRole],
+        })
+        .where(and(eq(employees.id, staff.id), eq(employees.organizationId, organizationId)));
       await ensureRoleAssigned(tx, {
         organizationId,
         membershipId,
