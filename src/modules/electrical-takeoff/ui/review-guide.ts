@@ -66,14 +66,35 @@ export function reviewKind(detection: EffectiveDetection): ReviewKind | null {
 
 /** Block name or legend key already stored on the mark. Nothing is inferred from the drawing. */
 export function symbolIdentityLabel(
-  detection: { rawClass: string },
+  detection: { rawClass: string; signature?: string | null },
 ): { kind: 'block' | 'legend'; value: string } | null {
   const raw = detection.rawClass.trim();
   if (!raw || IGNORED_SYMBOL.test(raw) || /^p\d+#\d+$/i.test(raw) || /^C\d+$/.test(raw)) return null;
-  if (/^L\d+$/i.test(raw)) return { kind: 'legend', value: raw };
   const value = raw.replace(/^block:/i, '').trim();
   if (!value) return null;
+  if (/^L\d+$/i.test(value) && !detection.signature?.startsWith('block:')) return { kind: 'legend', value };
   return { kind: 'block', value };
+}
+
+export type SymbolCropSource = { sx: number; sy: number; sw: number; sh: number };
+
+/**
+ * Source rectangle, in preview-image pixels, centered on one mark.
+ * The window stays a small part of the sheet so the symbol can be enlarged.
+ */
+export function symbolCropSource(
+  detection: { x: number; y: number; w: number; h: number },
+  sheet: { widthPx: number; heightPx: number },
+  image: { width: number; height: number },
+): SymbolCropSource {
+  const scaleX = image.width / sheet.widthPx;
+  const scaleY = image.height / sheet.heightPx;
+  const span = Math.max(detection.w, detection.h, 16) * 5;
+  const sw = Math.max(1, span * scaleX);
+  const sh = Math.max(1, span * scaleY);
+  const cx = detection.x * scaleX;
+  const cy = detection.y * scaleY;
+  return { sx: cx - sw / 2, sy: cy - sh / 2, sw, sh };
 }
 
 /**

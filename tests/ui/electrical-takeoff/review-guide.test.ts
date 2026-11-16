@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import type { EffectiveDetection } from '@/modules/electrical-takeoff/domain/contracts';
+import { getReal7155Fixture } from '@/modules/electrical-takeoff/ui/fixtures/real7155-fixture';
 import {
   buildReviewGroups,
   reviewKind,
   reviewProgress,
+  symbolCropSource,
   symbolIdentityLabel,
   typeSuggestions,
 } from '@/modules/electrical-takeoff/ui/review-guide';
+import { occurrenceFocusRect } from '@/modules/electrical-takeoff/ui/viewer/viewer-math';
 
 function mark(partial: Partial<EffectiveDetection> & Pick<EffectiveDetection, 'id'>): EffectiveDetection {
   return {
@@ -71,7 +74,47 @@ describe('guided review groups', () => {
   it('reads a stored block name and ignores a technical id', () => {
     expect(symbolIdentityLabel(mark({ id: '1', rawClass: '3-14' }))).toEqual({ kind: 'block', value: '3-14' });
     expect(symbolIdentityLabel(mark({ id: '1', rawClass: 'L7' }))).toEqual({ kind: 'legend', value: 'L7' });
+    expect(symbolIdentityLabel(mark({ id: '1', rawClass: 'l39', signature: 'block:l39' }))).toEqual({
+      kind: 'block',
+      value: 'l39',
+    });
     expect(symbolIdentityLabel(mark({ id: '1', rawClass: 'p1#4' }))).toBeNull();
+  });
+
+  it('frames one real DWG block, including an l39-sized insert, instead of the whole sheet', () => {
+    const { view, workerBase } = getReal7155Fixture();
+    const sheet = view.sheets.find((item) => item.sheetKey === 'layout:תאורה ג' && item.fileId === 'dwg');
+    const marks = workerBase.filter((item) => item.fileId === 'dwg' && item.sheetKey === 'layout:תאורה ג' && item.rawClass === 'T1');
+    expect(sheet).toBeTruthy();
+    expect(marks.length).toBeGreaterThan(40);
+    const sample = marks[0];
+    if (!sheet || !sample) throw new Error('missing real DWG mark');
+    const crop = symbolCropSource(sample, sheet, { width: sheet.widthPx, height: sheet.heightPx });
+    expect(crop.sx + crop.sw / 2).toBeCloseTo(sample.x, 3);
+    expect(crop.sy + crop.sh / 2).toBeCloseTo(sample.y, 3);
+    const spread = Math.max(...marks.map((item) => item.x)) - Math.min(...marks.map((item) => item.x));
+    const focus = occurrenceFocusRect(sample);
+    expect(focus.x).toBe(sample.x);
+    expect(focus.y).toBe(sample.y);
+    expect(focus.width).toBeLessThan(sheet.widthPx);
+    expect(focus.width).toBeLessThan(spread || sheet.widthPx);
+    expect(crop.sw).toBeLessThan(sheet.widthPx);
+
+    const l39 = mark({
+      id: 'l39-1',
+      rawClass: 'l39',
+      signature: 'block:l39',
+      x: 1400,
+      y: 900,
+      w: 12,
+      h: 12,
+    });
+    const l39Sheet = { widthPx: 7000, heightPx: 4200 };
+    const l39Crop = symbolCropSource(l39, l39Sheet, { width: l39Sheet.widthPx, height: l39Sheet.heightPx });
+    expect(symbolIdentityLabel(l39)).toEqual({ kind: 'block', value: 'l39' });
+    expect(l39Crop.sx + l39Crop.sw / 2).toBeCloseTo(l39.x, 3);
+    expect(l39Crop.sw).toBeLessThan(l39Sheet.widthPx * 0.02);
+    expect(occurrenceFocusRect(l39).width).toBeLessThan(l39Sheet.widthPx * 0.05);
   });
 
   it('counts a group as checked only after it leaves the queue', () => {

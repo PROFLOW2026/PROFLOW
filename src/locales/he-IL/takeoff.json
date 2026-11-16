@@ -238,6 +238,9 @@
   },
   "guide": {
     "progress": "נבדקו {checked} מתוך {total} קבוצות סמלים",
+    "occurrence": "מופע {current} מתוך {total}",
+    "symbolCaption": "הסמל הנבחר בתוכנית",
+    "symbolUnavailable": "לא ניתן להציג את הסמל מתוך התוכנית. בחירת סוג נעצרה עד שתופיע תצוגה ברורה.",
     "occurrences": "{count} מופעים",
     "blockName": "שם בלוק: {name}",
     "legendKey": "מפתח מקרא: {name}",

@@ -55,6 +55,7 @@ export function TakeoffWorkspace({
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [completedReviewKeys, setCompletedReviewKeys] = useState<string[]>([]);
   const [guideIndex, setGuideIndex] = useState(0);
+  const [shownOccurrenceId, setShownOccurrenceId] = useState<string | null>(null);
   const [guideSaving, setGuideSaving] = useState(false);
   const [libraryEntries, setLibraryEntries] = useState<SymbolLibraryEntry[]>([]);
   const [rulesOpen, setRulesOpen] = useState(false);
@@ -211,10 +212,11 @@ export function TakeoffWorkspace({
       return {
         ...current,
         selectedDetectionId: null,
-        highlightedDetectionIds: new Set(group.detectionIds),
+        highlightedDetectionIds: new Set([group.focusId]),
         activeSheetKey: host ? sheetRefId(host) : current.activeSheetKey,
       };
     });
+    setShownOccurrenceId(group.focusId);
   };
 
   const setFilter = (updater: (f: TypeFilterState) => TypeFilterState) => {
@@ -272,11 +274,10 @@ export function TakeoffWorkspace({
           ? t('workspace.approveNeedsPlan')
           : t('workspace.exportBlocked');
   const exportBlockReason = actionHint;
-  const planHiddenOnMobile = state.mobilePanel !== 'plan' && !planExpanded;
-  const sideHiddenOnMobile = state.mobilePanel !== 'boq' || planExpanded;
+  const sideHiddenOnMobile = planExpanded;
 
   return (
-    <div className="flex h-[calc(100dvh-11rem)] max-h-[calc(100dvh-11rem)] min-h-0 min-w-0 flex-1 shrink-0 flex-col overflow-x-hidden overflow-y-hidden">
+    <div className="flex min-h-0 min-w-0 w-full max-w-full flex-1 shrink-0 flex-col overflow-x-hidden lg:h-[calc(100dvh-11rem)] lg:max-h-[calc(100dvh-11rem)] lg:overflow-y-hidden">
       {infoOpen ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-3 sm:items-center" role="dialog" aria-modal aria-label={t('workspace.info')}>
           <div className="max-h-[80dvh] w-full max-w-lg overflow-y-auto rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3">
@@ -322,15 +323,15 @@ export function TakeoffWorkspace({
         </p>
       ) : null}
 
-      <div className="shrink-0 border-b border-[var(--pf-border-default)]">
-        <div className="flex min-w-0 flex-wrap items-center gap-1 px-2 py-1">
-          <p className="me-auto text-xs font-medium text-[var(--pf-text-primary)]">
+      <div className="shrink-0 border-b border-[var(--pf-border-default)]" data-testid="takeoff-action-bar">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 px-2 py-2">
+          <p className="w-full text-xs font-medium text-[var(--pf-text-primary)] lg:me-auto lg:w-auto">
             {t('workspace.statusLine', { total: census.total, pending: pendingReview })}
           </p>
           <Button
             type="button"
             size="sm"
-            className="min-h-11"
+            className="min-h-11 shrink-0"
             variant={sideTab === 'review' ? 'primary' : 'secondary'}
             onClick={() => {
               setSideTab('review');
@@ -343,7 +344,7 @@ export function TakeoffWorkspace({
             {t('workspace.reviewNow')}
           </Button>
           {view.summary.status !== 'approved' ? (
-            <label className="flex min-h-11 items-center gap-1 text-xs text-[var(--pf-text-primary)]">
+            <label className="flex min-h-11 shrink-0 items-center gap-1 text-xs text-[var(--pf-text-primary)]">
               <input
                 type="checkbox"
                 className="size-4 shrink-0"
@@ -360,7 +361,7 @@ export function TakeoffWorkspace({
               type="button"
               data-testid="takeoff-reopen"
               variant="secondary"
-              className="min-h-11"
+              className="min-h-11 shrink-0"
               onClick={() =>
                 void api.reopenAnalysis(analysisId, state.view!.summary.revision).then((v) =>
                   setState((s) => ({ ...s, view: v })),
@@ -374,7 +375,7 @@ export function TakeoffWorkspace({
             <Button
               type="button"
               data-testid="takeoff-approve"
-              className="min-h-11"
+              className="min-h-11 shrink-0"
               disabled={!canClickApprove}
               title={
                 !canClickApprove && approvalBlockedByReview
@@ -418,12 +419,12 @@ export function TakeoffWorkspace({
                     : 'annotatedPdfShort';
             const fullKey = kind === 'xlsx' ? 'excel' : kind === 'boq-pdf' ? 'boqPdf' : 'annotatedPdf';
             return (
-              <div key={kind} className="flex min-h-11 flex-col justify-center">
+              <div key={kind} className="flex min-h-11 shrink-0 flex-col justify-center">
                 <Button
                   type="button"
                   data-testid={testId}
                   variant={kind === 'xlsx' && approved ? 'primary' : 'secondary'}
-                  className="min-h-11"
+                  className="min-h-11 shrink-0"
                   disabled={!approved || exportBusy === kind}
                   title={!approved ? (exportBlockReason ?? t('workspace.exportBlocked')) : t(`export.${fullKey}`)}
                   aria-busy={exportBusy === kind}
@@ -452,7 +453,7 @@ export function TakeoffWorkspace({
               </div>
             );
           })}
-          <ol className="flex min-w-0 flex-wrap items-center gap-1 text-[11px] text-[var(--pf-text-secondary)]">
+          <ol className="flex w-full min-w-0 flex-wrap items-center gap-1 text-[11px] text-[var(--pf-text-secondary)] lg:w-auto">
             <li className={reviewGroups.length > 0 ? 'font-semibold text-[var(--pf-text-primary)]' : ''}>{t('workspace.stepReview')}</li>
             <li aria-hidden>←</li>
             <li className={reviewGroups.length === 0 && view.summary.status !== 'approved' ? 'font-semibold text-[var(--pf-text-primary)]' : ''}>{t('workspace.stepApprove')}</li>
@@ -460,11 +461,11 @@ export function TakeoffWorkspace({
             <li className={view.summary.status === 'approved' ? 'font-semibold text-[var(--pf-text-primary)]' : ''}>{t('workspace.stepExcel')}</li>
           </ol>
           {actionHint ? <span className="text-xs text-[var(--pf-status-warning-fg)]" data-testid="takeoff-export-block-reason">{actionHint}</span> : null}
-          <Button type="button" size="sm" variant="ghost" className="min-h-11 min-w-11" aria-label={t('workspace.info')} onClick={() => setInfoOpen(true)}>
+          <Button type="button" size="sm" variant="ghost" className="min-h-11 min-w-11 shrink-0" aria-label={t('workspace.info')} onClick={() => setInfoOpen(true)}>
             <Info className="size-4" />
           </Button>
         </div>
-        <div className="flex min-w-0 gap-1 overflow-x-auto px-2">
+        <div className="flex min-w-0 flex-wrap gap-1 overflow-x-hidden px-2 lg:flex-nowrap lg:overflow-x-auto">
             {state.view.sheets.map((s) => {
               const id = sheetRefId(s);
               return (
@@ -484,12 +485,12 @@ export function TakeoffWorkspace({
               );
             })}
           </div>
-          <div className="flex gap-1 overflow-x-auto px-2 py-1">
+          <div className="flex min-w-0 flex-wrap gap-1 overflow-x-hidden px-2 py-1 lg:flex-nowrap lg:overflow-x-auto">
             <Button
               type="button"
               size="sm"
               variant={state.viewerTool === 'navigate' ? 'primary' : 'ghost'}
-              className="min-h-11"
+              className="min-h-11 shrink-0"
               disabled={readOnly}
               onClick={() => setState((s) => ({ ...s, viewerTool: 'navigate' }))}
             >
@@ -501,7 +502,7 @@ export function TakeoffWorkspace({
               data-testid="takeoff-add-detection"
               size="sm"
               variant={state.viewerTool === 'add' ? 'primary' : 'ghost'}
-              className="min-h-11"
+              className="min-h-11 shrink-0"
               disabled={readOnly}
               onClick={() => setState((s) => ({ ...s, viewerTool: 'add' }))}
             >
@@ -512,25 +513,25 @@ export function TakeoffWorkspace({
               type="button"
               size="sm"
               variant={state.viewerTool === 'area' ? 'primary' : 'ghost'}
-              className="min-h-11"
+              className="min-h-11 shrink-0"
               disabled={readOnly}
               onClick={() => setState((s) => ({ ...s, viewerTool: 'area' }))}
             >
               <Pencil className="size-4" />
               {t('tools.area')}
             </Button>
-            <Button type="button" size="sm" variant="ghost" className="min-h-11" onClick={() => setRulesOpen(true)}>
+            <Button type="button" size="sm" variant="ghost" className="min-h-11 shrink-0" onClick={() => setRulesOpen(true)}>
               {t('rules.open')}
             </Button>
             {state.view.permissions.canManageLibrary ? (
-              <Button type="button" size="sm" variant="ghost" className="min-h-11" onClick={() => setLibraryOpen(true)}>
+              <Button type="button" size="sm" variant="ghost" className="min-h-11 shrink-0" onClick={() => setLibraryOpen(true)}>
                 {t('library.open')}
               </Button>
             ) : null}
             <Button
               type="button"
               variant="ghost"
-              className="min-h-11"
+              className="min-h-11 shrink-0"
               disabled={readOnly}
               onClick={() => {
                 if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -546,7 +547,7 @@ export function TakeoffWorkspace({
                 type="button"
                 data-testid="takeoff-purge-ephemeral"
                 variant="ghost"
-                className="min-h-11"
+                className="min-h-11 shrink-0"
                 onClick={() =>
                   void api.purgeEphemeralTakeoff(analysisId).then(() => {
                     router.push(listPath);
@@ -557,14 +558,6 @@ export function TakeoffWorkspace({
                 {t('ephemeral.purge')}
               </Button>
             ) : null}
-            <div className="flex gap-1 lg:hidden">
-              <Button type="button" size="sm" variant={state.mobilePanel === 'plan' ? 'primary' : 'ghost'} className="min-h-11" onClick={() => setState((s) => ({ ...s, mobilePanel: 'plan' }))}>
-                {t('mobile.plan')}
-              </Button>
-              <Button type="button" size="sm" variant={state.mobilePanel === 'boq' ? 'primary' : 'ghost'} className="min-h-11" onClick={() => setState((s) => ({ ...s, mobilePanel: 'boq' }))}>
-                {t('mobile.boq')}
-              </Button>
-            </div>
             <div className="hidden gap-1 lg:flex">
               <Button type="button" size="sm" variant={focusMode === 'split' ? 'primary' : 'ghost'} className="min-h-11" onClick={() => setFocusMode('split')}>
                 {t('workspace.focusSplit')}
@@ -579,15 +572,15 @@ export function TakeoffWorkspace({
           </div>
         </div>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:flex-row">
-        <section className={`min-h-0 min-w-0 flex-1 flex-col overflow-hidden ${planExpanded ? 'fixed inset-2 z-50 flex rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2 shadow-lg' : planHiddenOnMobile ? 'hidden lg:flex' : 'flex'} ${focusMode === 'table' && !planExpanded ? 'lg:hidden' : ''}`}>
+      <div className="flex w-full min-w-0 max-w-full flex-col gap-3 lg:min-h-0 lg:flex-1 lg:flex-row lg:gap-0 lg:overflow-hidden">
+        <section className={`min-w-0 w-full flex-col overflow-hidden ${planExpanded ? 'fixed inset-2 z-50 flex rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2 shadow-lg' : 'flex h-[min(70dvh,32rem)] shrink-0 lg:h-auto lg:min-h-0 lg:flex-1'} ${focusMode === 'table' && !planExpanded ? 'lg:hidden' : ''}`}>
           <PlanViewer
             sheet={sheet}
             detections={sheetDetections}
             catalog={state.view.catalog}
             filter={state.typeFilter}
             highlightedIds={state.highlightedDetectionIds}
-            selectedId={state.selectedDetectionId ?? (sideTab === 'review' ? activeGuide?.focusId ?? null : null)}
+            selectedId={sideTab === 'review' ? (shownOccurrenceId ?? activeGuide?.focusId ?? null) : state.selectedDetectionId}
             dimOthers={dimOthers}
             addMode={state.viewerTool === 'add'}
             expanded={planExpanded}
@@ -634,7 +627,7 @@ export function TakeoffWorkspace({
           ) : null}
         </section>
 
-        <section className={`min-h-0 min-w-0 flex-col overflow-hidden border-[var(--pf-border-default)] lg:w-[min(26rem,38vw)] lg:shrink-0 lg:border-s ${sideHiddenOnMobile ? 'hidden' : 'flex'} ${focusMode === 'plan' ? 'lg:hidden' : 'lg:flex'}`}>
+        <section className={`min-w-0 w-full flex-col border-[var(--pf-border-default)] lg:min-h-0 lg:w-[min(26rem,38vw)] lg:shrink-0 lg:overflow-hidden lg:border-s ${sideHiddenOnMobile ? 'hidden' : 'flex'} ${focusMode === 'plan' ? 'lg:hidden' : 'lg:flex'}`}>
           <div className="flex shrink-0 gap-1 border-b border-[var(--pf-border-default)] p-1">
             {(['boq', 'review', 'sheet'] as const).map((tab) => (
               <Button
@@ -652,7 +645,7 @@ export function TakeoffWorkspace({
               </Button>
             ))}
           </div>
-          <div className={`min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2 ${sideTab === 'boq' ? 'flex' : 'hidden'}`}>
+          <div className={`flex-col gap-2 p-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto ${sideTab === 'boq' ? 'flex' : 'hidden'}`}>
             <TakeoffBoqPanel
               boq={state.view.boq}
               lines={boqDisplayLines}
@@ -665,15 +658,21 @@ export function TakeoffWorkspace({
             />
           </div>
 
-          <div className={`min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2 ${sideTab === 'review' ? 'flex' : 'hidden'}`}>
+          <div className={`flex-col gap-2 p-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto ${sideTab === 'review' ? 'flex' : 'hidden'}`}>
             {activeGuide && guideFocus ? (
               <TakeoffReviewGuide
                 key={activeGuide.key}
                 group={activeGuide}
                 focus={guideFocus}
+                occurrences={activeGuide.detectionIds.flatMap((id) => {
+                  const mark = view.detections.find((item) => item.id === id);
+                  return mark ? [mark] : [];
+                })}
                 sheet={
                   view.sheets.find((item) =>
-                    detectionsForSheet(view.detections, item).some((mark) => mark.id === guideFocus.id),
+                    detectionsForSheet(view.detections, item).some(
+                      (mark) => mark.id === (shownOccurrenceId ?? guideFocus.id),
+                    ),
                   ) ?? sheet
                 }
                 catalog={view.catalog}
@@ -692,6 +691,19 @@ export function TakeoffWorkspace({
                 readOnly={readOnly}
                 saving={guideSaving}
                 progress={guidedProgress}
+                shownId={shownOccurrenceId ?? guideFocus.id}
+                onShowOccurrence={(detectionId) => {
+                  const host = view.sheets.find((item) =>
+                    detectionsForSheet(view.detections, item).some((mark) => mark.id === detectionId),
+                  );
+                  setShownOccurrenceId(detectionId);
+                  setState((current) => ({
+                    ...current,
+                    selectedDetectionId: null,
+                    highlightedDetectionIds: new Set([detectionId]),
+                    activeSheetKey: host ? sheetRefId(host) : current.activeSheetKey,
+                  }));
+                }}
                 onConfirm={async (choice) => {
                   setGuideSaving(true);
                   const edits: TakeoffEdit[] = [];
@@ -765,7 +777,7 @@ export function TakeoffWorkspace({
             </ul>
           </div>
 
-          <div className={`min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2 ${sideTab === 'sheet' ? 'flex' : 'hidden'}`}>
+          <div className={`flex-col gap-2 p-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto ${sideTab === 'sheet' ? 'flex' : 'hidden'}`}>
             <section ref={sheetsPanelRef} className="min-w-0 shrink-0">
               <TakeoffSheetControls
                 key={`${sheet.sheetKey}-${sheet.floorLabel ?? ''}-${sheet.scale.ratio ?? ''}-${sheet.scale.verified}`}

@@ -107,6 +107,12 @@ export function unionRects(rects: readonly Rect[]): Rect | null {
   return { x: (minX + maxX) / 2, y: (minY + maxY) / 2, width: maxX - minX, height: maxY - minY };
 }
 
+/** A window around one mark, large enough to recognize the symbol and small enough to leave the sheet. */
+export function occurrenceFocusRect(mark: { x: number; y: number; w: number; h: number }): Rect {
+  const span = Math.max(mark.w, mark.h, 16) * 8;
+  return { x: mark.x, y: mark.y, width: span, height: span };
+}
+
 export function fitSelection(
   view: Size,
   selection: Rect,

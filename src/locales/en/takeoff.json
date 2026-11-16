@@ -238,6 +238,9 @@
   },
   "guide": {
     "progress": "Checked {checked} of {total} symbol groups",
+    "occurrence": "Occurrence {current} of {total}",
+    "symbolCaption": "Selected symbol on the plan",
+    "symbolUnavailable": "The symbol cannot be shown from the plan. Type selection stays closed until a clear view appears.",
     "occurrences": "{count} occurrences",
     "blockName": "Block name: {name}",
     "legendKey": "Legend key: {name}",

@@ -238,6 +238,9 @@
   },
   "guide": {
     "progress": "فُحصت {checked} من {total} مجموعات الرموز",
+    "occurrence": "الظهور {current} من {total}",
+    "symbolCaption": "الرمز المحدد في المخطط",
+    "symbolUnavailable": "لا يمكن عرض الرمز من المخطط. اختيار النوع متوقف حتى تظهر صورة واضحة.",
     "occurrences": "{count} مرات ظهور",
     "blockName": "اسم البلوك: {name}",
     "legendKey": "مفتاح الرسم: {name}",

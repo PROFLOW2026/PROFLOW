@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import heTakeoff from '@/locales/he-IL/takeoff.json';
 import { TakeoffApiProvider } from '@/modules/electrical-takeoff/ui/api-provider';
@@ -49,6 +49,19 @@ describe('takeoff mobile overflow containment (~390px)', () => {
     const workspaceRoot = container.querySelector('.flex.min-h-0.min-w-0.flex-1.flex-col.overflow-x-hidden');
     expect(workspaceRoot, 'workspace root').toBeTruthy();
     expect(hasLayoutContainment(workspaceRoot!.className)).toBe(true);
+    const tokens = workspaceRoot!.className.split(/\s+/);
+    expect(tokens).not.toContain('overflow-y-hidden');
+    expect(tokens).not.toContain('h-[calc(100dvh-11rem)]');
+    expect(tokens).toContain('lg:h-[calc(100dvh-11rem)]');
+    expect(tokens).toContain('lg:overflow-y-hidden');
+    const actionBar = screen.getByTestId('takeoff-action-bar');
+    expect(actionBar.querySelector('.flex-wrap')).toBeTruthy();
+    expect(screen.getByRole('application', { name: heTakeoff.viewer.aria })).toBeVisible();
+    expect(screen.getByTestId('takeoff-boq-counting')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: heTakeoff.workspace.sideReview }));
+    expect(screen.getByTestId('takeoff-review-guide')).toBeVisible();
+    expect(screen.getByTestId('takeoff-guide-type')).toBeVisible();
+    expect(screen.getByTestId('takeoff-guide-confirm')).toBeVisible();
 
     const boq = screen.getByTestId('takeoff-boq-counting').closest('div.flex');
     expect(boq?.className.includes('min-w-0')).toBe(true);

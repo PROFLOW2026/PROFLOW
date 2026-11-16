@@ -238,6 +238,9 @@
   },
   "guide": {
     "progress": "Проверено {checked} из {total} групп символов",
+    "occurrence": "Вхождение {current} из {total}",
+    "symbolCaption": "Выбранный символ на плане",
+    "symbolUnavailable": "Символ нельзя показать с чертежа. Выбор типа закрыт, пока не появится ясное изображение.",
     "occurrences": "{count} вхождений",
     "blockName": "Имя блока: {name}",
     "legendKey": "Ключ легенды: {name}",

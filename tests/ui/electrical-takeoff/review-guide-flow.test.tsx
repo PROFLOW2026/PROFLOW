@@ -54,6 +54,11 @@ describe('guided takeoff review', () => {
     expect(ids.length).toBeGreaterThan(1);
     expect(screen.getByTestId('takeoff-guide-scope-one')).toBeChecked();
     expect(screen.getByTestId('takeoff-guide-reason')).toHaveTextContent(heTakeoff.guide.reason.missingType);
+    expect(screen.getByTestId('takeoff-guide-symbol')).toHaveAttribute('data-symbol-state', 'ready');
+    fireEvent.click(screen.getByTestId('takeoff-guide-next-occurrence'));
+    expect(screen.getByTestId('takeoff-review-guide').getAttribute('data-focus-id')).not.toBe(focusId);
+    fireEvent.click(screen.getByTestId('takeoff-guide-prev-occurrence'));
+    expect(screen.getByTestId('takeoff-review-guide').getAttribute('data-focus-id')).toBe(focusId);
 
     fireEvent.change(screen.getByTestId('takeoff-guide-type'), { target: { value: 'control.switch' } });
     fireEvent.click(screen.getByTestId('takeoff-guide-confirm'));

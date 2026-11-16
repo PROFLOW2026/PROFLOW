@@ -8,6 +8,7 @@ import type { CatalogType, EffectiveDetection, SheetDto } from '../../domain/con
 import {
   fitSelection,
   fitToRect,
+  occurrenceFocusRect,
   panBy,
   screenToPlan,
   unionRects,
@@ -106,17 +107,20 @@ export function PlanViewer({
   }, [applyFit]);
 
   useEffect(() => {
-    if (highlightedIds.size === 0) return;
     const el = containerRef.current;
-    if (!el) return;
-    const rects = sheetDetections
-      .filter((d) => highlightedIds.has(d.id))
-      .map((d) => ({ x: d.x, y: d.y, width: d.w, height: d.h }));
-    const union = unionRects(rects);
+    if (!el || el.clientWidth < 40 || el.clientHeight < 40) return;
+    const selected = selectedId ? sheetDetections.find((detection) => detection.id === selectedId) : undefined;
+    const union = selected
+      ? occurrenceFocusRect(selected)
+      : unionRects(
+          sheetDetections
+            .filter((detection) => highlightedIds.has(detection.id))
+            .map((detection) => ({ x: detection.x, y: detection.y, width: detection.w, height: detection.h })),
+        );
     if (!union) return;
     userAdjusted.current = true;
-    setViewport(fitSelection({ width: el.clientWidth, height: el.clientHeight }, union));
-  }, [highlightedIds, sheetDetections]);
+    setViewport(fitSelection({ width: el.clientWidth, height: el.clientHeight }, union, 72));
+  }, [highlightedIds, selectedId, sheetDetections]);
 
   const zoomAtCenter = useCallback((factor: number) => {
     const el = containerRef.current;
@@ -329,6 +333,17 @@ export function PlanViewer({
                   aria-label={label}
                 >
                   <title>{label}</title>
+                  {selected ? (
+                    <rect
+                      x={d.x - d.w}
+                      y={d.y - d.h}
+                      width={d.w * 2}
+                      height={d.h * 2}
+                      fill="none"
+                      stroke="#ea580c"
+                      strokeWidth={Math.max(d.w, d.h) * 0.18}
+                    />
+                  ) : null}
                   <rect
                     x={d.x - d.w / 2}
                     y={d.y - d.h / 2}
@@ -337,8 +352,8 @@ export function PlanViewer({
                     rx={2}
                     fill={color}
                     fillOpacity={selected || hl ? 0.85 : 0.55}
-                    stroke={selected ? '#0f172a' : color}
-                    strokeWidth={selected ? 2.5 : 1}
+                    stroke={selected ? '#ea580c' : color}
+                    strokeWidth={selected ? Math.max(d.w, d.h) * 0.22 : 1}
                   />
                 </g>
               );
