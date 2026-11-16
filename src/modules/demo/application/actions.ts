@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { getLocale } from "next-intl/server";
 import { getAdminDb } from "@/shared/db/client";
-import { DomainRuleError } from "@/shared/errors";
+import { DomainRuleError, isAppError } from "@/shared/errors";
 import { redirect } from "@/shared/i18n/navigation";
 import { getSupabaseAdminClient, isSupabaseAdminConfigured } from "@/shared/supabase/admin";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
@@ -68,22 +68,36 @@ export async function enterDemoAction(formData: FormData): Promise<void> {
     const jar = await cookies();
     const previous = openDemoSessionCookie(jar.get("demo_session")?.value);
     const reuseSameBusiness = previous !== null && previous.profileKey === profileKey && isDemoRoleKey(roleKey);
-    const result = reuseSameBusiness
-      ? {
+    let result: { sessionId: string; profileKey: string; roleKey: string };
+    if (reuseSameBusiness && previous) {
+      try {
+        const switched = await switchDemoRole(db, productionAuth(), {
+          sessionId: previous.sessionId,
+          body: { roleKey },
+        });
+        result = {
           sessionId: previous.sessionId,
           profileKey: previous.profileKey,
-          roleKey: (
-            await switchDemoRole(db, productionAuth(), {
-              sessionId: previous.sessionId,
-              body: { roleKey },
-            })
-          ).roleKey,
-        }
-      : await enterDemo(db, productionAuth(), {
+          roleKey: switched.roleKey,
+        };
+      } catch (error) {
+        const stale =
+          isAppError(error) &&
+          (error.messageKey === "demo.errors.roleRejected" || error.messageKey === "demo.errors.roleMissing");
+        if (!stale) throw error;
+        result = await enterDemo(db, productionAuth(), {
           profileKey,
           roleKey,
-          previousSessionId: previous?.sessionId ?? null,
+          previousSessionId: previous.sessionId,
         });
+      }
+    } else {
+      result = await enterDemo(db, productionAuth(), {
+        profileKey,
+        roleKey,
+        previousSessionId: previous?.sessionId ?? null,
+      });
+    }
     if (!isDemoRoleKey(result.roleKey)) {
       throw new DomainRuleError("Demo role switch rejected", "demo.errors.roleRejected");
     }

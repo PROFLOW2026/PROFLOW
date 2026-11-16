@@ -168,6 +168,8 @@ export function DemoEntryScreen({ action, businessKeys, footer, demoError }: Dem
               ) : null}
 
               <form action={action} className="mt-8 flex min-w-0 flex-col gap-6">
+                <input type="hidden" name="profileKey" value={profileKey} />
+                <input type="hidden" name="roleKey" value={roleKey} />
                 <DemoEntryChoices
                   businessKeys={businessKeys}
                   profileKey={profileKey}
