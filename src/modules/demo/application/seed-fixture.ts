@@ -176,7 +176,7 @@ export async function seedDemoFixture(
       projectId: projectIds.get(vendorBill.projectKey) ?? null,
       vendorId,
       reference: vendorBill.reference,
-      status: 'open',
+      status: 'draft',
       billDate: vendorBill.billDate,
       netAmount: vendorBill.netAmount,
       grossAmount: vendorBill.grossAmount,

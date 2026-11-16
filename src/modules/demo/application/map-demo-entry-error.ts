@@ -29,11 +29,12 @@ export function demoEntryErrorHref(code: DemoEntryErrorCode): string {
 }
 
 function demoErrorLogLine(error: unknown): string {
-  const message = error instanceof Error ? error.message : 'unknown';
   const cause =
     error instanceof Error && error.cause instanceof Error ? error.cause.message : '';
+  const message = error instanceof Error ? error.message : 'unknown';
   const key = isAppError(error) ? error.messageKey : '';
-  return [key, message, cause].filter(Boolean).join(' | ').slice(0, 500);
+  const query = message.startsWith('Failed query:') ? message.slice(0, 80) : message;
+  return [key, cause, query].filter(Boolean).join(' | ').slice(0, 500);
 }
 
 export async function redirectWithDemoEntryError(error: unknown): Promise<never> {
