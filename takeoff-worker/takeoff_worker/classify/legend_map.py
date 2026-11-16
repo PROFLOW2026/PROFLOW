@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass
 
 from ..models import CatalogType, Confidence
-from .text_norm import normalize_legend_text
+from .text_norm import _final_to_standard, normalize_legend_text
 
 # Single-word legend roots that appear inside many longer catalog keywords.
 _HEB_SHORT_ROOT: dict[str, str] = {
@@ -88,17 +88,11 @@ def match_legend_text(text: str, catalog: list[CatalogType]) -> LegendMatch | No
         matched_kw = 0
         overlap_tokens: set[str] = set()
         for kw in item.keywordsHe:
-            kwt = kw.lower().strip()
+            kwt = _final_to_standard(kw.lower().strip())
             if not kwt:
                 continue
             if _phrase_in(lower, kwt):
                 score += 3.0 + min(len(kwt) / 20.0, 1.5)
-                matched_kw += 1
-            elif len(lower) >= 2 and len(lower) <= 12 and lower in kwt:
-                score += 2.5
-                matched_kw += 1
-            elif len(kwt) >= 4 and kwt[:4] in lower:
-                score += 2.0
                 matched_kw += 1
             else:
                 # One shared word across several keywords must not stack into a type.
@@ -145,6 +139,9 @@ def match_legend_text(text: str, catalog: list[CatalogType]) -> LegendMatch | No
             return LegendMatch(canon, conf, score, ambiguous=amb)
 
     if best is None:
+        return None
+    # A shared word such as לוח does not name a panel, and it does not name the generator.
+    if "לוח" in lower and not best.type_key.startswith("panel."):
         return None
     ambiguous = tied_at_top > 1
     if best.confidence == "high" and ambiguous:

@@ -38,6 +38,7 @@ def test_library_precedence():
         signatureKind="dwg-block",
         rawClass="T20",
         blockName="T20",
+        geometryHash="block:*geom:aaaaaaaaaaaaaaaa",
         typeKey=None,
         classifiedBy="none",
         confidence="none",
@@ -48,6 +49,7 @@ def test_library_precedence():
             plannerKey="test",
             signatureKind="dwg-block",
             signature="block:t20",
+            geometryHash="block:*geom:aaaaaaaaaaaaaaaa",
             typeKey="power.socket.ip",
         )
     ]
@@ -65,6 +67,10 @@ def test_library_precedence():
     out = classify_detections([det], catalog=catalog, library=lib, legend=legend_list)[0]
     assert out.typeKey == "power.socket.ip"
     assert out.classifiedBy == "library"
+    det.geometryHash = "block:*geom:bbbbbbbbbbbbbbbb"
+    changed = classify_detections([det], catalog=catalog, library=lib, legend=legend_list)[0]
+    assert changed.typeKey is None
+    assert changed.classifiedBy == "none"
 
 
 def test_legend_key_library_labels_every_occurrence():

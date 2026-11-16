@@ -8,7 +8,11 @@ import ezdxf
 from takeoff_worker.dwg_engine import DwgEngine
 from takeoff_worker.classify.legend_map import is_socket_bank, stated_socket_count
 from takeoff_worker.classify.text_norm import normalize_legend_text
-from takeoff_worker.dwg_engine.legend_types import socket_bank_signatures, type_map_from_legend_rows
+from takeoff_worker.dwg_engine.legend_types import (
+    accepted_legend_rows,
+    socket_bank_signatures,
+    type_map_from_legend_rows,
+)
 from takeoff_worker.data.catalog_loader import load_default_catalog
 from takeoff_worker.models import JobOptions, SymbolLibraryEntry
 
@@ -123,12 +127,16 @@ def test_library_wins_over_legend(tmp_path: Path):
     msp.add_blockref("SO1", (40, 20), dxfattribs={"layer": "S-LIGHT"})
     p = tmp_path / "lib.dxf"
     _sheet(doc, p)
+    probed = _analyze(p)
+    shape = next(d.geometryHash for d in probed.detections if d.blockName == "SO1")
+    assert shape
     lib = [
         SymbolLibraryEntry(
             id="1",
             plannerKey="p",
             signatureKind="dwg-block",
             signature="block:SO1",
+            geometryHash=shape,
             typeKey="light.recessed",
         )
     ]
@@ -137,6 +145,30 @@ def test_library_wins_over_legend(tmp_path: Path):
     assert len(so) == 1
     assert so[0].typeKey == "light.recessed"
     assert so[0].classifiedBy == "library"
+    other_planner_is_not_in_this_library = [
+        SymbolLibraryEntry(
+            id="2",
+            plannerKey="someone-else",
+            signatureKind="dwg-block",
+            signature="block:SO1",
+            geometryHash=shape,
+            typeKey="fire.smoke_detector",
+        )
+    ]
+    wrong_shape = [
+        SymbolLibraryEntry(
+            id="3",
+            plannerKey="p",
+            signatureKind="dwg-block",
+            signature="block:SO1",
+            geometryHash="block:*geom:0000000000000000",
+            typeKey="light.recessed",
+        )
+    ]
+    kept = _analyze(p, library=wrong_shape)
+    kept_so = [d for d in kept.detections if d.blockName == "SO1"]
+    assert kept_so[0].typeKey != "light.recessed"
+    assert other_planner_is_not_in_this_library[0].plannerKey != lib[0].plannerKey
 
 
 def test_single_phase_outlet_is_not_three_phase():
@@ -171,6 +203,17 @@ def test_single_phase_outlet_is_not_three_phase():
     # A count the legend actually writes is read, and still does not become one single socket.
     assert stated_socket_count("מקבץ 4 שקעים") == 4
     assert mapped("מקבץ 4 שקעים") is None
+    assert mapped("לוח ראשי") == "panel.main"
+    assert mapped("לוח") is None
+    assert mapped("לוח גנרטור") is None
+    assert mapped("ראשי") is None
+    notes = [
+        dict(signature="block:s1", rawText="בקומות המבנה", decodedText="בקומות המבנה"),
+        dict(signature="block:lt", rawText="לטבעת גישור", decodedText="לטבעת גישור"),
+        dict(signature="block:da3", rawText="L53 לוח גנרטור", decodedText="L53 לוח גנרטור"),
+    ]
+    assert accepted_legend_rows(notes, catalog) == []
+    assert "block:da3" not in type_map_from_legend_rows(notes, catalog)
 
 
 def test_socket_bank_signature_is_review_not_a_type():

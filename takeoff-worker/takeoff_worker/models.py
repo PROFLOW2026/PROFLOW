@@ -60,6 +60,7 @@ class SymbolLibraryEntry(_M):
     signatureKind: SignatureKind
     signature: str
     template: Optional[SymbolTemplate] = None
+    geometryHash: Optional[str] = None
     typeKey: str
     label: Optional[str] = None
     createdAtIso: Optional[str] = None
@@ -194,6 +195,7 @@ class WorkerDetection(_M):
     reasons: list[ReviewReason] = Field(default_factory=list)
     twinId: Optional[str] = None
     maskB64: Optional[str] = None
+    geometryHash: Optional[str] = None
     native: Optional[Native] = None
 
 

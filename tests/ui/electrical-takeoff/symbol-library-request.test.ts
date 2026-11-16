@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { symbolLibraryEntrySchema } from '@/modules/electrical-takeoff/domain/contracts';
-import { symbolLibraryForWorker } from '@/modules/electrical-takeoff/application/symbol-library-request';
+import { libraryTemplateForStorage, symbolLibraryForWorker } from '@/modules/electrical-takeoff/application/symbol-library-request';
 
 describe('planner symbol library sent on the next analysis', () => {
   it('turns an upserted mask row into the worker template', () => {
@@ -37,5 +37,25 @@ describe('planner symbol library sent on the next analysis', () => {
       },
     ]);
     expect(entries).toEqual([]);
+  });
+
+  it('sends a saved DWG fingerprint and does not treat it as a PDF mask', () => {
+    const hash = 'block:*geom:b73128bb00000000';
+    const entry = symbolLibraryForWorker([
+      {
+        id: 'lib-dwg',
+        plannerKey: 'brandeis',
+        signatureKind: 'dwg-block',
+        signature: 'block:da3',
+        template: { geometryHash: hash },
+        typeKey: 'light.point',
+        createdAt: new Date('2026-11-16T08:00:00.000Z'),
+      },
+    ])[0];
+    expect(entry).toBeDefined();
+    if (!entry) return;
+    expect(entry.geometryHash).toBe(hash);
+    expect(entry.template).toBeUndefined();
+    expect(libraryTemplateForStorage(entry)).toEqual({ geometryHash: hash });
   });
 });

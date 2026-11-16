@@ -26,13 +26,14 @@ export function symbolLibraryForWorker(rows: readonly StoredSymbolLibraryRow[]):
     const typeKey = row.typeKey.trim();
     const plannerKey = row.plannerKey.trim();
     if (!signature || !typeKey || !plannerKey) continue;
-    const template = workerTemplate(row.template);
+    const stored = splitStoredTemplate(row.template);
     out.push({
       id: row.id,
       plannerKey,
       signatureKind: row.signatureKind as SymbolLibraryEntry['signatureKind'],
       signature,
-      ...(template ? { template } : {}),
+      ...(stored.template ? { template: stored.template } : {}),
+      ...(stored.geometryHash ? { geometryHash: stored.geometryHash } : {}),
       typeKey,
       ...(row.label?.trim() ? { label: row.label.trim() } : {}),
       createdAtIso: row.createdAt.toISOString(),
@@ -41,14 +42,33 @@ export function symbolLibraryForWorker(rows: readonly StoredSymbolLibraryRow[]):
   return out;
 }
 
-function workerTemplate(template: unknown): SymbolLibraryEntry['template'] {
-  if (!template || typeof template !== 'object') return undefined;
-  const maskB64 = (template as { maskB64?: unknown }).maskB64;
-  if (typeof maskB64 !== 'string' || maskB64.trim() === '') return undefined;
-  const colorHex = (template as { colorHex?: unknown }).colorHex;
+export function splitStoredTemplate(template: unknown): {
+  template?: SymbolLibraryEntry['template'];
+  geometryHash?: string;
+} {
+  if (!template || typeof template !== 'object') return {};
+  const raw = template as { maskB64?: unknown; colorHex?: unknown; geometryHash?: unknown };
+  const geometryHash = typeof raw.geometryHash === 'string' && raw.geometryHash.trim().length >= 8 ? raw.geometryHash.trim() : undefined;
+  if (typeof raw.maskB64 !== 'string' || raw.maskB64.trim() === '') {
+    return geometryHash ? { geometryHash } : {};
+  }
   return {
-    size: 64,
-    maskB64,
-    colorHex: typeof colorHex === 'string' ? colorHex : null,
+    template: {
+      size: 64,
+      maskB64: raw.maskB64,
+      colorHex: typeof raw.colorHex === 'string' ? raw.colorHex : null,
+    },
+    ...(geometryHash ? { geometryHash } : {}),
   };
+}
+
+export function libraryTemplateForStorage(entry: Pick<SymbolLibraryEntry, 'template' | 'geometryHash'>): Record<string, unknown> | null {
+  const stored: Record<string, unknown> = {};
+  if (entry.template) {
+    stored.size = entry.template.size;
+    stored.maskB64 = entry.template.maskB64;
+    if (entry.template.colorHex) stored.colorHex = entry.template.colorHex;
+  }
+  if (entry.geometryHash?.trim()) stored.geometryHash = entry.geometryHash.trim();
+  return Object.keys(stored).length > 0 ? stored : null;
 }

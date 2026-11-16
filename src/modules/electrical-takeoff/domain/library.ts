@@ -55,7 +55,7 @@ export function buildLegendLibraryEntry(input: {
 export function buildLibraryEntry(input: {
   readonly id: string;
   readonly plannerKey: string;
-  readonly detection: Pick<WorkerDetection, 'signature' | 'signatureKind' | 'rawClass' | 'blockName' | 'legendKey' | 'maskB64'>;
+  readonly detection: Pick<WorkerDetection, 'signature' | 'signatureKind' | 'rawClass' | 'blockName' | 'legendKey' | 'maskB64' | 'geometryHash'>;
   readonly typeKey: string;
   readonly label?: string;
   readonly maskB64?: string | null;
@@ -84,12 +84,14 @@ export function buildLibraryEntry(input: {
       ? { size: 64 as const, maskB64: mask, colorHex: input.colorHex ?? null }
       : null;
 
+  const geometryHash = input.detection.geometryHash?.trim() || undefined;
   return {
     id: input.id,
     plannerKey: planner,
     signatureKind,
     signature,
     template: template ?? undefined,
+    ...(geometryHash ? { geometryHash } : {}),
     typeKey: input.typeKey,
     label: input.label ?? input.detection.rawClass,
     createdAtIso: input.createdAtIso,

@@ -27,6 +27,24 @@ def legend_match_text(row: dict) -> str:
     return ""
 
 
+_NOTE_MARKERS = ("בקומות", "גישור", "כבל", "מעבר", "קומה")
+
+
+def legend_row_is_description(row: dict, catalog: list[CatalogType]) -> bool:
+    """A legend row names the symbol. A floor note, a cable note, or a circuit label does not."""
+    text = legend_match_text(row)
+    if not text.strip():
+        return False
+    folded = text.casefold()
+    if any(marker in folded for marker in _NOTE_MARKERS):
+        return False
+    return match_legend_text(text, catalog) is not None
+
+
+def accepted_legend_rows(rows: list[dict], catalog: list[CatalogType]) -> list[dict]:
+    return [row for row in rows if legend_row_is_description(row, catalog)]
+
+
 def type_map_from_legend_rows(
     rows: list[dict],
     catalog: list[CatalogType],
@@ -34,6 +52,8 @@ def type_map_from_legend_rows(
     """signature → (typeKey, confidence). Conflicting texts for one block stay unmapped."""
     grouped: dict[str, list] = {}
     for row in rows:
+        if not legend_row_is_description(row, catalog):
+            continue
         text = legend_match_text(row)
         if not text.strip():
             continue

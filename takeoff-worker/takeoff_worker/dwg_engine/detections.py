@@ -9,6 +9,7 @@ from ezdxf.entities import Insert
 
 from .blocks import is_xref_block
 from .doc_context import DocContext
+from .geometry import block_polys, geometry_hash
 from .viewport import ViewportRegion, model_to_preview
 
 _CONF_ORDER = ("high", "medium", "low", "none")
@@ -24,6 +25,23 @@ class RawInsert:
     block_name: str
     reasons: list[str]
     tag: str | None
+    geometry_hash: str = ""
+
+
+def block_geometry_hash(ctx: DocContext, block_name: str) -> str:
+    """Fingerprint of one block definition. Insert rotation, scale and mirror do not change it."""
+    cache = getattr(ctx, "_geom_hash_cache", None)
+    if cache is None:
+        cache = {}
+        setattr(ctx, "_geom_hash_cache", cache)
+    cached = cache.get(block_name)
+    if cached is not None:
+        return cached
+    block = ctx.doc.blocks.get(block_name)
+    polys = block_polys(block) if block is not None else []
+    digest = geometry_hash(polys) if polys else ""
+    cache[block_name] = digest
+    return digest
 
 
 def _minsert_bases(ins: Insert) -> list[tuple[float, float]]:
@@ -126,6 +144,73 @@ def collect_sheet_inserts(
                     block_name=ins.dxf.name,
                     reasons=extra_reasons,
                     tag=tag,
+                    geometry_hash=block_geometry_hash(ctx, ins.dxf.name),
+                )
+            )
+    if extra:
+        visible.extend(extra)
+    visible, extras = dedupe(visible)
+    return visible, hidden, extras
+
+
+def collect_layout_symbols(
+    ctx: DocContext,
+    regs: list[ViewportRegion],
+    *,
+    all_regs: list[ViewportRegion] | None = None,
+    xref_missing: set[str] | None = None,
+    layout_name: str = "",
+    extra: list[RawInsert] | None = None,
+    legend_names: set[str] | None = None,
+    include_outside: bool = False,
+) -> tuple[list[RawInsert], int, int]:
+    """Every relevant symbol on a layout, once.
+
+    A symbol inside several viewports is one device. A symbol outside every
+    issued viewport is kept when ``include_outside`` is set, on the first sheet.
+    A layer frozen in every viewport that shows the symbol stays hidden.
+    """
+    xref_missing = xref_missing or set()
+    legend_names = {n.lower() for n in (legend_names or set()) if n}
+    everywhere = all_regs if all_regs is not None else regs
+    visible: list[RawInsert] = []
+    hidden = 0
+    for ins in ctx.inserts:
+        if not _insert_is_device_candidate(ctx, ins, layout_name, legend_names):
+            continue
+        layer = ins.dxf.layer
+        if ctx.rules.is_panel_layout(layout_name) and layer != "0":
+            continue
+        rot = float(ins.dxf.get("rotation", 0.0) or 0.0)
+        resolved, _, reasons = ctx.resolved_name(ins.dxf.name)
+        if resolved.startswith("*") and not resolved.startswith("block:*geom:"):
+            continue
+        for bx, by in _minsert_bases(ins):
+            cx, cy = _center_at_base(ctx, ins, bx, by)
+            covering = [reg for reg in regs if reg.contains(cx, cy)]
+            if covering:
+                if not any(ctx.layer_visible(layer, reg.frozen_layers) for reg in covering):
+                    hidden += 1
+                    continue
+            elif not include_outside or any(reg.contains(cx, cy) for reg in everywhere):
+                continue
+            elif not ctx.layer_visible(layer, set()):
+                hidden += 1
+                continue
+            extra_reasons = list(reasons)
+            if _layer_from_missing_xref(layer, xref_missing):
+                extra_reasons.append("xref_missing")
+            visible.append(
+                RawInsert(
+                    resolved=resolved,
+                    layer=layer,
+                    x=cx,
+                    y=cy,
+                    rot=rot,
+                    block_name=ins.dxf.name,
+                    reasons=extra_reasons,
+                    tag=nearest_tag(ctx, cx, cy),
+                    geometry_hash=block_geometry_hash(ctx, ins.dxf.name),
                 )
             )
     if extra:
@@ -205,7 +290,7 @@ def raw_to_worker(
     reg: ViewportRegion,
     width_px: int,
     height_px: int,
-    library_map: dict[str, str],
+    library_map: dict[str, tuple[str, str]],
     legend_types: dict[str, tuple[str, str]] | None = None,
 ) -> dict:
     """typeKey comes from a library signature or from a legend row on this drawing.
@@ -222,7 +307,13 @@ def raw_to_worker(
     classified = "none"
     conf = "none"
     if not scrap:
-        type_key = _lookup_type(library_map, signature)
+        stored = _lookup_type(library_map, signature)
+        type_key = None
+        if isinstance(stored, tuple):
+            stored_type, stored_hash = stored
+            current_hash = (raw.geometry_hash or "").strip()
+            if stored_type and stored_hash and current_hash and stored_hash == current_hash:
+                type_key = stored_type
         if type_key:
             classified = "library"
             conf = "high" if not raw.reasons else "low"
@@ -266,4 +357,5 @@ def raw_to_worker(
         confidence=conf,
         reasons=reasons,
         native=dict(x=raw.x, y=raw.y),
+        **({"geometryHash": raw.geometry_hash} if raw.geometry_hash else {}),
     )

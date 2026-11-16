@@ -18,6 +18,27 @@ describe('library', () => {
     expect(entry.signatureKind).toBe('dwg-block');
     const hit = findLibraryMatch([entry], 'gav yam', { signature: entry.signature, signatureKind: entry.signatureKind });
     expect(hit?.typeKey).toBe('power.socket.single');
+    expect(findLibraryMatch([entry], 'other-office', { signature: entry.signature, signatureKind: entry.signatureKind })).toBeNull();
+  });
+
+  it('keeps the DWG shape fingerprint with the approved block', () => {
+    const entry = buildLibraryEntry({
+      id: 'e-geom',
+      plannerKey: 'Brandeis',
+      detection: workerDet({
+        id: 'd',
+        sheetKey: 'layout:Layout1',
+        source: 'dwg',
+        blockName: 'da3',
+        signatureKind: 'dwg-block',
+        signature: 'block:da3',
+        geometryHash: 'block:*geom:b73128bb00000000',
+      }),
+      typeKey: 'light.point',
+    });
+    expect(entry.signatureKind).toBe('dwg-block');
+    expect(entry.geometryHash).toBe('block:*geom:b73128bb00000000');
+    expect(entry.template).toBeUndefined();
   });
 
   it('uses detection.maskB64 for pdf-shape library save', () => {

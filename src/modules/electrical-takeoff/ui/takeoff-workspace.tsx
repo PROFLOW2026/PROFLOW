@@ -597,7 +597,7 @@ export function TakeoffWorkspace({
         </div>
 
       <div className="flex w-full min-w-0 max-w-full flex-col gap-3 lg:min-h-0 lg:flex-1 lg:flex-row lg:gap-0 lg:overflow-hidden">
-        <section className={`min-w-0 w-full flex-col overflow-hidden ${planExpanded ? 'fixed inset-2 z-50 flex rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2 shadow-lg' : 'flex h-[min(70dvh,32rem)] shrink-0 lg:h-auto lg:min-h-0 lg:flex-1'} ${focusMode === 'table' && !planExpanded ? 'lg:hidden' : ''}`}>
+        <section className={`relative min-w-0 w-full flex-col overflow-hidden ${planExpanded ? 'fixed inset-2 z-50 flex rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2 shadow-lg' : 'flex max-lg:h-[min(70dvh,32rem)] max-lg:shrink-0 lg:h-auto lg:min-h-0 lg:shrink lg:self-stretch lg:flex-1'} ${focusMode === 'table' && !planExpanded ? 'lg:hidden' : ''}`}>
           {showDwgPlan && sourceApiBase && sheet && state.view ? (
             <TakeoffDwgPlan
               key={sheetLiveKey}

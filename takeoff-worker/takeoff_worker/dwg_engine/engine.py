@@ -30,15 +30,15 @@ from .blocks import is_xref_block
 from .convert import convert_dwg_to_dxf, find_dwg2dxf
 from .corpus_cache import ensure_dxf
 from .xref_merge import collect_merged_xref_inserts, sheet_has_missing_xref_content
-from .detections import collect_sheet_inserts, raw_to_worker
+from .detections import collect_layout_symbols, dedupe, raw_to_worker
 from .doc_context import DocContext
 from .exploded import find_exploded_symbols
 from .legend import collect_drawing_legend_rows
-from .legend_types import socket_bank_signatures, type_map_from_legend_rows
+from .legend_types import accepted_legend_rows, socket_bank_signatures, type_map_from_legend_rows
 from .linear_extract import extract_linear
 from .preview import render_viewport_png
 from .rules import LayerRules
-from .viewport import pick_sheet_viewport, regions_for_layout
+from .viewport import pick_sheet_viewport, region_around_points, regions_for_layout
 
 log = logging.getLogger(__name__)
 
@@ -66,11 +66,13 @@ class DwgEngine:
         exe = find_dwg2dxf()
         versions["libredwg"] = str(exe) if exe else "not_found"
 
-        library_map = {
-            e.signature: e.typeKey
-            for e in library
-            if e.signatureKind == "dwg-block" and e.signature
-        }
+        library_map: dict[str, tuple[str, str]] = {}
+        for entry in library:
+            if entry.signatureKind != "dwg-block" or not entry.signature:
+                continue
+            pair = (entry.typeKey, (entry.geometryHash or "").strip())
+            library_map[entry.signature] = pair
+            library_map[entry.signature.lower()] = pair
 
         dxf_path = path
         cleanup_dxf = False
@@ -151,16 +153,18 @@ class DwgEngine:
             loaded_xrefs, xref_docs = self._load_xrefs(xref_paths, warnings, file_id)
             missing_xrefs = self._missing_xrefs(ctx, loaded_xrefs, warnings, file_id)
 
-            legend_rows = collect_drawing_legend_rows(ctx)
             try:
                 catalog = load_default_catalog()
             except FileNotFoundError:
                 catalog = []
+            collected_rows = collect_drawing_legend_rows(ctx)
+            legend_rows = accepted_legend_rows(collected_rows, catalog)
             legend_types = type_map_from_legend_rows(legend_rows, catalog)
             bank_sigs = socket_bank_signatures(legend_rows)
             legend_names: set[str] = set()
             anchors: list[tuple[float, float]] = []
-            for row in legend_rows:
+            # A note column is not a legend, but its symbols stay out of the count.
+            for row in collected_rows:
                 if not (row.get("rawText") or row.get("decodedText")):
                     continue
                 if row.get("resolved"):
@@ -198,6 +202,8 @@ class DwgEngine:
             n_layouts = len(plan_layouts)
             # One model insert shown on two layouts is one device.
             seen_model: set[tuple] = set()
+            issued_regions = [regions_for_layout(ctx.doc, name) for name in plan_layouts]
+            outside_open = True
 
             for i, lname in enumerate(plan_layouts):
                 sheet_key = f"layout:{lname}" if lname != "Model" else "model"
@@ -237,10 +243,24 @@ class DwgEngine:
                             paper_height=1000.0,
                             view_height=2 * hh,
                         )
+                        vis, hidden, dup_extra = collect_layout_symbols(
+                            ctx,
+                            [reg],
+                            xref_missing=missing_xrefs,
+                            layout_name=lname,
+                            legend_names=legend_names,
+                        )
+                        xref_extra = collect_merged_xref_inserts(
+                            ctx, xref_docs, reg, layout_name=lname
+                        )
+                        if xref_extra:
+                            vis, xref_dups = dedupe(vis + xref_extra)
+                            dup_extra += xref_dups
+                        measure_reg = reg
                     else:
-                        regs = regions_for_layout(ctx.doc, lname)
-                        reg = pick_sheet_viewport(regs, ctx)
-                        if reg is None:
+                        regs = issued_regions[i] if i < len(issued_regions) else regions_for_layout(ctx.doc, lname)
+                        primary = pick_sheet_viewport(regs, ctx)
+                        if primary is None:
                             sheets_out.append(
                                 WorkerSheet(
                                     sheetKey=sheet_key,
@@ -256,6 +276,29 @@ class DwgEngine:
                             )
                             index += 1
                             continue
+                        all_regions = [reg for group in issued_regions for reg in group]
+                        vis, hidden, dup_extra = collect_layout_symbols(
+                            ctx,
+                            regs,
+                            all_regs=all_regions,
+                            xref_missing=missing_xrefs,
+                            layout_name=lname,
+                            legend_names=legend_names,
+                            include_outside=outside_open,
+                        )
+                        outside_open = False
+                        reg = region_around_points(
+                            [(row.x, row.y) for row in vis],
+                            layout_name=lname,
+                            fallback=primary,
+                        ) or primary
+                        xref_extra = collect_merged_xref_inserts(
+                            ctx, xref_docs, reg, layout_name=lname
+                        )
+                        if xref_extra:
+                            vis, xref_dups = dedupe(vis + xref_extra)
+                            dup_extra += xref_dups
+                        measure_reg = primary
 
                     png_bytes = b""
                     width_px, height_px = 800, 600
@@ -268,18 +311,6 @@ class DwgEngine:
                         preview_name = f"{file_id}_{sheet_key.replace(':', '_')}.png"
                         artifacts[preview_name] = png_bytes
                     scale = self._sheet_scale(ctx, reg, height_px)
-
-                    xref_extra = collect_merged_xref_inserts(
-                        ctx, xref_docs, reg, layout_name=lname
-                    )
-                    vis, hidden, dup_extra = collect_sheet_inserts(
-                        ctx,
-                        reg,
-                        xref_missing=missing_xrefs,
-                        layout_name=lname,
-                        extra=xref_extra,
-                        legend_names=legend_names,
-                    )
                     if dup_extra:
                         warnings.append(
                             WorkerWarning(
@@ -295,7 +326,7 @@ class DwgEngine:
                     exploded = (
                         []
                         if self.rules.is_panel_layout(lname)
-                        else find_exploded_symbols(ctx, reg, layout_name=lname)
+                        else find_exploded_symbols(ctx, measure_reg, layout_name=lname)
                     )
                     vis = vis + exploded
                     vis = [r for r in vis if not _is_legend_anchor(r.x, r.y, anchors)]
@@ -342,7 +373,7 @@ class DwgEngine:
                         mpp = scale.metersPerPreviewPx
                     lin_rows = extract_linear(
                         ctx,
-                        reg,
+                        measure_reg,
                         sheet_key=sheet_key,
                         file_id=file_id,
                         width_px=width_px,

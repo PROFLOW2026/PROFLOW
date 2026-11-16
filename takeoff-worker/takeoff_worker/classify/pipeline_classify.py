@@ -152,6 +152,11 @@ def classify_detections(
             engine_conf = engine_conf or d.confidence
 
         lib_hit = lib.get((d.signatureKind, d.signature)) or lib.get((d.signatureKind, d.signature.lower()))
+        if lib_hit is not None and d.signatureKind == "dwg-block":
+            stored_hash = (lib_hit.geometryHash or "").strip()
+            current_hash = (d.geometryHash or "").strip()
+            if not stored_hash or stored_hash != current_hash:
+                lib_hit = None
         if lib_hit is None and d.legendKey:
             legend_sig = legend_key_signature(d.legendKey)
             lib_hit = lib.get(("legend-key", legend_sig)) or lib.get(("legend-key", legend_sig.lower()))

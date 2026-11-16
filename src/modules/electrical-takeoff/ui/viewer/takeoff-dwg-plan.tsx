@@ -285,7 +285,7 @@ export function TakeoffDwgPlan({
   return (
     <div
       ref={hostRef}
-      className="relative h-full min-h-0 w-full overflow-hidden bg-[#1e2124]"
+      className="relative h-full min-h-0 w-full overflow-hidden bg-[#1e2124] lg:absolute lg:inset-0"
       data-testid="takeoff-dwg-plan"
       data-cad-space={viewState.space}
       data-cad-parses={viewState.parses}
@@ -343,7 +343,7 @@ function focusMark(renderer: CadRendererHandle, frame: CadSheetFrame, focusId: s
     renderer.fit();
     return;
   }
-  const span = mark.half * 8;
+  const span = mark.half * 3;
   renderer.focusExtent([mark.x - span, mark.y - span, mark.x + span, mark.y + span], 28);
 }
 

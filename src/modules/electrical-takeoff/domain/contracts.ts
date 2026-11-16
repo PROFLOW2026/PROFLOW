@@ -139,6 +139,8 @@ export const symbolLibraryEntrySchema = z.object({
     .object({ size: z.literal(64), maskB64: z.string(), colorHex: z.string().nullable().optional() })
     .nullable()
     .optional(),
+  /** DWG block-definition fingerprint. A library hit applies only when this matches the drawing. */
+  geometryHash: z.string().min(8).optional(),
   typeKey: z.string().min(1),
   label: z.string().optional(),
   createdAtIso: z.string().optional(),
@@ -294,6 +296,8 @@ export const workerDetectionSchema = z.object({
   twinId: z.string().optional(),
   /** 64×64 packed symbol mask (same encoding as SymbolTemplate.maskB64), when the engine stored it. */
   maskB64: z.string().optional(),
+  /** Fingerprint of the DWG block definition. Rotation, scale and mirror of an insert do not change it. */
+  geometryHash: z.string().min(8).optional(),
   native: z.object({ x: z.number(), y: z.number() }).optional(), // pdf pt (unrotated page) or dwg model units
 });
 export type WorkerDetection = z.infer<typeof workerDetectionSchema>;

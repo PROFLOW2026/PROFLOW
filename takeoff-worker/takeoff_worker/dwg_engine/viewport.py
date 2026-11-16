@@ -75,6 +75,38 @@ def _inserts_in_region(ctx, reg: ViewportRegion) -> int:
     return n
 
 
+def region_around_points(
+    points: list[tuple[float, float]],
+    *,
+    layout_name: str,
+    fallback: ViewportRegion | None,
+) -> ViewportRegion | None:
+    """Frame the symbols that were actually counted, ignoring broken coordinates."""
+    sane = [(x, y) for x, y in points if math.isfinite(x) and math.isfinite(y) and abs(x) < 1_000_000 and abs(y) < 1_000_000]
+    if not sane:
+        return fallback
+    xs = [p[0] for p in sane]
+    ys = [p[1] for p in sane]
+    minx, maxx = min(xs), max(xs)
+    miny, maxy = min(ys), max(ys)
+    span = max(maxx - minx, maxy - miny, 1.0)
+    pad = span * 0.02
+    hw = (maxx - minx) / 2 + pad
+    hh = (maxy - miny) / 2 + pad
+    return ViewportRegion(
+        layout_name=layout_name,
+        cx=(minx + maxx) / 2,
+        cy=(miny + maxy) / 2,
+        hw=hw or 1.0,
+        hh=hh or 1.0,
+        frozen_layers=set(),
+        twist_deg=0.0,
+        paper_width=(hw or 1.0) * 2,
+        paper_height=(hh or 1.0) * 2,
+        view_height=(hh or 1.0) * 2,
+    )
+
+
 def pick_sheet_viewport(regs: list[ViewportRegion], ctx=None) -> ViewportRegion | None:
     """Primary model viewport: prefer the window that actually contains plan inserts."""
     if not regs:

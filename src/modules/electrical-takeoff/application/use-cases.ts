@@ -76,7 +76,7 @@ import { isOrganizationStorageConfigured } from '@/modules/external-storage/appl
 import { ingestFakeWorkerResult } from './fake-worker-client';
 import { loadDefaultCatalog } from './domain-runtime';
 import { TAKEOFF_CONTRACT_VERSION, workerJobRequestSchema } from '../domain/contracts';
-import { symbolLibraryForWorker } from './symbol-library-request';
+import { libraryTemplateForStorage, splitStoredTemplate, symbolLibraryForWorker } from './symbol-library-request';
 
 function internalActor(context: OrgContext): TakeoffActor {
   return { kind: 'internal', context };
@@ -450,7 +450,7 @@ async function persistLibraryFromReclassify(
         signature: entry.signature,
         typeKey: entry.typeKey,
         label: entry.label ?? null,
-        template: entry.template ?? null,
+        template: libraryTemplateForStorage(entry),
         createdByUserId: context.userId,
       });
     }
@@ -501,16 +501,20 @@ export async function reopenAnalysisUseCase(context: OrgContext, analysisId: str
 
 export async function listLibraryUseCase(context: OrgContext, plannerKey: string): Promise<SymbolLibraryEntry[]> {
   const rows = await listLibrary(context.db, context.organizationId, plannerKey);
-  return rows.map((r) => ({
-    id: r.id,
-    plannerKey: r.plannerKey,
-    signatureKind: r.signatureKind as SymbolLibraryEntry['signatureKind'],
-    signature: r.signature,
-    template: r.template as SymbolLibraryEntry['template'],
-    typeKey: r.typeKey,
-    label: r.label ?? undefined,
-    createdAtIso: r.createdAt.toISOString(),
-  }));
+  return rows.map((r) => {
+    const stored = splitStoredTemplate(r.template);
+    return {
+      id: r.id,
+      plannerKey: r.plannerKey,
+      signatureKind: r.signatureKind as SymbolLibraryEntry['signatureKind'],
+      signature: r.signature,
+      ...(stored.template ? { template: stored.template } : {}),
+      ...(stored.geometryHash ? { geometryHash: stored.geometryHash } : {}),
+      typeKey: r.typeKey,
+      label: r.label ?? undefined,
+      createdAtIso: r.createdAt.toISOString(),
+    };
+  });
 }
 
 export async function deleteLibraryEntryUseCase(context: OrgContext, entryId: string): Promise<void> {
