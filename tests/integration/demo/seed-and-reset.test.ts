@@ -68,12 +68,24 @@ describe("demo seed and nightly reset", () => {
     const organizationId = await sessionOrg();
     const counts = await database.asService(async (db) => {
       const [projectRows] = await db.select({ id: projects.id }).from(projects).where(eq(projects.organizationId, organizationId));
-      const tables = resultRows<{ projects: number; clients: number; employees: number }>(
+      const tables = resultRows<{
+        projects: number;
+        clients: number;
+        employees: number;
+        ap_open: number;
+        ap_lines: number;
+        ap_payments: number;
+        ap_applications: number;
+      }>(
         await db.execute(sql`
           select
             (select count(*)::int from projects where organization_id = ${organizationId}::uuid) as projects,
             (select count(*)::int from clients where organization_id = ${organizationId}::uuid) as clients,
-            (select count(*)::int from employees where organization_id = ${organizationId}::uuid) as employees
+            (select count(*)::int from employees where organization_id = ${organizationId}::uuid) as employees,
+            (select count(*)::int from ap_bills where organization_id = ${organizationId}::uuid and status = 'open') as ap_open,
+            (select count(*)::int from ap_bill_lines where organization_id = ${organizationId}::uuid) as ap_lines,
+            (select count(*)::int from ap_payments where organization_id = ${organizationId}::uuid and status = 'recorded') as ap_payments,
+            (select count(*)::int from ap_payment_applications where organization_id = ${organizationId}::uuid) as ap_applications
         `),
       )[0]!;
       return { projectRows, tables };
@@ -81,6 +93,10 @@ describe("demo seed and nightly reset", () => {
     expect(counts.tables.projects).toBeGreaterThanOrEqual(8);
     expect(counts.tables.clients).toBeGreaterThanOrEqual(5);
     expect(counts.tables.employees).toBeGreaterThanOrEqual(6);
+    expect(counts.tables.ap_open).toBeGreaterThanOrEqual(5);
+    expect(counts.tables.ap_lines).toBe(counts.tables.ap_open);
+    expect(counts.tables.ap_payments).toBeGreaterThanOrEqual(2);
+    expect(counts.tables.ap_applications).toBe(counts.tables.ap_payments);
     expect(counts.projectRows?.id).toBeTruthy();
   });
 

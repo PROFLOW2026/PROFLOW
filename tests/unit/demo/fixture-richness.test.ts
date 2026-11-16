@@ -133,6 +133,8 @@ describe('demo fixture richness', () => {
     expect(fixture.expenses.some((row) => row.paymentStatus === 'paid')).toBe(true);
     expect(fixture.expenses.some((row) => row.paymentStatus !== 'paid')).toBe(true);
     expect(fixture.vendorBills.some((row) => row.status === 'open')).toBe(true);
+    expect(fixture.vendorBills.some((row) => Boolean(row.paidGross && row.paidDate))).toBe(true);
+    expect(fixture.vendorBills.some((row) => !row.paidGross)).toBe(true);
     expect(fixture.projects.some((row) => row.status === 'completed')).toBe(true);
     expect(fixture.projects.some((row) => row.status === 'active')).toBe(true);
 

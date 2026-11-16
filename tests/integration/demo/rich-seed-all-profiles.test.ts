@@ -29,7 +29,9 @@ type SeedMetrics = {
   expensesFinalized: number;
   billingFinalized: number;
   payments: number;
-  apDrafts: number;
+  apOpen: number;
+  apPayments: number;
+  apApplications: number;
   timeApproved: number;
   attendanceDays: number;
   clients: number;
@@ -113,7 +115,9 @@ describe('demo rich seed — all 20 profiles', () => {
           expenses_finalized: number;
           billing_finalized: number;
           payments: number;
-          ap_drafts: number;
+          ap_open: number;
+          ap_payments: number;
+          ap_applications: number;
           time_approved: number;
           attendance_days: number;
           clients: number;
@@ -126,7 +130,9 @@ describe('demo rich seed — all 20 profiles', () => {
               (select count(*)::int from expenses where organization_id = ${organizationId}::uuid and status = 'finalized') as expenses_finalized,
               (select count(*)::int from billing_records where organization_id = ${organizationId}::uuid and status = 'finalized') as billing_finalized,
               (select count(*)::int from payments where organization_id = ${organizationId}::uuid and status = 'recorded') as payments,
-              (select count(*)::int from ap_bills where organization_id = ${organizationId}::uuid and status = 'draft') as ap_drafts,
+              (select count(*)::int from ap_bills where organization_id = ${organizationId}::uuid and status = 'open') as ap_open,
+              (select count(*)::int from ap_payments where organization_id = ${organizationId}::uuid and status = 'recorded') as ap_payments,
+              (select count(*)::int from ap_payment_applications where organization_id = ${organizationId}::uuid) as ap_applications,
               (select count(*)::int from time_entries where organization_id = ${organizationId}::uuid and approval_status = 'approved') as time_approved,
               (select count(*)::int from attendance_days where organization_id = ${organizationId}::uuid) as attendance_days,
               (select count(*)::int from clients where organization_id = ${organizationId}::uuid) as clients,
@@ -141,7 +147,9 @@ describe('demo rich seed — all 20 profiles', () => {
       expect(counts.expenses_finalized).toBeGreaterThanOrEqual(16);
       expect(counts.billing_finalized).toBeGreaterThanOrEqual(10);
       expect(counts.payments).toBeGreaterThanOrEqual(8);
-      expect(counts.ap_drafts).toBeGreaterThanOrEqual(5);
+      expect(counts.ap_open).toBeGreaterThanOrEqual(5);
+      expect(counts.ap_payments).toBeGreaterThanOrEqual(2);
+      expect(counts.ap_applications).toBeGreaterThanOrEqual(2);
       expect(counts.time_approved).toBeGreaterThanOrEqual(16);
       expect(counts.attendance_days).toBeGreaterThanOrEqual(12);
       expect(counts.clients).toBeGreaterThanOrEqual(5);
@@ -161,7 +169,9 @@ describe('demo rich seed — all 20 profiles', () => {
         expensesFinalized: counts.expenses_finalized,
         billingFinalized: counts.billing_finalized,
         payments: counts.payments,
-        apDrafts: counts.ap_drafts,
+        apOpen: counts.ap_open,
+        apPayments: counts.ap_payments,
+        apApplications: counts.ap_applications,
         timeApproved: counts.time_approved,
         attendanceDays: counts.attendance_days,
         clients: counts.clients,

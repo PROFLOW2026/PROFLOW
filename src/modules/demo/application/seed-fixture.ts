@@ -3,7 +3,10 @@ import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
 import {
+  apBillLines,
   apBills,
+  apPaymentApplications,
+  apPayments,
   attendanceDays,
   attendanceEvents,
   billingRecords,
@@ -293,16 +296,17 @@ export async function seedDemoFixture(
     })),
   );
 
+  // AP must follow draft → classified lines → open. Payments are cash-only.
+  // Session teardown voids payments then bills (ap_bill_void latch) before org CASCADE.
   for (const vendorBill of fixture.vendorBills) {
     const vendorId = vendorIds.get(vendorBill.vendorKey);
     if (!vendorId) continue;
     const billId = randomUUID();
-    // Draft header only (no lines): keeps AP visible in the inbox without creating
-    // delete-locked recognized history that breaks demo session CASCADE teardown.
+    const projectId = projectIds.get(vendorBill.projectKey) ?? null;
     await db.insert(apBills).values({
       id: billId,
       organizationId,
-      projectId: projectIds.get(vendorBill.projectKey) ?? null,
+      projectId,
       vendorId,
       reference: vendorBill.reference,
       status: 'draft',
@@ -316,8 +320,56 @@ export async function seedDemoFixture(
       currency: 'ILS',
       costFamily: 'direct_project',
       costCategoryId,
-      remainderAllocationIntent: 'project_allocate',
+      remainderAllocationIntent: projectId ? 'project_allocate' : 'auto_pool',
     });
+    await db.insert(apBillLines).values({
+      id: randomUUID(),
+      organizationId,
+      apBillId: billId,
+      description: `שורה — ${vendorBill.reference}`,
+      quantity: '1',
+      unitAmount: vendorBill.netAmount,
+      netAmount: vendorBill.netAmount,
+      taxAmount: vendorBill.taxAmount,
+      grossAmount: vendorBill.grossAmount,
+      lineTotal: vendorBill.grossAmount,
+      currency: 'ILS',
+      economicTargetType: 'inherit',
+      projectId: null,
+      costFamily: 'direct_project',
+      costCategoryId,
+      classificationStatus: 'classified',
+      sortOrder: 0,
+    });
+    await db
+      .update(apBills)
+      .set({ status: 'open', updatedAt: new Date() })
+      .where(and(eq(apBills.id, billId), eq(apBills.organizationId, organizationId)));
+
+    if (vendorBill.paidGross && vendorBill.paidDate) {
+      const paid = Number(vendorBill.paidGross);
+      if (!(paid > 0)) continue;
+      const paymentId = randomUUID();
+      await db.insert(apPayments).values({
+        id: paymentId,
+        organizationId,
+        vendorId,
+        amount: vendorBill.paidGross,
+        currency: 'ILS',
+        paymentDate: vendorBill.paidDate,
+        method: 'transfer',
+        reference: `PAY-${vendorBill.reference}`,
+        status: 'recorded',
+      });
+      await db.insert(apPaymentApplications).values({
+        id: randomUUID(),
+        organizationId,
+        apPaymentId: paymentId,
+        apBillId: billId,
+        appliedAmount: vendorBill.paidGross,
+        currency: 'ILS',
+      });
+    }
   }
 
   const activeProjectId = projectIds.get('p-active');
