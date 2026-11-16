@@ -28,8 +28,17 @@ export function demoEntryErrorHref(code: DemoEntryErrorCode): string {
   return `/demo?demoError=${code}`;
 }
 
+function demoErrorLogLine(error: unknown): string {
+  const message = error instanceof Error ? error.message : 'unknown';
+  const cause =
+    error instanceof Error && error.cause instanceof Error ? error.cause.message : '';
+  const key = isAppError(error) ? error.messageKey : '';
+  return [key, message, cause].filter(Boolean).join(' | ').slice(0, 500);
+}
+
 export async function redirectWithDemoEntryError(error: unknown): Promise<never> {
   unstable_rethrow(error);
+  console.error(`demo-entry ${demoErrorLogLine(error)}`);
   const code = mapUnknownToDemoEntryErrorCode(error);
   redirect({ href: demoEntryErrorHref(code), locale: await getLocale() });
 }
