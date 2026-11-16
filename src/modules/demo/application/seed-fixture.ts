@@ -2,20 +2,24 @@ import 'server-only';
 
 import { randomUUID } from 'node:crypto';
 import {
+  apBills,
   attendanceDays,
+  billingRecords,
   boqNodes,
   clients,
+  contracts,
   documents,
   employees,
   evidenceItems,
   expenses,
   infraCaptures,
-  billingRecords,
+  payments,
   projectBoqs,
   projectLocations,
   projectWorkspaceLinks,
   projects,
   tasks,
+  timeEntries,
   vendors,
   workspaces,
 } from '@drizzle/schema';
@@ -35,16 +39,18 @@ export async function seedDemoFixture(
   }
 
   const vendorIds = new Map<string, string>();
+  const vendorNames = new Map<string, string>();
   for (const vendor of fixture.vendors) {
     const id = randomUUID();
     vendorIds.set(vendor.key, id);
+    vendorNames.set(vendor.key, vendor.name);
     await db.insert(vendors).values({ id, organizationId, name: vendor.name, type: vendor.type });
   }
 
-  const employeeIds: string[] = [];
+  const employeeIds = new Map<string, string>();
   for (const employee of fixture.employees) {
     const id = randomUUID();
-    employeeIds.push(id);
+    employeeIds.set(employee.key, id);
     await db.insert(employees).values({ id, organizationId, name: employee.name });
   }
 
@@ -74,6 +80,23 @@ export async function seedDemoFixture(
     });
   }
 
+  for (const contract of fixture.contracts) {
+    const projectId = projectIds.get(contract.projectKey);
+    if (!projectId) continue;
+    const id = randomUUID();
+    await db.insert(contracts).values({
+      id,
+      organizationId,
+      projectId,
+      clientId: clientIds.get(contract.clientKey) ?? null,
+      name: contract.name,
+      startDate: contract.startDate,
+      originalValueAmount: contract.originalValueNet,
+      currency: 'ILS',
+      status: 'active',
+    });
+  }
+
   for (const task of fixture.tasks) {
     const projectId = projectIds.get(task.projectKey);
     if (!projectId) continue;
@@ -83,17 +106,22 @@ export async function seedDemoFixture(
       workspaceId,
       projectId,
       title: task.title,
+      status: task.status,
+      startDate: task.startDate ?? null,
+      dueDate: task.dueDate ?? null,
+      completionDate: task.completionDate ?? null,
       createdBySystem: true,
     });
   }
 
   for (const expense of fixture.expenses) {
+    const vendorKey = expense.vendorKey;
     await db.insert(expenses).values({
       id: randomUUID(),
       organizationId,
       projectId: projectIds.get(expense.projectKey) ?? null,
-      vendorId: vendorIds.get(expense.vendorKey) ?? null,
-      supplierName: 'ספק לדוגמה',
+      vendorId: vendorIds.get(vendorKey) ?? null,
+      supplierName: vendorNames.get(vendorKey) ?? vendorKey,
       description: expense.description,
       expenseDate: expense.expenseDate,
       netAmount: expense.netAmount,
@@ -102,9 +130,12 @@ export async function seedDemoFixture(
     });
   }
 
+  const billingIds = new Map<string, string>();
   for (const bill of fixture.billing) {
+    const id = randomUUID();
+    billingIds.set(bill.key, id);
     await db.insert(billingRecords).values({
-      id: randomUUID(),
+      id,
       organizationId,
       projectId: projectIds.get(bill.projectKey) ?? null,
       clientId: clientIds.get(bill.clientKey) ?? null,
@@ -117,8 +148,42 @@ export async function seedDemoFixture(
     });
   }
 
+  for (const payment of fixture.payments) {
+    await db.insert(payments).values({
+      id: randomUUID(),
+      organizationId,
+      billingRecordId: billingIds.get(payment.billingKey) ?? null,
+      clientId: clientIds.get(payment.clientKey) ?? null,
+      amount: payment.amount,
+      paymentDate: payment.paymentDate,
+      reference: payment.reference,
+      currency: 'ILS',
+      status: 'recorded',
+    });
+  }
+
+  for (const vendorBill of fixture.vendorBills) {
+    const vendorId = vendorIds.get(vendorBill.vendorKey);
+    if (!vendorId) continue;
+    await db.insert(apBills).values({
+      id: randomUUID(),
+      organizationId,
+      projectId: projectIds.get(vendorBill.projectKey) ?? null,
+      vendorId,
+      reference: vendorBill.reference,
+      status: 'open',
+      billDate: vendorBill.billDate,
+      netAmount: vendorBill.netAmount,
+      grossAmount: vendorBill.grossAmount,
+      taxAmount: vendorBill.taxAmount,
+      totalAmount: vendorBill.grossAmount,
+      taxBasis: 'canonical',
+      currency: 'ILS',
+    });
+  }
+
   const activeProjectId = projectIds.get('p-active');
-  if (activeProjectId) {
+  if (activeProjectId && fixture.boqItems.length > 0) {
     const boqId = randomUUID();
     await db.insert(projectBoqs).values({
       id: boqId,
@@ -147,60 +212,78 @@ export async function seedDemoFixture(
         originalUnitPrice: item.unitPrice,
       });
     }
+  }
 
-    for (const employeeId of employeeIds) {
-      for (const workDate of fixture.attendanceDates) {
-        await db.insert(attendanceDays).values({
-          id: randomUUID(),
-          organizationId,
-          employeeId,
-          workDate,
-        });
-      }
-    }
-
-    for (const document of fixture.documents) {
-      const projectId = projectIds.get(document.projectKey) ?? activeProjectId;
-      const documentId = randomUUID();
-      await db.insert(documents).values({
-        id: documentId,
-        organizationId,
-        storageBucket: 'documents',
-        storagePath: `${organizationId}/documents/${documentId}/demo.pdf`,
-        originalFilename: document.fileName,
-        mimeType: 'application/pdf',
-        status: 'pending',
-      });
-      const locationId = randomUUID();
-      await db.insert(projectLocations).values({
-        id: locationId,
-        organizationId,
-        projectId,
-        name: 'אזור לדוגמה',
-      });
-      const evidenceId = randomUUID();
-      await db.insert(evidenceItems).values({
-        id: evidenceId,
-        organizationId,
-        projectId,
-        documentId,
-        entityType: 'project',
-        entityId: projectId,
-        kind: 'document',
-        fileName: document.fileName,
-        mimeType: 'application/pdf',
-        sizeBytes: 1,
-        uploadedByActorType: 'system',
-      });
-      await db.insert(infraCaptures).values({
+  for (const employeeId of employeeIds.values()) {
+    for (const workDate of fixture.attendanceDates) {
+      await db.insert(attendanceDays).values({
         id: randomUUID(),
         organizationId,
-        projectId,
-        locationId,
-        evidenceId,
-        description: 'לכידת תשתיות לדוגמה',
-        createdByActorType: 'internal',
+        employeeId,
+        workDate,
       });
     }
+  }
+
+  for (const timeEntry of fixture.timeEntries) {
+    const employeeId = employeeIds.get(timeEntry.employeeKey);
+    const projectId = projectIds.get(timeEntry.projectKey);
+    if (!employeeId || !projectId) continue;
+    await db.insert(timeEntries).values({
+      id: randomUUID(),
+      organizationId,
+      employeeId,
+      projectId,
+      workDate: timeEntry.workDate,
+      hours: timeEntry.hours,
+      description: timeEntry.description,
+      kind: 'project',
+      status: 'recorded',
+    });
+  }
+
+  for (const document of fixture.documents) {
+    const projectId = projectIds.get(document.projectKey) ?? activeProjectId;
+    if (!projectId) continue;
+    const documentId = randomUUID();
+    await db.insert(documents).values({
+      id: documentId,
+      organizationId,
+      storageBucket: 'documents',
+      storagePath: `${organizationId}/documents/${documentId}/demo.pdf`,
+      originalFilename: document.fileName,
+      mimeType: 'application/pdf',
+      status: 'pending',
+    });
+    const locationId = randomUUID();
+    await db.insert(projectLocations).values({
+      id: locationId,
+      organizationId,
+      projectId,
+      name: 'אזור עבודה',
+    });
+    const evidenceId = randomUUID();
+    await db.insert(evidenceItems).values({
+      id: evidenceId,
+      organizationId,
+      projectId,
+      documentId,
+      entityType: 'project',
+      entityId: projectId,
+      kind: 'document',
+      fileName: document.fileName,
+      mimeType: 'application/pdf',
+      sizeBytes: 1,
+      uploadedByActorType: 'system',
+    });
+    await db.insert(infraCaptures).values({
+      id: randomUUID(),
+      organizationId,
+      projectId,
+      locationId,
+      evidenceId,
+      description: `תיעוד שטח — ${document.fileName}`,
+      createdByActorType: 'internal',
+    });
   }
 }

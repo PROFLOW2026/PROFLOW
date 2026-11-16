@@ -8,10 +8,12 @@ import {
   demoSessionActors,
   demoSessions,
   employeeAppAccounts,
+  employees,
   organizations,
 } from '@drizzle/schema';
+import { applyEmployeePresetGrants, type EmployeePresetKey } from '@/modules/employee-app';
 import { ensureProfile } from '@/modules/identity/application/ensure-profile';
-import { assignRole, findRoleByKey } from '@/modules/rbac';
+import { assignRole, ensureRoleAssigned, findRoleByKey } from '@/modules/rbac';
 import { insertMembership } from '@/modules/tenancy';
 import { isOnboardingBusinessType, type OnboardingBusinessType } from '@/modules/tenancy/domain/onboarding-experience';
 import { DomainRuleError } from '@/shared/errors';
@@ -23,6 +25,26 @@ import { insertDemoOrganization, withDemoProvisioner } from './provision';
 import { seedDemoFixture } from './seed-fixture';
 
 const MEMBER_ROLES = ['owner', 'manager', 'finance', 'worker', 'employee'] as const;
+
+const DEMO_ACTOR_DISPLAY_NAMES: Record<DemoRoleKey, string> = {
+  owner: 'נועה בעלים',
+  manager: 'איתי מנהל',
+  finance: 'מיכל כספים',
+  employee: 'דנה משרד',
+  worker: 'יוסי שטח',
+  contractor: 'רן קבלן',
+};
+
+const DEMO_EMPLOYEE_APP_PORTAL_ROLES = ['manager', 'finance', 'worker', 'employee'] as const;
+
+type DemoEmployeeAppPortalRole = (typeof DEMO_EMPLOYEE_APP_PORTAL_ROLES)[number];
+
+const DEMO_EMPLOYEE_APP_PRESETS: Record<DemoEmployeeAppPortalRole, EmployeePresetKey> = {
+  manager: 'management',
+  finance: 'office_admin',
+  worker: 'field_worker',
+  employee: 'secretary',
+};
 
 export interface DemoAuthPort {
   createConfirmedUser(email: string): Promise<{ userId: string }>;
@@ -89,10 +111,16 @@ export async function enterDemo(
     });
     await seedDemoFixture(tx, organizationId, fixture);
     const actors: { role: DemoRoleKey; userId: string; email: string }[] = [];
+    const membershipIds = new Map<DemoRoleKey, string>();
     for (const role of ['owner', 'manager', 'finance', 'worker', 'employee', 'contractor'] as const) {
       const email = emailFor(organizationId, role);
       const created = await auth.createConfirmedUser(email);
-      await ensureProfile(tx, { id: created.userId, email, displayName: role, localePreference: 'he-IL' });
+      await ensureProfile(tx, {
+        id: created.userId,
+        email,
+        displayName: DEMO_ACTOR_DISPLAY_NAMES[role],
+        localePreference: 'he-IL',
+      });
       actors.push({ role, userId: created.userId, email });
       if ((MEMBER_ROLES as readonly string[]).includes(role)) {
         const membership = await insertMembership(tx, {
@@ -100,6 +128,7 @@ export async function enterDemo(
           userId: created.userId,
           status: 'active',
         });
+        membershipIds.set(role, membership.id);
         const roleRow = await findRoleByKey(tx, organizationId, role === 'worker' ? 'worker' : role);
         if (!roleRow) throw new DomainRuleError('Role missing', 'demo.errors.roleMissing');
         await assignRole(tx, {
@@ -110,25 +139,45 @@ export async function enterDemo(
         });
       }
     }
-    const employee = actors.find((actor) => actor.role === 'employee');
-    if (employee) {
-      const [staff] = await tx
-        .select({ id: (await import('@drizzle/schema')).employees.id })
-        .from((await import('@drizzle/schema')).employees)
-        .where(eq((await import('@drizzle/schema')).employees.organizationId, organizationId))
-        .limit(1);
-      if (staff) {
-        await tx.insert(employeeAppAccounts).values({
-          organizationId,
-          employeeId: staff.id,
-          userId: employee.userId,
-          status: 'active',
-          username: `demo-${organizationId.slice(0, 8)}`,
-          usernameNormalized: `demo-${organizationId.slice(0, 8)}`,
-          authEmail: employee.email,
-          pinMustChange: false,
-        });
+    const ownerActor = actors.find((actor) => actor.role === 'owner');
+    const employeeRole = await findRoleByKey(tx, organizationId, 'employee');
+    if (!employeeRole) throw new DomainRuleError('Role missing', 'demo.errors.roleMissing');
+    const employeeRows = await tx
+      .select({ id: employees.id })
+      .from(employees)
+      .where(eq(employees.organizationId, organizationId));
+    for (let index = 0; index < DEMO_EMPLOYEE_APP_PORTAL_ROLES.length; index++) {
+      const portalRole = DEMO_EMPLOYEE_APP_PORTAL_ROLES[index]!;
+      const actor = actors.find((item) => item.role === portalRole);
+      const staff = employeeRows[index];
+      const membershipId = membershipIds.get(portalRole);
+      if (!actor || !staff || !membershipId) {
+        throw new DomainRuleError('Demo employee portal wiring failed', 'demo.errors.roleMissing');
       }
+      await ensureRoleAssigned(tx, {
+        organizationId,
+        membershipId,
+        userId: actor.userId,
+        roleId: employeeRole.id,
+      });
+      const usernameSuffix = portalRole === 'employee' ? 'office' : portalRole;
+      const username = `demo-${organizationId.slice(0, 8)}-${usernameSuffix}`;
+      await tx.insert(employeeAppAccounts).values({
+        organizationId,
+        employeeId: staff.id,
+        userId: actor.userId,
+        status: 'active',
+        username,
+        usernameNormalized: username,
+        authEmail: actor.email,
+        pinMustChange: false,
+      });
+      await applyEmployeePresetGrants(tx, {
+        organizationId,
+        employeeId: staff.id,
+        presetKey: DEMO_EMPLOYEE_APP_PRESETS[portalRole],
+        grantedByUserId: ownerActor?.userId ?? actor.userId,
+      });
     }
     const contractor = actors.find((actor) => actor.role === 'contractor');
     if (contractor) {
@@ -147,7 +196,7 @@ export async function enterDemo(
       await tx.insert(contractorPrincipals).values({
         id: principalId,
         email: contractor.email,
-        displayName: 'קבלן לדוגמה',
+        displayName: DEMO_ACTOR_DISPLAY_NAMES.contractor,
         authUserId: contractor.userId,
         principalKind: 'contractor',
         status: 'active',

@@ -20,6 +20,7 @@ export {
   listActiveEmployeeAppUserIds,
   loadEmployeeAppContextByEmployeeId,
 } from './application/load-employee-app-context';
+export { applyEmployeePresetGrants } from './application/apply-employee-preset';
 export { EMPLOYEE_PRESETS, employeePreset, type EmployeePresetKey } from './application/presets';
 export {
   findEmployeeAppAccountByEmployeeId,

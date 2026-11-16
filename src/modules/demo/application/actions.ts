@@ -8,6 +8,7 @@ import { DomainRuleError } from "@/shared/errors";
 import { redirect } from "@/shared/i18n/navigation";
 import { getSupabaseAdminClient, isSupabaseAdminConfigured } from "@/shared/supabase/admin";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
+import { demoRoleHome, type DemoRoleKey } from "@/modules/demo/domain/demo-roles";
 import { enterDemo, type DemoAuthPort } from "./enter-demo";
 import { switchDemoRole } from "./switch-role";
 import { isDemoEntryEnabled } from "./flags";
@@ -84,8 +85,7 @@ export async function enterDemoAction(formData: FormData): Promise<void> {
   if (!sealed) throw new DomainRuleError("Demo cookie secret is missing", "demo.errors.notConfigured");
   jar.set("demo_session", sealed, { httpOnly: true, sameSite: "lax", path: "/", secure: process.env.APP_ENV === "production" });
   const locale = await getLocale();
-  const href = result.roleKey === "employee" ? "/employee" : result.roleKey === "contractor" ? "/contractor" : "/";
-  redirect({ href, locale });
+  redirect({ href: demoRoleHome(result.roleKey), locale });
 }
 
 export async function switchDemoRoleAction(formData: FormData): Promise<void> {
@@ -99,6 +99,5 @@ export async function switchDemoRoleAction(formData: FormData): Promise<void> {
   if (!sealed) throw new DomainRuleError("Demo cookie secret is missing", "demo.errors.notConfigured");
   jar.set("demo_session", sealed, { httpOnly: true, sameSite: "lax", path: "/", secure: process.env.APP_ENV === "production" });
   const locale = await getLocale();
-  const href = result.roleKey === "employee" ? "/employee" : result.roleKey === "contractor" ? "/contractor" : "/";
-  redirect({ href, locale });
+  redirect({ href: demoRoleHome(result.roleKey as DemoRoleKey), locale });
 }

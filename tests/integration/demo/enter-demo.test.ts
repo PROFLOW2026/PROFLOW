@@ -52,7 +52,7 @@ describe("demo entry creates three surfaces", () => {
         `),
       )[0]!,
     );
-    expect(counts.employees).toBe(1);
+    expect(counts.employees).toBe(4);
     expect(counts.grants).toBe(1);
     expect(counts.actors).toBe(6);
     const switched = await database.asService((db) =>
