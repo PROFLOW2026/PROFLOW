@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { blurSelectOnWheel } from './blur-select-on-wheel';
 import { Button } from '@/components/ui/button';
 import type { CatalogType, EffectiveDetection, TakeoffReviewReason } from '../domain/contracts';
 import { devicesFromNote, tagWithDeviceCount } from '../domain/quantity-notes';
 import { canSaveReclassifyToLibrary, detectionTwinLabel, visibleDetectionReasons } from './takeoff-analysis-view';
 import { detectionDisplayLabel } from './boq-display';
+import { TakeoffTypePicker } from './takeoff-type-picker';
 
 export function TakeoffDetectionSheet({
   detection,
@@ -39,17 +39,10 @@ export function TakeoffDetectionSheet({
   onRestore: () => void;
 }) {
   const t = useTranslations('takeoff');
-  const [query, setQuery] = useState('');
   const [saveLib, setSaveLib] = useState(false);
   const [applyToGroup, setApplyToGroup] = useState(defaultApplyToGroup && groupSize > 1);
   const [pick, setPick] = useState(detection.typeKey ?? '');
   const [deviceCount, setDeviceCount] = useState(() => devicesFromNote(detection.tagText));
-
-  const filtered = useMemo(() => {
-    const q = query.trim();
-    if (!q) return catalog;
-    return catalog.filter((c) => c.nameHe.includes(q) || c.key.includes(q));
-  }, [catalog, query]);
 
   const confidenceBadge =
     detection.confidence === 'high'
@@ -148,27 +141,13 @@ export function TakeoffDetectionSheet({
       {!readOnly ? (
         <div className="mt-4 space-y-2">
           <label className="block text-xs font-medium text-[var(--pf-text-secondary)]">{t('detection.pickType')}</label>
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="min-h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-page)] px-3 text-sm"
-            placeholder={t('detection.searchTypes')}
-          />
-          <select
-            data-testid="takeoff-edit-type"
-            className="min-h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-page)] px-3 text-sm"
+          <TakeoffTypePicker
+            catalog={catalog}
             value={pick}
-            onWheel={blurSelectOnWheel}
-            onChange={(e) => setPick(e.target.value)}
-          >
-            <option value="">{t('detection.unclassified')}</option>
-            {filtered.map((c) => (
-              <option key={c.key} value={c.key}>
-                {c.nameHe}
-              </option>
-            ))}
-          </select>
+            disabled={readOnly}
+            testId="takeoff-edit-type"
+            onChange={setPick}
+          />
           <label className="flex min-h-11 items-center gap-2 text-sm">
             <input
               type="checkbox"

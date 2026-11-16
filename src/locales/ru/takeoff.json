@@ -216,7 +216,53 @@
     "overlapping_symbols_peeled": "Перекрывающиеся обозначения",
     "possible_exploded_symbol": "Возможный разнесённый символ",
     "pdf_only": "Только в PDF (без пары DWG)",
-    "dwg_only": "Только в DWG (без пары PDF)"
+    "dwg_only": "Только в DWG (без пары PDF)",
+    "legend_zone": "Зона легенды",
+    "legend_text_undecodable": "Текст легенды не прочитан",
+    "symbol_group_candidate": "Группа символов без типа",
+    "drawing_noise": "Шум чертежа"
+  },
+  "catalogCategory": {
+    "all": "Все",
+    "lighting": "Освещение",
+    "emergency_lighting": "Аварийное освещение",
+    "power": "Розетки",
+    "control": "Выключатели",
+    "communication": "Связь",
+    "low_voltage": "Слаботочка",
+    "fire_detection": "Безопасность",
+    "panels_distribution": "Щиты",
+    "conduit_tray": "Лотки",
+    "other": "Прочее",
+    "unknown": "Неизвестно"
+  },
+  "guide": {
+    "progress": "Проверено {checked} из {total} групп символов",
+    "occurrences": "{count} вхождений",
+    "blockName": "Имя блока: {name}",
+    "legendKey": "Ключ легенды: {name}",
+    "reason": {
+      "missingType": "Тип прибора не распознан",
+      "confirmType": "Тип распознан и ждёт подтверждения",
+      "uncertain": "Есть несоответствие или неопределённость"
+    },
+    "kindShort": {
+      "missingType": "Нет типа",
+      "confirmType": "Нужно подтверждение",
+      "uncertain": "Несоответствие"
+    },
+    "scopeTitle": "Область изменения",
+    "scopeOne": "Только это вхождение",
+    "scopeGroup": "Все {count} вхождений этого символа",
+    "appliesOne": "Изменение затронет одно вхождение",
+    "appliesGroup": "Изменение затронет все {count} вхождений",
+    "othersSeparate": "Ещё {count} вхождений этого символа отличаются и не войдут",
+    "confirmNext": "Подтвердить и далее ({count})",
+    "saving": "Сохранение…",
+    "pickRequired": "Выберите тип прибора, чтобы продолжить",
+    "suggestLibrary": "Библиотека уже знает этот символ: {name}",
+    "suggestSame": "У этого символа уже есть тип на плане: {name}",
+    "done": "Все группы символов проверены"
   },
   "workspace": {
     "saved": "Изменения сохранены",
@@ -231,6 +277,11 @@
     "sideSheet": "Лист",
     "statusLine": "{total} меток · {pending} на проверку",
     "reviewNow": "Проверка",
+    "stepReview": "Проверка приборов",
+    "stepApprove": "Утвердить ведомость",
+    "stepExcel": "Скачать Excel",
+    "groupsLeft": "Осталось {count} групп символов",
+    "saveFailed": "Сохранение не удалось. Остаёмся на этом пункте.",
     "exportBlocked": "Экспорт откроется после утверждения",
     "approveNeedsReview": "Для утверждения: завершите проверку",
     "approveNeedsPlan": "Для утверждения: подтвердите, что чертёж проверен"
@@ -248,6 +299,7 @@
   "export": {
     "excel": "Экспорт Excel",
     "excelShort": "Excel",
+    "downloadExcel": "Скачать Excel",
     "boqPdfShort": "PDF",
     "annotatedPdfShort": "PDF с метками",
     "disabledHint": "Утвердите анализ для экспорта",

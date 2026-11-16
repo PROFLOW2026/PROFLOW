@@ -216,7 +216,53 @@
     "overlapping_symbols_peeled": "סמלים חופפים",
     "possible_exploded_symbol": "סמל מפורק אפשרי",
     "pdf_only": "נמצא רק ב-PDF (ללא התאמה ל-DWG)",
-    "dwg_only": "נמצא רק ב-DWG (ללא התאמה ל-PDF)"
+    "dwg_only": "נמצא רק ב-DWG (ללא התאמה ל-PDF)",
+    "legend_zone": "אזור מקרא",
+    "legend_text_undecodable": "טקסט מקרא לא נקרא",
+    "symbol_group_candidate": "קבוצת סמל ללא סוג",
+    "drawing_noise": "רעש שרטוט"
+  },
+  "catalogCategory": {
+    "all": "הכל",
+    "lighting": "תאורה",
+    "emergency_lighting": "תאורת חירום",
+    "power": "שקעים",
+    "control": "מפסקים",
+    "communication": "תקשורת",
+    "low_voltage": "מתח נמוך",
+    "fire_detection": "בטיחות",
+    "panels_distribution": "לוחות",
+    "conduit_tray": "תעלות",
+    "other": "אחר",
+    "unknown": "לא ידוע"
+  },
+  "guide": {
+    "progress": "נבדקו {checked} מתוך {total} קבוצות סמלים",
+    "occurrences": "{count} מופעים",
+    "blockName": "שם בלוק: {name}",
+    "legendKey": "מפתח מקרא: {name}",
+    "reason": {
+      "missingType": "סוג האביזר לא זוהה",
+      "confirmType": "זוהה סוג, אך נדרש אישור",
+      "uncertain": "קיימת אי־התאמה או אי־ודאות"
+    },
+    "kindShort": {
+      "missingType": "לא זוהה סוג",
+      "confirmType": "נדרש אישור",
+      "uncertain": "אי־התאמה"
+    },
+    "scopeTitle": "היקף השינוי",
+    "scopeOne": "מופע זה בלבד",
+    "scopeGroup": "כל {count} המופעים של הסמל",
+    "appliesOne": "השינוי יחול על מופע אחד",
+    "appliesGroup": "השינוי יחול על כל {count} המופעים",
+    "othersSeparate": "יש עוד {count} מופעים של הסמל שאינם זהים, והם לא ייכללו",
+    "confirmNext": "אישור והבא ({count})",
+    "saving": "שומר…",
+    "pickRequired": "בחרו סוג אביזר כדי להמשיך",
+    "suggestLibrary": "הספרייה כבר מכירה את הסמל: {name}",
+    "suggestSame": "לסמל הזה כבר יש סוג בתוכנית: {name}",
+    "done": "כל קבוצות הסמלים נבדקו"
   },
   "workspace": {
     "saved": "השינויים נשמרו",
@@ -231,6 +277,11 @@
     "sideSheet": "גיליון",
     "statusLine": "{total} סימונים · {pending} לבדיקה",
     "reviewNow": "בדיקה",
+    "stepReview": "בדיקת אביזרים",
+    "stepApprove": "אישור כתב כמויות",
+    "stepExcel": "הורדת Excel",
+    "groupsLeft": "נותרו {count} קבוצות סמלים לבדיקה",
+    "saveFailed": "השמירה נכשלה. לא עברנו לפריט הבא.",
     "exportBlocked": "הייצוא נפתח אחרי אישור",
     "approveNeedsReview": "לאישור: סיימו את הבדיקה",
     "approveNeedsPlan": "לאישור: סמנו שבדקתם את התוכנית"
@@ -248,6 +299,7 @@
   "export": {
     "excel": "ייצוא Excel",
     "excelShort": "Excel",
+    "downloadExcel": "הורד Excel",
     "boqPdfShort": "PDF",
     "annotatedPdfShort": "PDF מתויג",
     "disabledHint": "אשרו את הניתוח כדי לייצא",

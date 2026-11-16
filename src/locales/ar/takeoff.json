@@ -216,7 +216,53 @@
     "overlapping_symbols_peeled": "رموز متداخلة",
     "possible_exploded_symbol": "رمز مفكك محتمل",
     "pdf_only": "في PDF فقط (بلا توأم DWG)",
-    "dwg_only": "في DWG فقط (بلا توأم PDF)"
+    "dwg_only": "في DWG فقط (بلا توأم PDF)",
+    "legend_zone": "منطقة المفتاح",
+    "legend_text_undecodable": "لم يُقرأ نص المفتاح",
+    "symbol_group_candidate": "مجموعة رموز بلا نوع",
+    "drawing_noise": "ضوضاء الرسم"
+  },
+  "catalogCategory": {
+    "all": "الكل",
+    "lighting": "إنارة",
+    "emergency_lighting": "إنارة طوارئ",
+    "power": "مآخذ",
+    "control": "مفاتيح",
+    "communication": "اتصالات",
+    "low_voltage": "جهد منخفض",
+    "fire_detection": "سلامة",
+    "panels_distribution": "لوحات",
+    "conduit_tray": "حوامل",
+    "other": "أخرى",
+    "unknown": "غير معروف"
+  },
+  "guide": {
+    "progress": "فُحصت {checked} من {total} مجموعات الرموز",
+    "occurrences": "{count} مرات ظهور",
+    "blockName": "اسم البلوك: {name}",
+    "legendKey": "مفتاح الرسم: {name}",
+    "reason": {
+      "missingType": "لم يُتعرف على نوع التجهيز",
+      "confirmType": "تم التعرف على نوع ويحتاج اعتماداً",
+      "uncertain": "يوجد عدم تطابق أو عدم يقين"
+    },
+    "kindShort": {
+      "missingType": "النوع غير معروف",
+      "confirmType": "يحتاج اعتماداً",
+      "uncertain": "عدم تطابق"
+    },
+    "scopeTitle": "نطاق التغيير",
+    "scopeOne": "هذا الظهور فقط",
+    "scopeGroup": "كل مرات الظهور ({count}) لهذا الرمز",
+    "appliesOne": "سيطبق التغيير على ظهور واحد",
+    "appliesGroup": "سيطبق التغيير على كل مرات الظهور ({count})",
+    "othersSeparate": "هناك {count} ظهورات أخرى لهذا الرمز ليست متطابقة ولن تُشمل",
+    "confirmNext": "اعتماد والتالي ({count})",
+    "saving": "جارٍ الحفظ…",
+    "pickRequired": "اختاروا نوع التجهيز للمتابعة",
+    "suggestLibrary": "المكتبة تعرف هذا الرمز: {name}",
+    "suggestSame": "لهذا الرمز نوع موجود في المخطط: {name}",
+    "done": "اكتمل فحص كل مجموعات الرموز"
   },
   "workspace": {
     "saved": "تم حفظ التغييرات",
@@ -231,6 +277,11 @@
     "sideSheet": "اللوحة",
     "statusLine": "{total} علامات · {pending} للفحص",
     "reviewNow": "فحص",
+    "stepReview": "فحص التجهيزات",
+    "stepApprove": "اعتماد جدول الكميات",
+    "stepExcel": "تنزيل Excel",
+    "groupsLeft": "تبقى {count} مجموعات رموز للفحص",
+    "saveFailed": "فشل الحفظ. لم ننتقل إلى البند التالي.",
     "exportBlocked": "التصدير يُفتح بعد الاعتماد",
     "approveNeedsReview": "للاعتماد: أنهوا الفحص",
     "approveNeedsPlan": "للاعتماد: أكّدوا أنكم فحصتم المخطط"
@@ -248,6 +299,7 @@
   "export": {
     "excel": "تصدير Excel",
     "excelShort": "Excel",
+    "downloadExcel": "تنزيل Excel",
     "boqPdfShort": "PDF",
     "annotatedPdfShort": "PDF مُعلَّم",
     "disabledHint": "اعتمد التحليل للتصدير",

@@ -57,16 +57,17 @@ describe('manual legend correction on the plan and BOQ', () => {
     expect(unclassifiedRow).toBeTruthy();
     fireEvent.click(unclassifiedRow!);
 
-    fireEvent.change(screen.getByTestId('takeoff-edit-type'), { target: { value: 'control.switch' } });
-    fireEvent.click(screen.getByTestId('takeoff-save-to-library'));
-    const groupBox = screen.queryByTestId('takeoff-apply-symbol-group') as HTMLInputElement | null;
-    if (groupBox && !groupBox.checked) fireEvent.click(groupBox);
-    fireEvent.click(screen.getByTestId('takeoff-apply-type'));
+    fireEvent.change(screen.getByTestId('takeoff-guide-type'), { target: { value: 'control.switch' } });
+    fireEvent.click(screen.getByTestId('takeoff-guide-scope-group'));
+    fireEvent.click(screen.getByTestId('takeoff-guide-save-library'));
+    const ids = screen.getByTestId('takeoff-review-guide').getAttribute('data-group-ids')?.split(',') ?? [];
+    expect(ids.length).toBeGreaterThan(1);
+    fireEvent.click(screen.getByTestId('takeoff-guide-confirm'));
 
     await waitFor(
       () => {
         const reclassified = seen.filter((edit) => edit.op === 'reclassify');
-        expect(reclassified.length).toBeGreaterThanOrEqual(groupBox ? 2 : 1);
+        expect(reclassified).toHaveLength(ids.length);
         expect(
           reclassified.every(
             (edit) => edit.op === 'reclassify' && edit.typeKey === 'control.switch' && edit.saveToLibrary === true,

@@ -216,7 +216,53 @@
     "overlapping_symbols_peeled": "Overlapping symbols",
     "possible_exploded_symbol": "Possible exploded symbol",
     "pdf_only": "PDF only (no DWG twin)",
-    "dwg_only": "DWG only (no PDF twin)"
+    "dwg_only": "DWG only (no PDF twin)",
+    "legend_zone": "Legend area",
+    "legend_text_undecodable": "Legend text was not read",
+    "symbol_group_candidate": "Symbol group without a type",
+    "drawing_noise": "Drawing noise"
+  },
+  "catalogCategory": {
+    "all": "All",
+    "lighting": "Lighting",
+    "emergency_lighting": "Emergency lighting",
+    "power": "Sockets",
+    "control": "Switches",
+    "communication": "Communication",
+    "low_voltage": "Low voltage",
+    "fire_detection": "Safety",
+    "panels_distribution": "Panels",
+    "conduit_tray": "Trays",
+    "other": "Other",
+    "unknown": "Unknown"
+  },
+  "guide": {
+    "progress": "Checked {checked} of {total} symbol groups",
+    "occurrences": "{count} occurrences",
+    "blockName": "Block name: {name}",
+    "legendKey": "Legend key: {name}",
+    "reason": {
+      "missingType": "The device type was not identified",
+      "confirmType": "A type was identified and still needs approval",
+      "uncertain": "There is a mismatch or uncertainty"
+    },
+    "kindShort": {
+      "missingType": "Type missing",
+      "confirmType": "Needs approval",
+      "uncertain": "Mismatch"
+    },
+    "scopeTitle": "What will change",
+    "scopeOne": "This occurrence only",
+    "scopeGroup": "All {count} occurrences of this symbol",
+    "appliesOne": "The change applies to one occurrence",
+    "appliesGroup": "The change applies to all {count} occurrences",
+    "othersSeparate": "{count} other occurrences of this symbol are not the same and will not be included",
+    "confirmNext": "Confirm and next ({count})",
+    "saving": "Saving…",
+    "pickRequired": "Choose a device type to continue",
+    "suggestLibrary": "The library already knows this symbol: {name}",
+    "suggestSame": "This symbol already has a type on the plan: {name}",
+    "done": "Every symbol group has been checked"
   },
   "workspace": {
     "saved": "Changes saved",
@@ -231,6 +277,11 @@
     "sideSheet": "Sheet",
     "statusLine": "{total} marks · {pending} to check",
     "reviewNow": "Check",
+    "stepReview": "Check devices",
+    "stepApprove": "Approve quantities",
+    "stepExcel": "Download Excel",
+    "groupsLeft": "{count} symbol groups still need a check",
+    "saveFailed": "Save failed. Staying on this item.",
     "exportBlocked": "Export opens after approval",
     "approveNeedsReview": "To approve: finish the check",
     "approveNeedsPlan": "To approve: confirm you checked the plan"
@@ -248,6 +299,7 @@
   "export": {
     "excel": "Export Excel",
     "excelShort": "Excel",
+    "downloadExcel": "Download Excel",
     "boqPdfShort": "PDF",
     "annotatedPdfShort": "Tagged PDF",
     "disabledHint": "Approve the analysis to export",

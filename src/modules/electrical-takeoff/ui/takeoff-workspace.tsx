@@ -6,8 +6,6 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Check,
-  ChevronLeft,
-  ChevronRight,
   Download,
   Eraser,
   Info,
@@ -16,13 +14,12 @@ import {
   PlusCircle,
   RotateCcw,
 } from 'lucide-react';
-import type { TakeoffEdit, TakeoffReviewReason } from '../domain/contracts';
+import type { AnalysisView, SymbolLibraryEntry, TakeoffEdit, TakeoffReviewReason } from '../domain/contracts';
 import { useTakeoffApi } from './api-provider';
 import { PlanViewer } from './viewer/plan-viewer';
 import { formatTakeoffDisplayName } from '../domain/format-display-name';
-import { detectionCensus, detectionDisplayLabel, groupDetectionsForControl } from './boq-display';
+import { detectionCensus, detectionDisplayLabel } from './boq-display';
 import { blurSelectOnWheel } from './blur-select-on-wheel';
-import { devicesFromNote } from '../domain/quantity-notes';
 import { isRevisionConflictError, takeoffErrorCode } from './takeoff-errors';
 import { TakeoffConflictBanner, TakeoffLibraryDialog, TakeoffRuleSetDialog } from './takeoff-workspace-panels';
 import { initialWorkspaceState, type TypeFilterState } from './workspace/takeoff-workspace-state';
@@ -36,6 +33,8 @@ import { waitForExportReady } from './takeoff-export';
 import { buildGroupReclassifyEdits, buildLegendLibraryEdit, hasBlockingWorkerWarnings } from './takeoff-analysis-view';
 import { detectionsForSheet, parseSheetRefId, sheetRefId } from './sheet-ref';
 import { sameSymbolDetections, undecodedLegendExemplars } from './symbol-group';
+import { buildReviewGroups, typeSuggestions } from './review-guide';
+import { TakeoffReviewGuide } from './takeoff-review-guide';
 
 export function TakeoffWorkspace({
   analysisId,
@@ -52,11 +51,12 @@ export function TakeoffWorkspace({
   const [state, setState] = useState(initialWorkspaceState);
   const [areaDraft, setAreaDraft] = useState<[number, number][]>([]);
   const pendingRef = useRef<TakeoffEdit[]>([]);
-  const flushRef = useRef<(edits: TakeoffEdit[]) => Promise<void>>(async () => {});
+  const flushRef = useRef<(edits: TakeoffEdit[]) => Promise<AnalysisView | null>>(async () => null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [bulkIds, setBulkIds] = useState<Set<string>>(new Set());
-  const [bulkType, setBulkType] = useState('');
-  const [bulkSaveLibrary, setBulkSaveLibrary] = useState(false);
+  const [completedReviewKeys, setCompletedReviewKeys] = useState<string[]>([]);
+  const [guideIndex, setGuideIndex] = useState(0);
+  const [guideSaving, setGuideSaving] = useState(false);
+  const [libraryEntries, setLibraryEntries] = useState<SymbolLibraryEntry[]>([]);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [conflictBanner, setConflictBanner] = useState<string | null>(null);
@@ -109,28 +109,6 @@ export function TakeoffWorkspace({
     [sheet, state.view],
   );
 
-  const reviewQueue = useMemo(
-    () => state.view?.detections.filter((d) => d.needsReview || !d.typeKey) ?? [],
-    [state.view?.detections],
-  );
-
-  const focusReview = (index: number) => {
-    const next = Math.max(0, Math.min(reviewQueue.length - 1, index));
-    const detection = reviewQueue[next];
-    setState((current) => {
-      const host = current.view?.sheets.find((item) =>
-        detectionsForSheet(current.view?.detections ?? [], item).some((mark) => mark.id === detection?.id),
-      );
-      return {
-        ...current,
-        reviewIndex: next,
-        selectedDetectionId: detection?.id ?? null,
-        activeSheetKey: host ? sheetRefId(host) : current.activeSheetKey,
-        mobilePanel: 'plan',
-      };
-    });
-  };
-
   const boqDisplayLines = useMemo(() => {
     const lines = state.view?.boq.lines ?? [];
     if (showUnclassifiedBoq) return lines;
@@ -138,17 +116,21 @@ export function TakeoffWorkspace({
   }, [showUnclassifiedBoq, state.view?.boq.lines]);
 
   const flushEdits = useCallback(
-    async (edits: TakeoffEdit[]) => {
-      if (!state.view || !edits.length) return;
+    async (edits: TakeoffEdit[]): Promise<AnalysisView | null> => {
+      if (!state.view || !edits.length) return state.view;
       try {
         const next = await api.applyEdits(analysisId, edits, state.view.summary.revision);
         setState((s) => ({ ...s, view: next, saveNotice: t('workspace.saved') }));
+        return next;
       } catch (err) {
         if (isRevisionConflictError(err)) {
           setConflictBanner(t('workspace.revisionConflict'));
           setState((s) => ({ ...s, saveNotice: null }));
           await load();
+          return null;
         }
+        setState((s) => ({ ...s, saveNotice: t('workspace.saveFailed') }));
+        return null;
       }
     },
     [analysisId, api, load, state.view, t],
@@ -170,6 +152,13 @@ export function TakeoffWorkspace({
 
   const queueEdit = useCallback((edit: TakeoffEdit) => queueEdits([edit]), [queueEdits]);
 
+  const commitEdits = useCallback(async (edits: TakeoffEdit[]) => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    const batch = [...pendingRef.current, ...edits];
+    pendingRef.current = [];
+    return flushRef.current(batch);
+  }, []);
+
   useEffect(() => {
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -188,6 +177,45 @@ export function TakeoffWorkspace({
     () => (state.view ? undecodedLegendExemplars(state.view.detections) : []),
     [state.view],
   );
+  const reviewGroups = useMemo(
+    () => (state.view ? buildReviewGroups(state.view.detections) : []),
+    [state.view],
+  );
+
+  useEffect(() => {
+    const plannerKey = state.view?.summary.plannerKey;
+    if (!plannerKey) return;
+    let cancelled = false;
+    void api.listLibrary(plannerKey).then((entries) => {
+      if (!cancelled) setLibraryEntries(entries);
+    }).catch(() => {
+      if (!cancelled) setLibraryEntries([]);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [api, state.view?.summary.plannerKey, state.view?.summary.revision]);
+
+  const activeGuide = reviewGroups[Math.min(guideIndex, Math.max(reviewGroups.length - 1, 0))] ?? null;
+  const guidedProgress = {
+    checked: completedReviewKeys.length,
+    total: completedReviewKeys.length + reviewGroups.filter((group) => !completedReviewKeys.includes(group.key)).length,
+  };
+
+  const focusGuide = (group: (typeof reviewGroups)[number] | null) => {
+    if (!group) return;
+    setState((current) => {
+      const host = current.view?.sheets.find((item) =>
+        detectionsForSheet(current.view?.detections ?? [], item).some((mark) => mark.id === group.focusId),
+      );
+      return {
+        ...current,
+        selectedDetectionId: null,
+        highlightedDetectionIds: new Set(group.detectionIds),
+        activeSheetKey: host ? sheetRefId(host) : current.activeSheetKey,
+      };
+    });
+  };
 
   const setFilter = (updater: (f: TypeFilterState) => TypeFilterState) => {
     setState((s) => ({ ...s, typeFilter: updater(s.typeFilter) }));
@@ -223,8 +251,7 @@ export function TakeoffWorkspace({
   }
 
   const view = state.view;
-  const reviewDetection = reviewQueue[state.reviewIndex] ?? null;
-  const reviewSymbolGroup = reviewDetection ? sameSymbolDetections(reviewDetection, view.detections) : [];
+  const guideFocus = activeGuide ? view.detections.find((item) => item.id === activeGuide.focusId) ?? null : null;
   const readOnly = !view.permissions.canEdit || view.summary.status === 'approved';
   const dimOthers = state.highlightedDetectionIds.size > 0;
   const approvalBlockedByReview = view.boq.unclassifiedCount > 0 || view.boq.needsReviewCount > 0;
@@ -232,19 +259,19 @@ export function TakeoffWorkspace({
   const canClickApprove = view.permissions.canApprove && !approvalBlockedByReview && !approvalBlockedByPlan;
   const census = detectionCensus(view.detections);
   const pendingReview = census.untyped + census.typedNeedingCheck;
+  const reviewBlockMessage =
+    reviewGroups.length > 0
+      ? t('workspace.groupsLeft', { count: reviewGroups.length })
+      : t('workspace.approveNeedsReview');
   const actionHint =
     view.summary.status === 'approved'
       ? null
       : approvalBlockedByReview
-        ? t('workspace.approveNeedsReview')
+        ? reviewBlockMessage
         : approvalBlockedByPlan
           ? t('workspace.approveNeedsPlan')
           : t('workspace.exportBlocked');
-  const controlGroups = groupDetectionsForControl(
-    sheetDetections,
-    (detection) => detectionDisplayLabel(detection, view.catalog, t('detection.unclassified')),
-    (detection) => devicesFromNote(detection.tagText),
-  );
+  const exportBlockReason = actionHint;
   const planHiddenOnMobile = state.mobilePanel !== 'plan' && !planExpanded;
   const sideHiddenOnMobile = state.mobilePanel !== 'boq' || planExpanded;
 
@@ -308,7 +335,9 @@ export function TakeoffWorkspace({
             onClick={() => {
               setSideTab('review');
               setFocusMode('split');
-              focusReview(state.reviewIndex);
+              setGuideIndex(0);
+              setState((current) => ({ ...current, mobilePanel: 'boq' }));
+              focusGuide(reviewGroups[0] ?? null);
             }}
           >
             {t('workspace.reviewNow')}
@@ -378,17 +407,25 @@ export function TakeoffWorkspace({
             const ready = exportLinks[kind];
             const testId =
               kind === 'xlsx' ? 'takeoff-export-xlsx' : kind === 'boq-pdf' ? 'takeoff-export-boq-pdf' : 'takeoff-export-annotated-pdf';
-            const labelKey = kind === 'xlsx' ? 'excelShort' : kind === 'boq-pdf' ? 'boqPdfShort' : 'annotatedPdfShort';
+            const approved = view.summary.status === 'approved';
+            const labelKey =
+              kind === 'xlsx' && approved
+                ? 'downloadExcel'
+                : kind === 'xlsx'
+                  ? 'excelShort'
+                  : kind === 'boq-pdf'
+                    ? 'boqPdfShort'
+                    : 'annotatedPdfShort';
             const fullKey = kind === 'xlsx' ? 'excel' : kind === 'boq-pdf' ? 'boqPdf' : 'annotatedPdf';
             return (
               <div key={kind} className="flex min-h-11 flex-col justify-center">
                 <Button
                   type="button"
                   data-testid={testId}
-                  variant="secondary"
+                  variant={kind === 'xlsx' && approved ? 'primary' : 'secondary'}
                   className="min-h-11"
-                  disabled={view.summary.status !== 'approved' || exportBusy === kind}
-                  title={view.summary.status !== 'approved' ? t('workspace.exportBlocked') : t(`export.${fullKey}`)}
+                  disabled={!approved || exportBusy === kind}
+                  title={!approved ? (exportBlockReason ?? t('workspace.exportBlocked')) : t(`export.${fullKey}`)}
                   aria-busy={exportBusy === kind}
                   onClick={() => {
                     setExportBusy(kind);
@@ -415,7 +452,14 @@ export function TakeoffWorkspace({
               </div>
             );
           })}
-          {actionHint ? <span className="text-xs text-[var(--pf-status-warning-fg)]">{actionHint}</span> : null}
+          <ol className="flex min-w-0 flex-wrap items-center gap-1 text-[11px] text-[var(--pf-text-secondary)]">
+            <li className={reviewGroups.length > 0 ? 'font-semibold text-[var(--pf-text-primary)]' : ''}>{t('workspace.stepReview')}</li>
+            <li aria-hidden>←</li>
+            <li className={reviewGroups.length === 0 && view.summary.status !== 'approved' ? 'font-semibold text-[var(--pf-text-primary)]' : ''}>{t('workspace.stepApprove')}</li>
+            <li aria-hidden>←</li>
+            <li className={view.summary.status === 'approved' ? 'font-semibold text-[var(--pf-text-primary)]' : ''}>{t('workspace.stepExcel')}</li>
+          </ol>
+          {actionHint ? <span className="text-xs text-[var(--pf-status-warning-fg)]" data-testid="takeoff-export-block-reason">{actionHint}</span> : null}
           <Button type="button" size="sm" variant="ghost" className="min-h-11 min-w-11" aria-label={t('workspace.info')} onClick={() => setInfoOpen(true)}>
             <Info className="size-4" />
           </Button>
@@ -543,7 +587,7 @@ export function TakeoffWorkspace({
             catalog={state.view.catalog}
             filter={state.typeFilter}
             highlightedIds={state.highlightedDetectionIds}
-            selectedId={state.selectedDetectionId}
+            selectedId={state.selectedDetectionId ?? (sideTab === 'review' ? activeGuide?.focusId ?? null : null)}
             dimOthers={dimOthers}
             addMode={state.viewerTool === 'add'}
             expanded={planExpanded}
@@ -593,7 +637,17 @@ export function TakeoffWorkspace({
         <section className={`min-h-0 min-w-0 flex-col overflow-hidden border-[var(--pf-border-default)] lg:w-[min(26rem,38vw)] lg:shrink-0 lg:border-s ${sideHiddenOnMobile ? 'hidden' : 'flex'} ${focusMode === 'plan' ? 'lg:hidden' : 'lg:flex'}`}>
           <div className="flex shrink-0 gap-1 border-b border-[var(--pf-border-default)] p-1">
             {(['boq', 'review', 'sheet'] as const).map((tab) => (
-              <Button key={tab} type="button" size="sm" variant={sideTab === tab ? 'primary' : 'ghost'} className="min-h-11 flex-1" onClick={() => setSideTab(tab)}>
+              <Button
+                key={tab}
+                type="button"
+                size="sm"
+                variant={sideTab === tab ? 'primary' : 'ghost'}
+                className="min-h-11 flex-1"
+                onClick={() => {
+                  setSideTab(tab);
+                  if (tab === 'review') focusGuide(activeGuide);
+                }}
+              >
                 {t(tab === 'boq' ? 'workspace.sideBoq' : tab === 'review' ? 'workspace.sideReview' : 'workspace.sideSheet')}
               </Button>
             ))}
@@ -612,44 +666,95 @@ export function TakeoffWorkspace({
           </div>
 
           <div className={`min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2 ${sideTab === 'review' ? 'flex' : 'hidden'}`}>
+            {activeGuide && guideFocus ? (
+              <TakeoffReviewGuide
+                key={activeGuide.key}
+                group={activeGuide}
+                focus={guideFocus}
+                sheet={
+                  view.sheets.find((item) =>
+                    detectionsForSheet(view.detections, item).some((mark) => mark.id === guideFocus.id),
+                  ) ?? sheet
+                }
+                catalog={view.catalog}
+                suggestions={typeSuggestions(
+                  guideFocus,
+                  view.detections,
+                  libraryEntries,
+                  new Set(view.catalog.map((type) => type.key)),
+                )}
+                separateOccurrences={Math.max(
+                  0,
+                  sameSymbolDetections(guideFocus, view.detections).filter(
+                    (item) => !item.reasons.includes('drawing_noise') && !item.reasons.includes('legend_zone'),
+                  ).length - activeGuide.detectionIds.length,
+                )}
+                readOnly={readOnly}
+                saving={guideSaving}
+                progress={guidedProgress}
+                onConfirm={async (choice) => {
+                  setGuideSaving(true);
+                  const edits: TakeoffEdit[] = [];
+                  const typeChanged = choice.typeKey !== (activeGuide.typeKey ?? '');
+                  if (typeChanged || choice.saveToLibrary) {
+                    edits.push(
+                      ...buildGroupReclassifyEdits(
+                        choice.detectionIds,
+                        view.detections,
+                        choice.typeKey,
+                        choice.saveToLibrary,
+                      ),
+                    );
+                  }
+                  edits.push({ op: 'confirm', detectionIds: choice.detectionIds });
+                  const next = await commitEdits(edits);
+                  setGuideSaving(false);
+                  if (!next) return false;
+                  const nextGroups = buildReviewGroups(next.detections);
+                  const still = nextGroups.findIndex((group) => group.key === activeGuide.key);
+                  const nextIndex = still >= 0 ? still : Math.min(guideIndex, Math.max(0, nextGroups.length - 1));
+                  if (still < 0) {
+                    setCompletedReviewKeys((prev) =>
+                      prev.includes(activeGuide.key) ? prev : [...prev, activeGuide.key],
+                    );
+                  }
+                  setGuideIndex(nextIndex);
+                  focusGuide(nextGroups[nextIndex] ?? null);
+                  return true;
+                }}
+              />
+            ) : (
+              <p className="text-xs text-[var(--pf-text-muted)]">{t('guide.done')}</p>
+            )}
             <ul className="overflow-hidden rounded-lg border border-[var(--pf-border-default)]">
-              {controlGroups.length === 0 ? (
+              {reviewGroups.length === 0 ? (
                 <li className="p-2 text-xs text-[var(--pf-text-muted)]">{t('review.empty')}</li>
               ) : (
-                controlGroups.map((group) => {
-                  const status = group.needsAttention ? t('boq.statusNeedsReview') : t('boq.statusIdentified');
+                reviewGroups.map((group, index) => {
+                  const sample = view.detections.find((item) => item.id === group.focusId);
+                  const label = sample
+                    ? detectionDisplayLabel(sample, view.catalog, t('detection.unclassified'))
+                    : t('detection.unclassified');
+                  const status = t(`guide.kindShort.${group.kind}`);
                   return (
                     <li key={group.key} className="border-b border-[var(--pf-border-default)] last:border-b-0">
                       <button
                         type="button"
                         data-testid="takeoff-detection-row"
                         aria-label={t('detection.groupAria', {
-                          type: group.label,
-                          quantity: group.quantity,
+                          type: label,
+                          quantity: group.occurrences,
                           status,
                         })}
-                        className="flex min-h-11 w-full min-w-0 items-center gap-2 px-2 text-start text-xs hover:bg-[var(--pf-action-subtle-hover)]"
+                        className={`flex min-h-11 w-full min-w-0 items-center gap-2 px-2 text-start text-xs hover:bg-[var(--pf-action-subtle-hover)] ${group.key === activeGuide?.key ? 'bg-[var(--pf-action-subtle-hover)]' : ''}`}
                         onClick={() => {
-                          const queueIndex = reviewQueue.findIndex((item) => item.id === group.focusId);
-                          setState((current) => ({
-                            ...current,
-                            selectedDetectionId: group.focusId,
-                            highlightedDetectionIds: new Set(group.detectionIds),
-                            focusBoqLineKey: null,
-                            reviewIndex: queueIndex >= 0 ? queueIndex : current.reviewIndex,
-                            mobilePanel: 'plan',
-                          }));
+                          setGuideIndex(index);
+                          focusGuide(group);
                         }}
                       >
-                        <span className="min-w-0 flex-1 truncate font-medium text-[var(--pf-text-primary)]">{group.label}</span>
-                        <span className="shrink-0 tabular-nums font-semibold text-[var(--pf-text-brand)]">{group.quantity}</span>
-                        <span
-                          className={`shrink-0 rounded px-1.5 py-0.5 ${
-                            group.needsAttention
-                              ? 'bg-[var(--pf-status-warning-bg)] text-[var(--pf-status-warning-fg)]'
-                              : 'bg-[var(--pf-bg-muted)] text-[var(--pf-text-secondary)]'
-                          }`}
-                        >
+                        <span className="min-w-0 flex-1 truncate font-medium text-[var(--pf-text-primary)]">{label}</span>
+                        <span className="shrink-0 tabular-nums font-semibold text-[var(--pf-text-brand)]">{group.occurrences}</span>
+                        <span className="shrink-0 rounded bg-[var(--pf-status-warning-bg)] px-1.5 py-0.5 text-[var(--pf-status-warning-fg)]">
                           {status}
                         </span>
                       </button>
@@ -658,123 +763,6 @@ export function TakeoffWorkspace({
                 })
               )}
             </ul>
-
-            {reviewQueue.length > 0 ? (
-            <div className="rounded-lg border border-[var(--pf-border-default)] p-2">
-                  <p className="mb-2 text-xs text-[var(--pf-text-secondary)]">
-                    {t('review.position', { current: state.reviewIndex + 1, total: reviewQueue.length })}
-                  </p>
-                  <div className="flex gap-1">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className="min-h-11 min-w-11"
-                      data-testid="takeoff-review-prev"
-                      onClick={() => focusReview(state.reviewIndex - 1)}
-                    >
-                      <ChevronRight className="size-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className="min-h-11 min-w-11"
-                      data-testid="takeoff-review-next"
-                      onClick={() => focusReview(state.reviewIndex + 1)}
-                    >
-                      <ChevronLeft className="size-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      className="min-h-11 flex-1"
-                      disabled={readOnly}
-                      onClick={() => {
-                        const id = reviewQueue[state.reviewIndex]?.id;
-                        if (!id) return;
-                        queueEdit({ op: 'confirm', detectionIds: [id] });
-                      }}
-                    >
-                      <Check className="size-4" />
-                      {t('review.confirm')}
-                    </Button>
-                  </div>
-                  <div className="mt-2 space-y-2 border-t border-[var(--pf-border-default)] pt-2">
-                    <p className="text-xs font-medium">{t('review.bulkTitle')}</p>
-                    <select
-                      data-testid="takeoff-sidebar-edit-type"
-                      className="min-h-11 min-w-0 max-w-full rounded-md border border-[var(--pf-border-default)] px-2 text-sm"
-                      value={bulkType}
-                      onWheel={blurSelectOnWheel}
-                      onChange={(e) => setBulkType(e.target.value)}
-                    >
-                      <option value="">{t('detection.unclassified')}</option>
-                      {state.view.catalog.map((c) => (
-                        <option key={c.key} value={c.key}>
-                          {c.nameHe}
-                        </option>
-                      ))}
-                    </select>
-                    {reviewSymbolGroup.length > 1 ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        className="min-h-11 w-full"
-                        data-testid="takeoff-select-symbol-group"
-                        disabled={readOnly}
-                        onClick={() => setBulkIds(new Set(reviewSymbolGroup.map((detection) => detection.id)))}
-                      >
-                        {t('detection.selectSymbolGroup', { count: reviewSymbolGroup.length })}
-                      </Button>
-                    ) : null}
-                    <label className="flex min-h-11 items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        data-testid="takeoff-bulk-save-to-library"
-                        checked={bulkSaveLibrary}
-                        disabled={readOnly || !bulkType}
-                        onChange={(e) => setBulkSaveLibrary(e.target.checked)}
-                      />
-                      {t('detection.saveToLibrary')}
-                    </label>
-                    <Button
-                      type="button"
-                      size="sm"
-                      className="min-h-11 w-full"
-                      disabled={readOnly || !bulkType || bulkIds.size === 0}
-                      onClick={() => {
-                        queueEdits(
-                          buildGroupReclassifyEdits([...bulkIds], view.detections, bulkType, bulkSaveLibrary),
-                        );
-                        setBulkIds(new Set());
-                      }}
-                    >
-                      {t('review.bulkAssign', { count: bulkIds.size })}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      className="min-h-11 w-full"
-                      disabled={readOnly}
-                      onClick={() => {
-                        const id = reviewQueue[state.reviewIndex]?.id;
-                        if (!id) return;
-                        setBulkIds((prev) => {
-                          const next = new Set(prev);
-                          if (next.has(id)) next.delete(id);
-                          else next.add(id);
-                          return next;
-                        });
-                      }}
-                    >
-                      {t('review.toggleSelect')}
-                    </Button>
-                  </div>
-            </div>
-            ) : null}
           </div>
 
           <div className={`min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2 ${sideTab === 'sheet' ? 'flex' : 'hidden'}`}>

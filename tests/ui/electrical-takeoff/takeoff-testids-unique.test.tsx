@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import heTakeoff from '@/locales/he-IL/takeoff.json';
 import { TakeoffApiProvider } from '@/modules/electrical-takeoff/ui/api-provider';
@@ -74,9 +74,9 @@ describe('takeoff workspace data-testid uniqueness (real7155)', () => {
     expect(rows.length).toBeGreaterThan(0);
     assertUniqueTestIds(container);
 
+    expect(screen.getByTestId('takeoff-guide-type')).toBeInTheDocument();
     fireEvent.click(rows[0]!);
-    await waitFor(() => expect(screen.getByTestId('takeoff-edit-type')).toBeInTheDocument());
-    expect(screen.getByTestId('takeoff-sidebar-edit-type')).toBeInTheDocument();
+    expect(screen.queryByTestId('takeoff-edit-type')).not.toBeInTheDocument();
     assertUniqueTestIds(container);
   });
 });
