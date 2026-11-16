@@ -103,7 +103,8 @@
     "expand": "Enlarge plan",
     "collapse": "Back to workspace",
     "aria": "Plan viewer",
-    "noPreview": "No preview available"
+    "noPreview": "No preview available",
+    "dwgLoading": "Loading the drawing"
   },
   "tools": {
     "navigate": "Navigate",

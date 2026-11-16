@@ -6,13 +6,12 @@ import { requireSession, runInOrgContext } from '@/shared/auth/session';
 import { getAdminDb } from '@/shared/db';
 import { TAKEOFF_CHUNK_BYTES, findArtifact, findFile } from './data/takeoff.repository';
 import { handleTakeoffChunk, TAKEOFF_UPLOAD_HEADERS } from './application/chunk-upload';
-import { takeoffDeps } from './server';
-import { resolveTakeoffFileStoreForAnalysis, resolveTakeoffFileStoreForFile } from './application/takeoff-persistence';
+import { resolveTakeoffFileStoreForAnalysis } from './application/takeoff-persistence';
 import { applyWorkerArtifact, applyWorkerProgress, applyWorkerResult, authorizeWorkerJob } from './application/worker-callbacks';
 import { isWorkerIngestError } from './domain/worker-ingest-error';
 import { buildExportBytes, takeoffExportDownloadHeaders } from './application/export-download';
 import type { ExportKind } from './domain/contracts';
-import { assertAnalysisAccess, externalActorFrom, internalActorFrom } from './application/access';
+import { assertAnalysisAccess, externalActorFrom, internalActorFrom, takeoffOrgScope } from './application/access';
 import type { OrgContext } from '@/shared/auth/context';
 import type { DbExecutor } from '@/shared/db/types';
 
@@ -196,6 +195,44 @@ export async function handleExternalArtifactDownload(request: Request, artifactI
     return new Response(stream.body, {
       headers: { 'Content-Type': artifact.mimeType ?? stream.contentType, 'Cache-Control': 'private, max-age=300' },
     });
+  } catch (error) {
+    return fileRouteError(error);
+  }
+}
+
+async function streamSourceFile(actor: Parameters<typeof assertAnalysisAccess>[0], fileId: string, rangeHeader: string | null): Promise<Response> {
+  const { db, organizationId } = takeoffOrgScope(actor);
+  const file = await findFile(db, organizationId, fileId);
+  if (!file || file.uploadState !== 'complete') return new Response(null, { status: 404 });
+  await assertAnalysisAccess(actor, file.analysisId, 'view');
+  const store = await resolveTakeoffFileStoreForAnalysis(db, organizationId, file.analysisId);
+  const stream = await store.openReadStream({ organizationId, fileId, rangeHeader });
+  return new Response(stream.body, {
+    headers: {
+      'Content-Type': stream.contentType || 'application/octet-stream',
+      ...(stream.contentLength !== null ? { 'Content-Length': String(stream.contentLength) } : {}),
+      'Cache-Control': 'private, no-store',
+    },
+  });
+}
+
+export async function handleInternalSourceDownload(request: Request, fileId: string): Promise<Response> {
+  try {
+    const session = await requireSession();
+    if (!session.activeOrganizationId) return new Response(null, { status: 403 });
+    return await runInOrgContext(session.user.id, session.activeOrganizationId, (ctx) =>
+      streamSourceFile(internalActorFrom(ctx), fileId, request.headers.get('range')),
+    );
+  } catch (error) {
+    return fileRouteError(error);
+  }
+}
+
+export async function handleExternalSourceDownload(request: Request, fileId: string): Promise<Response> {
+  try {
+    const external = await requireExternalContext();
+    if (!external.grants[0]?.organizationId) return new Response(null, { status: 403 });
+    return await streamSourceFile(externalActorFrom(external), fileId, request.headers.get('range'));
   } catch (error) {
     return fileRouteError(error);
   }

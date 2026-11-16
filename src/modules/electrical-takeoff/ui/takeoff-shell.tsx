@@ -31,6 +31,11 @@ function uploadBase(surface: TakeoffSurface): string {
   return '/api/takeoff/upload';
 }
 
+function sourceBase(surface: TakeoffSurface): string {
+  if (surface === 'contractor') return '/api/contractor/takeoff/source';
+  return '/api/takeoff/source';
+}
+
 export function TakeoffShell({
   projectId,
   analysisId,
@@ -50,7 +55,12 @@ export function TakeoffShell({
     <TakeoffApiProvider api={api}>
       <div className="flex w-full min-w-0 max-w-full flex-1 flex-col overflow-x-hidden lg:h-full lg:max-h-full lg:min-h-0 lg:overflow-hidden" dir="rtl">
         {analysisId ? (
-          <TakeoffWorkspace analysisId={analysisId} projectId={projectId} listPath={basePath} />
+          <TakeoffWorkspace
+            analysisId={analysisId}
+            projectId={projectId}
+            listPath={basePath}
+            sourceApiBase={sourceBase(surface)}
+          />
         ) : (
           <TakeoffAnalysesList
             projectId={projectId}

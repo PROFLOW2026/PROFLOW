@@ -25,6 +25,8 @@ export type CadRendererHandle = {
   fit: () => void;
   /** Fit entire drawing including distant geometry. */
   fitFull: () => void;
+  /** Fit one world rectangle without replacing the parsed drawing. */
+  focusExtent: (extent: CadExtent, paddingPx?: number) => void;
   zoom: (factor: number) => void;
   zoomAt: (sx: number, sy: number, factor: number) => void;
   /** Single draw path for pinch: pan then zoom about a screen point. */
@@ -135,6 +137,11 @@ export function createCadRenderer(options: CreateCadRendererOptions): CadRendere
         renderer.draw();
         notifyViewChange('fit');
       }
+    },
+    focusExtent: (focus, paddingPx = 24) => {
+      renderer.fitExtent(focus, paddingPx);
+      renderer.draw();
+      notifyViewChange('fit');
     },
     zoom: (factor) => {
       const v = renderer.getView();

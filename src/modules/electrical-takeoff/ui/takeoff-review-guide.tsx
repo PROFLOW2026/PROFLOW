@@ -25,6 +25,7 @@ export function TakeoffReviewGuide({
   shownId,
   onShowOccurrence,
   onConfirm,
+  vectorPlan = false,
 }: {
   group: ReviewGroup;
   focus: EffectiveDetection;
@@ -39,6 +40,8 @@ export function TakeoffReviewGuide({
   shownId: string;
   onShowOccurrence: (detectionId: string) => void;
   onConfirm: (choice: { typeKey: string; saveToLibrary: boolean; detectionIds: string[] }) => Promise<boolean>;
+  /** The plan pane is the vector drawing, so the review card does not crop the raster. */
+  vectorPlan?: boolean;
 }) {
   const t = useTranslations('takeoff');
   const marks = occurrences.length > 0 ? occurrences : [focus];
@@ -60,7 +63,7 @@ export function TakeoffReviewGuide({
   const pick = form.pick;
   const scope = form.scope;
   const saveLib = form.saveLib;
-  const symbolReady = symbolState.ready;
+  const symbolReady = vectorPlan || symbolState.ready;
   const setPick = (value: string) => setForm((currentForm) => ({ ...currentForm, pick: value }));
   const setScope = (value: 'one' | 'group') => setForm((currentForm) => ({ ...currentForm, scope: value }));
   const setSaveLib = (value: boolean) => setForm((currentForm) => ({ ...currentForm, saveLib: value }));
@@ -81,12 +84,18 @@ export function TakeoffReviewGuide({
         {t('guide.progress', progress)}
       </p>
       <div className="mt-2 space-y-2">
-        <SymbolCrop
-          key={current.id}
-          detection={current}
-          sheet={sheet}
-          onAvailability={(ready) => setSymbolState({ id: current.id, ready })}
-        />
+        {vectorPlan ? (
+          <p className="text-xs text-[var(--pf-text-secondary)]" data-testid="takeoff-guide-symbol" data-symbol-state="ready">
+            {t('guide.symbolCaption')}
+          </p>
+        ) : (
+          <SymbolCrop
+            key={current.id}
+            detection={current}
+            sheet={sheet}
+            onAvailability={(ready) => setSymbolState({ id: current.id, ready })}
+          />
+        )}
         {marks.length > 1 ? (
           <div className="flex items-center gap-1">
             <Button

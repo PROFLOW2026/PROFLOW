@@ -33,6 +33,7 @@ type MutableRow = {
   source: EffectiveDetection['source'];
   rawClass: string;
   signature: string | null;
+  native: { x: number; y: number } | null;
 };
 
 export function deriveNeedsReview(input: {
@@ -75,6 +76,7 @@ function toRow(d: WorkerDetection): MutableRow {
     source: detectionSource(d),
     rawClass: d.rawClass,
     signature: d.signature,
+    native: d.native ? { x: d.native.x, y: d.native.y } : null,
   };
 }
 
@@ -149,6 +151,7 @@ export function applyEdits(
           source: 'manual',
           rawClass: 'user',
           signature: null,
+          native: null,
         });
         break;
       }
@@ -157,6 +160,7 @@ export function applyEdits(
         if (!row || row.deleted) break;
         row.x = edit.x;
         row.y = edit.y;
+        row.native = null;
         row.origin = row.userAdded ? 'user_added' : 'user_changed';
         break;
       }
@@ -264,6 +268,7 @@ function toEffective(
     source: row.source,
     areaId: resolveAreaId(row.x, row.y, sheetKey, areas),
     needsReview,
+    ...(row.native ? { native: row.native } : {}),
   };
 }
 

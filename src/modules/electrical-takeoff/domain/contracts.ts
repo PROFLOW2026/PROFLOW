@@ -420,6 +420,8 @@ export const effectiveDetectionSchema = z.object({
   source: z.enum(['pdf', 'dwg', 'manual', 'merged']),
   areaId: z.string().nullable(),
   needsReview: z.boolean(),
+  /** DWG model units (or PDF points) from the worker. Absent after a manual move. */
+  native: z.object({ x: z.number(), y: z.number() }).optional(),
 });
 export type EffectiveDetection = z.infer<typeof effectiveDetectionSchema>;
 

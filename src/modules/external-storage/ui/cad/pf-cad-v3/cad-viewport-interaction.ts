@@ -8,6 +8,11 @@ export type ViewportNavCallbacks = {
   onPinchGesture?: (active: boolean) => void;
 };
 
+export type ViewportNavOptions = {
+  /** `modified` zooms only with Ctrl/Cmd so a plain wheel can scroll the page. */
+  wheelZoom?: 'always' | 'modified';
+};
+
 function canvasPoint(canvas: HTMLCanvasElement, clientX: number, clientY: number): [number, number] {
   const rect = canvas.getBoundingClientRect();
   const dpr = canvas.width / Math.max(rect.width, 1);
@@ -17,6 +22,7 @@ function canvasPoint(canvas: HTMLCanvasElement, clientX: number, clientY: number
 export function attachCadViewportInteraction(
   canvas: HTMLCanvasElement,
   callbacks: ViewportNavCallbacks,
+  options: ViewportNavOptions = {},
 ): () => void {
   let drag: { x: number; y: number; pointerId: number } | null = null;
   let pinch: { dist: number; midX: number; midY: number } | null = null;
@@ -105,6 +111,8 @@ export function attachCadViewportInteraction(
   };
 
   const onWheel = (e: WheelEvent) => {
+    const zoom = options.wheelZoom === 'modified' ? e.ctrlKey || e.metaKey : true;
+    if (!zoom) return;
     e.preventDefault();
     const factor = Math.exp(-e.deltaY * 0.0015);
     const [sx, sy] = canvasPoint(canvas, e.clientX, e.clientY);

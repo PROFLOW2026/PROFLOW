@@ -17,6 +17,7 @@ import {
 import type { AnalysisView, SymbolLibraryEntry, TakeoffEdit, TakeoffReviewReason } from '../domain/contracts';
 import { useTakeoffApi } from './api-provider';
 import { PlanViewer } from './viewer/plan-viewer';
+import { TakeoffDwgPlan } from './viewer/takeoff-dwg-plan';
 import { formatTakeoffDisplayName } from '../domain/format-display-name';
 import { detectionCensus, detectionDisplayLabel } from './boq-display';
 import { blurSelectOnWheel } from './blur-select-on-wheel';
@@ -40,10 +41,13 @@ export function TakeoffWorkspace({
   analysisId,
   projectId,
   listPath = '/',
+  sourceApiBase,
 }: {
   analysisId: string;
   projectId: string;
   listPath?: string;
+  /** Permission-checked DWG bytes, for example `/api/takeoff/source`. */
+  sourceApiBase?: string;
 }) {
   const t = useTranslations('takeoff');
   const api = useTakeoffApi();
@@ -66,6 +70,7 @@ export function TakeoffWorkspace({
   const [showUnclassifiedBoq, setShowUnclassifiedBoq] = useState(true);
   const [infoOpen, setInfoOpen] = useState(false);
   const [planExpanded, setPlanExpanded] = useState(false);
+  const [dwgDownKey, setDwgDownKey] = useState<string | null>(null);
   const [focusMode, setFocusMode] = useState<'split' | 'plan' | 'table'>('split');
   const [sideTab, setSideTab] = useState<'boq' | 'review' | 'sheet'>('boq');
   const [legendLibraryType, setLegendLibraryType] = useState('');
@@ -108,6 +113,25 @@ export function TakeoffWorkspace({
   const sheetDetections = useMemo(
     () => (sheet && state.view ? detectionsForSheet(state.view.detections, sheet) : []),
     [sheet, state.view],
+  );
+  const dwgSamples = useMemo(
+    () =>
+      sheetDetections.flatMap((mark) =>
+        mark.native ? [{ nativeX: mark.native.x, nativeY: mark.native.y, previewX: mark.x, previewY: mark.y }] : [],
+      ),
+    [sheetDetections],
+  );
+  const dwgMarks = useMemo(
+    () => sheetDetections.flatMap((mark) => (mark.native ? [{ id: mark.id, nativeX: mark.native.x, nativeY: mark.native.y }] : [])),
+    [sheetDetections],
+  );
+  const sheetLiveKey = sheet ? `${sheet.fileId}:${sheet.sheetKey}` : '';
+  const showDwgPlan = Boolean(
+    sourceApiBase &&
+      sheet &&
+      (sheet.kind === 'dwg_layout' || sheet.kind === 'dwg_model') &&
+      dwgSamples.length >= 2 &&
+      dwgDownKey !== sheetLiveKey,
   );
 
   const boqDisplayLines = useMemo(() => {
@@ -574,6 +598,41 @@ export function TakeoffWorkspace({
 
       <div className="flex w-full min-w-0 max-w-full flex-col gap-3 lg:min-h-0 lg:flex-1 lg:flex-row lg:gap-0 lg:overflow-hidden">
         <section className={`min-w-0 w-full flex-col overflow-hidden ${planExpanded ? 'fixed inset-2 z-50 flex rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2 shadow-lg' : 'flex h-[min(70dvh,32rem)] shrink-0 lg:h-auto lg:min-h-0 lg:flex-1'} ${focusMode === 'table' && !planExpanded ? 'lg:hidden' : ''}`}>
+          {showDwgPlan && sourceApiBase && sheet && state.view ? (
+            <TakeoffDwgPlan
+              key={sheetLiveKey}
+              url={`${sourceApiBase}/${sheet.fileId}`}
+              fileName={state.view.files.find((file) => file.id === sheet.fileId)?.name ?? 'drawing.dwg'}
+              sheetKey={sheet.sheetKey}
+              sheetName={sheet.name}
+              kind={sheet.kind === 'dwg_model' ? 'dwg_model' : 'dwg_layout'}
+              widthPx={sheet.widthPx}
+              heightPx={sheet.heightPx}
+              samples={dwgSamples}
+              marks={dwgMarks}
+              focusId={sideTab === 'review' ? (shownOccurrenceId ?? activeGuide?.focusId ?? null) : state.selectedDetectionId}
+              areas={state.view.areas.filter((area) => area.sheetKey === sheet.sheetKey)}
+              onUnavailable={() => setDwgDownKey(sheetLiveKey)}
+              onSelectMark={(id) => {
+                if (sideTab === 'review') setShownOccurrenceId(id);
+                else setState((current) => ({ ...current, selectedDetectionId: id }));
+              }}
+              onPlanClick={
+                readOnly
+                  ? undefined
+                  : (x, y) => {
+                      if (state.viewerTool === 'area') {
+                        setAreaDraft((pts) => [...pts, [x, y]]);
+                        return;
+                      }
+                      if (state.viewerTool !== 'add') return;
+                      const tempId = `user-${Date.now()}`;
+                      queueEdit({ op: 'add', tempId, sheetKey: sheet.sheetKey, x, y, typeKey: null });
+                      setState((current) => ({ ...current, selectedDetectionId: tempId }));
+                    }
+              }
+            />
+          ) : (
           <PlanViewer
             sheet={sheet}
             detections={sheetDetections}
@@ -606,6 +665,7 @@ export function TakeoffWorkspace({
                 : undefined
             }
           />
+          )}
 
           {state.viewerTool === 'area' && areaDraft.length >= 3 ? (
             <Button
@@ -668,6 +728,7 @@ export function TakeoffWorkspace({
                   const mark = view.detections.find((item) => item.id === id);
                   return mark ? [mark] : [];
                 })}
+                vectorPlan={showDwgPlan}
                 sheet={
                   view.sheets.find((item) =>
                     detectionsForSheet(view.detections, item).some(
