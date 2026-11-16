@@ -100,6 +100,8 @@
     "zoomIn": "Увеличить",
     "zoomOut": "Уменьшить",
     "fit": "Вписать",
+    "expand": "Увеличить план",
+    "collapse": "Вернуться",
     "aria": "Просмотр чертежа",
     "noPreview": "Превью недоступно"
   },
@@ -125,6 +127,8 @@
     "showUnclassified": "Показать {count} без класса в ведомости",
     "hideUnclassified": "Скрыть строки без класса",
     "summary": "{unclassified} без класса · {review} на проверке",
+    "markCounts": "{total} меток · {typed} с типом · {untyped} без типа",
+    "typedNeedCheck": "{count} классифицированных всё ещё требуют проверки",
     "empty": "Позиций пока нет",
     "verified": "Утверждённое количество",
     "suggested": "Предложение к утверждению",
@@ -214,7 +218,14 @@
   "workspace": {
     "saved": "Изменения сохранены",
     "revisionConflict": "Сохранена параллельная правка — обновите данные",
-    "saveNow": "Сохранить"
+    "saveNow": "Сохранить",
+    "info": "О разборе",
+    "focusSplit": "Оба",
+    "focusPlan": "План",
+    "focusTable": "Таблица",
+    "sideBoq": "Ведомость",
+    "sideReview": "Проверка",
+    "sideSheet": "Лист"
   },
   "approval": {
     "approve": "Утвердить ведомость",

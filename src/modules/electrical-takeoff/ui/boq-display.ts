@@ -4,6 +4,31 @@ const TECHNICAL_ID_LABEL = /^p\d+#\d+/i;
 
 export type BoqLineStatus = 'verified' | 'forReview' | 'needsReview';
 
+export type DetectionCensus = {
+  total: number;
+  typed: number;
+  untyped: number;
+  typedNeedingCheck: number;
+};
+
+/** Split marks the way the engine does: a type is a type, even when a review flag remains. */
+export function detectionCensus(
+  detections: readonly { typeKey: string | null; needsReview: boolean }[],
+): DetectionCensus {
+  let typed = 0;
+  let untyped = 0;
+  let typedNeedingCheck = 0;
+  for (const detection of detections) {
+    if (!detection.typeKey) {
+      untyped += 1;
+      continue;
+    }
+    typed += 1;
+    if (detection.needsReview) typedNeedingCheck += 1;
+  }
+  return { total: detections.length, typed, untyped, typedNeedingCheck };
+}
+
 export function boqLineDisplayLabel(
   line: BoqLine,
   catalog: readonly CatalogType[],

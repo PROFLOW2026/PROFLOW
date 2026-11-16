@@ -4,6 +4,7 @@ import {
   fitSelection,
   fitToRect,
   screenToPlan,
+  wheelZoomsPlan,
   zoomAtPoint,
 } from '@/modules/electrical-takeoff/ui/viewer/viewer-math';
 
@@ -30,6 +31,12 @@ describe('takeoff viewer-math', () => {
     const v = fitToRect({ width: 800, height: 600 }, { width: 400, height: 200 });
     expect(v.scale).toBeGreaterThan(0);
     expect(v.offsetX).toBeGreaterThan(0);
+  });
+
+  it('zooms the plan only with Ctrl or Cmd', () => {
+    expect(wheelZoomsPlan({ ctrlKey: false, metaKey: false })).toBe(false);
+    expect(wheelZoomsPlan({ ctrlKey: true, metaKey: false })).toBe(true);
+    expect(wheelZoomsPlan({ ctrlKey: false, metaKey: true })).toBe(true);
   });
 
   it('fits selection to center', () => {

@@ -25,6 +25,11 @@ export function clampScale(scale: number): number {
   return Math.min(VIEWER_MAX_SCALE, Math.max(VIEWER_MIN_SCALE, scale));
 }
 
+/** Plain wheel scrolls the page. Zoom only with Ctrl or Cmd. */
+export function wheelZoomsPlan(event: { ctrlKey: boolean; metaKey: boolean }): boolean {
+  return event.ctrlKey || event.metaKey;
+}
+
 /** Map pointer position on the viewer element to plan coordinates. */
 export function screenToPlan(
   clientX: number,

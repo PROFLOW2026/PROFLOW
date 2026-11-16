@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import type { CatalogType } from '../domain/contracts';
 import type { TypeFilterState } from './workspace/takeoff-workspace-state';
 import { useTranslations } from 'next-intl';
+import { blurSelectOnWheel } from './blur-select-on-wheel';
 
 export function TakeoffTypeFilterChips({
   catalog,
@@ -40,6 +41,7 @@ export function TakeoffTypeFilterChips({
         <select
           className="min-h-11 max-w-[14rem] flex-1 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-default)] px-2 text-sm"
           value={filter.soloTypeKey ?? ''}
+          onWheel={blurSelectOnWheel}
           onChange={(e) => {
             const key = e.target.value || null;
             onChange((f) => ({ ...f, soloTypeKey: key }));

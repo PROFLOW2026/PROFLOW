@@ -37,7 +37,7 @@ export function TakeoffBoqPanel({
 
   return (
     <div
-      className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col overflow-hidden rounded-lg border border-[var(--pf-border-default)]"
+      className="flex min-w-0 max-w-full flex-col rounded-lg border border-[var(--pf-border-default)]"
       data-testid="takeoff-boq-panel"
     >
       <header className="border-b border-[var(--pf-border-default)] px-3 py-2">
@@ -75,7 +75,7 @@ export function TakeoffBoqPanel({
           </p>
         ) : null}
       </header>
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <div className="min-w-0">
         <table className="w-full min-w-0 table-fixed border-collapse text-sm">
           <thead className="sticky top-0 z-[1] bg-[var(--pf-bg-surface)]">
             <tr className="border-b border-[var(--pf-border-default)] text-xs text-[var(--pf-text-muted)]">
@@ -101,6 +101,13 @@ export function TakeoffBoqPanel({
               lines.map((line) => {
                 const displayName = boqLineDisplayLabel(line, catalog, unclassifiedLabel);
                 const status = statusLabel(line);
+                const tone = boqLineStatus(line, Boolean(suppressVerified));
+                const toneClass =
+                  tone === 'verified'
+                    ? 'bg-[var(--pf-status-success-bg)] text-[var(--pf-status-success-fg)]'
+                    : tone === 'needsReview'
+                      ? 'bg-[var(--pf-status-warning-bg)] text-[var(--pf-status-warning-fg)]'
+                      : 'bg-[var(--pf-bg-muted)] text-[var(--pf-text-primary)]';
                 return (
                   <tr key={line.key}>
                     <td className="p-0">
@@ -132,7 +139,9 @@ export function TakeoffBoqPanel({
                         </span>
                       ) : null}
                     </td>
-                    <td className="px-2 py-2 align-middle text-xs text-[var(--pf-text-secondary)]">{status}</td>
+                    <td className="px-2 py-2 align-middle text-xs">
+                      <span className={`inline-flex rounded px-1.5 py-0.5 ${toneClass}`}>{status}</span>
+                    </td>
                   </tr>
                 );
               })

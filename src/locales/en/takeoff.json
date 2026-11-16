@@ -100,6 +100,8 @@
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "fit": "Fit to view",
+    "expand": "Enlarge plan",
+    "collapse": "Back to workspace",
     "aria": "Plan viewer",
     "noPreview": "No preview available"
   },
@@ -125,6 +127,8 @@
     "showUnclassified": "Show {count} unclassified BOQ lines",
     "hideUnclassified": "Hide unclassified lines",
     "summary": "{unclassified} unclassified · {review} need review",
+    "markCounts": "{total} marks · {typed} typed · {untyped} untyped",
+    "typedNeedCheck": "{count} typed marks still need a check",
     "empty": "No lines yet",
     "verified": "Verified quantity",
     "suggested": "Suggested for approval",
@@ -214,7 +218,14 @@
   "workspace": {
     "saved": "Changes saved",
     "revisionConflict": "Someone else saved changes — reloaded latest version",
-    "saveNow": "Save now"
+    "saveNow": "Save now",
+    "info": "About this analysis",
+    "focusSplit": "Both",
+    "focusPlan": "Plan",
+    "focusTable": "Table",
+    "sideBoq": "Quantities",
+    "sideReview": "Review",
+    "sideSheet": "Sheet"
   },
   "approval": {
     "approve": "Approve BOQ",

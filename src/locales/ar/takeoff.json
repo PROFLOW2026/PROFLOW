@@ -100,6 +100,8 @@
     "zoomIn": "تكبير",
     "zoomOut": "تصغير",
     "fit": "ملاءمة للعرض",
+    "expand": "تكبير المخطط",
+    "collapse": "العودة للشاشة",
     "aria": "عارض المخطط",
     "noPreview": "لا معاينة متاحة"
   },
@@ -125,6 +127,8 @@
     "showUnclassified": "عرض {count} غير مصنّف في جدول الكميات",
     "hideUnclassified": "إخفاء البنود غير المصنّفة",
     "summary": "{unclassified} غير مصنّف · {review} تحتاج مراجعة",
+    "markCounts": "{total} علامات · {typed} بنوع · {untyped} بلا نوع",
+    "typedNeedCheck": "{count} من المصنّفة ما زالت تحتاج فحصاً",
     "empty": "لا توجد بنود بعد",
     "verified": "كمية معتمدة",
     "suggested": "اقتراح للاعتماد",
@@ -214,7 +218,14 @@
   "workspace": {
     "saved": "تم حفظ التغييرات",
     "revisionConflict": "حُفظ تحديث متزامن — إعادة تحميل",
-    "saveNow": "حفظ الآن"
+    "saveNow": "حفظ الآن",
+    "info": "معلومات عن التحليل",
+    "focusSplit": "الاثنان",
+    "focusPlan": "المخطط",
+    "focusTable": "الجدول",
+    "sideBoq": "الكميات",
+    "sideReview": "المراجعة",
+    "sideSheet": "اللوحة"
   },
   "approval": {
     "approve": "اعتماد جدول الكميات",

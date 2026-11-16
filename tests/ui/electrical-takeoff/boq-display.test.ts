@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { boqLineDisplayLabel, boqLineStatus, detectionDisplayLabel } from '@/modules/electrical-takeoff/ui/boq-display';
+import { boqLineDisplayLabel, boqLineStatus, detectionCensus, detectionDisplayLabel } from '@/modules/electrical-takeoff/ui/boq-display';
 import type { BoqLine, CatalogType } from '@/modules/electrical-takeoff/domain/contracts';
 
 const catalog: CatalogType[] = [
@@ -35,6 +35,22 @@ function line(partial: Partial<BoqLine>): BoqLine {
     ...partial,
   };
 }
+
+describe('detectionCensus', () => {
+  it('keeps a typed mark that still needs a check out of the untyped count', () => {
+    const rows = [
+      ...Array.from({ length: 74 }, () => ({ typeKey: 'light.recessed', needsReview: false })),
+      ...Array.from({ length: 23 }, () => ({ typeKey: 'light.recessed', needsReview: true })),
+      ...Array.from({ length: 77 }, () => ({ typeKey: null, needsReview: true })),
+    ];
+    expect(detectionCensus(rows)).toEqual({
+      total: 174,
+      typed: 97,
+      untyped: 77,
+      typedNeedingCheck: 23,
+    });
+  });
+});
 
 describe('boqLineDisplayLabel', () => {
   it('prefers catalog Hebrew name over technical ids', () => {

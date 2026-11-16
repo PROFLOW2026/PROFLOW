@@ -13,6 +13,7 @@ import { useTakeoffApi } from './api-provider';
 import { uploadFileInChunks, validateTakeoffFile, type ChunkUploadProgress } from './upload-client';
 import { TakeoffJobProgress } from './takeoff-job-progress';
 import { buildWizardSheetSelection } from './wizard-sheet-selection';
+import { blurSelectOnWheel } from './blur-select-on-wheel';
 
 interface PendingFile {
   source: 'upload' | 'cloud';
@@ -358,6 +359,7 @@ export function TakeoffUploadWizard({
               <select
                 className="min-h-11 w-full rounded-md border border-[var(--pf-border-default)] px-3 text-sm"
                 value={ruleSetId}
+                onWheel={blurSelectOnWheel}
                 onChange={(e) => setRuleSetId(e.target.value)}
               >
                 {ruleSets.map((r) => (
@@ -455,6 +457,7 @@ export function TakeoffUploadWizard({
                     data-testid="takeoff-pair-pdf"
                     className="min-h-11 w-full rounded-md border px-2 text-sm"
                     value={pairPdfName}
+                    onWheel={blurSelectOnWheel}
                     onChange={(e) => setPairPdfName(e.target.value)}
                   >
                     <option value="">{t('upload.pickPdf')}</option>
@@ -468,6 +471,7 @@ export function TakeoffUploadWizard({
                     data-testid="takeoff-pair-dwg"
                     className="min-h-11 w-full rounded-md border px-2 text-sm"
                     value={pairDwgName}
+                    onWheel={blurSelectOnWheel}
                     onChange={(e) => setPairDwgName(e.target.value)}
                   >
                     <option value="">{t('upload.pickDwg')}</option>

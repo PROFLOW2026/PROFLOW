@@ -100,6 +100,8 @@
     "zoomIn": "הגדלה",
     "zoomOut": "הקטנה",
     "fit": "התאמה למסך",
+    "expand": "הגדלת התוכנית",
+    "collapse": "חזרה למסך",
     "aria": "מציג תוכנית",
     "noPreview": "אין תצוגה מקדימה"
   },
@@ -125,6 +127,8 @@
     "showUnclassified": "הצג {count} לא מסווגים בכתב הכמויות",
     "hideUnclassified": "הסתר שורות לא מסווגות",
     "summary": "{unclassified} לא מסווגים · {review} דורשים בקרה",
+    "markCounts": "{total} סימונים · {typed} עם סוג · {untyped} ללא סוג",
+    "typedNeedCheck": "{count} מהמסווגים עדיין דורשים בדיקה",
     "empty": "אין שורות עדיין",
     "verified": "כמות מאומתת",
     "suggested": "המלצה לאישור",
@@ -214,7 +218,14 @@
   "workspace": {
     "saved": "השינויים נשמרו",
     "revisionConflict": "נשמר עדכון במקביל — נטען מחדש",
-    "saveNow": "שמירה עכשיו"
+    "saveNow": "שמירה עכשיו",
+    "info": "מידע על הניתוח",
+    "focusSplit": "שניהם",
+    "focusPlan": "תוכנית",
+    "focusTable": "טבלה",
+    "sideBoq": "כמויות",
+    "sideReview": "בקרה",
+    "sideSheet": "גיליון"
   },
   "approval": {
     "approve": "אישור כתב כמויות",

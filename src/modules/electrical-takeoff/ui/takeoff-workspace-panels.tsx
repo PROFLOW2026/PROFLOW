@@ -7,6 +7,7 @@ import { Plus } from 'lucide-react';
 import type { MeasurementRule, MeasurementRuleSet, SymbolLibraryEntry } from '../domain/contracts';
 import { DEFAULT_RULE_SET } from '../domain/measurement';
 import { useTakeoffApi } from './api-provider';
+import { blurSelectOnWheel } from './blur-select-on-wheel';
 
 const RULE_MODES: MeasurementRule['mode'][] = ['count_each', 'group_by_proximity', 'exclude'];
 
@@ -71,6 +72,7 @@ export function TakeoffRuleSetDialog({
               <select
                 className="min-h-11 w-full rounded-md border px-2 text-sm"
                 value={r.mode}
+                onWheel={blurSelectOnWheel}
                 onChange={(e) => updateRule(r.id, { mode: e.target.value as MeasurementRule['mode'] })}
               >
                 {RULE_MODES.map((mode) => (

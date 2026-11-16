@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Download,
   Eraser,
+  Info,
   MousePointer2,
   Pencil,
   PlusCircle,
@@ -20,7 +21,8 @@ import type { TakeoffEdit, TakeoffReviewReason } from '../domain/contracts';
 import { useTakeoffApi } from './api-provider';
 import { PlanViewer } from './viewer/plan-viewer';
 import { formatTakeoffDisplayName } from '../domain/format-display-name';
-import { detectionDisplayLabel } from './boq-display';
+import { detectionCensus, detectionDisplayLabel } from './boq-display';
+import { blurSelectOnWheel } from './blur-select-on-wheel';
 import { devicesFromNote } from '../domain/quantity-notes';
 import { isRevisionConflictError, takeoffErrorCode } from './takeoff-errors';
 import { TakeoffConflictBanner, TakeoffLibraryDialog, TakeoffRuleSetDialog } from './takeoff-workspace-panels';
@@ -62,6 +64,10 @@ export function TakeoffWorkspace({
   const [exportBusy, setExportBusy] = useState<string | null>(null);
   const [exportLinks, setExportLinks] = useState<Partial<Record<'xlsx' | 'boq-pdf' | 'annotated-pdf', { url: string; fileName: string }>>>({});
   const [showUnclassifiedBoq, setShowUnclassifiedBoq] = useState(true);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [planExpanded, setPlanExpanded] = useState(false);
+  const [focusMode, setFocusMode] = useState<'split' | 'plan' | 'table'>('split');
+  const [sideTab, setSideTab] = useState<'boq' | 'review' | 'sheet'>('boq');
   const [legendLibraryType, setLegendLibraryType] = useState('');
   const sheetsPanelRef = useRef<HTMLElement>(null);
 
@@ -225,27 +231,46 @@ export function TakeoffWorkspace({
   const approvalBlockedByReview = view.boq.unclassifiedCount > 0 || view.boq.needsReviewCount > 0;
   const approvalBlockedByPlan = view.planReviewConfirmed !== true;
   const canClickApprove = view.permissions.canApprove && !approvalBlockedByReview && !approvalBlockedByPlan;
+  const census = detectionCensus(view.detections);
+  const planHiddenOnMobile = state.mobilePanel !== 'plan' && !planExpanded;
+  const sideHiddenOnMobile = state.mobilePanel !== 'boq' || planExpanded;
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
-      <TakeoffLimitationsBanner
-        view={state.view}
-        onFocusSheet={(sheetKey) => {
-          const target =
-            state.view?.sheets.find((sh) => sh.sheetKey === sheetKey) ??
-            state.view?.sheets[0];
-          if (!target) return;
-          setState((s) => ({ ...s, activeSheetKey: sheetRefId(target), mobilePanel: 'plan' }));
-        }}
-        onOpenSheetsPanel={() => {
-          sheetsPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          setState((s) => ({ ...s, mobilePanel: 'boq' }));
-        }}
-        onOpenPairing={() => {
-          sheetsPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          setState((s) => ({ ...s, mobilePanel: 'boq' }));
-        }}
-      />
+    <div className="flex h-[calc(100dvh-9rem)] max-h-[calc(100dvh-9rem)] min-h-0 min-w-0 flex-1 shrink-0 flex-col overflow-x-hidden overflow-y-hidden">
+      {infoOpen ? (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-3 sm:items-center" role="dialog" aria-modal aria-label={t('workspace.info')}>
+          <div className="max-h-[80dvh] w-full max-w-lg overflow-y-auto rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold">{t('workspace.info')}</h2>
+              <Button type="button" variant="ghost" className="min-h-11" onClick={() => setInfoOpen(false)}>
+                {t('common.close')}
+              </Button>
+            </div>
+            <TakeoffLimitationsBanner
+              view={state.view}
+              onFocusSheet={(sheetKey) => {
+                const target = state.view?.sheets.find((sh) => sh.sheetKey === sheetKey) ?? state.view?.sheets[0];
+                if (!target) return;
+                setInfoOpen(false);
+                setSideTab('sheet');
+                setState((s) => ({ ...s, activeSheetKey: sheetRefId(target), mobilePanel: 'plan' }));
+              }}
+              onOpenSheetsPanel={() => {
+                setInfoOpen(false);
+                setSideTab('sheet');
+                setFocusMode('split');
+                setState((s) => ({ ...s, mobilePanel: 'boq' }));
+              }}
+              onOpenPairing={() => {
+                setInfoOpen(false);
+                setSideTab('sheet');
+                setFocusMode('split');
+                setState((s) => ({ ...s, mobilePanel: 'boq' }));
+              }}
+            />
+          </div>
+        </div>
+      ) : null}
       {conflictBanner ? <TakeoffConflictBanner message={conflictBanner} onDismiss={() => setConflictBanner(null)} /> : null}
       {state.saveNotice ? (
         <p className="border-b border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-1 text-xs text-[var(--pf-text-secondary)]" role="status">
@@ -253,9 +278,8 @@ export function TakeoffWorkspace({
         </p>
       ) : null}
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 p-2 lg:flex-row lg:gap-3 lg:p-3">
-        <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 lg:max-w-[58%]">
-          <div className="flex min-w-0 flex-wrap items-center gap-1">
+      <div className="shrink-0 border-b border-[var(--pf-border-default)]">
+        <div className="flex min-w-0 gap-1 overflow-x-auto px-2 pt-1">
             {state.view.sheets.map((s) => {
               const id = sheetRefId(s);
               return (
@@ -264,7 +288,7 @@ export function TakeoffWorkspace({
                   type="button"
                   size="sm"
                   variant={id === state.activeSheetKey ? 'primary' : 'secondary'}
-                  className="min-h-11 max-w-full truncate"
+                  className="min-h-11 max-w-full shrink-0 truncate"
                   onClick={() => setState((st) => ({ ...st, activeSheetKey: id }))}
                 >
                   {formatTakeoffDisplayName(s.name)}
@@ -275,26 +299,7 @@ export function TakeoffWorkspace({
               );
             })}
           </div>
-
-          <TakeoffSheetControls
-            key={`${sheet.sheetKey}-${sheet.floorLabel ?? ''}-${sheet.scale.ratio ?? ''}-${sheet.scale.verified}`}
-            sheet={sheet}
-            readOnly={readOnly}
-            onApply={(edit) => queueEdit(edit)}
-          />
-
-          <div className="flex flex-wrap gap-1">
-            <Button type="button" size="sm" variant="secondary" className="min-h-11" onClick={() => setRulesOpen(true)}>
-              {t('rules.open')}
-            </Button>
-            {state.view.permissions.canManageLibrary ? (
-              <Button type="button" size="sm" variant="secondary" className="min-h-11" onClick={() => setLibraryOpen(true)}>
-                {t('library.open')}
-              </Button>
-            ) : null}
-          </div>
-
-          <div className="flex flex-wrap gap-1 border-b border-[var(--pf-border-default)] pb-2">
+          <div className="flex gap-1 overflow-x-auto px-2 py-1">
             <Button
               type="button"
               size="sm"
@@ -329,82 +334,41 @@ export function TakeoffWorkspace({
               <Pencil className="size-4" />
               {t('tools.area')}
             </Button>
+            <Button type="button" size="sm" variant="ghost" className="min-h-11" onClick={() => setRulesOpen(true)}>
+              {t('rules.open')}
+            </Button>
+            {state.view.permissions.canManageLibrary ? (
+              <Button type="button" size="sm" variant="ghost" className="min-h-11" onClick={() => setLibraryOpen(true)}>
+                {t('library.open')}
+              </Button>
+            ) : null}
+            <Button type="button" size="sm" variant="ghost" className="min-h-11 min-w-11" aria-label={t('workspace.info')} onClick={() => setInfoOpen(true)}>
+              <Info className="size-4" />
+            </Button>
+            <div className="flex gap-1 lg:hidden">
+              <Button type="button" size="sm" variant={state.mobilePanel === 'plan' ? 'primary' : 'ghost'} className="min-h-11" onClick={() => setState((s) => ({ ...s, mobilePanel: 'plan' }))}>
+                {t('mobile.plan')}
+              </Button>
+              <Button type="button" size="sm" variant={state.mobilePanel === 'boq' ? 'primary' : 'ghost'} className="min-h-11" onClick={() => setState((s) => ({ ...s, mobilePanel: 'boq' }))}>
+                {t('mobile.boq')}
+              </Button>
+            </div>
+            <div className="hidden gap-1 lg:flex">
+              <Button type="button" size="sm" variant={focusMode === 'split' ? 'primary' : 'ghost'} className="min-h-11" onClick={() => setFocusMode('split')}>
+                {t('workspace.focusSplit')}
+              </Button>
+              <Button type="button" size="sm" variant={focusMode === 'plan' ? 'primary' : 'ghost'} className="min-h-11" onClick={() => setFocusMode('plan')}>
+                {t('workspace.focusPlan')}
+              </Button>
+              <Button type="button" size="sm" variant={focusMode === 'table' ? 'primary' : 'ghost'} className="min-h-11" onClick={() => setFocusMode('table')}>
+                {t('workspace.focusTable')}
+              </Button>
+            </div>
           </div>
+        </div>
 
-          <TakeoffTypeFilterChips catalog={state.view.catalog} filter={state.typeFilter} onChange={setFilter} />
-
-          {legendExemplars.length > 0 ? (
-            <section
-              aria-label={t('detection.undecodedLegendTitle')}
-              data-testid="takeoff-undecoded-legend"
-              className="min-w-0 overflow-x-hidden rounded-lg border border-[var(--pf-border-default)] p-2"
-            >
-              <p className="text-xs font-medium text-[var(--pf-text-primary)]">{t('detection.undecodedLegendTitle')}</p>
-              <p className="mb-1 text-xs text-[var(--pf-text-muted)]">{t('detection.undecodedLegendHint')}</p>
-              <label className="mb-1 flex min-w-0 flex-col gap-1 text-xs text-[var(--pf-text-secondary)]">
-                <span>{t('detection.pickType')}</span>
-                <select
-                  data-testid="takeoff-legend-library-type"
-                  className="min-h-11 w-full max-w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-page)] px-2 text-sm"
-                  value={legendLibraryType}
-                  disabled={readOnly}
-                  onChange={(event) => setLegendLibraryType(event.target.value)}
-                >
-                  <option value="">{t('detection.unclassified')}</option>
-                  {view.catalog.map((type) => (
-                    <option key={type.key} value={type.key}>
-                      {type.nameHe}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="flex max-h-48 flex-wrap gap-1 overflow-y-auto">
-                {legendExemplars.map((row) => (
-                  <div key={row.legendKey} className="flex max-w-full flex-wrap items-center gap-1">
-                    <button
-                      type="button"
-                      data-testid="takeoff-legend-exemplar"
-                      data-legend-key={row.legendKey}
-                      data-exemplar-id={row.exemplarId ?? ''}
-                      data-count={row.count}
-                      className="min-h-11 max-w-full truncate rounded-md border border-[var(--pf-border-default)] px-2 text-start text-xs hover:bg-[var(--pf-action-subtle-hover)]"
-                      onClick={() => {
-                        if (!row.exemplarId) return;
-                        const host = view.sheets.find((item) =>
-                          detectionsForSheet(view.detections, item).some((mark) => mark.id === row.exemplarId),
-                        );
-                        setState((current) => ({
-                          ...current,
-                          selectedDetectionId: row.exemplarId,
-                          activeSheetKey: host ? sheetRefId(host) : current.activeSheetKey,
-                          mobilePanel: 'plan',
-                        }));
-                      }}
-                    >
-                      {t('detection.undecodedLegendRow', { key: row.legendKey, count: row.count })}
-                    </button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      className="min-h-11 max-w-full"
-                      data-testid="takeoff-legend-save-library"
-                      data-legend-key={row.legendKey}
-                      data-count={row.count}
-                      disabled={readOnly || !legendLibraryType}
-                      onClick={() => {
-                        const edit = buildLegendLibraryEdit(row.legendKey, legendLibraryType);
-                        if (edit) queueEdit(edit);
-                      }}
-                    >
-                      {t('detection.saveToLibrary')}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
-
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:flex-row">
+        <section className={`min-h-0 min-w-0 flex-1 flex-col overflow-hidden ${planExpanded ? 'fixed inset-2 z-50 flex rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2 shadow-lg' : planHiddenOnMobile ? 'hidden lg:flex' : 'flex'} ${focusMode === 'table' && !planExpanded ? 'lg:hidden' : ''}`}>
           <PlanViewer
             sheet={sheet}
             detections={sheetDetections}
@@ -414,6 +378,8 @@ export function TakeoffWorkspace({
             selectedId={state.selectedDetectionId}
             dimOthers={dimOthers}
             addMode={state.viewerTool === 'add'}
+            expanded={planExpanded}
+            onToggleExpanded={() => setPlanExpanded((open) => !open)}
             areas={state.view.areas}
             onSelectDetection={(id) => setState((s) => ({ ...s, selectedDetectionId: id }))}
             onPlanClick={(x, y) => {
@@ -456,39 +422,20 @@ export function TakeoffWorkspace({
           ) : null}
         </section>
 
-        <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 lg:min-w-[18rem]">
-          <div className="flex gap-1 lg:hidden">
-            <Button
-              type="button"
-              size="sm"
-              variant={state.mobilePanel === 'plan' ? 'primary' : 'ghost'}
-              className="min-h-11 flex-1"
-              onClick={() => setState((s) => ({ ...s, mobilePanel: 'plan' }))}
-            >
-              {t('mobile.plan')}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={state.mobilePanel === 'boq' ? 'primary' : 'ghost'}
-              className="min-h-11 flex-1"
-              onClick={() => setState((s) => ({ ...s, mobilePanel: 'boq' }))}
-            >
-              {t('mobile.boq')}
-            </Button>
+        <section className={`min-h-0 min-w-0 flex-col overflow-hidden border-[var(--pf-border-default)] lg:w-[min(26rem,38vw)] lg:shrink-0 lg:border-s ${sideHiddenOnMobile ? 'hidden' : 'flex'} ${focusMode === 'plan' ? 'lg:hidden' : 'lg:flex'}`}>
+          <div className="flex shrink-0 gap-1 border-b border-[var(--pf-border-default)] p-1">
+            {(['boq', 'review', 'sheet'] as const).map((tab) => (
+              <Button key={tab} type="button" size="sm" variant={sideTab === tab ? 'primary' : 'ghost'} className="min-h-11 flex-1" onClick={() => setSideTab(tab)}>
+                {t(tab === 'boq' ? 'workspace.sideBoq' : tab === 'review' ? 'workspace.sideReview' : 'workspace.sideSheet')}
+              </Button>
+            ))}
           </div>
+          <p className="shrink-0 px-2 py-1 text-xs text-[var(--pf-text-secondary)]">
+            {t('boq.markCounts', { total: census.total, typed: census.typed, untyped: census.untyped })}
+            {census.typedNeedingCheck > 0 ? ` · ${t('boq.typedNeedCheck', { count: census.typedNeedingCheck })}` : ''}
+          </p>
 
-          <div className={`min-h-0 flex-1 flex-col gap-2 ${state.mobilePanel === 'boq' ? 'flex' : 'hidden lg:flex'}`}>
-            <section ref={sheetsPanelRef} className="min-w-0 shrink-0">
-              <TakeoffSheetsPanel
-                view={view}
-                readOnly={readOnly}
-                onQueueEdit={(edit) => queueEdit(edit)}
-                onFocusSheet={(refId) =>
-                  setState((s) => ({ ...s, activeSheetKey: refId, mobilePanel: 'plan' }))
-                }
-              />
-            </section>
+          <div className={`min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2 ${sideTab === 'boq' ? 'flex' : 'hidden'}`}>
             <TakeoffBoqPanel
               boq={state.view.boq}
               lines={boqDisplayLines}
@@ -499,8 +446,10 @@ export function TakeoffWorkspace({
               showUnclassified={showUnclassifiedBoq}
               onToggleUnclassified={() => setShowUnclassifiedBoq((v) => !v)}
             />
+          </div>
 
-            <div className="max-h-40 overflow-y-auto rounded-lg border border-[var(--pf-border-default)] p-2">
+          <div className={`min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2 ${sideTab === 'review' ? 'flex' : 'hidden'}`}>
+            <div className="rounded-lg border border-[var(--pf-border-default)] p-2">
               <p className="mb-1 text-xs font-medium text-[var(--pf-text-secondary)]">{t('detection.listTitle')}</p>
               <ul className="space-y-1">
                 {sheetDetections.slice(0, 200).map((d) => (
@@ -584,6 +533,7 @@ export function TakeoffWorkspace({
                       data-testid="takeoff-sidebar-edit-type"
                       className="min-h-11 min-w-0 max-w-full rounded-md border border-[var(--pf-border-default)] px-2 text-sm"
                       value={bulkType}
+                      onWheel={blurSelectOnWheel}
                       onChange={(e) => setBulkType(e.target.value)}
                     >
                       <option value="">{t('detection.unclassified')}</option>
@@ -654,6 +604,94 @@ export function TakeoffWorkspace({
               )}
             </div>
           </div>
+
+          <div className={`min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2 ${sideTab === 'sheet' ? 'flex' : 'hidden'}`}>
+            <section ref={sheetsPanelRef} className="min-w-0 shrink-0">
+              <TakeoffSheetControls
+                key={`${sheet.sheetKey}-${sheet.floorLabel ?? ''}-${sheet.scale.ratio ?? ''}-${sheet.scale.verified}`}
+                sheet={sheet}
+                readOnly={readOnly}
+                onApply={(edit) => queueEdit(edit)}
+              />
+              <div className="mt-2">
+                <TakeoffTypeFilterChips catalog={state.view.catalog} filter={state.typeFilter} onChange={setFilter} />
+              </div>
+              {legendExemplars.length > 0 ? (
+                <section aria-label={t('detection.undecodedLegendTitle')} data-testid="takeoff-undecoded-legend" className="mt-2 min-w-0 overflow-x-hidden rounded-lg border border-[var(--pf-border-default)] p-2">
+                  <p className="text-xs font-medium text-[var(--pf-text-primary)]">{t('detection.undecodedLegendTitle')}</p>
+                  <label className="mb-1 flex min-w-0 flex-col gap-1 text-xs text-[var(--pf-text-secondary)]">
+                    <span>{t('detection.pickType')}</span>
+                    <select
+                      data-testid="takeoff-legend-library-type"
+                      className="min-h-11 w-full max-w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-page)] px-2 text-sm"
+                      value={legendLibraryType}
+                      disabled={readOnly}
+                      onWheel={blurSelectOnWheel}
+                      onChange={(event) => setLegendLibraryType(event.target.value)}
+                    >
+                      <option value="">{t('detection.unclassified')}</option>
+                      {view.catalog.map((type) => (
+                        <option key={type.key} value={type.key}>{type.nameHe}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="flex flex-wrap gap-1">
+                    {legendExemplars.map((row) => (
+                      <div key={row.legendKey} className="flex max-w-full flex-wrap items-center gap-1">
+                        <button
+                          type="button"
+                          data-testid="takeoff-legend-exemplar"
+                          data-legend-key={row.legendKey}
+                          data-exemplar-id={row.exemplarId ?? ''}
+                          data-count={row.count}
+                          className="min-h-11 max-w-full truncate rounded-md border border-[var(--pf-border-default)] px-2 text-start text-xs hover:bg-[var(--pf-action-subtle-hover)]"
+                          onClick={() => {
+                            if (!row.exemplarId) return;
+                            const host = view.sheets.find((item) =>
+                              detectionsForSheet(view.detections, item).some((mark) => mark.id === row.exemplarId),
+                            );
+                            setState((current) => ({
+                              ...current,
+                              selectedDetectionId: row.exemplarId,
+                              activeSheetKey: host ? sheetRefId(host) : current.activeSheetKey,
+                              mobilePanel: 'plan',
+                            }));
+                          }}
+                        >
+                          {t('detection.undecodedLegendRow', { key: row.legendKey, count: row.count })}
+                        </button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          className="min-h-11"
+                          data-testid="takeoff-legend-save-library"
+                          data-legend-key={row.legendKey}
+                          data-count={row.count}
+                          disabled={readOnly || !legendLibraryType}
+                          onClick={() => {
+                            const edit = buildLegendLibraryEdit(row.legendKey, legendLibraryType);
+                            if (edit) queueEdit(edit);
+                          }}
+                        >
+                          {t('detection.saveToLibrary')}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+              <TakeoffSheetsPanel
+                view={view}
+                readOnly={readOnly}
+                onQueueEdit={(edit) => queueEdit(edit)}
+                onFocusSheet={(refId) => {
+                  setFocusMode('split');
+                  setState((s) => ({ ...s, activeSheetKey: refId, mobilePanel: 'plan' }));
+                }}
+              />
+            </section>
+          </div>
         </section>
       </div>
 
@@ -698,10 +736,7 @@ export function TakeoffWorkspace({
               disabled={readOnly}
               onChange={(e) => queueEdit({ op: 'confirm_plan_review', confirmed: e.target.checked })}
             />
-            <span>
-              <span className="font-medium">{t('approval.planReviewLabel')}</span>
-              <span className="mt-0.5 block text-[var(--pf-text-secondary)]">{t('approval.planReviewHint')}</span>
-            </span>
+            <span className="font-medium" title={t('approval.planReviewHint')}>{t('approval.planReviewLabel')}</span>
           </label>
         ) : null}
         {approvalBlockedByReview ? (
@@ -715,9 +750,6 @@ export function TakeoffWorkspace({
             <AlertTriangle className="size-4 shrink-0" />
             {t('approval.blockedPlanHint')}
           </p>
-        ) : null}
-        {!approvalBlockedByReview && !approvalBlockedByPlan ? (
-          <p className="min-w-0 basis-full text-xs text-[var(--pf-text-muted)]">{t('approval.readyHint')}</p>
         ) : null}
         {view.summary.status === 'approved' && view.permissions.canReopen ? (
           <Button

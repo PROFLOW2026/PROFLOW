@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { blurSelectOnWheel } from './blur-select-on-wheel';
 import { Button } from '@/components/ui/button';
 import type { CatalogType, EffectiveDetection, TakeoffReviewReason } from '../domain/contracts';
 import { devicesFromNote, tagWithDeviceCount } from '../domain/quantity-notes';
@@ -158,6 +159,7 @@ export function TakeoffDetectionSheet({
             data-testid="takeoff-edit-type"
             className="min-h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-page)] px-3 text-sm"
             value={pick}
+            onWheel={blurSelectOnWheel}
             onChange={(e) => setPick(e.target.value)}
           >
             <option value="">{t('detection.unclassified')}</option>

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Minus, Plus, Maximize2 } from 'lucide-react';
+import { Expand, Minus, Plus, Maximize2, Minimize2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { CatalogType, EffectiveDetection, SheetDto } from '../../domain/contracts';
 import {
@@ -13,6 +13,7 @@ import {
   unionRects,
   clampScale,
   planPointInViewport,
+  wheelZoomsPlan,
   zoomAtPoint,
   type ViewportState,
 } from './viewer-math';
@@ -30,6 +31,8 @@ interface PlanViewerProps {
   selectedId: string | null;
   dimOthers: boolean;
   addMode: boolean;
+  expanded?: boolean;
+  onToggleExpanded?: () => void;
   areas?: readonly { id: string; polygon: [number, number][] }[];
   onSelectDetection: (id: string | null) => void;
   onPlanClick?: (x: number, y: number) => void;
@@ -45,6 +48,8 @@ export function PlanViewer({
   selectedId,
   dimOthers,
   addMode,
+  expanded = false,
+  onToggleExpanded,
   areas = [],
   onSelectDetection,
   onPlanClick,
@@ -54,6 +59,11 @@ export function PlanViewer({
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = useState<ViewportState>({ scale: 1, offsetX: 0, offsetY: 0 });
   const [viewerSize, setViewerSize] = useState({ width: 800, height: 600 });
+  const previewIdentity = `${sheet.sheetKey}:${sheet.previewUrl ?? ''}`;
+  const [previewState, setPreviewState] = useState({ identity: previewIdentity, broken: false });
+  const previewBroken = previewState.identity === previewIdentity && previewState.broken;
+  const fittedSheet = useRef<string | null>(null);
+  const userAdjusted = useRef(false);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
   const pinchRef = useRef<{ startDist: number; startScale: number } | null>(null);
   const activePointers = useRef(new Map<number, { x: number; y: number }>());
@@ -64,28 +74,36 @@ export function PlanViewer({
     [detections, sheet.sheetKey],
   );
 
+  const applyFit = useCallback((width: number, height: number, force: boolean) => {
+    if (width < 40 || height < 40) return;
+    if (fittedSheet.current !== sheet.sheetKey) {
+      fittedSheet.current = sheet.sheetKey;
+      userAdjusted.current = false;
+    }
+    setViewerSize({ width, height });
+    if (!force && userAdjusted.current) return;
+    if (force) userAdjusted.current = false;
+    setViewport(fitToRect({ width, height }, { width: sheet.widthPx, height: sheet.heightPx }));
+  }, [sheet.heightPx, sheet.sheetKey, sheet.widthPx]);
+
   const fitAll = useCallback(() => {
     const el = containerRef.current;
     if (!el) return;
-    setViewport(
-      fitToRect(
-        { width: el.clientWidth, height: el.clientHeight },
-        { width: sheet.widthPx, height: sheet.heightPx },
-      ),
-    );
-  }, [sheet.heightPx, sheet.widthPx]);
+    applyFit(el.clientWidth, el.clientHeight, true);
+  }, [applyFit]);
 
   useEffect(() => {
-    fitAll();
-    const ro = new ResizeObserver(() => {
-      if (containerRef.current) {
-        setViewerSize({ width: containerRef.current.clientWidth, height: containerRef.current.clientHeight });
-      }
-      fitAll();
-    });
-    if (containerRef.current) ro.observe(containerRef.current);
-    return () => ro.disconnect();
-  }, [fitAll, sheet.sheetKey]);
+    const el = containerRef.current;
+    if (!el) return;
+    const measure = () => applyFit(el.clientWidth, el.clientHeight, false);
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    const frame = requestAnimationFrame(measure);
+    return () => {
+      cancelAnimationFrame(frame);
+      ro.disconnect();
+    };
+  }, [applyFit]);
 
   useEffect(() => {
     if (highlightedIds.size === 0) return;
@@ -96,16 +114,30 @@ export function PlanViewer({
       .map((d) => ({ x: d.x, y: d.y, width: d.w, height: d.h }));
     const union = unionRects(rects);
     if (!union) return;
+    userAdjusted.current = true;
     setViewport(fitSelection({ width: el.clientWidth, height: el.clientHeight }, union));
   }, [highlightedIds, sheetDetections]);
 
-  const onWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
+  const zoomAtCenter = useCallback((factor: number) => {
     const el = containerRef.current;
     if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
-    setViewport((v) => zoomAtPoint(v, factor, e.clientX - rect.left, e.clientY - rect.top));
+    userAdjusted.current = true;
+    setViewport((v) => zoomAtPoint(v, factor, el.clientWidth / 2, el.clientHeight / 2));
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onNativeWheel = (event: WheelEvent) => {
+      if (!wheelZoomsPlan(event)) return;
+      event.preventDefault();
+      userAdjusted.current = true;
+      const rect = el.getBoundingClientRect();
+      const factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
+      setViewport((current) => zoomAtPoint(current, factor, event.clientX - rect.left, event.clientY - rect.top));
+    };
+    el.addEventListener('wheel', onNativeWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onNativeWheel);
   }, []);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
@@ -136,6 +168,7 @@ export function PlanViewer({
       const cy = (pts[0]!.y + pts[1]!.y) / 2 - rect.top;
       const nextScale = clampScale(pinchRef.current.startScale * (dist / pinchRef.current.startDist));
       const ratio = nextScale / viewport.scale;
+      userAdjusted.current = true;
       setViewport((v) => zoomAtPoint(v, ratio, cx, cy));
       return;
     }
@@ -144,6 +177,7 @@ export function PlanViewer({
     const dx = e.clientX - start.x;
     const dy = e.clientY - start.y;
     dragRef.current = { x: e.clientX, y: e.clientY };
+    userAdjusted.current = true;
     setViewport((v) => panBy(v, dx, dy));
   }, [viewport.scale]);
 
@@ -192,23 +226,30 @@ export function PlanViewer({
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]">
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-[var(--pf-border-default)] px-2 py-1.5">
-        <p className="truncate text-xs text-[var(--pf-text-secondary)]">{formatTakeoffDisplayName(sheet.name)}</p>
+        <p className="truncate text-xs text-[var(--pf-text-secondary)]">
+          {formatTakeoffDisplayName(sheet.name)}
+          {!sheet.previewUrl || previewBroken ? <span className="ms-2 text-[var(--pf-text-muted)]">{t('viewer.noPreview')}</span> : null}
+        </p>
         <div className="flex shrink-0 items-center gap-1">
-          <Button type="button" variant="ghost" size="sm" className="min-h-11 min-w-11" onClick={() => setViewport((v) => zoomAtPoint(v, 1.2, 0, 0))} aria-label={t('viewer.zoomIn')}>
+          <Button type="button" variant="ghost" size="sm" className="min-h-11 min-w-11" onClick={() => zoomAtCenter(1.2)} aria-label={t('viewer.zoomIn')}>
             <Plus className="size-4" />
           </Button>
-          <Button type="button" variant="ghost" size="sm" className="min-h-11 min-w-11" onClick={() => setViewport((v) => zoomAtPoint(v, 1 / 1.2, 0, 0))} aria-label={t('viewer.zoomOut')}>
+          <Button type="button" variant="ghost" size="sm" className="min-h-11 min-w-11" onClick={() => zoomAtCenter(1 / 1.2)} aria-label={t('viewer.zoomOut')}>
             <Minus className="size-4" />
           </Button>
           <Button type="button" variant="ghost" size="sm" className="min-h-11 min-w-11" onClick={fitAll} aria-label={t('viewer.fit')}>
             <Maximize2 className="size-4" />
           </Button>
+          {onToggleExpanded ? (
+            <Button type="button" variant="ghost" size="sm" className="min-h-11 min-w-11" onClick={onToggleExpanded} aria-label={expanded ? t('viewer.collapse') : t('viewer.expand')}>
+              {expanded ? <Minimize2 className="size-4" /> : <Expand className="size-4" />}
+            </Button>
+          ) : null}
         </div>
       </div>
       <div
         ref={containerRef}
-        className="relative min-h-[min(52dvh,28rem)] min-w-0 flex-1 touch-none overflow-hidden bg-[var(--pf-bg-muted)]"
-        onWheel={onWheel}
+        className="relative min-h-0 min-w-0 flex-1 touch-pan-y overflow-hidden bg-[var(--pf-bg-page)]"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -218,12 +259,15 @@ export function PlanViewer({
         tabIndex={0}
         onKeyDown={(e) => {
           const step = 24;
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === '+' || e.key === '=' || e.key === '-') {
+            userAdjusted.current = true;
+          }
           if (e.key === 'ArrowLeft') setViewport((v) => panBy(v, step, 0));
           if (e.key === 'ArrowRight') setViewport((v) => panBy(v, -step, 0));
           if (e.key === 'ArrowUp') setViewport((v) => panBy(v, 0, step));
           if (e.key === 'ArrowDown') setViewport((v) => panBy(v, 0, -step));
-          if (e.key === '+' || e.key === '=') setViewport((v) => zoomAtPoint(v, 1.15, 0, 0));
-          if (e.key === '-') setViewport((v) => zoomAtPoint(v, 1 / 1.15, 0, 0));
+          if (e.key === '+' || e.key === '=') zoomAtCenter(1.15);
+          if (e.key === '-') zoomAtCenter(1 / 1.15);
         }}
       >
         <div
@@ -238,20 +282,19 @@ export function PlanViewer({
             height: sheet.heightPx,
           }}
         >
-          {sheet.previewUrl ? (
+          {sheet.previewUrl && !previewBroken ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={sheet.previewUrl}
               alt=""
               draggable={false}
-              className="pointer-events-none block h-full w-full select-none"
+              className="pointer-events-none block h-full w-full max-w-none select-none object-fill"
               width={sheet.widthPx}
               height={sheet.heightPx}
+              onError={() => setPreviewState({ identity: previewIdentity, broken: true })}
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-[var(--pf-bg-page)] text-sm text-[var(--pf-text-muted)]">
-              {t('viewer.noPreview')}
-            </div>
+            <div className="h-full w-full bg-white" aria-hidden />
           )}
           <svg
             className="pointer-events-none absolute inset-0 h-full w-full"
