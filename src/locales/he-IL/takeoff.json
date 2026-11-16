@@ -104,7 +104,10 @@
     "collapse": "חזרה למסך",
     "aria": "מציג תוכנית",
     "noPreview": "אין תצוגה מקדימה",
-    "dwgLoading": "טוען את השרטוט"
+    "dwgLoading": "טוען את השרטוט",
+    "showBackground": "הצג רקע אדריכלי",
+    "hideBackground": "הסתר רקע אדריכלי",
+    "backgroundMissing": "הרקע האדריכלי אינו זמין"
   },
   "tools": {
     "navigate": "ניווט",

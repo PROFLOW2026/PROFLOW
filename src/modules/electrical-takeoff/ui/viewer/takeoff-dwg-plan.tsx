@@ -4,15 +4,19 @@ import { useEffect, useRef, useState } from 'react';
 import { Maximize2, Minus, Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
+import { cadLayersToUi, type UiLayer } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-layers';
 import { CadEngineClient, type FileIndex } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-engine-client';
 import { attachCadViewportInteraction } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-viewport-interaction';
 import { cadViewportDevicePixelRatio } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-viewport-dpr';
 import { createCadRenderer, type CadRendererHandle } from '@/modules/external-storage/ui/cad/pf-cad-v3/pf-renderer-bridge';
 import { worldToScreen } from '@/modules/external-storage/ui/cad/pf-cad-v3/renderer/view-math';
 import type { ScenePayload } from '@/modules/external-storage/ui/cad/pf-cad-v3/types';
+import type { XrefDepBytes } from '@/modules/external-storage/ui/cad/pf-cad-v3/xref-resolver';
+import { architecturalLayerIndexes, xrefDependencyPaths } from '../../domain/architectural-background';
 import {
   chooseCadSheetFrame,
   previewToWorld,
+  tightSymbolBox,
   worldToPreview,
   type CadNativeSample,
   type CadSheetFrame,
@@ -32,6 +36,7 @@ type ParsedSpace = CadSpaceGeometry & {
   fullExtent: [number, number, number, number];
   triangles: Float32Array;
   segmentStride: number;
+  layers: ScenePayload['layers'];
 };
 
 export function TakeoffDwgPlan({
@@ -46,6 +51,7 @@ export function TakeoffDwgPlan({
   marks,
   focusId,
   areas = [],
+  backgroundRefs = [],
   onUnavailable,
   onSelectMark,
   onPlanClick,
@@ -61,6 +67,8 @@ export function TakeoffDwgPlan({
   marks: readonly CadSheetMark[];
   focusId: string | null;
   areas?: readonly { id: string; polygon: readonly [number, number][] }[];
+  /** Xrefs recorded for this drawing. Empty when the file has none. */
+  backgroundRefs?: readonly { name: string; path?: string | null }[];
   onUnavailable: () => void;
   onSelectMark?: (id: string) => void;
   onPlanClick?: (x: number, y: number) => void;
@@ -82,6 +90,10 @@ export function TakeoffDwgPlan({
     space: '',
   });
   const [focused, setFocused] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [background, setBackground] = useState<'hidden' | 'shown' | 'missing' | 'none'>('none');
+  const layersRef = useRef<UiLayer[]>([]);
+  const architecturalRef = useRef<ReadonlySet<number>>(new Set());
+  const backgroundKey = backgroundRefs.map((ref) => `${ref.name}\t${ref.path ?? ''}`).join('\n');
   useEffect(() => {
     selectRef.current = onSelectMark;
     planClickRef.current = onPlanClick;
@@ -123,12 +135,15 @@ export function TakeoffDwgPlan({
     const activeId = focusIdRef.current;
     const active = frame.marks.find((mark) => mark.id === activeId) ?? frame.marks[0];
     if (!active) return;
-    const [sx, sy] = worldToScreen(active.x, active.y, view, viewport);
-    const edge = worldToScreen(active.x + active.half, active.y, view, viewport);
-    const radius = Math.max(10, Math.hypot(edge[0] - sx, edge[1] - sy));
+    const [x0, y0] = worldToScreen(active.minX, active.maxY, view, viewport);
+    const [x1, y1] = worldToScreen(active.maxX, active.minY, view, viewport);
+    const left = Math.min(x0, x1);
+    const top = Math.min(y0, y1);
+    const width = Math.max(12, Math.abs(x1 - x0));
+    const height = Math.max(12, Math.abs(y1 - y0));
     ctx.strokeStyle = '#ea580c';
     ctx.lineWidth = 2;
-    ctx.strokeRect(sx - radius, sy - radius, radius * 2, radius * 2);
+    ctx.strokeRect(left, top, width, height);
   };
   const drawRef = useRef(drawOverlay);
   useEffect(() => {
@@ -201,6 +216,21 @@ export function TakeoffDwgPlan({
         if (!response.ok) throw new Error('source_unavailable');
         const hostBytes = new Uint8Array(await response.arrayBuffer());
         if (cancelled) return;
+        const refs = backgroundKey
+          .split('\n')
+          .filter((row) => row.length > 0)
+          .map((row) => {
+            const [name, path] = row.split('\t');
+            return { name: name ?? '', path: path || null };
+          });
+        const deps: XrefDepBytes[] = [];
+        for (const ref of refs) {
+          const backgroundResponse = await fetch(`${url}/background?name=${encodeURIComponent(ref.name)}`, { credentials: 'same-origin' });
+          if (!backgroundResponse.ok) continue;
+          const bytes = new Uint8Array(await backgroundResponse.arrayBuffer());
+          for (const path of xrefDependencyPaths(ref.name, ref.path)) deps.push({ path, bytes });
+        }
+        if (cancelled) return;
         const parsed: ParsedSpace[] = [];
         let parses = 0;
         const first = await client.parseDwgFromStorage({
@@ -208,6 +238,7 @@ export function TakeoffDwgPlan({
           hostBytes: hostBytes.slice(),
           fileIndex: EMPTY_INDEX,
           skipXrefClosure: true,
+          cachedDeps: deps,
         });
         parses += 1;
         parsed.push(toParsed(first.scene, first.segments, first.triangles));
@@ -218,7 +249,7 @@ export function TakeoffDwgPlan({
             hostBytes: hostBytes.slice(),
             fileIndex: EMPTY_INDEX,
             skipXrefClosure: true,
-            cachedDeps: [],
+            cachedDeps: deps,
             space,
           });
           parses += 1;
@@ -238,6 +269,22 @@ export function TakeoffDwgPlan({
         const chosen = parsed.find((space) => space.space === frame?.space);
         if (!frame || !chosen) throw new Error('frame_unavailable');
         frameRef.current = frame;
+        const uiLayers = cadLayersToUi(parsed.find((item) => item.space === frame.space)?.layers ?? []);
+        layersRef.current = uiLayers;
+        const architectural = new Set(architecturalLayerIndexes(uiLayers, refs.map((ref) => ref.name)));
+        architecturalRef.current = architectural;
+        if (architectural.size > 0) {
+          const ceiling = frame.paper
+            ? Math.max(8, frame.paper.height * 0.02)
+            : frame.window
+              ? Math.max(20, frame.window.hw * 0.01)
+              : 30;
+          frame.marks = frame.marks.map((mark) => ({
+            ...mark,
+            ...tightSymbolBox(chosen.segments, mark.x, mark.y, ceiling, architectural),
+          }));
+        }
+        setBackground(refs.length === 0 ? 'none' : deps.length === 0 ? 'missing' : architectural.size > 0 ? 'shown' : 'none');
         const extent = chosen.contentExtent;
         await renderer.setDrawingAsync(
           chosen.segments,
@@ -247,6 +294,7 @@ export function TakeoffDwgPlan({
           chosen.triangles,
           chosen.segmentStride,
         );
+        if (uiLayers.length > 0) renderer.applyLayerVisibility(uiLayers);
         if (cancelled) return;
         focusMark(renderer, frame, focusIdRef.current);
         const active = frame.marks.find((mark) => mark.id === focusIdRef.current) ?? frame.marks[0] ?? null;
@@ -270,7 +318,7 @@ export function TakeoffDwgPlan({
     };
     // Samples and marks are read for the initial frame of this file and sheet.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- occurrence changes must not reparse
-  }, [fileName, heightPx, kind, sheetKey, sheetName, url, widthPx]);
+  }, [backgroundKey, fileName, heightPx, kind, sheetKey, sheetName, url, widthPx]);
 
   useEffect(() => {
     const frame = frameRef.current;
@@ -297,6 +345,36 @@ export function TakeoffDwgPlan({
       <canvas ref={overlayRef} className="pointer-events-none absolute inset-0 size-full" />
       {viewState.status === 'loading' ? (
         <p className="absolute inset-x-0 top-2 text-center text-xs text-white/80">{t('viewer.dwgLoading')}</p>
+      ) : null}
+      {background === 'missing' ? (
+        <p className="absolute inset-x-2 top-2 text-center text-xs text-white/90" data-testid="takeoff-background-missing">
+          {t('viewer.backgroundMissing')}
+        </p>
+      ) : null}
+      {background === 'shown' || background === 'hidden' ? (
+        <Button
+          type="button"
+          variant="secondary"
+          className="absolute end-2 top-2 min-h-11"
+          data-testid="takeoff-background-toggle"
+          aria-pressed={background === 'shown'}
+          onClick={() => {
+            const renderer = rendererRef.current;
+            const layers = layersRef.current;
+            if (!renderer || layers.length === 0) return;
+            const next = background === 'shown' ? 'hidden' : 'shown';
+            renderer.applyLayerVisibility(
+              layers.map((layer) => ({
+                ...layer,
+                visible: architecturalRef.current.has(layer.index) ? next === 'shown' && layer.visible : layer.visible,
+              })),
+            );
+            setBackground(next);
+            drawRef.current();
+          }}
+        >
+          {background === 'shown' ? t('viewer.hideBackground') : t('viewer.showBackground')}
+        </Button>
       ) : null}
       <div className="absolute bottom-2 start-2 flex gap-1">
         <Button type="button" variant="secondary" className="min-h-11 min-w-11 px-0" aria-label={t('viewer.zoomIn')} onClick={() => rendererRef.current?.zoom(1.25)}>
@@ -343,8 +421,10 @@ function focusMark(renderer: CadRendererHandle, frame: CadSheetFrame, focusId: s
     renderer.fit();
     return;
   }
-  const span = mark.half * 3;
-  renderer.focusExtent([mark.x - span, mark.y - span, mark.x + span, mark.y + span], 28);
+  const cx = (mark.minX + mark.maxX) / 2;
+  const cy = (mark.minY + mark.maxY) / 2;
+  const span = Math.max(mark.maxX - mark.minX, mark.maxY - mark.minY) * 0.85;
+  renderer.focusExtent([cx - span, cy - span, cx + span, cy + span], 28);
 }
 
 function toParsed(scene: ScenePayload, segments: Float32Array, triangles: Float32Array | undefined): ParsedSpace {
@@ -358,5 +438,6 @@ function toParsed(scene: ScenePayload, segments: Float32Array, triangles: Float3
     fullExtent: scene.fullExtent,
     triangles: triangles ?? new Float32Array(0),
     segmentStride: scene.segmentStride,
+    layers: scene.layers,
   };
 }

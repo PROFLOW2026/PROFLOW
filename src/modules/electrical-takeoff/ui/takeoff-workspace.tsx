@@ -611,6 +611,7 @@ export function TakeoffWorkspace({
               samples={dwgSamples}
               marks={dwgMarks}
               focusId={sideTab === 'review' ? (shownOccurrenceId ?? activeGuide?.focusId ?? null) : state.selectedDetectionId}
+              backgroundRefs={sheet.xrefsMissing ?? []}
               areas={state.view.areas.filter((area) => area.sheetKey === sheet.sheetKey)}
               onUnavailable={() => setDwgDownKey(sheetLiveKey)}
               onSelectMark={(id) => {

@@ -12,6 +12,7 @@ import { isWorkerIngestError } from './domain/worker-ingest-error';
 import { buildExportBytes, takeoffExportDownloadHeaders } from './application/export-download';
 import type { ExportKind } from './domain/contracts';
 import { assertAnalysisAccess, externalActorFrom, internalActorFrom, takeoffOrgScope } from './application/access';
+import { openArchitecturalBackground } from './application/takeoff-architectural-background';
 import type { OrgContext } from '@/shared/auth/context';
 import type { DbExecutor } from '@/shared/db/types';
 
@@ -214,6 +215,50 @@ async function streamSourceFile(actor: Parameters<typeof assertAnalysisAccess>[0
       'Cache-Control': 'private, no-store',
     },
   });
+}
+
+async function streamArchitecturalBackground(
+  actor: Parameters<typeof assertAnalysisAccess>[0],
+  fileId: string,
+  requestedName: string,
+): Promise<Response> {
+  const { db, organizationId } = takeoffOrgScope(actor);
+  const file = await findFile(db, organizationId, fileId);
+  if (!file) return new Response(null, { status: 404 });
+  await assertAnalysisAccess(actor, file.analysisId, 'view');
+  const opened = await openArchitecturalBackground({ db, organizationId, fileId, requestedName });
+  if (!opened) return new Response(null, { status: 404 });
+  return new Response(opened.stream, {
+    headers: {
+      'Content-Type': opened.mimeType,
+      ...(opened.sizeBytes !== null ? { 'Content-Length': String(opened.sizeBytes) } : {}),
+      'Cache-Control': 'private, no-store',
+    },
+  });
+}
+
+export async function handleInternalBackgroundDownload(request: Request, fileId: string): Promise<Response> {
+  try {
+    const session = await requireSession();
+    if (!session.activeOrganizationId) return new Response(null, { status: 403 });
+    const name = new URL(request.url).searchParams.get('name') ?? '';
+    return await runInOrgContext(session.user.id, session.activeOrganizationId, (ctx) =>
+      streamArchitecturalBackground(internalActorFrom(ctx), fileId, name),
+    );
+  } catch (error) {
+    return fileRouteError(error);
+  }
+}
+
+export async function handleExternalBackgroundDownload(request: Request, fileId: string): Promise<Response> {
+  try {
+    const external = await requireExternalContext();
+    if (!external.grants[0]?.organizationId) return new Response(null, { status: 403 });
+    const name = new URL(request.url).searchParams.get('name') ?? '';
+    return await streamArchitecturalBackground(externalActorFrom(external), fileId, name);
+  } catch (error) {
+    return fileRouteError(error);
+  }
 }
 
 export async function handleInternalSourceDownload(request: Request, fileId: string): Promise<Response> {

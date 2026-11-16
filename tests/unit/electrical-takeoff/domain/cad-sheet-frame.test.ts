@@ -7,6 +7,7 @@ import {
   segmentNear,
   solveModelWindow,
   textMatchesSheet,
+  tightSymbolHalf,
 } from '@/modules/electrical-takeoff/domain/cad-sheet-frame';
 import type { WorkerDetection } from '@/modules/electrical-takeoff/domain/contracts';
 
@@ -96,6 +97,42 @@ describe('cad sheet frame', () => {
     expect(textMatchesSheet(['A-101'], ['101'])).toBe(true);
     expect(segmentNear(segments, symbol.x, symbol.y, 2)).toBe(true);
     expect(paperRects(segments).length).toBeGreaterThan(0);
+    expect(frame?.marks[0]?.half).toBeLessThan(8);
+  });
+
+  it('frames one symbol and leaves the next symbol outside the box', () => {
+    const first = rectSegments(0, 0, 40, 30);
+    const second = rectSegments(800, 0, 40, 30);
+    const wall = new Float32Array([0, -20, 2000, -20, 0, 0, 0, 0]);
+    const segments = new Float32Array(first.length + second.length + wall.length);
+    segments.set(first);
+    segments.set(second, first.length);
+    segments.set(wall, first.length + second.length);
+    const half = tightSymbolHalf(segments, 0, 0, 5000);
+    expect(half).toBeGreaterThan(10);
+    expect(half).toBeLessThan(80);
+  });
+
+  it('keeps the frame on the electrical symbol when architectural ink surrounds it', () => {
+    const parts = [rectSegments(0, 0, 16, 16)];
+    let size = 20;
+    while (size < 400) {
+      const square = rectSegments(0, 0, size, size);
+      for (let i = 5; i < square.length; i += 8) square[i] = 4;
+      parts.push(square);
+      size = Math.round(size * 1.2);
+    }
+    const length = parts.reduce((sum, part) => sum + part.length, 0);
+    const segments = new Float32Array(length);
+    let offset = 0;
+    for (const part of parts) {
+      segments.set(part, offset);
+      offset += part.length;
+    }
+    const withWalls = tightSymbolHalf(segments, 0, 0, 500);
+    const symbolOnly = tightSymbolHalf(segments, 0, 0, 500, new Set([4]));
+    expect(symbolOnly).toBeLessThan(withWalls);
+    expect(symbolOnly).toBeLessThan(20);
   });
 
   it('keeps native coordinates until the mark is moved', () => {

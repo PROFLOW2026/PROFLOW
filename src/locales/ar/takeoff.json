@@ -104,7 +104,10 @@
     "collapse": "العودة للشاشة",
     "aria": "عارض المخطط",
     "noPreview": "لا معاينة متاحة",
-    "dwgLoading": "جارٍ تحميل المخطط"
+    "dwgLoading": "جارٍ تحميل المخطط",
+    "showBackground": "إظهار الخلفية المعمارية",
+    "hideBackground": "إخفاء الخلفية المعمارية",
+    "backgroundMissing": "الخلفية المعمارية غير متاحة"
   },
   "tools": {
     "navigate": "تنقل",

@@ -43,7 +43,7 @@ export type CadSheetFrame = {
   paper: PaperRect | null;
   /** World units per model unit. 1 in model space. */
   scale: number;
-  marks: { id: string; x: number; y: number; half: number }[];
+  marks: { id: string; x: number; y: number; half: number; minX: number; minY: number; maxX: number; maxY: number }[];
 };
 
 const STRIDE = 8;
@@ -207,7 +207,7 @@ function frameFor(
   marks: readonly CadSheetMark[],
   scale = 1,
 ): CadSheetFrame {
-  const half = paper ? Math.max(8, paper.height * 0.02) : window ? Math.max(20, window.hw * 0.01) : 30;
+  const ceiling = paper ? Math.max(8, paper.height * 0.02) : window ? Math.max(20, window.hw * 0.01) : 30;
   const draft: CadSheetFrame = {
     space: space.space,
     originX: space.origin[0],
@@ -219,7 +219,8 @@ function frameFor(
   };
   draft.marks = marks.map((mark) => {
     const world = modelToWorld(mark.nativeX, mark.nativeY, draft);
-    return { id: mark.id, x: world.x, y: world.y, half };
+    const box = tightSymbolBox(space.segments, world.x, world.y, ceiling);
+    return { id: mark.id, x: world.x, y: world.y, ...box };
   });
   return draft;
 }
@@ -265,6 +266,115 @@ function spread<T>(items: readonly T[], count: number): T[] {
     if (item) out.push(item);
   }
   return out;
+}
+
+export type SymbolBox = {
+  half: number;
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+};
+
+function boxGap(
+  hit: { minX: number; minY: number; maxX: number; maxY: number },
+  minX: number,
+  minY: number,
+  maxX: number,
+  maxY: number,
+): number {
+  const dx = hit.maxX < minX ? minX - hit.maxX : hit.minX > maxX ? hit.minX - maxX : 0;
+  const dy = hit.maxY < minY ? minY - hit.maxY : hit.minY > maxY ? hit.minY - maxY : 0;
+  return Math.hypot(dx, dy);
+}
+
+/**
+ * The drawn symbol nearest this point.
+ * Walls are ignored. The box stops at the gap before the next symbol or the furniture.
+ */
+export function tightSymbolBox(
+  segments: Float32Array,
+  x: number,
+  y: number,
+  ceiling: number,
+  skipLayers?: ReadonlySet<number>,
+): SymbolBox {
+  const search = Math.max(ceiling, 1);
+  const maxLen = Math.max(search * 0.12, 0.4);
+  const hits: { d: number; minX: number; minY: number; maxX: number; maxY: number }[] = [];
+  for (let i = 0; i + STRIDE - 1 < segments.length; i += STRIDE) {
+    if (skipLayers?.has(Math.trunc(segments[i + 5] ?? 0))) continue;
+    const x1 = segments[i] ?? 0;
+    const y1 = segments[i + 1] ?? 0;
+    const x2 = segments[i + 2] ?? 0;
+    const y2 = segments[i + 3] ?? 0;
+    const len = Math.hypot(x2 - x1, y2 - y1);
+    if (len > maxLen) continue;
+    if (x < Math.min(x1, x2) - search || x > Math.max(x1, x2) + search) continue;
+    if (y < Math.min(y1, y2) - search || y > Math.max(y1, y2) + search) continue;
+    const distance = Math.sqrt(distanceToSegmentSq(x, y, x1, y1, x2, y2));
+    if (distance > search) continue;
+    hits.push({
+      d: distance,
+      minX: Math.min(x1, x2),
+      minY: Math.min(y1, y2),
+      maxX: Math.max(x1, x2),
+      maxY: Math.max(y1, y2),
+    });
+  }
+  const fallbackHalf = Math.min(24, search * 0.04);
+  const fallback = { half: fallbackHalf, minX: x - fallbackHalf, minY: y - fallbackHalf, maxX: x + fallbackHalf, maxY: y + fallbackHalf };
+  if (hits.length < 3) return fallback;
+  hits.sort((a, b) => a.d - b.d);
+  const nearest = hits.slice(0, 240);
+  const seed = nearest[0];
+  if (!seed) return fallback;
+  let minX = seed.minX;
+  let minY = seed.minY;
+  let maxX = seed.maxX;
+  let maxY = seed.maxY;
+  const pending = nearest.slice(1);
+  for (let guard = 0; guard < pending.length + 4; guard += 1) {
+    let best = -1;
+    let bestGap = Infinity;
+    for (let i = 0; i < pending.length; i += 1) {
+      const hit = pending[i];
+      if (!hit) continue;
+      const gap = boxGap(hit, minX, minY, maxX, maxY);
+      if (gap < bestGap) {
+        bestGap = gap;
+        best = i;
+      }
+    }
+    const span = Math.max(maxX - minX, maxY - minY, search * 0.004);
+    if (best < 0 || bestGap > span * 0.35) break;
+    const hit = pending.splice(best, 1)[0];
+    if (!hit) break;
+    minX = Math.min(minX, hit.minX);
+    minY = Math.min(minY, hit.minY);
+    maxX = Math.max(maxX, hit.maxX);
+    maxY = Math.max(maxY, hit.maxY);
+  }
+  const span = Math.max(maxX - minX, maxY - minY);
+  if (!(span > 0)) return fallback;
+  const pad = span * 0.12;
+  return {
+    half: Math.min(search, span * 0.5 + pad),
+    minX: minX - pad,
+    minY: minY - pad,
+    maxX: maxX + pad,
+    maxY: maxY + pad,
+  };
+}
+
+export function tightSymbolHalf(
+  segments: Float32Array,
+  x: number,
+  y: number,
+  ceiling: number,
+  skipLayers?: ReadonlySet<number>,
+): number {
+  return tightSymbolBox(segments, x, y, ceiling, skipLayers).half;
 }
 
 export function segmentNear(segments: Float32Array, x: number, y: number, radius: number): boolean {

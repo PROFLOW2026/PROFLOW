@@ -104,7 +104,10 @@
     "collapse": "Back to workspace",
     "aria": "Plan viewer",
     "noPreview": "No preview available",
-    "dwgLoading": "Loading the drawing"
+    "dwgLoading": "Loading the drawing",
+    "showBackground": "Show architectural background",
+    "hideBackground": "Hide architectural background",
+    "backgroundMissing": "The architectural background is not available"
   },
   "tools": {
     "navigate": "Navigate",
