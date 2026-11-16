@@ -1,0 +1,61 @@
+{
+  "entry": {
+    "brand": "EXLFY",
+    "title": "הדגמה חיה",
+    "subtitle": "בחרו סוג עסק ותפקיד כדי לחקור את המערכת עם נתונים לדוגמה בסביבה בטוחה.",
+    "businessLegend": "סוג העסק",
+    "businessHelp": "בחרו את סוג הפעילות — המערכת תטעין סביבת הדגמה מותאמת עם נתונים לדוגמה.",
+    "roleLegend": "תפקיד בהדגמה",
+    "roleHelp": "כל תפקיד מציג הרשאות ומסכים שונים — אפשר להחליף תפקיד גם אחרי הכניסה.",
+    "selectedBusiness": "סוג עסק נבחר: {business}",
+    "selectedRole": "תפקיד נבחר: {role}",
+    "submit": "כניסה לדמו",
+    "submitting": "נכנסים לדמו…"
+  },
+  "roles": {
+    "owner": "בעלים",
+    "manager": "מנהל",
+    "finance": "כספים",
+    "employee": "עובד משרד",
+    "worker": "עובד שטח",
+    "contractor": "קבלן משנה"
+  },
+  "businesses": {
+    "GENERAL_CONTRACTOR": "קבלן פרויקטים",
+    "ELECTRICAL": "קבלן חשמל",
+    "PLUMBING": "אינסטלציה",
+    "HVAC": "מיזוג",
+    "RENOVATION": "שיפוצים",
+    "SMALL_WORKS": "קבלן עבודות קטנות",
+    "FIELD_SERVICE": "שירות ותחזוקה",
+    "MAINTENANCE": "קבלן תחזוקה",
+    "FACILITY_MANAGEMENT": "ניהול מתקנים",
+    "LANDSCAPING": "גינון ונוף",
+    "CLEANING": "שירותי ניקיון",
+    "INSTALLATION": "קבלן התקנות",
+    "ARCHITECT": "אדריכלות",
+    "DESIGNER": "עיצוב",
+    "ENGINEERING_CONSULTANT": "הנדסה / ייעוץ",
+    "SAFETY_INSPECTION_CONSULTANT": "פיקוח / בדיקות",
+    "SUBCONTRACTOR": "קבלן משנה",
+    "PROJECT_MANAGEMENT": "ניהול פרויקטים",
+    "REAL_ESTATE_DEVELOPMENT": "יזמות ופיתוח",
+    "MIXED_PROJECT_SERVICE": "עסק משולב"
+  },
+  "session": {
+    "banner": "מצב הדגמה",
+    "businessLabel": "סוג עסק",
+    "roleLabel": "תפקיד",
+    "apply": "החלה",
+    "applying": "מחיל…",
+    "exit": "יציאה מהדמו"
+  },
+  "errors": {
+    "rateLimited": "הכניסה לדמו לא הושלמה. אפשר לנסות שוב. אין מגבלה על מספר כניסות.",
+    "failed": "כניסה לדמו נכשלה. נסו שוב.",
+    "disabled": "כניסת הדגמה אינה זמינה כרגע.",
+    "invalidChoice": "הבחירה אינה תקינה. בחרו שוב סוג עסק ותפקיד.",
+    "notConfigured": "מצב הדגמה אינו מוגדר בסביבה זו.",
+    "signInUnsafe": "לא ניתן להשלים את הכניסה לדמו בצורה מאובטחת."
+  }
+}

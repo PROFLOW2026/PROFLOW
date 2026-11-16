@@ -1,102 +1,138 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { DEMO_ROLE_CHOICES } from '@/modules/demo/domain/demo-roles';
+import { DEMO_ROLE_CHOICES, type DemoRoleKey } from '@/modules/demo/domain/demo-roles';
 import { LandingHeader } from '@/modules/marketing/ui/landing-header';
-import { cn } from '@/shared/ui/cn';
+import type { BusinessProfileKey } from '@/modules/tenancy/domain/business-profiles';
 
-export type DemoBusinessChoice = {
-  key: string;
-  label: string;
-};
+const DEMO_ENTRY_ERROR_CODES = [
+  'rateLimited',
+  'failed',
+  'disabled',
+  'invalidChoice',
+  'notConfigured',
+  'signInUnsafe',
+] as const;
 
-const choiceCardClass =
-  'flex min-h-11 min-w-0 cursor-pointer items-center gap-2 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-page)] px-3 py-2.5 text-sm font-medium text-[var(--pf-text-primary)] transition-colors has-[:checked]:border-[var(--pf-action-primary)] has-[:checked]:bg-[color-mix(in_srgb,var(--pf-action-primary)_6%,var(--pf-bg-page))] disabled:cursor-not-allowed disabled:opacity-60';
+export type DemoEntryErrorCode = (typeof DEMO_ENTRY_ERROR_CODES)[number];
+
+export function isDemoEntryErrorCode(value: string): value is DemoEntryErrorCode {
+  return (DEMO_ENTRY_ERROR_CODES as readonly string[]).includes(value);
+}
+
+const selectClass =
+  'min-h-11 w-full min-w-0 max-w-xl rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-page)] px-3 py-2 text-base text-[var(--pf-text-primary)]';
 
 type DemoEntryScreenProps = {
   action: (formData: FormData) => Promise<void>;
-  businessChoices: readonly DemoBusinessChoice[];
+  businessKeys: readonly BusinessProfileKey[];
   footer: ReactNode;
+  demoError?: DemoEntryErrorCode;
 };
 
 function DemoEntrySubmit() {
   const { pending } = useFormStatus();
+  const t = useTranslations('demo');
   return (
     <Button
       type="submit"
       variant="primary"
       size="lg"
       block
-      className="min-h-11"
+      className="min-h-11 max-w-xl"
       loading={pending}
       disabled={pending}
       aria-live="polite"
     >
-      {pending ? 'נכנסים לדמו…' : 'כניסה לדמו'}
+      {pending ? t('entry.submitting') : t('entry.submit')}
     </Button>
   );
 }
 
 function DemoEntryChoices({
-  businessChoices,
+  businessKeys,
+  profileKey,
+  roleKey,
+  onProfileKeyChange,
+  onRoleKeyChange,
 }: {
-  businessChoices: readonly DemoBusinessChoice[];
+  businessKeys: readonly BusinessProfileKey[];
+  profileKey: BusinessProfileKey;
+  roleKey: DemoRoleKey;
+  onProfileKeyChange: (key: BusinessProfileKey) => void;
+  onRoleKeyChange: (key: DemoRoleKey) => void;
 }) {
   const { pending } = useFormStatus();
+  const t = useTranslations('demo');
+
+  const businessLabel = t(`businesses.${profileKey}`);
+  const roleLabel = t(`roles.${roleKey}`);
 
   return (
     <div className="flex min-w-0 flex-col gap-8">
       <fieldset className="m-0 min-w-0 border-0 p-0" disabled={pending}>
-        <legend className="mb-3 text-base font-bold text-[var(--pf-text-primary)]">סוג העסק</legend>
+        <legend className="mb-3 text-base font-bold text-[var(--pf-text-primary)]">
+          {t('entry.businessLegend')}
+        </legend>
         <p className="mb-4 text-sm leading-relaxed text-[var(--pf-text-secondary)]">
-          בחרו את סוג הפעילות — המערכת תטעין סביבת הדגמה מותאמת עם נתונים לדוגמה.
+          {t('entry.businessHelp')}
         </p>
-        <div
-          className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3"
-          data-pf-demo-business-choices
-        >
-          {businessChoices.map((choice, index) => (
-            <label key={choice.key} className={cn(choiceCardClass, 'justify-start')}>
-              <input
-                type="radio"
-                name="profileKey"
-                value={choice.key}
-                required
-                defaultChecked={index === 0}
-                className="size-4 shrink-0 accent-[var(--pf-action-primary)]"
-              />
-              <span className="min-w-0 text-pretty">{choice.label}</span>
-            </label>
-          ))}
+        <div className="min-w-0 max-w-xl" data-pf-demo-business-choices>
+          <select
+            name="profileKey"
+            value={profileKey}
+            required
+            disabled={pending}
+            className={selectClass}
+            onChange={(event) => onProfileKeyChange(event.target.value as BusinessProfileKey)}
+            aria-describedby="demo-selected-summary"
+          >
+            {businessKeys.map((key) => (
+              <option key={key} value={key}>
+                {t(`businesses.${key}`)}
+              </option>
+            ))}
+          </select>
         </div>
       </fieldset>
 
       <fieldset className="m-0 min-w-0 border-0 p-0" disabled={pending}>
-        <legend className="mb-3 text-base font-bold text-[var(--pf-text-primary)]">תפקיד בהדגמה</legend>
+        <legend className="mb-3 text-base font-bold text-[var(--pf-text-primary)]">
+          {t('entry.roleLegend')}
+        </legend>
         <p className="mb-4 text-sm leading-relaxed text-[var(--pf-text-secondary)]">
-          כל תפקיד מציג הרשאות ומסכים שונים — אפשר להחליף תפקיד גם אחרי הכניסה.
+          {t('entry.roleHelp')}
         </p>
-        <div
-          className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3"
-          data-pf-demo-role-choices
-        >
-          {DEMO_ROLE_CHOICES.map((choice, index) => (
-            <label key={choice.key} className={cn(choiceCardClass, 'justify-start')}>
-              <input
-                type="radio"
-                name="roleKey"
-                value={choice.key}
-                required
-                defaultChecked={index === 0}
-                className="size-4 shrink-0 accent-[var(--pf-action-primary)]"
-              />
-              <span className="min-w-0 text-pretty">{choice.label}</span>
-            </label>
-          ))}
+        <div className="min-w-0 max-w-xl" data-pf-demo-role-choices>
+          <select
+            name="roleKey"
+            value={roleKey}
+            required
+            disabled={pending}
+            className={selectClass}
+            onChange={(event) => onRoleKeyChange(event.target.value as DemoRoleKey)}
+            aria-describedby="demo-selected-summary"
+          >
+            {DEMO_ROLE_CHOICES.map((choice) => (
+              <option key={choice.key} value={choice.key}>
+                {t(`roles.${choice.key}`)}
+              </option>
+            ))}
+          </select>
         </div>
       </fieldset>
+
+      <div
+        id="demo-selected-summary"
+        className="min-w-0 max-w-xl rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-4 py-3 text-sm text-[var(--pf-text-primary)]"
+      >
+        <p>{t('entry.selectedBusiness', { business: businessLabel })}</p>
+        <p className="mt-1">{t('entry.selectedRole', { role: roleLabel })}</p>
+      </div>
     </div>
   );
 }
@@ -104,7 +140,12 @@ function DemoEntryChoices({
 /**
  * Public demo entry — marketing shell, business profile + role selection.
  */
-export function DemoEntryScreen({ action, businessChoices, footer }: DemoEntryScreenProps) {
+export function DemoEntryScreen({ action, businessKeys, footer, demoError }: DemoEntryScreenProps) {
+  const t = useTranslations('demo');
+  const defaultProfile = businessKeys[0] ?? 'GENERAL_CONTRACTOR';
+  const [profileKey, setProfileKey] = useState<BusinessProfileKey>(defaultProfile);
+  const [roleKey, setRoleKey] = useState<DemoRoleKey>('owner');
+
   return (
     <div className="min-h-dvh min-w-0 max-w-full bg-[var(--pf-bg-page)]" data-pf-demo-entry>
       <LandingHeader />
@@ -122,20 +163,35 @@ export function DemoEntryScreen({ action, businessChoices, footer }: DemoEntrySc
           <div className="relative mx-auto w-full min-w-0 max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
             <div className="mx-auto min-w-0 max-w-3xl">
               <p className="mb-3 text-2xl font-bold tracking-tight text-[var(--pf-text-brand)] sm:text-[1.75rem]">
-                <span dir="ltr">ProjectFlow</span>
+                <span dir="ltr">{t('entry.brand')}</span>
               </p>
               <h1
                 id="demo-entry-heading"
                 className="text-[1.85rem] font-bold leading-tight tracking-tight text-[var(--pf-text-primary)] sm:text-4xl"
               >
-                הדגמה חיה
+                {t('entry.title')}
               </h1>
               <p className="mt-4 max-w-[36em] text-base leading-relaxed text-[var(--pf-text-secondary)] sm:text-lg">
-                בחרו סוג עסק ותפקיד כדי לחקור את המערכת עם נתונים לדוגמה בסביבה בטוחה.
+                {t('entry.subtitle')}
               </p>
 
+              {demoError ? (
+                <div
+                  role="alert"
+                  className="mt-6 min-w-0 max-w-xl rounded-md border border-[var(--pf-status-danger-border)] bg-[var(--pf-status-danger-bg)] px-4 py-3 text-sm text-[var(--pf-status-danger-fg)]"
+                >
+                  {t(`errors.${demoError}`)}
+                </div>
+              ) : null}
+
               <form action={action} className="mt-8 flex min-w-0 flex-col gap-6">
-                <DemoEntryChoices businessChoices={businessChoices} />
+                <DemoEntryChoices
+                  businessKeys={businessKeys}
+                  profileKey={profileKey}
+                  roleKey={roleKey}
+                  onProfileKeyChange={setProfileKey}
+                  onRoleKeyChange={setRoleKey}
+                />
                 <DemoEntrySubmit />
               </form>
             </div>

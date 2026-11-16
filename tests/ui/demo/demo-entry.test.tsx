@@ -1,23 +1,14 @@
 import type * as ReactDOM from 'react-dom';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getBusinessProfile } from '@/modules/tenancy/domain/business-profiles';
 import { ONBOARDING_BUSINESS_TYPES } from '@/modules/tenancy/domain/onboarding-experience';
 import { DemoEntryScreen } from '@/modules/demo/ui/demo-entry-screen';
 
-const mockDemoRoles = vi.hoisted(() =>
-  [
-    { key: 'owner', label: 'בעלים' },
-    { key: 'manager', label: 'מנהל' },
-    { key: 'finance', label: 'כספים' },
-    { key: 'worker', label: 'עובד שטח' },
-    { key: 'employee', label: 'עובד משרד' },
-    { key: 'contractor', label: 'קבלן משנה' },
-  ] as const,
-);
-
-vi.mock('@/modules/demo/domain/demo-roles', () => ({
-  DEMO_ROLE_CHOICES: mockDemoRoles,
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string, values?: Record<string, string | number>) => {
+    if (values) return `${key}:${JSON.stringify(values)}`;
+    return key;
+  },
 }));
 
 vi.mock('@/modules/marketing/ui/landing-header', () => ({
@@ -43,21 +34,26 @@ function noopAction() {
   return Promise.resolve();
 }
 
-function buildBusinessChoices() {
-  return ONBOARDING_BUSINESS_TYPES.map((key) => ({
-    key,
-    label: getBusinessProfile(key)?.domains[0]?.nameHe ?? key,
-  }));
-}
-
 function renderDemoEntry() {
   return render(
     <DemoEntryScreen
       action={noopAction}
-      businessChoices={buildBusinessChoices()}
+      businessKeys={ONBOARDING_BUSINESS_TYPES}
       footer={<footer data-testid="demo-footer" />}
     />,
   );
+}
+
+function businessSelect() {
+  const wrapper = document.querySelector('[data-pf-demo-business-choices]');
+  expect(wrapper).not.toBeNull();
+  return within(wrapper as HTMLElement).getByRole('combobox');
+}
+
+function roleSelect() {
+  const wrapper = document.querySelector('[data-pf-demo-role-choices]');
+  expect(wrapper).not.toBeNull();
+  return within(wrapper as HTMLElement).getByRole('combobox');
 }
 
 describe('DemoEntryScreen', () => {
@@ -68,36 +64,60 @@ describe('DemoEntryScreen', () => {
   it('lists all onboarding business types and six demo roles without nightly-reset copy', () => {
     renderDemoEntry();
 
-    expect(screen.getByRole('heading', { name: 'הדגמה חיה' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'entry.title' })).toBeVisible();
+    expect(screen.queryByText('ProjectFlow')).toBeNull();
 
-    const businessGrid = document.querySelector('[data-pf-demo-business-choices]');
-    expect(businessGrid).not.toBeNull();
-    expect(within(businessGrid as HTMLElement).getAllByRole('radio')).toHaveLength(
-      ONBOARDING_BUSINESS_TYPES.length,
-    );
+    const profileSelect = businessSelect();
+    const roleCombo = roleSelect();
 
-    const roleGrid = document.querySelector('[data-pf-demo-role-choices]');
-    expect(roleGrid).not.toBeNull();
-    expect(within(roleGrid as HTMLElement).getAllByRole('radio')).toHaveLength(mockDemoRoles.length);
+    expect(within(profileSelect).getAllByRole('option')).toHaveLength(ONBOARDING_BUSINESS_TYPES.length);
+    expect(within(roleCombo).getAllByRole('option')).toHaveLength(6);
 
-    const sampleKey = ONBOARDING_BUSINESS_TYPES[0]!;
-    const sampleLabel = getBusinessProfile(sampleKey)?.domains[0]?.nameHe ?? sampleKey;
-    expect(screen.getByRole('radio', { name: sampleLabel })).toBeInTheDocument();
+    expect(screen.queryAllByRole('radio')).toHaveLength(0);
 
-    for (const role of mockDemoRoles) {
-      expect(screen.getByRole('radio', { name: role.label })).toBeInTheDocument();
-    }
+    const firstBusinessKey = ONBOARDING_BUSINESS_TYPES[0]!;
+    expect(screen.getByText(`entry.selectedBusiness:{"business":"businesses.${firstBusinessKey}"}`)).toBeInTheDocument();
+    expect(screen.getByText('entry.selectedRole:{"role":"roles.owner"}')).toBeInTheDocument();
 
     expect(screen.queryByText(/מתאפס|לילה|מדי לילה/i)).toBeNull();
     expect(screen.queryByText(/אפליקציית עובדים|אפליקציית קבלנים/)).toBeNull();
+  });
+
+  it('updates the selected summary when business or role changes', () => {
+    renderDemoEntry();
+
+    const nextBusiness = ONBOARDING_BUSINESS_TYPES[3]!;
+    fireEvent.change(businessSelect(), { target: { value: nextBusiness } });
+    expect(
+      screen.getByText(`entry.selectedBusiness:{"business":"businesses.${nextBusiness}"}`),
+    ).toBeInTheDocument();
+
+    fireEvent.change(roleSelect(), { target: { value: 'manager' } });
+    expect(screen.getByText('entry.selectedRole:{"role":"roles.manager"}')).toBeInTheDocument();
   });
 
   it('shows a pending label and busy state on the submit control', () => {
     formStatus.pending = true;
     renderDemoEntry();
 
-    const submit = screen.getByRole('button', { name: 'נכנסים לדמו…' });
+    const submit = screen.getByRole('button', { name: 'entry.submitting' });
     expect(submit).toHaveAttribute('aria-busy', 'true');
     expect(submit).toBeDisabled();
+    expect(businessSelect()).toBeDisabled();
+    expect(roleSelect()).toBeDisabled();
+  });
+
+  it('shows a translated alert when demoError is provided', () => {
+    render(
+      <DemoEntryScreen
+        action={noopAction}
+        businessKeys={ONBOARDING_BUSINESS_TYPES}
+        demoError="rateLimited"
+        footer={<footer data-testid="demo-footer" />}
+      />,
+    );
+
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveTextContent('errors.rateLimited');
   });
 });

@@ -1,0 +1,61 @@
+{
+  "entry": {
+    "brand": "EXLFY",
+    "title": "عرض حي",
+    "subtitle": "اختر نوع النشاط والدور لاستكشاف النظام ببيانات نموذجية في بيئة آمنة.",
+    "businessLegend": "نوع النشاط",
+    "businessHelp": "اختر نوع عملك — يحمّل النظام بيئة عرض مخصّصة مع بيانات نموذجية.",
+    "roleLegend": "دور العرض",
+    "roleHelp": "كل دور يعرض صلاحيات وشاشات مختلفة — يمكن تغيير الدور بعد الدخول.",
+    "selectedBusiness": "النشاط المختار: {business}",
+    "selectedRole": "الدور المختار: {role}",
+    "submit": "الدخول إلى العرض",
+    "submitting": "جارٍ الدخول إلى العرض…"
+  },
+  "roles": {
+    "owner": "مالك",
+    "manager": "مدير",
+    "finance": "مالية",
+    "employee": "موظف مكتب",
+    "worker": "عامل ميداني",
+    "contractor": "مقاول باطن"
+  },
+  "businesses": {
+    "GENERAL_CONTRACTOR": "مقاول مشاريع",
+    "ELECTRICAL": "مقاول كهرباء",
+    "PLUMBING": "سباكة",
+    "HVAC": "تكييف",
+    "RENOVATION": "تجديد",
+    "SMALL_WORKS": "مقاول أعمال صغيرة",
+    "FIELD_SERVICE": "خدمة وصيانة",
+    "MAINTENANCE": "مقاول صيانة",
+    "FACILITY_MANAGEMENT": "إدارة مرافق",
+    "LANDSCAPING": "تنسيق حدائق",
+    "CLEANING": "خدمات تنظيف",
+    "INSTALLATION": "مقاول تركيب",
+    "ARCHITECT": "هندسة معمارية",
+    "DESIGNER": "تصميم",
+    "ENGINEERING_CONSULTANT": "هندسة / استشارات",
+    "SAFETY_INSPECTION_CONSULTANT": "فحص / اختبار",
+    "SUBCONTRACTOR": "مقاول باطن",
+    "PROJECT_MANAGEMENT": "مكتب إدارة مشاريع",
+    "REAL_ESTATE_DEVELOPMENT": "تطوير عقاري",
+    "MIXED_PROJECT_SERVICE": "عمل مختلط"
+  },
+  "session": {
+    "banner": "وضع العرض",
+    "businessLabel": "نوع النشاط",
+    "roleLabel": "الدور",
+    "apply": "تطبيق",
+    "applying": "جارٍ التطبيق…",
+    "exit": "الخروج من العرض"
+  },
+  "errors": {
+    "rateLimited": "لم يكتمل الدخول إلى العرض. يمكن المحاولة مرة أخرى. لا يوجد حد لعدد مرات الدخول.",
+    "failed": "فشل الدخول إلى العرض. حاول مرة أخرى.",
+    "disabled": "الدخول إلى العرض غير متاح حالياً.",
+    "invalidChoice": "الاختيار غير صالح. اختر نوع نشاط ودوراً من جديد.",
+    "notConfigured": "وضع العرض غير مهيأ في هذه البيئة.",
+    "signInUnsafe": "تعذّر إكمال تسجيل الدخول إلى العرض بشكل آمن."
+  }
+}

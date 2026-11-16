@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from 'react';
 import { useFormStatus } from 'react-dom';
+import { useTranslations } from 'next-intl';
 import {
   exitDemoAction,
   switchDemoBusinessProfileAction,
@@ -13,7 +14,15 @@ import type { OnboardingBusinessType } from '@/modules/tenancy/domain/onboarding
 type BusinessOption = { readonly key: OnboardingBusinessType; readonly label: string };
 type RoleChoice = { readonly key: DemoRoleKey; readonly label: string };
 
-function ApplyButton({ label, disabled }: { label: string; disabled: boolean }) {
+function ApplyButton({
+  label,
+  applyingLabel,
+  disabled,
+}: {
+  label: string;
+  applyingLabel: string;
+  disabled: boolean;
+}) {
   const { pending } = useFormStatus();
   const showPending = pending || disabled;
   return (
@@ -22,7 +31,7 @@ function ApplyButton({ label, disabled }: { label: string; disabled: boolean }) 
       disabled={showPending}
       className="min-h-11 shrink-0 rounded border border-amber-900/50 bg-white/80 px-2 text-xs font-medium text-amber-950 disabled:opacity-60 sm:px-2.5"
     >
-      {showPending ? '…' : label}
+      {showPending ? applyingLabel : label}
     </button>
   );
 }
@@ -53,6 +62,7 @@ export function DemoSessionBar({
   businessOptions: readonly BusinessOption[];
   roleChoices: readonly RoleChoice[];
 }) {
+  const t = useTranslations('demo');
   const [busy, setBusy] = useState(false);
 
   const selectClass =
@@ -70,7 +80,7 @@ export function DemoSessionBar({
       >
         <DemoFormControls busy={busy}>
           <label className="sr-only" htmlFor="demo-business-switch">
-            סוג עסק
+            {t('session.businessLabel')}
           </label>
           <select
             id="demo-business-switch"
@@ -80,11 +90,15 @@ export function DemoSessionBar({
           >
             {businessOptions.map((option) => (
               <option key={option.key} value={option.key}>
-                {option.label}
+                {t(`businesses.${option.key}`)}
               </option>
             ))}
           </select>
-          <ApplyButton label="עסק" disabled={busy} />
+          <ApplyButton
+            label={t('session.apply')}
+            applyingLabel={t('session.applying')}
+            disabled={busy}
+          />
         </DemoFormControls>
       </form>
 
@@ -95,16 +109,20 @@ export function DemoSessionBar({
       >
         <DemoFormControls busy={busy}>
           <label className="sr-only" htmlFor="demo-role-switch">
-            תפקיד
+            {t('session.roleLabel')}
           </label>
           <select id="demo-role-switch" name="roleKey" defaultValue={roleKey} className={selectClass}>
             {roleChoices.map((choice) => (
               <option key={choice.key} value={choice.key}>
-                {choice.label}
+                {t(`roles.${choice.key}`)}
               </option>
             ))}
           </select>
-          <ApplyButton label="תפקיד" disabled={busy} />
+          <ApplyButton
+            label={t('session.apply')}
+            applyingLabel={t('session.applying')}
+            disabled={busy}
+          />
         </DemoFormControls>
       </form>
 
@@ -115,7 +133,7 @@ export function DemoSessionBar({
             disabled={busy}
             className="min-h-11 rounded border border-amber-950/70 bg-amber-50 px-2.5 text-xs font-semibold text-amber-950 disabled:opacity-60 sm:text-sm"
           >
-            יציאה מהדמו
+            {t('session.exit')}
           </button>
         </DemoFormControls>
       </form>

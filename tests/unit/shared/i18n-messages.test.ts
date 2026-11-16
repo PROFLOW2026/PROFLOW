@@ -50,6 +50,7 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   'settings.activity.actions._fallback',
   'settings.activity.entities._fallback',
   'marketing.hero.brand',
+  'demo.entry.brand',
   'invoicingIntegration.settings.sumitTitle',
   'marketing.footer.note',
   // Pure math / formula templates that are language-neutral.

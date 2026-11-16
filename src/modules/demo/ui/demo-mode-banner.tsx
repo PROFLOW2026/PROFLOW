@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { getTranslations } from 'next-intl/server';
 import { DEMO_ROLE_CHOICES } from '@/modules/demo/domain/demo-roles';
 import { openDemoSessionCookie } from '@/modules/demo/application/session-cookie';
 import { demoBusinessProfileOptions } from '@/modules/demo/domain/demo-session-decisions';
@@ -8,6 +9,7 @@ import { DemoSessionBar } from './demo-session-bar';
 
 export async function DemoModeBanner({ active }: { active: boolean }) {
   if (!active) return null;
+  const t = await getTranslations('demo');
   const current = openDemoSessionCookie((await cookies()).get('demo_session')?.value);
   return (
     <div
@@ -17,7 +19,7 @@ export async function DemoModeBanner({ active }: { active: boolean }) {
     >
       <DemoLocalMarker />
       <div className="mx-auto flex w-full min-w-0 max-w-6xl flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm font-medium">
-        <span className="shrink-0 text-xs sm:text-sm">מצב הדגמה</span>
+        <span className="shrink-0 text-xs sm:text-sm">{t('session.banner')}</span>
         {current && isOnboardingBusinessType(current.profileKey) ? (
           <DemoSessionBar
             profileKey={current.profileKey}

@@ -1,0 +1,61 @@
+{
+  "entry": {
+    "brand": "EXLFY",
+    "title": "Live demo",
+    "subtitle": "Choose a business type and role to explore the system with sample data in a safe environment.",
+    "businessLegend": "Business type",
+    "businessHelp": "Pick your trade — the system loads a tailored demo environment with sample data.",
+    "roleLegend": "Demo role",
+    "roleHelp": "Each role shows different permissions and screens — you can switch roles after entering.",
+    "selectedBusiness": "Selected business: {business}",
+    "selectedRole": "Selected role: {role}",
+    "submit": "Enter demo",
+    "submitting": "Entering demo…"
+  },
+  "roles": {
+    "owner": "Owner",
+    "manager": "Manager",
+    "finance": "Finance",
+    "employee": "Office staff",
+    "worker": "Field worker",
+    "contractor": "Subcontractor"
+  },
+  "businesses": {
+    "GENERAL_CONTRACTOR": "Project contractor",
+    "ELECTRICAL": "Electrical contractor",
+    "PLUMBING": "Plumbing",
+    "HVAC": "HVAC",
+    "RENOVATION": "Renovation",
+    "SMALL_WORKS": "Small works contractor",
+    "FIELD_SERVICE": "Service and maintenance",
+    "MAINTENANCE": "Maintenance contractor",
+    "FACILITY_MANAGEMENT": "Facility management",
+    "LANDSCAPING": "Landscaping",
+    "CLEANING": "Cleaning services",
+    "INSTALLATION": "Installation contractor",
+    "ARCHITECT": "Architecture",
+    "DESIGNER": "Design",
+    "ENGINEERING_CONSULTANT": "Engineering / consulting",
+    "SAFETY_INSPECTION_CONSULTANT": "Inspection / testing",
+    "SUBCONTRACTOR": "Subcontractor",
+    "PROJECT_MANAGEMENT": "Project management office",
+    "REAL_ESTATE_DEVELOPMENT": "Real estate development",
+    "MIXED_PROJECT_SERVICE": "Mixed business"
+  },
+  "session": {
+    "banner": "Demo mode",
+    "businessLabel": "Business type",
+    "roleLabel": "Role",
+    "apply": "Apply",
+    "applying": "Applying…",
+    "exit": "Exit demo"
+  },
+  "errors": {
+    "rateLimited": "Demo entry did not finish. You can try again. There is no limit on how many times you can enter.",
+    "failed": "Demo entry failed. Please try again.",
+    "disabled": "Demo entry is not available right now.",
+    "invalidChoice": "That choice is not valid. Pick a business type and role again.",
+    "notConfigured": "Demo mode is not configured in this environment.",
+    "signInUnsafe": "Demo sign-in could not be completed securely."
+  }
+}

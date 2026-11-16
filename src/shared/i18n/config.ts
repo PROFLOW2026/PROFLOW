@@ -55,6 +55,7 @@ export const MESSAGE_NAMESPACES = [
   'organization',
   'settings',
   'dashboard',
+  'demo',
   'financial',
   'status',
   'projects',
@@ -217,6 +218,7 @@ export const APP_CLIENT_MESSAGE_NAMESPACES = [
   'changes',
   'billing',
   'billingPlan',
+  'demo',
   'documents',
   'externalStorage',
   'workforce',
@@ -276,6 +278,7 @@ export const PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES = [
 export const CONTRACTOR_PORTAL_CLIENT_MESSAGE_NAMESPACES = [
   'common',
   'appearance',
+  'demo',
   'errors',
   'offline',
   'validation',
