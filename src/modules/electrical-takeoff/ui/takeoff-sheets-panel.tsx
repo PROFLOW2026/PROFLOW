@@ -76,7 +76,6 @@ function TakeoffSheetsPanelInner({
   const fileNameById = useMemo(() => new Map(view.files.map((f) => [f.id, f.name])), [view.files]);
 
   const dwgSheets = view.sheets.filter((s) => s.kind === 'dwg_layout' || s.kind === 'dwg_model');
-  const pdfSheets = view.sheets.filter((s) => s.kind === 'pdf_page');
 
   const stats = useMemo(() => {
     const m = new Map<string, { total: number; counted: number }>();
@@ -123,7 +122,6 @@ function TakeoffSheetsPanelInner({
     >
       <header className="space-y-2 border-b border-[var(--pf-border-default)] px-3 py-2">
         <h2 className="text-sm font-semibold">{t('sheets.title')}</h2>
-        <p className="text-xs text-[var(--pf-text-muted)]">{t('sheets.hint')}</p>
         <input
           type="search"
           data-testid="takeoff-sheets-filter"
@@ -176,7 +174,6 @@ function TakeoffSheetsPanelInner({
           ))
         )}
       </ul>
-      <p className="border-t border-[var(--pf-border-default)] px-3 py-2 text-[10px] text-[var(--pf-text-muted)]">{t('sheets.pairDefer')}</p>
     </section>
   );
 }

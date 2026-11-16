@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { boqLineDisplayLabel, boqLineStatus, detectionCensus, detectionDisplayLabel } from '@/modules/electrical-takeoff/ui/boq-display';
+import { boqLineDisplayLabel, boqLineStatus, detectionCensus, detectionDisplayLabel, groupBoqLinesForDisplay, groupDetectionsForControl } from '@/modules/electrical-takeoff/ui/boq-display';
 import type { BoqLine, CatalogType } from '@/modules/electrical-takeoff/domain/contracts';
 
 const catalog: CatalogType[] = [
@@ -81,5 +81,46 @@ describe('boqLineDisplayLabel', () => {
     expect(
       detectionDisplayLabel({ id: 'p1#4', typeKey: null, rawClass: 'BLOCK_SOCKET', tagText: 'T22' }, catalog, 'לא מסווג — לבדיקה'),
     ).toBe('לא מסווג — לבדיקה');
+  });
+});
+
+describe('groupDetectionsForControl', () => {
+  it('collapses identical marks into one row and keeps items that need a check first', () => {
+    const rows = [
+      { id: 'a', typeKey: 'power.socket.single', needsReview: false, tagText: null },
+      { id: 'b', typeKey: 'power.socket.single', needsReview: false, tagText: 'X2' },
+      { id: 'c', typeKey: null, needsReview: true, tagText: null },
+      { id: 'd', typeKey: null, needsReview: true, tagText: null },
+    ];
+    const groups = groupDetectionsForControl(
+      rows,
+      (row) => (row.typeKey ? 'שקע' : 'לא מסווג'),
+      (row) => (row.tagText === 'X2' ? 2 : 1),
+    );
+    expect(groups.map((group) => group.label)).toEqual(['לא מסווג', 'שקע']);
+    expect(groupBoqLinesForDisplay(
+      [line({ key: 'a', typeKey: null, quantity: 4, detectionIds: ['1'] }), line({ key: 'b', typeKey: null, quantity: 7, detectionIds: ['2'] })],
+      catalog,
+      'לא מסווג — לבדיקה',
+      false,
+    )).toMatchObject([{ label: 'לא מסווג — לבדיקה', quantity: 11, detectionIds: ['1', '2'] }]);
+    expect(groups).toEqual([
+      {
+        key: 'check::לא מסווג',
+        label: 'לא מסווג',
+        quantity: 2,
+        needsAttention: true,
+        detectionIds: ['c', 'd'],
+        focusId: 'c',
+      },
+      {
+        key: 'ok::שקע',
+        label: 'שקע',
+        quantity: 3,
+        needsAttention: false,
+        detectionIds: ['a', 'b'],
+        focusId: 'a',
+      },
+    ]);
   });
 });

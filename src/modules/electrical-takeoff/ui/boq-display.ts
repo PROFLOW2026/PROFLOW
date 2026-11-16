@@ -29,6 +29,80 @@ export function detectionCensus(
   return { total: detections.length, typed, untyped, typedNeedingCheck };
 }
 
+export type ControlGroup = {
+  key: string;
+  label: string;
+  quantity: number;
+  needsAttention: boolean;
+  detectionIds: string[];
+  focusId: string;
+};
+
+/** One row per type and status, so the review list is not a copy of every mark. */
+export function groupDetectionsForControl<T extends { id: string; typeKey: string | null; needsReview: boolean }>(
+  detections: readonly T[],
+  labelOf: (detection: T) => string,
+  quantityOf: (detection: T) => number,
+): ControlGroup[] {
+  const groups = new Map<string, ControlGroup>();
+  for (const detection of detections) {
+    const needsAttention = detection.needsReview || !detection.typeKey;
+    const label = labelOf(detection);
+    const key = `${needsAttention ? 'check' : 'ok'}::${label}`;
+    const quantity = quantityOf(detection);
+    const existing = groups.get(key);
+    if (!existing) {
+      groups.set(key, {
+        key,
+        label,
+        quantity,
+        needsAttention,
+        detectionIds: [detection.id],
+        focusId: detection.id,
+      });
+      continue;
+    }
+    existing.quantity += quantity;
+    existing.detectionIds.push(detection.id);
+  }
+  return [...groups.values()].sort((a, b) => {
+    if (a.needsAttention !== b.needsAttention) return a.needsAttention ? -1 : 1;
+    return b.quantity - a.quantity || a.label.localeCompare(b.label, 'he');
+  });
+}
+
+/** Collapse quantity rows that read as the same device and status. Does not change stored quantities. */
+export function groupBoqLinesForDisplay(
+  lines: readonly BoqLine[],
+  catalog: readonly CatalogType[],
+  unclassifiedLabel: string,
+  suppressVerified: boolean,
+): BoqLine[] {
+  const groups = new Map<string, BoqLine>();
+  for (const line of lines) {
+    const label = boqLineDisplayLabel(line, catalog, unclassifiedLabel);
+    const status = boqLineStatus(line, suppressVerified);
+    const key = `${status}::${label}`;
+    const existing = groups.get(key);
+    if (!existing) {
+      groups.set(key, {
+        ...line,
+        label,
+        detectionIds: [...line.detectionIds],
+      });
+      continue;
+    }
+    existing.quantity += line.quantity;
+    existing.symbolCount = undefined;
+    existing.detectionIds = [...existing.detectionIds, ...line.detectionIds];
+  }
+  const rank: Record<BoqLineStatus, number> = { needsReview: 0, forReview: 1, verified: 2 };
+  return [...groups.values()].sort((a, b) => {
+    const statusDelta = rank[boqLineStatus(a, suppressVerified)] - rank[boqLineStatus(b, suppressVerified)];
+    return statusDelta || b.quantity - a.quantity || a.label.localeCompare(b.label, 'he');
+  });
+}
+
 export function boqLineDisplayLabel(
   line: BoqLine,
   catalog: readonly CatalogType[],

@@ -127,6 +127,8 @@
     "showUnclassified": "Show {count} unclassified BOQ lines",
     "hideUnclassified": "Hide unclassified lines",
     "summary": "{unclassified} unclassified · {review} need review",
+    "countedShort": "Counted {count}",
+    "statusIdentified": "Identified",
     "markCounts": "{total} marks · {typed} typed · {untyped} untyped",
     "typedNeedCheck": "{count} typed marks still need a check",
     "empty": "No lines yet",
@@ -166,6 +168,7 @@
     "confirmMark": "Confirm mark",
     "deviceCount": "Devices for this symbol",
     "deviceCountHint": "The symbol stays one. X2 counts as 2. Any other number is saved only after you set it.",
+    "groupAria": "{type}, quantity {quantity}, {status}",
     "rawClass": "Raw class",
     "twin": "PDF/DWG pairing",
     "twinState": {
@@ -225,7 +228,12 @@
     "focusTable": "Table",
     "sideBoq": "Quantities",
     "sideReview": "Review",
-    "sideSheet": "Sheet"
+    "sideSheet": "Sheet",
+    "statusLine": "{total} marks · {pending} to check",
+    "reviewNow": "Check",
+    "exportBlocked": "Export opens after approval",
+    "approveNeedsReview": "To approve: finish the check",
+    "approveNeedsPlan": "To approve: confirm you checked the plan"
   },
   "approval": {
     "approve": "Approve BOQ",
@@ -233,12 +241,15 @@
     "blocked": "Approval blocked — resolve review items first",
     "blockedHint": "Items still need review before approval",
     "blockedPlanHint": "Before approval, confirm you also checked devices the detection missed",
-    "planReviewLabel": "I checked the plan for devices that were not detected",
+    "planReviewLabel": "I checked the plan",
     "planReviewHint": "This confirmation is separate from review items. It means you inspected the drawing itself, including devices the engine missed.",
     "readyHint": "You can approve when all review items are resolved"
   },
   "export": {
     "excel": "Export Excel",
+    "excelShort": "Excel",
+    "boqPdfShort": "PDF",
+    "annotatedPdfShort": "Tagged PDF",
     "disabledHint": "Approve the analysis to export",
     "boqPdf": "BOQ PDF",
     "annotatedPdf": "Annotated PDF",

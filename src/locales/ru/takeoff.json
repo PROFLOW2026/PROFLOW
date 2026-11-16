@@ -127,6 +127,8 @@
     "showUnclassified": "Показать {count} без класса в ведомости",
     "hideUnclassified": "Скрыть строки без класса",
     "summary": "{unclassified} без класса · {review} на проверке",
+    "countedShort": "Посчитано {count}",
+    "statusIdentified": "Распознано",
     "markCounts": "{total} меток · {typed} с типом · {untyped} без типа",
     "typedNeedCheck": "{count} классифицированных всё ещё требуют проверки",
     "empty": "Позиций пока нет",
@@ -166,6 +168,7 @@
     "confirmMark": "Подтвердить отметку",
     "deviceCount": "Устройств на символ",
     "deviceCountHint": "Символ остаётся одним. X2 считается как 2. Другое число сохраняется только если вы его указали.",
+    "groupAria": "{type}, количество {quantity}, {status}",
     "rawClass": "Исходный класс",
     "twin": "Связка PDF/DWG",
     "twinState": {
@@ -225,7 +228,12 @@
     "focusTable": "Таблица",
     "sideBoq": "Ведомость",
     "sideReview": "Проверка",
-    "sideSheet": "Лист"
+    "sideSheet": "Лист",
+    "statusLine": "{total} меток · {pending} на проверку",
+    "reviewNow": "Проверка",
+    "exportBlocked": "Экспорт откроется после утверждения",
+    "approveNeedsReview": "Для утверждения: завершите проверку",
+    "approveNeedsPlan": "Для утверждения: подтвердите, что чертёж проверен"
   },
   "approval": {
     "approve": "Утвердить ведомость",
@@ -233,12 +241,15 @@
     "blocked": "Утверждение заблокировано — закройте позиции проверки",
     "blockedHint": "Есть позиции на проверке — сначала закройте их",
     "blockedPlanHint": "Перед утверждением подтвердите, что проверены и приборы, которые распознавание пропустило",
-    "planReviewLabel": "Я проверил чертёж и на приборы, которые не были распознаны",
+    "planReviewLabel": "Чертёж проверен",
     "planReviewHint": "Это подтверждение отдельно от позиций на проверке. Оно значит, что чертёж просмотрен целиком, включая пропущенные приборы.",
     "readyHint": "Утверждение доступно, когда все позиции проверки закрыты"
   },
   "export": {
     "excel": "Экспорт Excel",
+    "excelShort": "Excel",
+    "boqPdfShort": "PDF",
+    "annotatedPdfShort": "PDF с метками",
     "disabledHint": "Утвердите анализ для экспорта",
     "boqPdf": "PDF ведомости",
     "annotatedPdf": "Размеченный PDF",

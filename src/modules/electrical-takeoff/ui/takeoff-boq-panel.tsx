@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import type { Boq, BoqLine, CatalogType } from '../domain/contracts';
-import { boqLineDisplayLabel, boqLineStatus } from './boq-display';
+import { boqLineDisplayLabel, boqLineStatus, groupBoqLinesForDisplay } from './boq-display';
 
 export function TakeoffBoqPanel({
   boq,
@@ -27,6 +27,7 @@ export function TakeoffBoqPanel({
   const t = useTranslations('takeoff');
   const classifiedQty = boq.lines.filter((l) => l.typeKey != null && !l.excluded).reduce((s, l) => s + l.quantity, 0);
   const unclassifiedLabel = t('detection.unclassified');
+  const displayLines = groupBoqLinesForDisplay(lines, catalog, unclassifiedLabel, Boolean(suppressVerified));
 
   const statusLabel = (line: BoqLine) => {
     const status = boqLineStatus(line, Boolean(suppressVerified));
@@ -40,39 +41,18 @@ export function TakeoffBoqPanel({
       className="flex min-w-0 max-w-full flex-col rounded-lg border border-[var(--pf-border-default)]"
       data-testid="takeoff-boq-panel"
     >
-      <header className="border-b border-[var(--pf-border-default)] px-3 py-2">
-        <h2 className="text-sm font-semibold text-[var(--pf-text-primary)]">{t('boq.title')}</h2>
-        <p className="text-xs text-[var(--pf-text-muted)]">
-          {t('boq.classifiedSummary', {
-            lines: boq.lines.filter((l) => l.typeKey != null).length,
-            quantity: classifiedQty,
-          })}
-        </p>
-        <p className="text-xs text-[var(--pf-text-muted)]">
-          {t('boq.summary', { unclassified: boq.unclassifiedCount, review: boq.needsReviewCount })}
+      <header className="flex items-center justify-between gap-2 border-b border-[var(--pf-border-default)] px-2 py-1">
+        <p className="text-xs text-[var(--pf-text-secondary)]" data-testid="takeoff-boq-counting">
+          {t('boq.countedShort', { count: boq.counting?.countedTotal ?? classifiedQty })}
         </p>
         {boq.unclassifiedCount > 0 && onToggleUnclassified ? (
           <button
             type="button"
-            className="mt-1 text-xs text-[var(--pf-text-brand)] underline"
+            className="shrink-0 text-xs text-[var(--pf-text-brand)] underline"
             onClick={onToggleUnclassified}
           >
             {showUnclassified ? t('boq.hideUnclassified') : t('boq.showUnclassified', { count: boq.unclassifiedCount })}
           </button>
-        ) : null}
-        {boq.counting ? (
-          <p className="mt-1 text-xs text-[var(--pf-text-secondary)]" data-testid="takeoff-boq-counting">
-            {t('boq.countingSummary', {
-              counted: boq.counting.countedTotal,
-              pdf: boq.counting.countedBySource.pdf,
-              dwg: boq.counting.countedBySource.dwg,
-              merged: boq.counting.countedBySource.merged,
-              pdfOnly: boq.counting.excluded.pdfOnly,
-              legend: boq.counting.excluded.legendZone,
-              twins: boq.counting.twinsCollapsed ?? 0,
-              sheetExcluded: boq.counting.excluded.sheetExcluded ?? 0,
-            })}
-          </p>
         ) : null}
       </header>
       <div className="min-w-0">
@@ -91,14 +71,14 @@ export function TakeoffBoqPanel({
             </tr>
           </thead>
           <tbody>
-            {lines.length === 0 ? (
+            {displayLines.length === 0 ? (
               <tr>
                 <td colSpan={3} className="p-3 text-xs text-[var(--pf-text-muted)]">
                   {t('boq.empty')}
                 </td>
               </tr>
             ) : (
-              lines.map((line) => {
+              displayLines.map((line) => {
                 const displayName = boqLineDisplayLabel(line, catalog, unclassifiedLabel);
                 const status = statusLabel(line);
                 const tone = boqLineStatus(line, Boolean(suppressVerified));

@@ -5,7 +5,6 @@ import { useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
-  AlertTriangle,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -21,7 +20,7 @@ import type { TakeoffEdit, TakeoffReviewReason } from '../domain/contracts';
 import { useTakeoffApi } from './api-provider';
 import { PlanViewer } from './viewer/plan-viewer';
 import { formatTakeoffDisplayName } from '../domain/format-display-name';
-import { detectionCensus, detectionDisplayLabel } from './boq-display';
+import { detectionCensus, detectionDisplayLabel, groupDetectionsForControl } from './boq-display';
 import { blurSelectOnWheel } from './blur-select-on-wheel';
 import { devicesFromNote } from '../domain/quantity-notes';
 import { isRevisionConflictError, takeoffErrorCode } from './takeoff-errors';
@@ -232,11 +231,25 @@ export function TakeoffWorkspace({
   const approvalBlockedByPlan = view.planReviewConfirmed !== true;
   const canClickApprove = view.permissions.canApprove && !approvalBlockedByReview && !approvalBlockedByPlan;
   const census = detectionCensus(view.detections);
+  const pendingReview = census.untyped + census.typedNeedingCheck;
+  const actionHint =
+    view.summary.status === 'approved'
+      ? null
+      : approvalBlockedByReview
+        ? t('workspace.approveNeedsReview')
+        : approvalBlockedByPlan
+          ? t('workspace.approveNeedsPlan')
+          : t('workspace.exportBlocked');
+  const controlGroups = groupDetectionsForControl(
+    sheetDetections,
+    (detection) => detectionDisplayLabel(detection, view.catalog, t('detection.unclassified')),
+    (detection) => devicesFromNote(detection.tagText),
+  );
   const planHiddenOnMobile = state.mobilePanel !== 'plan' && !planExpanded;
   const sideHiddenOnMobile = state.mobilePanel !== 'boq' || planExpanded;
 
   return (
-    <div className="flex h-[calc(100dvh-9rem)] max-h-[calc(100dvh-9rem)] min-h-0 min-w-0 flex-1 shrink-0 flex-col overflow-x-hidden overflow-y-hidden">
+    <div className="flex h-[calc(100dvh-11rem)] max-h-[calc(100dvh-11rem)] min-h-0 min-w-0 flex-1 shrink-0 flex-col overflow-x-hidden overflow-y-hidden">
       {infoOpen ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-3 sm:items-center" role="dialog" aria-modal aria-label={t('workspace.info')}>
           <div className="max-h-[80dvh] w-full max-w-lg overflow-y-auto rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3">
@@ -246,6 +259,10 @@ export function TakeoffWorkspace({
                 {t('common.close')}
               </Button>
             </div>
+            <p className="mb-2 text-xs text-[var(--pf-text-secondary)]">
+              {t('boq.markCounts', { total: census.total, typed: census.typed, untyped: census.untyped })}
+              {census.typedNeedingCheck > 0 ? ` · ${t('boq.typedNeedCheck', { count: census.typedNeedingCheck })}` : ''}
+            </p>
             <TakeoffLimitationsBanner
               view={state.view}
               onFocusSheet={(sheetKey) => {
@@ -279,7 +296,131 @@ export function TakeoffWorkspace({
       ) : null}
 
       <div className="shrink-0 border-b border-[var(--pf-border-default)]">
-        <div className="flex min-w-0 gap-1 overflow-x-auto px-2 pt-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-1 px-2 py-1">
+          <p className="me-auto text-xs font-medium text-[var(--pf-text-primary)]">
+            {t('workspace.statusLine', { total: census.total, pending: pendingReview })}
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            className="min-h-11"
+            variant={sideTab === 'review' ? 'primary' : 'secondary'}
+            onClick={() => {
+              setSideTab('review');
+              setFocusMode('split');
+              focusReview(state.reviewIndex);
+            }}
+          >
+            {t('workspace.reviewNow')}
+          </Button>
+          {view.summary.status !== 'approved' ? (
+            <label className="flex min-h-11 items-center gap-1 text-xs text-[var(--pf-text-primary)]">
+              <input
+                type="checkbox"
+                className="size-4 shrink-0"
+                data-testid="takeoff-plan-review"
+                checked={view.planReviewConfirmed === true}
+                disabled={readOnly}
+                onChange={(e) => queueEdit({ op: 'confirm_plan_review', confirmed: e.target.checked })}
+              />
+              <span className="font-medium" title={t('approval.planReviewHint')}>{t('approval.planReviewLabel')}</span>
+            </label>
+          ) : null}
+          {view.summary.status === 'approved' && view.permissions.canReopen ? (
+            <Button
+              type="button"
+              data-testid="takeoff-reopen"
+              variant="secondary"
+              className="min-h-11"
+              onClick={() =>
+                void api.reopenAnalysis(analysisId, state.view!.summary.revision).then((v) =>
+                  setState((s) => ({ ...s, view: v })),
+                )
+              }
+            >
+              <RotateCcw className="size-4" />
+              {t('approval.reopen')}
+            </Button>
+          ) : view.summary.status !== 'approved' ? (
+            <Button
+              type="button"
+              data-testid="takeoff-approve"
+              className="min-h-11"
+              disabled={!canClickApprove}
+              title={
+                !canClickApprove && approvalBlockedByReview
+                  ? t('approval.blockedHint')
+                  : !canClickApprove && approvalBlockedByPlan
+                    ? t('approval.blockedPlanHint')
+                    : t('approval.approve')
+              }
+              onClick={() =>
+                void api
+                  .approveAnalysis(analysisId, state.view!.summary.revision)
+                  .then((v) => setState((s) => ({ ...s, view: v, saveNotice: null })))
+                  .catch((err) => {
+                    const code = takeoffErrorCode(err);
+                    const message =
+                      code === 'approval_blocked_plan_review'
+                        ? t('errors.approval_blocked_plan_review')
+                        : code === 'approval_blocked_review'
+                          ? t('errors.approval_blocked_review')
+                          : t('approval.blocked');
+                    setState((s) => ({ ...s, saveNotice: message }));
+                  })
+              }
+            >
+              <Check className="size-4" />
+              {t('approval.approve')}
+            </Button>
+          ) : null}
+          {(['xlsx', 'boq-pdf', 'annotated-pdf'] as const).map((kind) => {
+            const ready = exportLinks[kind];
+            const testId =
+              kind === 'xlsx' ? 'takeoff-export-xlsx' : kind === 'boq-pdf' ? 'takeoff-export-boq-pdf' : 'takeoff-export-annotated-pdf';
+            const labelKey = kind === 'xlsx' ? 'excelShort' : kind === 'boq-pdf' ? 'boqPdfShort' : 'annotatedPdfShort';
+            const fullKey = kind === 'xlsx' ? 'excel' : kind === 'boq-pdf' ? 'boqPdf' : 'annotatedPdf';
+            return (
+              <div key={kind} className="flex min-h-11 flex-col justify-center">
+                <Button
+                  type="button"
+                  data-testid={testId}
+                  variant="secondary"
+                  className="min-h-11"
+                  disabled={view.summary.status !== 'approved' || exportBusy === kind}
+                  title={view.summary.status !== 'approved' ? t('workspace.exportBlocked') : t(`export.${fullKey}`)}
+                  aria-busy={exportBusy === kind}
+                  onClick={() => {
+                    setExportBusy(kind);
+                    void api
+                      .requestExport(analysisId, kind)
+                      .then(async ({ url, fileName }) => {
+                        setState((s) => ({ ...s, saveNotice: t('export.pending') }));
+                        await waitForExportReady(url);
+                        setExportLinks((prev) => ({ ...prev, [kind]: { url, fileName } }));
+                        setState((s) => ({ ...s, saveNotice: t('export.ready', { name: fileName }) }));
+                      })
+                      .catch(() => setState((s) => ({ ...s, saveNotice: t('export.failed') })))
+                      .finally(() => setExportBusy(null));
+                  }}
+                >
+                  <Download className="size-4" />
+                  {exportBusy === kind ? t('export.pending') : t(`export.${labelKey}`)}
+                </Button>
+                {ready ? (
+                  <a href={ready.url} download={ready.fileName} className="text-center text-[10px] text-[var(--pf-text-brand)] underline">
+                    {t('export.open')}
+                  </a>
+                ) : null}
+              </div>
+            );
+          })}
+          {actionHint ? <span className="text-xs text-[var(--pf-status-warning-fg)]">{actionHint}</span> : null}
+          <Button type="button" size="sm" variant="ghost" className="min-h-11 min-w-11" aria-label={t('workspace.info')} onClick={() => setInfoOpen(true)}>
+            <Info className="size-4" />
+          </Button>
+        </div>
+        <div className="flex min-w-0 gap-1 overflow-x-auto px-2">
             {state.view.sheets.map((s) => {
               const id = sheetRefId(s);
               return (
@@ -288,11 +429,11 @@ export function TakeoffWorkspace({
                   type="button"
                   size="sm"
                   variant={id === state.activeSheetKey ? 'primary' : 'secondary'}
-                  className="min-h-11 max-w-full shrink-0 truncate"
+                  className="min-h-9 max-w-full shrink-0 truncate"
                   onClick={() => setState((st) => ({ ...st, activeSheetKey: id }))}
                 >
                   {formatTakeoffDisplayName(s.name)}
-                  {!s.scale.verified || hasBlockingWorkerWarnings(view) ? (
+                  {!s.scale.verified ? (
                     <span className="ms-1 rounded bg-[var(--pf-status-warning-bg)] px-1 text-[10px]">{t('scale.unverified')}</span>
                   ) : null}
                 </Button>
@@ -342,9 +483,36 @@ export function TakeoffWorkspace({
                 {t('library.open')}
               </Button>
             ) : null}
-            <Button type="button" size="sm" variant="ghost" className="min-h-11 min-w-11" aria-label={t('workspace.info')} onClick={() => setInfoOpen(true)}>
-              <Info className="size-4" />
+            <Button
+              type="button"
+              variant="ghost"
+              className="min-h-11"
+              disabled={readOnly}
+              onClick={() => {
+                if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+                const batch = pendingRef.current;
+                pendingRef.current = [];
+                void flushEdits(batch);
+              }}
+            >
+              {t('workspace.saveNow')}
             </Button>
+            {view.permissions.canPurgeEphemeral ? (
+              <Button
+                type="button"
+                data-testid="takeoff-purge-ephemeral"
+                variant="ghost"
+                className="min-h-11"
+                onClick={() =>
+                  void api.purgeEphemeralTakeoff(analysisId).then(() => {
+                    router.push(listPath);
+                  })
+                }
+              >
+                <Eraser className="size-4" />
+                {t('ephemeral.purge')}
+              </Button>
+            ) : null}
             <div className="flex gap-1 lg:hidden">
               <Button type="button" size="sm" variant={state.mobilePanel === 'plan' ? 'primary' : 'ghost'} className="min-h-11" onClick={() => setState((s) => ({ ...s, mobilePanel: 'plan' }))}>
                 {t('mobile.plan')}
@@ -430,11 +598,6 @@ export function TakeoffWorkspace({
               </Button>
             ))}
           </div>
-          <p className="shrink-0 px-2 py-1 text-xs text-[var(--pf-text-secondary)]">
-            {t('boq.markCounts', { total: census.total, typed: census.typed, untyped: census.untyped })}
-            {census.typedNeedingCheck > 0 ? ` · ${t('boq.typedNeedCheck', { count: census.typedNeedingCheck })}` : ''}
-          </p>
-
           <div className={`min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2 ${sideTab === 'boq' ? 'flex' : 'hidden'}`}>
             <TakeoffBoqPanel
               boq={state.view.boq}
@@ -449,45 +612,55 @@ export function TakeoffWorkspace({
           </div>
 
           <div className={`min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2 ${sideTab === 'review' ? 'flex' : 'hidden'}`}>
-            <div className="rounded-lg border border-[var(--pf-border-default)] p-2">
-              <p className="mb-1 text-xs font-medium text-[var(--pf-text-secondary)]">{t('detection.listTitle')}</p>
-              <ul className="space-y-1">
-                {sheetDetections.slice(0, 200).map((d) => (
-                  <li key={d.id}>
-                    <button
-                      type="button"
-                      data-testid="takeoff-detection-row"
-                      aria-label={t('detection.rowAria', {
-                        id: d.id,
-                        type: detectionDisplayLabel(d, view.catalog, t('detection.unclassified')),
-                      })}
-                      className="flex min-h-11 w-full min-w-0 items-center justify-between gap-2 rounded-md px-2 text-start text-xs hover:bg-[var(--pf-action-subtle-hover)]"
-                      onClick={() => setState((s) => ({ ...s, selectedDetectionId: d.id }))}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          setState((s) => ({ ...s, selectedDetectionId: d.id }));
-                        }
-                      }}
-                    >
-                      <span className="min-w-0 truncate font-medium text-[var(--pf-text-primary)]">
-                        {detectionDisplayLabel(d, view.catalog, t('detection.unclassified'))}
-                      </span>
-                      <span className="shrink-0 tabular-nums text-[var(--pf-text-secondary)]" aria-hidden>
-                        {devicesFromNote(d.tagText)}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="rounded-lg border border-[var(--pf-border-default)] p-3">
-              <h3 className="mb-2 text-sm font-semibold">{t('review.title')}</h3>
-              {reviewQueue.length === 0 ? (
-                <p className="text-xs text-[var(--pf-text-muted)]">{t('review.empty')}</p>
+            <ul className="overflow-hidden rounded-lg border border-[var(--pf-border-default)]">
+              {controlGroups.length === 0 ? (
+                <li className="p-2 text-xs text-[var(--pf-text-muted)]">{t('review.empty')}</li>
               ) : (
-                <>
+                controlGroups.map((group) => {
+                  const status = group.needsAttention ? t('boq.statusNeedsReview') : t('boq.statusIdentified');
+                  return (
+                    <li key={group.key} className="border-b border-[var(--pf-border-default)] last:border-b-0">
+                      <button
+                        type="button"
+                        data-testid="takeoff-detection-row"
+                        aria-label={t('detection.groupAria', {
+                          type: group.label,
+                          quantity: group.quantity,
+                          status,
+                        })}
+                        className="flex min-h-11 w-full min-w-0 items-center gap-2 px-2 text-start text-xs hover:bg-[var(--pf-action-subtle-hover)]"
+                        onClick={() => {
+                          const queueIndex = reviewQueue.findIndex((item) => item.id === group.focusId);
+                          setState((current) => ({
+                            ...current,
+                            selectedDetectionId: group.focusId,
+                            highlightedDetectionIds: new Set(group.detectionIds),
+                            focusBoqLineKey: null,
+                            reviewIndex: queueIndex >= 0 ? queueIndex : current.reviewIndex,
+                            mobilePanel: 'plan',
+                          }));
+                        }}
+                      >
+                        <span className="min-w-0 flex-1 truncate font-medium text-[var(--pf-text-primary)]">{group.label}</span>
+                        <span className="shrink-0 tabular-nums font-semibold text-[var(--pf-text-brand)]">{group.quantity}</span>
+                        <span
+                          className={`shrink-0 rounded px-1.5 py-0.5 ${
+                            group.needsAttention
+                              ? 'bg-[var(--pf-status-warning-bg)] text-[var(--pf-status-warning-fg)]'
+                              : 'bg-[var(--pf-bg-muted)] text-[var(--pf-text-secondary)]'
+                          }`}
+                        >
+                          {status}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })
+              )}
+            </ul>
+
+            {reviewQueue.length > 0 ? (
+            <div className="rounded-lg border border-[var(--pf-border-default)] p-2">
                   <p className="mb-2 text-xs text-[var(--pf-text-secondary)]">
                     {t('review.position', { current: state.reviewIndex + 1, total: reviewQueue.length })}
                   </p>
@@ -600,9 +773,8 @@ export function TakeoffWorkspace({
                       {t('review.toggleSelect')}
                     </Button>
                   </div>
-                </>
-              )}
             </div>
+            ) : null}
           </div>
 
           <div className={`min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2 ${sideTab === 'sheet' ? 'flex' : 'hidden'}`}>
@@ -725,166 +897,6 @@ export function TakeoffWorkspace({
         </div>
       ) : null}
 
-      <footer className="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2">
-        {view.summary.status !== 'approved' ? (
-          <label className="flex min-h-11 min-w-0 flex-1 items-start gap-2 text-xs text-[var(--pf-text-primary)]">
-            <input
-              type="checkbox"
-              className="mt-0.5 size-4 shrink-0"
-              data-testid="takeoff-plan-review"
-              checked={view.planReviewConfirmed === true}
-              disabled={readOnly}
-              onChange={(e) => queueEdit({ op: 'confirm_plan_review', confirmed: e.target.checked })}
-            />
-            <span className="font-medium" title={t('approval.planReviewHint')}>{t('approval.planReviewLabel')}</span>
-          </label>
-        ) : null}
-        {approvalBlockedByReview ? (
-          <p className="flex min-w-0 basis-full items-center gap-1 text-xs text-[var(--pf-status-warning-fg)]">
-            <AlertTriangle className="size-4 shrink-0" />
-            {t('approval.blockedHint')}
-          </p>
-        ) : null}
-        {!approvalBlockedByReview && approvalBlockedByPlan && view.summary.status !== 'approved' ? (
-          <p className="flex min-w-0 basis-full items-center gap-1 text-xs text-[var(--pf-status-warning-fg)]">
-            <AlertTriangle className="size-4 shrink-0" />
-            {t('approval.blockedPlanHint')}
-          </p>
-        ) : null}
-        {view.summary.status === 'approved' && view.permissions.canReopen ? (
-          <Button
-            type="button"
-            data-testid="takeoff-reopen"
-            variant="secondary"
-            className="min-h-11"
-            onClick={() =>
-              void api.reopenAnalysis(analysisId, state.view!.summary.revision).then((v) =>
-                setState((s) => ({ ...s, view: v })),
-              )
-            }
-          >
-            <RotateCcw className="size-4" />
-            {t('approval.reopen')}
-          </Button>
-        ) : view.summary.status !== 'approved' ? (
-          <Button
-            type="button"
-            data-testid="takeoff-approve"
-            className="min-h-11"
-            disabled={!canClickApprove}
-            title={
-              !canClickApprove && approvalBlockedByReview
-                ? t('approval.blockedHint')
-                : !canClickApprove && approvalBlockedByPlan
-                  ? t('approval.blockedPlanHint')
-                  : undefined
-            }
-            onClick={() =>
-              void api
-                .approveAnalysis(analysisId, state.view!.summary.revision)
-                .then((v) => setState((s) => ({ ...s, view: v, saveNotice: null })))
-                .catch((err) => {
-                  const code = takeoffErrorCode(err);
-                  const message =
-                    code === 'approval_blocked_plan_review'
-                      ? t('errors.approval_blocked_plan_review')
-                      : code === 'approval_blocked_review'
-                        ? t('errors.approval_blocked_review')
-                        : t('approval.blocked');
-                  setState((s) => ({ ...s, saveNotice: message }));
-                })
-            }
-          >
-            <Check className="size-4" />
-            {t('approval.approve')}
-          </Button>
-        ) : null}
-        {view.permissions.canPurgeEphemeral ? (
-          <Button
-            type="button"
-            data-testid="takeoff-purge-ephemeral"
-            variant="ghost"
-            className="min-h-11"
-            onClick={() =>
-              void api.purgeEphemeralTakeoff(analysisId).then(() => {
-                router.push(listPath);
-              })
-            }
-          >
-            <Eraser className="size-4" />
-            {t('ephemeral.purge')}
-          </Button>
-        ) : null}
-        {(['xlsx', 'boq-pdf', 'annotated-pdf'] as const).map((kind) => {
-          const ready = exportLinks[kind];
-          const testId =
-            kind === 'xlsx'
-              ? 'takeoff-export-xlsx'
-              : kind === 'boq-pdf'
-                ? 'takeoff-export-boq-pdf'
-                : 'takeoff-export-annotated-pdf';
-          return (
-            <div key={kind} className="flex min-h-11 flex-col gap-0.5">
-              <Button
-                type="button"
-                data-testid={testId}
-                variant="secondary"
-                className="min-h-11"
-                disabled={view.summary.status !== 'approved' || exportBusy === kind}
-                title={view.summary.status !== 'approved' ? t('export.disabledHint') : undefined}
-                aria-busy={exportBusy === kind}
-                onClick={() => {
-                  setExportBusy(kind);
-                  void api
-                    .requestExport(analysisId, kind)
-                    .then(async ({ url, fileName }) => {
-                      setState((s) => ({ ...s, saveNotice: t('export.pending') }));
-                      await waitForExportReady(url);
-                      setExportLinks((prev) => ({ ...prev, [kind]: { url, fileName } }));
-                      setState((s) => ({ ...s, saveNotice: t('export.ready', { name: fileName }) }));
-                    })
-                    .catch(() => setState((s) => ({ ...s, saveNotice: t('export.failed') })))
-                    .finally(() => setExportBusy(null));
-                }}
-              >
-                <Download className="size-4" />
-                {exportBusy === kind
-                  ? t('export.pending')
-                  : t(`export.${kind === 'xlsx' ? 'excel' : kind === 'boq-pdf' ? 'boqPdf' : 'annotatedPdf'}`)}
-              </Button>
-              {ready ? (
-                <a
-                  href={ready.url}
-                  download={ready.fileName}
-                  className="text-center text-[10px] text-[var(--pf-text-brand)] underline"
-                >
-                  {t('export.open')}
-                </a>
-              ) : null}
-            </div>
-          );
-        })}
-        <Button
-          type="button"
-          variant="ghost"
-          className="min-h-11"
-          disabled={readOnly}
-          onClick={() => {
-            if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-            const batch = pendingRef.current;
-            pendingRef.current = [];
-            void flushEdits(batch);
-          }}
-        >
-          {t('workspace.saveNow')}
-        </Button>
-        {selected && !readOnly ? (
-          <Button type="button" variant="danger" className="min-h-11" onClick={() => queueEdit({ op: 'delete', detectionId: selected.id })}>
-            <Eraser className="size-4" />
-            {t('detection.delete')}
-          </Button>
-        ) : null}
-      </footer>
       {state.view ? (
         <>
           <TakeoffRuleSetDialog

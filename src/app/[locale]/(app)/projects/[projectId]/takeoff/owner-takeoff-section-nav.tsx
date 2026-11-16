@@ -16,13 +16,13 @@ export async function OwnerTakeoffSectionNav({ projectId, dir }: OwnerTakeoffSec
     <nav
       aria-label={tNav('navAriaLabel')}
       dir={dir}
-      className="min-w-0 max-w-full rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] p-2 sm:p-3"
+      className="flex min-w-0 max-w-full"
     >
-      <ul className="flex min-w-0 flex-wrap gap-2">
+      <ul className="flex min-w-0">
         <li>
           <Link
             href={listHref}
-            className="inline-flex min-h-11 items-center rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm font-medium text-[var(--pf-text-brand)] shadow-[var(--pf-shadow-sm)] hover:bg-[var(--pf-action-subtle-hover)]"
+            className="inline-flex min-h-9 items-center text-sm font-medium text-[var(--pf-text-brand)] hover:underline"
           >
             {tLinks('takeoff')}
           </Link>

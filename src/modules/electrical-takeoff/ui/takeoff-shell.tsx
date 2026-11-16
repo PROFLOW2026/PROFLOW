@@ -48,7 +48,7 @@ export function TakeoffShell({
 
   return (
     <TakeoffApiProvider api={api}>
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden" dir="rtl">
+      <div className="flex h-full max-h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden" dir="rtl">
         {analysisId ? (
           <TakeoffWorkspace analysisId={analysisId} projectId={projectId} listPath={basePath} />
         ) : (

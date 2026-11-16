@@ -127,6 +127,8 @@
     "showUnclassified": "הצג {count} לא מסווגים בכתב הכמויות",
     "hideUnclassified": "הסתר שורות לא מסווגות",
     "summary": "{unclassified} לא מסווגים · {review} דורשים בקרה",
+    "countedShort": "נספרו {count}",
+    "statusIdentified": "זוהה",
     "markCounts": "{total} סימונים · {typed} עם סוג · {untyped} ללא סוג",
     "typedNeedCheck": "{count} מהמסווגים עדיין דורשים בדיקה",
     "empty": "אין שורות עדיין",
@@ -166,6 +168,7 @@
     "confirmMark": "אשר סימון",
     "deviceCount": "כמות אביזרים לסמל",
     "deviceCountHint": "הסמל נשאר אחד. X2 נספר כ־2. מספר אחר נשמר רק אחרי שסימנתם אותו.",
+    "groupAria": "{type}, כמות {quantity}, {status}",
     "rawClass": "מחלקת מקור",
     "twin": "התאמת PDF/DWG",
     "twinState": {
@@ -225,7 +228,12 @@
     "focusTable": "טבלה",
     "sideBoq": "כמויות",
     "sideReview": "בקרה",
-    "sideSheet": "גיליון"
+    "sideSheet": "גיליון",
+    "statusLine": "{total} סימונים · {pending} לבדיקה",
+    "reviewNow": "בדיקה",
+    "exportBlocked": "הייצוא נפתח אחרי אישור",
+    "approveNeedsReview": "לאישור: סיימו את הבדיקה",
+    "approveNeedsPlan": "לאישור: סמנו שבדקתם את התוכנית"
   },
   "approval": {
     "approve": "אישור כתב כמויות",
@@ -233,12 +241,15 @@
     "blocked": "אישור חסום — יש לסגור פריטי בקרה",
     "blockedHint": "עדיין יש פריטים שדורשים בקרה לפני אישור",
     "blockedPlanHint": "לפני אישור יש לאשר שבדקתם גם אביזרים שלא זוהו אוטומטית",
-    "planReviewLabel": "בדקתי את התוכנית גם לאביזרים שלא זוהו",
+    "planReviewLabel": "בדקתי את התוכנית",
     "planReviewHint": "האישור הזה נפרד מפריטי הבקרה. הוא מאשר שבדקתם את התוכנית עצמה, כולל אביזרים שהזיהוי פספס.",
     "readyHint": "ניתן לאשר כשכל פריטי הבקרה טופלו"
   },
   "export": {
     "excel": "ייצוא Excel",
+    "excelShort": "Excel",
+    "boqPdfShort": "PDF",
+    "annotatedPdfShort": "PDF מתויג",
     "disabledHint": "אשרו את הניתוח כדי לייצא",
     "boqPdf": "PDF כתב כמויות",
     "annotatedPdf": "PDF מתויג",

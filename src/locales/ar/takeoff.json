@@ -127,6 +127,8 @@
     "showUnclassified": "عرض {count} غير مصنّف في جدول الكميات",
     "hideUnclassified": "إخفاء البنود غير المصنّفة",
     "summary": "{unclassified} غير مصنّف · {review} تحتاج مراجعة",
+    "countedShort": "المحسوب {count}",
+    "statusIdentified": "مُعرَّف",
     "markCounts": "{total} علامات · {typed} بنوع · {untyped} بلا نوع",
     "typedNeedCheck": "{count} من المصنّفة ما زالت تحتاج فحصاً",
     "empty": "لا توجد بنود بعد",
@@ -166,6 +168,7 @@
     "confirmMark": "اعتماد الرمز",
     "deviceCount": "عدد الأجهزة لهذا الرمز",
     "deviceCountHint": "يبقى الرمز واحداً. X2 يُحسب 2. أي رقم آخر يُحفظ فقط بعد أن تحددوه.",
+    "groupAria": "{type}، الكمية {quantity}، {status}",
     "rawClass": "الصنف الأصلي",
     "twin": "ربط PDF/DWG",
     "twinState": {
@@ -225,7 +228,12 @@
     "focusTable": "الجدول",
     "sideBoq": "الكميات",
     "sideReview": "المراجعة",
-    "sideSheet": "اللوحة"
+    "sideSheet": "اللوحة",
+    "statusLine": "{total} علامات · {pending} للفحص",
+    "reviewNow": "فحص",
+    "exportBlocked": "التصدير يُفتح بعد الاعتماد",
+    "approveNeedsReview": "للاعتماد: أنهوا الفحص",
+    "approveNeedsPlan": "للاعتماد: أكّدوا أنكم فحصتم المخطط"
   },
   "approval": {
     "approve": "اعتماد جدول الكميات",
@@ -233,12 +241,15 @@
     "blocked": "الاعتماد محظور — أغلق بنود المراجعة",
     "blockedHint": "لا يزال هناك بنود تحتاج مراجعة قبل الاعتماد",
     "blockedPlanHint": "قبل الاعتماد يجب التأكيد أنكم فحصتم أيضاً التجهيزات التي لم يتعرف عليها الكشف",
-    "planReviewLabel": "فحصت المخطط أيضاً للتجهيزات التي لم تُكتشف",
+    "planReviewLabel": "فحصت المخطط",
     "planReviewHint": "هذا التأكيد منفصل عن بنود المراجعة. يعني أنكم فحصتم المخطط نفسه، بما فيه التجهيزات التي فاتت الكشف.",
     "readyHint": "يمكن الاعتماد عند إغلاق كل بنود المراجعة"
   },
   "export": {
     "excel": "تصدير Excel",
+    "excelShort": "Excel",
+    "boqPdfShort": "PDF",
+    "annotatedPdfShort": "PDF مُعلَّم",
     "disabledHint": "اعتمد التحليل للتصدير",
     "boqPdf": "PDF جدول الكميات",
     "annotatedPdf": "PDF موسوم",
