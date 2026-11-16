@@ -5,24 +5,10 @@ import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
+import type { DemoEntryErrorCode } from '@/modules/demo/domain/demo-entry-error';
 import { DEMO_ROLE_CHOICES, type DemoRoleKey } from '@/modules/demo/domain/demo-roles';
 import { LandingHeader } from '@/modules/marketing/ui/landing-header';
 import type { BusinessProfileKey } from '@/modules/tenancy/domain/business-profiles';
-
-const DEMO_ENTRY_ERROR_CODES = [
-  'rateLimited',
-  'failed',
-  'disabled',
-  'invalidChoice',
-  'notConfigured',
-  'signInUnsafe',
-] as const;
-
-export type DemoEntryErrorCode = (typeof DEMO_ENTRY_ERROR_CODES)[number];
-
-export function isDemoEntryErrorCode(value: string): value is DemoEntryErrorCode {
-  return (DEMO_ENTRY_ERROR_CODES as readonly string[]).includes(value);
-}
 
 const selectClass =
   'min-h-11 w-full min-w-0 max-w-xl rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-page)] px-3 py-2 text-base text-[var(--pf-text-primary)]';
@@ -66,7 +52,6 @@ function DemoEntryChoices({
   onProfileKeyChange: (key: BusinessProfileKey) => void;
   onRoleKeyChange: (key: DemoRoleKey) => void;
 }) {
-  const { pending } = useFormStatus();
   const t = useTranslations('demo');
 
   const businessLabel = t(`businesses.${profileKey}`);
@@ -74,7 +59,7 @@ function DemoEntryChoices({
 
   return (
     <div className="flex min-w-0 flex-col gap-8">
-      <fieldset className="m-0 min-w-0 border-0 p-0" disabled={pending}>
+      <fieldset className="m-0 min-w-0 border-0 p-0">
         <legend className="mb-3 text-base font-bold text-[var(--pf-text-primary)]">
           {t('entry.businessLegend')}
         </legend>
@@ -86,7 +71,6 @@ function DemoEntryChoices({
             name="profileKey"
             value={profileKey}
             required
-            disabled={pending}
             className={selectClass}
             onChange={(event) => onProfileKeyChange(event.target.value as BusinessProfileKey)}
             aria-describedby="demo-selected-summary"
@@ -100,7 +84,7 @@ function DemoEntryChoices({
         </div>
       </fieldset>
 
-      <fieldset className="m-0 min-w-0 border-0 p-0" disabled={pending}>
+      <fieldset className="m-0 min-w-0 border-0 p-0">
         <legend className="mb-3 text-base font-bold text-[var(--pf-text-primary)]">
           {t('entry.roleLegend')}
         </legend>
@@ -112,7 +96,6 @@ function DemoEntryChoices({
             name="roleKey"
             value={roleKey}
             required
-            disabled={pending}
             className={selectClass}
             onChange={(event) => onRoleKeyChange(event.target.value as DemoRoleKey)}
             aria-describedby="demo-selected-summary"

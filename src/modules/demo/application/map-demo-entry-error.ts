@@ -2,23 +2,14 @@ import { unstable_rethrow } from 'next/navigation';
 import { getLocale } from 'next-intl/server';
 import { redirect } from '@/shared/i18n/navigation';
 import { DomainRuleError, isAppError } from '@/shared/errors';
+import {
+  isDemoEntryErrorCode,
+  type DemoEntryErrorCode,
+} from '@/modules/demo/domain/demo-entry-error';
 
-export const DEMO_ENTRY_ERROR_CODES = [
-  'rateLimited',
-  'disabled',
-  'invalidChoice',
-  'notConfigured',
-  'signInUnsafe',
-  'failed',
-] as const;
-
-export type DemoEntryErrorCode = (typeof DEMO_ENTRY_ERROR_CODES)[number];
+export { DEMO_ENTRY_ERROR_CODES, type DemoEntryErrorCode } from '@/modules/demo/domain/demo-entry-error';
 
 const DEMO_ERRORS_PREFIX = 'demo.errors.';
-
-function isDemoEntryErrorCode(value: string): value is DemoEntryErrorCode {
-  return (DEMO_ENTRY_ERROR_CODES as readonly string[]).includes(value);
-}
 
 /** Maps a `demo.errors.*` messageKey (or DomainRuleError) to a `?demoError=` code. */
 export function mapUnknownToDemoEntryErrorCode(error: unknown): DemoEntryErrorCode {

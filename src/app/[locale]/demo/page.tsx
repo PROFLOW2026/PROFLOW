@@ -3,10 +3,10 @@ import { ONBOARDING_BUSINESS_TYPES } from '@/modules/tenancy/domain/onboarding-e
 import { enterDemoAction } from '@/modules/demo/application/actions';
 import { isDemoEntryEnabled } from '@/modules/demo/application/flags';
 import {
-  DemoEntryScreen,
   isDemoEntryErrorCode,
   type DemoEntryErrorCode,
-} from '@/modules/demo/ui/demo-entry-screen';
+} from '@/modules/demo/domain/demo-entry-error';
+import { DemoEntryScreen } from '@/modules/demo/ui/demo-entry-screen';
 import { LandingFooter } from '@/modules/marketing/ui/landing-footer';
 
 type DemoEntryPageProps = {

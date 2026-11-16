@@ -103,8 +103,8 @@ describe('DemoEntryScreen', () => {
     const submit = screen.getByRole('button', { name: 'entry.submitting' });
     expect(submit).toHaveAttribute('aria-busy', 'true');
     expect(submit).toBeDisabled();
-    expect(businessSelect()).toBeDisabled();
-    expect(roleSelect()).toBeDisabled();
+    expect(businessSelect()).toBeEnabled();
+    expect(roleSelect()).toBeEnabled();
   });
 
   it('shows a translated alert when demoError is provided', () => {

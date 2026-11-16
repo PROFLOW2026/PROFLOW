@@ -45,7 +45,7 @@ function DemoFormControls({
 }) {
   const { pending } = useFormStatus();
   return (
-    <fieldset disabled={busy || pending} className="contents" aria-busy={busy || pending}>
+    <fieldset className="contents" aria-busy={busy || pending}>
       {children}
     </fieldset>
   );
