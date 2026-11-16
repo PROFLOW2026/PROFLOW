@@ -29,9 +29,10 @@ function ApplyButton({
       type="submit"
       disabled={showPending}
       aria-busy={showPending}
-      className="h-9 shrink-0 whitespace-nowrap rounded border border-amber-900/50 bg-white/80 px-2 text-[11px] font-semibold text-amber-950 disabled:opacity-60 sm:text-xs"
+      aria-label={showPending ? applyingLabel : undefined}
+      className="h-9 w-auto max-w-none shrink-0 whitespace-nowrap rounded border border-amber-900/50 bg-white/80 px-2 text-sm font-semibold text-amber-950 disabled:opacity-60"
     >
-      {showPending ? applyingLabel : label}
+      {label}
     </button>
   );
 }
@@ -53,10 +54,10 @@ export function DemoSessionBar({
   const [applying, setApplying] = useState(false);
   const unchanged = profile === profileKey && role === roleKey;
   const selectClass =
-    'h-9 min-w-0 flex-1 truncate rounded border border-amber-900/30 bg-white px-1 text-[11px] text-amber-950 sm:text-xs';
+    'h-9 min-w-0 w-16 max-w-24 flex-[1_1_4.5rem] overflow-hidden text-ellipsis rounded border border-amber-900/30 bg-white px-1 text-sm text-amber-950 sm:w-36 sm:max-w-36 sm:flex-none';
 
   return (
-    <div className="flex w-full min-w-0 flex-nowrap items-center gap-1" aria-busy={applying}>
+    <div className="flex w-full min-w-0 flex-nowrap items-center justify-center gap-1 overflow-x-hidden" aria-busy={applying}>
       <form
         action={applyDemoSessionChoicesAction}
         className="contents"
@@ -92,7 +93,7 @@ export function DemoSessionBar({
           id="demo-role-switch"
           value={role}
           onChange={(event) => setRole(event.target.value as DemoRoleKey)}
-          className={`${selectClass} max-w-[34%]`}
+          className={selectClass}
         >
           {roleChoices.map((choice) => (
             <option key={choice.key} value={choice.key}>
@@ -110,7 +111,7 @@ export function DemoSessionBar({
         <button
           type="submit"
           aria-label={t('session.exitAria')}
-          className="h-9 shrink-0 whitespace-nowrap rounded border border-amber-950/70 bg-amber-50 px-2 text-[11px] font-semibold text-amber-950 sm:text-xs"
+          className="h-9 w-auto max-w-none shrink-0 whitespace-nowrap rounded border border-amber-950/70 bg-amber-50 px-2 text-sm font-semibold text-amber-950"
         >
           {t('session.exit')}
         </button>

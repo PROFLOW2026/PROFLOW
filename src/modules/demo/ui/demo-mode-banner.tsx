@@ -15,7 +15,7 @@ export async function DemoModeBanner({ active }: { active: boolean }) {
     <div
       role="status"
       data-demo-banner="active"
-      className="w-full max-w-full overflow-x-hidden bg-amber-100 px-2 py-1 text-amber-950 sm:px-3"
+      className="w-full max-w-full overflow-x-hidden bg-amber-100 px-1.5 py-1 text-amber-950 sm:px-2"
     >
       <DemoLocalMarker />
       <div className="mx-auto flex w-full min-w-0 max-w-6xl items-center">
