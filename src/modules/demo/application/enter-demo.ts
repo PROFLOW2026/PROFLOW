@@ -9,10 +9,12 @@ import {
   demoSessions,
   employeeAppAccounts,
   employees,
+  notifications,
   organizations,
 } from '@drizzle/schema';
 import { applyEmployeePresetGrants, type EmployeePresetKey } from '@/modules/employee-app';
 import { ensureProfile } from '@/modules/identity/application/ensure-profile';
+import { EVENT_DOMAIN } from '@/modules/notifications/domain/types';
 import { assignRole, ensureRoleAssigned, findRoleByKey } from '@/modules/rbac';
 import { insertMembership } from '@/modules/tenancy';
 import { isOnboardingBusinessType, type OnboardingBusinessType } from '@/modules/tenancy/domain/onboarding-experience';
@@ -239,6 +241,23 @@ export async function enterDemo(
         email: actor.email,
       })),
     );
+    const notifyRoles: DemoRoleKey[] = ['owner', 'manager', 'finance'];
+    for (const actor of actors) {
+      if (!notifyRoles.includes(actor.role)) continue;
+      for (const note of fixture.notifications) {
+        await tx.insert(notifications).values({
+          id: randomUUID(),
+          organizationId,
+          recipientUserId: actor.userId,
+          type: note.type,
+          domain: EVENT_DOMAIN[note.type],
+          title: note.title,
+          body: note.body,
+          severity: note.severity,
+          dedupeKey: `${note.dedupeKey}:${actor.role}`,
+        });
+      }
+    }
     return organizationId;
   });
 

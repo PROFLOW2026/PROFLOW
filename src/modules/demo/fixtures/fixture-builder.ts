@@ -1,9 +1,9 @@
 import { demoDay } from '@/modules/demo/domain/session-clock';
-import { getBusinessProfile } from '@/modules/tenancy/domain/business-profiles';
 import {
   ONBOARDING_BUSINESS_TYPES,
   type OnboardingBusinessType,
 } from '@/modules/tenancy/domain/onboarding-experience';
+import { getProfileBlueprint, type DemoWorkKind } from './profile-blueprints';
 
 export type DemoFixtureTaskStatus =
   | 'todo'
@@ -19,6 +19,11 @@ export interface DemoFixtureProject {
   readonly status: 'draft' | 'active' | 'on_hold' | 'completed';
   readonly clientKey: string;
   readonly startedDate: string;
+  readonly targetEndDate: string;
+  readonly actualEndDate?: string;
+  readonly progressPercent: number;
+  readonly workKind: DemoWorkKind;
+  readonly location: string;
 }
 
 export interface DemoFixtureExpense {
@@ -27,7 +32,11 @@ export interface DemoFixtureExpense {
   readonly description: string;
   readonly netAmount: string;
   readonly grossAmount: string;
+  readonly taxAmount: string;
   readonly expenseDate: string;
+  readonly dueDate: string;
+  readonly paymentStatus: 'paid' | 'due' | 'upcoming' | 'overdue';
+  readonly paidAt?: string;
 }
 
 export interface DemoFixtureBilling {
@@ -47,6 +56,8 @@ export interface DemoFixtureContract {
   readonly name: string;
   readonly originalValueNet: string;
   readonly startDate: string;
+  readonly endDate?: string;
+  readonly status: 'active' | 'closed';
 }
 
 export interface DemoFixturePayment {
@@ -67,6 +78,10 @@ export interface DemoFixtureVendorBill {
   readonly grossAmount: string;
   readonly taxAmount: string;
   readonly billDate: string;
+  readonly dueDate: string;
+  readonly status: 'open' | 'partially_matched' | 'matched';
+  readonly paidGross?: string;
+  readonly paidDate?: string;
 }
 
 export interface DemoFixtureTimeEntry {
@@ -75,6 +90,37 @@ export interface DemoFixtureTimeEntry {
   readonly workDate: string;
   readonly hours: string;
   readonly description: string;
+  readonly hourlyRate: number;
+}
+
+export interface DemoFixtureEmployee {
+  readonly key: string;
+  readonly name: string;
+  readonly jobTitle: string;
+  readonly hourlyRate: number;
+}
+
+export interface DemoFixtureVendor {
+  readonly key: string;
+  readonly name: string;
+  readonly type: 'supplier' | 'subcontractor';
+}
+
+export interface DemoFixtureTask {
+  readonly title: string;
+  readonly projectKey: string;
+  readonly status: DemoFixtureTaskStatus;
+  readonly startDate?: string;
+  readonly dueDate?: string;
+  readonly completionDate?: string;
+}
+
+export interface DemoFixtureNotification {
+  readonly type: 'task_overdue' | 'billing_overdue' | 'ap_due_soon' | 'timesheet_waiting';
+  readonly title: string;
+  readonly body: string;
+  readonly severity: 'info' | 'warning' | 'urgent';
+  readonly dedupeKey: string;
 }
 
 export interface DemoFixture {
@@ -82,17 +128,10 @@ export interface DemoFixture {
   readonly organizationName: string;
   readonly anchorDay: string;
   readonly clients: readonly { readonly key: string; readonly name: string }[];
-  readonly employees: readonly { readonly key: string; readonly name: string }[];
-  readonly vendors: readonly { readonly key: string; readonly name: string; readonly type: 'supplier' | 'subcontractor' }[];
+  readonly employees: readonly DemoFixtureEmployee[];
+  readonly vendors: readonly DemoFixtureVendor[];
   readonly projects: readonly DemoFixtureProject[];
-  readonly tasks: readonly {
-    readonly title: string;
-    readonly projectKey: string;
-    readonly status: DemoFixtureTaskStatus;
-    readonly startDate?: string;
-    readonly dueDate?: string;
-    readonly completionDate?: string;
-  }[];
+  readonly tasks: readonly DemoFixtureTask[];
   readonly expenses: readonly DemoFixtureExpense[];
   readonly billing: readonly DemoFixtureBilling[];
   readonly contracts: readonly DemoFixtureContract[];
@@ -102,10 +141,17 @@ export interface DemoFixture {
   readonly documents: readonly { readonly fileName: string; readonly projectKey: string }[];
   readonly boqItems: readonly { readonly description: string; readonly projectKey: string; readonly unitPrice: string }[];
   readonly attendanceDates: readonly string[];
+  readonly notifications: readonly DemoFixtureNotification[];
+  readonly assignments: readonly {
+    readonly employeeKey: string;
+    readonly projectKey: string;
+    readonly role: string;
+    readonly startOffset: number;
+  }[];
 }
 
 function money(amount: number): string {
-  return amount.toFixed(2);
+  return (Math.round(amount * 100) / 100).toFixed(2);
 }
 
 function grossFromNet(net: number): string {
@@ -116,298 +162,285 @@ function taxFromNet(net: number): string {
   return (Number(grossFromNet(net)) - net).toFixed(2);
 }
 
+function scaled(scale: number, amount: number): number {
+  return Math.round(amount * scale);
+}
+
 function profileUsesBoq(profileKey: OnboardingBusinessType): boolean {
-  const profile = getBusinessProfile(profileKey);
-  if (!profile) return false;
-  if (profileKey === 'ELECTRICAL') return true;
-  return profile.visibleModules.includes('boq');
-}
-
-interface TradeRoster {
-  readonly clients: readonly { readonly key: string; readonly name: string }[];
-  readonly employees: readonly { readonly key: string; readonly name: string }[];
-  readonly vendors: readonly { readonly key: string; readonly name: string; readonly type: 'supplier' | 'subcontractor' }[];
-}
-
-function rosterForProfile(profileKey: OnboardingBusinessType, domain: string): TradeRoster {
-  const clientLabels: Record<OnboardingBusinessType, readonly string[]> = {
-    GENERAL_CONTRACTOR: ['מגדלי הבנים בע"מ', 'קבוצת נדל"ן השרון', 'עיריית חולון — אגף הנכסים', 'יזמות גשר צפון'],
-    ELECTRICAL: ['מפעלי חשמל לפוט', 'רשת מלונות דן', 'מוסד חינוך אורט', 'ייזום מגורים גבעתיים'],
-    PLUMBING: ['דיור מוגן רעננה', 'בית חולים כרמל', 'שכונת השבטים', 'מרכז קניות הנחלה'],
-    HVAC: ['משרדי הייטק חיפה', 'מלון ים המלח', 'בית ספר אורט', 'מפעל מזון גליל'],
-    RENOVATION: ['דירת יוקרה רמת אביב', 'ועד בית תל אביב', 'חנות אופנה דיזנגוף', 'מסעדת שף הרצליה'],
-    SMALL_WORKS: ['משפחת כהן — שיפוץ', 'משרד עורכי דין לב', 'בית קפה רוטשילד', 'חנות אלקטרוניקה'],
-    FIELD_SERVICE: ['רשת מסעדות', 'בית אבות גן שמואל', 'חניון עירוני', 'מפעל אריזה'],
-    MAINTENANCE: ['מתחם משרדים רקפת', 'בית ספר יסודי', 'מרכז ספורט', 'קניון עזריאלי'],
-    FACILITY_MANAGEMENT: ['חברת נדל"ן אלון', 'קמפוס הייטק', 'בית חולים שיבא', 'מפעל תעשייה'],
-    LANDSCAPING: ['צמחיית פרויקט יזרעאל', 'גן ציבורי רמת גן', 'ביית מלון בוטיק', 'שכונת עליות'],
-    CLEANING: ['מגדל משרדים A', 'בית ספר יסודי', 'מרכז רפואי', 'קניון עירוני'],
-    INSTALLATION: ['חברת מדיה', 'אולם אירועים', 'מפעל ייצור', 'חנות רהיטים'],
-    ARCHITECT: ['יזמות נחלים', 'עיריית ראשון', 'רשת בתי מלון', 'דיור מוגן'],
-    DESIGNER: ['דירת פנטהאוז', 'מסעדת שף', 'משרדי עורכי דין', 'חנות עיצוב'],
-    ENGINEERING_CONSULTANT: ['פרויקט תשתית דרום', 'מפעל כימי', 'מגדל מגורים', 'מתקן תחבורה'],
-    SAFETY_INSPECTION_CONSULTANT: ['קבלן ראשי אתר', 'מפעל פלסטיק', 'אתר בנייה חדש', 'פרויקט תשתית'],
-    SUBCONTRACTOR: ['קבלן ראשי מגורים', 'יזמות מסחרית', 'משרדי ממשלה', 'בית ספר חדש'],
-    PROJECT_MANAGEMENT: ['יזמות ירוקה', 'תשתית עירונית', 'מתחם משרדים', 'מגדלי מגורים'],
-    REAL_ESTATE_DEVELOPMENT: ['קרקע צפונית', 'יזמות שדרות', 'פרויקט מגורים', 'מתחם מסחרי'],
-    MIXED_PROJECT_SERVICE: ['לקוח משולב א', 'לקוח משולב ב', 'רשת שירות', 'יזמות משולבת'],
-  };
-  const employeeLabels: Record<OnboardingBusinessType, readonly string[]> = {
-    GENERAL_CONTRACTOR: ['מנהל פרויקט ראשי', 'מנהלת אתר', 'מהנדס ביצוע', 'מנהל רכש', 'מנהלת משרד', 'פועל שלד'],
-    ELECTRICAL: ['מנהל פרויקט חשמל', 'חשמלאי בכיר', 'חשמלאי שטח', 'מנהלת משרד', 'מתכנן חשמל', 'עוזר טכני'],
-    PLUMBING: ['מנהל עבודות אינסטלציה', 'אינסטלטור ותיק', 'אינסטלטור שטח', 'מזכירות', 'מפקח איכות', 'עוזר שטח'],
-    HVAC: ['מנהל פרויקט מיזוג', 'טכנאי מיזוג בכיר', 'טכנאי שטח', 'מנהלת שירות', 'מתכנן מיזוג', 'מחסנאי'],
-    RENOVATION: ['מנהל שיפוץ', 'מנהל עבודה', 'טכנאי גמרים', 'מנהלת משרד', 'מפקח שטח', 'פועל שיפוצים'],
-    SMALL_WORKS: ['מנהל עבודות קטנות', 'עובד שטח', 'מנהלת מכירות', 'צבעי', 'נגר', 'עוזר'],
-    FIELD_SERVICE: ['מנהל שירות', 'טכנאי שטח', 'מתאם קריאות', 'מנהלת משרד', 'טכנאי בכיר', 'חלקי חילוף'],
-    MAINTENANCE: ['מנהל תחזוקה', 'טכנאי אחזקה', 'דייר שטח', 'מנהלת בקרה', 'חשמלאי תחזוקה', 'נציג שטח'],
-    FACILITY_MANAGEMENT: ['מנהל מתקן', 'מנהל אתר', 'טכנאי מערכות', 'מנהלת משרד', 'מפקח ניקיון', 'אחראי בטיחות'],
-    LANDSCAPING: ['מנהל גינון', 'מעצב נוף', 'עובד שטח', 'מנהלת משרד', 'השקיה', 'מפעיל ציוד'],
-    CLEANING: ['מנהל ניקיון', 'מפקחת ניקיון', 'עובדת שטח', 'רכז משמרות', 'מנהל איכות', 'מנהלת לקוחות'],
-    INSTALLATION: ['מנהל התקנות', 'טכנאי התקנה', 'מנהל פרויקט', 'מנהלת משרד', 'מפקח בקרה', 'מלגזן'],
-    ARCHITECT: ['אדריכל ראשי', 'אדריכלית פרויקט', 'מתכנן פנים', 'מנהלת משרד', 'טכנאי הדמיות', 'מתאם רשויות'],
-    DESIGNER: ['מעצבת ראשית', 'מעצב פנים', 'מנהל פרויקט', 'מנהלת סטודיו', 'טכנאי ויזואליזציה', 'רכש חומרים'],
-    ENGINEERING_CONSULTANT: ['מהנדס ראשי', 'מהנדס מבנים', 'מתאם תשתיות', 'מנהלת משרד', 'מהנדס ביצוע', 'טכנאי משרד'],
-    SAFETY_INSPECTION_CONSULTANT: ['יועץ בטיחות ראשי', 'מפקח בטיחות', 'מתאם הדרכות', 'מנהלת משרד', 'מפקח שטח', 'רכז תיעוד'],
-    SUBCONTRACTOR: ['מנהל קבלן משנה', 'מנהל עבודה', 'פועל מיומן', 'מנהלת משרד', 'מפקח איכות', 'עובד שטח'],
-    PROJECT_MANAGEMENT: ['מנהל פרויקטים', 'מתאם תכנון', 'בקר תקציב', 'מנהלת משרד', 'מפקח שטח', 'מתמחה'],
-    REAL_ESTATE_DEVELOPMENT: ['מנהל פיתוח', 'מנהל ביצוע', 'כלכלן פרויקט', 'מנהלת משרד', 'מפקח אתר', 'רכז היתרים'],
-    MIXED_PROJECT_SERVICE: ['מנהל שירות ופרויקטים', 'עובד שטח', 'מתאם משרד', 'מנהל פרויקט', 'טכנאי', 'מזכירות'],
-  };
-  const vendorLabels = [
-    { key: 'v-supplier-1', type: 'supplier' as const, name: `חומרי ${domain} — אספקה מרכזית` },
-    { key: 'v-supplier-2', type: 'supplier' as const, name: `ציוד ${domain} בע"מ` },
-    { key: 'v-sub-1', type: 'subcontractor' as const, name: `קבלן משנה ${domain}` },
-    { key: 'v-sub-2', type: 'subcontractor' as const, name: `צוות מקצועי ${domain}` },
-  ];
-  const clientNames = clientLabels[profileKey];
-  const employeeNames = employeeLabels[profileKey];
-  return {
-    clients: clientNames.map((name, index) => ({ key: `c${index + 1}`, name })),
-    employees: employeeNames.map((name, index) => ({ key: `e${index + 1}`, name })),
-    vendors: vendorLabels,
-  };
-}
-
-function documentNamesForProfile(profileKey: OnboardingBusinessType, noun: string): readonly string[] {
-  const byTrade: Partial<Record<OnboardingBusinessType, readonly string[]>> = {
-    ELECTRICAL: ['תכנית חשמל — גמר', 'טופס בדיקה 5', 'אישור חשמלאי מאשר'],
-    PLUMBING: ['תכנית אינסטלציה', 'דוח בדיקת לחות', 'אישור מקומי'],
-    HVAC: ['תוכנית מיזוג', 'דוח איזון', 'טופס אחזקה'],
-    ARCHITECT: ['תוכנית אדריכלית', 'הגשה לוועדה', 'מפרט טכני'],
-    CLEANING: ['מפרט ניקיון', 'לוח משמרות', 'דוח בקרת איכות'],
-    DESIGNER: ['לוח השראה', 'מפרט חומרים', 'תוכנית עיצוב'],
-  };
-  return byTrade[profileKey] ?? [`מפרט ${noun}`, `תוכנית עבודה — ${noun}`, 'דוח מצב שטח.pdf'];
+  return (
+    profileKey === 'ELECTRICAL' ||
+    profileKey === 'GENERAL_CONTRACTOR' ||
+    profileKey === 'RENOVATION' ||
+    profileKey === 'REAL_ESTATE_DEVELOPMENT'
+  );
 }
 
 export function buildDemoFixture(
   profileKey: OnboardingBusinessType,
   anchor: Date = new Date(),
 ): DemoFixture {
-  const profile = getBusinessProfile(profileKey);
-  if (!profile) {
-    throw new Error(`Missing business profile ${profileKey}`);
-  }
-  const noun = profile.terminology.project.he;
-  const domain = profile.domains[0]?.nameHe ?? profile.terminology.project.he;
-  const categories = profile.costCategories.map((row) => row.nameHe);
-  const roster = rosterForProfile(profileKey, domain);
+  const blueprint = getProfileBlueprint(profileKey);
+  const scale = blueprint.moneyScale;
   const day = (offset: number) => demoDay(anchor, offset);
 
-  const projectDefs = [
-    { key: 'p-draft', name: `${noun} חדש — הכנת הצעה`, status: 'draft' as const, clientKey: 'c3', startOffset: -14 },
-    { key: 'p-active', name: `${noun} פעיל — ${domain}`, status: 'active' as const, clientKey: 'c1', startOffset: -120 },
-    { key: 'p-active-2', name: `${noun} שטח שני`, status: 'active' as const, clientKey: 'c2', startOffset: -45 },
-    { key: 'p-hold', name: `${noun} בהמתנה`, status: 'on_hold' as const, clientKey: 'c2', startOffset: -200 },
-    { key: 'p-done', name: `${noun} שהושלם`, status: 'completed' as const, clientKey: 'c4', startOffset: -280 },
-    { key: 'p-pipeline', name: `${noun} בתכנון`, status: 'draft' as const, clientKey: 'c4', startOffset: -7 },
-    { key: 'p-service', name: `${profile.terminology.job.he} שוטפת`, status: 'active' as const, clientKey: 'c3', startOffset: -21 },
-    { key: 'p-archive', name: `${noun} היסטורי`, status: 'completed' as const, clientKey: 'c1', startOffset: -365 },
-  ];
-  const projects: DemoFixtureProject[] = projectDefs.map((row) => ({
+  const clients = blueprint.clients.map((name, index) => ({
+    key: `c${index + 1}`,
+    name,
+  }));
+
+  const employees: DemoFixtureEmployee[] = blueprint.employees.map((row, index) => ({
+    key: `e${index + 1}`,
+    name: row.name,
+    jobTitle: row.jobTitle,
+    hourlyRate: row.hourlyRate,
+  }));
+
+  const vendors: DemoFixtureVendor[] = blueprint.vendors.map((row, index) => ({
+    key: `v${index + 1}`,
+    name: row.name,
+    type: row.type,
+  }));
+
+  const projects: DemoFixtureProject[] = blueprint.projects.map((row) => ({
     key: row.key,
     name: row.name,
     status: row.status,
-    clientKey: row.clientKey,
+    clientKey: `c${row.clientIndex + 1}`,
     startedDate: day(row.startOffset),
+    targetEndDate: day(row.targetEndOffset),
+    actualEndDate: row.actualEndOffset !== undefined ? day(row.actualEndOffset) : undefined,
+    progressPercent: row.progressPercent,
+    workKind: row.workKind,
+    location: row.location,
   }));
 
-  const legacyActiveNets = [40_000, 12_500, 8_000, 6_400];
-  const extraExpenseRows = [
-    { net: 5_100, projectKey: 'p-hold', vendorKey: 'v-sub-1', cat: 0, offset: -25 },
-    { net: 4_300, projectKey: 'p-hold', vendorKey: 'v-supplier-2', cat: 1, offset: -18 },
-    { net: 2_800, projectKey: 'p-done', vendorKey: 'v-sub-2', cat: 2, offset: -60 },
-    { net: 1_900, projectKey: 'p-done', vendorKey: 'v-supplier-1', cat: 0, offset: -55 },
-    { net: 3_600, projectKey: 'p-active-2', vendorKey: 'v-supplier-1', cat: 1, offset: -12 },
-    { net: 2_200, projectKey: 'p-service', vendorKey: 'v-sub-1', cat: 2, offset: -8 },
-    { net: 1_750, projectKey: 'p-archive', vendorKey: 'v-supplier-2', cat: 0, offset: -300 },
+  const expenseOffsets = [-165, -140, -118, -95, -78, -62, -48, -35, -28, -18, -11, -5, -150, -100, -70, -40, -22, -9];
+  const expenseProjects = [
+    'p-active',
+    'p-active',
+    'p-active',
+    'p-active',
+    'p-active',
+    'p-active-2',
+    'p-active-2',
+    'p-active-2',
+    'p-hold',
+    'p-hold',
+    'p-done',
+    'p-done',
+    'p-service',
+    'p-service',
+    'p-archive',
+    'p-active',
+    'p-active-2',
+    'p-service',
   ];
+  const expenseNets = [42_000, 18_500, 12_800, 9_600, 7_400, 15_200, 8_100, 5_600, 6_800, 4_200, 11_000, 3_900, 2_800, 1_950, 2_400, 5_500, 3_200, 1_700].map(
+    (net) => scaled(scale, net),
+  );
 
-  const expenses: DemoFixtureExpense[] = [
-  ...legacyActiveNets.map((net, index) => ({
-    projectKey: 'p-active',
-    vendorKey: index % 2 === 0 ? 'v-supplier-1' : 'v-sub-1',
-    description: `${categories[index % categories.length] ?? 'עלות ישירה'} — שלב ${index + 1}`,
-    netAmount: money(net),
-    grossAmount: grossFromNet(net),
-    expenseDate: day(-30 + index * 5),
-  })),
-  ...extraExpenseRows.map((row) => ({
-    projectKey: row.projectKey,
-    vendorKey: row.vendorKey,
-    description: `${categories[row.cat % categories.length] ?? 'עלות ישירה'} — ${domain}`,
-    netAmount: money(row.net),
-    grossAmount: grossFromNet(row.net),
-    expenseDate: day(row.offset),
-  })),
-  ];
+  const expenses: DemoFixtureExpense[] = expenseNets.map((net, index) => {
+    const offset = expenseOffsets[index]!;
+    const paid = index % 5 !== 0;
+    const dueOffset = offset + 14;
+    return {
+      projectKey: expenseProjects[index]!,
+      vendorKey: `v${(index % vendors.length) + 1}`,
+      description: `${blueprint.expenseLabels[index % blueprint.expenseLabels.length]!} — חודש ${index + 1}`,
+      netAmount: money(net),
+      grossAmount: grossFromNet(net),
+      taxAmount: taxFromNet(net),
+      expenseDate: day(offset),
+      dueDate: day(dueOffset),
+      paymentStatus: paid ? 'paid' : dueOffset < 0 ? 'overdue' : 'due',
+      paidAt: paid ? day(offset + 10) : undefined,
+    };
+  });
 
-  const billingNets = [
-    { key: 'b-active-1', net: 180_000, projectKey: 'p-active', clientKey: 'c1', offset: -75, idx: 1 },
-    { key: 'b-active-2', net: 42_000, projectKey: 'p-active', clientKey: 'c1', offset: -45, idx: 2 },
-    { key: 'b-active-3', net: 15_000, projectKey: 'p-active', clientKey: 'c1', offset: -20, idx: 3 },
-    { key: 'b-active2-1', net: 68_000, projectKey: 'p-active-2', clientKey: 'c2', offset: -35, idx: 4 },
-    { key: 'b-done-1', net: 96_000, projectKey: 'p-done', clientKey: 'c4', offset: -90, idx: 5 },
-    { key: 'b-hold-1', net: 24_000, projectKey: 'p-hold', clientKey: 'c2', offset: -15, idx: 6 },
-  ];
+  const billingDefs = [
+    { key: 'b-active-1', net: 165_000, projectKey: 'p-active', clientKey: 'c1', offset: -150, idx: 1 },
+    { key: 'b-active-2', net: 78_000, projectKey: 'p-active', clientKey: 'c1', offset: -105, idx: 2 },
+    { key: 'b-active-3', net: 54_000, projectKey: 'p-active', clientKey: 'c1', offset: -60, idx: 3 },
+    { key: 'b-active-4', net: 36_000, projectKey: 'p-active', clientKey: 'c1', offset: -20, idx: 4 },
+    { key: 'b-active2-1', net: 62_000, projectKey: 'p-active-2', clientKey: 'c2', offset: -85, idx: 5 },
+    { key: 'b-active2-2', net: 28_000, projectKey: 'p-active-2', clientKey: 'c2', offset: -30, idx: 6 },
+    { key: 'b-done-1', net: 98_000, projectKey: 'p-done', clientKey: 'c4', offset: -160, idx: 7 },
+    { key: 'b-done-2', net: 42_000, projectKey: 'p-done', clientKey: 'c4', offset: -90, idx: 8 },
+    { key: 'b-hold-1', net: 24_000, projectKey: 'p-hold', clientKey: 'c2', offset: -40, idx: 9 },
+    { key: 'b-service-1', net: 12_500, projectKey: 'p-service', clientKey: 'c3', offset: -45, idx: 10 },
+    { key: 'b-service-2', net: 9_800, projectKey: 'p-service', clientKey: 'c3', offset: -12, idx: 11 },
+    { key: 'b-archive-1', net: 55_000, projectKey: 'p-archive', clientKey: 'c1', offset: -280, idx: 12 },
+  ].map((row) => ({ ...row, net: scaled(scale, row.net) }));
 
-  const billing: DemoFixtureBilling[] = billingNets.map((row) => ({
+  const billing: DemoFixtureBilling[] = billingDefs.map((row) => ({
     key: row.key,
     projectKey: row.projectKey,
     clientKey: row.clientKey,
-    reference: `DEMO-${profileKey.slice(0, 6)}-${row.idx}`,
+    reference: `${blueprint.billingPrefixes[row.idx % blueprint.billingPrefixes.length]!}-${String(row.idx).padStart(3, '0')}`,
     subtotalAmount: money(row.net),
     totalAmount: grossFromNet(row.net),
     issueDate: day(row.offset),
   }));
 
-  const payments: DemoFixturePayment[] = [
-    {
-      billingKey: 'b-active-1',
-      projectKey: 'p-active',
-      clientKey: 'c1',
-      amount: grossFromNet(120_000),
-      paymentDate: day(-40),
-      reference: 'REC-1001',
-    },
-    {
-      billingKey: 'b-active-1',
-      projectKey: 'p-active',
-      clientKey: 'c1',
-      amount: grossFromNet(40_000),
-      paymentDate: day(-10),
-      reference: 'REC-1002',
-    },
-    {
-      billingKey: 'b-active-2',
-      projectKey: 'p-active',
-      clientKey: 'c1',
-      amount: grossFromNet(30_000),
-      paymentDate: day(-5),
-      reference: 'REC-1003',
-    },
-    {
-      billingKey: 'b-done-1',
-      projectKey: 'p-done',
-      clientKey: 'c4',
-      amount: grossFromNet(96_000),
-      paymentDate: day(-70),
-      reference: 'REC-2001',
-    },
-    {
-      billingKey: 'b-active2-1',
-      projectKey: 'p-active-2',
-      clientKey: 'c2',
-      amount: grossFromNet(25_000),
-      paymentDate: day(-7),
-      reference: 'REC-3001',
-    },
+  const paymentDefs: Array<{
+    billingKey: string;
+    projectKey: string;
+    clientKey: string;
+    netPaid: number;
+    offset: number;
+    ref: string;
+  }> = [
+    { billingKey: 'b-active-1', projectKey: 'p-active', clientKey: 'c1', netPaid: 120_000, offset: -130, ref: 'REC-A1' },
+    { billingKey: 'b-active-1', projectKey: 'p-active', clientKey: 'c1', netPaid: 45_000, offset: -95, ref: 'REC-A2' },
+    { billingKey: 'b-active-2', projectKey: 'p-active', clientKey: 'c1', netPaid: 78_000, offset: -80, ref: 'REC-A3' },
+    { billingKey: 'b-active-3', projectKey: 'p-active', clientKey: 'c1', netPaid: 30_000, offset: -35, ref: 'REC-A4' },
+    { billingKey: 'b-active2-1', projectKey: 'p-active-2', clientKey: 'c2', netPaid: 40_000, offset: -55, ref: 'REC-B1' },
+    { billingKey: 'b-active2-2', projectKey: 'p-active-2', clientKey: 'c2', netPaid: 15_000, offset: -10, ref: 'REC-B2' },
+    { billingKey: 'b-done-1', projectKey: 'p-done', clientKey: 'c4', netPaid: 98_000, offset: -140, ref: 'REC-C1' },
+    { billingKey: 'b-done-2', projectKey: 'p-done', clientKey: 'c4', netPaid: 42_000, offset: -70, ref: 'REC-C2' },
+    { billingKey: 'b-service-1', projectKey: 'p-service', clientKey: 'c3', netPaid: 12_500, offset: -30, ref: 'REC-S1' },
+    { billingKey: 'b-archive-1', projectKey: 'p-archive', clientKey: 'c1', netPaid: 55_000, offset: -250, ref: 'REC-Z1' },
   ];
 
-  const vendorBills: DemoFixtureVendorBill[] = [
-    {
-      key: 'ap-1',
-      projectKey: 'p-active',
-      vendorKey: 'v-sub-1',
-      reference: `AP-${profileKey.slice(0, 4)}-01`,
-      netAmount: money(18_500),
-      grossAmount: grossFromNet(18_500),
-      taxAmount: taxFromNet(18_500),
-      billDate: day(-22),
-    },
-    {
-      key: 'ap-2',
-      projectKey: 'p-hold',
-      vendorKey: 'v-supplier-2',
-      reference: `AP-${profileKey.slice(0, 4)}-02`,
-      netAmount: money(9_200),
-      grossAmount: grossFromNet(9_200),
-      taxAmount: taxFromNet(9_200),
-      billDate: day(-16),
-    },
-    {
-      key: 'ap-3',
-      projectKey: 'p-active-2',
-      vendorKey: 'v-sub-2',
-      reference: `AP-${profileKey.slice(0, 4)}-03`,
-      netAmount: money(6_400),
-      grossAmount: grossFromNet(6_400),
-      taxAmount: taxFromNet(6_400),
-      billDate: day(-9),
-    },
+  const payments: DemoFixturePayment[] = paymentDefs.map((row) => ({
+    billingKey: row.billingKey,
+    projectKey: row.projectKey,
+    clientKey: row.clientKey,
+    amount: grossFromNet(scaled(scale, row.netPaid)),
+    paymentDate: day(row.offset),
+    reference: row.ref,
+  }));
+
+  const vendorBillDefs = [
+    { key: 'ap-1', projectKey: 'p-active', vendorKey: 'v3', net: 22_000, offset: -55, status: 'partially_matched' as const, paidNet: 12_000 },
+    { key: 'ap-2', projectKey: 'p-active', vendorKey: 'v1', net: 14_500, offset: -33, status: 'matched' as const, paidNet: 14_500 },
+    { key: 'ap-3', projectKey: 'p-active-2', vendorKey: 'v4', net: 9_800, offset: -18, status: 'open' as const },
+    { key: 'ap-4', projectKey: 'p-hold', vendorKey: 'v2', net: 7_200, offset: -25, status: 'open' as const },
+    { key: 'ap-5', projectKey: 'p-done', vendorKey: 'v3', net: 11_400, offset: -100, status: 'matched' as const, paidNet: 11_400 },
+    { key: 'ap-6', projectKey: 'p-service', vendorKey: 'v5', net: 3_600, offset: -8, status: 'open' as const },
   ];
+
+  const vendorBills: DemoFixtureVendorBill[] = vendorBillDefs.map((row, index) => {
+    const net = scaled(scale, row.net);
+    return {
+      key: row.key,
+      projectKey: row.projectKey,
+      vendorKey: row.vendorKey,
+      reference: `AP-${profileKey.slice(0, 4)}-${String(index + 1).padStart(2, '0')}`,
+      netAmount: money(net),
+      grossAmount: grossFromNet(net),
+      taxAmount: taxFromNet(net),
+      billDate: day(row.offset),
+      dueDate: day(row.offset + 20),
+      status: row.status,
+      paidGross: row.paidNet !== undefined ? grossFromNet(scaled(scale, row.paidNet)) : undefined,
+      paidDate: row.paidNet !== undefined ? day(row.offset + 12) : undefined,
+    };
+  });
 
   const contracts: DemoFixtureContract[] = [
     {
       key: 'ct-primary',
       projectKey: 'p-active',
       clientKey: 'c1',
-      name: `הסכם ${noun} ראשי`,
-      originalValueNet: money(420_000),
-      startDate: day(-120),
+      name: `הסכם ראשי — ${blueprint.projects[1]!.name}`,
+      originalValueNet: money(scaled(scale, 480_000)),
+      startDate: day(-150),
+      endDate: day(30),
+      status: 'active',
     },
     {
       key: 'ct-secondary',
       projectKey: 'p-active-2',
       clientKey: 'c2',
-      name: `הסכם משלים — ${domain}`,
-      originalValueNet: money(145_000),
-      startDate: day(-45),
+      name: `הסכם משלים — ${blueprint.projects[2]!.name}`,
+      originalValueNet: money(scaled(scale, 190_000)),
+      startDate: day(-95),
+      endDate: day(55),
+      status: 'active',
+    },
+    {
+      key: 'ct-service',
+      projectKey: 'p-service',
+      clientKey: 'c3',
+      name: 'הסכם שירות שוטף',
+      originalValueNet: money(scaled(scale, 72_000)),
+      startDate: day(-40),
+      endDate: day(140),
+      status: 'active',
     },
     {
       key: 'ct-closed',
       projectKey: 'p-done',
       clientKey: 'c4',
-      name: `הסכם שהסתיים`,
-      originalValueNet: money(210_000),
-      startDate: day(-280),
+      name: 'הסכם שהסתיים',
+      originalValueNet: money(scaled(scale, 240_000)),
+      startDate: day(-210),
+      endDate: day(-40),
+      status: 'closed',
     },
   ];
 
   const taskStatuses: DemoFixtureTaskStatus[] = [
-    'todo',
+    'done',
+    'done',
+    'done',
+    'done',
+    'done',
+    'done',
+    'done',
+    'done',
+    'in_progress',
+    'in_progress',
     'in_progress',
     'in_review',
+    'todo',
+    'todo',
+    'todo',
     'blocked',
-    'done',
     'todo',
     'in_progress',
     'done',
     'todo',
     'in_progress',
-    'done',
     'blocked',
   ];
-  const taskProjects = ['p-active', 'p-active', 'p-active-2', 'p-hold', 'p-service', 'p-active', 'p-active-2', 'p-done', 'p-pipeline', 'p-active', 'p-service', 'p-hold'];
-  const tasks = taskProjects.map((projectKey, index) => {
-    const status = taskStatuses[index % taskStatuses.length]!;
-    const opened = day(-10 + index);
-    const due = day(3 + index * 2);
-    const completion =
-      status === 'done' ? day(-2 + index) : undefined;
+  const taskProjects = [
+    'p-active',
+    'p-active',
+    'p-active',
+    'p-active',
+    'p-active-2',
+    'p-active-2',
+    'p-done',
+    'p-done',
+    'p-active',
+    'p-active-2',
+    'p-service',
+    'p-hold',
+    'p-active',
+    'p-pipeline',
+    'p-service',
+    'p-hold',
+    'p-active',
+    'p-active-2',
+    'p-archive',
+    'p-draft',
+    'p-service',
+    'p-active',
+  ];
+
+  const tasks: DemoFixtureTask[] = blueprint.taskTitles.slice(0, 22).map((title, index) => {
+    const status = taskStatuses[index]!;
+    const projectKey = taskProjects[index]!;
+    const opened = day(-160 + index * 7);
+    const due =
+      status === 'todo' && index % 3 === 0
+        ? day(-4 - (index % 5))
+        : day(-140 + index * 8 + (status === 'done' ? -2 : 12));
+    const completion = status === 'done' ? day(-150 + index * 7) : undefined;
     return {
-      title: `משימה ${index + 1} — ${noun}`,
+      title,
       projectKey,
       status,
       startDate: opened,
@@ -416,38 +449,90 @@ export function buildDemoFixture(
     };
   });
 
-  const fieldEmployees = ['e3', 'e2', 'e6', 'e3', 'e2', 'e4', 'e3'];
-  const timeProjects = ['p-active', 'p-active', 'p-active-2', 'p-service', 'p-active-2', 'p-active', 'p-active'];
-  const timeEntries: DemoFixtureTimeEntry[] = fieldEmployees.map((employeeKey, index) => ({
-    employeeKey,
-    projectKey: timeProjects[index]!,
-    workDate: day(-index),
-    hours: (7.5 + (index % 2)).toFixed(2),
-    description: `דיווח שעות שטח — ${domain}`,
-  }));
+  const timeEntries: DemoFixtureTimeEntry[] = [];
+  const timeOffsets = [-150, -135, -120, -105, -90, -75, -60, -45, -38, -30, -22, -15, -10, -7, -4, -2, -1, 0];
+  const timeProjects = ['p-active', 'p-active', 'p-active-2', 'p-service', 'p-active', 'p-active-2', 'p-hold', 'p-done'];
+  for (let index = 0; index < timeOffsets.length; index += 1) {
+    const employee = employees[index % employees.length]!;
+    timeEntries.push({
+      employeeKey: employee.key,
+      projectKey: timeProjects[index % timeProjects.length]!,
+      workDate: day(timeOffsets[index]!),
+      hours: (6.5 + (index % 3) * 0.5).toFixed(2),
+      description: `דיווח שעות — ${blueprint.expenseLabels[index % blueprint.expenseLabels.length]!}`,
+      hourlyRate: employee.hourlyRate,
+    });
+  }
 
-  const attendanceDates = [day(-4), day(-3), day(-2), day(-1), day(0)];
+  const attendanceDates: string[] = [];
+  for (let month = 5; month >= 0; month -= 1) {
+    for (const dayOffset of [4, 18]) {
+      attendanceDates.push(day(-(month * 30 + dayOffset)));
+    }
+  }
 
-  const documents = documentNamesForProfile(profileKey, noun).map((fileName, index) => ({
+  const documents = blueprint.documentNames.map((fileName, index) => ({
     fileName,
-    projectKey: [ 'p-active', 'p-active-2', 'p-hold' ][index % 3]!,
+    projectKey: (['p-active', 'p-active-2', 'p-hold', 'p-done'] as const)[index % 4]!,
   }));
 
   const boqItems = profileUsesBoq(profileKey)
     ? [1, 2, 3, 4].map((n) => ({
-        description: `סעיף ${n} — ${noun} (${domain})`,
+        description: `סעיף ${n} — ${blueprint.projects[1]!.name}`,
         projectKey: n <= 2 ? 'p-active' : 'p-active-2',
-        unitPrice: money(1_200 * n),
+        unitPrice: money(scaled(scale, 1_200 * n)),
       }))
     : [];
 
+  const assignments = [
+    { employeeKey: 'e1', projectKey: 'p-active', role: employees[0]!.jobTitle, startOffset: -150 },
+    { employeeKey: 'e2', projectKey: 'p-active', role: employees[1]!.jobTitle, startOffset: -140 },
+    { employeeKey: 'e3', projectKey: 'p-active', role: employees[2]!.jobTitle, startOffset: -130 },
+    { employeeKey: 'e2', projectKey: 'p-active-2', role: employees[1]!.jobTitle, startOffset: -90 },
+    { employeeKey: 'e3', projectKey: 'p-active-2', role: employees[2]!.jobTitle, startOffset: -85 },
+    { employeeKey: 'e5', projectKey: 'p-service', role: employees[4]!.jobTitle, startOffset: -40 },
+    { employeeKey: 'e6', projectKey: 'p-service', role: employees[5]!.jobTitle, startOffset: -35 },
+    { employeeKey: 'e1', projectKey: 'p-done', role: employees[0]!.jobTitle, startOffset: -210 },
+  ];
+
+  const notifications: DemoFixtureNotification[] = [
+    {
+      type: 'task_overdue',
+      title: 'משימה באיחור',
+      body: `יש משימות פתוחות באיחור בפרויקט ${blueprint.projects[1]!.name}.`,
+      severity: 'warning',
+      dedupeKey: `demo-task-overdue-${profileKey}`,
+    },
+    {
+      type: 'billing_overdue',
+      title: 'יתרת לקוח לגבייה',
+      body: 'קיימים חיובים שטרם נגבו במלואם.',
+      severity: 'urgent',
+      dedupeKey: `demo-billing-overdue-${profileKey}`,
+    },
+    {
+      type: 'ap_due_soon',
+      title: 'תשלום לספק מתקרב',
+      body: 'חשבונות ספקים פתוחים עם מועד תשלום קרוב.',
+      severity: 'warning',
+      dedupeKey: `demo-ap-due-${profileKey}`,
+    },
+    {
+      type: 'timesheet_waiting',
+      title: 'דיווחי שעות ממתינים',
+      body: 'יש דיווחי שעות שדורשים מעקב שוטף.',
+      severity: 'info',
+      dedupeKey: `demo-timesheet-${profileKey}`,
+    },
+  ];
+
   return {
     profileKey,
-    organizationName: `${domain} — דמו מקצועי`,
+    organizationName: blueprint.organizationName,
     anchorDay: day(0),
-    clients: roster.clients,
-    employees: roster.employees,
-    vendors: roster.vendors,
+    clients,
+    employees,
+    vendors,
     projects,
     tasks,
     expenses,
@@ -459,6 +544,8 @@ export function buildDemoFixture(
     documents,
     boqItems,
     attendanceDates,
+    notifications,
+    assignments,
   };
 }
 
@@ -479,14 +566,24 @@ export function activeProjectCostNet(fixture: DemoFixture): string {
 export function collectFixtureDateStrings(fixture: DemoFixture): string[] {
   const dates: string[] = [fixture.anchorDay];
   for (const project of fixture.projects) {
-    dates.push(project.startedDate);
+    dates.push(project.startedDate, project.targetEndDate);
+    if (project.actualEndDate) dates.push(project.actualEndDate);
   }
   dates.push(...fixture.attendanceDates);
-  for (const row of fixture.expenses) dates.push(row.expenseDate);
+  for (const row of fixture.expenses) {
+    dates.push(row.expenseDate, row.dueDate);
+    if (row.paidAt) dates.push(row.paidAt);
+  }
   for (const row of fixture.billing) dates.push(row.issueDate);
-  for (const row of fixture.contracts) dates.push(row.startDate);
+  for (const row of fixture.contracts) {
+    dates.push(row.startDate);
+    if (row.endDate) dates.push(row.endDate);
+  }
   for (const row of fixture.payments) dates.push(row.paymentDate);
-  for (const row of fixture.vendorBills) dates.push(row.billDate);
+  for (const row of fixture.vendorBills) {
+    dates.push(row.billDate, row.dueDate);
+    if (row.paidDate) dates.push(row.paidDate);
+  }
   for (const row of fixture.timeEntries) dates.push(row.workDate);
   for (const row of fixture.tasks) {
     if (row.startDate) dates.push(row.startDate);

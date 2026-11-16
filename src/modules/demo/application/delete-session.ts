@@ -13,6 +13,14 @@ export async function deleteDemoSessionOrganization(
   // Remove the demo principal before the organization row so the identity stays immutable.
   await db.execute(sql`delete from external_access_grants where organization_id = ${organizationId}::uuid`);
   await db.execute(sql`delete from external_principals where home_organization_id = ${organizationId}::uuid`);
+  // Approved recorded time blocks DELETE; void first so org cascade can finish (demo sessions only).
+  await db.execute(sql`
+    update time_entries
+    set status = 'void', voided_at = now()
+    where organization_id = ${organizationId}::uuid
+      and status = 'recorded'
+      and approval_status = 'approved'
+  `);
   const deleted = await db
     .delete(organizations)
     .where(

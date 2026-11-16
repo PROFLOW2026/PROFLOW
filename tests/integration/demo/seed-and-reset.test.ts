@@ -78,9 +78,9 @@ describe("demo seed and nightly reset", () => {
       )[0]!;
       return { projectRows, tables };
     });
-    expect(counts.tables.projects).toBe(4);
-    expect(counts.tables.clients).toBe(3);
-    expect(counts.tables.employees).toBe(4);
+    expect(counts.tables.projects).toBeGreaterThanOrEqual(8);
+    expect(counts.tables.clients).toBeGreaterThanOrEqual(5);
+    expect(counts.tables.employees).toBeGreaterThanOrEqual(6);
     expect(counts.projectRows?.id).toBeTruthy();
   });
 
