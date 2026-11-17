@@ -2,6 +2,53 @@ import { sql } from 'drizzle-orm';
 import { elevateToServiceRole, restoreRole } from './role-elevation';
 import type { DbExecutor } from './types';
 
+/** Postgres 25P01 — SAVEPOINT / SET LOCAL used without an open transaction block. */
+function needsOpenTransaction(error: unknown): boolean {
+  let current: unknown = error;
+  for (let depth = 0; depth < 6 && current; depth++) {
+    const code = (current as { code?: string }).code;
+    if (code === '25P01') return true;
+    const message = (current as { message?: string }).message;
+    if (message?.includes('SAVEPOINT can only be used in transaction blocks')) return true;
+    current = (current as { cause?: unknown }).cause;
+  }
+  return false;
+}
+
+/** Opens a single connection-level transaction when SET LOCAL / SAVEPOINT need one. */
+async function withAdHocTransaction<T>(
+  db: DbExecutor,
+  run: (executor: DbExecutor) => Promise<T>,
+): Promise<T> {
+  await db.execute(sql`BEGIN`);
+  try {
+    const result = await run(db);
+    await db.execute(sql`COMMIT`);
+    return result;
+  } catch (error) {
+    try {
+      await db.execute(sql`ROLLBACK`);
+    } catch {
+      // Preserve the original error if rollback fails.
+    }
+    throw error;
+  }
+}
+
+async function withOpenTransactionWhenNeeded<T>(
+  db: DbExecutor,
+  run: (executor: DbExecutor) => Promise<T>,
+): Promise<T> {
+  try {
+    return await run(db);
+  } catch (error) {
+    if (!needsOpenTransaction(error)) {
+      throw error;
+    }
+    return withAdHocTransaction(db, run);
+  }
+}
+
 let savepointSeq = 0;
 
 /**
@@ -65,12 +112,16 @@ async function withSavepointCleanup<T>(
  * role it had (`authenticated` in requests; `service_role` in the committed admin transaction).
  * The write runs in a SAVEPOINT so a failed statement cannot hide its error behind the role restore.
  */
+async function runServiceRoleWrite<T>(db: DbExecutor, fn: () => Promise<T>): Promise<T> {
+  const back = await elevateToServiceRole(db);
+  return withSavepointCleanup(db, 'pf_svc_role', fn, () => restoreRole(db, back));
+}
+
 export async function asServiceRoleWrite<T>(
   db: DbExecutor,
   fn: () => Promise<T>,
 ): Promise<T> {
-  const back = await elevateToServiceRole(db);
-  return withSavepointCleanup(db, 'pf_svc_role', fn, () => restoreRole(db, back));
+  return withOpenTransactionWhenNeeded(db, (executor) => runServiceRoleWrite(executor, fn));
 }
 
 /**
@@ -79,12 +130,16 @@ export async function asServiceRoleWrite<T>(
  * caller already authorized the action. `SET LOCAL` does not leak to the pool.
  * The write runs in a SAVEPOINT so a failed statement cannot hide its error behind the role restore.
  */
-export async function asSessionOwnerWrite<T>(
-  db: DbExecutor,
-  fn: () => Promise<T>,
-): Promise<T> {
+async function runSessionOwnerWrite<T>(db: DbExecutor, fn: () => Promise<T>): Promise<T> {
   await db.execute(sql`set local role none`);
   return withSavepointCleanup(db, 'pf_sess_owner', fn, async () => {
     await db.execute(sql`set local role authenticated`);
   });
+}
+
+export async function asSessionOwnerWrite<T>(
+  db: DbExecutor,
+  fn: () => Promise<T>,
+): Promise<T> {
+  return withOpenTransactionWhenNeeded(db, (executor) => runSessionOwnerWrite(executor, fn));
 }
