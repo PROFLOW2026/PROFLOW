@@ -16,7 +16,7 @@ import { architecturalLayerIndexes, xrefDependencyPaths } from '../../domain/arc
 import {
   chooseCadSheetFrame,
   previewToWorld,
-  tightSymbolBox,
+  symbolFrame,
   worldToPreview,
   type CadNativeSample,
   type CadSheetFrame,
@@ -89,7 +89,7 @@ export function TakeoffDwgPlan({
     parses: 0,
     space: '',
   });
-  const [focused, setFocused] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [focused, setFocused] = useState<{ id: string; x: number; y: number; located: boolean } | null>(null);
   const [background, setBackground] = useState<'hidden' | 'shown' | 'missing' | 'none'>('none');
   const layersRef = useRef<UiLayer[]>([]);
   const architecturalRef = useRef<ReadonlySet<number>>(new Set());
@@ -134,16 +134,12 @@ export function TakeoffDwgPlan({
     }
     const activeId = focusIdRef.current;
     const active = frame.marks.find((mark) => mark.id === activeId) ?? frame.marks[0];
-    if (!active) return;
+    if (!active?.located) return;
     const [x0, y0] = worldToScreen(active.minX, active.maxY, view, viewport);
     const [x1, y1] = worldToScreen(active.maxX, active.minY, view, viewport);
-    const left = Math.min(x0, x1);
-    const top = Math.min(y0, y1);
-    const width = Math.max(12, Math.abs(x1 - x0));
-    const height = Math.max(12, Math.abs(y1 - y0));
     ctx.strokeStyle = '#ea580c';
     ctx.lineWidth = 2;
-    ctx.strokeRect(left, top, width, height);
+    ctx.strokeRect(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0));
   };
   const drawRef = useRef(drawOverlay);
   useEffect(() => {
@@ -160,10 +156,18 @@ export function TakeoffDwgPlan({
       onAfterViewChange: () => drawRef.current(),
     });
     rendererRef.current = renderer;
+    let sized = false;
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (!entry) return;
-      renderer.resize(entry.contentRect.width, entry.contentRect.height, cadViewportDevicePixelRatio());
+      const width = entry.contentRect.width;
+      const height = entry.contentRect.height;
+      renderer.resize(width, height, cadViewportDevicePixelRatio());
+      const frame = frameRef.current;
+      if (!sized && width >= 64 && height >= 64 && frame) {
+        sized = true;
+        focusMark(renderer, frame, focusIdRef.current);
+      }
       drawRef.current();
     });
     observer.observe(host);
@@ -274,18 +278,13 @@ export function TakeoffDwgPlan({
         const architectural = new Set(architecturalLayerIndexes(uiLayers, refs.map((ref) => ref.name)));
         architecturalRef.current = architectural;
         if (architectural.size > 0) {
-          const ceiling = frame.paper
-            ? Math.max(8, frame.paper.height * 0.02)
-            : frame.window
-              ? Math.max(20, frame.window.hw * 0.01)
-              : 30;
           frame.marks = frame.marks.map((mark) => ({
             ...mark,
-            ...tightSymbolBox(chosen.segments, mark.x, mark.y, ceiling, architectural),
+            ...symbolFrame(chosen.segments, mark.x, mark.y, frame.marks, mark.id, architectural),
           }));
         }
         setBackground(refs.length === 0 ? 'none' : deps.length === 0 ? 'missing' : architectural.size > 0 ? 'shown' : 'none');
-        const extent = chosen.contentExtent;
+        const extent = frame.plan;
         await renderer.setDrawingAsync(
           chosen.segments,
           extent,
@@ -298,7 +297,7 @@ export function TakeoffDwgPlan({
         if (cancelled) return;
         focusMark(renderer, frame, focusIdRef.current);
         const active = frame.marks.find((mark) => mark.id === focusIdRef.current) ?? frame.marks[0] ?? null;
-        setFocused(active ? { id: active.id, x: active.x, y: active.y } : null);
+        setFocused(active ? { id: active.id, x: active.x, y: active.y, located: active.located } : null);
         setViewState({ status: 'ready', parses, space: frame.space });
         drawRef.current();
       } catch {
@@ -326,7 +325,7 @@ export function TakeoffDwgPlan({
     if (!frame || !renderer || viewState.status !== 'ready') return;
     focusMark(renderer, frame, focusId);
     const active = frame.marks.find((mark) => mark.id === focusId) ?? frame.marks[0] ?? null;
-    setFocused(active ? { id: active.id, x: active.x, y: active.y } : null);
+    setFocused(active ? { id: active.id, x: active.x, y: active.y, located: active.located } : null);
     drawRef.current();
   }, [focusId, viewState.status]);
 
@@ -349,6 +348,11 @@ export function TakeoffDwgPlan({
       {background === 'missing' ? (
         <p className="absolute inset-x-2 top-2 text-center text-xs text-white/90" data-testid="takeoff-background-missing">
           {t('viewer.backgroundMissing')}
+        </p>
+      ) : null}
+      {viewState.status === 'ready' && focused && !focused.located ? (
+        <p className="absolute inset-x-2 bottom-16 text-center text-xs text-white/90" data-testid="takeoff-symbol-unlocated">
+          {t('viewer.symbolUnlocated')}
         </p>
       ) : null}
       {background === 'shown' || background === 'hidden' ? (
@@ -392,7 +396,8 @@ export function TakeoffDwgPlan({
             const frame = frameRef.current;
             const renderer = rendererRef.current;
             if (!frame || !renderer) return;
-            focusMark(renderer, frame, focusIdRef.current);
+            renderer.focusExtent(frame.plan, 28);
+            drawRef.current();
           }}
         >
           <Maximize2 className="size-4" />
@@ -417,14 +422,14 @@ function screenToWorld(
 
 function focusMark(renderer: CadRendererHandle, frame: CadSheetFrame, focusId: string | null) {
   const mark = frame.marks.find((item) => item.id === focusId) ?? frame.marks[0];
-  if (!mark) {
-    renderer.fit();
+  if (!mark?.located) {
+    renderer.focusExtent(frame.plan, 28);
     return;
   }
   const cx = (mark.minX + mark.maxX) / 2;
   const cy = (mark.minY + mark.maxY) / 2;
-  const span = Math.max(mark.maxX - mark.minX, mark.maxY - mark.minY) * 0.85;
-  renderer.focusExtent([cx - span, cy - span, cx + span, cy + span], 28);
+  const span = Math.max(mark.maxX - mark.minX, mark.maxY - mark.minY) * 0.72;
+  renderer.focusExtent([cx - span, cy - span, cx + span, cy + span], 36);
 }
 
 function toParsed(scene: ScenePayload, segments: Float32Array, triangles: Float32Array | undefined): ParsedSpace {

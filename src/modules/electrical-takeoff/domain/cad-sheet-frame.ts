@@ -43,7 +43,19 @@ export type CadSheetFrame = {
   paper: PaperRect | null;
   /** World units per model unit. 1 in model space. */
   scale: number;
-  marks: { id: string; x: number; y: number; half: number; minX: number; minY: number; maxX: number; maxY: number }[];
+  /** Fixture centers, with padding. This is the whole plan, not the distant model extent. */
+  plan: readonly [number, number, number, number];
+  marks: {
+    id: string;
+    x: number;
+    y: number;
+    half: number;
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+    located: boolean;
+  }[];
 };
 
 const STRIDE = 8;
@@ -207,7 +219,6 @@ function frameFor(
   marks: readonly CadSheetMark[],
   scale = 1,
 ): CadSheetFrame {
-  const ceiling = paper ? Math.max(8, paper.height * 0.02) : window ? Math.max(20, window.hw * 0.01) : 30;
   const draft: CadSheetFrame = {
     space: space.space,
     originX: space.origin[0],
@@ -215,14 +226,35 @@ function frameFor(
     window,
     paper,
     scale: paper ? scale : 1,
+    plan: [0, 0, 0, 0],
     marks: [],
   };
-  draft.marks = marks.map((mark) => {
-    const world = modelToWorld(mark.nativeX, mark.nativeY, draft);
-    const box = tightSymbolBox(space.segments, world.x, world.y, ceiling);
-    return { id: mark.id, x: world.x, y: world.y, ...box };
+  const worlds = marks.map((mark) => ({ id: mark.id, ...modelToWorld(mark.nativeX, mark.nativeY, draft) }));
+  draft.plan = planExtent(worlds);
+  draft.marks = worlds.map((world) => {
+    const box = symbolFrame(space.segments, world.x, world.y, worlds, world.id);
+    return { id: world.id, x: world.x, y: world.y, ...box };
   });
   return draft;
+}
+
+export function planExtent(points: readonly { x: number; y: number }[]): [number, number, number, number] {
+  if (points.length === 0) return [0, 0, 0, 0];
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const point of points) {
+    minX = Math.min(minX, point.x);
+    minY = Math.min(minY, point.y);
+    maxX = Math.max(maxX, point.x);
+    maxY = Math.max(maxY, point.y);
+  }
+  const spanX = Math.max(maxX - minX, 1);
+  const spanY = Math.max(maxY - minY, 1);
+  const padX = Math.max(spanX * 0.04, 40);
+  const padY = Math.max(spanY, 40);
+  return [minX - padX, minY - padY, maxX + padX, maxY + padY];
 }
 
 function inkHits(
@@ -274,34 +306,33 @@ export type SymbolBox = {
   minY: number;
   maxX: number;
   maxY: number;
+  located: boolean;
 };
 
-function boxGap(
-  hit: { minX: number; minY: number; maxX: number; maxY: number },
-  minX: number,
-  minY: number,
-  maxX: number,
-  maxY: number,
-): number {
-  const dx = hit.maxX < minX ? minX - hit.maxX : hit.minX > maxX ? hit.minX - maxX : 0;
-  const dy = hit.maxY < minY ? minY - hit.maxY : hit.minY > maxY ? hit.minY - maxY : 0;
-  return Math.hypot(dx, dy);
-}
-
 /**
- * The drawn symbol nearest this point.
- * Walls are ignored. The box stops at the gap before the next symbol or the furniture.
+ * Bounds of the real strokes that belong to the fixture at this point.
+ * The search stops before the next fixture. A long wall is not part of the symbol.
+ * When the strokes cannot be identified, `located` is false and no box should be drawn.
  */
-export function tightSymbolBox(
+export function symbolFrame(
   segments: Float32Array,
   x: number,
   y: number,
-  ceiling: number,
+  others: readonly { id?: string; x: number; y: number }[],
+  selfId?: string,
   skipLayers?: ReadonlySet<number>,
 ): SymbolBox {
-  const search = Math.max(ceiling, 1);
-  const maxLen = Math.max(search * 0.12, 0.4);
-  const hits: { d: number; minX: number; minY: number; maxX: number; maxY: number }[] = [];
+  let nearest = Infinity;
+  for (const other of others) {
+    if (selfId && other.id === selfId) continue;
+    const distance = Math.hypot(other.x - x, other.y - y);
+    if (distance > 1 && distance < nearest) nearest = distance;
+  }
+  const radius = Number.isFinite(nearest) ? Math.min(nearest * 0.45, 200) : 80;
+  const empty = { half: 0, minX: x, minY: y, maxX: x, maxY: y, located: false };
+  if (!(radius > 1)) return empty;
+  const maxLen = radius * 2;
+  const edges: Array<[number, number, number, number]> = [];
   for (let i = 0; i + STRIDE - 1 < segments.length; i += STRIDE) {
     if (skipLayers?.has(Math.trunc(segments[i + 5] ?? 0))) continue;
     const x1 = segments[i] ?? 0;
@@ -309,72 +340,78 @@ export function tightSymbolBox(
     const x2 = segments[i + 2] ?? 0;
     const y2 = segments[i + 3] ?? 0;
     const len = Math.hypot(x2 - x1, y2 - y1);
-    if (len > maxLen) continue;
-    if (x < Math.min(x1, x2) - search || x > Math.max(x1, x2) + search) continue;
-    if (y < Math.min(y1, y2) - search || y > Math.max(y1, y2) + search) continue;
-    const distance = Math.sqrt(distanceToSegmentSq(x, y, x1, y1, x2, y2));
-    if (distance > search) continue;
-    hits.push({
-      d: distance,
-      minX: Math.min(x1, x2),
-      minY: Math.min(y1, y2),
-      maxX: Math.max(x1, x2),
-      maxY: Math.max(y1, y2),
-    });
+    if (!(len > 0) || len > maxLen) continue;
+    if (x < Math.min(x1, x2) - radius || x > Math.max(x1, x2) + radius) continue;
+    if (y < Math.min(y1, y2) - radius || y > Math.max(y1, y2) + radius) continue;
+    if (distanceToSegmentSq(x, y, x1, y1, x2, y2) > radius * radius) continue;
+    edges.push([x1, y1, x2, y2]);
   }
-  const fallbackHalf = Math.min(24, search * 0.04);
-  const fallback = { half: fallbackHalf, minX: x - fallbackHalf, minY: y - fallbackHalf, maxX: x + fallbackHalf, maxY: y + fallbackHalf };
-  if (hits.length < 3) return fallback;
-  hits.sort((a, b) => a.d - b.d);
-  const nearest = hits.slice(0, 240);
-  const seed = nearest[0];
-  if (!seed) return fallback;
-  let minX = seed.minX;
-  let minY = seed.minY;
-  let maxX = seed.maxX;
-  let maxY = seed.maxY;
-  const pending = nearest.slice(1);
-  for (let guard = 0; guard < pending.length + 4; guard += 1) {
-    let best = -1;
-    let bestGap = Infinity;
-    for (let i = 0; i < pending.length; i += 1) {
-      const hit = pending[i];
-      if (!hit) continue;
-      const gap = boxGap(hit, minX, minY, maxX, maxY);
-      if (gap < bestGap) {
-        bestGap = gap;
-        best = i;
-      }
+  if (edges.length < 3) return empty;
+  const gap = 0.05;
+  const parent = edges.map((_, index) => index);
+  const find = (index: number): number => (parent[index] === index ? index : (parent[index] = find(parent[index] ?? index)));
+  const buckets = new Map<number, number[]>();
+  const cell = (value: number) => Math.round(value / gap);
+  const add = (px: number, py: number, index: number) => {
+    const key = cell(px) * 73856093 + cell(py) * 19349663;
+    const bucket = buckets.get(key);
+    if (bucket) bucket.push(index);
+    else buckets.set(key, [index]);
+  };
+  edges.forEach(([x1, y1, x2, y2], index) => {
+    add(x1, y1, index);
+    add(x2, y2, index);
+  });
+  for (const bucket of buckets.values()) {
+    const head = bucket[0];
+    if (head === undefined) continue;
+    for (let index = 1; index < bucket.length; index += 1) {
+      const other = bucket[index];
+      if (other !== undefined) parent[find(other)] = find(head);
     }
-    const span = Math.max(maxX - minX, maxY - minY, search * 0.004);
-    if (best < 0 || bestGap > span * 0.35) break;
-    const hit = pending.splice(best, 1)[0];
-    if (!hit) break;
-    minX = Math.min(minX, hit.minX);
-    minY = Math.min(minY, hit.minY);
-    maxX = Math.max(maxX, hit.maxX);
-    maxY = Math.max(maxY, hit.maxY);
   }
+  const grouped = new Map<number, { distance: number; count: number; minX: number; minY: number; maxX: number; maxY: number }>();
+  for (let index = 0; index < edges.length; index += 1) {
+    const edge = edges[index];
+    if (!edge) continue;
+    const root = find(index);
+    const distance = distanceToSegmentSq(x, y, edge[0], edge[1], edge[2], edge[3]);
+    const group = grouped.get(root);
+    if (!group) {
+      grouped.set(root, {
+        distance,
+        count: 1,
+        minX: Math.min(edge[0], edge[2]),
+        minY: Math.min(edge[1], edge[3]),
+        maxX: Math.max(edge[0], edge[2]),
+        maxY: Math.max(edge[1], edge[3]),
+      });
+      continue;
+    }
+    group.distance = Math.min(group.distance, distance);
+    group.count += 1;
+    group.minX = Math.min(group.minX, edge[0], edge[2]);
+    group.minY = Math.min(group.minY, edge[1], edge[3]);
+    group.maxX = Math.max(group.maxX, edge[0], edge[2]);
+    group.maxY = Math.max(group.maxY, edge[1], edge[3]);
+  }
+  let best: { distance: number; count: number; minX: number; minY: number; maxX: number; maxY: number } | null = null;
+  for (const group of grouped.values()) {
+    if (!best || group.distance < best.distance) best = group;
+  }
+  if (!best || best.distance > radius * radius) return empty;
+  const { count, minX, minY, maxX, maxY } = best;
   const span = Math.max(maxX - minX, maxY - minY);
-  if (!(span > 0)) return fallback;
-  const pad = span * 0.12;
+  if (count < 3 || !(span > 0) || span > radius * 2.2) return empty;
+  const pad = span * 0.08;
   return {
-    half: Math.min(search, span * 0.5 + pad),
+    half: span * 0.5 + pad,
     minX: minX - pad,
     minY: minY - pad,
     maxX: maxX + pad,
     maxY: maxY + pad,
+    located: true,
   };
-}
-
-export function tightSymbolHalf(
-  segments: Float32Array,
-  x: number,
-  y: number,
-  ceiling: number,
-  skipLayers?: ReadonlySet<number>,
-): number {
-  return tightSymbolBox(segments, x, y, ceiling, skipLayers).half;
 }
 
 export function segmentNear(segments: Float32Array, x: number, y: number, radius: number): boolean {

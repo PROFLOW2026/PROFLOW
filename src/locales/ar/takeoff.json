@@ -107,7 +107,8 @@
     "dwgLoading": "جارٍ تحميل المخطط",
     "showBackground": "إظهار الخلفية المعمارية",
     "hideBackground": "إخفاء الخلفية المعمارية",
-    "backgroundMissing": "الخلفية المعمارية غير متاحة"
+    "backgroundMissing": "الخلفية المعمارية غير متاحة",
+    "symbolUnlocated": "تعذر تركيز هذا الرمز بدقة"
   },
   "tools": {
     "navigate": "تنقل",

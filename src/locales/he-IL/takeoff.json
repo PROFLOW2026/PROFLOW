@@ -107,7 +107,8 @@
     "dwgLoading": "טוען את השרטוט",
     "showBackground": "הצג רקע אדריכלי",
     "hideBackground": "הסתר רקע אדריכלי",
-    "backgroundMissing": "הרקע האדריכלי אינו זמין"
+    "backgroundMissing": "הרקע האדריכלי אינו זמין",
+    "symbolUnlocated": "לא ניתן למקד את הסמל הזה במדויק"
   },
   "tools": {
     "navigate": "ניווט",

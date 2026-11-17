@@ -6,8 +6,9 @@ import {
   paperRects,
   segmentNear,
   solveModelWindow,
+  planExtent,
+  symbolFrame,
   textMatchesSheet,
-  tightSymbolHalf,
 } from '@/modules/electrical-takeoff/domain/cad-sheet-frame';
 import type { WorkerDetection } from '@/modules/electrical-takeoff/domain/contracts';
 
@@ -100,39 +101,37 @@ describe('cad sheet frame', () => {
     expect(frame?.marks[0]?.half).toBeLessThan(8);
   });
 
-  it('frames one symbol and leaves the next symbol outside the box', () => {
-    const first = rectSegments(0, 0, 40, 30);
-    const second = rectSegments(800, 0, 40, 30);
-    const wall = new Float32Array([0, -20, 2000, -20, 0, 0, 0, 0]);
-    const segments = new Float32Array(first.length + second.length + wall.length);
-    segments.set(first);
-    segments.set(second, first.length);
-    segments.set(wall, first.length + second.length);
-    const half = tightSymbolHalf(segments, 0, 0, 5000);
-    expect(half).toBeGreaterThan(10);
-    expect(half).toBeLessThan(80);
+  it('frames block D from its own geometry and ignores the next fixture and a wall', () => {
+    const here = rectSegments(-22875.24, 3283.83, 25, 25);
+    const next = rectSegments(-23095.39, 3283.83, 25, 25);
+    const beside = rectSegments(-22815.24, 3283.83, 30, 30);
+    const wall = new Float32Array([-28000, 3283.83, -18000, 3283.83, 0, 0, 0, 0]);
+    const segments = new Float32Array(here.length + next.length + beside.length + wall.length);
+    segments.set(here);
+    segments.set(next, here.length);
+    segments.set(beside, here.length + next.length);
+    segments.set(wall, here.length + next.length + beside.length);
+    const box = symbolFrame(segments, -22875.24, 3283.83, [{ x: -23095.39, y: 3283.83 }]);
+    expect(box.located).toBe(true);
+    expect(box.maxX - box.minX).toBeGreaterThan(20);
+    expect(box.maxX - box.minX).toBeLessThan(40);
+    expect(box.minX).toBeGreaterThan(-22895);
+    expect(box.maxX).toBeLessThan(-22855);
   });
 
-  it('keeps the frame on the electrical symbol when architectural ink surrounds it', () => {
-    const parts = [rectSegments(0, 0, 16, 16)];
-    let size = 20;
-    while (size < 400) {
-      const square = rectSegments(0, 0, size, size);
-      for (let i = 5; i < square.length; i += 8) square[i] = 4;
-      parts.push(square);
-      size = Math.round(size * 1.2);
-    }
-    const length = parts.reduce((sum, part) => sum + part.length, 0);
-    const segments = new Float32Array(length);
-    let offset = 0;
-    for (const part of parts) {
-      segments.set(part, offset);
-      offset += part.length;
-    }
-    const withWalls = tightSymbolHalf(segments, 0, 0, 500);
-    const symbolOnly = tightSymbolHalf(segments, 0, 0, 500, new Set([4]));
-    expect(symbolOnly).toBeLessThan(withWalls);
-    expect(symbolOnly).toBeLessThan(20);
+  it('does not draw a frame when the point has no symbol strokes', () => {
+    const box = symbolFrame(new Float32Array(16), 0, 0, [{ x: 200, y: 0 }]);
+    expect(box.located).toBe(false);
+  });
+
+  it('fits the whole plan to the fixture strip, not the distant model extent', () => {
+    const extent = planExtent([
+      { x: -38366.9, y: 2425.6 },
+      { x: 14117.6, y: 3951.4 },
+    ]);
+    expect(extent[2] - extent[0]).toBeGreaterThan(50_000);
+    expect(extent[3] - extent[1]).toBeGreaterThan(4_000);
+    expect(extent[3] - extent[1]).toBeLessThan(8_000);
   });
 
   it('keeps native coordinates until the mark is moved', () => {

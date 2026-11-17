@@ -107,7 +107,8 @@
     "dwgLoading": "Loading the drawing",
     "showBackground": "Show architectural background",
     "hideBackground": "Hide architectural background",
-    "backgroundMissing": "The architectural background is not available"
+    "backgroundMissing": "The architectural background is not available",
+    "symbolUnlocated": "This symbol could not be focused precisely"
   },
   "tools": {
     "navigate": "Navigate",

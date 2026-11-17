@@ -107,7 +107,8 @@
     "dwgLoading": "Загрузка чертежа",
     "showBackground": "Показать архитектурный фон",
     "hideBackground": "Скрыть архитектурный фон",
-    "backgroundMissing": "Архитектурный фон недоступен"
+    "backgroundMissing": "Архитектурный фон недоступен",
+    "symbolUnlocated": "Не удалось точно сфокусировать этот символ"
   },
   "tools": {
     "navigate": "Навигация",
