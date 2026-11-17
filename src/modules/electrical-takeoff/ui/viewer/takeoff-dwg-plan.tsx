@@ -622,7 +622,7 @@ export function TakeoffDwgPlan({
   return (
     <div
       ref={hostRef}
-      className="relative flex h-full min-h-0 w-full max-w-full flex-col overflow-hidden overflow-x-hidden bg-[#1e2124] lg:absolute lg:inset-0"
+      className="relative flex h-full min-h-0 w-full max-w-full flex-col overflow-hidden overflow-x-hidden bg-[#1e2124] lg:absolute lg:inset-0 lg:h-auto"
       data-testid="takeoff-dwg-plan"
       data-cad-space={sheet?.space ?? ''}
       data-cad-sheets={plan?.sheets.length ?? 0}

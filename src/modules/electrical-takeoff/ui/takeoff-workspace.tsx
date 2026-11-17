@@ -301,7 +301,7 @@ export function TakeoffWorkspace({
   const sideHiddenOnMobile = planExpanded;
 
   return (
-    <div className="flex min-h-0 min-w-0 w-full max-w-full flex-1 shrink-0 flex-col overflow-x-hidden lg:h-[calc(100dvh-11rem)] lg:max-h-[calc(100dvh-11rem)] lg:overflow-y-hidden">
+    <div className="flex min-h-0 min-w-0 w-full max-w-full flex-1 shrink-0 flex-col overflow-x-hidden lg:h-[calc(100dvh-11rem)] lg:max-h-[calc(100dvh-11rem)] lg:flex-none lg:overflow-y-hidden">
       {infoOpen ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-3 sm:items-center" role="dialog" aria-modal aria-label={t('workspace.info')}>
           <div className="max-h-[80dvh] w-full max-w-lg overflow-y-auto rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3">
@@ -596,7 +596,7 @@ export function TakeoffWorkspace({
           </div>
         </div>
 
-      <div className="flex w-full min-w-0 max-w-full flex-col gap-3 max-lg:flex-none lg:h-0 lg:min-h-0 lg:flex-1 lg:flex-row lg:gap-0 lg:overflow-hidden">
+      <div className="flex w-full min-w-0 max-w-full flex-col gap-3 max-lg:flex-none lg:min-h-0 lg:flex-1 lg:flex-row lg:gap-0 lg:overflow-hidden">
         <section className={`relative min-w-0 w-full min-h-0 flex-col overflow-hidden ${planExpanded ? 'fixed inset-2 z-50 flex rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2 shadow-lg' : 'flex max-lg:h-[min(70dvh,32rem)] max-lg:shrink-0 lg:h-auto lg:min-h-0 lg:flex-1 lg:self-stretch'} ${focusMode === 'table' && !planExpanded ? 'lg:hidden' : ''}`}>
           {showDwgPlan && sourceApiBase && sheet && state.view ? (
             <TakeoffDwgPlan
