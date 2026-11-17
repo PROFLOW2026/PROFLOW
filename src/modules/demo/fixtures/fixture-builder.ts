@@ -20,6 +20,12 @@ import {
   scaled,
   taxFromNet,
 } from './monthly-activity';
+import {
+  allocateBillingWithinContract,
+  projectCapsFromContracts,
+  scaleServiceProjectCosts,
+  type MonthlyBillingPlanRow,
+} from './billing-envelope';
 import { getProfileBlueprint, type DemoWorkKind, type ProfileBlueprint } from './profile-blueprints';
 
 export type { DemoArchetypeId };
@@ -336,6 +342,69 @@ export function buildDemoFixture(
   const monthlyExpenses = buildMonthlyExpenses(monthlyCtx, vendors.length);
   const monthlyApPaid = buildMonthlyVendorBillsPaid(monthlyCtx);
 
+  const contracts: DemoFixtureContract[] = [
+    {
+      key: 'ct-primary',
+      projectKey: 'p-active',
+      clientKey: 'c1',
+      name: `הסכם ראשי — ${blueprint.projects[1]!.name}`,
+      originalValueNet: money(scaled(scale, 480_000)),
+      startDate: day(-150),
+      endDate: day(30),
+      status: 'active',
+    },
+    {
+      key: 'ct-secondary',
+      projectKey: 'p-active-2',
+      clientKey: 'c2',
+      name: `הסכם משלים — ${blueprint.projects[2]!.name}`,
+      originalValueNet: money(scaled(scale, 210_000)),
+      startDate: day(-95),
+      endDate: day(55),
+      status: 'active',
+    },
+    {
+      key: 'ct-service',
+      projectKey: 'p-service',
+      clientKey: 'c3',
+      name: 'הסכם שירות שוטף',
+      originalValueNet: money(scaled(scale, 30_000)),
+      startDate: day(-40),
+      endDate: day(140),
+      status: 'active',
+    },
+    {
+      key: 'ct-hold',
+      projectKey: 'p-hold',
+      clientKey: 'c2',
+      name: `הסכם מושהה — ${blueprint.projects[3]!.name}`,
+      originalValueNet: money(scaled(scale, 95_000)),
+      startDate: day(-175),
+      endDate: day(90),
+      status: 'active',
+    },
+    {
+      key: 'ct-closed',
+      projectKey: 'p-done',
+      clientKey: 'c4',
+      name: 'הסכם שהסתיים',
+      originalValueNet: money(scaled(scale, 240_000)),
+      startDate: day(-210),
+      endDate: day(-40),
+      status: 'closed',
+    },
+    {
+      key: 'ct-archive',
+      projectKey: 'p-archive',
+      clientKey: 'c1',
+      name: `הסכם ארכיון — ${blueprint.projects.find((row) => row.key === 'p-archive')?.name ?? 'ארכיון'}`,
+      originalValueNet: money(scaled(scale, 120_000)),
+      startDate: day(-300),
+      endDate: day(-120),
+      status: 'closed',
+    },
+  ];
+
   const billingDefs = [
     { key: 'b-active-1', net: 165_000, projectKey: 'p-active', clientKey: 'c1', offset: -150, idx: 1 },
     { key: 'b-active-2', net: 78_000, projectKey: 'p-active', clientKey: 'c1', offset: -105, idx: 2 },
@@ -361,7 +430,18 @@ export function buildDemoFixture(
     issueDate: day(row.offset),
   }));
 
-  const billing: DemoFixtureBilling[] = [...legacyBilling, ...monthlyBillingPayments.billing];
+  const monthlyPlan: MonthlyBillingPlanRow[] = monthlyBillingPayments.billing.map((row) => {
+    const payment = monthlyBillingPayments.payments.find((p) => p.billingKey === row.key)!;
+    return {
+      key: row.key,
+      clientKey: row.clientKey,
+      reference: row.reference,
+      issueDate: row.issueDate,
+      paymentDate: payment.paymentDate,
+      paymentReference: payment.reference,
+      net: Number(row.subtotalAmount),
+    };
+  });
 
   const paymentDefs: Array<{
     billingKey: string;
@@ -392,7 +472,15 @@ export function buildDemoFixture(
     reference: row.ref,
   }));
 
-  const payments: DemoFixturePayment[] = [...legacyPayments, ...monthlyBillingPayments.payments];
+  const envelopedWithLegacyPayments = allocateBillingWithinContract({
+    projectCaps: projectCapsFromContracts(contracts),
+    legacyBilling,
+    monthlyPlan,
+    legacyPayments,
+  });
+
+  const billing: DemoFixtureBilling[] = envelopedWithLegacyPayments.billing;
+  const payments: DemoFixturePayment[] = envelopedWithLegacyPayments.payments;
 
   const vendorBillDefs = [
     { key: 'ap-1', projectKey: 'p-active', vendorKey: 'v3', net: 22_000, offset: -55, status: 'partially_matched' as const, paidNet: 12_000 },
@@ -447,69 +535,6 @@ export function buildDemoFixture(
     ...legacyVendorBills,
     ...openVendorBills,
     ...monthlyApPaid,
-  ];
-
-  const contracts: DemoFixtureContract[] = [
-    {
-      key: 'ct-primary',
-      projectKey: 'p-active',
-      clientKey: 'c1',
-      name: `הסכם ראשי — ${blueprint.projects[1]!.name}`,
-      originalValueNet: money(scaled(scale, 480_000)),
-      startDate: day(-150),
-      endDate: day(30),
-      status: 'active',
-    },
-    {
-      key: 'ct-secondary',
-      projectKey: 'p-active-2',
-      clientKey: 'c2',
-      name: `הסכם משלים — ${blueprint.projects[2]!.name}`,
-      originalValueNet: money(scaled(scale, 210_000)),
-      startDate: day(-95),
-      endDate: day(55),
-      status: 'active',
-    },
-    {
-      key: 'ct-service',
-      projectKey: 'p-service',
-      clientKey: 'c3',
-      name: 'הסכם שירות שוטף',
-      originalValueNet: money(scaled(scale, 18_500)),
-      startDate: day(-40),
-      endDate: day(140),
-      status: 'active',
-    },
-    {
-      key: 'ct-hold',
-      projectKey: 'p-hold',
-      clientKey: 'c2',
-      name: `הסכם מושהה — ${blueprint.projects[3]!.name}`,
-      originalValueNet: money(scaled(scale, 95_000)),
-      startDate: day(-175),
-      endDate: day(90),
-      status: 'active',
-    },
-    {
-      key: 'ct-closed',
-      projectKey: 'p-done',
-      clientKey: 'c4',
-      name: 'הסכם שהסתיים',
-      originalValueNet: money(scaled(scale, 240_000)),
-      startDate: day(-210),
-      endDate: day(-40),
-      status: 'closed',
-    },
-    {
-      key: 'ct-archive',
-      projectKey: 'p-archive',
-      clientKey: 'c1',
-      name: `הסכם ארכיון — ${blueprint.projects.find((row) => row.key === 'p-archive')?.name ?? 'ארכיון'}`,
-      originalValueNet: money(scaled(scale, 120_000)),
-      startDate: day(-300),
-      endDate: day(-120),
-      status: 'closed',
-    },
   ];
 
   const taskStatuses: DemoFixtureTaskStatus[] = [
@@ -808,7 +833,17 @@ export function buildDemoFixture(
     },
   ];
 
-  const expenses: DemoFixtureExpense[] = [...monthlyExpenses, ...historicalExpenses, ...unpaidLegacyExpenses];
+  let expenses: DemoFixtureExpense[] = [...monthlyExpenses, ...historicalExpenses, ...unpaidLegacyExpenses];
+
+  const serviceCcv = Number(contracts.find((row) => row.projectKey === 'p-service')!.originalValueNet);
+  const scaledCosts = scaleServiceProjectCosts('p-service', serviceCcv, {
+    expenses,
+    vendorBills,
+    timeEntries,
+  });
+  expenses = scaledCosts.expenses as DemoFixtureExpense[];
+  const vendorBillsScaled = scaledCosts.vendorBills as DemoFixtureVendorBill[];
+  const timeEntriesScaled = scaledCosts.timeEntries as DemoFixtureTimeEntry[];
 
   const notifications: DemoFixtureNotification[] = [
     {
@@ -857,8 +892,8 @@ export function buildDemoFixture(
     billing,
     contracts,
     payments,
-    vendorBills,
-    timeEntries,
+    vendorBills: vendorBillsScaled,
+    timeEntries: timeEntriesScaled,
     documents,
     boqItems,
     attendanceDates,

@@ -1,8 +1,8 @@
 import 'server-only';
 
-import { and, eq, sql } from 'drizzle-orm';
-import { organizations } from '@drizzle/schema';
+import { sql } from 'drizzle-orm';
 import type { DbExecutor } from '@/shared/db/types';
+import type { DeleteDemoSessionOrganizationResult } from '../domain/session-cleanup';
 
 function isReplicationRoleDenied(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
@@ -19,11 +19,70 @@ function rowCount(result: unknown): number {
 }
 
 /**
- * When Supabase denies `session_replication_role` (needed to bypass immutable
- * budget guards), unlink the demo session so enter-demo can continue. Auth /
- * storage cleanup still runs via nightly reset. Real orgs never reach this path.
+ * Demo session budgets are immutable for real orgs. With `app.demo_provisioner=on` and
+ * migration 0215, guards allow ordered purge without `session_replication_role`.
  */
-async function softAbandonDemoSession(db: DbExecutor, organizationId: string): Promise<number> {
+async function clearDemoSessionBudgets(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<boolean> {
+  try {
+    await db.execute(sql`
+      delete from project_budget_lines
+      where organization_id = ${organizationId}::uuid
+    `);
+    await db.execute(sql`
+      delete from project_budget_revisions
+      where organization_id = ${organizationId}::uuid
+    `);
+    await db.execute(sql`
+      delete from project_budgets
+      where organization_id = ${organizationId}::uuid
+    `);
+    return true;
+  } catch (error) {
+    if (!isBudgetPurgeGuardError(error)) throw error;
+  }
+
+  try {
+    await db.execute(sql`select set_config('session_replication_role', 'replica', true)`);
+    try {
+      await db.execute(sql`
+        delete from project_budget_lines
+        where organization_id = ${organizationId}::uuid
+      `);
+      await db.execute(sql`
+        delete from project_budget_revisions
+        where organization_id = ${organizationId}::uuid
+      `);
+      await db.execute(sql`
+        delete from project_budgets
+        where organization_id = ${organizationId}::uuid
+      `);
+      return true;
+    } finally {
+      await db.execute(sql`select set_config('session_replication_role', 'origin', true)`);
+    }
+  } catch (error) {
+    if (isReplicationRoleDenied(error)) return false;
+    throw error;
+  }
+  return false;
+}
+
+function isBudgetPurgeGuardError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /project_budgets:|project_budget_revisions:|project_budget_lines:/i.test(message);
+}
+
+/**
+ * When budget purge and hard delete both fail, unlink the demo session so enter-demo can
+ * continue. Sets `demo_abandoned_at` so a gated nightly sweeper can identify the org later.
+ */
+async function softAbandonDemoSession(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<boolean> {
   await db.execute(sql`
     delete from demo_session_actors
     where organization_id = ${organizationId}::uuid
@@ -42,18 +101,49 @@ async function softAbandonDemoSession(db: DbExecutor, organizationId: string): P
           when name like '[דמו-נטוש]%' then name
           else left('[דמו-נטוש] ' || name, 180)
         end,
+        demo_abandoned_at = coalesce(demo_abandoned_at, now()),
         updated_at = now()
       where id = ${organizationId}::uuid
         and demo_kind = 'session'
     `);
+    console.error('demo session soft-abandoned (budget purge or delete blocked)', { organizationId });
+    return true;
   }
-  return n;
+  return false;
+}
+
+async function hardDeleteDemoSessionOrganizationRow(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<boolean> {
+  const deleted = await db.execute(sql`
+    delete from organizations
+    where id = ${organizationId}::uuid
+      and demo_kind = 'session'
+      and (
+        exists (
+          select 1
+          from demo_sessions as session_row
+          where session_row.organization_id = organizations.id
+        )
+        or (
+          demo_abandoned_at is not null
+          and not exists (
+            select 1
+            from demo_sessions as session_row
+            where session_row.organization_id = organizations.id
+          )
+        )
+      )
+    returning id
+  `);
+  return rowCount(deleted) > 0;
 }
 
 export async function deleteDemoSessionOrganization(
   db: DbExecutor,
   organizationId: string,
-): Promise<number> {
+): Promise<DeleteDemoSessionOrganizationResult> {
   await db.execute(sql`select set_config('app.demo_provisioner', 'on', true)`);
   // Home organization uses ON DELETE SET NULL, and that update is rejected for contractors.
   // Remove the demo principal before the organization row so the identity stays immutable.
@@ -68,7 +158,6 @@ export async function deleteDemoSessionOrganization(
   `);
   // Recognized AP lines block DELETE while the parent is open/matched. Void via trusted latch
   // (demo session orgs only), then delete lines explicitly before org CASCADE.
-  // Real orgs never use this path.
   await db.execute(sql`select app.next_gen_latch_acquire('ap_bill_void')`);
   try {
     await db.execute(sql`
@@ -93,12 +182,10 @@ export async function deleteDemoSessionOrganization(
   if (stillRecognized > 0) {
     throw new Error(`demo AP void left ${stillRecognized} recognized bills`);
   }
-  // Lines are deletable once the parent is not recognized (depth-1 delete is allowed here).
   await db.execute(sql`
     delete from ap_bill_lines
     where organization_id = ${organizationId}::uuid
   `);
-  // Approved recorded time blocks DELETE; void first so org cascade can finish (demo sessions only).
   await db.execute(sql`
     update time_entries
     set status = 'void', voided_at = now()
@@ -107,49 +194,22 @@ export async function deleteDemoSessionOrganization(
       and approval_status = 'approved'
   `);
 
-  // Active / history-bearing budgets refuse hard-delete. Local PGlite allows
-  // session_replication_role to clear them before org CASCADE. Hosted Supabase
-  // denies that setting — fall back to soft-abandon (demo sessions only).
-  let clearedBudgets = false;
-  try {
-    await db.execute(sql`select set_config('session_replication_role', 'replica', true)`);
-    try {
-      await db.execute(sql`
-        delete from project_budget_lines
-        where organization_id = ${organizationId}::uuid
-      `);
-      await db.execute(sql`
-        delete from project_budget_revisions
-        where organization_id = ${organizationId}::uuid
-      `);
-      await db.execute(sql`
-        delete from project_budgets
-        where organization_id = ${organizationId}::uuid
-      `);
-      clearedBudgets = true;
-    } finally {
-      await db.execute(sql`select set_config('session_replication_role', 'origin', true)`);
-    }
-  } catch (error) {
-    if (!isReplicationRoleDenied(error)) throw error;
-  }
-
+  const clearedBudgets = await clearDemoSessionBudgets(db, organizationId);
   if (!clearedBudgets) {
-    return softAbandonDemoSession(db, organizationId);
+    const abandoned = await softAbandonDemoSession(db, organizationId);
+    return abandoned
+      ? { removedOrganization: false, softAbandoned: true }
+      : { removedOrganization: false, softAbandoned: false };
   }
 
-  const deleted = await db
-    .delete(organizations)
-    .where(
-      and(
-        eq(organizations.id, organizationId),
-        eq(organizations.demoKind, 'session'),
-        sql`exists (
-          select 1 from demo_sessions as session_row
-          where session_row.organization_id = ${organizations.id}
-        )`,
-      ),
-    )
-    .returning({ id: organizations.id });
-  return deleted.length;
+  const removed = await hardDeleteDemoSessionOrganizationRow(db, organizationId);
+  if (removed) {
+    return { removedOrganization: true, softAbandoned: false };
+  }
+
+  const abandoned = await softAbandonDemoSession(db, organizationId);
+  if (abandoned) {
+    return { removedOrganization: false, softAbandoned: true };
+  }
+  return { removedOrganization: false, softAbandoned: false };
 }

@@ -1,0 +1,1218 @@
+{
+  "generatedAt": "2026-11-17T22:40:44.017Z",
+  "profiles": 20,
+  "contractedProjects": 120,
+  "overbillCount": 0,
+  "electricalPActive": {
+    "profile": "ELECTRICAL",
+    "project": "p-active",
+    "ccv": 600000,
+    "billed": 600000,
+    "collected": 469875,
+    "ar": 130125,
+    "overbill": 0,
+    "expensesNet": 263125
+  },
+  "rows": [
+    {
+      "profile": "GENERAL_CONTRACTOR",
+      "project": "p-active",
+      "ccv": 888000,
+      "billed": 888000,
+      "collected": 695415,
+      "ar": 192585,
+      "overbill": 0,
+      "expensesNet": 591445
+    },
+    {
+      "profile": "GENERAL_CONTRACTOR",
+      "project": "p-active-2",
+      "ccv": 388500,
+      "billed": 388500,
+      "collected": 257150.01,
+      "ar": 131349.99,
+      "overbill": 0,
+      "expensesNet": 262145
+    },
+    {
+      "profile": "GENERAL_CONTRACTOR",
+      "project": "p-service",
+      "ccv": 55500,
+      "billed": 55500,
+      "collected": 33096.5,
+      "ar": 22403.5,
+      "overbill": 0,
+      "expensesNet": 43811.01
+    },
+    {
+      "profile": "GENERAL_CONTRACTOR",
+      "project": "p-hold",
+      "ccv": 175750,
+      "billed": 99034.5,
+      "collected": 38244.15,
+      "ar": 60790.35,
+      "overbill": 0,
+      "expensesNet": 193510
+    },
+    {
+      "profile": "GENERAL_CONTRACTOR",
+      "project": "p-done",
+      "ccv": 444000,
+      "billed": 259000,
+      "collected": 259000,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 27565
+    },
+    {
+      "profile": "GENERAL_CONTRACTOR",
+      "project": "p-archive",
+      "ccv": 222000,
+      "billed": 101750,
+      "collected": 101750,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 4440
+    },
+    {
+      "profile": "ELECTRICAL",
+      "project": "p-active",
+      "ccv": 600000,
+      "billed": 600000,
+      "collected": 469875,
+      "ar": 130125,
+      "overbill": 0,
+      "expensesNet": 263125
+    },
+    {
+      "profile": "ELECTRICAL",
+      "project": "p-active-2",
+      "ccv": 262500,
+      "billed": 262500,
+      "collected": 173750,
+      "ar": 88750,
+      "overbill": 0,
+      "expensesNet": 108625
+    },
+    {
+      "profile": "ELECTRICAL",
+      "project": "p-service",
+      "ccv": 37500,
+      "billed": 37500,
+      "collected": 22362.5,
+      "ar": 15137.5,
+      "overbill": 0,
+      "expensesNet": 27845.48
+    },
+    {
+      "profile": "ELECTRICAL",
+      "project": "p-hold",
+      "ccv": 118750,
+      "billed": 66915.2,
+      "collected": 25840.64,
+      "ar": 41074.56,
+      "overbill": 0,
+      "expensesNet": 72250
+    },
+    {
+      "profile": "ELECTRICAL",
+      "project": "p-done",
+      "ccv": 300000,
+      "billed": 175000,
+      "collected": 175000,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 18625
+    },
+    {
+      "profile": "ELECTRICAL",
+      "project": "p-archive",
+      "ccv": 150000,
+      "billed": 68750,
+      "collected": 68750,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 3000
+    },
+    {
+      "profile": "PLUMBING",
+      "project": "p-active",
+      "ccv": 504000,
+      "billed": 504000,
+      "collected": 394695,
+      "ar": 109305,
+      "overbill": 0,
+      "expensesNet": 221025
+    },
+    {
+      "profile": "PLUMBING",
+      "project": "p-active-2",
+      "ccv": 220500,
+      "billed": 220500,
+      "collected": 145950,
+      "ar": 74550,
+      "overbill": 0,
+      "expensesNet": 91245
+    },
+    {
+      "profile": "PLUMBING",
+      "project": "p-service",
+      "ccv": 31500,
+      "billed": 31500,
+      "collected": 18784.5,
+      "ar": 12715.5,
+      "overbill": 0,
+      "expensesNet": 23192.21
+    },
+    {
+      "profile": "PLUMBING",
+      "project": "p-hold",
+      "ccv": 99750,
+      "billed": 56208.77,
+      "collected": 21706.14,
+      "ar": 34502.63,
+      "overbill": 0,
+      "expensesNet": 60690
+    },
+    {
+      "profile": "PLUMBING",
+      "project": "p-done",
+      "ccv": 252000,
+      "billed": 147000,
+      "collected": 147000,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 15645
+    },
+    {
+      "profile": "PLUMBING",
+      "project": "p-archive",
+      "ccv": 126000,
+      "billed": 57750,
+      "collected": 57750,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 2520
+    },
+    {
+      "profile": "HVAC",
+      "project": "p-active",
+      "ccv": 552000,
+      "billed": 552000,
+      "collected": 432285,
+      "ar": 119715,
+      "overbill": 0,
+      "expensesNet": 242075
+    },
+    {
+      "profile": "HVAC",
+      "project": "p-active-2",
+      "ccv": 241500,
+      "billed": 241500,
+      "collected": 159850.01,
+      "ar": 81649.99,
+      "overbill": 0,
+      "expensesNet": 99935
+    },
+    {
+      "profile": "HVAC",
+      "project": "p-service",
+      "ccv": 34500,
+      "billed": 34500,
+      "collected": 20573.5,
+      "ar": 13926.5,
+      "overbill": 0,
+      "expensesNet": 25449.91
+    },
+    {
+      "profile": "HVAC",
+      "project": "p-hold",
+      "ccv": 109250,
+      "billed": 61561.98,
+      "collected": 23773.39,
+      "ar": 37788.59,
+      "overbill": 0,
+      "expensesNet": 66470
+    },
+    {
+      "profile": "HVAC",
+      "project": "p-done",
+      "ccv": 276000,
+      "billed": 161000,
+      "collected": 161000,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 17135
+    },
+    {
+      "profile": "HVAC",
+      "project": "p-archive",
+      "ccv": 138000,
+      "billed": 63250,
+      "collected": 63250,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 2760
+    },
+    {
+      "profile": "RENOVATION",
+      "project": "p-active",
+      "ccv": 456000,
+      "billed": 456000,
+      "collected": 357105,
+      "ar": 98895,
+      "overbill": 0,
+      "expensesNet": 132905
+    },
+    {
+      "profile": "RENOVATION",
+      "project": "p-active-2",
+      "ccv": 199500,
+      "billed": 143184,
+      "collected": 92628.8,
+      "ar": 50555.2,
+      "overbill": 0,
+      "expensesNet": 45315
+    },
+    {
+      "profile": "RENOVATION",
+      "project": "p-service",
+      "ccv": 28500,
+      "billed": 21185,
+      "collected": 11875,
+      "ar": 9310,
+      "overbill": 0,
+      "expensesNet": 17562.69
+    },
+    {
+      "profile": "RENOVATION",
+      "project": "p-hold",
+      "ccv": 90250,
+      "billed": 22800,
+      "collected": 0,
+      "ar": 22800,
+      "overbill": 0,
+      "expensesNet": 25270
+    },
+    {
+      "profile": "RENOVATION",
+      "project": "p-done",
+      "ccv": 228000,
+      "billed": 133000,
+      "collected": 133000,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 14155
+    },
+    {
+      "profile": "RENOVATION",
+      "project": "p-archive",
+      "ccv": 114000,
+      "billed": 52250,
+      "collected": 52250,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 2280
+    },
+    {
+      "profile": "SMALL_WORKS",
+      "project": "p-active",
+      "ccv": 201600,
+      "billed": 201600,
+      "collected": 157878,
+      "ar": 43722,
+      "overbill": 0,
+      "expensesNet": 58758
+    },
+    {
+      "profile": "SMALL_WORKS",
+      "project": "p-active-2",
+      "ccv": 88200,
+      "billed": 63303,
+      "collected": 40952.1,
+      "ar": 22350.9,
+      "overbill": 0,
+      "expensesNet": 20034
+    },
+    {
+      "profile": "SMALL_WORKS",
+      "project": "p-service",
+      "ccv": 12600,
+      "billed": 9366,
+      "collected": 5250,
+      "ar": 4116,
+      "overbill": 0,
+      "expensesNet": 6531.65
+    },
+    {
+      "profile": "SMALL_WORKS",
+      "project": "p-hold",
+      "ccv": 39900,
+      "billed": 10080,
+      "collected": 0,
+      "ar": 10080,
+      "overbill": 0,
+      "expensesNet": 11172
+    },
+    {
+      "profile": "SMALL_WORKS",
+      "project": "p-done",
+      "ccv": 100800,
+      "billed": 58800,
+      "collected": 58800,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 6258
+    },
+    {
+      "profile": "SMALL_WORKS",
+      "project": "p-archive",
+      "ccv": 50400,
+      "billed": 23100,
+      "collected": 23100,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 1008
+    },
+    {
+      "profile": "FIELD_SERVICE",
+      "project": "p-active",
+      "ccv": 278400,
+      "billed": 278400,
+      "collected": 218022.01,
+      "ar": 60377.99,
+      "overbill": 0,
+      "expensesNet": 92336
+    },
+    {
+      "profile": "FIELD_SERVICE",
+      "project": "p-active-2",
+      "ccv": 121800,
+      "billed": 121800,
+      "collected": 80620,
+      "ar": 41180,
+      "overbill": 0,
+      "expensesNet": 32190
+    },
+    {
+      "profile": "FIELD_SERVICE",
+      "project": "p-service",
+      "ccv": 17400,
+      "billed": 17400,
+      "collected": 10376.2,
+      "ar": 7023.8,
+      "overbill": 0,
+      "expensesNet": 10442.77
+    },
+    {
+      "profile": "FIELD_SERVICE",
+      "project": "p-hold",
+      "ccv": 55100,
+      "billed": 31048.65,
+      "collected": 11990.06,
+      "ar": 19058.59,
+      "overbill": 0,
+      "expensesNet": 19952
+    },
+    {
+      "profile": "FIELD_SERVICE",
+      "project": "p-done",
+      "ccv": 139200,
+      "billed": 81200,
+      "collected": 81200,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 8642
+    },
+    {
+      "profile": "FIELD_SERVICE",
+      "project": "p-archive",
+      "ccv": 69600,
+      "billed": 31900,
+      "collected": 31900,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 1392
+    },
+    {
+      "profile": "MAINTENANCE",
+      "project": "p-active",
+      "ccv": 345600,
+      "billed": 345600,
+      "collected": 270647.99,
+      "ar": 74952.01,
+      "overbill": 0,
+      "expensesNet": 114624
+    },
+    {
+      "profile": "MAINTENANCE",
+      "project": "p-active-2",
+      "ccv": 151200,
+      "billed": 151200,
+      "collected": 100080,
+      "ar": 51120,
+      "overbill": 0,
+      "expensesNet": 39960
+    },
+    {
+      "profile": "MAINTENANCE",
+      "project": "p-service",
+      "ccv": 21600,
+      "billed": 21600,
+      "collected": 12880.8,
+      "ar": 8719.2,
+      "overbill": 0,
+      "expensesNet": 13444.23
+    },
+    {
+      "profile": "MAINTENANCE",
+      "project": "p-hold",
+      "ccv": 68400,
+      "billed": 38543.16,
+      "collected": 14884.21,
+      "ar": 23658.95,
+      "overbill": 0,
+      "expensesNet": 24768
+    },
+    {
+      "profile": "MAINTENANCE",
+      "project": "p-done",
+      "ccv": 172800,
+      "billed": 100800,
+      "collected": 100800,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 10728
+    },
+    {
+      "profile": "MAINTENANCE",
+      "project": "p-archive",
+      "ccv": 86400,
+      "billed": 39600,
+      "collected": 39600,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 1728
+    },
+    {
+      "profile": "FACILITY_MANAGEMENT",
+      "project": "p-active",
+      "ccv": 648000,
+      "billed": 648000,
+      "collected": 507465.01,
+      "ar": 140534.99,
+      "overbill": 0,
+      "expensesNet": 237718
+    },
+    {
+      "profile": "FACILITY_MANAGEMENT",
+      "project": "p-active-2",
+      "ccv": 283500,
+      "billed": 283500,
+      "collected": 187650,
+      "ar": 95850,
+      "overbill": 0,
+      "expensesNet": 84139
+    },
+    {
+      "profile": "FACILITY_MANAGEMENT",
+      "project": "p-service",
+      "ccv": 40500,
+      "billed": 40500,
+      "collected": 24151.5,
+      "ar": 16348.5,
+      "overbill": 0,
+      "expensesNet": 28394.84
+    },
+    {
+      "profile": "FACILITY_MANAGEMENT",
+      "project": "p-hold",
+      "ccv": 128250,
+      "billed": 72268.54,
+      "collected": 27907.98,
+      "ar": 44360.56,
+      "overbill": 0,
+      "expensesNet": 55654
+    },
+    {
+      "profile": "FACILITY_MANAGEMENT",
+      "project": "p-done",
+      "ccv": 324000,
+      "billed": 189000,
+      "collected": 189000,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 20115
+    },
+    {
+      "profile": "FACILITY_MANAGEMENT",
+      "project": "p-archive",
+      "ccv": 162000,
+      "billed": 74250,
+      "collected": 74250,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 3240
+    },
+    {
+      "profile": "LANDSCAPING",
+      "project": "p-active",
+      "ccv": 326400,
+      "billed": 326400,
+      "collected": 255612.01,
+      "ar": 70787.99,
+      "overbill": 0,
+      "expensesNet": 119742
+    },
+    {
+      "profile": "LANDSCAPING",
+      "project": "p-active-2",
+      "ccv": 142800,
+      "billed": 142800,
+      "collected": 94520.01,
+      "ar": 48279.99,
+      "overbill": 0,
+      "expensesNet": 42382
+    },
+    {
+      "profile": "LANDSCAPING",
+      "project": "p-service",
+      "ccv": 20400,
+      "billed": 20400,
+      "collected": 12165.2,
+      "ar": 8234.8,
+      "overbill": 0,
+      "expensesNet": 13698.3
+    },
+    {
+      "profile": "LANDSCAPING",
+      "project": "p-hold",
+      "ccv": 64600,
+      "billed": 36401.87,
+      "collected": 14057.31,
+      "ar": 22344.56,
+      "overbill": 0,
+      "expensesNet": 28034
+    },
+    {
+      "profile": "LANDSCAPING",
+      "project": "p-done",
+      "ccv": 163200,
+      "billed": 95200,
+      "collected": 95200,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 10132
+    },
+    {
+      "profile": "LANDSCAPING",
+      "project": "p-archive",
+      "ccv": 81600,
+      "billed": 37400,
+      "collected": 37400,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 1632
+    },
+    {
+      "profile": "CLEANING",
+      "project": "p-active",
+      "ccv": 230400,
+      "billed": 230400,
+      "collected": 180432.01,
+      "ar": 49967.99,
+      "overbill": 0,
+      "expensesNet": 76416
+    },
+    {
+      "profile": "CLEANING",
+      "project": "p-active-2",
+      "ccv": 100800,
+      "billed": 100800,
+      "collected": 66720,
+      "ar": 34080,
+      "overbill": 0,
+      "expensesNet": 26640
+    },
+    {
+      "profile": "CLEANING",
+      "project": "p-service",
+      "ccv": 14400,
+      "billed": 14400,
+      "collected": 8587.2,
+      "ar": 5812.8,
+      "overbill": 0,
+      "expensesNet": 8613.33
+    },
+    {
+      "profile": "CLEANING",
+      "project": "p-hold",
+      "ccv": 45600,
+      "billed": 25695.44,
+      "collected": 9922.81,
+      "ar": 15772.63,
+      "overbill": 0,
+      "expensesNet": 16512
+    },
+    {
+      "profile": "CLEANING",
+      "project": "p-done",
+      "ccv": 115200,
+      "billed": 67200,
+      "collected": 67200,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 7152
+    },
+    {
+      "profile": "CLEANING",
+      "project": "p-archive",
+      "ccv": 57600,
+      "billed": 26400,
+      "collected": 26400,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 1152
+    },
+    {
+      "profile": "INSTALLATION",
+      "project": "p-active",
+      "ccv": 422400,
+      "billed": 422400,
+      "collected": 330792,
+      "ar": 91608,
+      "overbill": 0,
+      "expensesNet": 185240
+    },
+    {
+      "profile": "INSTALLATION",
+      "project": "p-active-2",
+      "ccv": 184800,
+      "billed": 184800,
+      "collected": 122320,
+      "ar": 62480,
+      "overbill": 0,
+      "expensesNet": 76472
+    },
+    {
+      "profile": "INSTALLATION",
+      "project": "p-service",
+      "ccv": 26400,
+      "billed": 26400,
+      "collected": 15743.2,
+      "ar": 10656.8,
+      "overbill": 0,
+      "expensesNet": 19036.35
+    },
+    {
+      "profile": "INSTALLATION",
+      "project": "p-hold",
+      "ccv": 83600,
+      "billed": 47108.3,
+      "collected": 18191.81,
+      "ar": 28916.49,
+      "overbill": 0,
+      "expensesNet": 50864
+    },
+    {
+      "profile": "INSTALLATION",
+      "project": "p-done",
+      "ccv": 211200,
+      "billed": 123200,
+      "collected": 123200,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 13112
+    },
+    {
+      "profile": "INSTALLATION",
+      "project": "p-archive",
+      "ccv": 105600,
+      "billed": 48400,
+      "collected": 48400,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 2112
+    },
+    {
+      "profile": "ARCHITECT",
+      "project": "p-active",
+      "ccv": 374400,
+      "billed": 374400,
+      "collected": 293202,
+      "ar": 81198,
+      "overbill": 0,
+      "expensesNet": 95317
+    },
+    {
+      "profile": "ARCHITECT",
+      "project": "p-active-2",
+      "ccv": 163800,
+      "billed": 163800,
+      "collected": 108420,
+      "ar": 55380,
+      "overbill": 0,
+      "expensesNet": 33833
+    },
+    {
+      "profile": "ARCHITECT",
+      "project": "p-service",
+      "ccv": 23400,
+      "billed": 23400,
+      "collected": 13954.2,
+      "ar": 9445.8,
+      "overbill": 0,
+      "expensesNet": 14037.82
+    },
+    {
+      "profile": "ARCHITECT",
+      "project": "p-hold",
+      "ccv": 74100,
+      "billed": 18720,
+      "collected": 0,
+      "ar": 18720,
+      "overbill": 0,
+      "expensesNet": 16946
+    },
+    {
+      "profile": "ARCHITECT",
+      "project": "p-done",
+      "ccv": 187200,
+      "billed": 109200,
+      "collected": 109200,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 11622
+    },
+    {
+      "profile": "ARCHITECT",
+      "project": "p-archive",
+      "ccv": 93600,
+      "billed": 42900,
+      "collected": 42900,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 1872
+    },
+    {
+      "profile": "DESIGNER",
+      "project": "p-active",
+      "ccv": 297600,
+      "billed": 297600,
+      "collected": 233058,
+      "ar": 64542,
+      "overbill": 0,
+      "expensesNet": 75765
+    },
+    {
+      "profile": "DESIGNER",
+      "project": "p-active-2",
+      "ccv": 130200,
+      "billed": 130200,
+      "collected": 86180,
+      "ar": 44020,
+      "overbill": 0,
+      "expensesNet": 26893
+    },
+    {
+      "profile": "DESIGNER",
+      "project": "p-service",
+      "ccv": 18600,
+      "billed": 18600,
+      "collected": 11091.8,
+      "ar": 7508.2,
+      "overbill": 0,
+      "expensesNet": 10770.01
+    },
+    {
+      "profile": "DESIGNER",
+      "project": "p-hold",
+      "ccv": 58900,
+      "billed": 14880,
+      "collected": 0,
+      "ar": 14880,
+      "overbill": 0,
+      "expensesNet": 13470
+    },
+    {
+      "profile": "DESIGNER",
+      "project": "p-done",
+      "ccv": 148800,
+      "billed": 86800,
+      "collected": 86800,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 9238
+    },
+    {
+      "profile": "DESIGNER",
+      "project": "p-archive",
+      "ccv": 74400,
+      "billed": 34100,
+      "collected": 34100,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 1488
+    },
+    {
+      "profile": "ENGINEERING_CONSULTANT",
+      "project": "p-active",
+      "ccv": 441600,
+      "billed": 441600,
+      "collected": 345828,
+      "ar": 95772,
+      "overbill": 0,
+      "expensesNet": 112424
+    },
+    {
+      "profile": "ENGINEERING_CONSULTANT",
+      "project": "p-active-2",
+      "ccv": 193200,
+      "billed": 193200,
+      "collected": 127880,
+      "ar": 65320,
+      "overbill": 0,
+      "expensesNet": 39905
+    },
+    {
+      "profile": "ENGINEERING_CONSULTANT",
+      "project": "p-service",
+      "ccv": 27600,
+      "billed": 27600,
+      "collected": 16458.8,
+      "ar": 11141.2,
+      "overbill": 0,
+      "expensesNet": 16860.45
+    },
+    {
+      "profile": "ENGINEERING_CONSULTANT",
+      "project": "p-hold",
+      "ccv": 87400,
+      "billed": 22080,
+      "collected": 0,
+      "ar": 22080,
+      "overbill": 0,
+      "expensesNet": 19987
+    },
+    {
+      "profile": "ENGINEERING_CONSULTANT",
+      "project": "p-done",
+      "ccv": 220800,
+      "billed": 128800,
+      "collected": 128800,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 13708
+    },
+    {
+      "profile": "ENGINEERING_CONSULTANT",
+      "project": "p-archive",
+      "ccv": 110400,
+      "billed": 50600,
+      "collected": 50600,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 2208
+    },
+    {
+      "profile": "SAFETY_INSPECTION_CONSULTANT",
+      "project": "p-active",
+      "ccv": 264000,
+      "billed": 264000,
+      "collected": 206745,
+      "ar": 57255,
+      "overbill": 0,
+      "expensesNet": 67211
+    },
+    {
+      "profile": "SAFETY_INSPECTION_CONSULTANT",
+      "project": "p-active-2",
+      "ccv": 115500,
+      "billed": 115500,
+      "collected": 76450,
+      "ar": 39050,
+      "overbill": 0,
+      "expensesNet": 23856
+    },
+    {
+      "profile": "SAFETY_INSPECTION_CONSULTANT",
+      "project": "p-service",
+      "ccv": 16500,
+      "billed": 16500,
+      "collected": 9839.5,
+      "ar": 6660.5,
+      "overbill": 0,
+      "expensesNet": 9480.03
+    },
+    {
+      "profile": "SAFETY_INSPECTION_CONSULTANT",
+      "project": "p-hold",
+      "ccv": 52250,
+      "billed": 13200,
+      "collected": 0,
+      "ar": 13200,
+      "overbill": 0,
+      "expensesNet": 11949
+    },
+    {
+      "profile": "SAFETY_INSPECTION_CONSULTANT",
+      "project": "p-done",
+      "ccv": 132000,
+      "billed": 77000,
+      "collected": 77000,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 8195
+    },
+    {
+      "profile": "SAFETY_INSPECTION_CONSULTANT",
+      "project": "p-archive",
+      "ccv": 66000,
+      "billed": 30250,
+      "collected": 30250,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 1320
+    },
+    {
+      "profile": "SUBCONTRACTOR",
+      "project": "p-active",
+      "ccv": 504000,
+      "billed": 504000,
+      "collected": 394695,
+      "ar": 109305,
+      "overbill": 0,
+      "expensesNet": 335685
+    },
+    {
+      "profile": "SUBCONTRACTOR",
+      "project": "p-active-2",
+      "ccv": 220500,
+      "billed": 220500,
+      "collected": 145950,
+      "ar": 74550,
+      "overbill": 0,
+      "expensesNet": 148785
+    },
+    {
+      "profile": "SUBCONTRACTOR",
+      "project": "p-service",
+      "ccv": 31500,
+      "billed": 31500,
+      "collected": 18784.5,
+      "ar": 12715.5,
+      "overbill": 0,
+      "expensesNet": 24590.55
+    },
+    {
+      "profile": "SUBCONTRACTOR",
+      "project": "p-hold",
+      "ccv": 99750,
+      "billed": 56208.77,
+      "collected": 21706.14,
+      "ar": 34502.63,
+      "overbill": 0,
+      "expensesNet": 109830
+    },
+    {
+      "profile": "SUBCONTRACTOR",
+      "project": "p-done",
+      "ccv": 252000,
+      "billed": 147000,
+      "collected": 147000,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 15645
+    },
+    {
+      "profile": "SUBCONTRACTOR",
+      "project": "p-archive",
+      "ccv": 126000,
+      "billed": 57750,
+      "collected": 57750,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 2520
+    },
+    {
+      "profile": "PROJECT_MANAGEMENT",
+      "project": "p-active",
+      "ccv": 393600,
+      "billed": 393600,
+      "collected": 308238,
+      "ar": 85362,
+      "overbill": 0,
+      "expensesNet": 100205
+    },
+    {
+      "profile": "PROJECT_MANAGEMENT",
+      "project": "p-active-2",
+      "ccv": 172200,
+      "billed": 172200,
+      "collected": 113980,
+      "ar": 58220,
+      "overbill": 0,
+      "expensesNet": 35568
+    },
+    {
+      "profile": "PROJECT_MANAGEMENT",
+      "project": "p-service",
+      "ccv": 24600,
+      "billed": 24600,
+      "collected": 14669.8,
+      "ar": 9930.2,
+      "overbill": 0,
+      "expensesNet": 14719.31
+    },
+    {
+      "profile": "PROJECT_MANAGEMENT",
+      "project": "p-hold",
+      "ccv": 77900,
+      "billed": 19680,
+      "collected": 0,
+      "ar": 19680,
+      "overbill": 0,
+      "expensesNet": 17815
+    },
+    {
+      "profile": "PROJECT_MANAGEMENT",
+      "project": "p-done",
+      "ccv": 196800,
+      "billed": 114800,
+      "collected": 114800,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 12218
+    },
+    {
+      "profile": "PROJECT_MANAGEMENT",
+      "project": "p-archive",
+      "ccv": 98400,
+      "billed": 45100,
+      "collected": 45100,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 1968
+    },
+    {
+      "profile": "REAL_ESTATE_DEVELOPMENT",
+      "project": "p-active",
+      "ccv": 1032000,
+      "billed": 1032000,
+      "collected": 808185,
+      "ar": 223815,
+      "overbill": 0,
+      "expensesNet": 687355
+    },
+    {
+      "profile": "REAL_ESTATE_DEVELOPMENT",
+      "project": "p-active-2",
+      "ccv": 451500,
+      "billed": 451500,
+      "collected": 298850,
+      "ar": 152650,
+      "overbill": 0,
+      "expensesNet": 304655
+    },
+    {
+      "profile": "REAL_ESTATE_DEVELOPMENT",
+      "project": "p-service",
+      "ccv": 64500,
+      "billed": 64500,
+      "collected": 38463.5,
+      "ar": 26036.5,
+      "overbill": 0,
+      "expensesNet": 51041.61
+    },
+    {
+      "profile": "REAL_ESTATE_DEVELOPMENT",
+      "project": "p-hold",
+      "ccv": 204250,
+      "billed": 115094.15,
+      "collected": 44445.91,
+      "ar": 70648.24,
+      "overbill": 0,
+      "expensesNet": 224890
+    },
+    {
+      "profile": "REAL_ESTATE_DEVELOPMENT",
+      "project": "p-done",
+      "ccv": 516000,
+      "billed": 301000,
+      "collected": 301000,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 32035
+    },
+    {
+      "profile": "REAL_ESTATE_DEVELOPMENT",
+      "project": "p-archive",
+      "ccv": 258000,
+      "billed": 118250,
+      "collected": 118250,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 5160
+    },
+    {
+      "profile": "MIXED_PROJECT_SERVICE",
+      "project": "p-active",
+      "ccv": 480000,
+      "billed": 480000,
+      "collected": 375900,
+      "ar": 104100,
+      "overbill": 0,
+      "expensesNet": 159200
+    },
+    {
+      "profile": "MIXED_PROJECT_SERVICE",
+      "project": "p-active-2",
+      "ccv": 210000,
+      "billed": 210000,
+      "collected": 139000,
+      "ar": 71000,
+      "overbill": 0,
+      "expensesNet": 55500
+    },
+    {
+      "profile": "MIXED_PROJECT_SERVICE",
+      "project": "p-service",
+      "ccv": 30000,
+      "billed": 30000,
+      "collected": 17890,
+      "ar": 12110,
+      "overbill": 0,
+      "expensesNet": 19602.82
+    },
+    {
+      "profile": "MIXED_PROJECT_SERVICE",
+      "project": "p-hold",
+      "ccv": 95000,
+      "billed": 53532.16,
+      "collected": 20672.51,
+      "ar": 32859.65,
+      "overbill": 0,
+      "expensesNet": 34400
+    },
+    {
+      "profile": "MIXED_PROJECT_SERVICE",
+      "project": "p-done",
+      "ccv": 240000,
+      "billed": 140000,
+      "collected": 140000,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 14900
+    },
+    {
+      "profile": "MIXED_PROJECT_SERVICE",
+      "project": "p-archive",
+      "ccv": 120000,
+      "billed": 55000,
+      "collected": 55000,
+      "ar": 0,
+      "overbill": 0,
+      "expensesNet": 2400
+    }
+  ]
+}

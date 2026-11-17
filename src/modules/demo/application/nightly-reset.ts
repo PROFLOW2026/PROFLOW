@@ -12,6 +12,7 @@ import {
 import { isJerusalemResetHour, jerusalemDateKey } from '../domain/reset-clock';
 import { mayDeleteDemoIdentity } from '../domain/identity-rule';
 import { deleteDemoSessionOrganization } from './delete-session';
+import { deleteDemoSessionOrganizationSucceeded } from '../domain/session-cleanup';
 
 const LEASE_MS = 15 * 60 * 1000;
 
@@ -27,6 +28,31 @@ export interface NightlyResetResult {
   readonly jerusalemDate: string;
 }
 
+async function enqueueSessionResetItems(
+  db: DbExecutor,
+  jerusalemDate: string,
+  sessions: readonly { readonly id: string }[],
+): Promise<void> {
+  for (const session of sessions) {
+    const actors = await db
+      .select({ authUserId: demoSessionActors.authUserId })
+      .from(demoSessionActors)
+      .where(eq(demoSessionActors.organizationId, session.id));
+    const ids = actors.map((actor) => actor.authUserId);
+    for (const phase of ['rows', 'storage', 'auth'] as const) {
+      await db.insert(demoResetItems).values({
+        jerusalemDate,
+        organizationId: session.id,
+        phase,
+        status: 'pending',
+        storagePrefix: `${session.id}/`,
+        authUserIds: ids,
+        profileIds: ids,
+      });
+    }
+  }
+}
+
 async function loadRun(db: DbExecutor, jerusalemDate: string) {
   const [row] = await db
     .select()
@@ -36,11 +62,20 @@ async function loadRun(db: DbExecutor, jerusalemDate: string) {
   return row ?? null;
 }
 
+export interface NightlyResetOptions {
+  readonly failPhase?: 'rows' | 'storage' | 'auth';
+  /**
+   * When false (default), abandoned session orgs are not enqueued. Production cron
+   * must leave this unset until Owner explicitly enables sweeper cleanup.
+   */
+  readonly includeAbandonedSessionOrgs?: boolean;
+}
+
 export async function runNightlyReset(
   db: DbExecutor,
   ports: DemoResetPorts,
   now: Date = new Date(),
-  options?: { readonly failPhase?: 'rows' | 'storage' | 'auth' },
+  options?: NightlyResetOptions,
 ): Promise<NightlyResetResult> {
   const jerusalemDate = jerusalemDateKey(now);
   const existing = await loadRun(db, jerusalemDate);
@@ -75,22 +110,34 @@ export async function runNightlyReset(
       .from(organizations)
       .innerJoin(demoSessions, eq(demoSessions.organizationId, organizations.id))
       .where(eq(organizations.demoKind, 'session'));
-    for (const session of sessions) {
-      const actors = await db
-        .select({ authUserId: demoSessionActors.authUserId })
-        .from(demoSessionActors)
-        .where(eq(demoSessionActors.organizationId, session.id));
-      const ids = actors.map((actor) => actor.authUserId);
-      for (const phase of ['rows', 'storage', 'auth'] as const) {
-        await db.insert(demoResetItems).values({
-          jerusalemDate,
-          organizationId: session.id,
-          phase,
-          status: 'pending',
-          storagePrefix: `${session.id}/`,
-          authUserIds: ids,
-          profileIds: ids,
-        });
+    await enqueueSessionResetItems(db, jerusalemDate, sessions);
+
+    if (options?.includeAbandonedSessionOrgs) {
+      const abandoned = await db
+        .select({ id: organizations.id })
+        .from(organizations)
+        .where(
+          and(
+            eq(organizations.demoKind, 'session'),
+            sql`${organizations.demoAbandonedAt} is not null`,
+            sql`not exists (
+              select 1 from demo_sessions as session_row
+              where session_row.organization_id = ${organizations.id}
+            )`,
+          ),
+        );
+      for (const row of abandoned) {
+        for (const phase of ['rows', 'storage', 'auth'] as const) {
+          await db.insert(demoResetItems).values({
+            jerusalemDate,
+            organizationId: row.id,
+            phase,
+            status: 'pending',
+            storagePrefix: `${row.id}/`,
+            authUserIds: [],
+            profileIds: [],
+          });
+        }
       }
     }
   }
@@ -119,7 +166,13 @@ export async function runNightlyReset(
         const deleted = await withTransaction(db, (tx) =>
           deleteDemoSessionOrganization(tx, item.organizationId),
         );
-        if (deleted !== 1) throw new Error('session delete did not remove exactly one organization');
+        if (!deleteDemoSessionOrganizationSucceeded(deleted)) {
+          throw new Error(
+            deleted.softAbandoned
+              ? 'session delete soft-abandoned only; organization row remains'
+              : 'session delete did not remove the organization',
+          );
+        }
         rowsCompleted.add(item.organizationId);
       } else if (item.phase === 'storage') {
         if (options?.failPhase === 'storage') throw new Error('injected storage failure');
@@ -128,7 +181,26 @@ export async function runNightlyReset(
       } else if (item.phase === 'auth') {
         if (options?.failPhase === 'auth') throw new Error('injected auth failure');
         const ids = item.authUserIds ?? [];
-        if (ids.length === 0) throw new Error('missing saved auth user ids');
+        if (ids.length === 0) {
+          const rowsAlreadyRemoved = rowsCompleted.has(item.organizationId);
+          if (!rowsAlreadyRemoved) {
+            const [org] = await db
+              .select({
+                demoAbandonedAt: organizations.demoAbandonedAt,
+              })
+              .from(organizations)
+              .where(eq(organizations.id, item.organizationId))
+              .limit(1);
+            const hasSession = await db
+              .select({ organizationId: demoSessions.organizationId })
+              .from(demoSessions)
+              .where(eq(demoSessions.organizationId, item.organizationId))
+              .limit(1);
+            const abandonedOnly =
+              org?.demoAbandonedAt != null && hasSession.length === 0;
+            if (!abandonedOnly) throw new Error('missing saved auth user ids');
+          }
+        } else {
         const deleting = new Set(
           items.filter((row) => row.phase === 'rows').map((row) => row.organizationId),
         );
@@ -143,6 +215,7 @@ export async function runNightlyReset(
             continue;
           }
           await ports.deleteAuthUser(profileId);
+        }
         }
       }
       await db

@@ -228,7 +228,7 @@ describe('demo contract value engines — all 20 profiles', () => {
       await database.asService(async (db) => {
         await withDemoProvisioner(db, async (tx) => {
           const deleted = await deleteDemoSessionOrganization(tx, organizationId);
-          expect(deleted).toBe(1);
+          expect(deleted.removedOrganization).toBe(true);
         });
         const leftover = resultRows<{ n: number }>(
           await db.execute(sql`

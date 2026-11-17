@@ -49,6 +49,8 @@ export const organizations = pgTable(
     archivedAt: archivedAt(),
     /** Null for a real organization. template and session are demo markers. */
     demoKind: text('demo_kind'),
+    /** Set when a demo session org is soft-abandoned; enables gated nightly sweeper. */
+    demoAbandonedAt: timestamp('demo_abandoned_at', { withTimezone: true }),
     ...timestamps(),
   },
   (table) => [

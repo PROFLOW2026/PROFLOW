@@ -13,7 +13,7 @@ export function isDemoOrganization(demoKind: string | null | undefined): boolean
   return demoKind === 'template' || demoKind === 'session';
 }
 
-/** Cleanup may select a row only when both markers are present. */
+/** @deprecated Use session-cleanup helpers for hard delete and sweeper predicates. */
 export function isDeletableDemoSession(demoKind: string | null | undefined, hasSessionRow: boolean): boolean {
   return demoKind === 'session' && hasSessionRow;
 }
