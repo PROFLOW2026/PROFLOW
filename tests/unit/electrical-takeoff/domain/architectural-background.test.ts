@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   architecturalLayerIndexes,
   backgroundRequestAllowed,
+  displayArchitecturalLayerIndexes,
   sameCadFile,
   xrefDependencyPaths,
 } from '@/modules/electrical-takeoff/domain/architectural-background';
@@ -31,6 +32,16 @@ describe('architectural background', () => {
       ['1545-Xref-all-02'],
     );
     expect(indexes).toEqual([2, 3, 6]);
+  });
+
+  it('identifies a resolved xref from the layer prefix when the report lists no name', () => {
+    const layers = [
+      { index: 1, name: 'שקעים' },
+      { index: 2, name: 'העמדה קומת קרקע על גבי מדידה|A-WALL' },
+      { index: 3, name: 'העמדה קומת קרקע על גבי מדידה|A-DOOR' },
+    ];
+    expect(architecturalLayerIndexes(layers, [])).toEqual([]);
+    expect(displayArchitecturalLayerIndexes(layers, [])).toEqual([2, 3]);
   });
 
   it('registers the relative path stored in 1545-all-01', () => {

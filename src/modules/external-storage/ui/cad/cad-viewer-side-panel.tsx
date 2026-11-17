@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { architecturalLayerIndexes } from '@/modules/electrical-takeoff/domain/architectural-background';
+import { displayArchitecturalLayerIndexes } from '@/modules/electrical-takeoff/domain/architectural-background';
 import type { ArchitectureMode } from './architecture-display';
 import { CadLayerPanel, type CadLayerRow, type CadPreset } from './cad-layer-panel';
 import {
@@ -93,7 +93,10 @@ export const CadViewerSidePanel = forwardRef<CadToolsHandle, {
   const initialRef = useRef<CadLayerRow[]>([]);
   const appliedRef = useRef(false);
 
-  const architectural = useMemo(() => new Set(architecturalLayerIndexes(layers, xrefNames)), [layers, xrefNames]);
+  const architectural = useMemo(
+    () => new Set(displayArchitecturalLayerIndexes(layers, xrefNames)),
+    [layers, xrefNames],
+  );
 
   useEffect(() => {
     if (initialRef.current.length === 0 && layers.length > 0) initialRef.current = layers.map((layer) => ({ ...layer }));

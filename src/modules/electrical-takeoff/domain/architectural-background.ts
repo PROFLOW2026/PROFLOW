@@ -47,6 +47,24 @@ function xrefLayerStem(name: string): string {
   return '';
 }
 
+/** Stems of layers that already carry an xref prefix, including a resolved xref the report no longer lists. */
+export function xrefStemsOnLayers(layers: readonly { name: string }[]): string[] {
+  const stems = new Set<string>();
+  for (const layer of layers) {
+    const stem = cadStem(xrefLayerStem(layer.name));
+    if (stem.length > 0) stems.add(stem);
+  }
+  return [...stems];
+}
+
+/** Background layers for display. Reported names and prefixes on the loaded layers both count. */
+export function displayArchitecturalLayerIndexes(
+  layers: readonly { index: number; name: string }[],
+  reportedNames: readonly string[],
+): number[] {
+  return architecturalLayerIndexes(layers, [...reportedNames, ...xrefStemsOnLayers(layers)]);
+}
+
 /** Layers that belong to the architectural xref. Host electrical layers stay visible. */
 export function architecturalLayerIndexes(
   layers: readonly { index: number; name: string }[],

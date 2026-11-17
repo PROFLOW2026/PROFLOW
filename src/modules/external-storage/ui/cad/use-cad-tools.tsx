@@ -2,9 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useRef, useState, type ReactNode } from 'react';
-import { architecturalLayerIndexes } from '@/modules/electrical-takeoff/domain/architectural-background';
-import { buttonVariants } from '@/components/ui/button';
-import { cn } from '@/shared/ui/cn';
+import { displayArchitecturalLayerIndexes } from '@/modules/electrical-takeoff/domain/architectural-background';
 import { worldFromClientPoint } from './cad-pointer-math';
 import { layerIndexNear, snapToEndpoint } from './cad-layer-tools';
 import {
@@ -36,13 +34,10 @@ export function CadArchitectureModeSelect({
     item === 'original' ? t('cadArchOriginal') : item === 'gray' ? t('cadArchGray') : item === 'mono' ? t('cadArchMono') : t('cadArchHidden')
   );
   return (
-    <label className="flex max-w-full min-w-0 flex-wrap items-center gap-1 text-xs text-[var(--pf-text-primary)]">
+    <label className="flex max-w-full min-w-0 flex-wrap items-center gap-1 text-xs text-white">
       <span className="hidden shrink-0 sm:inline">{t('cadArchBackground')}</span>
       <select
-        className={cn(
-          buttonVariants({ variant: 'secondary', size: 'sm' }),
-          'w-auto max-w-[9.5rem] cursor-pointer truncate py-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
-        )}
+        className="pointer-fine:h-8 pointer-fine:min-h-8 h-auto min-h-11 w-auto max-w-[9.5rem] cursor-pointer truncate rounded-md border border-white/40 bg-[#2a2e32] px-2 text-xs text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         aria-label={t('cadArchBackground')}
         data-testid="cad-architecture-mode"
         value={options.includes(mode) ? mode : 'original'}
@@ -53,7 +48,7 @@ export function CadArchitectureModeSelect({
         ))}
       </select>
       {note ? (
-        <span className="basis-full text-[var(--pf-text-secondary)]" data-testid="cad-architecture-note">
+        <span className="basis-full text-white/85" data-testid="cad-architecture-note">
           {note === 'missing' ? t('cadArchMissing') : t('cadArchUnsupported')}
         </span>
       ) : null}
@@ -98,7 +93,7 @@ export function useCadTools(input: {
     const decision = resolveArchitectureApply(
       mode,
       input.tintSupported,
-      architecturalLayerIndexes(input.layers, input.xrefNames),
+      displayArchitecturalLayerIndexes(input.layers, input.xrefNames),
     );
     if (!decision.ok) {
       setNote(decision.reason);

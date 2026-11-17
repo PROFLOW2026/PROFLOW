@@ -17,7 +17,7 @@ import { createCadRenderer, type CadRendererHandle } from '@/modules/external-st
 import { worldToScreen } from '@/modules/external-storage/ui/cad/pf-cad-v3/renderer/view-math';
 import type { ScenePayload } from '@/modules/external-storage/ui/cad/pf-cad-v3/types';
 import type { XrefDepBytes } from '@/modules/external-storage/ui/cad/pf-cad-v3/xref-resolver';
-import { architecturalLayerIndexes, xrefDependencyPaths } from '../../domain/architectural-background';
+import { displayArchitecturalLayerIndexes, xrefDependencyPaths } from '../../domain/architectural-background';
 import { solveModelWindow } from '../../domain/cad-sheet-frame';
 import { symbolFrame, type CadNativeSample, type CadSheetMark } from '../../domain/cad-sheet-frame';
 import { chooseTakeoffSheetId, focusLevel, type FocusLevel } from '../../domain/focus-level';
@@ -379,7 +379,7 @@ export function TakeoffDwgPlan({
         setPhase('prepare');
         const scene = parsed.scene;
         const layers = cadLayersToUi(scene.layers);
-        const architectural = new Set(architecturalLayerIndexes(layers, refs.map((ref) => ref.name)));
+        const architectural = new Set(displayArchitecturalLayerIndexes(layers, refs.map((ref) => ref.name)));
         layersRef.current = layers;
         setToolLayers(layers);
         setToolTexts((scene.texts ?? []).map((row) => ({ text: row.t, x: row.x, y: row.y, layer: row.layer })));
@@ -622,7 +622,7 @@ export function TakeoffDwgPlan({
   return (
     <div
       ref={hostRef}
-      className="flex h-full min-h-0 w-full max-w-full flex-col overflow-hidden overflow-x-hidden bg-[#1e2124] lg:absolute lg:inset-0"
+      className="relative flex h-full min-h-0 w-full max-w-full flex-col overflow-hidden overflow-x-hidden bg-[#1e2124] lg:absolute lg:inset-0"
       data-testid="takeoff-dwg-plan"
       data-cad-space={sheet?.space ?? ''}
       data-cad-sheets={plan?.sheets.length ?? 0}
