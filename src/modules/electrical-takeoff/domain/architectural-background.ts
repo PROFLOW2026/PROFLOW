@@ -38,6 +38,15 @@ export function xrefDependencyPaths(name: string, recordedPath?: string | null):
   return paths;
 }
 
+/** Xref layer prefixes: `File|LAYER` and AutoCAD `File$0$LAYER`. */
+function xrefLayerStem(name: string): string {
+  const pipe = name.split('|')[0] ?? '';
+  if (pipe.length > 0 && pipe.length < name.length) return pipe;
+  const nested = name.split(/\$\d+\$/)[0] ?? '';
+  if (nested.length > 0 && nested.length < name.length) return nested;
+  return '';
+}
+
 /** Layers that belong to the architectural xref. Host electrical layers stay visible. */
 export function architecturalLayerIndexes(
   layers: readonly { index: number; name: string }[],
@@ -46,9 +55,6 @@ export function architecturalLayerIndexes(
   const stems = new Set(xrefNames.map(cadStem).filter((stem) => stem.length > 0));
   if (stems.size === 0) return [];
   return layers
-    .filter((layer) => {
-      const head = layer.name.split('|')[0] ?? '';
-      return stems.has(cadStem(head));
-    })
+    .filter((layer) => stems.has(cadStem(xrefLayerStem(layer.name))))
     .map((layer) => layer.index);
 }

@@ -919,6 +919,7 @@ function PfDwgViewerInner({
     activeSheet: activeSpace,
     tintSupported: true,
     automationSupported: true,
+    showModeChooser: false,
     documentId: fileName,
     onLayers: publishLayers,
     onArchitecture: (mode, strength, indexes) => {
@@ -994,6 +995,7 @@ function PfDwgViewerInner({
       <CadPreviewChrome
         hostRef={hostRef}
         layersPanel={layersPanel}
+        toolbarExtra={tools.modeSelect}
         onFitView={handleFitView}
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}

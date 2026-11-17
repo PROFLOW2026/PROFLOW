@@ -24,12 +24,13 @@ describe('architectural background', () => {
         { index: 1, name: 'E_LIGHT' },
         { index: 2, name: '1545-Xref-all-02|WALL' },
         { index: 3, name: '1545-Xref-all-02|DOOR' },
+        { index: 6, name: '1545-Xref-all-02$0$WALL' },
         { index: 4, name: 'E_XREF' },
         { index: 5, name: 'mik-xref$0$L01' },
       ],
       ['1545-Xref-all-02'],
     );
-    expect(indexes).toEqual([2, 3]);
+    expect(indexes).toEqual([2, 3, 6]);
   });
 
   it('registers the relative path stored in 1545-all-01', () => {

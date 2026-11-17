@@ -12,6 +12,7 @@ export function CadPreviewChrome({
   onFitView,
   onZoomIn,
   onZoomOut,
+  toolbarExtra,
   children,
 }: {
   hostRef: React.RefObject<HTMLElement | null>;
@@ -20,6 +21,7 @@ export function CadPreviewChrome({
   onFitView?: () => void;
   onZoomIn?: () => void;
   onZoomOut?: () => void;
+  toolbarExtra?: ReactNode;
   children: ReactNode;
 }) {
   const t = useTranslations('externalStorage.preview');
@@ -70,6 +72,7 @@ export function CadPreviewChrome({
               <span className="hidden sm:inline">{t('zoomIn')}</span>
             </Button>
           ) : null}
+          {toolbarExtra}
           {layersPanel ? (
             <Button
               type="button"
@@ -95,7 +98,7 @@ export function CadPreviewChrome({
         </Button>
       </div>
       {layersPanel && layersOpen ? (
-        <div className="max-h-[min(40dvh,280px)] w-full shrink-0 overflow-y-auto overflow-x-hidden border-t border-[var(--pf-border-default)] bg-[var(--pf-surface-elevated)] p-2">
+        <div className="max-h-80 w-full shrink-0 overflow-y-auto overflow-x-hidden border-t border-[var(--pf-border-default)] bg-[var(--pf-surface-elevated)] p-2">
           {layersPanel}
         </div>
       ) : null}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { architecturalLayerIndexes } from '@/modules/electrical-takeoff/domain/architectural-background';
 import type { ArchitectureMode } from './architecture-display';
 import { CadLayerPanel, type CadLayerRow, type CadPreset } from './cad-layer-panel';
@@ -26,6 +26,7 @@ export type CadHit = {
 
 export type CadToolsHandle = {
   clickWorld: (hit: CadHit) => void;
+  setArchitecture: (mode: ArchitectureMode) => void;
 };
 
 export type CadTextHit = { text: string; x: number; y: number; layer: number };
@@ -53,6 +54,10 @@ export const CadViewerSidePanel = forwardRef<CadToolsHandle, {
   onFocusWorld: (x: number, y: number) => void;
   onSelectSheet: (id: string) => void;
   onCapture: (capture: Capture) => void;
+  onDisplayedMode?: (mode: ArchitectureMode) => void;
+  showModeChooser?: boolean;
+  architectureMode?: ArchitectureMode;
+  architectureStrength?: number;
 }>(function CadViewerSidePanel({
   layers,
   xrefNames,
@@ -68,6 +73,10 @@ export const CadViewerSidePanel = forwardRef<CadToolsHandle, {
   onFocusWorld,
   onSelectSheet,
   onCapture,
+  onDisplayedMode,
+  showModeChooser = true,
+  architectureMode,
+  architectureStrength,
 }, ref) {
   const t = useTranslations('externalStorage.preview');
   const [query, setQuery] = useState('');
@@ -79,6 +88,8 @@ export const CadViewerSidePanel = forwardRef<CadToolsHandle, {
   const [measureKind, setMeasureKind] = useState<MeasureKind>('distance');
   const [points, setPoints] = useState<{ x: number; y: number }[]>([]);
   const [inspect, setInspect] = useState<CadHit | null>(null);
+  const [isolatedIndex, setIsolatedIndex] = useState<number | null>(null);
+  const isolateSnapshot = useRef<CadLayerRow[] | null>(null);
   const initialRef = useRef<CadLayerRow[]>([]);
   const appliedRef = useRef(false);
 
@@ -88,9 +99,10 @@ export const CadViewerSidePanel = forwardRef<CadToolsHandle, {
     if (initialRef.current.length === 0 && layers.length > 0) initialRef.current = layers.map((layer) => ({ ...layer }));
   }, [layers]);
 
-  const publishMode = (nextMode: ArchitectureMode, nextStrength: number) => {
+  const publishMode = useCallback((nextMode: ArchitectureMode, nextStrength: number) => {
     setMode(nextMode);
     setStrength(nextStrength);
+    onDisplayedMode?.(nextMode);
     const indexes = [...architectural];
     onArchitecture(nextMode, nextStrength, indexes);
     if (!tintSupported && (nextMode === 'hidden' || nextMode === 'original')) {
@@ -102,7 +114,7 @@ export const CadViewerSidePanel = forwardRef<CadToolsHandle, {
           return architectural.has(layer.index) && saved ? { ...layer, visible: saved.visible } : layer;
         }));
     }
-  };
+  }, [architectural, layers, onArchitecture, onDisplayedMode, onLayers, tintSupported]);
 
   useEffect(() => {
     if (appliedRef.current || layers.length === 0 || !documentId || typeof localStorage === 'undefined') return;
@@ -123,17 +135,20 @@ export const CadViewerSidePanel = forwardRef<CadToolsHandle, {
     if (!documentId || typeof localStorage === 'undefined' || !appliedRef.current) return;
     writeCadViewPreference(localStorage, documentId, {
       sheetId: activeSheet,
-      architectureMode: mode,
-      grayStrength: strength,
+      architectureMode: architectureMode ?? mode,
+      grayStrength: architectureStrength ?? strength,
       hiddenLayers: layers.filter((layer) => !layer.visible).map((layer) => layer.index),
       preset: mode,
     });
-  }, [activeSheet, documentId, layers, mode, strength]);
+  }, [activeSheet, architectureMode, architectureStrength, documentId, layers, mode, strength]);
 
   useImperativeHandle(ref, () => ({
+    setArchitecture: (next: ArchitectureMode) => publishMode(next, architectureStrength ?? strength),
     clickWorld: (hit) => {
       if (pickToHide && hit.layerName) {
-        onLayers(layers.map((layer) => (layer.name === hit.layerName ? { ...layer, visible: false } : layer)));
+        onLayers(layers.map((layer) => (
+          layer.name === hit.layerName && !layer.frozen ? { ...layer, visible: !layer.visible } : layer
+        )));
         return;
       }
       if (measureOn) {
@@ -145,13 +160,34 @@ export const CadViewerSidePanel = forwardRef<CadToolsHandle, {
       }
       if (inspectOn) setInspect(hit);
     },
-  }), [inspectOn, layers, measureKind, measureOn, onLayers, pickToHide]);
+  }), [architectureStrength, inspectOn, layers, measureKind, measureOn, onLayers, pickToHide, publishMode, strength]);
 
   const setCapture = (next: Capture) => {
     setPickToHide(next === 'hide');
     setMeasureOn(next === 'measure');
     setInspectOn(next === 'inspect');
     onCapture(next);
+  };
+
+  const chooseMeasure = (kind: MeasureKind) => {
+    if (measureOn && measureKind === kind) {
+      setCapture(null);
+      return;
+    }
+    setMeasureKind(kind);
+    setCapture('measure');
+  };
+
+  const toggleIsolate = (index: number) => {
+    if (isolatedIndex === index && isolateSnapshot.current) {
+      onLayers(isolateSnapshot.current.map((layer) => ({ ...layer })));
+      isolateSnapshot.current = null;
+      setIsolatedIndex(null);
+      return;
+    }
+    if (!isolateSnapshot.current) isolateSnapshot.current = layers.map((layer) => ({ ...layer }));
+    setIsolatedIndex(index);
+    onLayers(layers.map((layer) => ({ ...layer, visible: layer.index === index && !layer.frozen })));
   };
 
   const groupCounts = useMemo(() => {
@@ -162,6 +198,20 @@ export const CadViewerSidePanel = forwardRef<CadToolsHandle, {
       counts[group] = (counts[group] ?? 0) + 1;
     }
     return counts;
+  }, [architectural, layers]);
+
+  const hiddenGroups = useMemo(() => {
+    const shown = new Map<LayerGroup, boolean>();
+    for (const layer of layers) {
+      const group = suggestLayerGroup(layer.name, architectural.has(layer.index));
+      if (group === 'unknown') continue;
+      shown.set(group, (shown.get(group) ?? false) || (!layer.frozen && layer.visible));
+    }
+    const hidden = new Set<LayerGroup>();
+    for (const [group, anyVisible] of shown) {
+      if (!anyVisible) hidden.add(group);
+    }
+    return hidden;
   }, [architectural, layers]);
 
   const needle = query.trim().toLowerCase();
@@ -184,26 +234,26 @@ export const CadViewerSidePanel = forwardRef<CadToolsHandle, {
   };
 
   return (
-    <div className="flex flex-col gap-2" data-testid="cad-viewer-tools">
+    <div className="flex flex-col gap-1" data-testid="cad-viewer-tools">
       <input
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder={t('cadSearch')}
         aria-label={t('cadSearch')}
-        className="min-h-11 rounded border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 text-xs"
+        className="h-8 rounded border border-current/25 bg-current/10 px-2 text-xs text-inherit"
       />
       {needle ? (
         <ul className="max-h-32 space-y-1 overflow-auto text-xs">
           {textHits.map((row, index) => (
             <li key={`text-${index}`}>
-              <button type="button" className="min-h-11 w-full truncate rounded border px-2 text-start" onClick={() => onFocusWorld(row.x, row.y)}>
+              <button type="button" className="h-8 w-full truncate rounded border border-current/25 px-2 text-start text-inherit" onClick={() => onFocusWorld(row.x, row.y)}>
                 {row.text}
               </button>
             </li>
           ))}
           {sheetHits.map((row) => (
             <li key={row.id}>
-              <button type="button" className="min-h-11 w-full truncate rounded border px-2 text-start" onClick={() => onSelectSheet(row.id)}>
+              <button type="button" className="h-8 w-full truncate rounded border border-current/25 px-2 text-start text-inherit" onClick={() => onSelectSheet(row.id)}>
                 {row.label}
               </button>
             </li>
@@ -212,11 +262,11 @@ export const CadViewerSidePanel = forwardRef<CadToolsHandle, {
             <li key={name}>
               <button
                 type="button"
-                className="min-h-11 w-full truncate rounded border px-2 text-start"
+                className="h-8 w-full truncate rounded border border-current/25 px-2 text-start text-inherit"
                 onClick={() => {
                   const layer = layers.find((row) => row.name.toLowerCase().includes(name.toLowerCase()));
                   if (!layer) return;
-                  onLayers(layers.map((row) => ({ ...row, visible: row.index === layer.index && !row.frozen })));
+                  toggleIsolate(layer.index);
                 }}
               >
                 {name}
@@ -226,14 +276,14 @@ export const CadViewerSidePanel = forwardRef<CadToolsHandle, {
         </ul>
       ) : null}
       <div className="flex flex-wrap gap-1">
-        <button type="button" className="min-h-11 rounded border px-2 text-xs" aria-pressed={measureOn} onClick={() => setCapture(measureOn ? null : 'measure')}>
+        <button type="button" className="h-8 rounded border border-current/25 px-2 text-xs text-inherit aria-pressed:border-sky-800 aria-pressed:bg-sky-600 aria-pressed:text-white" aria-pressed={measureOn} onClick={() => setCapture(measureOn ? null : 'measure')}>
           {t('cadMeasure')}
         </button>
-        <button type="button" className="min-h-11 rounded border px-2 text-xs" aria-pressed={measureKind === 'distance'} onClick={() => setMeasureKind('distance')}>{t('cadMeasureDistance')}</button>
-        <button type="button" className="min-h-11 rounded border px-2 text-xs" aria-pressed={measureKind === 'chain'} onClick={() => setMeasureKind('chain')}>{t('cadMeasureChain')}</button>
-        <button type="button" className="min-h-11 rounded border px-2 text-xs" aria-pressed={measureKind === 'area'} onClick={() => setMeasureKind('area')}>{t('cadMeasureArea')}</button>
-        <button type="button" className="min-h-11 rounded border px-2 text-xs" onClick={() => setPoints([])}>{t('cadClear')}</button>
-        <button type="button" className="min-h-11 rounded border px-2 text-xs" aria-pressed={inspectOn} onClick={() => setCapture(inspectOn ? null : 'inspect')}>
+        <button type="button" className="h-8 rounded border border-current/25 px-2 text-xs text-inherit aria-pressed:border-sky-800 aria-pressed:bg-sky-600 aria-pressed:text-white" aria-pressed={measureOn && measureKind === 'distance'} onClick={() => chooseMeasure('distance')}>{t('cadMeasureDistance')}</button>
+        <button type="button" className="h-8 rounded border border-current/25 px-2 text-xs text-inherit aria-pressed:border-sky-800 aria-pressed:bg-sky-600 aria-pressed:text-white" aria-pressed={measureOn && measureKind === 'chain'} onClick={() => chooseMeasure('chain')}>{t('cadMeasureChain')}</button>
+        <button type="button" className="h-8 rounded border border-current/25 px-2 text-xs text-inherit aria-pressed:border-sky-800 aria-pressed:bg-sky-600 aria-pressed:text-white" aria-pressed={measureOn && measureKind === 'area'} onClick={() => chooseMeasure('area')}>{t('cadMeasureArea')}</button>
+        <button type="button" className="h-8 rounded border border-current/25 px-2 text-xs text-inherit aria-pressed:border-sky-800 aria-pressed:bg-sky-600 aria-pressed:text-white" onClick={() => setPoints([])}>{t('cadClear')}</button>
+        <button type="button" className="h-8 rounded border border-current/25 px-2 text-xs text-inherit aria-pressed:border-sky-800 aria-pressed:bg-sky-600 aria-pressed:text-white" aria-pressed={inspectOn} onClick={() => setCapture(inspectOn ? null : 'inspect')}>
           {t('cadInspect')}
         </button>
       </div>
@@ -287,26 +337,37 @@ export const CadViewerSidePanel = forwardRef<CadToolsHandle, {
         query={query}
         onQuery={setQuery}
         onToggle={(index, visible) => onLayers(layers.map((layer) => (layer.index === index ? { ...layer, visible } : layer)))}
-        onIsolate={(index) => onLayers(layers.map((layer) => ({ ...layer, visible: layer.index === index && !layer.frozen })))}
-        onShowAll={() => onLayers(layers.map((layer) => ({ ...layer, visible: layer.frozen ? layer.visible : true })))}
+        onIsolate={toggleIsolate}
+        isolatedIndex={isolatedIndex}
+        onShowAll={() => {
+          isolateSnapshot.current = null;
+          setIsolatedIndex(null);
+          onLayers(layers.map((layer) => ({ ...layer, visible: layer.frozen ? layer.visible : true })));
+        }}
         onReset={() => {
+          isolateSnapshot.current = null;
+          setIsolatedIndex(null);
           const base = initialRef.current.length > 0 ? initialRef.current : layers;
           onLayers(base.map((layer) => ({ ...layer })));
           publishMode('original', 0.7);
         }}
         onHideGroup={(group) => {
-          const indexes = new Set(layersForGroup(layers, architectural, group));
+          const members = layersForGroup(layers, architectural, group);
+          const indexes = new Set(members);
           if (indexes.size === 0) return;
-          onLayers(replaceVisibility(layers, indexes, false));
+          const hiding = layers.some((layer) => indexes.has(layer.index) && !layer.frozen && layer.visible);
+          onLayers(replaceVisibility(layers, indexes, !hiding));
         }}
+        hiddenGroups={hiddenGroups}
         pickToHide={pickToHide}
         onPickToHide={(on) => setCapture(on ? 'hide' : null)}
-        mode={mode}
-        strength={strength}
+        mode={architectureMode ?? mode}
+        strength={architectureStrength ?? strength}
         tintSupported={tintSupported}
         automationSupported={automationSupported}
-        onMode={(next) => publishMode(next, strength)}
-        onStrength={(next) => publishMode(mode, next)}
+        showModeChooser={showModeChooser}
+        onMode={(next) => publishMode(next, architectureStrength ?? strength)}
+        onStrength={(next) => publishMode(architectureMode ?? mode, next)}
         onPreset={(preset: CadPreset) => {
           if (preset === 'custom') return;
           if (preset === 'original') {

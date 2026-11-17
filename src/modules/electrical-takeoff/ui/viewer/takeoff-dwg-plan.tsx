@@ -110,7 +110,6 @@ export function TakeoffDwgPlan({
   const [toolLayers, setToolLayers] = useState<UiLayer[]>([]);
   const [toolTexts, setToolTexts] = useState<{ text: string; x: number; y: number; layer: number }[]>([]);
   const [toolsOpen, setToolsOpen] = useState(false);
-  const [fontNote, setFontNote] = useState(false);
   const archModeRef = useRef(archMode);
   const archStrengthRef = useRef(archStrength);
   useEffect(() => {
@@ -155,8 +154,6 @@ export function TakeoffDwgPlan({
   const [viewToken, setViewToken] = useState(0);
   const [background, setBackground] = useState<'hidden' | 'shown' | 'missing' | 'none'>('none');
   const [focused, setFocused] = useState<{ id: string; level: FocusLevel } | null>(null);
-  const previousViewRef = useRef<{ panX: number; panY: number; zoom: number } | null>(null);
-  const lastFocusRef = useRef<string | null>(null);
   const backgroundKey = backgroundRefs.map((ref) => `${ref.name}\t${ref.path ?? ''}`).join('\n');
   const preferred = `${sheetKey} ${sheetName}`;
 
@@ -379,7 +376,6 @@ export function TakeoffDwgPlan({
         layersRef.current = layers;
         setToolLayers(layers);
         setToolTexts((scene.texts ?? []).map((row) => ({ text: row.t, x: row.x, y: row.y, layer: row.layer })));
-        setFontNote(Object.keys(scene.report?.fonts ?? {}).length > 0);
         architecturalRef.current = architectural;
         const resolved = scene.report?.resolvedXrefs ?? 0;
         const nextBackground = refs.length === 0 ? 'none' : missing || resolved === 0 || architectural.size === 0 ? 'missing' : 'shown';
@@ -450,11 +446,7 @@ export function TakeoffDwgPlan({
     extentRef.current = drawing.extent;
     drawnRef.current = drawing.segments;
     fittedRef.current = false;
-    const hidden = backgroundRef.current === 'hidden';
-    const layers = model.layers.map((layer) => ({
-      ...layer,
-      visible: architecturalRef.current.has(layer.index) ? !hidden && layer.visible : layer.visible,
-    }));
+    const layers = model.layers;
     void renderer.setDrawingAsync(
       drawing.segments,
       drawing.extent,
@@ -485,10 +477,6 @@ export function TakeoffDwgPlan({
     const active = frame.find((item) => item.id === focusId) ?? null;
     const level = focusLevel(Boolean(active), Boolean(active?.located));
     setFocused(focusId ? { id: focusId, level } : null);
-    if (focusId !== lastFocusRef.current) {
-      previousViewRef.current = renderer.getView();
-      lastFocusRef.current = focusId;
-    }
     if (!active || level === 'region') {
       renderer.focusExtent(extentRef.current, 48);
     } else if (level === 'point') {
@@ -553,6 +541,9 @@ export function TakeoffDwgPlan({
     tintSupported: true,
     automationSupported: true,
     documentId: sheetKey,
+    showModeChooser: false,
+    architectureMode: archMode,
+    architectureStrength: archStrength,
     onLayers: (rows) => {
       const visible = new Map(rows.map((row) => [row.index, row.visible]));
       const next = toolLayers.map((layer) => {
@@ -625,37 +616,7 @@ export function TakeoffDwgPlan({
       data-cad-tree={PF_CAD_TREE_ID}
       data-focus-level={focused?.level ?? ''}
     >
-      <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
-      <canvas ref={glRef} className="absolute inset-0 size-full touch-none" aria-label={t('viewer.aria')} />
-      <canvas ref={textRef} className="pointer-events-none absolute inset-0 size-full" data-testid="takeoff-text-canvas" />
-      <canvas ref={overlayRef} className="pointer-events-none absolute inset-0 size-full" />
-      {tools.overlay}
-      {phaseLabel ? (
-        <div className="absolute inset-x-2 top-2 z-10 flex flex-wrap items-center justify-center gap-2 text-center text-xs text-white/90">
-          <p data-testid="takeoff-load-phase">
-            {phaseLabel}
-            {phase === 'download' && percent !== null ? ` ${percent}%` : ''}
-            {waitLabel ? ` — ${waitLabel}` : ''}
-          </p>
-          {phase === 'download' || phase === 'xref' || phase === 'parse' ? (
-            <Button type="button" variant="secondary" className="min-h-11" onClick={() => { abortRef.current?.abort(); setPhase('error'); }}>
-              {t('viewer.dwgCancel')}
-            </Button>
-          ) : null}
-          {phase === 'error' || phase === 'missing' ? (
-            <Button type="button" variant="secondary" className="min-h-11" onClick={() => setAttempt((value) => value + 1)}>
-              {t('viewer.dwgRetry')}
-            </Button>
-          ) : null}
-        </div>
-      ) : null}
-      </div>
-      {toolsOpen && phase === 'ready' ? (
-        <div className="max-h-[min(40dvh,240px)] w-full shrink-0 overflow-x-hidden overflow-y-auto border-t border-white/10 bg-[#2a2e32] p-2 text-white">
-          {tools.panel}
-        </div>
-      ) : null}
-      <div className="flex shrink-0 flex-wrap items-center gap-1 border-t border-white/10 p-1">
+      <div className="flex shrink-0 flex-wrap items-center gap-1 border-b border-white/10 p-1">
         <Button type="button" variant="secondary" className="min-h-11 min-w-11 px-0" aria-label={t('viewer.zoomIn')} onClick={() => rendererRef.current?.zoom(1.25)}>
           <Plus className="size-4" />
         </Button>
@@ -673,20 +634,6 @@ export function TakeoffDwgPlan({
           }}
         >
           <Maximize2 className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          className="min-h-11 px-2"
-          data-testid="takeoff-focus-back"
-          onClick={() => {
-            const view = previousViewRef.current;
-            if (!view) return;
-            rendererRef.current?.setView(view);
-            drawRef.current();
-          }}
-        >
-          {t('viewer.focusBack')}
         </Button>
         {phase === 'ready' && plan && plan.sheets.length > 1 ? (
           <label className="flex max-w-full items-center gap-2 text-xs text-white">
@@ -733,24 +680,41 @@ export function TakeoffDwgPlan({
           </label>
         )) : null}
         {background === 'shown' || background === 'hidden' ? (
-          <Button
-            type="button"
-            variant="secondary"
-            className="min-h-11"
-            data-testid="takeoff-background-toggle"
-            aria-pressed={background === 'shown'}
-            onClick={() => {
-              const renderer = rendererRef.current;
-              const current = layersRef.current;
-              if (!renderer || current.length === 0) return;
-              const next = background === 'shown' ? 'hidden' : 'shown';
-              setArchMode(next === 'hidden' ? 'hidden' : 'original');
-              backgroundRef.current = next;
-              setBackground(next);
-            }}
-          >
-            {background === 'shown' ? t('viewer.hideBackground') : t('viewer.showBackground')}
-          </Button>
+          <label className="flex max-w-full items-center gap-2 text-xs text-white">
+            <span>{t('viewer.backgroundMode')}</span>
+            <select
+              className="min-h-11 max-w-full rounded border border-white/20 bg-[#2a2e32] px-2"
+              data-testid="takeoff-background-toggle"
+              aria-label={t('viewer.backgroundMode')}
+              value={archMode}
+              onChange={(event) => {
+                const mode = event.target.value as ArchitectureMode;
+                setArchMode(mode);
+                const next = mode === 'hidden' ? 'hidden' : 'shown';
+                backgroundRef.current = next;
+                setBackground(next);
+              }}
+            >
+              <option value="original">{t('viewer.archOriginal')}</option>
+              <option value="gray">{t('viewer.archGray')}</option>
+              <option value="mono">{t('viewer.archMono')}</option>
+              <option value="hidden">{t('viewer.archHidden')}</option>
+            </select>
+          </label>
+        ) : null}
+        {background !== 'none' && background !== 'missing' && archMode === 'gray' ? (
+          <label className="flex items-center gap-2 text-xs text-white">
+            <span>{t('viewer.archStrength')}</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={Math.round(archStrength * 100)}
+              aria-label={t('viewer.archStrength')}
+              className="min-h-11 w-24"
+              onChange={(event) => setArchStrength(Number(event.target.value) / 100)}
+            />
+          </label>
         ) : null}
         {background === 'missing' && phase === 'ready' ? (
           <span className="text-xs text-white/90" data-testid="takeoff-background-missing">{t('viewer.backgroundMissing')}</span>
@@ -759,8 +723,36 @@ export function TakeoffDwgPlan({
           {t('viewer.tools')}
         </Button>
         {focused?.level === 'point' ? <span className="text-xs text-white/90" data-testid="takeoff-focus-point">{t('viewer.focusPoint')}</span> : null}
-        {focused?.level === 'region' ? <span className="text-xs text-white/90" data-testid="takeoff-focus-region">{t('viewer.focusRegion')}</span> : null}
-        {fontNote ? <span className="text-xs text-white/80">{t('viewer.fontSubstituted')}</span> : null}
+      </div>
+      {toolsOpen && phase === 'ready' ? (
+        <div className="max-h-52 min-h-0 w-full shrink-0 overflow-x-hidden overflow-y-auto border-b border-white/10 bg-[#2a2e32] p-1.5 text-xs text-white">
+          {tools.panel}
+        </div>
+      ) : null}
+      <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
+        <canvas ref={glRef} className="absolute inset-0 size-full touch-none" aria-label={t('viewer.aria')} />
+        <canvas ref={textRef} className="pointer-events-none absolute inset-0 size-full" data-testid="takeoff-text-canvas" />
+        <canvas ref={overlayRef} className="pointer-events-none absolute inset-0 size-full" />
+        {tools.overlay}
+        {phaseLabel ? (
+          <div className="absolute inset-x-2 top-2 z-10 flex flex-wrap items-center justify-center gap-2 text-center text-xs text-white/90">
+            <p data-testid="takeoff-load-phase">
+              {phaseLabel}
+              {phase === 'download' && percent !== null ? ` ${percent}%` : ''}
+              {waitLabel ? ` — ${waitLabel}` : ''}
+            </p>
+            {phase === 'download' || phase === 'xref' || phase === 'parse' ? (
+              <Button type="button" variant="secondary" className="min-h-11" onClick={() => { abortRef.current?.abort(); setPhase('error'); }}>
+                {t('viewer.dwgCancel')}
+              </Button>
+            ) : null}
+            {phase === 'error' || phase === 'missing' ? (
+              <Button type="button" variant="secondary" className="min-h-11" onClick={() => setAttempt((value) => value + 1)}>
+                {t('viewer.dwgRetry')}
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );

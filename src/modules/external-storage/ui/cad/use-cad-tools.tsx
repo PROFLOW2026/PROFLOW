@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRef, useState, type ReactNode } from 'react';
 import { worldFromClientPoint } from './cad-pointer-math';
 import { layerIndexNear, snapToEndpoint } from './cad-layer-tools';
@@ -15,6 +16,33 @@ import type { ArchitectureMode } from './architecture-display';
 
 type Capture = 'measure' | 'inspect' | 'hide' | null;
 
+export function CadArchitectureModeSelect({
+  mode,
+  onChange,
+}: {
+  mode: ArchitectureMode;
+  onChange: (mode: ArchitectureMode) => void;
+}) {
+  const t = useTranslations('externalStorage.preview');
+  return (
+    <label className="flex items-center gap-1 text-xs text-[var(--pf-text-primary)]">
+      <span className="hidden sm:inline">{t('cadArchBackground')}</span>
+      <select
+        className="h-8 max-w-full rounded border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2"
+        aria-label={t('cadArchBackground')}
+        data-testid="cad-architecture-mode"
+        value={mode}
+        onChange={(event) => onChange(event.target.value as ArchitectureMode)}
+      >
+        <option value="original">{t('cadArchOriginal')}</option>
+        <option value="gray">{t('cadArchGray')}</option>
+        <option value="mono">{t('cadArchMono')}</option>
+        <option value="hidden">{t('cadArchHidden')}</option>
+      </select>
+    </label>
+  );
+}
+
 export function useCadTools(input: {
   layers: readonly CadLayerRow[];
   xrefNames: readonly string[];
@@ -25,6 +53,9 @@ export function useCadTools(input: {
   tintSupported: boolean;
   automationSupported: boolean;
   documentId: string;
+  showModeChooser?: boolean;
+  architectureMode?: ArchitectureMode;
+  architectureStrength?: number;
   onLayers: (layers: CadLayerRow[]) => void;
   onArchitecture: (mode: ArchitectureMode, strength: number, indexes: number[]) => void;
   onFocusWorld: (x: number, y: number) => void;
@@ -36,9 +67,10 @@ export function useCadTools(input: {
     stride: number;
     marks?: readonly { id: string; x: number; y: number }[];
   } | null;
-}): { panel: ReactNode; overlay: ReactNode } {
+}): { panel: ReactNode; overlay: ReactNode; modeSelect: ReactNode } {
   const toolsRef = useRef<CadToolsHandle>(null);
   const [capture, setCapture] = useState<Capture>(null);
+  const [shownMode, setShownMode] = useState<ArchitectureMode>(input.architectureMode ?? 'original');
   const panel = (
     <CadViewerSidePanel
       ref={toolsRef}
@@ -51,11 +83,21 @@ export function useCadTools(input: {
       tintSupported={input.tintSupported}
       automationSupported={input.automationSupported}
       documentId={input.documentId}
+      showModeChooser={input.showModeChooser}
+      architectureMode={input.architectureMode}
+      architectureStrength={input.architectureStrength}
       onLayers={input.onLayers}
       onArchitecture={input.onArchitecture}
       onFocusWorld={input.onFocusWorld}
       onSelectSheet={input.onSelectSheet}
       onCapture={setCapture}
+      onDisplayedMode={setShownMode}
+    />
+  );
+  const modeSelect = (
+    <CadArchitectureModeSelect
+      mode={input.architectureMode ?? shownMode}
+      onChange={(mode) => toolsRef.current?.setArchitecture(mode)}
     />
   );
   const overlay = capture ? (
@@ -101,5 +143,5 @@ export function useCadTools(input: {
       }}
     />
   ) : null;
-  return { panel, overlay };
+  return { panel, overlay, modeSelect };
 }

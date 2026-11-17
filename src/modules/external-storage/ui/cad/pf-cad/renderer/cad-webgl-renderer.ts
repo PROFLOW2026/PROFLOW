@@ -14,6 +14,11 @@ import {
 } from './layer-visibility';
 import { FILL_VERT, LINE_FRAG, WIDE_LINE_VERT } from './shaders';
 import { wideLineMeshFromPairs } from './wide-line-batch';
+
+function architectureKey(layers: ReadonlySet<number> | null | undefined): string {
+  if (!layers || layers.size === 0) return '';
+  return [...layers].sort((left, right) => left - right).join(',');
+}
 import { computeFitView, type CadView, type ViewportSize } from './view-math';
 import {
   ORIGINAL_ARCHITECTURE,
@@ -93,6 +98,10 @@ export class CadWebGlRenderer {
   private segmentStride = SEGMENT_STRIDE;
   private layerVisibility: LayerVisibilityState = { mode: 'all' };
   private architectureLayers: Set<number> | null = null;
+  /** Bumped on every batch rebuild so a slower async upload cannot replace a newer one. */
+  private batchEpoch = 0;
+  /** Layer set actually used by the batches now on the GPU. */
+  private builtArchitectureKey = '';
   private architectureStyle: ArchitectureStyle = ORIGINAL_ARCHITECTURE;
   private cpuBatches: DrawBatch[] = [];
   private gpuBatches: GpuDrawBatch[] = [];
@@ -141,6 +150,7 @@ export class CadWebGlRenderer {
     triangles: Float32Array = new Float32Array(0),
     segmentStride = SEGMENT_STRIDE,
   ): void {
+    this.claimBatches();
     this.segments = segments;
     this.triangles = triangles;
     this.segmentStride = segmentStride;
@@ -153,11 +163,13 @@ export class CadWebGlRenderer {
     triangles: Float32Array = new Float32Array(0),
     segmentStride = SEGMENT_STRIDE,
   ): Promise<void> {
+    const epoch = this.claimBatches();
     this.segments = segments;
     this.triangles = triangles;
     this.segmentStride = segmentStride;
     await this.rebuildCpuBatchesAsync(true);
     await yieldToMain();
+    if (epoch !== this.batchEpoch) return;
     this.uploadGpuBatches();
   }
 
@@ -166,6 +178,7 @@ export class CadWebGlRenderer {
   }
 
   setLayerVisibility(visibility: LayerVisibilityInput): void {
+    this.claimBatches();
     this.layerVisibility = normalizeLayerVisibility(visibility);
     this.rebuildCpuBatches(true);
     this.uploadGpuBatches();
@@ -174,12 +187,10 @@ export class CadWebGlRenderer {
   /** Retint architecture batches at draw time. A layer-set change rebuilds. A mode change only redraws. */
   setArchitectureDisplay(layers: ReadonlySet<number> | null, style: ArchitectureStyle): void {
     const nextLayers = layers ?? new Set<number>();
-    const same =
-      this.architectureLayers !== null &&
-      this.architectureLayers.size === nextLayers.size &&
-      [...nextLayers].every((index) => this.architectureLayers?.has(index));
+    const nextKey = architectureKey(nextLayers);
     this.architectureStyle = style;
-    if (!same) {
+    if (nextKey !== this.builtArchitectureKey) {
+      this.claimBatches();
       this.architectureLayers = new Set(nextLayers);
       this.rebuildCpuBatches(true);
       this.uploadGpuBatches();
@@ -388,9 +399,19 @@ export class CadWebGlRenderer {
     gl.bindVertexArray(null);
   }
 
+  private markBuiltArchitecture(): void {
+    this.builtArchitectureKey = architectureKey(this.architectureLayers);
+  }
+
+  private claimBatches(): number {
+    this.batchEpoch += 1;
+    return this.batchEpoch;
+  }
+
   private rebuildCpuBatches(force: boolean): void {
     if (this.segments.length === 0 && this.triangles.length === 0) {
       this.cpuBatches = [];
+      this.markBuiltArchitecture();
       return;
     }
     if (!force && this.cpuBatches.length > 0) {
@@ -403,11 +424,13 @@ export class CadWebGlRenderer {
       this.segmentStride,
       this.architectureLayers ?? undefined,
     );
+    this.markBuiltArchitecture();
   }
 
   private async rebuildCpuBatchesAsync(force: boolean): Promise<void> {
     if (this.segments.length === 0 && this.triangles.length === 0) {
       this.cpuBatches = [];
+      this.markBuiltArchitecture();
       return;
     }
     if (!force && this.cpuBatches.length > 0) {
@@ -420,6 +443,7 @@ export class CadWebGlRenderer {
       this.segmentStride,
       this.architectureLayers ?? undefined,
     );
+    this.markBuiltArchitecture();
   }
 
   private uploadGpuBatches(): void {
