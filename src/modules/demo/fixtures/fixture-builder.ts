@@ -23,6 +23,8 @@ export interface DemoFixtureProject {
   readonly actualEndDate?: string;
   readonly progressPercent: number;
   readonly workKind: DemoWorkKind;
+  /** Fixed/open for jobs & work orders; null for classic projects. */
+  readonly pricingMode: 'fixed' | 'open' | null;
   readonly location: string;
 }
 
@@ -110,9 +112,38 @@ export interface DemoFixtureTask {
   readonly title: string;
   readonly projectKey: string;
   readonly status: DemoFixtureTaskStatus;
+  readonly employeeKey?: string;
   readonly startDate?: string;
   readonly dueDate?: string;
   readonly completionDate?: string;
+}
+
+export interface DemoFixturePurchaseOrder {
+  readonly key: string;
+  readonly projectKey: string;
+  readonly vendorKey: string;
+  readonly reference: string;
+  readonly committedNet: string;
+  readonly orderedOn: string;
+  readonly expectedCashDate: string;
+  readonly lineDescription: string;
+}
+
+export interface DemoFixtureSubcontract {
+  readonly key: string;
+  readonly projectKey: string;
+  readonly vendorKey: string;
+  readonly parentContractKey: string;
+  readonly title: string;
+  readonly originalAmount: string;
+  readonly startDate: string;
+  readonly endDate?: string;
+}
+
+export interface DemoFixtureBudget {
+  readonly projectKey: string;
+  readonly name: string;
+  readonly totalBudgetAmount: string;
 }
 
 export interface DemoFixtureNotification {
@@ -146,8 +177,11 @@ export interface DemoFixture {
     readonly employeeKey: string;
     readonly projectKey: string;
     readonly role: string;
-    readonly startOffset: number;
+    readonly startDate: string;
   }[];
+  readonly purchaseOrders: readonly DemoFixturePurchaseOrder[];
+  readonly subcontracts: readonly DemoFixtureSubcontract[];
+  readonly budgets: readonly DemoFixtureBudget[];
 }
 
 function money(amount: number): string {
@@ -173,6 +207,26 @@ function profileUsesBoq(profileKey: OnboardingBusinessType): boolean {
     profileKey === 'RENOVATION' ||
     profileKey === 'REAL_ESTATE_DEVELOPMENT'
   );
+}
+
+function profileUsesSubcontracts(profileKey: OnboardingBusinessType): boolean {
+  return (
+    profileKey === 'GENERAL_CONTRACTOR' ||
+    profileKey === 'ELECTRICAL' ||
+    profileKey === 'PLUMBING' ||
+    profileKey === 'HVAC' ||
+    profileKey === 'RENOVATION' ||
+    profileKey === 'SUBCONTRACTOR' ||
+    profileKey === 'REAL_ESTATE_DEVELOPMENT' ||
+    profileKey === 'MIXED_PROJECT_SERVICE' ||
+    profileKey === 'INSTALLATION' ||
+    profileKey === 'FACILITY_MANAGEMENT'
+  );
+}
+
+function pricingModeFor(workKind: DemoWorkKind): 'fixed' | 'open' | null {
+  if (workKind === 'job' || workKind === 'work_order') return 'fixed';
+  return null;
 }
 
 export function buildDemoFixture(
@@ -211,6 +265,7 @@ export function buildDemoFixture(
     actualEndDate: row.actualEndOffset !== undefined ? day(row.actualEndOffset) : undefined,
     progressPercent: row.progressPercent,
     workKind: row.workKind,
+    pricingMode: pricingModeFor(row.workKind),
     location: row.location,
   }));
 
@@ -354,7 +409,8 @@ export function buildDemoFixture(
       projectKey: 'p-active-2',
       clientKey: 'c2',
       name: `הסכם משלים — ${blueprint.projects[2]!.name}`,
-      originalValueNet: money(scaled(scale, 190_000)),
+      // Tighter margin vs costs — still positive for most scales; not artificial zero.
+      originalValueNet: money(scaled(scale, 210_000)),
       startDate: day(-95),
       endDate: day(55),
       status: 'active',
@@ -364,9 +420,20 @@ export function buildDemoFixture(
       projectKey: 'p-service',
       clientKey: 'c3',
       name: 'הסכם שירות שוטף',
-      originalValueNet: money(scaled(scale, 72_000)),
+      // Intentionally lean vs labor/AP so some profiles show a real loss on this job.
+      originalValueNet: money(scaled(scale, 18_500)),
       startDate: day(-40),
       endDate: day(140),
+      status: 'active',
+    },
+    {
+      key: 'ct-hold',
+      projectKey: 'p-hold',
+      clientKey: 'c2',
+      name: `הסכם מושהה — ${blueprint.projects[3]!.name}`,
+      originalValueNet: money(scaled(scale, 95_000)),
+      startDate: day(-175),
+      endDate: day(90),
       status: 'active',
     },
     {
@@ -443,6 +510,7 @@ export function buildDemoFixture(
       title,
       projectKey,
       status,
+      employeeKey: employees[index % employees.length]!.key,
       startDate: opened,
       dueDate: due,
       completionDate: completion,
@@ -485,15 +553,68 @@ export function buildDemoFixture(
     : [];
 
   const assignments = [
-    { employeeKey: 'e1', projectKey: 'p-active', role: employees[0]!.jobTitle, startOffset: -150 },
-    { employeeKey: 'e2', projectKey: 'p-active', role: employees[1]!.jobTitle, startOffset: -140 },
-    { employeeKey: 'e3', projectKey: 'p-active', role: employees[2]!.jobTitle, startOffset: -130 },
-    { employeeKey: 'e2', projectKey: 'p-active-2', role: employees[1]!.jobTitle, startOffset: -90 },
-    { employeeKey: 'e3', projectKey: 'p-active-2', role: employees[2]!.jobTitle, startOffset: -85 },
-    { employeeKey: 'e5', projectKey: 'p-service', role: employees[4]!.jobTitle, startOffset: -40 },
-    { employeeKey: 'e6', projectKey: 'p-service', role: employees[5]!.jobTitle, startOffset: -35 },
-    { employeeKey: 'e1', projectKey: 'p-done', role: employees[0]!.jobTitle, startOffset: -210 },
+    { employeeKey: 'e1', projectKey: 'p-active', role: employees[0]!.jobTitle, startDate: day(-150) },
+    { employeeKey: 'e2', projectKey: 'p-active', role: employees[1]!.jobTitle, startDate: day(-140) },
+    { employeeKey: 'e3', projectKey: 'p-active', role: employees[2]!.jobTitle, startDate: day(-130) },
+    { employeeKey: 'e4', projectKey: 'p-active', role: employees[3]!.jobTitle, startDate: day(-120) },
+    { employeeKey: 'e2', projectKey: 'p-active-2', role: employees[1]!.jobTitle, startDate: day(-90) },
+    { employeeKey: 'e3', projectKey: 'p-active-2', role: employees[2]!.jobTitle, startDate: day(-85) },
+    { employeeKey: 'e4', projectKey: 'p-hold', role: employees[3]!.jobTitle, startDate: day(-100) },
+    { employeeKey: 'e5', projectKey: 'p-service', role: employees[4]!.jobTitle, startDate: day(-40) },
+    { employeeKey: 'e6', projectKey: 'p-service', role: employees[5]!.jobTitle, startDate: day(-35) },
+    { employeeKey: 'e1', projectKey: 'p-done', role: employees[0]!.jobTitle, startDate: day(-210) },
   ];
+
+  const supplierVendor =
+    vendors.find((row) => row.type === 'supplier') ?? vendors[0]!;
+  const subVendor = vendors.find((row) => row.type === 'subcontractor') ?? vendors[vendors.length - 1]!;
+
+  const purchaseOrders: DemoFixturePurchaseOrder[] = [
+    {
+      key: 'po-1',
+      projectKey: 'p-active',
+      vendorKey: supplierVendor.key,
+      reference: `PO-${profileKey.slice(0, 4)}-01`,
+      committedNet: money(scaled(scale, 28_500)),
+      orderedOn: day(-70),
+      expectedCashDate: day(14),
+      lineDescription: `הזמנת חומרים — ${blueprint.projects[1]!.name}`,
+    },
+    {
+      key: 'po-2',
+      projectKey: 'p-active-2',
+      vendorKey: supplierVendor.key,
+      reference: `PO-${profileKey.slice(0, 4)}-02`,
+      committedNet: money(scaled(scale, 12_400)),
+      orderedOn: day(-35),
+      expectedCashDate: day(28),
+      lineDescription: `הזמנת ציוד — ${blueprint.projects[2]!.name}`,
+    },
+  ];
+
+  const subcontracts: DemoFixtureSubcontract[] = profileUsesSubcontracts(profileKey)
+    ? [
+        {
+          key: 'sc-1',
+          projectKey: 'p-active',
+          vendorKey: subVendor.key,
+          parentContractKey: 'ct-primary',
+          title: `הסכם קבלן משנה — ${subVendor.name}`,
+          originalAmount: money(scaled(scale, 95_000)),
+          startDate: day(-140),
+          endDate: day(20),
+        },
+      ]
+    : [];
+
+  const budgets: DemoFixtureBudget[] = contracts
+    .filter((row) => row.status === 'active')
+    .map((row) => ({
+      projectKey: row.projectKey,
+      name: `תקציב — ${projects.find((project) => project.key === row.projectKey)?.name ?? row.projectKey}`,
+      // Budget slightly under contract so variance screens have signal.
+      totalBudgetAmount: money(Math.round(Number(row.originalValueNet) * 0.92 * 100) / 100),
+    }));
 
   const notifications: DemoFixtureNotification[] = [
     {
@@ -546,13 +667,16 @@ export function buildDemoFixture(
     attendanceDates,
     notifications,
     assignments,
+    purchaseOrders,
+    subcontracts,
+    budgets,
   };
 }
 
 export function activeProjectContractNet(fixture: DemoFixture): string {
-  const total = fixture.billing
-    .filter((row) => row.projectKey === 'p-active')
-    .reduce((sum, row) => sum + Number(row.subtotalAmount), 0);
+  const total = fixture.contracts
+    .filter((row) => row.projectKey === 'p-active' && row.status === 'active')
+    .reduce((sum, row) => sum + Number(row.originalValueNet), 0);
   return total.toFixed(2);
 }
 
@@ -576,6 +700,14 @@ export function collectFixtureDateStrings(fixture: DemoFixture): string[] {
   }
   for (const row of fixture.billing) dates.push(row.issueDate);
   for (const row of fixture.contracts) {
+    dates.push(row.startDate);
+    if (row.endDate) dates.push(row.endDate);
+  }
+  for (const row of fixture.assignments) dates.push(row.startDate);
+  for (const row of fixture.purchaseOrders) {
+    dates.push(row.orderedOn, row.expectedCashDate);
+  }
+  for (const row of fixture.subcontracts) {
     dates.push(row.startDate);
     if (row.endDate) dates.push(row.endDate);
   }

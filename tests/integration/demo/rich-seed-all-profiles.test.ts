@@ -207,18 +207,24 @@ describe('demo rich seed — all 20 profiles', () => {
         return { dashboard, profitability, cashFlow, rollup };
       });
 
-      const projectsWithNonZeroActual = financial.rollup.rows.filter(
+      const projectsWithNonZeroActual = financial.rollup.eligibleRows.filter(
         (row) => row.actualCost && Number(row.actualCost.amount) > 0,
       ).length;
-      expect(financial.rollup.rows.length).toBeGreaterThanOrEqual(2);
-      expect(
-        projectsWithNonZeroActual > 0 ||
-          Number(financial.cashFlow.paidActual.amount) > 0 ||
-          (financial.dashboard.totalActualCost != null &&
-            Number(financial.dashboard.totalActualCost.amount) > 0) ||
-          (financial.dashboard.totalContractValue != null &&
-            Number(financial.dashboard.totalContractValue.amount) > 0),
-      ).toBe(true);
+      const projectsWithPositiveCcv = financial.rollup.eligibleRows.filter(
+        (row) => row.currentContract && Number(row.currentContract.amount) > 0,
+      ).length;
+      expect(financial.rollup.eligibleRows.length).toBeGreaterThanOrEqual(2);
+      expect(projectsWithPositiveCcv).toBeGreaterThanOrEqual(2);
+      expect(Number(financial.dashboard.totalContractValue?.amount ?? 0)).toBeGreaterThan(0);
+      expect(projectsWithNonZeroActual).toBeGreaterThan(0);
+
+      const artificialZeroValueLoss = financial.rollup.eligibleRows.some((row) => {
+        const ccv = Number(row.currentContract?.amount ?? 0);
+        const cost = Number(row.actualCost?.amount ?? 0);
+        const profit = Number(row.actualProfit?.amount ?? 0);
+        return cost > 0 && ccv === 0 && Math.abs(profit + cost) < 0.02;
+      });
+      expect(artificialZeroValueLoss).toBe(false);
 
       financialSamples.push({
         profileKey,
@@ -228,7 +234,7 @@ describe('demo rich seed — all 20 profiles', () => {
         dashboardHasCostSignal: Boolean(
           financial.dashboard.totalActualCost && Number(financial.dashboard.totalActualCost.amount) > 0,
         ),
-        projectRows: financial.rollup.rows.length,
+        projectRows: financial.rollup.eligibleRows.length,
         projectsWithNonZeroActual,
         cashIn: financial.dashboard.billing?.netPaid?.amount ?? null,
         cashOut: financial.cashFlow.paidActual.amount,

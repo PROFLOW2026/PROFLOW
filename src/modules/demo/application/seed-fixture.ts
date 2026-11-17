@@ -12,7 +12,9 @@ import {
   billingRecords,
   boqNodes,
   clients,
+  committedCosts,
   contracts,
+  contractValueEvents,
   costCategories,
   documents,
   employeeProjectAssignments,
@@ -22,20 +24,37 @@ import {
   infraCaptures,
   payments,
   projectBoqs,
+  projectBudgetLines,
+  projectBudgets,
   projectLocations,
   projectWorkspaceLinks,
   projects,
+  purchaseOrderLines,
+  purchaseOrders,
   rateVersions,
+  subcontractAgreements,
+  subcontractValueEvents,
   tasks,
   timeEntries,
   vendors,
   workspaces,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import { CONTRACT_VALUE_REASON_ORIGINAL } from '@/modules/projects/domain/contract-value-reason';
 import type { DemoFixture } from '../fixtures/fixture-builder';
 
 function jerusalemInstant(date: string, hour: number, minute = 0): Date {
   return new Date(`${date}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00+02:00`);
+}
+
+function taxFromNet(net: string): string {
+  const netNum = Number(net);
+  const gross = Math.round(netNum * 1.18 * 100) / 100;
+  return (gross - netNum).toFixed(2);
+}
+
+function grossFromNet(net: string): string {
+  return (Math.round(Number(net) * 1.18 * 100) / 100).toFixed(2);
 }
 
 async function resolveDemoCostCategoryId(db: DbExecutor, organizationId: string): Promise<string> {
@@ -150,6 +169,7 @@ export async function seedDemoFixture(
                 : 'not_started',
         progressSource: 'manual',
         workKind: project.workKind,
+        pricingMode: project.pricingMode,
         location: project.location,
         currency: 'ILS',
       };
@@ -173,8 +193,7 @@ export async function seedDemoFixture(
         organizationId,
         projectId,
         employeeId,
-        startDate:
-          fixture.projects.find((row) => row.key === assignment.projectKey)?.startedDate ?? fixture.anchorDay,
+        startDate: assignment.startDate,
         role: assignment.role,
         status: 'active',
         plannedAllocationPercent: '50',
@@ -185,32 +204,74 @@ export async function seedDemoFixture(
     await db.insert(employeeProjectAssignments).values(assignmentRows);
   }
 
-  await db.insert(contracts).values(
-    fixture.contracts
-      .map((contract) => {
-        const projectId = projectIds.get(contract.projectKey);
-        if (!projectId) return null;
-        return {
-          id: randomUUID(),
-          organizationId,
-          projectId,
-          clientId: clientIds.get(contract.clientKey) ?? null,
-          name: contract.name,
-          startDate: contract.startDate,
-          endDate: contract.endDate ?? null,
-          originalValueAmount: contract.originalValueNet,
-          currency: 'ILS',
-          status: contract.status,
-        };
-      })
-      .filter((row): row is NonNullable<typeof row> => row !== null),
-  );
+  // Contracts + original value events (same path as contract-amount.ts commercial truth).
+  const contractIds = new Map<string, string>();
+  const contractRows = fixture.contracts
+    .map((contract) => {
+      const projectId = projectIds.get(contract.projectKey);
+      if (!projectId) return null;
+      const id = randomUUID();
+      contractIds.set(contract.key, id);
+      const net = contract.originalValueNet;
+      const tax = taxFromNet(net);
+      const gross = grossFromNet(net);
+      return {
+        id,
+        organizationId,
+        projectId,
+        clientId: clientIds.get(contract.clientKey) ?? null,
+        name: contract.name,
+        startDate: contract.startDate,
+        endDate: contract.endDate ?? null,
+        isPrimary: true,
+        contractType: 'primary' as const,
+        enteredValueAmount: net,
+        amountIncludesTax: false,
+        originalValueAmount: net,
+        originalTaxAmount: tax,
+        originalGrossAmount: gross,
+        displayOriginalEnteredAmount: net,
+        displayOriginalNetAmount: net,
+        displayOriginalTaxAmount: tax,
+        displayOriginalGrossAmount: gross,
+        currency: 'ILS',
+        status: contract.status,
+        signedDate: contract.startDate,
+      };
+    })
+    .filter((row): row is NonNullable<typeof row> => row !== null);
+
+  if (contractRows.length > 0) {
+    await db.insert(contracts).values(contractRows);
+    await db.insert(contractValueEvents).values(
+      fixture.contracts
+        .map((contract) => {
+          const contractId = contractIds.get(contract.key);
+          const projectId = projectIds.get(contract.projectKey);
+          if (!contractId || !projectId) return null;
+          return {
+            id: randomUUID(),
+            organizationId,
+            contractId,
+            projectId,
+            kind: 'original',
+            amount: contract.originalValueNet,
+            currency: 'ILS',
+            effectiveDate: contract.startDate,
+            reason: CONTRACT_VALUE_REASON_ORIGINAL,
+            actorUserId: null,
+          };
+        })
+        .filter((row): row is NonNullable<typeof row> => row !== null),
+    );
+  }
 
   await db.insert(tasks).values(
     fixture.tasks
       .map((task) => {
         const projectId = projectIds.get(task.projectKey);
         if (!projectId) return null;
+        const ownerEmployeeId = task.employeeKey ? employeeIds.get(task.employeeKey) ?? null : null;
         return {
           id: randomUUID(),
           organizationId,
@@ -222,6 +283,7 @@ export async function seedDemoFixture(
           dueDate: task.dueDate ?? null,
           completionDate: task.completionDate ?? null,
           createdBySystem: true,
+          ownerEmployeeId,
         };
       })
       .filter((row): row is NonNullable<typeof row> => row !== null),
@@ -297,7 +359,6 @@ export async function seedDemoFixture(
   );
 
   // AP must follow draft → classified lines → open. Payments are cash-only.
-  // Session teardown voids payments then bills (ap_bill_void latch) before org CASCADE.
   for (const vendorBill of fixture.vendorBills) {
     const vendorId = vendorIds.get(vendorBill.vendorKey);
     if (!vendorId) continue;
@@ -372,13 +433,121 @@ export async function seedDemoFixture(
     }
   }
 
-  const activeProjectId = projectIds.get('p-active');
-  if (activeProjectId && fixture.boqItems.length > 0) {
+  // Issued POs open committed-cost rows (commitment ≠ expense).
+  for (const po of fixture.purchaseOrders) {
+    const vendorId = vendorIds.get(po.vendorKey);
+    const projectId = projectIds.get(po.projectKey);
+    if (!vendorId || !projectId) continue;
+    const poId = randomUUID();
+    await db.insert(purchaseOrders).values({
+      id: poId,
+      organizationId,
+      vendorId,
+      projectId,
+      reference: po.reference,
+      status: 'issued',
+      currency: 'ILS',
+      committedAmount: po.committedNet,
+      orderedOn: po.orderedOn,
+      expectedCashDate: po.expectedCashDate,
+      notes: 'הזמנת רכש לדוגמה — דמו',
+    });
+    await db.insert(purchaseOrderLines).values({
+      id: randomUUID(),
+      organizationId,
+      purchaseOrderId: poId,
+      description: po.lineDescription,
+      quantity: '1',
+      unitAmount: po.committedNet,
+      lineTotal: po.committedNet,
+      currency: 'ILS',
+      sortOrder: 0,
+    });
+    await db.insert(committedCosts).values({
+      id: randomUUID(),
+      organizationId,
+      purchaseOrderId: poId,
+      projectId,
+      amount: po.committedNet,
+      currency: 'ILS',
+      status: 'open',
+    });
+  }
+
+  for (const subcontract of fixture.subcontracts) {
+    const vendorId = vendorIds.get(subcontract.vendorKey);
+    const projectId = projectIds.get(subcontract.projectKey);
+    if (!vendorId || !projectId) continue;
+    const agreementId = randomUUID();
+    await db.insert(subcontractAgreements).values({
+      id: agreementId,
+      organizationId,
+      subcontractNumber: `SC-${subcontract.key.toUpperCase()}`,
+      vendorId,
+      projectId,
+      parentContractId: contractIds.get(subcontract.parentContractKey) ?? null,
+      title: subcontract.title,
+      status: 'active',
+      originalAmount: subcontract.originalAmount,
+      currency: 'ILS',
+      startDate: subcontract.startDate,
+      endDate: subcontract.endDate ?? null,
+      notes: 'הסכם קבלן משנה לדוגמה — דמו',
+    });
+    await db.insert(subcontractValueEvents).values({
+      id: randomUUID(),
+      organizationId,
+      subcontractId: agreementId,
+      kind: 'original',
+      amount: subcontract.originalAmount,
+      currency: 'ILS',
+      effectiveDate: subcontract.startDate,
+      reason: 'Original subcontract value',
+      actorUserId: null,
+    });
+  }
+
+  for (const budget of fixture.budgets) {
+    const projectId = projectIds.get(budget.projectKey);
+    if (!projectId) continue;
+    const budgetId = randomUUID();
+    await db.insert(projectBudgets).values({
+      id: budgetId,
+      organizationId,
+      projectId,
+      name: budget.name,
+      status: 'active',
+      currency: 'ILS',
+      totalBudgetAmount: budget.totalBudgetAmount,
+      currentRevisionNumber: 1,
+    });
+    await db.insert(projectBudgetLines).values({
+      id: randomUUID(),
+      organizationId,
+      budgetId,
+      revisionNumber: 1,
+      lineType: 'total',
+      label: 'תקציב כולל',
+      budgetAmount: budget.totalBudgetAmount,
+      sortOrder: 0,
+    });
+  }
+
+  // BOQ per projectKey group (fixture may tag items to more than one project).
+  const boqByProject = new Map<string, Array<(typeof fixture.boqItems)[number]>>();
+  for (const item of fixture.boqItems) {
+    const list = boqByProject.get(item.projectKey) ?? [];
+    list.push(item);
+    boqByProject.set(item.projectKey, list);
+  }
+  for (const [projectKey, items] of boqByProject) {
+    const projectId = projectIds.get(projectKey);
+    if (!projectId || items.length === 0) continue;
     const boqId = randomUUID();
     await db.insert(projectBoqs).values({
       id: boqId,
       organizationId,
-      projectId: activeProjectId,
+      projectId,
       title: 'כתב כמויות לדוגמה',
       currency: 'ILS',
     });
@@ -391,7 +560,7 @@ export async function seedDemoFixture(
       description: 'פרק לדוגמה',
     });
     await db.insert(boqNodes).values(
-      fixture.boqItems.map((item) => ({
+      items.map((item) => ({
         id: randomUUID(),
         organizationId,
         boqId,
@@ -471,7 +640,7 @@ export async function seedDemoFixture(
   );
 
   for (const document of fixture.documents) {
-    const projectId = projectIds.get(document.projectKey) ?? activeProjectId;
+    const projectId = projectIds.get(document.projectKey) ?? projectIds.get('p-active');
     if (!projectId) continue;
     const documentId = randomUUID();
     await db.insert(documents).values({
@@ -481,7 +650,7 @@ export async function seedDemoFixture(
       storagePath: `${organizationId}/documents/${documentId}/demo.pdf`,
       originalFilename: document.fileName,
       mimeType: 'application/pdf',
-      status: 'pending',
+      status: 'available',
     });
     const locationId = randomUUID();
     await db.insert(projectLocations).values({

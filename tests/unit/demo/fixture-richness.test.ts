@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { demoDay } from '@/modules/demo/domain/session-clock';
 import {
+  activeProjectContractNet,
   buildDemoFixture,
   collectFixtureDateStrings,
   DEMO_FIXTURE_KEYS,
@@ -119,12 +120,21 @@ describe('demo fixture richness', () => {
     expect(fixture.tasks.length).toBeGreaterThanOrEqual(20);
     expect(fixture.expenses.length).toBeGreaterThanOrEqual(16);
     expect(fixture.billing.length).toBeGreaterThanOrEqual(10);
-    expect(fixture.contracts.length).toBeGreaterThanOrEqual(3);
+    expect(fixture.contracts.length).toBeGreaterThanOrEqual(5);
+    expect(fixture.contracts.filter((row) => row.status === 'active').length).toBeGreaterThanOrEqual(4);
     expect(fixture.payments.length).toBeGreaterThanOrEqual(8);
     expect(fixture.vendorBills.length).toBeGreaterThanOrEqual(5);
     expect(fixture.timeEntries.length).toBeGreaterThanOrEqual(16);
     expect(fixture.attendanceDates.length).toBeGreaterThanOrEqual(12);
     expect(fixture.notifications.length).toBeGreaterThanOrEqual(3);
+    expect(fixture.purchaseOrders.length).toBeGreaterThanOrEqual(2);
+    expect(fixture.budgets.length).toBeGreaterThanOrEqual(4);
+    expect(fixture.assignments.length).toBeGreaterThanOrEqual(9);
+    expect(fixture.tasks.every((row) => Boolean(row.employeeKey))).toBe(true);
+    expect(fixture.projects.every((row) => row.workKind === 'project' || row.pricingMode === 'fixed')).toBe(
+      true,
+    );
+    expect(Number(activeProjectContractNet(fixture))).toBeGreaterThan(0);
     expect(fixture.tasks.some((row) => row.status === 'done')).toBe(true);
     expect(fixture.tasks.some((row) => row.status === 'todo' || row.status === 'in_progress')).toBe(true);
     expect(fixture.tasks.some((row) => row.dueDate && row.dueDate < fixture.anchorDay && row.status !== 'done')).toBe(

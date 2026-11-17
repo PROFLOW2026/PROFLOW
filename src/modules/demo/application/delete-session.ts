@@ -60,6 +60,21 @@ export async function deleteDemoSessionOrganization(
       and status = 'recorded'
       and approval_status = 'approved'
   `);
+  // Active / history-bearing budgets refuse hard-delete. Demo session teardown clears them
+  // with session_replication_role so organization CASCADE can finish. Real orgs never use this path.
+  await db.execute(sql`select set_config('session_replication_role', 'replica', true)`);
+  try {
+    await db.execute(sql`
+      delete from project_budget_lines
+      where organization_id = ${organizationId}::uuid
+    `);
+    await db.execute(sql`
+      delete from project_budgets
+      where organization_id = ${organizationId}::uuid
+    `);
+  } finally {
+    await db.execute(sql`select set_config('session_replication_role', 'origin', true)`);
+  }
   const deleted = await db
     .delete(organizations)
     .where(
