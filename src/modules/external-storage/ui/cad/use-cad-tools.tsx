@@ -2,6 +2,9 @@
 
 import { useTranslations } from 'next-intl';
 import { useRef, useState, type ReactNode } from 'react';
+import { architecturalLayerIndexes } from '@/modules/electrical-takeoff/domain/architectural-background';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/shared/ui/cn';
 import { worldFromClientPoint } from './cad-pointer-math';
 import { layerIndexNear, snapToEndpoint } from './cad-layer-tools';
 import {
@@ -12,33 +15,48 @@ import {
   type CadToolsHandle,
 } from './cad-viewer-side-panel';
 import type { CadLayerRow } from './cad-layer-panel';
-import type { ArchitectureMode } from './architecture-display';
+import { resolveArchitectureApply, type ArchitectureMode } from './architecture-display';
 
 type Capture = 'measure' | 'inspect' | 'hide' | null;
 
 export function CadArchitectureModeSelect({
   mode,
   onChange,
+  tintSupported,
+  note,
 }: {
   mode: ArchitectureMode;
   onChange: (mode: ArchitectureMode) => void;
+  tintSupported: boolean;
+  note: 'missing' | 'unsupported' | null;
 }) {
   const t = useTranslations('externalStorage.preview');
+  const options = (tintSupported ? ['original', 'gray', 'mono', 'hidden'] : ['original', 'hidden']) as readonly ArchitectureMode[];
+  const label = (item: ArchitectureMode) => (
+    item === 'original' ? t('cadArchOriginal') : item === 'gray' ? t('cadArchGray') : item === 'mono' ? t('cadArchMono') : t('cadArchHidden')
+  );
   return (
-    <label className="flex items-center gap-1 text-xs text-[var(--pf-text-primary)]">
-      <span className="hidden sm:inline">{t('cadArchBackground')}</span>
+    <label className="flex max-w-full min-w-0 flex-wrap items-center gap-1 text-xs text-[var(--pf-text-primary)]">
+      <span className="hidden shrink-0 sm:inline">{t('cadArchBackground')}</span>
       <select
-        className="h-8 max-w-full rounded border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2"
+        className={cn(
+          buttonVariants({ variant: 'secondary', size: 'sm' }),
+          'w-auto max-w-[9.5rem] cursor-pointer truncate py-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
+        )}
         aria-label={t('cadArchBackground')}
         data-testid="cad-architecture-mode"
-        value={mode}
+        value={options.includes(mode) ? mode : 'original'}
         onChange={(event) => onChange(event.target.value as ArchitectureMode)}
       >
-        <option value="original">{t('cadArchOriginal')}</option>
-        <option value="gray">{t('cadArchGray')}</option>
-        <option value="mono">{t('cadArchMono')}</option>
-        <option value="hidden">{t('cadArchHidden')}</option>
+        {options.map((item) => (
+          <option key={item} value={item}>{label(item)}</option>
+        ))}
       </select>
+      {note ? (
+        <span className="basis-full text-[var(--pf-text-secondary)]" data-testid="cad-architecture-note">
+          {note === 'missing' ? t('cadArchMissing') : t('cadArchUnsupported')}
+        </span>
+      ) : null}
     </label>
   );
 }
@@ -69,8 +87,43 @@ export function useCadTools(input: {
   } | null;
 }): { panel: ReactNode; overlay: ReactNode; modeSelect: ReactNode } {
   const toolsRef = useRef<CadToolsHandle>(null);
+  const baselineRef = useRef<CadLayerRow[] | null>(null);
   const [capture, setCapture] = useState<Capture>(null);
   const [shownMode, setShownMode] = useState<ArchitectureMode>(input.architectureMode ?? 'original');
+  const [note, setNote] = useState<'missing' | 'unsupported' | null>(null);
+  const applyMode = (mode: ArchitectureMode) => {
+    if (!baselineRef.current && input.layers.length > 0) {
+      baselineRef.current = input.layers.map((layer) => ({ ...layer }));
+    }
+    const decision = resolveArchitectureApply(
+      mode,
+      input.tintSupported,
+      architecturalLayerIndexes(input.layers, input.xrefNames),
+    );
+    if (!decision.ok) {
+      setNote(decision.reason);
+      if (decision.reason === 'missing') setShownMode('original');
+      return;
+    }
+    setNote(null);
+    setShownMode(decision.mode);
+    if (toolsRef.current) {
+      toolsRef.current.setArchitecture(decision.mode);
+      return;
+    }
+    const strength = input.architectureStrength ?? 0.7;
+    input.onArchitecture(decision.mode, strength, decision.indexes);
+    if (!input.tintSupported) {
+      const architectural = new Set(decision.indexes);
+      const base = baselineRef.current ?? input.layers;
+      input.onLayers(decision.mode === 'hidden'
+        ? input.layers.map((layer) => (architectural.has(layer.index) && !layer.frozen ? { ...layer, visible: false } : layer))
+        : input.layers.map((layer) => {
+          const saved = base.find((row) => row.index === layer.index);
+          return architectural.has(layer.index) && saved ? { ...layer, visible: saved.visible } : layer;
+        }));
+    }
+  };
   const panel = (
     <CadViewerSidePanel
       ref={toolsRef}
@@ -97,7 +150,9 @@ export function useCadTools(input: {
   const modeSelect = (
     <CadArchitectureModeSelect
       mode={input.architectureMode ?? shownMode}
-      onChange={(mode) => toolsRef.current?.setArchitecture(mode)}
+      tintSupported={input.tintSupported}
+      note={note}
+      onChange={applyMode}
     />
   );
   const overlay = capture ? (

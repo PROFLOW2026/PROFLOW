@@ -25,6 +25,7 @@ import {
   buildDisplaySheets,
   modelToPaper,
   modelViewExtent,
+  planGeometryOrModel,
   projectSegments,
   viewportForMark,
   visibleViewports,
@@ -127,6 +128,7 @@ export function TakeoffDwgPlan({
   const drawnRef = useRef<Float32Array>(new Float32Array(0));
   const shownRef = useRef<ShownMark[]>([]);
   const fittedRef = useRef(false);
+  const fittedSizeRef = useRef({ w: 0, h: 0 });
   const selectRef = useRef(onSelectMark);
   const planClickRef = useRef(onPlanClick);
   const unavailableRef = useRef(onUnavailable);
@@ -262,9 +264,14 @@ export function TakeoffDwgPlan({
       if (!entry) return;
       renderer.resize(entry.contentRect.width, entry.contentRect.height, cadViewportDevicePixelRatio());
       const [x0, y0, x1, y1] = extentRef.current;
-      if (!fittedRef.current && entry.contentRect.width >= 64 && entry.contentRect.height >= 64 && x1 - x0 > 2 && y1 - y0 > 2) {
+      const width = entry.contentRect.width;
+      const height = entry.contentRect.height;
+      const extentReady = x1 - x0 > 2 && y1 - y0 > 2;
+      const grewFromEmpty = fittedRef.current && fittedSizeRef.current.w < 64 && width >= 64 && height >= 64;
+      if (extentReady && ((!fittedRef.current && width >= 64 && height >= 64) || grewFromEmpty)) {
         renderer.focusExtent(extentRef.current, 28);
         fittedRef.current = true;
+        fittedSizeRef.current = { w: width, h: height };
       }
       drawRef.current();
     });
@@ -425,24 +432,30 @@ export function TakeoffDwgPlan({
     if (!model || !renderer || !current || phase !== 'ready') return;
     let cancelled = false;
     const visible = visibleViewports(current, activeIds);
-    const drawing = current.kind === 'model'
-      ? {
-          segments: model.segments,
-          triangles: model.triangles,
-          extent: modelViewExtent(
-            model.contentExtent,
-            marks.map((mark) => ({ x: mark.nativeX, y: mark.nativeY })),
-            model.origin,
-          ),
-        }
-      : projectSegments({
-          segments: model.segments,
-          triangles: model.triangles,
-          stride: model.stride,
-          triangleStride: model.triangleStride,
-          origin: model.origin,
-          viewports: visible,
-        });
+    const modelDrawing = {
+      segments: model.segments,
+      triangles: model.triangles,
+      extent: modelViewExtent(
+        model.contentExtent,
+        marks.map((mark) => ({ x: mark.nativeX, y: mark.nativeY })),
+        model.origin,
+      ),
+    };
+    const drawing = planGeometryOrModel(
+      current.kind,
+      current.kind === 'model'
+        ? modelDrawing
+        : projectSegments({
+            segments: model.segments,
+            triangles: model.triangles,
+            stride: model.stride,
+            triangleStride: model.triangleStride,
+            origin: model.origin,
+            viewports: visible,
+          }),
+      model.segments,
+      modelDrawing,
+    );
     extentRef.current = drawing.extent;
     drawnRef.current = drawing.segments;
     fittedRef.current = false;
@@ -459,6 +472,8 @@ export function TakeoffDwgPlan({
       renderer.setArchitectureDisplay(architecturalRef.current, { mode: archModeRef.current, strength: archStrengthRef.current });
       renderer.focusExtent(drawing.extent, 28);
       fittedRef.current = true;
+      const rect = glRef.current?.getBoundingClientRect();
+      fittedSizeRef.current = { w: rect?.width ?? 0, h: rect?.height ?? 0 };
       setViewToken((value) => value + 1);
       drawRef.current();
     });
@@ -493,7 +508,7 @@ export function TakeoffDwgPlan({
 
   useEffect(() => {
     const renderer = rendererRef.current;
-    if (!renderer || phase !== 'ready') return;
+    if (!renderer || phase !== 'ready' || viewToken === 0) return;
     renderer.setArchitectureDisplay(architecturalRef.current, {
       mode: archMode,
       strength: archStrength,

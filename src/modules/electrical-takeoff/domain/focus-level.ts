@@ -10,7 +10,7 @@ export function focusLevel(onSheet: boolean, located: boolean): FocusLevel {
 
 /**
  * A picked sheet for this focus wins. Otherwise a known point follows its layout.
- * With no point and no pick, a wide model opens the first layout so the view is not a strip.
+ * With no point and no pick, the plan's own initial sheet stays open so model geometry is not replaced by an empty layout.
  */
 export function chooseTakeoffSheetId(
   plan: { sheets: readonly DisplaySheet[]; initialId: string } | null,
@@ -31,8 +31,8 @@ export function chooseTakeoffSheetId(
   }
   const stay = known(lastPick);
   if (stay) return stay;
-  if (plan.initialId === 'model') {
-    return plan.sheets.find((item) => item.kind === 'layout')?.id ?? 'model';
-  }
+  // A layout is opened only when a point lies in its viewport or the user picked it.
+  // Opening the first layout with no point hid the model geometry on files whose
+  // paper view does not project.
   return known(plan.initialId) ?? 'model';
 }

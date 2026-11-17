@@ -261,6 +261,7 @@
     "cadArchHidden": "Hidden",
     "cadArchStrength": "Background strength",
     "cadArchUnsupported": "This engine cannot recolor the background without parsing again",
+    "cadArchMissing": "No architectural background layers were identified, so the mode was not applied",
     "cadPresets": "View modes",
     "cadPresetOriginal": "Original",
     "cadPresetClean": "Clean",

@@ -261,6 +261,7 @@
     "cadArchHidden": "מוסתר",
     "cadArchStrength": "עוצמת הרקע",
     "cadArchUnsupported": "המנוע הזה לא צובע רקע בלי פענוח מחדש",
+    "cadArchMissing": "לא זוהו שכבות של רקע אדריכלי, לכן המצב לא הוחל",
     "cadPresets": "מצבי תצוגה",
     "cadPresetOriginal": "מקורי",
     "cadPresetClean": "נקי",

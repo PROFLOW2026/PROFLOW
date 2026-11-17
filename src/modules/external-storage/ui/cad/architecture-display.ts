@@ -8,6 +8,21 @@ export type ArchitectureStyle = {
 
 export const ORIGINAL_ARCHITECTURE: ArchitectureStyle = { mode: 'original', strength: 1 };
 
+export type ArchitectureApply =
+  | { ok: true; mode: ArchitectureMode; indexes: number[] }
+  | { ok: false; reason: 'missing' | 'unsupported' };
+
+/** A mode is applied only when this viewer can draw it and the background layers are known. */
+export function resolveArchitectureApply(
+  mode: ArchitectureMode,
+  tintSupported: boolean,
+  indexes: readonly number[],
+): ArchitectureApply {
+  if (!tintSupported && (mode === 'gray' || mode === 'mono')) return { ok: false, reason: 'unsupported' };
+  if (mode !== 'original' && indexes.length === 0) return { ok: false, reason: 'missing' };
+  return { ok: true, mode, indexes: [...indexes] };
+}
+
 function clamp01(value: number): number {
   if (value < 0) return 0;
   if (value > 1) return 1;

@@ -261,6 +261,7 @@
     "cadArchHidden": "مخفي",
     "cadArchStrength": "شدة الخلفية",
     "cadArchUnsupported": "هذا المحرك لا يعيد تلوين الخلفية دون تحليل جديد",
+    "cadArchMissing": "لم يتم التعرف على طبقات الخلفية المعمارية، لذلك لم يُطبق الوضع",
     "cadPresets": "أوضاع العرض",
     "cadPresetOriginal": "أصلي",
     "cadPresetClean": "نظيف",

@@ -261,6 +261,7 @@
     "cadArchHidden": "Скрыт",
     "cadArchStrength": "Сила фона",
     "cadArchUnsupported": "Этот движок не перекрашивает фон без повторного разбора",
+    "cadArchMissing": "Слои архитектурного фона не распознаны, поэтому режим не применён",
     "cadPresets": "Режимы вида",
     "cadPresetOriginal": "Исходный",
     "cadPresetClean": "Чистый",

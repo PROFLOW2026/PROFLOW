@@ -121,7 +121,7 @@ export const CadViewerSidePanel = forwardRef<CadToolsHandle, {
     appliedRef.current = true;
     const saved = readCadViewPreference(localStorage, documentId);
     if (!saved) return;
-    if (saved.architectureMode) publishMode(saved.architectureMode, saved.grayStrength ?? strength);
+    if (showModeChooser && saved.architectureMode) publishMode(saved.architectureMode, saved.grayStrength ?? strength);
     if (saved.hiddenLayers && saved.hiddenLayers.length > 0) {
       const hidden = new Set(saved.hiddenLayers);
       onLayers(layers.map((layer) => (hidden.has(layer.index) ? { ...layer, visible: false } : layer)));

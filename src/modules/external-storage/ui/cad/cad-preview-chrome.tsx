@@ -52,7 +52,7 @@ export function CadPreviewChrome({
         </p>
       ) : null}
       <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">{children}</div>
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-[var(--pf-border-default)] px-2 py-2">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 py-2 text-[var(--pf-text-primary)]">
         <div className="flex flex-wrap items-center gap-1">
           {onFitView ? (
             <Button type="button" size="sm" variant="secondary" onClick={onFitView} aria-label={t('fitPage')}>

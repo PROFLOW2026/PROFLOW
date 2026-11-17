@@ -169,7 +169,10 @@ export class CadWebGlRenderer {
     this.segmentStride = segmentStride;
     await this.rebuildCpuBatchesAsync(true);
     await yieldToMain();
-    if (epoch !== this.batchEpoch) return;
+    if (epoch !== this.batchEpoch) {
+      if (this.gpuBatches.length === 0 && this.cpuBatches.length > 0) this.uploadGpuBatches();
+      return;
+    }
     this.uploadGpuBatches();
   }
 

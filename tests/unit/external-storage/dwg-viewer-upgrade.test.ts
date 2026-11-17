@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { presentArchitectureColor, liftContrast } from '@/modules/external-storage/ui/cad/architecture-display';
+import { presentArchitectureColor, liftContrast, resolveArchitectureApply } from '@/modules/external-storage/ui/cad/architecture-display';
 import { classifyLoadWait } from '@/modules/external-storage/ui/cad/cad-load-activity';
 import { cumulativeDistance, drawingArea, drawingDistance, layersForGroup, snapToEndpoint, suggestLayerGroup } from '@/modules/external-storage/ui/cad/cad-layer-tools';
 import { readCadViewPreference, writeCadViewPreference } from '@/modules/external-storage/ui/cad/cad-view-prefs';
@@ -11,7 +11,7 @@ import { PF_CAD_TREE_ID as V1_TREE } from '@/modules/external-storage/ui/cad/pf-
 import { PF_CAD_TREE_ID as V2_TREE } from '@/modules/external-storage/ui/cad/pf-cad/pf-cad-config';
 import { PF_CAD_TREE_ID as V3_TREE } from '@/modules/external-storage/ui/cad/pf-cad-v1/pf-cad-config';
 import { chooseTakeoffSheetId, focusLevel } from '@/modules/electrical-takeoff/domain/focus-level';
-import type { DisplaySheet } from '@/modules/electrical-takeoff/domain/layout-display';
+import { planGeometryOrModel, type DisplaySheet } from '@/modules/electrical-takeoff/domain/layout-display';
 // The publish guard lives in a Node script outside the TypeScript program.
 // @ts-expect-error no declaration file for the excluded script module
 import { assertPublishableWasmDir, resolvePublishDir } from '../../../scripts/lib/pf-cad-wasm-target.mjs';
@@ -103,8 +103,28 @@ describe('dwg viewer upgrade', () => {
         stacks: [[{ id: 3, cx: 0, cy: 0, w: 100, h: 100, vcx: -2000, vcy: 2500, vh: 1000, twist: 0, on: true }]],
       },
     ];
-    expect(chooseTakeoffSheetId({ sheets, initialId: 'model' }, null, null, null)).toBe('layout:EL-k1');
+    expect(chooseTakeoffSheetId({ sheets, initialId: 'model' }, null, null, null)).toBe('model');
     expect(chooseTakeoffSheetId({ sheets, initialId: 'model' }, 'model', null, { nativeX: -2000, nativeY: 2500 })).toBe('model');
     expect(chooseTakeoffSheetId({ sheets, initialId: 'model' }, null, 'model', { nativeX: -2000, nativeY: 2500 })).toBe('layout:EL-k1');
+  });
+
+  it('changes the drawing only for a supported mode with known background layers', () => {
+    expect(resolveArchitectureApply('gray', true, [2])).toEqual({ ok: true, mode: 'gray', indexes: [2] });
+    expect(resolveArchitectureApply('mono', true, [2]).ok).toBe(true);
+    expect(resolveArchitectureApply('hidden', true, [])).toEqual({ ok: false, reason: 'missing' });
+    expect(resolveArchitectureApply('gray', false, [2])).toEqual({ ok: false, reason: 'unsupported' });
+    expect(resolveArchitectureApply('hidden', false, [2])).toEqual({ ok: true, mode: 'hidden', indexes: [2] });
+    const background = [0.12, 0.13, 0.15] as const;
+    expect(presentArchitectureColor([0, 0, 1, 1], { mode: 'gray', strength: 1 }, background)).not.toEqual([0, 0, 1, 1]);
+    expect(presentArchitectureColor([0, 0, 1, 1], { mode: 'hidden', strength: 1 }, background)).toBeNull();
+    expect(presentArchitectureColor([0, 0, 1, 1], { mode: 'original', strength: 1 }, background)).toEqual([0, 0, 1, 1]);
+  });
+
+  it('shows the model drawing when a layout viewport projects no lines', () => {
+    const model = { segments: new Float32Array([1, 2, 3, 4]) };
+    const empty = { segments: new Float32Array(0) };
+    expect(planGeometryOrModel('layout', empty, model.segments, model)).toBe(model);
+    expect(planGeometryOrModel('layout', model, model.segments, model)).toBe(model);
+    expect(planGeometryOrModel('model', empty, model.segments, model)).toBe(empty);
   });
 });

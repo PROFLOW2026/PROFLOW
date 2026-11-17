@@ -357,3 +357,14 @@ export function projectSegments(input: {
     extent: paperExtent(input.viewports),
   };
 }
+
+/** A layout whose viewport clips every line must not replace a model that has geometry. */
+export function planGeometryOrModel<T extends { segments: Float32Array }>(
+  kind: 'model' | 'layout',
+  projected: T,
+  modelSegments: Float32Array,
+  modelDrawing: T,
+): T {
+  if (kind === 'layout' && projected.segments.length === 0 && modelSegments.length > 0) return modelDrawing;
+  return projected;
+}
