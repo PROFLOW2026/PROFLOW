@@ -156,7 +156,7 @@ See `COMPLETION-REPORT.md` for Owner trial checklist.
 | `electrical-takeoff-real.spec.ts` | **FAIL** (run 2: **10 min timeout**) — ingest + UI load **PASS**; stuck clicking 2nd detection row because **“פרטי זיהוי” dialog blocks pointer** (fixed in spec: Escape + dialog-scoped delete; **re-run needed**) |
 | Corpus parity | **Not asserted** — app sent **empty `sheetSelection`** (all DWG layouts). See per-sheet table below. |
 | Screenshots `docs/.../takeoff-real-*.png` | **Not written** (spec did not complete) |
-| Migrations | **0205 + 0206** documented in `MIGRATION-0205.md` (apply in order; Owner approval for shared DB). Local harness only. |
+| Migrations | **0205–0212 APPLIED** on Production (2026-11-17). Docs: `MIGRATION-0205.md`. ACL restore **0213** prepared only (`MIGRATION-0213.md`). |
 
 **Per-sheet DB proof (E2E run, full DWG — `node scripts/analyze-e2e-takeoff-sheets.mjs`):**
 

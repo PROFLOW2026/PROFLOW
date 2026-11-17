@@ -4,9 +4,9 @@ Date: 2026-11-15 · Branch: `feature/electrical-takeoff` · Harness build: `.tmp
 
 ## 1. What was completed
 
-- Full module: worker (PDF/DWG/merge/classify), TS BOQ engine, UI (owner/employee/contractor routes), permissions, migrations **0205+0206** (prepared, not applied to shared DB).
+- Full module: worker (PDF/DWG/merge/classify), TS BOQ engine, UI (owner/employee/contractor routes), permissions, migrations **0205+0206** (**APPLIED on shared Production** as of 2026-11-17 ledger verification; historical note below kept for session context).
 - Fixes this session: Excel export HTTP headers (Hebrew `Content-Disposition`); annotated PDF export target (plan PDF, sheet-scoped detections, cap 400); wizard **DWG layout** pre-selection; E2E export fetch via in-page `fetch`; **annotated PDF 503** — `authorizeWorkerJob` now accepts re-sealed export bearer for worker file download (root cause of `export_http_503`).
-- **Input modes (Owner-approved):** persistent org cloud (pick from project/cloud without duplicate upload, upload, reopen) vs **ephemeral** session (disk `/tmp`, TTL + purge, no reopen). Assessment: `docs/implementation/electrical-takeoff/INPUT-MODES-INFRA-ASSESSMENT.md`. Migration **0207** prepared (not applied to shared DB).
+- **Input modes (Owner-approved):** persistent org cloud (pick from project/cloud without duplicate upload, upload, reopen) vs **ephemeral** session (disk `/tmp`, TTL + purge, no reopen). Assessment: `docs/implementation/electrical-takeoff/INPUT-MODES-INFRA-ASSESSMENT.md`. Migration **0207** is also on the Production journal path through **0212** (APPLIED).
 - Tests: **73** takeoff unit tests pass; integration (`route-security`, export corpus 7155, org-file-store, ephemeral upload); UI mobile + i18n pass; **real-worker E2E green** (`.tmp-e2e-real-r19e.log`, prior run).
 
 ## 2. Ten requirements — status (honest)
@@ -22,7 +22,7 @@ Date: 2026-11-15 · Branch: `feature/electrical-takeoff` · Harness build: `.tmp
 | 7 | Save / reopen | **Yes** | E2E reload + reopen |
 | 8 | Export Excel / BOQ PDF / annotated PDF | **Yes** | E2E **r19e**: xlsx + boq-pdf + annotated-pdf (vector overlay rects); reopen |
 | 9 | Desktop + mobile UI | **Yes (local)** | Full flow E2E desktop; viewport 390 + `takeoff-mobile-overflow` UI tests |
-| 10 | EXLFY + permissions + org cloud / no cloud | **Partial** | Permissions + org cloud + **ephemeral without storage** integration pass; picker wired owner/employee; **0207 not on shared DB** |
+| 10 | EXLFY + permissions + org cloud / no cloud | **Partial** | Permissions + org cloud + **ephemeral without storage** integration pass; picker wired owner/employee; Production migrations through **0212** applied (2026-11-17) |
 
 ## 3. Tests passed (targeted)
 
@@ -33,20 +33,20 @@ Date: 2026-11-15 · Branch: `feature/electrical-takeoff` · Harness build: `.tmp
 
 ## 4. Limitations blocking “full” use
 
-1. **Migrations 0205/0206/0207** not run on your Supabase (needs separate Owner SQL approval per migration).
+1. **ACL follow-up:** 0205’s schema-wide `GRANT … ON ALL TABLES` re-opened `boq_nodes` privileges; remediation migration **0213_boq_nodes_acl_restore_after_0205** is prepared and **not yet applied** (see `MIGRATION-0213.md`). Requires separate Owner SQL approval.
 2. **Worker** must run beside the app (`TAKEOFF_WORKER_URL` / `TAKEOFF_WORKER_SECRET`).
-3. **Prod deploy** not done (no push/deploy per instructions).
+3. Keep Production SQL gated: never apply prepared migrations without explicit Owner approval after review.
 
 ## 5. Ready for you to try?
 
 | Context | Ready? |
 |---------|--------|
 | **Local / dev** on this branch, Postgres with migrations applied, worker up | **Yes — recommended trial path** |
-| **Production EXLFY** without SQL + worker deploy | **No** |
+| **Production EXLFY** (schema through 0212) | **Yes for takeoff feature**; apply **0213** only after Owner SQL approval |
 
 ### Local trial checklist
 
-1. Apply migrations 0205+0206 to your **local/disposable** DB (not prod without approval).
+1. Local/disposable DB with journal through current HEAD (includes takeoff + prepared 0213 ACL restore).
 2. `scripts/takeoff-worker-dev.ps1` + env vars in `.env.local`.
 3. `npm run dev` (or harness `.next` from build r19).
 4. Owner → project → **כתב כמויות חשמל** → upload PDF+DWG, set DWG layouts if needed, pair PDF↔DWG, analyze, review sheets panel, approve, export.

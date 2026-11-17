@@ -106,11 +106,14 @@ Documented for future agents (update this section after major releases).
 | Item | Status |
 |------|--------|
 | Migrations **0000–0066** | **APPLIED + IMMUTABLE** |
+| Migrations **0067–0212** | **APPLIED + IMMUTABLE** on shared Production (verified 2026-11-17 via `drizzle.__drizzle_migrations`; last applied tag `0212_demo_takeoff_purge_guard`) |
+| `0205_electrical_takeoff` / `0206_takeoff_sheets_unique_per_file` | **APPLIED** (takeoff live on Production) |
+| `0213_boq_nodes_acl_restore_after_0205` | **APPLIED** (2026-11-17) — restores historical ACL after 0205 schema-wide GRANT; immutable |
 | `0066_workforce_time_integrity.sql` | **APPLIED** (workforce time integrity: daily framework, excess approval, idempotency) |
 | `0066_billing_plan_line_target_date_idx.sql` | **REMOVED — NEVER APPLIED** (obsolete performance-index draft; not the applied 0066) |
-| **Next migration number** | **0067+** |
+| **Next migration number** | **0214+** after 0213 is applied (or keep preparing 0213 until Owner approves) |
 
-Do **not** modify applied migrations 0000–0066.
+Do **not** modify applied migrations 0000–0212.
 
 ### Infrastructure
 

@@ -69,7 +69,7 @@ describe('migration journal', () => {
       '0210_takeoff_delete_archive_version_guard',
       '0211_demo_markers',
       '0212_demo_takeoff_purge_guard',
-      '0213_boq_nodes_authenticated_dml_denial',
+      '0213_boq_nodes_acl_restore_after_0205',
     ] as const;
     const tags = (await loadJournal()).entries.map((entry) => entry.tag);
     const tail = tags.slice(tags.indexOf('0182_expense_installment_payments_grants') + 1);
@@ -480,7 +480,7 @@ describe('migration journal', () => {
     expect(tags.indexOf('0171_retention_release_service_grant')).toBeLessThan(
       tags.indexOf('0172_notification_attention_badge_snapshot'),
     );
-    expect(tags.at(-1)).toBe('0213_boq_nodes_authenticated_dml_denial');
+    expect(tags.at(-1)).toBe('0213_boq_nodes_acl_restore_after_0205');
     expect(tags.at(-2)).toBe('0212_demo_takeoff_purge_guard');
     expect(tags.at(-3)).toBe('0211_demo_markers');
     expect(tags.at(-4)).toBe('0210_takeoff_delete_archive_version_guard');

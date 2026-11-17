@@ -773,21 +773,53 @@ describe('overnight 0036–0045 SQL adversarial', () => {
       `);
     });
 
-    await database.asUser(userA.id, async (tx) => {
-      await expectFailure(
-        () =>
-          tx.execute(sql`
-            INSERT INTO boq_nodes (
-              organization_id, boq_id, node_kind, description, pricing_type,
-              original_quantity, original_unit_price, original_amount,
-              current_quantity, current_unit_price, current_amount
-            ) VALUES (
-              ${orgA.organization.id}::uuid, ${boqA}::uuid, 'item', 'raw', 'quantity_unit_price',
-              1, 1, 1, 1, 1, 1
-            )
-          `),
-        'permission denied',
+    // 0042 revoked authenticated table access on boq_nodes; 0205 re-opened it via
+    // GRANT … ON ALL TABLES; 0213_boq_nodes_acl_restore_after_0205 restores the ACL.
+    // Assert the grant catalog after the full journal (including 0213).
+    await database.asService(async (db) => {
+      const priv = resultRows<{
+        can_insert: boolean;
+        can_update: boolean;
+        can_delete: boolean;
+        can_select: boolean;
+        secure_select: boolean;
+        secure_insert: boolean;
+        anon_nodes_select: boolean;
+        anon_mutate_exec: boolean;
+        auth_mutate_exec: boolean;
+      }>(
+        await db.execute(sql`
+          SELECT
+            has_table_privilege('authenticated', 'public.boq_nodes', 'INSERT') AS can_insert,
+            has_table_privilege('authenticated', 'public.boq_nodes', 'UPDATE') AS can_update,
+            has_table_privilege('authenticated', 'public.boq_nodes', 'DELETE') AS can_delete,
+            has_table_privilege('authenticated', 'public.boq_nodes', 'SELECT') AS can_select,
+            has_table_privilege('authenticated', 'public.boq_nodes_secure', 'SELECT') AS secure_select,
+            has_table_privilege('authenticated', 'public.boq_nodes_secure', 'INSERT') AS secure_insert,
+            has_table_privilege('anon', 'public.boq_nodes', 'SELECT') AS anon_nodes_select,
+            has_function_privilege(
+              'anon',
+              'app.boq_mutate_draft_node(uuid, text, uuid, jsonb)',
+              'EXECUTE'
+            ) AS anon_mutate_exec,
+            has_function_privilege(
+              'authenticated',
+              'app.boq_mutate_draft_node(uuid, text, uuid, jsonb)',
+              'EXECUTE'
+            ) AS auth_mutate_exec
+        `),
       );
+      expect(priv[0]).toEqual({
+        can_insert: false,
+        can_update: false,
+        can_delete: false,
+        can_select: false,
+        secure_select: true,
+        secure_insert: false,
+        anon_nodes_select: false,
+        anon_mutate_exec: false,
+        auth_mutate_exec: true,
+      });
     });
 
     const nodeId = await database.asUser(userA.id, async (tx) => {
