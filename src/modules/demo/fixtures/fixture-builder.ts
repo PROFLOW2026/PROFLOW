@@ -3,7 +3,26 @@ import {
   ONBOARDING_BUSINESS_TYPES,
   type OnboardingBusinessType,
 } from '@/modules/tenancy/domain/onboarding-experience';
-import { getProfileBlueprint, type DemoWorkKind } from './profile-blueprints';
+import { getCycleParams, type DemoArchetypeId } from './cycle-params';
+import {
+  activityYearMonths,
+  buildAttendanceDates,
+  buildMonthlyBillingAndPayments,
+  buildMonthlyExpenses,
+  buildMonthlyTimeEntries,
+  buildMonthlyVendorBillsPaid,
+  buildPayrollAndEmployerCosts,
+  dateInMonth,
+  grossFromNet,
+  lastNYearMonths,
+  money,
+  quietMonthsForCycle,
+  scaled,
+  taxFromNet,
+} from './monthly-activity';
+import { getProfileBlueprint, type DemoWorkKind, type ProfileBlueprint } from './profile-blueprints';
+
+export type { DemoArchetypeId };
 
 export type DemoFixtureTaskStatus =
   | 'todo'
@@ -154,10 +173,43 @@ export interface DemoFixtureNotification {
   readonly dedupeKey: string;
 }
 
+export interface DemoFixtureMilestone {
+  readonly projectKey: string;
+  readonly name: string;
+  readonly targetDate: string;
+  readonly status: 'planned' | 'achieved';
+  readonly sortOrder: number;
+}
+
+export interface DemoFixturePayrollPayment {
+  readonly employeeKey: string;
+  readonly yearMonth: string;
+  readonly expectedAmount: string;
+  readonly paidAmount: string;
+  readonly paidAt: string;
+  readonly dueDate: string;
+}
+
+export interface DemoFixtureEmployerMonthCost {
+  readonly employeeKey: string;
+  readonly yearMonth: string;
+  readonly knownAmount: string;
+}
+
+export interface DemoFixtureCoordinationEvent {
+  readonly projectKey: string;
+  readonly title: string;
+  readonly startsAtDate: string;
+  readonly kind: 'meeting' | 'installation' | 'inspection' | 'other';
+}
+
 export interface DemoFixture {
   readonly profileKey: OnboardingBusinessType;
+  readonly archetypeId: DemoArchetypeId;
   readonly organizationName: string;
   readonly anchorDay: string;
+  readonly moneyScale: number;
+  readonly quietMonths: readonly string[];
   readonly clients: readonly { readonly key: string; readonly name: string }[];
   readonly employees: readonly DemoFixtureEmployee[];
   readonly vendors: readonly DemoFixtureVendor[];
@@ -182,51 +234,52 @@ export interface DemoFixture {
   readonly purchaseOrders: readonly DemoFixturePurchaseOrder[];
   readonly subcontracts: readonly DemoFixtureSubcontract[];
   readonly budgets: readonly DemoFixtureBudget[];
+  readonly milestones: readonly DemoFixtureMilestone[];
+  readonly payrollPayments: readonly DemoFixturePayrollPayment[];
+  readonly employerMonthCosts: readonly DemoFixtureEmployerMonthCost[];
+  readonly coordinationEvents: readonly DemoFixtureCoordinationEvent[];
 }
 
-function money(amount: number): string {
-  return (Math.round(amount * 100) / 100).toFixed(2);
-}
-
-function grossFromNet(net: number): string {
-  return (Math.round(net * 1.18 * 100) / 100).toFixed(2);
-}
-
-function taxFromNet(net: number): string {
-  return (Number(grossFromNet(net)) - net).toFixed(2);
-}
-
-function scaled(scale: number, amount: number): number {
-  return Math.round(amount * scale);
-}
-
-function profileUsesBoq(profileKey: OnboardingBusinessType): boolean {
-  return (
-    profileKey === 'ELECTRICAL' ||
-    profileKey === 'GENERAL_CONTRACTOR' ||
-    profileKey === 'RENOVATION' ||
-    profileKey === 'REAL_ESTATE_DEVELOPMENT'
-  );
-}
-
-function profileUsesSubcontracts(profileKey: OnboardingBusinessType): boolean {
-  return (
-    profileKey === 'GENERAL_CONTRACTOR' ||
-    profileKey === 'ELECTRICAL' ||
-    profileKey === 'PLUMBING' ||
-    profileKey === 'HVAC' ||
-    profileKey === 'RENOVATION' ||
-    profileKey === 'SUBCONTRACTOR' ||
-    profileKey === 'REAL_ESTATE_DEVELOPMENT' ||
-    profileKey === 'MIXED_PROJECT_SERVICE' ||
-    profileKey === 'INSTALLATION' ||
-    profileKey === 'FACILITY_MANAGEMENT'
-  );
-}
+const WORKFORCE_CLONE_SUFFIXES = [' · ב\'', ' · ג\'', ' · ד\'', ' · ה\'', ' · ו\'', ' · ז\'', ' · ח\'', ' · ט\''] as const;
 
 function pricingModeFor(workKind: DemoWorkKind): 'fixed' | 'open' | null {
   if (workKind === 'job' || workKind === 'work_order') return 'fixed';
   return null;
+}
+
+function buildWorkforceEmployees(blueprint: ProfileBlueprint, workforceSize: number): DemoFixtureEmployee[] {
+  const target = Math.max(4, workforceSize);
+  const base = blueprint.employees;
+  const rows: DemoFixtureEmployee[] = [];
+  for (let index = 0; index < target; index += 1) {
+    if (index < base.length) {
+      rows.push({
+        key: `e${index + 1}`,
+        name: base[index]!.name,
+        jobTitle: base[index]!.jobTitle,
+        hourlyRate: base[index]!.hourlyRate,
+      });
+    } else {
+      const template = base[base.length - 1]!;
+      const cloneIndex = index - base.length;
+      rows.push({
+        key: `e${index + 1}`,
+        name: `${template.name}${WORKFORCE_CLONE_SUFFIXES[cloneIndex % WORKFORCE_CLONE_SUFFIXES.length]!}`,
+        jobTitle: template.jobTitle,
+        hourlyRate: template.hourlyRate,
+      });
+    }
+  }
+  return rows;
+}
+
+function taskAssigneeKey(index: number, employeeCount: number): string {
+  const cap = Math.min(4, employeeCount);
+  return `e${(index % cap) + 1}`;
+}
+
+export function fixtureQuietMonths(profileKey: OnboardingBusinessType): string[] {
+  return quietMonthsForCycle(getCycleParams(profileKey));
 }
 
 export function buildDemoFixture(
@@ -234,20 +287,19 @@ export function buildDemoFixture(
   anchor: Date = new Date(),
 ): DemoFixture {
   const blueprint = getProfileBlueprint(profileKey);
+  const cycle = getCycleParams(profileKey);
   const scale = blueprint.moneyScale;
   const day = (offset: number) => demoDay(anchor, offset);
+  const anchorDay = day(0);
+  const quietMonths = quietMonthsForCycle(cycle);
+  const activityMonths = activityYearMonths(anchorDay, quietMonths);
 
   const clients = blueprint.clients.map((name, index) => ({
     key: `c${index + 1}`,
     name,
   }));
 
-  const employees: DemoFixtureEmployee[] = blueprint.employees.map((row, index) => ({
-    key: `e${index + 1}`,
-    name: row.name,
-    jobTitle: row.jobTitle,
-    hourlyRate: row.hourlyRate,
-  }));
+  const employees = buildWorkforceEmployees(blueprint, cycle.workforceSize);
 
   const vendors: DemoFixtureVendor[] = blueprint.vendors.map((row, index) => ({
     key: `v${index + 1}`,
@@ -269,48 +321,20 @@ export function buildDemoFixture(
     location: row.location,
   }));
 
-  const expenseOffsets = [-165, -140, -118, -95, -78, -62, -48, -35, -28, -18, -11, -5, -150, -100, -70, -40, -22, -9];
-  const expenseProjects = [
-    'p-active',
-    'p-active',
-    'p-active',
-    'p-active',
-    'p-active',
-    'p-active-2',
-    'p-active-2',
-    'p-active-2',
-    'p-hold',
-    'p-hold',
-    'p-done',
-    'p-done',
-    'p-service',
-    'p-service',
-    'p-archive',
-    'p-active',
-    'p-active-2',
-    'p-service',
-  ];
-  const expenseNets = [42_000, 18_500, 12_800, 9_600, 7_400, 15_200, 8_100, 5_600, 6_800, 4_200, 11_000, 3_900, 2_800, 1_950, 2_400, 5_500, 3_200, 1_700].map(
-    (net) => scaled(scale, net),
-  );
+  const monthlyCtx = {
+    anchor,
+    anchorDay,
+    cycle,
+    scale,
+    activityMonths,
+    expenseLabels: blueprint.expenseLabels,
+    billingPrefixes: blueprint.billingPrefixes,
+    profileKey,
+  };
 
-  const expenses: DemoFixtureExpense[] = expenseNets.map((net, index) => {
-    const offset = expenseOffsets[index]!;
-    const paid = index % 5 !== 0;
-    const dueOffset = offset + 14;
-    return {
-      projectKey: expenseProjects[index]!,
-      vendorKey: `v${(index % vendors.length) + 1}`,
-      description: `${blueprint.expenseLabels[index % blueprint.expenseLabels.length]!} — חודש ${index + 1}`,
-      netAmount: money(net),
-      grossAmount: grossFromNet(net),
-      taxAmount: taxFromNet(net),
-      expenseDate: day(offset),
-      dueDate: day(dueOffset),
-      paymentStatus: paid ? 'paid' : dueOffset < 0 ? 'overdue' : 'due',
-      paidAt: paid ? day(offset + 10) : undefined,
-    };
-  });
+  const monthlyBillingPayments = buildMonthlyBillingAndPayments(monthlyCtx);
+  const monthlyExpenses = buildMonthlyExpenses(monthlyCtx, vendors.length);
+  const monthlyApPaid = buildMonthlyVendorBillsPaid(monthlyCtx);
 
   const billingDefs = [
     { key: 'b-active-1', net: 165_000, projectKey: 'p-active', clientKey: 'c1', offset: -150, idx: 1 },
@@ -327,7 +351,7 @@ export function buildDemoFixture(
     { key: 'b-archive-1', net: 55_000, projectKey: 'p-archive', clientKey: 'c1', offset: -280, idx: 12 },
   ].map((row) => ({ ...row, net: scaled(scale, row.net) }));
 
-  const billing: DemoFixtureBilling[] = billingDefs.map((row) => ({
+  const legacyBilling: DemoFixtureBilling[] = billingDefs.map((row) => ({
     key: row.key,
     projectKey: row.projectKey,
     clientKey: row.clientKey,
@@ -336,6 +360,8 @@ export function buildDemoFixture(
     totalAmount: grossFromNet(row.net),
     issueDate: day(row.offset),
   }));
+
+  const billing: DemoFixtureBilling[] = [...legacyBilling, ...monthlyBillingPayments.billing];
 
   const paymentDefs: Array<{
     billingKey: string;
@@ -357,25 +383,24 @@ export function buildDemoFixture(
     { billingKey: 'b-archive-1', projectKey: 'p-archive', clientKey: 'c1', netPaid: 55_000, offset: -250, ref: 'REC-Z1' },
   ];
 
-  const payments: DemoFixturePayment[] = paymentDefs.map((row) => ({
+  const legacyPayments: DemoFixturePayment[] = paymentDefs.map((row) => ({
     billingKey: row.billingKey,
     projectKey: row.projectKey,
     clientKey: row.clientKey,
-    amount: grossFromNet(scaled(scale, row.netPaid)),
+    amount: money(scaled(scale, row.netPaid)),
     paymentDate: day(row.offset),
     reference: row.ref,
   }));
 
+  const payments: DemoFixturePayment[] = [...legacyPayments, ...monthlyBillingPayments.payments];
+
   const vendorBillDefs = [
     { key: 'ap-1', projectKey: 'p-active', vendorKey: 'v3', net: 22_000, offset: -55, status: 'partially_matched' as const, paidNet: 12_000 },
     { key: 'ap-2', projectKey: 'p-active', vendorKey: 'v1', net: 14_500, offset: -33, status: 'matched' as const, paidNet: 14_500 },
-    { key: 'ap-3', projectKey: 'p-active-2', vendorKey: 'v4', net: 9_800, offset: -18, status: 'open' as const },
-    { key: 'ap-4', projectKey: 'p-hold', vendorKey: 'v2', net: 7_200, offset: -25, status: 'open' as const },
     { key: 'ap-5', projectKey: 'p-done', vendorKey: 'v3', net: 11_400, offset: -100, status: 'matched' as const, paidNet: 11_400 },
-    { key: 'ap-6', projectKey: 'p-service', vendorKey: 'v5', net: 3_600, offset: -8, status: 'open' as const },
   ];
 
-  const vendorBills: DemoFixtureVendorBill[] = vendorBillDefs.map((row, index) => {
+  const legacyVendorBills: DemoFixtureVendorBill[] = vendorBillDefs.map((row, index) => {
     const net = scaled(scale, row.net);
     return {
       key: row.key,
@@ -393,6 +418,37 @@ export function buildDemoFixture(
     };
   });
 
+  const openApDefs = [
+    { key: 'ap-open-1', projectKey: 'p-active', vendorKey: 'v1', net: 16_500, billOffset: -12, dueOffset: 10, ref: 'O1' },
+    { key: 'ap-open-2', projectKey: 'p-active-2', vendorKey: 'v4', net: 9_200, billOffset: -8, dueOffset: 20, ref: 'O2' },
+    { key: 'ap-open-3', projectKey: 'p-hold', vendorKey: 'v2', net: 7_800, billOffset: -5, dueOffset: 35, ref: 'O3' },
+    { key: 'ap-3', projectKey: 'p-active-2', vendorKey: 'v4', net: 9_800, billOffset: -18, dueOffset: 12, ref: '03' },
+    { key: 'ap-4', projectKey: 'p-hold', vendorKey: 'v2', net: 7_200, billOffset: -25, dueOffset: 8, ref: '04' },
+    { key: 'ap-6', projectKey: 'p-service', vendorKey: 'v5', net: 3_600, billOffset: -8, dueOffset: 15, ref: '06' },
+  ];
+
+  const openVendorBills: DemoFixtureVendorBill[] = openApDefs.map((row) => {
+    const net = scaled(scale, row.net);
+    return {
+      key: row.key,
+      projectKey: row.projectKey,
+      vendorKey: row.vendorKey,
+      reference: `AP-${profileKey.slice(0, 4)}-${row.ref}`,
+      netAmount: money(net),
+      grossAmount: grossFromNet(net),
+      taxAmount: taxFromNet(net),
+      billDate: day(row.billOffset),
+      dueDate: day(row.dueOffset),
+      status: 'open',
+    };
+  });
+
+  const vendorBills: DemoFixtureVendorBill[] = [
+    ...legacyVendorBills,
+    ...openVendorBills,
+    ...monthlyApPaid,
+  ];
+
   const contracts: DemoFixtureContract[] = [
     {
       key: 'ct-primary',
@@ -409,7 +465,6 @@ export function buildDemoFixture(
       projectKey: 'p-active-2',
       clientKey: 'c2',
       name: `הסכם משלים — ${blueprint.projects[2]!.name}`,
-      // Tighter margin vs costs — still positive for most scales; not artificial zero.
       originalValueNet: money(scaled(scale, 210_000)),
       startDate: day(-95),
       endDate: day(55),
@@ -420,7 +475,6 @@ export function buildDemoFixture(
       projectKey: 'p-service',
       clientKey: 'c3',
       name: 'הסכם שירות שוטף',
-      // Intentionally lean vs labor/AP so some profiles show a real loss on this job.
       originalValueNet: money(scaled(scale, 18_500)),
       startDate: day(-40),
       endDate: day(140),
@@ -444,6 +498,16 @@ export function buildDemoFixture(
       originalValueNet: money(scaled(scale, 240_000)),
       startDate: day(-210),
       endDate: day(-40),
+      status: 'closed',
+    },
+    {
+      key: 'ct-archive',
+      projectKey: 'p-archive',
+      clientKey: 'c1',
+      name: `הסכם ארכיון — ${blueprint.projects.find((row) => row.key === 'p-archive')?.name ?? 'ארכיון'}`,
+      originalValueNet: money(scaled(scale, 120_000)),
+      startDate: day(-300),
+      endDate: day(-120),
       status: 'closed',
     },
   ];
@@ -497,54 +561,63 @@ export function buildDemoFixture(
     'p-active',
   ];
 
+  const taskMonths =
+    activityMonths.length > 0
+      ? activityMonths
+      : lastNYearMonths(anchorDay.slice(0, 7), 6);
+
   const tasks: DemoFixtureTask[] = blueprint.taskTitles.slice(0, 22).map((title, index) => {
     const status = taskStatuses[index]!;
     const projectKey = taskProjects[index]!;
-    const opened = day(-160 + index * 7);
-    const due =
-      status === 'todo' && index % 3 === 0
-        ? day(-4 - (index % 5))
-        : day(-140 + index * 8 + (status === 'done' ? -2 : 12));
-    const completion = status === 'done' ? day(-150 + index * 7) : undefined;
+    const ym = taskMonths[index % taskMonths.length]!;
+    const opened = dateInMonth(anchor, ym, 2 + (index % 5));
+    const dueDay = 12 + (index % 10);
+    const calendarDue = dateInMonth(anchor, ym, Math.min(dueDay, 28));
+    const finalDue =
+      status === 'todo' && index % 3 === 0 ? day(-4 - (index % 5)) : calendarDue;
+    const completion = status === 'done' ? dateInMonth(anchor, ym, 15 + (index % 8)) : undefined;
     return {
       title,
       projectKey,
       status,
-      employeeKey: employees[index % employees.length]!.key,
+      employeeKey: taskAssigneeKey(index, employees.length),
       startDate: opened,
-      dueDate: due,
+      dueDate: finalDue,
       completionDate: completion,
     };
   });
 
-  const timeEntries: DemoFixtureTimeEntry[] = [];
-  const timeOffsets = [-150, -135, -120, -105, -90, -75, -60, -45, -38, -30, -22, -15, -10, -7, -4, -2, -1, 0];
+  const hourlyRates = new Map(employees.map((row) => [row.key, row.hourlyRate]));
+  const monthlyTime = buildMonthlyTimeEntries(
+    monthlyCtx,
+    employees.map((row) => row.key),
+    hourlyRates,
+  );
+
+  const legacyTimeOffsets = [-150, -135, -120, -105, -90, -75, -60, -45, -38, -30, -22, -15, -10, -7, -4, -2, -1, 0];
   const timeProjects = ['p-active', 'p-active', 'p-active-2', 'p-service', 'p-active', 'p-active-2', 'p-hold', 'p-done'];
-  for (let index = 0; index < timeOffsets.length; index += 1) {
+  const legacyTime: DemoFixtureTimeEntry[] = legacyTimeOffsets.map((offset, index) => {
     const employee = employees[index % employees.length]!;
-    timeEntries.push({
+    return {
       employeeKey: employee.key,
       projectKey: timeProjects[index % timeProjects.length]!,
-      workDate: day(timeOffsets[index]!),
+      workDate: day(offset),
       hours: (6.5 + (index % 3) * 0.5).toFixed(2),
       description: `דיווח שעות — ${blueprint.expenseLabels[index % blueprint.expenseLabels.length]!}`,
       hourlyRate: employee.hourlyRate,
-    });
-  }
+    };
+  });
 
-  const attendanceDates: string[] = [];
-  for (let month = 5; month >= 0; month -= 1) {
-    for (const dayOffset of [4, 18]) {
-      attendanceDates.push(day(-(month * 30 + dayOffset)));
-    }
-  }
+  const timeEntries: DemoFixtureTimeEntry[] = [...legacyTime, ...monthlyTime];
+
+  const attendanceDates = buildAttendanceDates(anchor, anchorDay);
 
   const documents = blueprint.documentNames.map((fileName, index) => ({
     fileName,
     projectKey: (['p-active', 'p-active-2', 'p-hold', 'p-done'] as const)[index % 4]!,
   }));
 
-  const boqItems = profileUsesBoq(profileKey)
+  const boqItems = cycle.boqEnabled
     ? [1, 2, 3, 4].map((n) => ({
         description: `סעיף ${n} — ${blueprint.projects[1]!.name}`,
         projectKey: n <= 2 ? 'p-active' : 'p-active-2',
@@ -560,13 +633,16 @@ export function buildDemoFixture(
     { employeeKey: 'e2', projectKey: 'p-active-2', role: employees[1]!.jobTitle, startDate: day(-90) },
     { employeeKey: 'e3', projectKey: 'p-active-2', role: employees[2]!.jobTitle, startDate: day(-85) },
     { employeeKey: 'e4', projectKey: 'p-hold', role: employees[3]!.jobTitle, startDate: day(-100) },
-    { employeeKey: 'e5', projectKey: 'p-service', role: employees[4]!.jobTitle, startDate: day(-40) },
-    { employeeKey: 'e6', projectKey: 'p-service', role: employees[5]!.jobTitle, startDate: day(-35) },
+    ...(employees[4]
+      ? [{ employeeKey: 'e5', projectKey: 'p-service', role: employees[4]!.jobTitle, startDate: day(-40) }]
+      : []),
+    ...(employees[5]
+      ? [{ employeeKey: 'e6', projectKey: 'p-service', role: employees[5]!.jobTitle, startDate: day(-35) }]
+      : []),
     { employeeKey: 'e1', projectKey: 'p-done', role: employees[0]!.jobTitle, startDate: day(-210) },
   ];
 
-  const supplierVendor =
-    vendors.find((row) => row.type === 'supplier') ?? vendors[0]!;
+  const supplierVendor = vendors.find((row) => row.type === 'supplier') ?? vendors[0]!;
   const subVendor = vendors.find((row) => row.type === 'subcontractor') ?? vendors[vendors.length - 1]!;
 
   const purchaseOrders: DemoFixturePurchaseOrder[] = [
@@ -592,29 +668,147 @@ export function buildDemoFixture(
     },
   ];
 
-  const subcontracts: DemoFixtureSubcontract[] = profileUsesSubcontracts(profileKey)
-    ? [
-        {
-          key: 'sc-1',
-          projectKey: 'p-active',
-          vendorKey: subVendor.key,
-          parentContractKey: 'ct-primary',
-          title: `הסכם קבלן משנה — ${subVendor.name}`,
-          originalAmount: money(scaled(scale, 95_000)),
-          startDate: day(-140),
-          endDate: day(20),
-        },
-      ]
-    : [];
+  const subcontractProjects = ['p-active', 'p-active-2', 'p-active', 'p-active-2'] as const;
+  const subcontractParents = ['ct-primary', 'ct-secondary', 'ct-primary', 'ct-secondary'] as const;
+  const subcontracts: DemoFixtureSubcontract[] = [];
+  for (let index = 0; index < cycle.subcontractIntensity; index += 1) {
+    subcontracts.push({
+      key: `sc-${index + 1}`,
+      projectKey: subcontractProjects[index % subcontractProjects.length]!,
+      vendorKey: subVendor.key,
+      parentContractKey: subcontractParents[index % subcontractParents.length]!,
+      title: `הסכם קבלן משנה ${index + 1} — ${subVendor.name}`,
+      originalAmount: money(scaled(scale, 72_000 + index * 18_000)),
+      startDate: day(-140 + index * 10),
+      endDate: day(20 + index * 15),
+    });
+  }
 
   const budgets: DemoFixtureBudget[] = contracts
     .filter((row) => row.status === 'active')
     .map((row) => ({
       projectKey: row.projectKey,
       name: `תקציב — ${projects.find((project) => project.key === row.projectKey)?.name ?? row.projectKey}`,
-      // Budget slightly under contract so variance screens have signal.
       totalBudgetAmount: money(Math.round(Number(row.originalValueNet) * 0.92 * 100) / 100),
     }));
+
+  const milestones: DemoFixtureMilestone[] = [
+    {
+      projectKey: 'p-active',
+      name: 'השלמת שלד',
+      targetDate: dateInMonth(anchor, lastNYearMonths(anchorDay.slice(0, 7), 3)[1] ?? anchorDay.slice(0, 7), 15),
+      status: 'achieved',
+      sortOrder: 1,
+    },
+    {
+      projectKey: 'p-active',
+      name: 'מסירה זמנית',
+      targetDate: day(25),
+      status: 'planned',
+      sortOrder: 2,
+    },
+    {
+      projectKey: 'p-active-2',
+      name: 'אישור לקוח',
+      targetDate: dateInMonth(anchor, lastNYearMonths(anchorDay.slice(0, 7), 2)[0] ?? anchorDay.slice(0, 7), 12),
+      status: 'achieved',
+      sortOrder: 1,
+    },
+    {
+      projectKey: 'p-service',
+      name: 'ביקורת שירות רבעונית',
+      targetDate: dateInMonth(anchor, anchorDay.slice(0, 7), 22),
+      status: 'planned',
+      sortOrder: 1,
+    },
+  ];
+
+  const coordinationEvents: DemoFixtureCoordinationEvent[] = [
+    {
+      projectKey: 'p-active',
+      title: 'ישיבת תיאום שבועית — אתר ראשי',
+      startsAtDate: day(-3),
+      kind: 'meeting',
+    },
+    {
+      projectKey: 'p-active',
+      title: 'ביקורת התקנות — שלב ב',
+      startsAtDate: day(7),
+      kind: 'inspection',
+    },
+  ];
+
+  const { payrollPayments, employerMonthCosts } = buildPayrollAndEmployerCosts(anchor, anchorDay, cycle, employees);
+
+  const expenseOffsets = [-165, -140, -118, -95, -78, -62, -48, -35, -28, -18, -11, -5, -150, -100, -70, -40, -22, -9];
+  const expenseProjects = [
+    'p-active',
+    'p-active',
+    'p-active',
+    'p-active',
+    'p-active',
+    'p-active-2',
+    'p-active-2',
+    'p-active-2',
+    'p-hold',
+    'p-hold',
+    'p-done',
+    'p-done',
+    'p-service',
+    'p-service',
+    'p-archive',
+    'p-active',
+    'p-active-2',
+    'p-service',
+  ];
+  const expenseNets = [42_000, 18_500, 12_800, 9_600, 7_400, 15_200, 8_100, 5_600, 6_800, 4_200, 11_000, 3_900, 2_800, 1_950, 2_400, 5_500, 3_200, 1_700].map(
+    (net) => scaled(scale, net),
+  );
+
+  const historicalExpenses: DemoFixtureExpense[] = expenseNets.map((net, index) => {
+    const offset = expenseOffsets[index]!;
+    const paid = index % 5 !== 0;
+    const dueOffset = offset + 14;
+    return {
+      projectKey: expenseProjects[index]!,
+      vendorKey: `v${(index % vendors.length) + 1}`,
+      description: `${blueprint.expenseLabels[index % blueprint.expenseLabels.length]!} — היסטוריה ${index + 1}`,
+      netAmount: money(net),
+      grossAmount: grossFromNet(net),
+      taxAmount: taxFromNet(net),
+      expenseDate: day(offset),
+      dueDate: day(dueOffset),
+      paymentStatus: paid ? 'paid' : dueOffset < 0 ? 'overdue' : 'due',
+      paidAt: paid ? day(offset + 10) : undefined,
+    };
+  });
+
+  const unpaidLegacyExpenses: DemoFixtureExpense[] = [
+    {
+      projectKey: 'p-active',
+      vendorKey: 'v2',
+      description: `${blueprint.expenseLabels[0]!} — פתוח`,
+      netAmount: money(scaled(scale, 5_500)),
+      grossAmount: grossFromNet(scaled(scale, 5_500)),
+      taxAmount: taxFromNet(scaled(scale, 5_500)),
+      expenseDate: day(-9),
+      dueDate: day(5),
+      paymentStatus: 'due',
+    },
+    {
+      projectKey: 'p-service',
+      vendorKey: 'v5',
+      description: `${blueprint.expenseLabels[1]!} — בתשלום`,
+      netAmount: money(scaled(scale, 2_100)),
+      grossAmount: grossFromNet(scaled(scale, 2_100)),
+      taxAmount: taxFromNet(scaled(scale, 2_100)),
+      expenseDate: day(-4),
+      dueDate: day(12),
+      paymentStatus: 'upcoming',
+    },
+  ];
+
+  const expenses: DemoFixtureExpense[] = [...monthlyExpenses, ...historicalExpenses, ...unpaidLegacyExpenses];
 
   const notifications: DemoFixtureNotification[] = [
     {
@@ -649,8 +843,11 @@ export function buildDemoFixture(
 
   return {
     profileKey,
+    archetypeId: cycle.archetypeId,
     organizationName: blueprint.organizationName,
-    anchorDay: day(0),
+    anchorDay,
+    moneyScale: scale,
+    quietMonths,
     clients,
     employees,
     vendors,
@@ -670,6 +867,10 @@ export function buildDemoFixture(
     purchaseOrders,
     subcontracts,
     budgets,
+    milestones,
+    payrollPayments,
+    employerMonthCosts,
+    coordinationEvents,
   };
 }
 
@@ -722,6 +923,11 @@ export function collectFixtureDateStrings(fixture: DemoFixture): string[] {
     if (row.dueDate) dates.push(row.dueDate);
     if (row.completionDate) dates.push(row.completionDate);
   }
+  for (const row of fixture.milestones) dates.push(row.targetDate);
+  for (const row of fixture.payrollPayments) {
+    dates.push(row.paidAt, row.dueDate);
+  }
+  for (const row of fixture.coordinationEvents) dates.push(row.startsAtDate);
   return dates;
 }
 

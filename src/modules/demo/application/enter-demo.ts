@@ -192,11 +192,18 @@ export async function enterDemo(
     const contractor = actors.find((actor) => actor.role === 'contractor');
     if (contractor) {
       const schema = await import('@drizzle/schema');
-      const [project] = await tx
-        .select({ id: schema.projects.id })
+      const projectRows = await tx
+        .select({
+          id: schema.projects.id,
+          name: schema.projects.name,
+          status: schema.projects.status,
+        })
         .from(schema.projects)
-        .where(eq(schema.projects.organizationId, organizationId))
-        .limit(1);
+        .where(eq(schema.projects.organizationId, organizationId));
+      const preferred =
+        projectRows.find((row) => row.status === 'active') ??
+        projectRows.find((row) => /פעיל|active/i.test(row.name)) ??
+        projectRows[0];
       const [vendor] = await tx
         .select({ id: schema.vendors.id })
         .from(schema.vendors)
@@ -213,14 +220,14 @@ export async function enterDemo(
         username: `demo-${organizationId.slice(0, 8)}`,
         usernameNormalized: `demo-${organizationId.slice(0, 8)}`,
         homeOrganizationId: organizationId,
-        homeProjectId: project?.id ?? null,
+        homeProjectId: preferred?.id ?? null,
       });
-      if (project && vendor) {
+      if (preferred && vendor) {
         await tx.insert(contractorGrants).values({
           organizationId,
           principalId,
           portalKind: 'contractor',
-          projectId: project.id,
+          projectId: preferred.id,
           vendorId: vendor.id,
           scopes: ['ext.project.view', 'ext.schedule.view', 'ext.document.view'],
           status: 'active',
@@ -241,7 +248,14 @@ export async function enterDemo(
         email: actor.email,
       })),
     );
-    const notifyRoles: DemoRoleKey[] = ['owner', 'manager', 'finance'];
+    const notifyRoles: DemoRoleKey[] = [
+      'owner',
+      'manager',
+      'finance',
+      'employee',
+      'worker',
+      'contractor',
+    ];
     for (const actor of actors) {
       if (!notifyRoles.includes(actor.role)) continue;
       for (const note of fixture.notifications) {

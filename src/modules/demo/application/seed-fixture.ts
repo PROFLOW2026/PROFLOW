@@ -15,8 +15,12 @@ import {
   committedCosts,
   contracts,
   contractValueEvents,
+  coordinationEventParticipants,
+  coordinationEvents,
   costCategories,
   documents,
+  employeeMonthCosts,
+  employeePayrollPayments,
   employeeProjectAssignments,
   employees,
   evidenceItems,
@@ -27,6 +31,7 @@ import {
   projectBudgetLines,
   projectBudgets,
   projectLocations,
+  projectMilestones,
   projectWorkspaceLinks,
   projects,
   purchaseOrderLines,
@@ -351,6 +356,7 @@ export async function seedDemoFixture(
       billingRecordId: billingIds.get(payment.billingKey) ?? null,
       clientId: clientIds.get(payment.clientKey) ?? null,
       amount: payment.amount,
+      amountBasis: 'net' as const,
       paymentDate: payment.paymentDate,
       reference: payment.reference,
       currency: 'ILS',
@@ -638,6 +644,108 @@ export async function seedDemoFixture(
       })
       .filter((row): row is NonNullable<typeof row> => row !== null),
   );
+
+  const payrollRows = fixture.payrollPayments
+    .map((payment) => {
+      const employeeId = employeeIds.get(payment.employeeKey);
+      if (!employeeId) return null;
+      return {
+        id: randomUUID(),
+        organizationId,
+        employeeId,
+        yearMonth: payment.yearMonth,
+        currency: 'ILS' as const,
+        expectedAmount: payment.expectedAmount,
+        paidAmount: payment.paidAmount,
+        paymentStatus: 'paid' as const,
+        dueDate: payment.dueDate,
+        paidAt: payment.paidAt,
+        paymentConfirmationSource: 'manual' as const,
+        obligationSource: 'period_accrual' as const,
+      };
+    })
+    .filter((row): row is NonNullable<typeof row> => row !== null);
+  if (payrollRows.length > 0) {
+    await db.insert(employeePayrollPayments).values(payrollRows);
+  }
+
+  // Draft EMC only — `applied`/`monthly_allocated` requires a labor allocation run
+  // (trigger employee_month_costs_applied_requires_run). Payroll cash covers «שכר ששולם».
+  const employerCostRows = fixture.employerMonthCosts
+    .map((monthCost) => {
+      const employeeId = employeeIds.get(monthCost.employeeKey);
+      if (!employeeId) return null;
+      return {
+        id: randomUUID(),
+        organizationId,
+        employeeId,
+        yearMonth: monthCost.yearMonth,
+        currency: 'ILS' as const,
+        knownAmount: monthCost.knownAmount,
+        knownQuality: 'estimated' as const,
+        estimatedAmount: monthCost.knownAmount,
+        actualAmount: null,
+        recognitionSource: 'time_snapshot' as const,
+        status: 'draft' as const,
+        source: 'manual' as const,
+      };
+    })
+    .filter((row): row is NonNullable<typeof row> => row !== null);
+  if (employerCostRows.length > 0) {
+    await db.insert(employeeMonthCosts).values(employerCostRows);
+  }
+
+  const milestoneRows = fixture.milestones
+    .map((milestone) => {
+      const projectId = projectIds.get(milestone.projectKey);
+      if (!projectId) return null;
+      return {
+        id: randomUUID(),
+        organizationId,
+        projectId,
+        name: milestone.name,
+        status: milestone.status,
+        targetDate: milestone.targetDate,
+        sortOrder: milestone.sortOrder,
+        portalVisible: false,
+      };
+    })
+    .filter((row): row is NonNullable<typeof row> => row !== null);
+  if (milestoneRows.length > 0) {
+    await db.insert(projectMilestones).values(milestoneRows);
+  }
+
+  const coordinationVendorKey =
+    fixture.vendors.find((vendor) => vendor.type === 'subcontractor')?.key ?? fixture.vendors[0]?.key;
+  const coordinationVendorId = coordinationVendorKey ? vendorIds.get(coordinationVendorKey) : undefined;
+
+  for (const event of fixture.coordinationEvents) {
+    const projectId = projectIds.get(event.projectKey);
+    if (!projectId) continue;
+    const eventId = randomUUID();
+    await db.insert(coordinationEvents).values({
+      id: eventId,
+      organizationId,
+      projectId,
+      title: event.title,
+      kind: event.kind,
+      status: 'scheduled',
+      startsAt: jerusalemInstant(event.startsAtDate, 9),
+      endsAt: jerusalemInstant(event.startsAtDate, 11),
+      requiredAcknowledgements: [],
+    });
+    if (coordinationVendorId) {
+      await db.insert(coordinationEventParticipants).values({
+        id: randomUUID(),
+        organizationId,
+        projectId,
+        eventId,
+        kind: 'contractor',
+        vendorId: coordinationVendorId,
+        isRequired: true,
+      });
+    }
+  }
 
   for (const document of fixture.documents) {
     const projectId = projectIds.get(document.projectKey) ?? projectIds.get('p-active');

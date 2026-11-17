@@ -36,7 +36,8 @@ test("every business profile opens the three apps and can switch roles", async (
     for (const roleKey of ["finance", "manager", "worker"]) {
       await page.locator("#demo-role-switch").selectOption(roleKey);
       await page.getByRole("button", { name: "החלפת תפקיד" }).click();
-      await expect(page).not.toHaveURL(/\/(employee|contractor)/);
+      // demoRoleHome maps finance/manager/worker/employee → /employee
+      await expect(page).toHaveURL(/\/employee/);
       await expect(page.getByText(BANNER)).toBeVisible();
     }
   }
@@ -64,15 +65,15 @@ test("a visitor sees fixture projects and documents without the other visitor's 
   await enter(pageA, "GENERAL_CONTRACTOR", "owner", "10.7.0.1");
   await enter(pageB, "ELECTRICAL", "owner", "10.7.0.2");
   await pageA.goto("/he-IL/projects");
-  await expect(pageA.getByRole("link", { name: "פרויקט פעיל — קבלנות ראשית" })).toBeVisible();
+  await expect(pageA.getByRole("link", { name: "ביצוע — מתחם שקד שלב ב" })).toBeVisible();
   await pageA.goto("/he-IL/documents");
-  await expect(pageA.getByRole("table").getByText("תוכנית לדוגמה.pdf").first()).toBeVisible();
-  await expect(pageA.getByRole("table").getByText("מפרט לדוגמה.pdf").first()).toBeVisible();
+  await expect(pageA.getByRole("table").getByText("חוזה ביצוע ראשי.pdf").first()).toBeVisible();
+  await expect(pageA.getByRole("table").getByText("תוכנית שלד מעודכנת.pdf").first()).toBeVisible();
   await pageB.goto("/he-IL/projects");
-  await expect(pageB.getByRole("link", { name: "פרויקט פעיל — חשמל" })).toBeVisible();
-  await expect(pageB.getByRole("link", { name: "פרויקט פעיל — קבלנות ראשית" })).toHaveCount(0);
+  await expect(pageB.getByRole("link", { name: "ביצוע — מערכת חשמל מלון כנרת" })).toBeVisible();
+  await expect(pageB.getByRole("link", { name: "ביצוע — מתחם שקד שלב ב" })).toHaveCount(0);
   await pageB.goto("/he-IL/documents");
-  await expect(pageB.getByRole("table").getByText("תוכנית לדוגמה.pdf").first()).toBeVisible();
+  await expect(pageB.getByRole("table").getByText("תכנית חשמל — גמר.pdf").first()).toBeVisible();
   await first.close();
   await second.close();
 });

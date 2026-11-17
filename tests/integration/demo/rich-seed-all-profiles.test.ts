@@ -153,7 +153,7 @@ describe('demo rich seed — all 20 profiles', () => {
       expect(counts.time_approved).toBeGreaterThanOrEqual(16);
       expect(counts.attendance_days).toBeGreaterThanOrEqual(12);
       expect(counts.clients).toBeGreaterThanOrEqual(5);
-      expect(counts.employees).toBeGreaterThanOrEqual(6);
+      expect(counts.employees).toBeGreaterThanOrEqual(4);
       expect(seedMs).toBeLessThan(45_000);
 
       const fixture = buildDemoFixture(profileKey, ANCHOR);

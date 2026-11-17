@@ -8,8 +8,10 @@ import {
   type DemoFixture,
 } from '@/modules/demo/fixtures/fixture-builder';
 import { PROFILE_BLUEPRINTS } from '@/modules/demo/fixtures/profile-blueprints';
+import { getCycleParams } from '@/modules/demo/fixtures/cycle-params';
 
-const FIXTURE_ANCHOR = new Date('2026-01-15T22:30:00Z');
+/** Prefer a mid-year anchor so monthly fill + last-6 payroll windows are exercisable. */
+const FIXTURE_ANCHOR = new Date('2026-11-16T10:00:00Z');
 
 const RESET_MARKETING = /איפוס|מחזור לילה|nightly\s*reset|reset\s*hour/i;
 const REAL_BRAND_HINTS =
@@ -53,13 +55,16 @@ function assertKnownParties(fixture: DemoFixture): void {
       expect(Number(row.paidGross)).toBeLessThanOrEqual(Number(row.grossAmount) + 0.01);
     }
   }
+  const billingNets = new Map(fixture.billing.map((row) => [row.key, Number(row.subtotalAmount)]));
   for (const row of fixture.payments) {
     expect(projectKeys.has(row.projectKey)).toBe(true);
     expect(clientKeys.has(row.clientKey)).toBe(true);
-    const billed = billingTotals.get(row.billingKey) ?? 0;
+    // F13: payment.amount is NET — compare to invoice subtotal, not gross total.
+    const billedNet = billingNets.get(row.billingKey) ?? 0;
     const running = (paidByBilling.get(row.billingKey) ?? 0) + Number(row.amount);
-    expect(running).toBeLessThanOrEqual(billed + 0.01);
+    expect(running).toBeLessThanOrEqual(billedNet + 0.01);
     paidByBilling.set(row.billingKey, running);
+    void billingTotals;
   }
   for (const row of fixture.contracts) {
     expect(projectKeys.has(row.projectKey)).toBe(true);
@@ -112,16 +117,19 @@ describe('demo fixture richness', () => {
 
   it.each(DEMO_FIXTURE_KEYS)('profile %s looks like an operating company', (profileKey) => {
     const fixture = buildDemoFixture(profileKey, FIXTURE_ANCHOR);
+    const cycle = getCycleParams(profileKey);
 
     expect(fixture.projects.length).toBeGreaterThanOrEqual(8);
     expect(fixture.clients.length).toBeGreaterThanOrEqual(5);
-    expect(fixture.employees.length).toBeGreaterThanOrEqual(6);
+    expect(fixture.employees.length).toBe(Math.max(4, cycle.workforceSize));
+    expect(fixture.archetypeId).toBe(cycle.archetypeId);
     expect(fixture.vendors.length).toBeGreaterThanOrEqual(5);
     expect(fixture.tasks.length).toBeGreaterThanOrEqual(20);
     expect(fixture.expenses.length).toBeGreaterThanOrEqual(16);
     expect(fixture.billing.length).toBeGreaterThanOrEqual(10);
     expect(fixture.contracts.length).toBeGreaterThanOrEqual(5);
     expect(fixture.contracts.filter((row) => row.status === 'active').length).toBeGreaterThanOrEqual(4);
+    expect(fixture.contracts.some((row) => row.projectKey === 'p-archive' && row.status === 'closed')).toBe(true);
     expect(fixture.payments.length).toBeGreaterThanOrEqual(8);
     expect(fixture.vendorBills.length).toBeGreaterThanOrEqual(5);
     expect(fixture.timeEntries.length).toBeGreaterThanOrEqual(16);
@@ -129,8 +137,13 @@ describe('demo fixture richness', () => {
     expect(fixture.notifications.length).toBeGreaterThanOrEqual(3);
     expect(fixture.purchaseOrders.length).toBeGreaterThanOrEqual(2);
     expect(fixture.budgets.length).toBeGreaterThanOrEqual(4);
-    expect(fixture.assignments.length).toBeGreaterThanOrEqual(9);
+    expect(fixture.milestones.length).toBeGreaterThanOrEqual(4);
+    expect(fixture.payrollPayments.length).toBeGreaterThan(0);
+    expect(fixture.coordinationEvents.length).toBeGreaterThanOrEqual(2);
+    expect(fixture.subcontracts.length).toBe(cycle.subcontractIntensity);
+    expect(fixture.assignments.length).toBeGreaterThanOrEqual(4);
     expect(fixture.tasks.every((row) => Boolean(row.employeeKey))).toBe(true);
+    expect(fixture.tasks.every((row) => ['e1', 'e2', 'e3', 'e4'].includes(row.employeeKey!))).toBe(true);
     expect(fixture.projects.every((row) => row.workKind === 'project' || row.pricingMode === 'fixed')).toBe(
       true,
     );

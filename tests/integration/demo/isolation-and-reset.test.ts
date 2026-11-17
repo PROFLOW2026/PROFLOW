@@ -172,6 +172,9 @@ describe("demo visitors stay isolated and reset restores the fixture", () => {
     expect(renamedFirst).toBeGreaterThan(0);
     expect(renamedSecond).toBeGreaterThan(0);
 
+    const expectedElectricalDocs = buildDemoFixture("ELECTRICAL")
+      .documents.map((row) => row.fileName)
+      .sort();
     const ownDocs = await database.asUser(first.signedInUserId, async (tx) =>
       resultRows<{ original_filename: string }>(
         await tx.execute(
@@ -179,10 +182,7 @@ describe("demo visitors stay isolated and reset restores the fixture", () => {
         ),
       ),
     );
-    expect(ownDocs.map((row) => row.original_filename).sort()).toEqual([
-      "מפרט לדוגמה.pdf",
-      "תוכנית לדוגמה.pdf",
-    ]);
+    expect(ownDocs.map((row) => row.original_filename).sort()).toEqual(expectedElectricalDocs);
     const leaked = await database.asUser(second.signedInUserId, async (tx) =>
       resultRows(
         await tx.execute(sql`select id from documents where organization_id = ${first.sessionId}::uuid`),
@@ -235,7 +235,10 @@ describe("demo visitors stay isolated and reset restores the fixture", () => {
         await db.execute(sql`select name from projects where organization_id = ${restored.sessionId}::uuid`),
       ),
     );
-    expect(names.map((row) => row.name)).toContain("פרויקט פעיל — חשמל");
+    const electricalActiveName = buildDemoFixture("ELECTRICAL").projects.find(
+      (project) => project.key === "p-active",
+    )?.name;
+    expect(names.map((row) => row.name)).toContain(electricalActiveName);
     expect(names.map((row) => row.name)).not.toContain("עריכת מבקר א");
     const docs = await database.asService(async (db) =>
       resultRows<{ original_filename: string }>(
@@ -244,9 +247,6 @@ describe("demo visitors stay isolated and reset restores the fixture", () => {
         ),
       ),
     );
-    expect(docs.map((row) => row.original_filename).sort()).toEqual([
-      "מפרט לדוגמה.pdf",
-      "תוכנית לדוגמה.pdf",
-    ]);
+    expect(docs.map((row) => row.original_filename).sort()).toEqual(expectedElectricalDocs);
   });
 });
