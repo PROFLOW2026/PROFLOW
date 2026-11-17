@@ -5,7 +5,7 @@
     "description": "יעדים שצוות הפרויקט שיתף עם החברה שלכם. רשימת היעדים המלאה של הפרויקט אינה מוצגת כאן."
   },
   "viewOnly": {
-    "banner": "תצוגה בלבד — ניתן לראות יעדים, אך עריכה דורשת projects.update או planning.write."
+    "banner": "תצוגה בלבד - ניתן לראות יעדים, אך עריכה דורשת projects.update או planning.write."
   },
   "fields": {
     "title": "כותרת היעד",

@@ -4,9 +4,9 @@ import { computeBoq } from '@/modules/electrical-takeoff/domain/boq-engine';
 import { mergeCatalog } from '@/modules/electrical-takeoff/domain/catalog';
 import { applyEdits } from '@/modules/electrical-takeoff/domain/edits';
 import { DEFAULT_RULE_SET } from '@/modules/electrical-takeoff/domain/measurement';
-import { applyUnpairedPdfPolicy, inferPdfDwgMerged } from '@/modules/electrical-takeoff/domain/unpaired-pdf-policy';
+import { applyUnpairedPdfPolicy } from '@/modules/electrical-takeoff/domain/unpaired-pdf-policy';
 import { getReal7155Fixture } from '@/modules/electrical-takeoff/ui/fixtures/real7155-fixture';
-import { effFromWorker, sheetDto, workerDet } from './fixtures';
+import { sheetDto, workerDet } from './fixtures';
 
 describe('unpaired PDF + DWG counting integrity', () => {
   const catalog = mergeCatalog();

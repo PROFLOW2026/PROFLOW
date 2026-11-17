@@ -71,13 +71,30 @@ describe('electrical takeoff integration', () => {
       expect(codes).toContain('sheet_partial');
       expect(view0.workerStats.detection_count).toBeGreaterThan(0);
 
-      const edited = await applyEditsUseCase(context, analysis.id, [{ op: 'confirm', detectionIds: [view0.detections[0]!.id] }], view0.summary.revision);
+      const detectionIds = view0.detections.map((d) => d.id);
+      const edited = await applyEditsUseCase(
+        context,
+        analysis.id,
+        [
+          ...detectionIds.map((detectionId) => ({
+            op: 'reclassify' as const,
+            detectionId,
+            typeKey: 'power.socket.single',
+            saveToLibrary: false,
+          })),
+          { op: 'confirm', detectionIds },
+        ],
+        view0.summary.revision,
+      );
       expect(edited.summary.revision).toBeGreaterThan(analysis.revision);
+      const reviewReady = await getAnalysisViewUseCase(context, analysis.id);
+      expect(reviewReady.boq.unclassifiedCount).toBe(0);
+      expect(reviewReady.boq.needsReviewCount).toBe(0);
       const confirmedPlan = await applyEditsUseCase(
         context,
         analysis.id,
         [{ op: 'confirm_plan_review', confirmed: true }],
-        edited.summary.revision,
+        reviewReady.summary.revision,
       );
 
       const approved = await approveAnalysisUseCase(context, analysis.id, confirmedPlan.summary.revision);

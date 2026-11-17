@@ -1,5 +1,3 @@
-import path from 'node:path';
-
 import type { OrgContext } from '@/shared/auth/context';
 import { ensureDocumentForProviderFile } from '@/modules/external-storage/server';
 import type { EnsureDocumentForProviderFileInput } from '@/modules/external-storage/application/link-provider-file-to-document';
@@ -7,6 +5,7 @@ import type { EnsureDocumentForProviderFileInput } from '@/modules/external-stor
 export type LinkTakeoffCloudFileClientInput = Omit<EnsureDocumentForProviderFileInput, 'projectId'>;
 
 import { TakeoffError } from '../domain/errors';
+import { sanitizeTakeoffUploadFilename } from '../domain/upload-filename';
 import { assertAnalysisAccess, internalActorFrom } from './access';
 import { inferTakeoffSourceKind, takeoffLinkedDocumentMime } from './takeoff-source-kind';
 import { TAKEOFF_PERSISTENCE } from './takeoff-persistence';
@@ -26,7 +25,7 @@ export async function linkTakeoffCloudFileUseCase(
   }
   await assertOrgStorage(context.db, context.organizationId);
 
-  const safeName = path.basename(input.fileName).replaceAll(/[/\\<>:"|?*]/g, '_');
+  const safeName = sanitizeTakeoffUploadFilename(input.fileName);
   const kind = inferTakeoffSourceKind(safeName, input.mimeType);
   if (!kind) throw new TakeoffError('file_type_unsupported');
 

@@ -427,6 +427,7 @@ describe('attendance ↔ project atomicity', () => {
         clockInTime: '09:00',
         clockOutTime: '17:00',
         workScope: 'general',
+        changeAcknowledged: true,
       });
 
       expect(outcome.status).toBe('applied');

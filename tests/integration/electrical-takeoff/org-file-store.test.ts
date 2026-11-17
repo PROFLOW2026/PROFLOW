@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { sql } from 'drizzle-orm';
 
 vi.mock('server-only', () => ({}));
@@ -11,7 +11,6 @@ import * as providerRegistry from '@/modules/external-storage/providers/registry
 import { sealOAuthPayload } from '@/modules/external-storage/application/token-seal';
 import { findDocumentById } from '@/modules/documents/data/documents.repository';
 import { resolveOrgContext } from '@/modules/tenancy';
-import { ServiceUnavailableError } from '@/shared/errors';
 import {
   beginFileUploadUseCase,
   createAnalysisUseCase,

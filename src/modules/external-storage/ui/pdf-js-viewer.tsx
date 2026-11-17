@@ -193,7 +193,9 @@ function PdfJsViewerInner({
     [containerHeight, containerWidth, fitMode, pageAspect, zoomFactor],
   );
 
-  zoomFactorRef.current = zoomFactor;
+  useEffect(() => {
+    zoomFactorRef.current = zoomFactor;
+  }, [zoomFactor]);
 
   const zoomPercent = useMemo(
     () => computePdfZoomPercent({ containerWidth, pageWidth }),

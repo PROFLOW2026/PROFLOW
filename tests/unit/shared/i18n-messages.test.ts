@@ -126,6 +126,14 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   'projectTeam.members.groupCount',
   // Progress-claim reference format (CLM prefix is language-neutral).
   'subcontractClaims.list.claimReference',
+  // File-format labels and percent templates (language-neutral in product UI).
+  'takeoff.progress.percent',
+  'takeoff.source.pdf',
+  'takeoff.source.dwg',
+  'takeoff.export.excelShort',
+  'takeoff.export.boqPdfShort',
+  'takeoff.sheets.filter.pdf',
+  'takeoff.sheets.filter.dwg',
 ]);
 
 function hasActivityAction(catalog: Catalog, action: string): boolean {

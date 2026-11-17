@@ -91,7 +91,7 @@ export function TakeoffAnalysesList({
       </header>
 
       {listError ? (
-        <p className="rounded-md border border-[var(--pf-border-danger)] bg-[var(--pf-bg-danger-subtle)] px-3 py-2 text-sm text-[var(--pf-text-danger)]" role="alert">
+        <p className="rounded-md border border-[var(--pf-status-danger-border)] bg-[var(--pf-status-danger-bg)] px-3 py-2 text-sm text-[var(--pf-status-danger-fg)]" role="alert">
           {listError}
         </p>
       ) : null}

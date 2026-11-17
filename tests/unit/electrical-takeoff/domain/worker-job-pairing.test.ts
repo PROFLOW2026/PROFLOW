@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { computeBoq } from '@/modules/electrical-takeoff/domain/boq-engine';
@@ -17,6 +15,7 @@ import {
 } from '@/modules/electrical-takeoff/domain/worker-job-request-build';
 import { applyEdits } from '@/modules/electrical-takeoff/domain/edits';
 import { getReal7155Fixture } from '@/modules/electrical-takeoff/ui/fixtures/real7155-fixture';
+import workerFixtureJson from '@/modules/electrical-takeoff/ui/fixtures/real7155-worker.json';
 import { applyUnpairedPdfPolicy, inferPdfDwgMerged } from '@/modules/electrical-takeoff/domain/unpaired-pdf-policy';
 import { resolveSheetPairings } from '@/modules/electrical-takeoff/domain/sheet-selection';
 
@@ -75,9 +74,10 @@ describe('worker job pairing (PDF↔DWG merge)', () => {
   it('7155 wire payload has twin pairs when worker pairing ran (derived job request)', () => {
     const { view, workerBase } = getReal7155Fixture();
     const mergeStat = Number(view.workerStats?.merge_matched_pairs ?? 0);
-    const fixturePath = path.join(process.cwd(), 'takeoff-worker/.tmp/7155_light_g.json');
-    const raw = JSON.parse(readFileSync(fixturePath, 'utf8'));
-    raw.contractVersion = TAKEOFF_CONTRACT_VERSION;
+    const raw = {
+      ...(workerFixtureJson as Record<string, unknown>),
+      contractVersion: TAKEOFF_CONTRACT_VERSION,
+    };
     const parsed = parseWorkerResultPayload(raw);
     const pdfTwins = parsed.detections.filter((d) => d.source === 'pdf' && d.twinId);
     expect(pdfTwins.length).toBeGreaterThan(0);

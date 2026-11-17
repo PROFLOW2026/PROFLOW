@@ -1,5 +1,4 @@
 import { createHash } from 'node:crypto';
-import path from 'node:path';
 import { and, eq } from 'drizzle-orm';
 import { takeoffAnalyses } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
@@ -52,6 +51,7 @@ import {
   setAnalysisStatus,
 } from '../data/takeoff.repository';
 import { TakeoffError, takeoffApprovedLocked, takeoffRevisionConflict, takeoffWorkerUnavailable } from '../domain/errors';
+import { sanitizeTakeoffUploadFilename } from '../domain/upload-filename';
 import { buildLegendLibraryEntry, buildLibraryEntry } from '../domain/library';
 import { assertAnyPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -198,7 +198,7 @@ export async function beginFileUploadUseCase(
 ): Promise<{ fileId: string; chunkBytes: number }> {
   const analysis = await assertAnalysisAccess(internalActor(context), analysisId, 'manage');
   if (analysis.status === 'approved') takeoffApprovedLocked();
-  const safeName = path.basename(input.name).replaceAll(/[/\\<>:"|?*]/g, '_');
+  const safeName = sanitizeTakeoffUploadFilename(input.name);
   if (!safeName || safeName === '.' || safeName === '..') throw new TakeoffError('file_type_unsupported');
   const row = await insertFile(context.db, {
     organizationId: context.organizationId,

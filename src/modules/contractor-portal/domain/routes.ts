@@ -101,6 +101,17 @@ export const PORTAL_ROUTES = [
     labelKey: 'nav.takeoff',
     implemented: true,
   },
+  {
+    key: 'project.takeoffAnalysis',
+    track: 'IJ',
+    scope: 'project',
+    path: 'projects/[projectId]/takeoff/[analysisId]',
+    pageFile: '(portal)/projects/[projectId]/takeoff/[analysisId]/page.tsx',
+    capability: CAP.TAKEOFF_VIEW,
+    placement: 'detail',
+    labelKey: 'nav.takeoff',
+    implemented: true,
+  },
   { key: 'project.plans', track: 'IJ', scope: 'project', path: 'projects/[projectId]/plans', pageFile: '(portal)/projects/[projectId]/plans/page.tsx', capability: CAP.PLAN_VIEW, placement: 'project', labelKey: 'nav.plans', implemented: true },
   { key: 'project.plan', track: 'IJ', scope: 'project', path: 'projects/[projectId]/plans/[drawingId]', pageFile: '(portal)/projects/[projectId]/plans/[drawingId]/page.tsx', capability: CAP.PLAN_VIEW, placement: 'detail', labelKey: 'nav.plans', implemented: true },
 

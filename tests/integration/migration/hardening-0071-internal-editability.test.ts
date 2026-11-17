@@ -441,6 +441,33 @@ describe('0071 internal financial editability', () => {
 
     it('blocks naked SQL edit on recognized AP without trusted latch', async () => {
       const { orgA, userA } = await provisionTwoTenants(database);
+      const manager = await createTestUser(
+        database,
+        `0071-guard-mgr-${randomUUID().slice(0, 8)}@example.test`,
+      );
+
+      await database.asService(async (db) => {
+        const managerRole = await findRoleByKey(db, orgA.organization.id, 'manager');
+        if (!managerRole) throw new Error('manager role missing');
+        const membershipId = randomUUID();
+        await db.insert(organizationMemberships).values({
+          id: membershipId,
+          organizationId: orgA.organization.id,
+          userId: manager.id,
+          status: 'active',
+        });
+        await assignRole(db, {
+          organizationId: orgA.organization.id,
+          membershipId,
+          userId: manager.id,
+          roleId: managerRole.id,
+        });
+        await db.execute(sql`
+          INSERT INTO role_permissions (organization_id, role_id, permission_key)
+          VALUES (${orgA.organization.id}::uuid, ${managerRole.id}::uuid, 'projects.access_all')
+          ON CONFLICT (role_id, permission_key) DO NOTHING
+        `);
+      });
 
       const billId = await database.asUser(userA.id, async (tx) => {
         const context = await resolveOrgContext(tx, {
@@ -480,10 +507,15 @@ describe('0071 internal financial editability', () => {
       });
 
       let message = '';
-      await database.asUser(userA.id, async (tx) => {
+      await database.asUser(manager.id, async (tx) => {
         try {
           await tx.execute(sql`
-            UPDATE ap_bills SET net_amount = 90 WHERE id = ${billId}::uuid
+            UPDATE ap_bills
+            SET net_amount = 90,
+                tax_amount = 0,
+                gross_amount = 90,
+                total_amount = 90
+            WHERE id = ${billId}::uuid
           `);
         } catch (error) {
           message = errorBlob(error);

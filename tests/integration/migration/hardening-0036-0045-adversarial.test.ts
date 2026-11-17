@@ -1,7 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { organizationMemberships } from '@drizzle/schema';
 import { sql } from 'drizzle-orm';
+import { assignRole, findRoleByKey } from '@/modules/rbac';
 import { createTestDatabase, resultRows, type TestDatabase } from '@tests/setup/database';
+import { createTestUser } from '@tests/setup/fixtures';
 import { provisionTwoTenants } from '../projects/setup';
 
 function errorBlob(error: unknown): string {
@@ -106,8 +109,32 @@ describe('overnight 0036–0045 SQL adversarial', () => {
     const clientId = randomUUID();
     const billId = randomUUID();
     const paymentId = randomUUID();
+    const manager = await createTestUser(
+      database,
+      `0037-mgr-${randomUUID().slice(0, 8)}@example.test`,
+    );
 
     await database.asService(async (db) => {
+      const managerRole = await findRoleByKey(db, orgId, 'manager');
+      if (!managerRole) throw new Error('manager role missing');
+      const membershipId = randomUUID();
+      await db.insert(organizationMemberships).values({
+        id: membershipId,
+        organizationId: orgId,
+        userId: manager.id,
+        status: 'active',
+      });
+      await assignRole(db, {
+        organizationId: orgId,
+        membershipId,
+        userId: manager.id,
+        roleId: managerRole.id,
+      });
+      await db.execute(sql`
+        INSERT INTO role_permissions (organization_id, role_id, permission_key)
+        VALUES (${orgId}::uuid, ${managerRole.id}::uuid, 'billing.manage')
+        ON CONFLICT (role_id, permission_key) DO NOTHING
+      `);
       await db.execute(sql`
         INSERT INTO clients (id, organization_id, name)
         VALUES (${clientId}::uuid, ${orgId}::uuid, 'Client')
@@ -156,14 +183,14 @@ describe('overnight 0036–0045 SQL adversarial', () => {
       `);
     });
 
-    await database.asUser(userA.id, async (tx) => {
+    await database.asUser(manager.id, async (tx) => {
       await expectFailure(
         () =>
           tx.execute(sql`
             INSERT INTO payments (
-              organization_id, billing_record_id, client_id, amount, currency, payment_date, status
+              organization_id, client_id, amount, currency, payment_date, status
             ) VALUES (
-              ${orgId}::uuid, ${billId}::uuid, ${clientId}::uuid, 10, 'ILS', '2024-01-21', 'recorded'
+              ${orgId}::uuid, ${clientId}::uuid, 10, 'ILS', '2024-01-21', 'recorded'
             )
           `),
         'closed_period_immutable',
@@ -178,7 +205,7 @@ describe('overnight 0036–0045 SQL adversarial', () => {
       `);
     });
 
-    await database.asUser(userA.id, async (tx) => {
+    await database.asUser(manager.id, async (tx) => {
       await expectFailure(
         () =>
           tx.execute(sql`
@@ -190,7 +217,7 @@ describe('overnight 0036–0045 SQL adversarial', () => {
       );
     });
 
-    await database.asUser(userA.id, async (tx) => {
+    await database.asUser(manager.id, async (tx) => {
       await expectFailure(
         () =>
           tx.execute(sql`

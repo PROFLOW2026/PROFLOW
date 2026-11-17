@@ -27,7 +27,14 @@ const config = [
       '.tools/**',
       '.deploy-linux/**',
       '.cursor/linux-build/**',
+      // Agent scratch under .cursor (rules/plans are markdown; not eslint targets)
+      '.cursor/**',
       'docs/**/scripts/**',
+      // Audit evidence and local research tooling (not product source)
+      'docs/audits/**',
+      'research/**',
+      'takeoff-worker/.venv/**',
+      'takeoff-worker/.proof-run/**',
     ],
   },
   ...nextCoreWebVitals,

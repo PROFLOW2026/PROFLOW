@@ -15,10 +15,15 @@ const env = {
   NEXT_PUBLIC_APP_URL: `http://127.0.0.1:${APP_PORT}`,
 };
 
+const buildEnv = {
+  ...env,
+  ...(process.env.E2E_SKIP_BUILD_TYPECHECK === '1' ? { E2E_SKIP_BUILD_TYPECHECK: '1' } : {}),
+};
+
 const result = spawnSync('npm', ['run', 'build'], {
   stdio: 'inherit',
   shell: true,
-  env,
+  env: buildEnv,
 });
 
 process.exit(result.status ?? 1);

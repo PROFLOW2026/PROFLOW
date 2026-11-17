@@ -1464,6 +1464,13 @@
             "when": 1794615601000,
             "tag": "0212_demo_takeoff_purge_guard",
             "breakpoints": true
+        },
+        {
+            "idx": 209,
+            "version": "7",
+            "when": 1794702000000,
+            "tag": "0213_boq_nodes_authenticated_dml_denial",
+            "breakpoints": true
         }
     ]
 }

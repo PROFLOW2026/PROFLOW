@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { createHash } from 'node:crypto';
-import { createReadStream, createWriteStream, promises as fs } from 'node:fs';
+import { createReadStream, promises as fs } from 'node:fs';
 import { mkdir, rm, stat, open, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { Readable } from 'node:stream';
@@ -71,7 +71,6 @@ export function createEphemeralDiskTakeoffFileStore(): TakeoffFileStore {
 
     async finalize(input) {
       const target = filePath(input.organizationId, input.fileId);
-      const st = await stat(target);
       const onDisk = await readFile(target);
       const sha256 = createHash('sha256').update(onDisk).digest('hex');
       if (sha256 !== input.sha256) throw new Error('sha mismatch');

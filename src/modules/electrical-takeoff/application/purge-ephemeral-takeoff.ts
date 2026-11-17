@@ -6,7 +6,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import type { DbExecutor } from '@/shared/db/types';
 
 import { TakeoffError } from '../domain/errors';
-import { deleteAnalysis, findAnalysis } from '../data/takeoff.repository';
+import { deleteAnalysis } from '../data/takeoff.repository';
 import { assertAnalysisAccess, internalActorFrom } from './access';
 import { purgeEphemeralAnalysisBytes, TAKEOFF_PERSISTENCE } from './takeoff-persistence';
 

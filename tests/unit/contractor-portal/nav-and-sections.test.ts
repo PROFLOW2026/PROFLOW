@@ -80,7 +80,7 @@ describe('portal navigation filtering', () => {
   it('filters project nav strictly by capability', () => {
     const operational = buildPortalProjectNav('p1', new Set([CAP.PROJECT_VIEW, CAP.TASK_REPORT, CAP.PLAN_VIEW]), ALL_IMPLEMENTED);
     const keys = operational.map((item) => item.key);
-    expect(keys).toEqual(['project.home', 'project.tasks', 'project.plans']);
+    expect(keys).toEqual(['project.home', 'project.tasks', 'project.goals', 'project.plans']);
     expect(operational.find((item) => item.key === 'project.tasks')!.href).toBe('/contractor/projects/p1/tasks');
   });
 
@@ -96,7 +96,7 @@ describe('portal navigation filtering', () => {
     const financial = buildPortalProjectNav('p1', new Set([CAP.PROJECT_VIEW, CAP.CLAIM_VIEW, CAP.PAYMENT_VIEW]), ALL_IMPLEMENTED).map(
       (item) => item.key,
     );
-    expect(financial).toEqual(['project.home', 'project.claims', 'project.payments']);
+    expect(financial).toEqual(['project.home', 'project.goals', 'project.claims', 'project.payments']);
   });
 
   it('never includes detail or auth routes', () => {

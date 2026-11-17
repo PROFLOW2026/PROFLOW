@@ -21,6 +21,8 @@ const MODULE_PATH_NAMESPACE_ALLOW: ReadonlyArray<{
   readonly namespaces: readonly MessageNamespace[];
 }> = [
   { pathPrefix: 'src/modules/marketing/', namespaces: ['marketing'] },
+  // Shipped to the browser by the project-surface layouts (PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES).
+  { pathPrefix: 'src/modules/electrical-takeoff/ui/', namespaces: ['takeoff'] },
   { pathPrefix: 'src/modules/ap/', namespaces: ['ap'] },
   { pathPrefix: 'src/modules/banking/', namespaces: ['banking'] },
   { pathPrefix: 'src/modules/field/', namespaces: ['fieldOps'] },
@@ -54,6 +56,11 @@ const MODULE_PATH_NAMESPACE_ALLOW: ReadonlyArray<{
   { pathPrefix: 'src/modules/project-team/', namespaces: ['projectTeam'] },
   { pathPrefix: 'src/app/[locale]/(app)/projects/[projectId]/risks/', namespaces: ['projectRisks'] },
   { pathPrefix: 'src/app/[locale]/(app)/projects/[projectId]/goals/', namespaces: ['projectGoals'] },
+  { pathPrefix: 'src/app/[locale]/employee/(shell)/projects/[projectId]/goals/', namespaces: ['projectGoals'] },
+  {
+    pathPrefix: 'src/app/[locale]/contractor/(portal)/projects/[projectId]/goals/',
+    namespaces: ['projectGoals'],
+  },
   { pathPrefix: 'src/modules/rfi/', namespaces: ['rfi'] },
   { pathPrefix: 'src/modules/safety/contractor/', namespaces: ['contractorCompliance'] },
   { pathPrefix: 'src/modules/subcontract-claims/', namespaces: ['subcontractClaims'] },
