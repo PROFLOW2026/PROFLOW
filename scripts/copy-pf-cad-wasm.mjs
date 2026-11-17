@@ -9,6 +9,7 @@ const engineRoot =
 const sourceDir = path.join(engineRoot, 'apps', 'viewer', 'public', 'wasm');
 const targetDir = path.join(root, 'public', 'pf-cad', 'v2', 'wasm');
 const legacyDir = path.join(root, 'public', 'pf-cad', 'wasm');
+const productionDir = path.join(root, 'public', 'pf-cad', 'v3', 'wasm');
 const manifestPath = path.join(targetDir, 'version.json');
 
 const files = [
@@ -87,8 +88,10 @@ fs.writeFileSync(
 
 console.log(`[copy-pf-cad-wasm] manifest -> ${path.relative(root, manifestPath)}`);
 
-fs.mkdirSync(legacyDir, { recursive: true });
-for (const name of [...files, 'version.json']) {
-  fs.copyFileSync(path.join(targetDir, name), path.join(legacyDir, name));
+for (const mirror of [legacyDir, productionDir]) {
+  fs.mkdirSync(mirror, { recursive: true });
+  for (const name of [...files, 'version.json']) {
+    fs.copyFileSync(path.join(targetDir, name), path.join(mirror, name));
+  }
+  console.log(`[copy-pf-cad-wasm] mirrored -> ${path.relative(root, mirror)}`);
 }
-console.log(`[copy-pf-cad-wasm] mirrored -> ${path.relative(root, legacyDir)}`);

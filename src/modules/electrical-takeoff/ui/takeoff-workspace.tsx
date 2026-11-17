@@ -600,7 +600,7 @@ export function TakeoffWorkspace({
         <section className={`relative min-w-0 w-full flex-col overflow-hidden ${planExpanded ? 'fixed inset-2 z-50 flex rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2 shadow-lg' : 'flex max-lg:h-[min(70dvh,32rem)] max-lg:shrink-0 lg:h-auto lg:min-h-0 lg:shrink lg:self-stretch lg:flex-1'} ${focusMode === 'table' && !planExpanded ? 'lg:hidden' : ''}`}>
           {showDwgPlan && sourceApiBase && sheet && state.view ? (
             <TakeoffDwgPlan
-              key={sheetLiveKey}
+              key={sheet.fileId}
               url={`${sourceApiBase}/${sheet.fileId}`}
               fileName={state.view.files.find((file) => file.id === sheet.fileId)?.name ?? 'drawing.dwg'}
               sheetKey={sheet.sheetKey}

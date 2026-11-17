@@ -68,6 +68,27 @@ export type CadText = {
   gpu?: boolean;
 };
 
+/** One paper-space viewport. Coordinates are drawing units, twist is radians. */
+export type CadSheetViewport = {
+  id: number;
+  cx: number;
+  cy: number;
+  w: number;
+  h: number;
+  vcx: number;
+  vcy: number;
+  vh: number;
+  twist: number;
+  on: boolean;
+};
+
+/** A named layout and the viewports that look into model space. */
+export type CadLayoutSheet = {
+  name: string;
+  space: string;
+  viewports: CadSheetViewport[];
+};
+
 export type ScenePayload = {
   schemaVersion?: number;
   space: string;
@@ -88,6 +109,8 @@ export type ScenePayload = {
   images?: CadRasterImage[];
   layers: CadLayer[];
   spaces: string[];
+  /** Paper layouts. Absent on an engine build that does not export them. */
+  sheets?: CadLayoutSheet[];
   report: CompatReport;
   error?: string;
 };

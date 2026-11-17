@@ -105,9 +105,17 @@
     "aria": "عارض المخطط",
     "noPreview": "لا معاينة متاحة",
     "dwgLoading": "جارٍ تحميل المخطط",
+    "dwgDownloading": "جارٍ تنزيل المخطط",
+    "dwgParsing": "جارٍ قراءة المخطط",
+    "dwgPreparing": "جارٍ تجهيز العرض",
+    "dwgFailed": "تعذر تحميل المخطط",
+    "dwgRetry": "حاول مرة أخرى",
+    "sheetPicker": "ورقة",
+    "windowPicker": "نافذة",
+    "windowOption": "نافذة {n}",
     "showBackground": "إظهار الخلفية المعمارية",
     "hideBackground": "إخفاء الخلفية المعمارية",
-    "backgroundMissing": "الخلفية المعمارية غير متاحة",
+    "backgroundMissing": "ملف الخلفية المعمارية غير موجود في التخزين المتصل",
     "symbolUnlocated": "تعذر تركيز هذا الرمز بدقة"
   },
   "tools": {

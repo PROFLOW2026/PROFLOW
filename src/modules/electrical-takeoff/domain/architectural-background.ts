@@ -48,8 +48,7 @@ export function architecturalLayerIndexes(
   return layers
     .filter((layer) => {
       const head = layer.name.split('|')[0] ?? '';
-      if (stems.has(cadStem(head))) return true;
-      return layer.name.toLowerCase().includes('xref');
+      return stems.has(cadStem(head));
     })
     .map((layer) => layer.index);
 }

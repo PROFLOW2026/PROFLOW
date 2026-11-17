@@ -105,9 +105,17 @@
     "aria": "מציג תוכנית",
     "noPreview": "אין תצוגה מקדימה",
     "dwgLoading": "טוען את השרטוט",
+    "dwgDownloading": "מוריד שרטוט",
+    "dwgParsing": "מפענח",
+    "dwgPreparing": "מכין תצוגה",
+    "dwgFailed": "טעינת השרטוט נכשלה",
+    "dwgRetry": "נסו שוב",
+    "sheetPicker": "גיליון",
+    "windowPicker": "חלון",
+    "windowOption": "חלון {n}",
     "showBackground": "הצג רקע אדריכלי",
     "hideBackground": "הסתר רקע אדריכלי",
-    "backgroundMissing": "הרקע האדריכלי אינו זמין",
+    "backgroundMissing": "קובץ הרקע האדריכלי לא נמצא באחסון המחובר",
     "symbolUnlocated": "לא ניתן למקד את הסמל הזה במדויק"
   },
   "tools": {

@@ -105,9 +105,17 @@
     "aria": "Просмотр чертежа",
     "noPreview": "Превью недоступно",
     "dwgLoading": "Загрузка чертежа",
+    "dwgDownloading": "Скачивание чертежа",
+    "dwgParsing": "Чтение чертежа",
+    "dwgPreparing": "Подготовка вида",
+    "dwgFailed": "Не удалось загрузить чертёж",
+    "dwgRetry": "Повторить",
+    "sheetPicker": "Лист",
+    "windowPicker": "Окно",
+    "windowOption": "Окно {n}",
     "showBackground": "Показать архитектурный фон",
     "hideBackground": "Скрыть архитектурный фон",
-    "backgroundMissing": "Архитектурный фон недоступен",
+    "backgroundMissing": "Архитектурный чертёж не найден в подключённом хранилище",
     "symbolUnlocated": "Не удалось точно сфокусировать этот символ"
   },
   "tools": {

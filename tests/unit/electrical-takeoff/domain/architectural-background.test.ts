@@ -29,7 +29,7 @@ describe('architectural background', () => {
       ],
       ['1545-Xref-all-02'],
     );
-    expect(indexes).toEqual([2, 3, 4, 5]);
+    expect(indexes).toEqual([2, 3]);
   });
 
   it('registers the relative path stored in 1545-all-01', () => {

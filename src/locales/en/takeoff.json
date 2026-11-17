@@ -105,9 +105,17 @@
     "aria": "Plan viewer",
     "noPreview": "No preview available",
     "dwgLoading": "Loading the drawing",
+    "dwgDownloading": "Downloading the drawing",
+    "dwgParsing": "Reading the drawing",
+    "dwgPreparing": "Preparing the view",
+    "dwgFailed": "The drawing could not be loaded",
+    "dwgRetry": "Try again",
+    "sheetPicker": "Sheet",
+    "windowPicker": "Window",
+    "windowOption": "Window {n}",
     "showBackground": "Show architectural background",
     "hideBackground": "Hide architectural background",
-    "backgroundMissing": "The architectural background is not available",
+    "backgroundMissing": "The architectural drawing was not found in the connected storage",
     "symbolUnlocated": "This symbol could not be focused precisely"
   },
   "tools": {
