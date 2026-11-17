@@ -4,13 +4,19 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { CadDwgViewerToolbar } from './cad-dwg-viewer-toolbar';
+import { useCadTools } from '../use-cad-tools';
 import { cadViewportDevicePixelRatio } from './cad-viewport-dpr';
 import type { ProviderFileItem } from '@/modules/external-storage/domain/types';
 import type { StorageBrowserScope } from '@/modules/external-storage/client/storage-file-urls';
 import { StorageLoadingOverlay } from '../../storage-loading-overlay';
+import { useCadLoadNotice } from '../use-cad-load-notice';
+import { PF_CAD_TREE_ID } from './pf-cad-config';
+import {
+  buildDisplaySheets,
+  projectSegments,
+  visibleViewports,
+} from '@/modules/electrical-takeoff/domain/layout-display';
 import { CadPreviewChrome } from '../cad-preview-chrome';
 import { fetchStoragePreviewBytes } from '../fetch-storage-preview-bytes';
 import {
@@ -200,7 +206,9 @@ function PfDwgViewerInner({
   const textCanvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<CadRendererHandle | null>(null);
   const drawingRef = useRef<DrawingPayload | null>(null);
+  const spaceCacheRef = useRef(new Map<string, DrawingPayload>());
   const clientRef = useRef<CadEngineClient | null>(null);
+  const downloadAbortRef = useRef<AbortController | null>(null);
   const cachedDepsRef = useRef<XrefDepBytes[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -210,6 +218,7 @@ function PfDwgViewerInner({
   );
   const loadTimingsRef = useRef<CadLoadTimings | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const loadWait = useCadLoadNotice(loading, loadingProgress, Boolean(error));
   const [webglError, setWebglError] = useState<string | null>(null);
   const [uiLayers, setUiLayers] = useState<UiLayer[]>([]);
   const [compat, setCompat] = useState<ScenePayload['report'] | null>(null);
@@ -482,6 +491,10 @@ function PfDwgViewerInner({
       panAndZoomAt: (dx, dy, sx, sy, factor) =>
         rendererRef.current?.panAndZoomAt(dx, dy, sx, sy, factor),
       onPinchGesture: handlePinchGesture,
+      onDoubleClick: () => {
+        rendererRef.current?.fit();
+        drawTextsRef.current();
+      },
     });
 
     return () => {
@@ -512,6 +525,8 @@ function PfDwgViewerInner({
     loadContextRef.current = null;
     cachedDepsRef.current = [];
 
+    const abort = new AbortController();
+    downloadAbortRef.current = abort;
     const loadStarted = performance.now();
     let progressRaf = 0;
     let pendingProgress: ParseProgress | null = null;
@@ -548,7 +563,7 @@ function PfDwgViewerInner({
         const tHost0 = performance.now();
         setLoadingLabel(downloadLoadingLabel(t));
         setLoadingProgress(0.04);
-        const hostBytes = new Uint8Array(await fetchStoragePreviewBytes(url));
+        const hostBytes = new Uint8Array(await fetchStoragePreviewBytes(url, abort.signal));
         const downloadHostMs = performance.now() - tHost0;
         if (cancelled || applyGen !== sceneApplyGenRef.current) return;
         loadContextRef.current = { hostBytes, fileIndex };
@@ -589,6 +604,7 @@ function PfDwgViewerInner({
         const payload: DrawingPayload = { scene, segments: p8.segments, triangles };
         if (cancelled || applyGen !== sceneApplyGenRef.current) return;
         drawingRef.current = payload;
+        spaceCacheRef.current.set(`${scene.space ?? ''}:${plotViewRef.current ? 'plot' : 'normal'}`, payload);
         setSpaces(scene.spaces ?? []);
         setActiveSpace(scene.space ?? '');
         setUiLayers(cadLayersToUi(scene.layers));
@@ -633,6 +649,7 @@ function PfDwgViewerInner({
         setLoading(false);
         scheduleIdleDraw(() => drawTextsRef.current());
       } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') return;
         if (cancelled) return;
         const message = e instanceof Error ? e.message : String(e);
         setError(
@@ -648,6 +665,7 @@ function PfDwgViewerInner({
 
     return () => {
       cancelled = true;
+      abort.abort();
       cancelAnimationFrame(progressRaf);
       client.dispose();
       clientRef.current = null;
@@ -674,8 +692,57 @@ function PfDwgViewerInner({
       const ctx = loadContextRef.current;
       const client = clientRef.current;
       if (!ctx || !client) return;
-      const applyGen = ++sceneApplyGenRef.current;
       const plotOn = plotViewRef.current;
+      const cached = spaceCacheRef.current.get(`${space}:${plotOn ? 'plot' : 'normal'}`);
+      if (cached) {
+        drawingRef.current = cached;
+        setActiveSpace(cached.scene.space ?? space);
+        setUiLayers(cadLayersToUi(cached.scene.layers));
+        const fitExtent = cached.scene.contentExtent ?? cached.scene.robustExtent;
+        void rendererRef.current?.setDrawingAsync(
+          cached.segments,
+          fitExtent,
+          cadLayersToUi(cached.scene.layers),
+          cached.scene.fullExtent,
+          cached.triangles,
+          cached.scene.segmentStride,
+        );
+        return;
+      }
+      const model = [...spaceCacheRef.current.values()].find((item) =>
+        (item.scene.space ?? '').toLowerCase().includes('model'),
+      );
+      const layout = model?.scene.sheets?.find((item) => item.space === space);
+      if (model && layout && !plotOn) {
+        const plan = buildDisplaySheets({
+          spaces: model.scene.spaces ?? [],
+          layouts: model.scene.sheets ?? [],
+          marks: [],
+          preferredName: layout.name,
+        });
+        const display = plan.sheets.find((item) => item.kind === 'layout' && item.space === space);
+        if (display) {
+          const drawing = projectSegments({
+            segments: model.segments,
+            triangles: model.triangles,
+            stride: model.scene.segmentStride || 8,
+            triangleStride: model.scene.triangleStride || 10,
+            origin: model.scene.origin,
+            viewports: visibleViewports(display, []),
+          });
+          setActiveSpace(space);
+          void rendererRef.current?.setDrawingAsync(
+            drawing.segments,
+            drawing.extent,
+            cadLayersToUi(model.scene.layers),
+            drawing.extent,
+            drawing.triangles,
+            model.scene.segmentStride,
+          );
+          return;
+        }
+      }
+      const applyGen = ++sceneApplyGenRef.current;
       setLoading(true);
       setLoadingLabel(safePreviewLabel(t, 'cadLoadingParse'));
       void (async () => {
@@ -717,6 +784,7 @@ function PfDwgViewerInner({
           const payload: DrawingPayload = { scene, segments: p8.segments, triangles };
           if (applyGen !== sceneApplyGenRef.current) return;
           drawingRef.current = payload;
+          spaceCacheRef.current.set(`${scene.space ?? space}:${plotOn ? 'plot' : 'normal'}`, payload);
           setActiveSpace(scene.space ?? space);
           setUiLayers(cadLayersToUi(scene.layers));
           setCompat(reportWithFonts);
@@ -817,58 +885,74 @@ function PfDwgViewerInner({
     [activeSpace, fileName, syncRasterScene, t],
   );
 
-  const toggleLayer = useCallback(
-    (layerIndex: number, visible: boolean) => {
-      rendererRef.current?.setLayerVisibility(String(layerIndex), visible);
-      setUiLayers((rows) =>
-        rows.map((row) => (row.index === layerIndex ? { ...row, visible } : row)),
-      );
-      if (drawingRef.current) {
-        drawingRef.current = {
-          ...drawingRef.current,
-          scene: {
-            ...drawingRef.current.scene,
-            layers: applyUiLayerVisibility(
-              drawingRef.current.scene.layers,
-              layerIndex,
-              visible,
-            ),
-          },
-        };
-      }
-      drawTexts();
-    },
-    [drawTexts],
-  );
+  const publishLayers = useCallback((rows: readonly { index: number; visible: boolean }[]) => {
+    const visible = new Map(rows.map((row) => [row.index, row.visible]));
+    const next = uiLayers.map((layer) => {
+      const value = visible.get(layer.index);
+      return value === undefined ? layer : { ...layer, visible: value };
+    });
+    setUiLayers(next);
+    rendererRef.current?.applyLayerVisibility(next);
+    if (drawingRef.current) {
+      let layers = drawingRef.current.scene.layers;
+      for (const layer of next) layers = applyUiLayerVisibility(layers, layer.index, layer.visible);
+      drawingRef.current = {
+        ...drawingRef.current,
+        scene: { ...drawingRef.current.scene, layers },
+      };
+    }
+    drawTexts();
+  }, [drawTexts, uiLayers]);
 
   const dwgBanners = useMemo(
     () => (compat ? buildCadDwgBanners(compat, activeSpace) : []),
     [activeSpace, compat],
   );
 
-  const layersPanel =
-    uiLayers.length > 0 ? (
-      <ul className="space-y-2 text-sm">
-        {uiLayers.map((layer) => (
-          <li key={layer.id} className="flex items-center gap-2">
-            <Checkbox
-              id={`pf-layer-${layer.id}`}
-              checked={layer.visible}
-              disabled={layer.frozen}
-              onCheckedChange={(checked) => toggleLayer(layer.index, checked === true)}
-            />
-            <Label htmlFor={`pf-layer-${layer.id}`} className="truncate font-normal">
-              {layer.name}
-              {layer.frozen ? ` (${t('cadLayerFrozen')})` : ''}
-            </Label>
-          </li>
-        ))}
-      </ul>
-    ) : null;
+  const sceneNow = drawingRef.current?.scene;
+  const tools = useCadTools({
+    layers: uiLayers,
+    xrefNames: [...Object.keys(compat?.xrefs ?? {}), ...Object.values(compat?.xrefs ?? {})],
+    texts: (sceneNow?.texts ?? []).map((row) => ({ text: row.t, x: row.x, y: row.y, layer: row.layer })),
+    sheets: spaces.map((space) => ({ id: space, label: space })),
+    blocks: [...Object.keys(compat?.xrefs ?? {}), ...Object.keys(compat?.missingBlocks ?? {})],
+    activeSheet: activeSpace,
+    tintSupported: true,
+    automationSupported: true,
+    documentId: fileName,
+    onLayers: publishLayers,
+    onArchitecture: (mode, strength, indexes) => {
+      rendererRef.current?.getRenderer().setArchitectureDisplay(new Set(indexes), { mode, strength });
+    },
+    onFocusWorld: (x, y) => {
+      const renderer = rendererRef.current?.getRenderer();
+      if (!renderer) return;
+      const view = renderer.getView();
+      renderer.setView({ ...view, panX: x, panY: y, zoom: Math.max(view.zoom, 8) });
+      renderer.draw();
+      drawTexts();
+    },
+    onSelectSheet: (id) => {
+      void handleSpaceChange(id);
+    },
+    readScene: () => {
+      const canvas = glCanvasRef.current;
+      const renderer = rendererRef.current?.getRenderer();
+      const drawing = drawingRef.current;
+      if (!canvas || !renderer || !drawing) return null;
+      return {
+        canvas,
+        view: renderer.getView(),
+        segments: drawing.segments,
+        stride: drawing.scene.segmentStride || 8,
+      };
+    },
+  });
+  const layersPanel = uiLayers.length > 0 ? tools.panel : null;
 
   if (error || webglError) {
     return (
-      <div data-pf-style="classic" className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-4">
+      <div data-pf-style="classic" data-cad-tree={PF_CAD_TREE_ID} className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-4">
         <Alert tone="danger">{error ?? webglError}</Alert>
         <div className="flex flex-wrap justify-center gap-2">
           <Button type="button" variant="secondary" onClick={onRetry}>
@@ -888,10 +972,24 @@ function PfDwgViewerInner({
     <div
       ref={hostRef}
       data-pf-style="classic"
+      data-cad-tree={PF_CAD_TREE_ID}
       className={`relative flex min-h-0 flex-1 flex-col ${plotView ? 'bg-(--pf-lit-white)' : 'bg-[#0a0e14]'}`}
     >
       {loading ? (
-        <StorageLoadingOverlay label={loadingLabel} progress={loadingProgress} blocking />
+        <StorageLoadingOverlay
+          label={loadingLabel}
+          detail={loadWait === 'long' ? t('cadLoadDelay') : loadWait === 'stuck' ? t('cadLoadStuck') : null}
+          progress={loadingProgress > 0 ? loadingProgress : undefined}
+          blocking
+          cancelLabel={t('cadLoadCancel')}
+          onCancel={() => {
+            downloadAbortRef.current?.abort();
+            clientRef.current?.dispose();
+            sceneApplyGenRef.current += 1;
+            setLoading(false);
+            setError(t('cadLoadCancel'));
+          }}
+        />
       ) : null}
       <CadPreviewChrome
         hostRef={hostRef}
@@ -923,6 +1021,7 @@ function PfDwgViewerInner({
             data-testid="pf-cad-text-canvas"
             aria-hidden
           />
+          {tools.overlay}
         </div>
       </CadPreviewChrome>
     </div>

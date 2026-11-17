@@ -7,6 +7,7 @@ import type { ProviderFileItem } from '@/modules/external-storage/domain/types';
 import type { StorageBrowserScope } from '@/modules/external-storage/client/storage-file-urls';
 import type { CadIndexedFile } from './pf-cad/xref-resolver';
 import { DEFAULT_CAD_VIEWER_VERSION, type CadViewerVersion } from './cad-viewer-version-select';
+import { cadViewerTree } from './cad-viewer-engines';
 
 type ViewerProps = {
   url: string;
@@ -22,21 +23,11 @@ type ViewerProps = {
   onViewerVersionChange: (version: CadViewerVersion) => void;
 };
 
-/** Production builds only pull the default engine so webpack does not compile all three CAD trees. */
-const productionDefaultLoader = () => import('./pf-cad-v3/pf-dwg-viewer');
-
-const LOADERS: Record<CadViewerVersion, () => Promise<{ PfDwgViewer: ComponentType<ViewerProps> }>> =
-  process.env.NODE_ENV === 'production'
-    ? {
-        v1: productionDefaultLoader,
-        v2: productionDefaultLoader,
-        v3: productionDefaultLoader,
-      }
-    : {
-        v1: () => import('./pf-cad-v3/pf-dwg-viewer'),
-        v2: () => import('./pf-cad/pf-dwg-viewer'),
-        v3: () => import('./pf-cad-v1/pf-dwg-viewer'),
-      };
+const LOADERS: Record<CadViewerVersion, () => Promise<{ PfDwgViewer: ComponentType<ViewerProps> }>> = {
+  v1: () => import('./pf-cad-v3/pf-dwg-viewer'),
+  v2: () => import('./pf-cad/pf-dwg-viewer'),
+  v3: () => import('./pf-cad-v1/pf-dwg-viewer'),
+};
 
 export function PfDwgVersionedViewer(props: Omit<ViewerProps, 'viewerVersion' | 'onViewerVersionChange'>) {
   const [requested, setRequested] = useState<CadViewerVersion>(DEFAULT_CAD_VIEWER_VERSION);
@@ -67,7 +58,7 @@ export function PfDwgVersionedViewer(props: Omit<ViewerProps, 'viewerVersion' | 
   const Viewer = active?.Viewer;
 
   return (
-    <div data-pf-style="classic" className="flex min-h-0 flex-1 flex-col">
+    <div data-pf-style="classic" data-cad-tree={cadViewerTree(active?.version ?? requested)} className="flex min-h-0 flex-1 flex-col">
       {switchError ? (
         <Alert tone="danger" className="m-2">
           {switchError}

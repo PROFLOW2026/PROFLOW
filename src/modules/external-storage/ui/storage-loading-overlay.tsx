@@ -9,16 +9,22 @@ import { cn } from '@/shared/ui/cn';
  */
 export function StorageLoadingOverlay({
   label,
+  detail,
   className,
   blocking = false,
   progress,
+  onCancel,
+  cancelLabel,
 }: {
   label: string;
+  detail?: string | null;
   className?: string;
   /** When true, overlay captures pointer events (e.g. share prep). */
   blocking?: boolean;
   /** Optional 0–1 determinate progress (e.g. CAD load phases). */
   progress?: number;
+  onCancel?: () => void;
+  cancelLabel?: string;
 }) {
   const pct =
     progress !== undefined && Number.isFinite(progress)
@@ -55,6 +61,12 @@ export function StorageLoadingOverlay({
             </div>
             <p className="mt-1 text-center text-xs text-[var(--pf-text-secondary)]">{pct}%</p>
           </div>
+        ) : null}
+        {detail ? <p className="text-center text-xs text-[var(--pf-text-secondary)]">{detail}</p> : null}
+        {onCancel ? (
+          <button type="button" className="min-h-11 rounded border px-3 text-xs" onClick={onCancel}>
+            {cancelLabel}
+          </button>
         ) : null}
       </div>
     </div>

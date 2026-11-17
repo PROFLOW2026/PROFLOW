@@ -2,6 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Maximize2, Minus, Plus } from 'lucide-react';
+import { useCadLoadNotice } from '@/modules/external-storage/ui/cad/use-cad-load-notice';
+import { useCadTools } from '@/modules/external-storage/ui/cad/use-cad-tools';
+import { drawCadText } from '@/modules/external-storage/ui/cad/pf-cad-v3/draw-cad-text';
+import type { ArchitectureMode } from '@/modules/external-storage/ui/cad/architecture-display';
+import { PF_CAD_TREE_ID } from '@/modules/external-storage/ui/cad/pf-cad-v3/pf-cad-config';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { cadLayersToUi, type UiLayer } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-layers';
@@ -15,6 +20,7 @@ import type { XrefDepBytes } from '@/modules/external-storage/ui/cad/pf-cad-v3/x
 import { architecturalLayerIndexes, xrefDependencyPaths } from '../../domain/architectural-background';
 import { solveModelWindow } from '../../domain/cad-sheet-frame';
 import { symbolFrame, type CadNativeSample, type CadSheetMark } from '../../domain/cad-sheet-frame';
+import { chooseTakeoffSheetId, focusLevel, type FocusLevel } from '../../domain/focus-level';
 import {
   buildDisplaySheets,
   modelToPaper,
@@ -33,9 +39,7 @@ const EMPTY_INDEX = {
   byBasenameLower: new Map(),
 };
 
-const LOAD_LIMIT_MS = 90_000;
-
-type Phase = 'download' | 'parse' | 'prepare' | 'ready' | 'error';
+type Phase = 'download' | 'xref' | 'parse' | 'prepare' | 'ready' | 'error' | 'missing';
 
 type LoadedModel = {
   segments: Float32Array;
@@ -48,6 +52,7 @@ type LoadedModel = {
   spaces: string[];
   layouts: ScenePayload['sheets'];
   resolvedXrefs: number;
+  texts: ScenePayload['texts'];
 };
 
 type ShownMark = {
@@ -100,6 +105,20 @@ export function TakeoffDwgPlan({
   onPlanClick?: (x: number, y: number) => void;
 }) {
   const t = useTranslations('takeoff');
+  const [archMode, setArchMode] = useState<ArchitectureMode>('original');
+  const [archStrength, setArchStrength] = useState(0.7);
+  const [toolLayers, setToolLayers] = useState<UiLayer[]>([]);
+  const [toolTexts, setToolTexts] = useState<{ text: string; x: number; y: number; layer: number }[]>([]);
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const [fontNote, setFontNote] = useState(false);
+  const archModeRef = useRef(archMode);
+  const archStrengthRef = useRef(archStrength);
+  useEffect(() => {
+    archModeRef.current = archMode;
+    archStrengthRef.current = archStrength;
+  }, [archMode, archStrength]);
+  const textRef = useRef<HTMLCanvasElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const glRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
@@ -119,6 +138,11 @@ export function TakeoffDwgPlan({
   const backgroundRef = useRef<'hidden' | 'shown' | 'missing' | 'none'>('none');
   const [phase, setPhase] = useState<Phase>('download');
   const [percent, setPercent] = useState<number | null>(null);
+  const loadWait = useCadLoadNotice(
+    phase !== 'ready' && phase !== 'error' && phase !== 'missing',
+    `${phase}:${percent ?? ''}`,
+    phase === 'error' || phase === 'missing',
+  );
   const [attempt, setAttempt] = useState(0);
   const [sheetSource, setSheetSource] = useState<{
     spaces: string[];
@@ -130,7 +154,9 @@ export function TakeoffDwgPlan({
   const [windowsFor, setWindowsFor] = useState('');
   const [viewToken, setViewToken] = useState(0);
   const [background, setBackground] = useState<'hidden' | 'shown' | 'missing' | 'none'>('none');
-  const [focused, setFocused] = useState<{ id: string; located: boolean } | null>(null);
+  const [focused, setFocused] = useState<{ id: string; level: FocusLevel } | null>(null);
+  const previousViewRef = useRef<{ panX: number; panY: number; zoom: number } | null>(null);
+  const lastFocusRef = useRef<string | null>(null);
   const backgroundKey = backgroundRefs.map((ref) => `${ref.name}\t${ref.path ?? ''}`).join('\n');
   const preferred = `${sheetKey} ${sheetName}`;
 
@@ -154,7 +180,7 @@ export function TakeoffDwgPlan({
 
   const focusedMark = marks.find((item) => item.id === focusId) ?? null;
   const pickScope = `${sheetKey}:${focusId ?? ''}`;
-  const sheetId = chooseSheetId(plan, pickedFor === pickScope ? pickedSheetId : null, pickedSheetId, focusedMark);
+  const sheetId = chooseTakeoffSheetId(plan, pickedFor === pickScope ? pickedSheetId : null, pickedSheetId, focusedMark);
   const sheet = plan?.sheets.find((item) => item.id === sheetId) ?? plan?.sheets[0] ?? null;
   const activeIds = useMemo(() => {
     const stored = windowsFor === `${sheetKey}:${sheet?.id ?? ''}` ? pickedWindows : [];
@@ -199,12 +225,29 @@ export function TakeoffDwgPlan({
       ctx.stroke();
     }
     const active = frame.find((mark) => mark.id === focusIdRef.current);
-    if (!active?.located) return;
-    const [x0, y0] = worldToScreen(active.minX, active.maxY, view, viewport);
-    const [x1, y1] = worldToScreen(active.maxX, active.minY, view, viewport);
-    ctx.strokeStyle = '#ea580c';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0));
+    if (active && focusLevel(true, active.located) === 'symbol') {
+      const [x0, y0] = worldToScreen(active.minX, active.maxY, view, viewport);
+      const [x1, y1] = worldToScreen(active.maxX, active.minY, view, viewport);
+      ctx.strokeStyle = '#ea580c';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0));
+      return;
+    }
+    if (active && focusLevel(true, active.located) === 'point') {
+      const [sx, sy] = worldToScreen(active.x, active.y, view, viewport);
+      ctx.strokeStyle = '#ea580c';
+      ctx.fillStyle = '#ea580c';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 7, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(sx - 12, sy);
+      ctx.lineTo(sx + 12, sy);
+      ctx.moveTo(sx, sy - 12);
+      ctx.lineTo(sx, sy + 12);
+      ctx.stroke();
+    }
   };
   const drawRef = useRef(drawOverlay);
   useEffect(() => {
@@ -266,6 +309,10 @@ export function TakeoffDwgPlan({
         panBy: (dx, dy) => renderer.panBy(dx, dy),
         zoomAt: (sx, sy, factor) => renderer.zoomAt(sx, sy, factor),
         panAndZoomAt: (dx, dy, sx, sy, factor) => renderer.panAndZoomAt(dx, dy, sx, sy, factor),
+        onDoubleClick: () => {
+          renderer.focusExtent(extentRef.current, 28);
+          drawRef.current();
+        },
       },
       { wheelZoom: 'always' },
     );
@@ -282,10 +329,9 @@ export function TakeoffDwgPlan({
   }, [url]);
 
   useEffect(() => {
+    const abort = new AbortController();
+    abortRef.current = abort;
     let cancelled = false;
-    const timer = window.setTimeout(() => {
-      if (!cancelled) setPhase('error');
-    }, LOAD_LIMIT_MS);
     const client = new CadEngineClient();
     void (async () => {
       try {
@@ -293,7 +339,7 @@ export function TakeoffDwgPlan({
         setPercent(null);
         const hostBytes = await readBytes(url, (ratio) => {
           if (!cancelled) setPercent(Math.round(ratio * 100));
-        });
+        }, abort.signal);
         if (cancelled) return;
         const refs = backgroundKey
           .split('\n')
@@ -302,12 +348,14 @@ export function TakeoffDwgPlan({
             const [name, path] = row.split('\t');
             return { name: name ?? '', path: path || null };
           });
+        setPhase('xref');
+        setPercent(null);
         const deps: XrefDepBytes[] = [];
         let missing = refs.length > 0;
         for (const ref of refs) {
           try {
-            const bytes = await readBytes(`${url}/background?name=${encodeURIComponent(ref.name)}`);
-            for (const path of xrefDependencyPaths(ref.name, ref.path)) deps.push({ path, bytes });
+            const bytes = await readBytes(`${url}/background?name=${encodeURIComponent(ref.name)}`, undefined, abort.signal);
+            for (const xrefPath of xrefDependencyPaths(ref.name, ref.path)) deps.push({ path: xrefPath, bytes });
             missing = false;
           } catch {
             /* This xref is not in the connected folder. */
@@ -329,6 +377,9 @@ export function TakeoffDwgPlan({
         const layers = cadLayersToUi(scene.layers);
         const architectural = new Set(architecturalLayerIndexes(layers, refs.map((ref) => ref.name)));
         layersRef.current = layers;
+        setToolLayers(layers);
+        setToolTexts((scene.texts ?? []).map((row) => ({ text: row.t, x: row.x, y: row.y, layer: row.layer })));
+        setFontNote(Object.keys(scene.report?.fonts ?? {}).length > 0);
         architecturalRef.current = architectural;
         const resolved = scene.report?.resolvedXrefs ?? 0;
         const nextBackground = refs.length === 0 ? 'none' : missing || resolved === 0 || architectural.size === 0 ? 'missing' : 'shown';
@@ -347,6 +398,7 @@ export function TakeoffDwgPlan({
           spaces: scene.spaces ?? [],
           layouts,
           resolvedXrefs: resolved,
+          texts: scene.texts ?? [],
         };
         setSheetSource({
           spaces: scene.spaces ?? [],
@@ -354,18 +406,18 @@ export function TakeoffDwgPlan({
         });
         setPhase('ready');
       } catch (error) {
-        if (cancelled) return;
+        if (cancelled || (error instanceof DOMException && error.name === 'AbortError')) return;
         const message = error instanceof Error ? error.message : '';
-        if (message === 'source_unavailable') unavailableRef.current();
-        setPhase('error');
+        if (message === 'source_missing') setPhase('missing');
+        else if (message === 'source_unavailable') unavailableRef.current();
+        else setPhase('error');
       } finally {
-        window.clearTimeout(timer);
         client.dispose();
       }
     })();
     return () => {
       cancelled = true;
-      window.clearTimeout(timer);
+      abort.abort();
       client.dispose();
     };
   }, [attempt, backgroundKey, fileName, url]);
@@ -412,6 +464,7 @@ export function TakeoffDwgPlan({
       model.stride,
     ).then(() => {
       if (cancelled) return;
+      renderer.setArchitectureDisplay(architecturalRef.current, { mode: archModeRef.current, strength: archStrengthRef.current });
       renderer.focusExtent(drawing.extent, 28);
       fittedRef.current = true;
       setViewToken((value) => value + 1);
@@ -430,12 +483,16 @@ export function TakeoffDwgPlan({
     const frame = placeMarks(current, activeIds, marks, model, drawnRef.current, focusId, architecturalRef.current);
     shownRef.current = frame;
     const active = frame.find((item) => item.id === focusId) ?? null;
-    setFocused(active ? { id: active.id, located: active.located } : null);
-    if (!active) {
-      renderer.focusExtent(extentRef.current, 28);
-    } else if (!active.located) {
-      const span = Math.max(Math.abs(active.maxX - active.minX), 80);
-      renderer.focusExtent([active.x - span, active.y - span, active.x + span, active.y + span], 36);
+    const level = focusLevel(Boolean(active), Boolean(active?.located));
+    setFocused(focusId ? { id: focusId, level } : null);
+    if (focusId !== lastFocusRef.current) {
+      previousViewRef.current = renderer.getView();
+      lastFocusRef.current = focusId;
+    }
+    if (!active || level === 'region') {
+      renderer.focusExtent(extentRef.current, 48);
+    } else if (level === 'point') {
+      renderer.focusExtent([active.x - 80, active.y - 80, active.x + 80, active.y + 80], 36);
     } else {
       const span = Math.max(active.maxX - active.minX, active.maxY - active.minY, 1);
       const pad = Math.max(span * 5, 24);
@@ -446,128 +503,159 @@ export function TakeoffDwgPlan({
     drawRef.current();
   }, [activeIds, focusId, marks, phase, sheet, viewToken]);
 
+  useEffect(() => {
+    const renderer = rendererRef.current;
+    if (!renderer || phase !== 'ready') return;
+    renderer.setArchitectureDisplay(architecturalRef.current, {
+      mode: archMode,
+      strength: archStrength,
+    });
+  }, [archMode, archStrength, phase, viewToken]);
+
+  useEffect(() => {
+    const model = modelRef.current;
+    const renderer = rendererRef.current;
+    const canvas = textRef.current;
+    const gl = glRef.current;
+    if (!model || !renderer || !canvas || !gl || phase !== 'ready') return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    if (canvas.width !== gl.width || canvas.height !== gl.height) {
+      canvas.width = gl.width;
+      canvas.height = gl.height;
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const view = renderer.getView();
+    const viewport = { width: canvas.width, height: canvas.height };
+    for (const text of model.texts) {
+      drawCadText(
+        {
+          ctx,
+          view,
+          viewport,
+          origin: model.origin,
+          fontFamily: '"Noto Sans Hebrew", Arial, sans-serif',
+          plotView: false,
+        },
+        text,
+        view.zoom,
+      );
+    }
+  }, [phase, viewToken, sheet]);
+
+  const tools = useCadTools({
+    layers: toolLayers,
+    xrefNames: backgroundRefs.map((ref) => ref.name),
+    texts: toolTexts,
+    sheets: (plan?.sheets ?? []).map((item) => ({ id: item.id, label: item.label })),
+    blocks: backgroundRefs.map((ref) => ref.name),
+    activeSheet: sheet?.id ?? '',
+    tintSupported: true,
+    automationSupported: true,
+    documentId: sheetKey,
+    onLayers: (rows) => {
+      const visible = new Map(rows.map((row) => [row.index, row.visible]));
+      const next = toolLayers.map((layer) => {
+        const value = visible.get(layer.index);
+        return value === undefined ? layer : { ...layer, visible: value };
+      });
+      layersRef.current = next;
+      setToolLayers(next);
+      rendererRef.current?.applyLayerVisibility(next);
+    },
+    onArchitecture: (mode, strength) => {
+      setArchMode(mode);
+      setArchStrength(strength);
+      backgroundRef.current = mode === 'hidden' ? 'hidden' : background === 'none' ? 'none' : 'shown';
+      if (background === 'shown' || background === 'hidden') setBackground(mode === 'hidden' ? 'hidden' : 'shown');
+    },
+    onFocusWorld: (x, y) => {
+      rendererRef.current?.focusExtent([x - 80, y - 80, x + 80, y + 80], 36);
+      drawRef.current();
+    },
+    onSelectSheet: (id) => {
+      setPickedFor(pickScope);
+      setPickedSheetId(id);
+      setWindowsFor(`${sheetKey}:${id}`);
+      setPickedWindows([]);
+    },
+    readScene: () => {
+      const canvas = glRef.current;
+      const renderer = rendererRef.current;
+      const model = modelRef.current;
+      if (!canvas || !renderer || !model) return null;
+      return {
+        canvas,
+        view: renderer.getView(),
+        segments: drawnRef.current,
+        stride: model.stride,
+        marks: shownRef.current.map((mark) => ({ id: mark.id, x: mark.x, y: mark.y })),
+      };
+    },
+  });
   const stacks = sheet?.stacks.filter((stack) => stack.length > 1) ?? [];
   const phaseLabel = phase === 'download'
     ? t('viewer.dwgDownloading')
-    : phase === 'parse'
-      ? t('viewer.dwgParsing')
-      : phase === 'prepare'
-        ? t('viewer.dwgPreparing')
-        : phase === 'error'
-          ? t('viewer.dwgFailed')
-          : null;
+    : phase === 'xref'
+      ? t('viewer.dwgXref')
+      : phase === 'parse'
+        ? t('viewer.dwgParsing')
+        : phase === 'prepare'
+          ? t('viewer.dwgPreparing')
+          : phase === 'missing'
+            ? t('viewer.dwgMissing')
+            : phase === 'error'
+              ? t('viewer.dwgFailed')
+              : null;
+  const waitLabel = loadWait === 'long'
+    ? t('viewer.dwgDelay')
+    : loadWait === 'stuck'
+      ? t('viewer.dwgStuck')
+      : null;
 
   return (
     <div
       ref={hostRef}
-      className="relative h-full min-h-0 w-full max-w-full overflow-hidden bg-[#1e2124] lg:absolute lg:inset-0"
+      className="flex h-full min-h-0 w-full max-w-full flex-col overflow-hidden overflow-x-hidden bg-[#1e2124] lg:absolute lg:inset-0"
       data-testid="takeoff-dwg-plan"
       data-cad-space={sheet?.space ?? ''}
       data-cad-sheets={plan?.sheets.length ?? 0}
       data-load-phase={phase}
       data-focus-id={focused?.id ?? ''}
-      data-focus-located={focused ? String(focused.located) : ''}
+      data-cad-tree={PF_CAD_TREE_ID}
+      data-focus-level={focused?.level ?? ''}
     >
+      <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
       <canvas ref={glRef} className="absolute inset-0 size-full touch-none" aria-label={t('viewer.aria')} />
+      <canvas ref={textRef} className="pointer-events-none absolute inset-0 size-full" data-testid="takeoff-text-canvas" />
       <canvas ref={overlayRef} className="pointer-events-none absolute inset-0 size-full" />
+      {tools.overlay}
       {phaseLabel ? (
         <div className="absolute inset-x-2 top-2 z-10 flex flex-wrap items-center justify-center gap-2 text-center text-xs text-white/90">
           <p data-testid="takeoff-load-phase">
             {phaseLabel}
             {phase === 'download' && percent !== null ? ` ${percent}%` : ''}
+            {waitLabel ? ` — ${waitLabel}` : ''}
           </p>
-          {phase === 'error' ? (
+          {phase === 'download' || phase === 'xref' || phase === 'parse' ? (
+            <Button type="button" variant="secondary" className="min-h-11" onClick={() => { abortRef.current?.abort(); setPhase('error'); }}>
+              {t('viewer.dwgCancel')}
+            </Button>
+          ) : null}
+          {phase === 'error' || phase === 'missing' ? (
             <Button type="button" variant="secondary" className="min-h-11" onClick={() => setAttempt((value) => value + 1)}>
               {t('viewer.dwgRetry')}
             </Button>
           ) : null}
         </div>
       ) : null}
-      {background === 'missing' && phase === 'ready' ? (
-        <p className="absolute inset-x-2 top-14 z-10 text-center text-xs text-white/90" data-testid="takeoff-background-missing">
-          {t('viewer.backgroundMissing')}
-        </p>
-      ) : null}
-      {phase === 'ready' && focused && !focused.located ? (
-        <p className="absolute inset-x-2 bottom-16 z-10 text-center text-xs text-white/90" data-testid="takeoff-symbol-unlocated">
-          {t('viewer.symbolUnlocated')}
-        </p>
-      ) : null}
-      {phase === 'ready' && plan && plan.sheets.length > 1 ? (
-        <label className="absolute start-2 top-2 z-10 flex max-w-[calc(100%-1rem)] items-center gap-2 text-xs text-white">
-          <span>{t('viewer.sheetPicker')}</span>
-          <select
-            className="min-h-11 max-w-full rounded border border-white/20 bg-[#2a2e32] px-2"
-            data-testid="takeoff-sheet-select"
-            value={sheet?.id ?? 'model'}
-            onChange={(event) => {
-              setPickedFor(pickScope);
-              setPickedSheetId(event.target.value);
-              setWindowsFor(`${sheetKey}:${event.target.value}`);
-              setPickedWindows([]);
-            }}
-          >
-            {plan.sheets.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-      {phase === 'ready' && stacks.length > 0 ? (
-        <div className="absolute start-2 top-16 z-10 flex max-w-[calc(100%-1rem)] flex-wrap gap-2">
-          {stacks.map((stack) => (
-            <label key={stack.map((vp) => vp.id).join('-')} className="flex items-center gap-2 text-xs text-white">
-              <span>{t('viewer.windowPicker')}</span>
-              <select
-                className="min-h-11 max-w-full rounded border border-white/20 bg-[#2a2e32] px-2"
-                data-testid="takeoff-window-select"
-                value={String((stack.find((vp) => activeIds.includes(vp.id)) ?? stack[0])?.id ?? '')}
-                onChange={(event) => {
-                  const next = Number(event.target.value);
-                  const members = new Set(stack.map((vp) => vp.id));
-                  setWindowsFor(`${sheetKey}:${sheet?.id ?? ''}`);
-                  setPickedWindows((ids) => [...ids.filter((id) => !members.has(id)), next]);
-                }}
-              >
-                {stack.map((vp, index) => (
-                  <option key={vp.id} value={vp.id}>
-                    {t('viewer.windowOption', { n: index + 1 })}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ))}
+      </div>
+      {toolsOpen && phase === 'ready' ? (
+        <div className="max-h-[min(40dvh,240px)] w-full shrink-0 overflow-x-hidden overflow-y-auto border-t border-white/10 bg-[#2a2e32] p-2 text-white">
+          {tools.panel}
         </div>
       ) : null}
-      {background === 'shown' || background === 'hidden' ? (
-        <Button
-          type="button"
-          variant="secondary"
-          className="absolute end-2 top-2 z-10 min-h-11"
-          data-testid="takeoff-background-toggle"
-          aria-pressed={background === 'shown'}
-          onClick={() => {
-            const renderer = rendererRef.current;
-            const layers = layersRef.current;
-            if (!renderer || layers.length === 0) return;
-            const next = background === 'shown' ? 'hidden' : 'shown';
-            renderer.applyLayerVisibility(
-              layers.map((layer) => ({
-                ...layer,
-                visible: architecturalRef.current.has(layer.index) ? next === 'shown' && layer.visible : layer.visible,
-              })),
-            );
-            backgroundRef.current = next;
-            setBackground(next);
-            drawRef.current();
-          }}
-        >
-          {background === 'shown' ? t('viewer.hideBackground') : t('viewer.showBackground')}
-        </Button>
-      ) : null}
-      <div className="absolute bottom-2 start-2 z-10 flex gap-1">
+      <div className="flex shrink-0 flex-wrap items-center gap-1 border-t border-white/10 p-1">
         <Button type="button" variant="secondary" className="min-h-11 min-w-11 px-0" aria-label={t('viewer.zoomIn')} onClick={() => rendererRef.current?.zoom(1.25)}>
           <Plus className="size-4" />
         </Button>
@@ -586,27 +674,96 @@ export function TakeoffDwgPlan({
         >
           <Maximize2 className="size-4" />
         </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          className="min-h-11 px-2"
+          data-testid="takeoff-focus-back"
+          onClick={() => {
+            const view = previousViewRef.current;
+            if (!view) return;
+            rendererRef.current?.setView(view);
+            drawRef.current();
+          }}
+        >
+          {t('viewer.focusBack')}
+        </Button>
+        {phase === 'ready' && plan && plan.sheets.length > 1 ? (
+          <label className="flex max-w-full items-center gap-2 text-xs text-white">
+            <span>{t('viewer.sheetPicker')}</span>
+            <select
+              className="min-h-11 max-w-full rounded border border-white/20 bg-[#2a2e32] px-2"
+              data-testid="takeoff-sheet-select"
+              value={sheet?.id ?? 'model'}
+              onChange={(event) => {
+                setPickedFor(pickScope);
+                setPickedSheetId(event.target.value);
+                setWindowsFor(`${sheetKey}:${event.target.value}`);
+                setPickedWindows([]);
+              }}
+            >
+              {plan.sheets.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        {phase === 'ready' && stacks.length > 0 ? stacks.map((stack) => (
+          <label key={stack.map((vp) => vp.id).join('-')} className="flex items-center gap-2 text-xs text-white">
+            <span>{t('viewer.windowPicker')}</span>
+            <select
+              className="min-h-11 max-w-full rounded border border-white/20 bg-[#2a2e32] px-2"
+              data-testid="takeoff-window-select"
+              value={String((stack.find((vp) => activeIds.includes(vp.id)) ?? stack[0])?.id ?? '')}
+              onChange={(event) => {
+                const next = Number(event.target.value);
+                const members = new Set(stack.map((vp) => vp.id));
+                setWindowsFor(`${sheetKey}:${sheet?.id ?? ''}`);
+                setPickedWindows((ids) => [...ids.filter((id) => !members.has(id)), next]);
+              }}
+            >
+              {stack.map((vp, index) => (
+                <option key={vp.id} value={vp.id}>
+                  {t('viewer.windowOption', { n: index + 1 })}
+                </option>
+              ))}
+            </select>
+          </label>
+        )) : null}
+        {background === 'shown' || background === 'hidden' ? (
+          <Button
+            type="button"
+            variant="secondary"
+            className="min-h-11"
+            data-testid="takeoff-background-toggle"
+            aria-pressed={background === 'shown'}
+            onClick={() => {
+              const renderer = rendererRef.current;
+              const current = layersRef.current;
+              if (!renderer || current.length === 0) return;
+              const next = background === 'shown' ? 'hidden' : 'shown';
+              setArchMode(next === 'hidden' ? 'hidden' : 'original');
+              backgroundRef.current = next;
+              setBackground(next);
+            }}
+          >
+            {background === 'shown' ? t('viewer.hideBackground') : t('viewer.showBackground')}
+          </Button>
+        ) : null}
+        {background === 'missing' && phase === 'ready' ? (
+          <span className="text-xs text-white/90" data-testid="takeoff-background-missing">{t('viewer.backgroundMissing')}</span>
+        ) : null}
+        <Button type="button" variant={toolsOpen ? 'primary' : 'secondary'} className="min-h-11 px-2" aria-expanded={toolsOpen} onClick={() => setToolsOpen((open) => !open)}>
+          {t('viewer.tools')}
+        </Button>
+        {focused?.level === 'point' ? <span className="text-xs text-white/90" data-testid="takeoff-focus-point">{t('viewer.focusPoint')}</span> : null}
+        {focused?.level === 'region' ? <span className="text-xs text-white/90" data-testid="takeoff-focus-region">{t('viewer.focusRegion')}</span> : null}
+        {fontNote ? <span className="text-xs text-white/80">{t('viewer.fontSubstituted')}</span> : null}
       </div>
     </div>
   );
-}
-
-function chooseSheetId(
-  plan: { sheets: readonly DisplaySheet[]; initialId: string } | null,
-  matchingPick: string | null,
-  lastPick: string | null,
-  mark: { nativeX: number; nativeY: number } | null,
-): string {
-  if (!plan) return 'model';
-  if (matchingPick && plan.sheets.some((item) => item.id === matchingPick)) return matchingPick;
-  if (lastPick === 'model') return 'model';
-  if (lastPick?.startsWith('layout:') && mark) {
-    const owner = plan.sheets.find(
-      (item) => item.kind === 'layout' && viewportForMark(item, mark.nativeX, mark.nativeY, []),
-    );
-    if (owner) return owner.id;
-  }
-  return plan.sheets.some((item) => item.id === plan.initialId) ? plan.initialId : 'model';
 }
 
 function placeMarks(
@@ -714,8 +871,13 @@ function screenToWorld(
   return [(sx - viewport.width * 0.5) / zoom + view.panX, -(sy - viewport.height * 0.5) / zoom + view.panY];
 }
 
-async function readBytes(url: string, onProgress?: (ratio: number) => void): Promise<Uint8Array> {
-  const response = await fetch(url, { credentials: 'same-origin' });
+async function readBytes(
+  url: string,
+  onProgress?: (ratio: number) => void,
+  signal?: AbortSignal,
+): Promise<Uint8Array> {
+  const response = await fetch(url, { credentials: 'same-origin', signal });
+  if (response.status === 404) throw new Error('source_missing');
   if (!response.ok) throw new Error('source_unavailable');
   if (!response.body) return new Uint8Array(await response.arrayBuffer());
   const total = Number(response.headers.get('content-length') || 0);

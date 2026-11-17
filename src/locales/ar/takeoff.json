@@ -116,7 +116,22 @@
     "showBackground": "إظهار الخلفية المعمارية",
     "hideBackground": "إخفاء الخلفية المعمارية",
     "backgroundMissing": "ملف الخلفية المعمارية غير موجود في التخزين المتصل",
-    "symbolUnlocated": "تعذر تركيز هذا الرمز بدقة"
+    "symbolUnlocated": "تعذر تركيز هذا الرمز بدقة",
+    "dwgXref": "تحميل المراجع الخارجية",
+    "dwgMissing": "الملف غير موجود",
+    "dwgDelay": "الخطوة ما زالت تعمل. النظام يعمل",
+    "dwgStuck": "لا يوجد تقدم يمكن قياسه في هذه الخطوة",
+    "dwgCancel": "إلغاء",
+    "focusPoint": "الموقع معروف. لم يتم التعرف على حدود الرمز",
+    "focusRegion": "تظهر منطقة تقديرية وليس موقعًا دقيقًا",
+    "focusBack": "العودة إلى العرض السابق",
+    "archOriginal": "أصلي",
+    "archGray": "رمادي",
+    "archMono": "أبيض وأسود",
+    "archHidden": "مخفي",
+    "archStrength": "شدة الخلفية",
+    "fontSubstituted": "تم استبدال خط ناقص للرسم",
+    "tools": "أدوات"
   },
   "tools": {
     "navigate": "تنقل",

@@ -4,7 +4,6 @@ import { Layers, Maximize, Minimize, Scan, ZoomIn, ZoomOut } from 'lucide-react'
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/shared/ui/cn';
 
 export function CadPreviewChrome({
   hostRef,
@@ -44,13 +43,13 @@ export function CadPreviewChrome({
   }, [hostRef]);
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col">
+    <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
       {disclaimer ? (
         <p className="shrink-0 border-b border-[var(--pf-border-default)] bg-[var(--pf-surface-muted)] px-3 py-2 text-xs text-[var(--pf-text-secondary)]">
           {disclaimer}
         </p>
       ) : null}
-      <div className="relative min-h-0 flex-1">{children}</div>
+      <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">{children}</div>
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-[var(--pf-border-default)] px-2 py-2">
         <div className="flex flex-wrap items-center gap-1">
           {onFitView ? (
@@ -96,12 +95,7 @@ export function CadPreviewChrome({
         </Button>
       </div>
       {layersPanel && layersOpen ? (
-        <div
-          className={cn(
-            'absolute z-20 max-h-[min(50vh,320px)] w-[min(92vw,280px)] overflow-auto rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-surface-elevated)] p-2 shadow-lg',
-            'bottom-14 end-2',
-          )}
-        >
+        <div className="max-h-[min(40dvh,280px)] w-full shrink-0 overflow-y-auto overflow-x-hidden border-t border-[var(--pf-border-default)] bg-[var(--pf-surface-elevated)] p-2">
           {layersPanel}
         </div>
       ) : null}

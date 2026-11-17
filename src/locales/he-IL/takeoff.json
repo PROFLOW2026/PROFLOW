@@ -116,7 +116,22 @@
     "showBackground": "הצג רקע אדריכלי",
     "hideBackground": "הסתר רקע אדריכלי",
     "backgroundMissing": "קובץ הרקע האדריכלי לא נמצא באחסון המחובר",
-    "symbolUnlocated": "לא ניתן למקד את הסמל הזה במדויק"
+    "symbolUnlocated": "לא ניתן למקד את הסמל הזה במדויק",
+    "dwgXref": "טוען הפניות חיצוניות",
+    "dwgMissing": "הקובץ לא נמצא",
+    "dwgDelay": "השלב עדיין רץ. המערכת עובדת",
+    "dwgStuck": "אין התקדמות מדידה בשלב הזה",
+    "dwgCancel": "ביטול",
+    "focusPoint": "המיקום ידוע. גבולות הסמל לא זוהו",
+    "focusRegion": "מוצג אזור משוער, לא מיקום מדויק",
+    "focusBack": "חזרה לתצוגה הקודמת",
+    "archOriginal": "מקורי",
+    "archGray": "גווני אפור",
+    "archMono": "שחור־לבן",
+    "archHidden": "מוסתר",
+    "archStrength": "עוצמת הרקע",
+    "fontSubstituted": "גופן חסר הוחלף לציור",
+    "tools": "כלים"
   },
   "tools": {
     "navigate": "ניווט",

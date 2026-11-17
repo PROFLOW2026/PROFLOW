@@ -6,6 +6,7 @@ import {
   type CadView,
 } from './renderer';
 import type { UiLayer } from './cad-layers';
+import type { ArchitectureStyle } from '../architecture-display';
 
 export type CadRendererHandle = {
   dispose: () => void;
@@ -21,6 +22,8 @@ export type CadRendererHandle = {
   ) => Promise<void>;
   setLayerVisibility: (layerId: string, visible: boolean) => void;
   applyLayerVisibility: (layers: readonly UiLayer[]) => void;
+  setArchitectureDisplay: (layers: ReadonlySet<number> | null, style: ArchitectureStyle) => void;
+  setView: (view: CadView) => void;
   /** Fit to main content extent (default on load). */
   fit: () => void;
   /** Fit entire drawing including distant geometry. */
@@ -123,6 +126,15 @@ export function createCadRenderer(options: CreateCadRendererOptions): CadRendere
       }
       syncLayerMask();
       renderer.draw();
+    },
+    setArchitectureDisplay: (layers, style) => {
+      renderer.setArchitectureDisplay(layers, style);
+      notifyViewChange('fit');
+    },
+    setView: (view) => {
+      renderer.setView(view);
+      renderer.draw();
+      notifyViewChange('fit');
     },
     fit: () => {
       if (extent) {

@@ -116,7 +116,22 @@
     "showBackground": "Show architectural background",
     "hideBackground": "Hide architectural background",
     "backgroundMissing": "The architectural drawing was not found in the connected storage",
-    "symbolUnlocated": "This symbol could not be focused precisely"
+    "symbolUnlocated": "This symbol could not be focused precisely",
+    "dwgXref": "Loading external references",
+    "dwgMissing": "The file was not found",
+    "dwgDelay": "This step is still running. The system is working",
+    "dwgStuck": "No measurable progress in this step",
+    "dwgCancel": "Cancel",
+    "focusPoint": "The location is known. The symbol outline was not identified",
+    "focusRegion": "Showing an estimated area, not an exact location",
+    "focusBack": "Back to the previous view",
+    "archOriginal": "Original",
+    "archGray": "Grayscale",
+    "archMono": "Black and white",
+    "archHidden": "Hidden",
+    "archStrength": "Background strength",
+    "fontSubstituted": "A missing font was substituted for drawing",
+    "tools": "Tools"
   },
   "tools": {
     "navigate": "Navigate",

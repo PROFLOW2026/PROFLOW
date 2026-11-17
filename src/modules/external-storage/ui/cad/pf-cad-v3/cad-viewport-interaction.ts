@@ -6,6 +6,7 @@ export type ViewportNavCallbacks = {
   panAndZoomAt?: (dxPx: number, dyPx: number, sx: number, sy: number, factor: number) => void;
   /** True while two-finger pinch is active (defer heavy overlay work). */
   onPinchGesture?: (active: boolean) => void;
+  onDoubleClick?: () => void;
 };
 
 export type ViewportNavOptions = {
@@ -119,7 +120,10 @@ export function attachCadViewportInteraction(
     callbacks.zoomAt(sx, sy, factor);
   };
 
+  const onDoubleClick = () => callbacks.onDoubleClick?.();
+
   canvas.addEventListener('pointerdown', onPointerDown);
+  canvas.addEventListener('dblclick', onDoubleClick);
   canvas.addEventListener('pointermove', onPointerMove);
   canvas.addEventListener('pointerup', endPointer);
   canvas.addEventListener('pointercancel', endPointer);
@@ -127,6 +131,7 @@ export function attachCadViewportInteraction(
 
   return () => {
     canvas.removeEventListener('pointerdown', onPointerDown);
+    canvas.removeEventListener('dblclick', onDoubleClick);
     canvas.removeEventListener('pointermove', onPointerMove);
     canvas.removeEventListener('pointerup', endPointer);
     canvas.removeEventListener('pointercancel', endPointer);

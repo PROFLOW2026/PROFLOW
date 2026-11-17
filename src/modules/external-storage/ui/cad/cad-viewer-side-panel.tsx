@@ -1,0 +1,327 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { architecturalLayerIndexes } from '@/modules/electrical-takeoff/domain/architectural-background';
+import type { ArchitectureMode } from './architecture-display';
+import { CadLayerPanel, type CadLayerRow, type CadPreset } from './cad-layer-panel';
+import {
+  cumulativeDistance,
+  drawingArea,
+  drawingDistance,
+  layersForGroup,
+  suggestLayerGroup,
+  type LayerGroup,
+} from './cad-layer-tools';
+import { readCadViewPreference, writeCadViewPreference } from './cad-view-prefs';
+
+export type CadHit = {
+  x: number;
+  y: number;
+  layerName: string | null;
+  text: string | null;
+  sheet: string;
+  markId: string | null;
+};
+
+export type CadToolsHandle = {
+  clickWorld: (hit: CadHit) => void;
+};
+
+export type CadTextHit = { text: string; x: number; y: number; layer: number };
+export type CadSheetHit = { id: string; label: string };
+
+type Capture = 'measure' | 'inspect' | 'hide' | null;
+type MeasureKind = 'distance' | 'chain' | 'area';
+
+function replaceVisibility(layers: readonly CadLayerRow[], indexes: ReadonlySet<number>, visible: boolean): CadLayerRow[] {
+  return layers.map((layer) => (indexes.has(layer.index) ? { ...layer, visible: layer.frozen ? layer.visible : visible } : layer));
+}
+
+export const CadViewerSidePanel = forwardRef<CadToolsHandle, {
+  layers: readonly CadLayerRow[];
+  xrefNames: readonly string[];
+  texts: readonly CadTextHit[];
+  sheets: readonly CadSheetHit[];
+  blocks: readonly string[];
+  activeSheet: string;
+  tintSupported: boolean;
+  automationSupported: boolean;
+  documentId: string;
+  onLayers: (layers: CadLayerRow[]) => void;
+  onArchitecture: (mode: ArchitectureMode, strength: number, indexes: number[]) => void;
+  onFocusWorld: (x: number, y: number) => void;
+  onSelectSheet: (id: string) => void;
+  onCapture: (capture: Capture) => void;
+}>(function CadViewerSidePanel({
+  layers,
+  xrefNames,
+  texts,
+  sheets,
+  blocks,
+  activeSheet,
+  tintSupported,
+  automationSupported,
+  documentId,
+  onLayers,
+  onArchitecture,
+  onFocusWorld,
+  onSelectSheet,
+  onCapture,
+}, ref) {
+  const t = useTranslations('externalStorage.preview');
+  const [query, setQuery] = useState('');
+  const [mode, setMode] = useState<ArchitectureMode>('original');
+  const [strength, setStrength] = useState(0.7);
+  const [pickToHide, setPickToHide] = useState(false);
+  const [measureOn, setMeasureOn] = useState(false);
+  const [inspectOn, setInspectOn] = useState(false);
+  const [measureKind, setMeasureKind] = useState<MeasureKind>('distance');
+  const [points, setPoints] = useState<{ x: number; y: number }[]>([]);
+  const [inspect, setInspect] = useState<CadHit | null>(null);
+  const initialRef = useRef<CadLayerRow[]>([]);
+  const appliedRef = useRef(false);
+
+  const architectural = useMemo(() => new Set(architecturalLayerIndexes(layers, xrefNames)), [layers, xrefNames]);
+
+  useEffect(() => {
+    if (initialRef.current.length === 0 && layers.length > 0) initialRef.current = layers.map((layer) => ({ ...layer }));
+  }, [layers]);
+
+  const publishMode = (nextMode: ArchitectureMode, nextStrength: number) => {
+    setMode(nextMode);
+    setStrength(nextStrength);
+    const indexes = [...architectural];
+    onArchitecture(nextMode, nextStrength, indexes);
+    if (!tintSupported && (nextMode === 'hidden' || nextMode === 'original')) {
+      const base = initialRef.current.length > 0 ? initialRef.current : layers;
+      onLayers(nextMode === 'hidden'
+        ? replaceVisibility(layers, architectural, false)
+        : layers.map((layer) => {
+          const saved = base.find((row) => row.index === layer.index);
+          return architectural.has(layer.index) && saved ? { ...layer, visible: saved.visible } : layer;
+        }));
+    }
+  };
+
+  useEffect(() => {
+    if (appliedRef.current || layers.length === 0 || !documentId || typeof localStorage === 'undefined') return;
+    appliedRef.current = true;
+    const saved = readCadViewPreference(localStorage, documentId);
+    if (!saved) return;
+    if (saved.architectureMode) publishMode(saved.architectureMode, saved.grayStrength ?? strength);
+    if (saved.hiddenLayers && saved.hiddenLayers.length > 0) {
+      const hidden = new Set(saved.hiddenLayers);
+      onLayers(layers.map((layer) => (hidden.has(layer.index) ? { ...layer, visible: false } : layer)));
+    }
+    if (saved.sheetId) onSelectSheet(saved.sheetId);
+    // The saved view is applied once, when the first layer list arrives.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layers, documentId]);
+
+  useEffect(() => {
+    if (!documentId || typeof localStorage === 'undefined' || !appliedRef.current) return;
+    writeCadViewPreference(localStorage, documentId, {
+      sheetId: activeSheet,
+      architectureMode: mode,
+      grayStrength: strength,
+      hiddenLayers: layers.filter((layer) => !layer.visible).map((layer) => layer.index),
+      preset: mode,
+    });
+  }, [activeSheet, documentId, layers, mode, strength]);
+
+  useImperativeHandle(ref, () => ({
+    clickWorld: (hit) => {
+      if (pickToHide && hit.layerName) {
+        onLayers(layers.map((layer) => (layer.name === hit.layerName ? { ...layer, visible: false } : layer)));
+        return;
+      }
+      if (measureOn) {
+        setPoints((current) => {
+          const next = [...current, { x: hit.x, y: hit.y }];
+          return measureKind === 'distance' ? next.slice(-2) : next;
+        });
+        return;
+      }
+      if (inspectOn) setInspect(hit);
+    },
+  }), [inspectOn, layers, measureKind, measureOn, onLayers, pickToHide]);
+
+  const setCapture = (next: Capture) => {
+    setPickToHide(next === 'hide');
+    setMeasureOn(next === 'measure');
+    setInspectOn(next === 'inspect');
+    onCapture(next);
+  };
+
+  const groupCounts = useMemo(() => {
+    const counts: Partial<Record<LayerGroup, number>> = {};
+    for (const layer of layers) {
+      const group = suggestLayerGroup(layer.name, architectural.has(layer.index));
+      if (group === 'unknown') continue;
+      counts[group] = (counts[group] ?? 0) + 1;
+    }
+    return counts;
+  }, [architectural, layers]);
+
+  const needle = query.trim().toLowerCase();
+  const textHits = needle ? texts.filter((row) => row.text.toLowerCase().includes(needle)).slice(0, 20) : [];
+  const sheetHits = needle ? sheets.filter((row) => row.label.toLowerCase().includes(needle) || row.id.toLowerCase().includes(needle)).slice(0, 12) : [];
+  const blockHits = needle ? blocks.filter((name) => name.toLowerCase().includes(needle)).slice(0, 12) : [];
+  const distance = points.length >= 2 ? drawingDistance(points[0]!.x, points[0]!.y, points[1]!.x, points[1]!.y) : 0;
+  const chain = cumulativeDistance(points);
+  const area = drawingArea(points);
+  const groupNames: Record<LayerGroup, string> = {
+    architecture: t('cadGroupArchitecture'),
+    electrical: t('cadGroupElectrical'),
+    lighting: t('cadGroupLighting'),
+    comms: t('cadGroupComms'),
+    dimensions: t('cadGroupDimensions'),
+    text: t('cadGroupText'),
+    furniture: t('cadGroupFurniture'),
+    axes: t('cadGroupAxes'),
+    unknown: '',
+  };
+
+  return (
+    <div className="flex flex-col gap-2" data-testid="cad-viewer-tools">
+      <input
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        placeholder={t('cadSearch')}
+        aria-label={t('cadSearch')}
+        className="min-h-11 rounded border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 text-xs"
+      />
+      {needle ? (
+        <ul className="max-h-32 space-y-1 overflow-auto text-xs">
+          {textHits.map((row, index) => (
+            <li key={`text-${index}`}>
+              <button type="button" className="min-h-11 w-full truncate rounded border px-2 text-start" onClick={() => onFocusWorld(row.x, row.y)}>
+                {row.text}
+              </button>
+            </li>
+          ))}
+          {sheetHits.map((row) => (
+            <li key={row.id}>
+              <button type="button" className="min-h-11 w-full truncate rounded border px-2 text-start" onClick={() => onSelectSheet(row.id)}>
+                {row.label}
+              </button>
+            </li>
+          ))}
+          {blockHits.map((name) => (
+            <li key={name}>
+              <button
+                type="button"
+                className="min-h-11 w-full truncate rounded border px-2 text-start"
+                onClick={() => {
+                  const layer = layers.find((row) => row.name.toLowerCase().includes(name.toLowerCase()));
+                  if (!layer) return;
+                  onLayers(layers.map((row) => ({ ...row, visible: row.index === layer.index && !row.frozen })));
+                }}
+              >
+                {name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <div className="flex flex-wrap gap-1">
+        <button type="button" className="min-h-11 rounded border px-2 text-xs" aria-pressed={measureOn} onClick={() => setCapture(measureOn ? null : 'measure')}>
+          {t('cadMeasure')}
+        </button>
+        <button type="button" className="min-h-11 rounded border px-2 text-xs" aria-pressed={measureKind === 'distance'} onClick={() => setMeasureKind('distance')}>{t('cadMeasureDistance')}</button>
+        <button type="button" className="min-h-11 rounded border px-2 text-xs" aria-pressed={measureKind === 'chain'} onClick={() => setMeasureKind('chain')}>{t('cadMeasureChain')}</button>
+        <button type="button" className="min-h-11 rounded border px-2 text-xs" aria-pressed={measureKind === 'area'} onClick={() => setMeasureKind('area')}>{t('cadMeasureArea')}</button>
+        <button type="button" className="min-h-11 rounded border px-2 text-xs" onClick={() => setPoints([])}>{t('cadClear')}</button>
+        <button type="button" className="min-h-11 rounded border px-2 text-xs" aria-pressed={inspectOn} onClick={() => setCapture(inspectOn ? null : 'inspect')}>
+          {t('cadInspect')}
+        </button>
+      </div>
+      {points.length >= 2 ? (
+        <p className="text-xs" data-testid="cad-measure-readout">
+          {measureKind === 'area' ? area.toFixed(2) : measureKind === 'chain' ? chain.toFixed(2) : distance.toFixed(2)} {t('cadUnits')}
+        </p>
+      ) : null}
+      {inspect ? (
+        <div className="space-y-1 text-xs" data-testid="cad-inspect">
+          <p>{inspect.text ?? t('cadNoHit')}</p>
+          <p>{inspect.layerName ?? ''}</p>
+          <p>{inspect.x.toFixed(2)}, {inspect.y.toFixed(2)}</p>
+          <p>{inspect.sheet}</p>
+          {inspect.markId ? <p>{inspect.markId}</p> : null}
+          <button
+            type="button"
+            className="min-h-11 rounded border px-2"
+            onClick={() => {
+              const summary = [inspect.text, inspect.layerName, `${inspect.x}, ${inspect.y}`, inspect.sheet, inspect.markId].filter(Boolean).join('\n');
+              void navigator.clipboard?.writeText(summary);
+            }}
+          >
+            {t('cadCopy')}
+          </button>
+        </div>
+      ) : null}
+      <CadLayerPanel
+        layers={layers}
+        labels={{
+          search: t('cadLayerSearch'),
+          isolate: t('cadLayerIsolate'),
+          showAll: t('cadLayerShowAll'),
+          reset: t('cadLayerReset'),
+          hidePick: t('cadLayerHidePick'),
+          original: t('cadArchOriginal'),
+          gray: t('cadArchGray'),
+          mono: t('cadArchMono'),
+          hidden: t('cadArchHidden'),
+          strength: t('cadArchStrength'),
+          unsupported: t('cadArchUnsupported'),
+          presets: t('cadPresets'),
+          presetOriginal: t('cadPresetOriginal'),
+          presetClean: t('cadPresetClean'),
+          presetElectrical: t('cadPresetElectrical'),
+          presetArchitecture: t('cadPresetArchitecture'),
+          presetCustom: t('cadPresetCustom'),
+          groups: t('cadHideGroup'),
+          hideGroup: t('cadHideGroup'),
+        }}
+        query={query}
+        onQuery={setQuery}
+        onToggle={(index, visible) => onLayers(layers.map((layer) => (layer.index === index ? { ...layer, visible } : layer)))}
+        onIsolate={(index) => onLayers(layers.map((layer) => ({ ...layer, visible: layer.index === index && !layer.frozen })))}
+        onShowAll={() => onLayers(layers.map((layer) => ({ ...layer, visible: layer.frozen ? layer.visible : true })))}
+        onReset={() => {
+          const base = initialRef.current.length > 0 ? initialRef.current : layers;
+          onLayers(base.map((layer) => ({ ...layer })));
+          publishMode('original', 0.7);
+        }}
+        onHideGroup={(group) => {
+          const indexes = new Set(layersForGroup(layers, architectural, group));
+          if (indexes.size === 0) return;
+          onLayers(replaceVisibility(layers, indexes, false));
+        }}
+        pickToHide={pickToHide}
+        onPickToHide={(on) => setCapture(on ? 'hide' : null)}
+        mode={mode}
+        strength={strength}
+        tintSupported={tintSupported}
+        automationSupported={automationSupported}
+        onMode={(next) => publishMode(next, strength)}
+        onStrength={(next) => publishMode(mode, next)}
+        onPreset={(preset: CadPreset) => {
+          if (preset === 'custom') return;
+          if (preset === 'original') {
+            const base = initialRef.current.length > 0 ? initialRef.current : layers;
+            onLayers(base.map((layer) => ({ ...layer })));
+            publishMode('original', strength);
+            return;
+          }
+          if (preset === 'clean') publishMode('gray', 0.7);
+          if (preset === 'electrical') publishMode('gray', 0.25);
+          if (preset === 'architecture') publishMode('original', strength);
+        }}
+        groupCounts={groupCounts}
+        groupLabel={(group) => groupNames[group]}
+      />
+    </div>
+  );
+});

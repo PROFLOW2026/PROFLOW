@@ -13,6 +13,7 @@ import { yieldToMain } from '../yield-to-main';
 export type FillDrawBatch = {
   kind: 'fill';
   colorBits: number;
+  architectural: boolean;
   positions: Float32Array;
   vertexCount: number;
 };
@@ -20,6 +21,7 @@ export type FillDrawBatch = {
 export type LineDrawBatch = {
   kind: 'line';
   colorBits: number;
+  architectural: boolean;
   lineWeightHundredths: number;
   /** Endpoint pairs (x1,y1,x2,y2) for wide-line mesh expansion at upload. */
   positions: Float32Array;
@@ -36,6 +38,7 @@ type Prim =
       primIndex: number;
       kind: 'line';
       colorBits: number;
+      architectural: boolean;
       lw: number;
       x1: number;
       y1: number;
@@ -47,6 +50,7 @@ type Prim =
       primIndex: number;
       kind: 'fill';
       colorBits: number;
+      architectural: boolean;
       x1: number;
       y1: number;
       x2: number;
@@ -84,6 +88,7 @@ function collectPrims(
   triangles: Float32Array,
   visibility: LayerVisibilityState,
   segStride: number,
+  architecture?: ReadonlySet<number>,
 ): Prim[] {
   const prims: Prim[] = [];
   let primIndex = 0;
@@ -102,6 +107,7 @@ function collectPrims(
       primIndex: primIndex++,
       kind: 'line',
       colorBits,
+      architectural: architecture?.has(layer) ?? false,
       lw,
       x1: segments[base]!,
       y1: segments[base + 1]!,
@@ -123,6 +129,7 @@ function collectPrims(
       primIndex: primIndex++,
       kind: 'fill',
       colorBits,
+      architectural: architecture?.has(layer) ?? false,
       x1: triangles[base]!,
       y1: triangles[base + 1]!,
       x2: triangles[base + 2]!,
@@ -139,6 +146,7 @@ function flushLineBatch(
   batches: DrawBatch[],
   colorBits: number,
   lineWeightHundredths: number,
+  architectural: boolean,
   floats: number[],
 ): void {
   if (floats.length === 0) {
@@ -147,19 +155,26 @@ function flushLineBatch(
   batches.push({
     kind: 'line',
     colorBits,
+    architectural,
     lineWeightHundredths,
     positions: Float32Array.from(floats),
     vertexCount: floats.length / 2,
   });
 }
 
-function flushFillBatch(batches: DrawBatch[], colorBits: number, floats: number[]): void {
+function flushFillBatch(
+  batches: DrawBatch[],
+  colorBits: number,
+  architectural: boolean,
+  floats: number[],
+): void {
   if (floats.length === 0) {
     return;
   }
   batches.push({
     kind: 'fill',
     colorBits,
+    architectural,
     positions: Float32Array.from(floats),
     vertexCount: floats.length / 2,
   });
@@ -170,52 +185,57 @@ export function buildOrderedDrawBatches(
   triangles: Float32Array,
   visibility: LayerVisibilityState,
   segStride = SEGMENT_STRIDE,
+  architecture?: ReadonlySet<number>,
 ): DrawBatch[] {
-  const prims = collectPrims(segments, triangles, visibility, segStride);
+  const prims = collectPrims(segments, triangles, visibility, segStride, architecture);
   const batches: DrawBatch[] = [];
   let lineColor = -1;
   let lineLw = -1;
   let lineOrder = -1;
+  let lineArch = false;
   let lineFloats: number[] = [];
   let fillColor = -1;
   let fillOrder = -1;
+  let fillArch = false;
   let fillFloats: number[] = [];
 
   for (const p of prims) {
     if (p.kind === 'fill') {
       if (lineFloats.length > 0) {
-        flushLineBatch(batches, lineColor, lineLw, lineFloats);
+        flushLineBatch(batches, lineColor, lineLw, lineArch, lineFloats);
         lineFloats = [];
         lineColor = -1;
       }
-      if ((fillColor !== p.colorBits || fillOrder !== p.order) && fillFloats.length > 0) {
-        flushFillBatch(batches, fillColor, fillFloats);
+      if ((fillColor !== p.colorBits || fillOrder !== p.order || fillArch !== p.architectural) && fillFloats.length > 0) {
+        flushFillBatch(batches, fillColor, fillArch, fillFloats);
         fillFloats = [];
       }
       fillColor = p.colorBits;
       fillOrder = p.order;
+      fillArch = p.architectural;
       fillFloats.push(p.x1, p.y1, p.x2, p.y2, p.x3, p.y3);
     } else {
       if (fillFloats.length > 0) {
-        flushFillBatch(batches, fillColor, fillFloats);
+        flushFillBatch(batches, fillColor, fillArch, fillFloats);
         fillFloats = [];
         fillColor = -1;
       }
       if (
-        (lineColor !== p.colorBits || lineLw !== p.lw || lineOrder !== p.order) &&
+        (lineColor !== p.colorBits || lineLw !== p.lw || lineOrder !== p.order || lineArch !== p.architectural) &&
         lineFloats.length > 0
       ) {
-        flushLineBatch(batches, lineColor, lineLw, lineFloats);
+        flushLineBatch(batches, lineColor, lineLw, lineArch, lineFloats);
         lineFloats = [];
       }
       lineColor = p.colorBits;
       lineLw = p.lw;
       lineOrder = p.order;
+      lineArch = p.architectural;
       lineFloats.push(p.x1, p.y1, p.x2, p.y2);
     }
   }
-  flushFillBatch(batches, fillColor, fillFloats);
-  flushLineBatch(batches, lineColor, lineLw, lineFloats);
+  flushFillBatch(batches, fillColor, fillArch, fillFloats);
+  flushLineBatch(batches, lineColor, lineLw, lineArch, lineFloats);
   return batches;
 }
 
@@ -228,18 +248,20 @@ export function buildFillDrawBatches(
   const batches: FillDrawBatch[] = [];
   let fillColor = -1;
   let fillOrder = -1;
+  let fillArch = false;
   let fillFloats: number[] = [];
   for (const p of prims) {
     if (p.kind !== 'fill') continue;
-    if ((fillColor !== p.colorBits || fillOrder !== p.order) && fillFloats.length > 0) {
-      flushFillBatch(batches, fillColor, fillFloats);
+    if ((fillColor !== p.colorBits || fillOrder !== p.order || fillArch !== p.architectural) && fillFloats.length > 0) {
+      flushFillBatch(batches, fillColor, fillArch, fillFloats);
       fillFloats = [];
     }
     fillColor = p.colorBits;
     fillOrder = p.order;
+    fillArch = p.architectural;
     fillFloats.push(p.x1, p.y1, p.x2, p.y2, p.x3, p.y3);
   }
-  flushFillBatch(batches, fillColor, fillFloats);
+  flushFillBatch(batches, fillColor, fillArch, fillFloats);
   return batches;
 }
 
@@ -248,10 +270,11 @@ export async function buildOrderedDrawBatchesAsync(
   triangles: Float32Array,
   visibility: LayerVisibilityState,
   segStride = SEGMENT_STRIDE,
+  architecture?: ReadonlySet<number>,
 ): Promise<DrawBatch[]> {
   if (segmentCount(segments, segStride) + triangleCount(triangles) <= SEGMENTS_PER_YIELD) {
-    return buildOrderedDrawBatches(segments, triangles, visibility, segStride);
+    return buildOrderedDrawBatches(segments, triangles, visibility, segStride, architecture);
   }
   await yieldToMain();
-  return buildOrderedDrawBatches(segments, triangles, visibility, segStride);
+  return buildOrderedDrawBatches(segments, triangles, visibility, segStride, architecture);
 }

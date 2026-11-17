@@ -6,6 +6,11 @@ import {
 } from './draw-ordered-batches';
 import { yieldToMain } from '../yield-to-main';
 import { colorBitsToRgba01, SEGMENT_STRIDE } from './segment-format';
+import {
+  ORIGINAL_ARCHITECTURE,
+  presentArchitectureColor,
+  type ArchitectureStyle,
+} from '../../architecture-display';
 import type { CadExtent } from './segment-format';
 import {
   normalizeLayerVisibility,
@@ -61,25 +66,28 @@ function concatParts(parts: Float32Array[]): Float32Array {
 }
 
 function groupLineParts(batches: DrawBatch[], glyph: boolean): DrawBatch[] {
-  const groups = new Map<number, Float32Array[]>();
-  const order: number[] = [];
+  const groups = new Map<string, Float32Array[]>();
+  const order: string[] = [];
   for (const batch of batches) {
     if (batch.kind !== 'line') continue;
     const isGlyph = batch.lineWeightHundredths === GLYPH_STROKE_LINE_WEIGHT;
     if (isGlyph !== glyph) continue;
-    let parts = groups.get(batch.colorBits);
+    const key = `${batch.architectural ? 1 : 0}:${batch.colorBits}`;
+    let parts = groups.get(key);
     if (!parts) {
       parts = [];
-      groups.set(batch.colorBits, parts);
-      order.push(batch.colorBits);
+      groups.set(key, parts);
+      order.push(key);
     }
     parts.push(batch.positions);
   }
-  return order.map((colorBits) => {
-    const positions = concatParts(groups.get(colorBits)!);
+  return order.map((key) => {
+    const [archFlag, colorText] = key.split(':');
+    const positions = concatParts(groups.get(key)!);
     return {
       kind: 'line' as const,
-      colorBits,
+      colorBits: Number(colorText),
+      architectural: archFlag === '1',
       lineWeightHundredths: glyph ? GLYPH_STROKE_LINE_WEIGHT : 25,
       positions,
       vertexCount: positions.length / 2,
@@ -152,6 +160,8 @@ export class CadWebGlRenderer {
   private triangles: Float32Array = new Float32Array(0);
   private segmentStride = SEGMENT_STRIDE;
   private layerVisibility: LayerVisibilityState = { mode: 'all' };
+  private architectureLayers: ReadonlySet<number> | null = null;
+  private architectureStyle: ArchitectureStyle = ORIGINAL_ARCHITECTURE;
   private cpuBatches: DrawBatch[] = [];
   private gpuBatches: GpuDrawBatch[] = [];
 
@@ -229,6 +239,22 @@ export class CadWebGlRenderer {
     this.uploadGpuBatches();
   }
 
+  /** Retint architecture batches. A layer-set change rebuilds once. A mode change only redraws. */
+  setArchitectureDisplay(layers: ReadonlySet<number> | null, style: ArchitectureStyle): void {
+    const nextLayers = layers ?? new Set<number>();
+    const same =
+      this.architectureLayers !== null &&
+      this.architectureLayers.size === nextLayers.size &&
+      [...nextLayers].every((index) => this.architectureLayers?.has(index));
+    this.architectureStyle = style;
+    if (!same) {
+      this.architectureLayers = nextLayers;
+      this.rebuildCpuBatches(true);
+      this.uploadGpuBatches();
+    }
+    this.draw();
+  }
+
   setView(view: CadView): void {
     this.view = { ...view };
   }
@@ -263,7 +289,17 @@ export class CadWebGlRenderer {
 
     const zoom = this.view.zoom;
     for (const batch of this.gpuBatches) {
-      const [r, g, b, a] = colorBitsToRgba01(batch.colorBits);
+      if (batch.architectural && this.architectureStyle.mode === 'hidden') continue;
+      let [r, g, b, a] = colorBitsToRgba01(batch.colorBits);
+      if (batch.architectural && this.architectureStyle.mode !== 'original') {
+        const presented = presentArchitectureColor(
+          [r, g, b, a],
+          this.architectureStyle,
+          [this.clearColor[0], this.clearColor[1], this.clearColor[2]],
+        );
+        if (!presented) continue;
+        [r, g, b, a] = presented;
+      }
       gl.bindBuffer(gl.ARRAY_BUFFER, batch.vbo);
       if (batch.hairline) {
         if (a >= 1) {
@@ -472,6 +508,7 @@ export class CadWebGlRenderer {
         this.triangles,
         this.layerVisibility,
         this.segmentStride,
+        this.architectureLayers ?? undefined,
       ),
     );
   }
@@ -490,6 +527,7 @@ export class CadWebGlRenderer {
         this.triangles,
         this.layerVisibility,
         this.segmentStride,
+        this.architectureLayers ?? undefined,
       ),
     );
   }

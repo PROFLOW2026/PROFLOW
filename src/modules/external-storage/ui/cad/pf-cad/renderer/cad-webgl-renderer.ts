@@ -15,6 +15,11 @@ import {
 import { FILL_VERT, LINE_FRAG, WIDE_LINE_VERT } from './shaders';
 import { wideLineMeshFromPairs } from './wide-line-batch';
 import { computeFitView, type CadView, type ViewportSize } from './view-math';
+import {
+  ORIGINAL_ARCHITECTURE,
+  presentArchitectureColor,
+  type ArchitectureStyle,
+} from '../../architecture-display';
 import type { CadRasterImage } from '../types';
 import { CadRasterWebGlPass, P9_RASTER_WEBGL_ENABLED } from '../cad-raster-webgl';
 
@@ -87,6 +92,8 @@ export class CadWebGlRenderer {
   private triangles: Float32Array = new Float32Array(0);
   private segmentStride = SEGMENT_STRIDE;
   private layerVisibility: LayerVisibilityState = { mode: 'all' };
+  private architectureLayers: Set<number> | null = null;
+  private architectureStyle: ArchitectureStyle = ORIGINAL_ARCHITECTURE;
   private cpuBatches: DrawBatch[] = [];
   private gpuBatches: GpuDrawBatch[] = [];
 
@@ -164,6 +171,22 @@ export class CadWebGlRenderer {
     this.uploadGpuBatches();
   }
 
+  /** Retint architecture batches at draw time. A layer-set change rebuilds. A mode change only redraws. */
+  setArchitectureDisplay(layers: ReadonlySet<number> | null, style: ArchitectureStyle): void {
+    const nextLayers = layers ?? new Set<number>();
+    const same =
+      this.architectureLayers !== null &&
+      this.architectureLayers.size === nextLayers.size &&
+      [...nextLayers].every((index) => this.architectureLayers?.has(index));
+    this.architectureStyle = style;
+    if (!same) {
+      this.architectureLayers = new Set(nextLayers);
+      this.rebuildCpuBatches(true);
+      this.uploadGpuBatches();
+    }
+    this.draw();
+  }
+
   setView(view: CadView): void {
     this.view = { ...view };
   }
@@ -192,7 +215,17 @@ export class CadWebGlRenderer {
 
     const zoom = this.view.zoom;
     for (const batch of this.gpuBatches) {
-      const [r, g, b, a] = colorBitsToRgba01(batch.colorBits);
+      if (batch.architectural && this.architectureStyle.mode === 'hidden') continue;
+      let [r, g, b, a] = colorBitsToRgba01(batch.colorBits);
+      if (batch.architectural && this.architectureStyle.mode !== 'original') {
+        const presented = presentArchitectureColor(
+          [r, g, b, a],
+          this.architectureStyle,
+          [this.clearColor[0], this.clearColor[1], this.clearColor[2]],
+        );
+        if (!presented) continue;
+        [r, g, b, a] = presented;
+      }
       gl.bindBuffer(gl.ARRAY_BUFFER, batch.vbo);
       if (batch.kind === 'fill') {
         gl.useProgram(this.fillProgram);
@@ -368,6 +401,7 @@ export class CadWebGlRenderer {
       this.triangles,
       this.layerVisibility,
       this.segmentStride,
+      this.architectureLayers ?? undefined,
     );
   }
 
@@ -384,6 +418,7 @@ export class CadWebGlRenderer {
       this.triangles,
       this.layerVisibility,
       this.segmentStride,
+      this.architectureLayers ?? undefined,
     );
   }
 

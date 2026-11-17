@@ -1,3 +1,6 @@
+/** Button גרסה 3. Frozen tree. This constant is the loaded tree, not the button label. */
+export const PF_CAD_TREE_ID = 'pf-cad-v1';
+
 /** Frozen production viewer (e6671b8aee305b6308cd71522ffe52f219bf9cd7). Not the v2 bundle. */
 export const PF_CAD_WASM_BINARY_URL = '/pf-cad/v1/wasm/pf_cad_wasm_bg.wasm';
 export const PF_CAD_WASM_GLUE_URL = '/pf-cad/v1/wasm/pf_cad_wasm.js';

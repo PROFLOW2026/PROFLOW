@@ -4,13 +4,14 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { CadDwgViewerToolbar } from './cad-dwg-viewer-toolbar';
+import { useCadTools } from '../use-cad-tools';
 import { cadViewportDevicePixelRatio } from './cad-viewport-dpr';
 import type { ProviderFileItem } from '@/modules/external-storage/domain/types';
 import type { StorageBrowserScope } from '@/modules/external-storage/client/storage-file-urls';
 import { StorageLoadingOverlay } from '../../storage-loading-overlay';
+import { useCadLoadNotice } from '../use-cad-load-notice';
+import { PF_CAD_TREE_ID } from './pf-cad-config';
 import { CadPreviewChrome } from '../cad-preview-chrome';
 import { fetchStoragePreviewBytes } from '../fetch-storage-preview-bytes';
 import {
@@ -189,6 +190,7 @@ function PfDwgViewerInner({
   const rendererRef = useRef<CadRendererHandle | null>(null);
   const drawingRef = useRef<DrawingPayload | null>(null);
   const clientRef = useRef<CadEngineClient | null>(null);
+  const downloadAbortRef = useRef<AbortController | null>(null);
   const cachedDepsRef = useRef<XrefDepBytes[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -198,6 +200,7 @@ function PfDwgViewerInner({
   );
   const loadTimingsRef = useRef<CadLoadTimings | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const loadWait = useCadLoadNotice(loading, loadingProgress, Boolean(error));
   const [webglError, setWebglError] = useState<string | null>(null);
   const [uiLayers, setUiLayers] = useState<UiLayer[]>([]);
   const [compat, setCompat] = useState<ScenePayload['report'] | null>(null);
@@ -438,6 +441,10 @@ function PfDwgViewerInner({
       panAndZoomAt: (dx, dy, sx, sy, factor) =>
         rendererRef.current?.panAndZoomAt(dx, dy, sx, sy, factor),
       onPinchGesture: handlePinchGesture,
+      onDoubleClick: () => {
+        rendererRef.current?.fit();
+        drawTextsRef.current();
+      },
     });
 
     return () => {
@@ -468,6 +475,8 @@ function PfDwgViewerInner({
     loadContextRef.current = null;
     cachedDepsRef.current = [];
 
+    const abort = new AbortController();
+    downloadAbortRef.current = abort;
     const loadStarted = performance.now();
     let progressRaf = 0;
     let pendingProgress: ParseProgress | null = null;
@@ -504,7 +513,7 @@ function PfDwgViewerInner({
         const tHost0 = performance.now();
         setLoadingLabel(downloadLoadingLabel(t));
         setLoadingProgress(0.04);
-        const hostBytes = new Uint8Array(await fetchStoragePreviewBytes(url));
+        const hostBytes = new Uint8Array(await fetchStoragePreviewBytes(url, abort.signal));
         const downloadHostMs = performance.now() - tHost0;
         if (cancelled || applyGen !== sceneApplyGenRef.current) return;
         loadContextRef.current = { hostBytes, fileIndex };
@@ -580,6 +589,7 @@ function PfDwgViewerInner({
         setLoading(false);
         scheduleIdleDraw(() => drawTextsRef.current());
       } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') return;
         if (cancelled) return;
         const message = e instanceof Error ? e.message : String(e);
         setError(
@@ -595,6 +605,7 @@ function PfDwgViewerInner({
 
     return () => {
       cancelled = true;
+      abort.abort();
       cancelAnimationFrame(progressRaf);
       client.dispose();
       clientRef.current = null;
@@ -749,58 +760,72 @@ function PfDwgViewerInner({
     [activeSpace, fileName, t],
   );
 
-  const toggleLayer = useCallback(
-    (layerIndex: number, visible: boolean) => {
-      rendererRef.current?.setLayerVisibility(String(layerIndex), visible);
-      setUiLayers((rows) =>
-        rows.map((row) => (row.index === layerIndex ? { ...row, visible } : row)),
-      );
-      if (drawingRef.current) {
-        drawingRef.current = {
-          ...drawingRef.current,
-          scene: {
-            ...drawingRef.current.scene,
-            layers: applyUiLayerVisibility(
-              drawingRef.current.scene.layers,
-              layerIndex,
-              visible,
-            ),
-          },
-        };
-      }
-      drawTexts();
-    },
-    [drawTexts],
-  );
+  const publishLayers = useCallback((rows: readonly { index: number; visible: boolean }[]) => {
+    const visible = new Map(rows.map((row) => [row.index, row.visible]));
+    const next = uiLayers.map((layer) => {
+      const value = visible.get(layer.index);
+      return value === undefined ? layer : { ...layer, visible: value };
+    });
+    setUiLayers(next);
+    rendererRef.current?.applyLayerVisibility(next);
+    if (drawingRef.current) {
+      let layers = drawingRef.current.scene.layers;
+      for (const layer of next) layers = applyUiLayerVisibility(layers, layer.index, layer.visible);
+      drawingRef.current = {
+        ...drawingRef.current,
+        scene: { ...drawingRef.current.scene, layers },
+      };
+    }
+    drawTexts();
+  }, [drawTexts, uiLayers]);
 
   const dwgBanners = useMemo(
     () => (compat ? buildCadDwgBanners(compat, activeSpace) : []),
     [activeSpace, compat],
   );
 
-  const layersPanel =
-    uiLayers.length > 0 ? (
-      <ul className="space-y-2 text-sm">
-        {uiLayers.map((layer) => (
-          <li key={layer.id} className="flex items-center gap-2">
-            <Checkbox
-              id={`pf-layer-${layer.id}`}
-              checked={layer.visible}
-              disabled={layer.frozen}
-              onCheckedChange={(checked) => toggleLayer(layer.index, checked === true)}
-            />
-            <Label htmlFor={`pf-layer-${layer.id}`} className="truncate font-normal">
-              {layer.name}
-              {layer.frozen ? ` (${t('cadLayerFrozen')})` : ''}
-            </Label>
-          </li>
-        ))}
-      </ul>
-    ) : null;
+  const sceneNow = drawingRef.current?.scene;
+  const tools = useCadTools({
+    layers: uiLayers,
+    xrefNames: [...Object.keys(compat?.xrefs ?? {}), ...Object.values(compat?.xrefs ?? {})],
+    texts: (sceneNow?.texts ?? []).map((row) => ({ text: row.t, x: row.x, y: row.y, layer: row.layer })),
+    sheets: spaces.map((space) => ({ id: space, label: space })),
+    blocks: [...Object.keys(compat?.xrefs ?? {}), ...Object.keys(compat?.missingBlocks ?? {})],
+    activeSheet: activeSpace,
+    tintSupported: false,
+    automationSupported: false,
+    documentId: fileName,
+    onLayers: publishLayers,
+    onArchitecture: () => undefined,
+    onFocusWorld: (x, y) => {
+      const renderer = rendererRef.current?.getRenderer();
+      if (!renderer) return;
+      const view = renderer.getView();
+      renderer.setView({ ...view, panX: x, panY: y, zoom: Math.max(view.zoom, 8) });
+      renderer.draw();
+      drawTexts();
+    },
+    onSelectSheet: (id) => {
+      void handleSpaceChange(id);
+    },
+    readScene: () => {
+      const canvas = glCanvasRef.current;
+      const renderer = rendererRef.current?.getRenderer();
+      const drawing = drawingRef.current;
+      if (!canvas || !renderer || !drawing) return null;
+      return {
+        canvas,
+        view: renderer.getView(),
+        segments: drawing.segments,
+        stride: drawing.scene.segmentStride || 8,
+      };
+    },
+  });
+  const layersPanel = uiLayers.length > 0 ? tools.panel : null;
 
   if (error || webglError) {
     return (
-      <div data-pf-style="classic" className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-4">
+      <div data-pf-style="classic" data-cad-tree={PF_CAD_TREE_ID} className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-4">
         <Alert tone="danger">{error ?? webglError}</Alert>
         <div className="flex flex-wrap justify-center gap-2">
           <Button type="button" variant="secondary" onClick={onRetry}>
@@ -820,10 +845,24 @@ function PfDwgViewerInner({
     <div
       ref={hostRef}
       data-pf-style="classic"
+      data-cad-tree={PF_CAD_TREE_ID}
       className={`relative flex min-h-0 flex-1 flex-col ${plotView ? 'bg-(--pf-lit-white)' : 'bg-[#0a0e14]'}`}
     >
       {loading ? (
-        <StorageLoadingOverlay label={loadingLabel} progress={loadingProgress} blocking />
+        <StorageLoadingOverlay
+          label={loadingLabel}
+          detail={loadWait === 'long' ? t('cadLoadDelay') : loadWait === 'stuck' ? t('cadLoadStuck') : null}
+          progress={loadingProgress > 0 ? loadingProgress : undefined}
+          blocking
+          cancelLabel={t('cadLoadCancel')}
+          onCancel={() => {
+            downloadAbortRef.current?.abort();
+            clientRef.current?.dispose();
+            sceneApplyGenRef.current += 1;
+            setLoading(false);
+            setError(t('cadLoadCancel'));
+          }}
+        />
       ) : null}
       <CadPreviewChrome
         hostRef={hostRef}
@@ -855,6 +894,7 @@ function PfDwgViewerInner({
             data-testid="pf-cad-text-canvas"
             aria-hidden
           />
+          {tools.overlay}
         </div>
       </CadPreviewChrome>
     </div>
