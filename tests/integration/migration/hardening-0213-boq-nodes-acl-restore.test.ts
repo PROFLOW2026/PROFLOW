@@ -8,10 +8,14 @@ const ACL_RESTORE_SQL = readFileSync(
   path.resolve(process.cwd(), 'drizzle/migrations/0213_boq_nodes_acl_restore_after_0205.sql'),
   'utf8',
 );
+const WORK_GRANT_SQL = readFileSync(
+  path.resolve(process.cwd(), 'drizzle/migrations/0214_boq_work_grants_after_0213.sql'),
+  'utf8',
+);
 
 /** PGlite rejects multi-statement prepared queries — one statement per execute. */
-function loadAclRestoreStatements(): string[] {
-  return ACL_RESTORE_SQL.split('--> statement-breakpoint')
+function loadAclRestoreStatementsFrom(source: string): string[] {
+  return source.split('--> statement-breakpoint')
     .map((chunk) =>
       chunk
         .split('\n')
@@ -24,6 +28,10 @@ function loadAclRestoreStatements(): string[] {
         .trim(),
     )
     .filter((chunk) => chunk.length > 0);
+}
+
+function loadAclRestoreStatements(): string[] {
+  return loadAclRestoreStatementsFrom(ACL_RESTORE_SQL);
 }
 
 async function execStatements(
@@ -92,7 +100,7 @@ const restoredCore: CorePriv = {
   auth_secure_insert: false,
   auth_progress_id_select: true,
   auth_progress_unit_price_select: false,
-  auth_progress_insert: false,
+  auth_progress_insert: true,
   auth_permissions_insert: false,
   auth_audit_update: false,
   auth_auth_rate_select: false,
@@ -105,6 +113,7 @@ const restoredCore: CorePriv = {
 describe('0213 ACL restore after 0205 blanket GRANT', () => {
   let database: TestDatabase;
   const restoreStatements = loadAclRestoreStatements();
+  const workGrantStatements = loadAclRestoreStatementsFrom(WORK_GRANT_SQL);
 
   beforeAll(async () => {
     database = await createTestDatabase();
@@ -114,7 +123,7 @@ describe('0213 ACL restore after 0205 blanket GRANT', () => {
     await database.close();
   });
 
-  it('fresh journal through 0213 restores proven privilege policies', async () => {
+  it('fresh journal through 0214 keeps 0213 locks and restores 0035 work grants', async () => {
     expect(restoreStatements.length).toBeGreaterThan(40);
     expect(await readCorePrivileges(database)).toEqual(restoredCore);
 
@@ -139,10 +148,42 @@ describe('0213 ACL restore after 0205 blanket GRANT', () => {
         installment_insert: true,
         installment_delete: false,
       });
+      const columns = resultRows<{
+        sched_qty: boolean;
+        sched_rate: boolean;
+        sched_amount: boolean;
+        val_qty: boolean;
+        val_rate: boolean;
+        progress_id: boolean;
+        progress_price: boolean;
+        alloc_insert: boolean;
+      }>(
+        await db.execute(sql`
+          SELECT
+            has_column_privilege('authenticated', 'public.boq_subcontractor_schedule_lines', 'agreed_quantity', 'SELECT') AS sched_qty,
+            has_column_privilege('authenticated', 'public.boq_subcontractor_schedule_lines', 'unit_rate', 'SELECT') AS sched_rate,
+            has_column_privilege('authenticated', 'public.boq_subcontractor_schedule_lines', 'amount', 'SELECT') AS sched_amount,
+            has_column_privilege('authenticated', 'public.boq_subcontractor_valuation_lines', 'approved_quantity', 'SELECT') AS val_qty,
+            has_column_privilege('authenticated', 'public.boq_subcontractor_valuation_lines', 'unit_rate_snapshot', 'SELECT') AS val_rate,
+            has_column_privilege('authenticated', 'public.boq_progress_lines', 'id', 'SELECT') AS progress_id,
+            has_column_privilege('authenticated', 'public.boq_progress_lines', 'unit_price_snapshot', 'SELECT') AS progress_price,
+            has_table_privilege('authenticated', 'public.boq_change_allocations', 'INSERT') AS alloc_insert
+        `),
+      );
+      expect(columns[0]).toEqual({
+        sched_qty: true,
+        sched_rate: false,
+        sched_amount: false,
+        val_qty: true,
+        val_rate: false,
+        progress_id: true,
+        progress_price: false,
+        alloc_insert: true,
+      });
     });
   });
 
-  it('prod-sim: 0205-style grants then 0213 restores ACL (idempotent)', async () => {
+  it('prod-sim: 0205 grants, then 0213, then 0214 restores the 0035 work grants', async () => {
     await database.asService(async (db) => {
       await execStatements(db, [
         'GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO authenticated',
@@ -159,10 +200,17 @@ describe('0213 ACL restore after 0205 blanket GRANT', () => {
     await database.asService(async (db) => {
       await execStatements(db, restoreStatements);
     });
+    const broken = await readCorePrivileges(database);
+    expect(broken.auth_nodes_insert).toBe(false);
+    expect(broken.auth_progress_insert).toBe(false);
+
+    await database.asService(async (db) => {
+      await execStatements(db, workGrantStatements);
+    });
     expect(await readCorePrivileges(database)).toEqual(restoredCore);
 
     await database.asService(async (db) => {
-      await execStatements(db, restoreStatements);
+      await execStatements(db, workGrantStatements);
     });
     expect(await readCorePrivileges(database)).toEqual(restoredCore);
   });
