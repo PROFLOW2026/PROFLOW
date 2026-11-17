@@ -93,7 +93,15 @@ export async function enterDemo(
   const fixture = buildDemoFixture(profileKey);
 
   if (input.previousSessionId) {
-    await withDemoProvisioner(db, (tx) => deleteDemoSessionOrganization(tx, input.previousSessionId as string));
+    try {
+      await withDemoProvisioner(db, (tx) =>
+        deleteDemoSessionOrganization(tx, input.previousSessionId as string),
+      );
+    } catch (error) {
+      // Never block a new demo entry on cleanup of a previous session (e.g. hosted DB
+      // denying session_replication_role while clearing immutable budgets).
+      console.error('demo-entry previous session cleanup failed', error);
+    }
   }
 
   const sessionId = await withDemoProvisioner(db, async (tx) => {
