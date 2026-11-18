@@ -63,8 +63,20 @@ export function xrefPathHasFolder(path: string): boolean {
   return parsed.parts.filter((part) => part !== '..').length > 1;
 }
 
+function normalizeSegment(value: string): string {
+  return value.trim().normalize('NFC');
+}
+
+function cadStem(name: string): string {
+  const key = xrefNameKey(normalizeSegment(name));
+  return key.endsWith('.dwg') ? key.slice(0, -4) : key;
+}
+
 function sameEntryName(left: string, right: string): boolean {
-  return xrefNameKey(left) === xrefNameKey(right);
+  const a = normalizeSegment(left);
+  const b = normalizeSegment(right);
+  if (xrefNameKey(a) === xrefNameKey(b)) return true;
+  return cadStem(a) === cadStem(b) && cadStem(a).length > 0;
 }
 
 /**

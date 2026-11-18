@@ -48,12 +48,44 @@ function Test-DockerRunning {
   return $LASTEXITCODE -eq 0
 }
 
-function Test-WorkerLocal {
+function Get-ExpectedWorkerGitSha {
+  Push-Location $RepoRoot
+  try {
+    $sha = (git log -1 --format=%H -- takeoff-worker 2>$null)
+    if (-not $sha) { return 'unknown' }
+    return $sha.Trim()
+  } finally {
+    Pop-Location
+  }
+}
+
+function Get-WorkerHealthLocal {
   try {
     $r = Invoke-WebRequest -Uri "http://127.0.0.1:$Port/healthz" -UseBasicParsing -TimeoutSec 8
-    return $r.StatusCode -eq 200 -and $r.Content -match '"status"\s*:\s*"ok"'
+    if ($r.StatusCode -ne 200) { return $null }
+    return $r.Content | ConvertFrom-Json
   } catch {
-    return $false
+    return $null
+  }
+}
+
+function Test-WorkerLocal {
+  $h = Get-WorkerHealthLocal
+  return $null -ne $h -and $h.status -eq 'ok'
+}
+
+function Assert-WorkerBuildMatchesRepo {
+  $expected = Get-ExpectedWorkerGitSha
+  if ($expected -eq 'unknown') { return }
+  $health = Get-WorkerHealthLocal
+  if (-not $health) { return }
+  $tag = $expected.Substring(0, 12)
+  $build = [string]$health.workerBuild
+  if ($build -ne $expected -and $build -ne $tag -and $build -ne 'unknown') {
+    Write-Host ''
+    Write-Host "אזהרת STALE: workerBuild=$build אך takeoff-worker/ האחרון הוא $expected"
+    Write-Host "לבנייה מחדש: docker build --build-arg WORKER_GIT_SHA=$expected -t $Image $RepoRoot\takeoff-worker"
+    Write-Host ''
   }
 }
 
@@ -114,9 +146,13 @@ function Start-WorkerContainer([string]$Secret) {
     if (Test-WorkerLocal) { return }
     docker rm -f $ContainerName | Out-Null
   }
+  $expected = Get-ExpectedWorkerGitSha
   $images = docker images -q $Image
   if (-not $images) {
-    throw "אימג' Docker $Image לא קיים. הרץ פעם אחת: docker build -t $Image takeoff-worker"
+    if ($expected -eq 'unknown') {
+      throw "אימג' Docker $Image לא קיים. הרץ: docker build -t $Image takeoff-worker"
+    }
+    docker build --build-arg "WORKER_GIT_SHA=$expected" -t $Image -t "exlfy-takeoff-worker:$($expected.Substring(0,12))" (Join-Path $RepoRoot 'takeoff-worker')
   }
   docker run -d --restart unless-stopped --name $ContainerName -p "${Port}:8765" -e "TAKEOFF_WORKER_SECRET=$Secret" -e "TAKEOFF_DWG_CACHE=/tmp/takeoff-dwg-cache" $Image | Out-Null
   $deadline = (Get-Date).AddSeconds(45)
@@ -215,6 +251,7 @@ if ((Test-WorkerLocal) -and $url -and (Test-TunnelPublic $url)) {
 if (-not (Test-WorkerLocal)) {
   Start-WorkerContainer $secret
 }
+Assert-WorkerBuildMatchesRepo
 $url = Get-SavedTunnelUrl
 if (-not $url -or -not (Test-TunnelPublic $url)) {
   $url = Start-CloudflaredTunnel

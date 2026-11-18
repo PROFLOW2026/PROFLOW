@@ -94,6 +94,10 @@ def _download(url: str, token: str, dest: Path) -> Path:
                 raise OSError("partial download")
             if provider_id:
                 dest.with_name(dest.name + ".xid").write_text(provider_id, encoding="utf-8")
+    except urllib.error.HTTPError as exc:
+        if dest.is_file():
+            dest.unlink()
+        raise OSError(f"download failed: HTTP {exc.code} for {url.split('?', 1)[0]}") from exc
     except Exception:
         if dest.is_file():
             dest.unlink()
@@ -118,6 +122,10 @@ def _libredwg_status() -> str:
     return "ok"
 
 
+WORKER_PROTOCOL = 1
+WORKER_CAPABILITIES = ["xrefFetch", "xrefRefs"]
+
+
 @app.get("/healthz")
 def healthz() -> dict[str, Any]:
     engines: dict[str, str] = {}
@@ -128,7 +136,13 @@ def healthz() -> dict[str, Any]:
         except Exception:
             engines[mod] = "missing"
     engines["libredwg_cli"] = _libredwg_status()
-    return {"status": "ok", "engines": engines}
+    return {
+        "status": "ok",
+        "engines": engines,
+        "protocol": WORKER_PROTOCOL,
+        "capabilities": WORKER_CAPABILITIES,
+        "workerBuild": os.getenv("TAKEOFF_WORKER_BUILD", "unknown"),
+    }
 
 
 @app.post("/v1/jobs", status_code=status.HTTP_202_ACCEPTED, dependencies=[Depends(_verify_secret)])
@@ -220,6 +234,7 @@ async def export_annotated(request: Request) -> Response:
     except HTTPException:
         raise
     except Exception as exc:
+        log.exception("annotated-pdf export failed")
         raise HTTPException(status_code=501, detail=str(exc)) from exc
 
 
@@ -241,7 +256,8 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO)
-    uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+    # log_config=None — avoids uvicorn ColorFormatter calling isatty() when stdout is redirected (E2E log files).
+    uvicorn.run(app, host=args.host, port=args.port, log_level="info", log_config=None)
 
 
 if __name__ == "__main__":

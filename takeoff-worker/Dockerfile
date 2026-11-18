@@ -11,12 +11,14 @@ COPY takeoff_worker takeoff_worker
 COPY pyproject.toml .
 
 FROM python:3.12-slim
+ARG WORKER_GIT_SHA=unknown
+LABEL org.opencontainers.image.revision=$WORKER_GIT_SHA
 RUN useradd -m -u 10001 worker
 WORKDIR /app
 COPY --from=build /usr/local /usr/local
 COPY --from=build /app /app
 RUN printf '/usr/local/lib\n' > /etc/ld.so.conf.d/libredwg.conf && ldconfig
-ENV PYTHONUNBUFFERED=1 TAKEOFF_WORKER_CONCURRENCY=2
+ENV PYTHONUNBUFFERED=1 TAKEOFF_WORKER_CONCURRENCY=2 TAKEOFF_WORKER_BUILD=$WORKER_GIT_SHA
 USER worker
 EXPOSE 8765
 CMD ["python", "-m", "takeoff_worker.server", "--host", "0.0.0.0", "--port", "8765"]

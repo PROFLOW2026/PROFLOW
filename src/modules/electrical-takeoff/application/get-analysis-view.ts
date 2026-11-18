@@ -33,6 +33,7 @@ import { takeoffNotFound } from '../domain/errors';
 import { attachSheetPreviewUrls } from './resolve-sheet-previews';
 import { formatTakeoffDisplayName, sanitizeWorkerSheetName } from '../domain/format-display-name';
 import { planReviewConfirmed } from '../domain/plan-review';
+import { sanitizeTakeoffSheetXrefsForActor } from './takeoff-analysis-xref-view';
 
 export async function buildAnalysisView(actor: TakeoffActor, analysisId: string): Promise<AnalysisView> {
   const orgId = actor.kind === 'internal' ? actor.context.organizationId : actor.context.grants[0]?.organizationId;
@@ -54,22 +55,28 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
   const editList = editsFromRows(editRows);
   const { detections } = applyEdits(baseDetections, editList);
 
-  const sheetDtos: SheetDto[] = workerSheets.map((s, index) => ({
-    sheetKey: s.sheetKey,
-    fileId: s.fileId,
-    name: sanitizeWorkerSheetName(s.name, index),
-    kind: s.kind,
-    index: s.index,
-    widthPx: s.widthPx,
-    heightPx: s.heightPx,
-    previewUrl: s.previewArtifact ?? null,
-    floorLabel: s.floorHint ?? null,
-    scale: s.scale,
-    analyzed: s.analyzed,
-    xrefsMissing: s.xrefsMissing ?? [],
-    xrefRefs: s.xrefRefs ?? [],
-    hiddenByLayers: s.hiddenByLayers ?? 0,
-  }));
+  const sheetDtos: SheetDto[] = workerSheets.map((s, index) => {
+    const xrefs = sanitizeTakeoffSheetXrefsForActor(actor, {
+      xrefRefs: (s.xrefRefs ?? []) as NonNullable<SheetDto['xrefRefs']>,
+      xrefsMissing: (s.xrefsMissing ?? []) as NonNullable<SheetDto['xrefsMissing']>,
+    });
+    return {
+      sheetKey: s.sheetKey,
+      fileId: s.fileId,
+      name: sanitizeWorkerSheetName(s.name, index),
+      kind: s.kind,
+      index: s.index,
+      widthPx: s.widthPx,
+      heightPx: s.heightPx,
+      previewUrl: s.previewArtifact ?? null,
+      floorLabel: s.floorHint ?? null,
+      scale: s.scale,
+      analyzed: s.analyzed,
+      xrefsMissing: xrefs.xrefsMissing,
+      xrefRefs: xrefs.xrefRefs,
+      hiddenByLayers: s.hiddenByLayers ?? 0,
+    };
+  });
 
   const twinIdByDetectionId = new Map<string, string | undefined>();
   const detectionFileIdById = new Map<string, string>();

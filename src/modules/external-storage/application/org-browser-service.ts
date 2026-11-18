@@ -21,7 +21,9 @@ import type {
 import type { StorageProviderAdapter } from '../domain/provider-interface';
 import { ProviderHttpError } from '../providers/http-utils';
 import { getStorageProviderAdapter } from '../providers/registry';
-import { resolveStorageXrefPath, type ResolvedStorageXref } from './resolve-storage-xref';
+import { resolveStorageXrefPath, resolveStorageXrefPathAsync, type ResolvedStorageXref } from './resolve-storage-xref';
+import { resolveStorageXrefsBatch, type XrefBatchItem } from './resolve-storage-xrefs-batch';
+import { xrefApiHttpStatus, xrefOutcomeToApi, type XrefResolveApiBody } from '../domain/xref-resolve-response';
 import {
   assertOrganizationStorageAvailable,
   resolveValidAccessToken,
@@ -451,22 +453,59 @@ export async function listOrgStorageMoveTargets(
   return targets;
 }
 
+export async function resolveOrgStorageXrefDetailed(
+  context: OrgContext,
+  input: { hostFileId: string; xrefPath: string; xrefName?: string; anchorPath?: string | null },
+): Promise<XrefResolveApiBody> {
+  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  const runtime = await resolveOrgBrowserRuntime(context);
+  const meta = await assertOrgFileScope(runtime, input.hostFileId);
+  if (!meta.parentId) return { status: 'missing', reason: 'not_found' };
+  const outcome = await resolveStorageXrefPathAsync({
+    adapter: runtime.adapter,
+    accessToken: runtime.accessToken,
+    startFolderId: meta.parentId,
+    rootFolderId: meta.parentId,
+    xrefName: input.xrefName ?? input.xrefPath,
+    savedPath: input.xrefPath,
+    anchorPath: input.anchorPath,
+  });
+  return xrefOutcomeToApi(outcome, outcome.status === 'found' ? outcome.folderId : undefined);
+}
+
 export async function resolveOrgStorageXref(
   context: OrgContext,
   input: { hostFileId: string; xrefPath: string; anchorPath?: string | null },
 ): Promise<ResolvedStorageXref | null> {
+  const body = await resolveOrgStorageXrefDetailed(context, { ...input, xrefName: input.xrefPath });
+  if (body.status !== 'found') return null;
+  return {
+    fileId: body.fileId,
+    name: body.name,
+    parentFolderId: body.parentFolderId,
+    sizeBytes: body.sizeBytes,
+    resolvedBy: body.resolvedBy,
+  };
+}
+
+export async function resolveOrgStorageXrefs(
+  context: OrgContext,
+  input: { hostFileId: string; items: readonly XrefBatchItem[] },
+): Promise<Record<string, XrefResolveApiBody>> {
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
   const runtime = await resolveOrgBrowserRuntime(context);
   const meta = await assertOrgFileScope(runtime, input.hostFileId);
-  if (!meta.parentId) return null;
-  return resolveStorageXrefPath({
+  if (!meta.parentId) return {};
+  return resolveStorageXrefsBatch({
     adapter: runtime.adapter,
     accessToken: runtime.accessToken,
     startFolderId: meta.parentId,
-    xrefPath: input.xrefPath,
-    anchorPath: input.anchorPath,
+    rootFolderId: meta.parentId,
+    items: input.items,
   });
 }
+
+export { xrefApiHttpStatus };
 
 export async function streamOrgStorageFileDownload(
   context: OrgContext,

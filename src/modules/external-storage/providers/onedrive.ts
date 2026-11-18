@@ -225,16 +225,21 @@ export class OneDriveStorageProvider implements StorageProviderAdapter {
   }
 
   async listFolder(accessToken: string, folderId: string): Promise<ProviderFolderListing> {
-    const data = await providerJson<{ value?: Record<string, unknown>[] }>(
-      `${GRAPH}/me/drive/items/${folderId}/children`,
-      { accessToken },
-    );
     const folders: ProviderFolderItem[] = [];
     const files: ProviderFileItem[] = [];
-    for (const item of data.value ?? []) {
-      const mapped = mapDriveItem(item);
-      if ('mimeType' in mapped) files.push(mapped as ProviderFileItem);
-      else folders.push(mapped as ProviderFolderItem);
+    let url: string | null = `${GRAPH}/me/drive/items/${folderId}/children`;
+    let pages = 0;
+    const MAX_PAGES = 25;
+    type ChildrenPage = { value?: Record<string, unknown>[]; '@odata.nextLink'?: string };
+    while (url && pages < MAX_PAGES) {
+      pages += 1;
+      const data: ChildrenPage = await providerJson<ChildrenPage>(url, { accessToken });
+      for (const item of data.value ?? []) {
+        const mapped = mapDriveItem(item);
+        if ('mimeType' in mapped) files.push(mapped as ProviderFileItem);
+        else folders.push(mapped as ProviderFolderItem);
+      }
+      url = data['@odata.nextLink'] ?? null;
     }
     return { folders, files };
   }

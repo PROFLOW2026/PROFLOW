@@ -254,6 +254,18 @@ export async function startAnalysisUseCase(
   if (analysis.status === 'approved') takeoffApprovedLocked();
   const fake = process.env.TAKEOFF_USE_FAKE_WORKER === '1';
   if (!process.env.TAKEOFF_WORKER_SECRET || (!process.env.TAKEOFF_WORKER_URL && !fake)) takeoffWorkerUnavailable();
+  if (!fake && process.env.TAKEOFF_WORKER_URL) {
+    try {
+      const healthRes = await fetch(`${process.env.TAKEOFF_WORKER_URL}/healthz`, { signal: AbortSignal.timeout(3000) });
+      if (healthRes.ok) {
+        const { parseWorkerHealth, workerProtocolBlocksDispatch } = await import('../domain/worker-health');
+        const health = parseWorkerHealth(await healthRes.json());
+        if (workerProtocolBlocksDispatch(health)) takeoffWorkerUnavailable();
+      }
+    } catch {
+      /* health check must not block when worker is temporarily unreachable */
+    }
+  }
 
   const jobId = takeoffDeps.ids.uuid();
   const token = sealJobToken(
@@ -272,7 +284,12 @@ export async function startAnalysisUseCase(
     explicitPairing: input.pairing,
     explicitSheetSelection: input.sheetSelection,
   });
-  const persistedRequest = { ...input, pairing, sheetSelection };
+  const persistedRequest = {
+    ...input,
+    pairing,
+    sheetSelection,
+    requestActor: { kind: 'internal' as const, userId: context.userId },
+  };
 
   await insertJob(context.db, {
     id: jobId,
@@ -286,7 +303,8 @@ export async function startAnalysisUseCase(
     requestJson: persistedRequest as unknown as Record<string, unknown>,
   });
 
-  const origin = process.env.NEXT_PUBLIC_APP_URL ?? 'http://127.0.0.1:3000';
+  const { resolveTakeoffWorkerFileOrigin } = await import('./export-download');
+  const origin = resolveTakeoffWorkerFileOrigin();
   const catalog = await loadDefaultCatalog();
   const symbolLibrary = symbolLibraryForWorker(
     await listLibrary(context.db, context.organizationId, analysis.plannerKey),

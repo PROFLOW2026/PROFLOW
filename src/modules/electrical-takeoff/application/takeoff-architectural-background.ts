@@ -5,7 +5,8 @@ import { ensureUsablePrimaryStorageConnection } from '@/modules/external-storage
 import { resolveValidAccessToken } from '@/modules/external-storage/application/connection-service';
 import { getStorageProviderAdapter } from '@/modules/external-storage/providers/registry';
 import type { DbExecutor } from '@/shared/db/types';
-import { resolveXrefInFolder, type XrefWalkListing } from '@/modules/external-storage/domain/xref-folder-walk';
+import { resolveStorageXrefPath } from '@/modules/external-storage/application/resolve-storage-xref';
+import type { XrefWalkListing } from '@/modules/external-storage/domain/xref-folder-walk';
 import type { StorageProviderAdapter } from '@/modules/external-storage/domain/provider-interface';
 import { backgroundRequestAllowed, sameCadFile } from '../domain/architectural-background';
 import { findFile, latestSuccessfulJob, listSheetsForJob } from '../data/takeoff.repository';
@@ -15,6 +16,8 @@ export async function openArchitecturalBackground(input: {
   organizationId: string;
   fileId: string;
   requestedName: string;
+  gate?: (providerFileId: string) => 'allow' | 'hidden' | Promise<'allow' | 'hidden'>;
+  rootFolderId?: string;
 }): Promise<{ stream: ReadableStream<Uint8Array>; mimeType: string; sizeBytes: number | null; providerFileId: string } | null> {
   const requested = input.requestedName.trim();
   if (requested.length < 1 || requested.length > 500) return null;
@@ -40,69 +43,26 @@ export async function openArchitecturalBackground(input: {
     if (!connection) return null;
     const token = await resolveValidAccessToken(input.db, input.organizationId, connection);
     const adapter = getStorageProviderAdapter(connection.provider);
-    const listing = providerListing(adapter, token);
-    const opened = await openXrefFromFolder({
-      listFolder: listing.listFolder,
-      getParentId: listing.getParentId,
+    const resolved = await resolveStorageXrefPath({
+      adapter,
+      accessToken: token,
       startFolderId: folderId,
       xrefPath: recordedPath?.trim() || requested,
+      xrefName: requested,
+      gate: input.gate,
+      rootFolderId: input.rootFolderId,
     });
-    if (!opened) return null;
-    const downloaded = await adapter.downloadFileStream(token, opened.id, { knownMeta: null });
+    if (!resolved) return null;
+    const downloaded = await adapter.downloadFileStream(token, resolved.fileId, { knownMeta: null });
     return {
       stream: downloaded.stream,
       mimeType: downloaded.mimeType || 'application/octet-stream',
-      sizeBytes: opened.sizeBytes ?? downloaded.sizeBytes ?? null,
-      providerFileId: opened.id,
+      sizeBytes: resolved.sizeBytes ?? downloaded.sizeBytes ?? null,
+      providerFileId: resolved.fileId,
     };
   } catch {
     return null;
   }
-}
-
-export async function openXrefFromFolder(input: {
-  listFolder: (folderId: string) => Promise<XrefWalkListing>;
-  getParentId: (folderId: string) => Promise<string | null>;
-  startFolderId: string;
-  xrefPath: string;
-  anchorPath?: string;
-}): Promise<{ id: string; sizeBytes: number | null } | null> {
-  let startFolderId = input.startFolderId;
-  let rootFolderId = await folderRoot(input.getParentId, startFolderId);
-  if (input.anchorPath?.trim()) {
-    const anchor = await resolveXrefInFolder({
-      startFolderId,
-      rootFolderId,
-      xrefPath: input.anchorPath,
-      listFolder: input.listFolder,
-      parentOf: input.getParentId,
-    });
-    if (anchor.status !== 'found') return null;
-    startFolderId = anchor.folderId;
-    rootFolderId = await folderRoot(input.getParentId, startFolderId);
-  }
-  const found = await resolveXrefInFolder({
-    startFolderId,
-    rootFolderId,
-    xrefPath: input.xrefPath,
-    listFolder: input.listFolder,
-    parentOf: input.getParentId,
-  });
-  if (found.status !== 'found') return null;
-  return { id: found.file.id, sizeBytes: found.file.sizeBytes ?? null };
-}
-
-async function folderRoot(
-  parentOf: (folderId: string) => Promise<string | null>,
-  startFolderId: string,
-): Promise<string> {
-  let current = startFolderId;
-  for (let step = 0; step < 40; step += 1) {
-    const parent = await parentOf(current);
-    if (!parent || parent === current) return current;
-    current = parent;
-  }
-  return startFolderId;
 }
 
 export async function openWorkerXref(input: {
@@ -111,6 +71,8 @@ export async function openWorkerXref(input: {
   fileId: string;
   xrefPath: string;
   anchorPath?: string;
+  gate?: (providerFileId: string) => 'allow' | 'hidden' | Promise<'allow' | 'hidden'>;
+  rootFolderId?: string;
 }): Promise<{ stream: ReadableStream<Uint8Array>; mimeType: string; sizeBytes: number | null; providerFileId: string } | null> {
   const xrefPath = input.xrefPath.trim();
   if (xrefPath.length < 1 || xrefPath.length > 500) return null;
@@ -124,21 +86,23 @@ export async function openWorkerXref(input: {
     if (!connection) return null;
     const token = await resolveValidAccessToken(input.db, input.organizationId, connection);
     const adapter = getStorageProviderAdapter(connection.provider);
-    const listing = providerListing(adapter, token);
-    const opened = await openXrefFromFolder({
-      listFolder: listing.listFolder,
-      getParentId: listing.getParentId,
+    const resolved = await resolveStorageXrefPath({
+      adapter,
+      accessToken: token,
       startFolderId: folderId,
       xrefPath,
+      xrefName: xrefPath,
       anchorPath: input.anchorPath,
+      gate: input.gate,
+      rootFolderId: input.rootFolderId,
     });
-    if (!opened) return null;
-    const downloaded = await adapter.downloadFileStream(token, opened.id, { knownMeta: null });
+    if (!resolved) return null;
+    const downloaded = await adapter.downloadFileStream(token, resolved.fileId, { knownMeta: null });
     return {
       stream: downloaded.stream,
       mimeType: downloaded.mimeType || 'application/octet-stream',
-      sizeBytes: opened.sizeBytes ?? downloaded.sizeBytes ?? null,
-      providerFileId: opened.id,
+      sizeBytes: resolved.sizeBytes ?? downloaded.sizeBytes ?? null,
+      providerFileId: resolved.fileId,
     };
   } catch {
     return null;

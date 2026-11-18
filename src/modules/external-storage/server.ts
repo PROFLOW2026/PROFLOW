@@ -72,6 +72,9 @@ export {
   getProjectStorageFileDownloadMeta,
   streamProjectStorageFileDownload,
   resolveProjectStorageXref,
+  resolveProjectStorageXrefDetailed,
+  resolveProjectStorageXrefs,
+  xrefResolveHttpStatus,
   getProjectStorageProviderWebUrl,
   listProjectStorageMoveTargets,
   loadProjectFileBrowserInitial,
@@ -92,6 +95,8 @@ export {
   getOrgStorageFileDownloadMeta,
   streamOrgStorageFileDownload,
   resolveOrgStorageXref,
+  resolveOrgStorageXrefDetailed,
+  resolveOrgStorageXrefs,
   getOrgStorageProviderWebUrl,
   listOrgStorageMoveTargets,
   loadOrgFileBrowserInitial,
@@ -112,6 +117,7 @@ export {
   ensureProjectFolderTree,
 } from './application/folder-provisioning';
 export { listConfiguredStorageProviders, isStorageProviderConfigured } from './providers/registry';
+export { xrefApiHttpStatus, type XrefResolveApiBody } from './domain/xref-resolve-response';
 export { findFolderMapping, listFolderMappingsForProject } from './data/folder-mappings.repository';
 export {
   findStorageFileByDocumentId,

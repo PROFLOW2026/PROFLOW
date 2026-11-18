@@ -24,7 +24,18 @@ import {
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import { NotFoundError, ServiceUnavailableError } from '@/shared/errors';
 import { type ExternalCapability, type ExternalContext } from '@/shared/external';
-import { resolveStorageXrefPath } from '@/modules/external-storage/application/resolve-storage-xref';
+import {
+  outcomeToHttpStatus,
+  resolveStorageXrefPath,
+  resolveStorageXrefPathAsync,
+  type XrefResolveOutcome,
+} from '@/modules/external-storage/application/resolve-storage-xref';
+import { createContractorXrefFileGate } from '@/modules/project-plans/application/contractor-xref-gate';
+import {
+  resolveStorageXrefsBatch,
+  type XrefBatchItem,
+} from '@/modules/external-storage/application/resolve-storage-xrefs-batch';
+import type { XrefResolveApiBody } from '@/modules/external-storage/domain/xref-resolve-response';
 import {
   capabilityForContractorFolder,
   CONTRACTOR_SEMANTIC_FOLDER_CAPABILITY,
@@ -288,7 +299,11 @@ export async function resolveContractorFolderXref(
     readonly xrefPath: string;
     readonly anchorPath?: string | null;
   },
-): Promise<{ fileId: string; name: string; parentFolderId: string; sizeBytes: number | null } | null> {
+): Promise<
+  | { fileId: string; name: string; parentFolderId: string; sizeBytes: number | null; resolvedBy?: string }
+  | { error: XrefResolveOutcome; httpStatus: number }
+  | null
+> {
   const organizationId = uuid.parse(raw.organizationId);
   const projectId = uuid.parse(raw.projectId);
   assertFolderCapability(context, organizationId, projectId, raw.folder);
@@ -311,12 +326,83 @@ export async function resolveContractorFolderXref(
       rootExternalId: root.externalFolderId,
       targetFolderId: meta.parentId,
     });
-    return resolveStorageXrefPath({
+    const gate = await createContractorXrefFileGate({
+      context,
+      db,
+      organizationId,
+      projectId,
+      connectionId: connection.id,
+    });
+    const outcome = await resolveStorageXrefPathAsync({
       adapter,
       accessToken,
       startFolderId: meta.parentId,
-      xrefPath: raw.xrefPath,
+      rootFolderId: root.externalFolderId,
+      xrefName: raw.xrefPath,
+      savedPath: raw.xrefPath,
       anchorPath: raw.anchorPath,
+      gate,
+    });
+    if (outcome.status === 'found') {
+      return {
+        fileId: outcome.file.id,
+        name: outcome.file.name,
+        parentFolderId: outcome.folderId,
+        sizeBytes: outcome.file.sizeBytes ?? null,
+        resolvedBy: outcome.resolvedBy,
+      };
+    }
+    if (outcome.status === 'missing') return null;
+    return { error: outcome, httpStatus: outcomeToHttpStatus(outcome) };
+  });
+}
+
+export async function resolveContractorFolderXrefs(
+  context: ExternalContext,
+  raw: {
+    readonly organizationId: string;
+    readonly projectId: string;
+    readonly folder: SemanticFolderType;
+    readonly externalFileId: string;
+    readonly items: readonly XrefBatchItem[];
+  },
+): Promise<Record<string, XrefResolveApiBody>> {
+  const organizationId = uuid.parse(raw.organizationId);
+  const projectId = uuid.parse(raw.projectId);
+  assertFolderCapability(context, organizationId, projectId, raw.folder);
+
+  return runCommittedStorageWrite(async (db) => {
+    const connection = await ensureUsablePrimaryStorageConnection(db, organizationId);
+    if (!connection || !organizationHasActiveStorage(connection)) return {};
+    const mappings = await listFolderMappingsForProject(db, organizationId, connection.id, projectId);
+    const root = mappings.find(
+      (mapping) => mapping.semanticFolderType === raw.folder && mapping.status === 'ready',
+    );
+    if (!root?.externalFolderId) return {};
+    const accessToken = await resolveValidAccessToken(db, organizationId, connection);
+    const adapter = getStorageProviderAdapter(connection.provider);
+    const meta = await adapter.getFileMetadata(accessToken, raw.externalFileId);
+    if (!meta?.parentId) return {};
+    await assertUnderSemanticRoot({
+      accessToken,
+      adapter,
+      rootExternalId: root.externalFolderId,
+      targetFolderId: meta.parentId,
+    });
+    const gate = await createContractorXrefFileGate({
+      context,
+      db,
+      organizationId,
+      projectId,
+      connectionId: connection.id,
+    });
+    return resolveStorageXrefsBatch({
+      adapter,
+      accessToken,
+      startFolderId: meta.parentId,
+      rootFolderId: root.externalFolderId,
+      items: raw.items,
+      gate,
     });
   });
 }

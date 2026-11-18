@@ -50,6 +50,25 @@ export function createTakeoffWorkerClient(): TakeoffWorkerClient {
   return createHttpTakeoffWorkerClient();
 }
 
+async function readWorkerHttpFailure(res: Response, op: string): Promise<string> {
+  let detail = '';
+  try {
+    const text = await res.text();
+    try {
+      const parsed = JSON.parse(text) as { detail?: unknown };
+      if (typeof parsed.detail === 'string') detail = parsed.detail;
+      else if (parsed.detail != null) detail = JSON.stringify(parsed.detail).slice(0, 300);
+    } catch {
+      detail = text.replace(/\s+/g, ' ').trim().slice(0, 200);
+    }
+  } catch {
+    detail = '';
+  }
+  return detail
+    ? `${op} failed (worker HTTP ${res.status}: ${detail})`
+    : `${op} failed (worker HTTP ${res.status})`;
+}
+
 export function createHttpTakeoffWorkerClient(): TakeoffWorkerClient {
   const base = process.env.TAKEOFF_WORKER_URL;
   const secret = process.env.TAKEOFF_WORKER_SECRET;
@@ -76,7 +95,7 @@ export function createHttpTakeoffWorkerClient(): TakeoffWorkerClient {
         headers: { 'content-type': 'application/json', 'x-takeoff-secret': secret },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new ServiceUnavailableError('export failed', 'takeoff.errors.worker_unavailable');
+      if (!res.ok) throw new ServiceUnavailableError(await readWorkerHttpFailure(res, 'annotated-pdf export'), 'takeoff.errors.worker_unavailable');
       return new Uint8Array(await res.arrayBuffer());
     },
     async exportBoqPdf(body) {
@@ -86,7 +105,7 @@ export function createHttpTakeoffWorkerClient(): TakeoffWorkerClient {
         headers: { 'content-type': 'application/json', 'x-takeoff-secret': secret },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new ServiceUnavailableError('export failed', 'takeoff.errors.worker_unavailable');
+      if (!res.ok) throw new ServiceUnavailableError(await readWorkerHttpFailure(res, 'boq-pdf export'), 'takeoff.errors.worker_unavailable');
       return new Uint8Array(await res.arrayBuffer());
     },
   };

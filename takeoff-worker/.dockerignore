@@ -1,0 +1,9 @@
+.venv
+.cache
+.proof-run
+.pytest_cache
+.tmp
+.tmp_7155.json
+**/__pycache__
+**/*.pyc
+tests

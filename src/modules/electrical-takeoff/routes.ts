@@ -13,6 +13,7 @@ import { buildExportBytes, takeoffExportDownloadHeaders } from './application/ex
 import type { ExportKind } from './domain/contracts';
 import { assertAnalysisAccess, externalActorFrom, internalActorFrom, takeoffOrgScope } from './application/access';
 import { openArchitecturalBackground, openWorkerXref } from './application/takeoff-architectural-background';
+import { resolveWorkerXrefAccess } from './application/takeoff-worker-xref-access';
 import type { OrgContext } from '@/shared/auth/context';
 import type { DbExecutor } from '@/shared/db/types';
 
@@ -130,12 +131,21 @@ export async function handleWorkerXref(request: Request, jobId: string): Promise
   const anchor = url.searchParams.get('anchor') ?? '';
   const file = await findFile(db, job.organizationId, fileId);
   if (!file || file.analysisId !== job.analysisId) return new Response(null, { status: 404 });
+  const access = await resolveWorkerXrefAccess({
+    db,
+    organizationId: job.organizationId,
+    projectId: job.projectId,
+    requestJson: job.requestJson,
+  });
+  if (!access) return new Response(null, { status: 404 });
   const opened = await openWorkerXref({
     db,
     organizationId: job.organizationId,
     fileId,
     xrefPath,
     anchorPath: anchor,
+    gate: access.gate,
+    rootFolderId: access.rootFolderId,
   });
   if (!opened) return new Response(null, { status: 404 });
   return new Response(opened.stream, {
@@ -334,8 +344,17 @@ export async function handleExportDownload(request: Request, analysisId: string,
       headers: takeoffExportDownloadHeaders(payload.fileName, payload.mimeType),
     });
   } catch (error) {
+    logTakeoffExportFailure(kind, error);
     return fileRouteError(error);
   }
+}
+
+/** Server-side diagnostics only (no ids, no secrets): the response body stays a generic messageKey. */
+function logTakeoffExportFailure(kind: ExportKind, error: unknown): void {
+  const digest = (error as { digest?: unknown } | null)?.digest;
+  if (typeof digest === 'string' && digest.startsWith('NEXT_')) return;
+  const e = error instanceof Error ? error : new Error(String(error));
+  console.error(`[takeoff-export] kind=${kind} ${e.name}: ${e.message}\n${(e.stack ?? '').split('\n').slice(1, 8).join('\n')}`);
 }
 
 export async function handleExternalExportDownload(request: Request, analysisId: string, kind: ExportKind): Promise<Response> {
@@ -356,6 +375,7 @@ export async function handleExternalExportDownload(request: Request, analysisId:
       headers: takeoffExportDownloadHeaders(payload.fileName, payload.mimeType),
     });
   } catch (error) {
+    logTakeoffExportFailure(kind, error);
     return fileRouteError(error);
   }
 }

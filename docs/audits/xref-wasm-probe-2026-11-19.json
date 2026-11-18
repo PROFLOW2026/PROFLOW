@@ -1,0 +1,330 @@
+{
+  "ranAt": "2026-11-18T23:15:18.987Z",
+  "results": [
+    {
+      "engine": "viewer-v1-frozen",
+      "tree": "pf-cad-v1 (WASM קפוא)",
+      "wasmSha256_12": "c99c606f1169",
+      "version": {
+        "engine": "projectflow-cad-engine",
+        "engineVersion": "unknown",
+        "wasm": "pf_cad_wasm_bg.wasm",
+        "glue": "pf_cad_wasm.js"
+      },
+      "hosts": [
+        {
+          "id": "3643-EL",
+          "hostFile": "C:/Users/ERAN YOSEF/OneDrive/ProjectFlow/3643-EL - Standard/3643-EL.dwg",
+          "error": null,
+          "segCount": 442854.6666666667,
+          "xrefs": [
+            {
+              "block": "vtk-100_היתר שינויים-Sheet - 03 - חזיתות וחתכים_Layout1",
+              "path": ""
+            },
+            {
+              "block": "vtk-103_היתר שינויים",
+              "path": ""
+            }
+          ],
+          "nonEmptyPathCount": 0,
+          "expectPathContainsPass": false,
+          "nameSearchFallback": {
+            "vtk-100_היתר שינויים-Sheet - 03 - חזיתות וחתכים_Layout1": {
+              "xrefPath": "vtk-100_היתר שינויים-Sheet - 03 - חזיתות וחתכים_Layout1",
+              "status": "found",
+              "hit": "02.06.26/vtk-100_היתר שינויים-Sheet - 03 - חזיתות וחתכים_Layout1.dwg"
+            },
+            "vtk-103_היתר שינויים": {
+              "xrefPath": "vtk-103_היתר שינויים",
+              "status": "found",
+              "hit": "15.06.26/vtk-103_היתר שינויים.dwg"
+            }
+          },
+          "fallback3643SubtreePass": true
+        },
+        {
+          "id": "1545-all-01",
+          "hostFile": "C:/Users/ERAN YOSEF/OneDrive/ProjectFlow/פרויקטים/PRJ-00001 - ברנדייס 6 תל אביב/05 - תוכניות/1545-all-01 - Bitzua/1545-all-01.dwg",
+          "error": null,
+          "segCount": 822914.6666666666,
+          "xrefs": [
+            {
+              "block": "1545-Xref-all-02",
+              "path": ""
+            }
+          ],
+          "nonEmptyPathCount": 0,
+          "expectPathContainsPass": null,
+          "nameSearchFallback": {
+            "1545-Xref-all-02": {
+              "xrefPath": "1545-Xref-all-02",
+              "status": "found",
+              "hit": "1545-Xref-all-02.dwg"
+            }
+          },
+          "fallback3643SubtreePass": null
+        },
+        {
+          "id": "7155-A1",
+          "hostFile": "C:/Users/ERAN YOSEF/OneDrive/ProjectFlow/7155-A1 - Standard/7155-A1.dwg",
+          "error": null,
+          "segCount": 261380,
+          "xrefs": [
+            {
+              "block": "חקר היין - 29.12.25 למכרז",
+              "path": ""
+            }
+          ],
+          "nonEmptyPathCount": 0,
+          "expectPathContainsPass": null,
+          "nameSearchFallback": {
+            "חקר היין - 29.12.25 למכרז": {
+              "xrefPath": "חקר היין - 29.12.25 למכרז",
+              "status": "not_found",
+              "hit": null
+            }
+          },
+          "fallback3643SubtreePass": null
+        },
+        {
+          "id": "3096-EL-extra",
+          "hostFile": "C:/Users/ERAN YOSEF/Desktop/final projects/cad-xref-test-fixtures/3096-EL/3096-EL.dwg",
+          "error": null,
+          "segCount": 33032,
+          "xrefs": [
+            {
+              "block": "2205 - Petah Tikva_Hepez-Haim-Trafo 1-100",
+              "path": ""
+            },
+            {
+              "block": "2205 - Petah Tikva_Hepez-Haim-Trafo 1-50",
+              "path": ""
+            },
+            {
+              "block": "6396-230+285",
+              "path": ""
+            },
+            {
+              "block": "העמדה קומת קרקע על גבי מדידה",
+              "path": ""
+            }
+          ],
+          "nonEmptyPathCount": 0,
+          "expectPathContainsPass": null,
+          "nameSearchFallback": {
+            "2205 - Petah Tikva_Hepez-Haim-Trafo 1-100": {
+              "xrefPath": "2205 - Petah Tikva_Hepez-Haim-Trafo 1-100",
+              "status": "found",
+              "hit": "2205 - Petah Tikva_Hepez-Haim-Trafo 1-100.dwg"
+            },
+            "2205 - Petah Tikva_Hepez-Haim-Trafo 1-50": {
+              "xrefPath": "2205 - Petah Tikva_Hepez-Haim-Trafo 1-50",
+              "status": "found",
+              "hit": "2205 - Petah Tikva_Hepez-Haim-Trafo 1-50.dwg"
+            },
+            "6396-230+285": {
+              "xrefPath": "6396-230+285",
+              "status": "found",
+              "hit": "6396-230+285.dwg"
+            },
+            "העמדה קומת קרקע על גבי מדידה": {
+              "xrefPath": "העמדה קומת קרקע על גבי מדידה",
+              "status": "found",
+              "hit": "העמדה קומת קרקע על גבי מדידה.dwg"
+            }
+          },
+          "fallback3643SubtreePass": null
+        }
+      ]
+    },
+    {
+      "engine": "viewer-v2",
+      "tree": "pf-cad (v2)",
+      "wasmSha256_12": "c9a5bb4229a4",
+      "version": {
+        "engineVersion": "unknown",
+        "glue": "pf_cad_wasm.js",
+        "engine": "projectflow-cad-engine",
+        "wasm": "pf_cad_wasm_bg.wasm",
+        "engineCommitSha": "85be9b2214138f128401960c03b658d7254e252f"
+      },
+      "hosts": [
+        {
+          "id": "3643-EL",
+          "hostFile": "C:/Users/ERAN YOSEF/OneDrive/ProjectFlow/3643-EL - Standard/3643-EL.dwg",
+          "error": null,
+          "segCount": 439456,
+          "xrefs": [
+            {
+              "block": "vtk-100_היתר שינויים-Sheet - 03 - חזיתות וחתכים_Layout1",
+              "path": ".\\02.06.26\\vtk-100_היתר שינויים-Sheet - 03 - חזיתות וחתכים_Layout1.dwg"
+            },
+            {
+              "block": "vtk-103_היתר שינויים",
+              "path": ".\\15.06.26\\vtk-103_היתר שינויים.dwg"
+            }
+          ],
+          "nonEmptyPathCount": 2,
+          "expectPathContainsPass": true,
+          "nameSearchFallback": null,
+          "fallback3643SubtreePass": null
+        },
+        {
+          "id": "1545-all-01",
+          "hostFile": "C:/Users/ERAN YOSEF/OneDrive/ProjectFlow/פרויקטים/PRJ-00001 - ברנדייס 6 תל אביב/05 - תוכניות/1545-all-01 - Bitzua/1545-all-01.dwg",
+          "error": null,
+          "segCount": 820274.6666666666,
+          "xrefs": [
+            {
+              "block": "1545-Xref-all-02",
+              "path": ".\\1545-Xref-all-02.dwg"
+            }
+          ],
+          "nonEmptyPathCount": 1,
+          "expectPathContainsPass": null,
+          "nameSearchFallback": null,
+          "fallback3643SubtreePass": null
+        },
+        {
+          "id": "7155-A1",
+          "hostFile": "C:/Users/ERAN YOSEF/OneDrive/ProjectFlow/7155-A1 - Standard/7155-A1.dwg",
+          "error": null,
+          "segCount": 313432,
+          "xrefs": [
+            {
+              "block": "חקר היין - 29.12.25 למכרז",
+              "path": ".\\אדריכל\\6.1.26 שלב א'-השלמה\\חקר היין - 29.12.25 למכרז.dwg"
+            }
+          ],
+          "nonEmptyPathCount": 1,
+          "expectPathContainsPass": null,
+          "nameSearchFallback": null,
+          "fallback3643SubtreePass": null
+        },
+        {
+          "id": "3096-EL-extra",
+          "hostFile": "C:/Users/ERAN YOSEF/Desktop/final projects/cad-xref-test-fixtures/3096-EL/3096-EL.dwg",
+          "error": null,
+          "segCount": 32872,
+          "xrefs": [
+            {
+              "block": "2205 - Petah Tikva_Hepez-Haim-Trafo 1-100",
+              "path": "2205 - Petah Tikva_Hepez-Haim-Trafo 1-100.dwg"
+            },
+            {
+              "block": "2205 - Petah Tikva_Hepez-Haim-Trafo 1-50",
+              "path": "2205 - Petah Tikva_Hepez-Haim-Trafo 1-50.dwg"
+            },
+            {
+              "block": "6396-230+285",
+              "path": "6396-230+285.dwg"
+            },
+            {
+              "block": "העמדה קומת קרקע על גבי מדידה",
+              "path": "העמדה קומת קרקע על גבי מדידה.dwg"
+            }
+          ],
+          "nonEmptyPathCount": 4,
+          "expectPathContainsPass": null,
+          "nameSearchFallback": null,
+          "fallback3643SubtreePass": null
+        }
+      ]
+    },
+    {
+      "engine": "viewer-v3",
+      "tree": "pf-cad-v3 (v3)",
+      "wasmSha256_12": "c9a5bb4229a4",
+      "version": {
+        "engineVersion": "unknown",
+        "glue": "pf_cad_wasm.js",
+        "engine": "projectflow-cad-engine",
+        "wasm": "pf_cad_wasm_bg.wasm",
+        "engineCommitSha": "85be9b2214138f128401960c03b658d7254e252f"
+      },
+      "hosts": [
+        {
+          "id": "3643-EL",
+          "hostFile": "C:/Users/ERAN YOSEF/OneDrive/ProjectFlow/3643-EL - Standard/3643-EL.dwg",
+          "error": null,
+          "segCount": 439456,
+          "xrefs": [
+            {
+              "block": "vtk-100_היתר שינויים-Sheet - 03 - חזיתות וחתכים_Layout1",
+              "path": ".\\02.06.26\\vtk-100_היתר שינויים-Sheet - 03 - חזיתות וחתכים_Layout1.dwg"
+            },
+            {
+              "block": "vtk-103_היתר שינויים",
+              "path": ".\\15.06.26\\vtk-103_היתר שינויים.dwg"
+            }
+          ],
+          "nonEmptyPathCount": 2,
+          "expectPathContainsPass": true,
+          "nameSearchFallback": null,
+          "fallback3643SubtreePass": null
+        },
+        {
+          "id": "1545-all-01",
+          "hostFile": "C:/Users/ERAN YOSEF/OneDrive/ProjectFlow/פרויקטים/PRJ-00001 - ברנדייס 6 תל אביב/05 - תוכניות/1545-all-01 - Bitzua/1545-all-01.dwg",
+          "error": null,
+          "segCount": 820274.6666666666,
+          "xrefs": [
+            {
+              "block": "1545-Xref-all-02",
+              "path": ".\\1545-Xref-all-02.dwg"
+            }
+          ],
+          "nonEmptyPathCount": 1,
+          "expectPathContainsPass": null,
+          "nameSearchFallback": null,
+          "fallback3643SubtreePass": null
+        },
+        {
+          "id": "7155-A1",
+          "hostFile": "C:/Users/ERAN YOSEF/OneDrive/ProjectFlow/7155-A1 - Standard/7155-A1.dwg",
+          "error": null,
+          "segCount": 313432,
+          "xrefs": [
+            {
+              "block": "חקר היין - 29.12.25 למכרז",
+              "path": ".\\אדריכל\\6.1.26 שלב א'-השלמה\\חקר היין - 29.12.25 למכרז.dwg"
+            }
+          ],
+          "nonEmptyPathCount": 1,
+          "expectPathContainsPass": null,
+          "nameSearchFallback": null,
+          "fallback3643SubtreePass": null
+        },
+        {
+          "id": "3096-EL-extra",
+          "hostFile": "C:/Users/ERAN YOSEF/Desktop/final projects/cad-xref-test-fixtures/3096-EL/3096-EL.dwg",
+          "error": null,
+          "segCount": 32872,
+          "xrefs": [
+            {
+              "block": "2205 - Petah Tikva_Hepez-Haim-Trafo 1-100",
+              "path": "2205 - Petah Tikva_Hepez-Haim-Trafo 1-100.dwg"
+            },
+            {
+              "block": "2205 - Petah Tikva_Hepez-Haim-Trafo 1-50",
+              "path": "2205 - Petah Tikva_Hepez-Haim-Trafo 1-50.dwg"
+            },
+            {
+              "block": "6396-230+285",
+              "path": "6396-230+285.dwg"
+            },
+            {
+              "block": "העמדה קומת קרקע על גבי מדידה",
+              "path": "העמדה קומת קרקע על גבי מדידה.dwg"
+            }
+          ],
+          "nonEmptyPathCount": 4,
+          "expectPathContainsPass": null,
+          "nameSearchFallback": null,
+          "fallback3643SubtreePass": null
+        }
+      ]
+    }
+  ]
+}

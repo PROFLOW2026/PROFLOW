@@ -34,7 +34,13 @@ import type {
 import type { StorageProviderAdapter } from '../domain/provider-interface';
 import { ProviderHttpError } from '../providers/http-utils';
 import { getStorageProviderAdapter } from '../providers/registry';
-import { resolveStorageXrefPath, type ResolvedStorageXref } from './resolve-storage-xref';
+import {
+  resolveStorageXrefPath,
+  resolveStorageXrefPathAsync,
+  type ResolvedStorageXref,
+} from './resolve-storage-xref';
+import { resolveStorageXrefsBatch, type XrefBatchItem } from './resolve-storage-xrefs-batch';
+import { xrefApiHttpStatus, xrefOutcomeToApi, type XrefResolveApiBody } from '../domain/xref-resolve-response';
 import {
   assertOrganizationStorageAvailable,
   resolveValidAccessToken,
@@ -797,22 +803,81 @@ export async function listProjectStorageMoveTargets(
   return targets;
 }
 
+export async function resolveProjectStorageXrefDetailed(
+  context: OrgContext,
+  input: { projectId: string; hostFileId: string; xrefPath: string; xrefName?: string; anchorPath?: string | null },
+): Promise<XrefResolveApiBody> {
+  assertAnyPermission(context, [PERMISSIONS.DOCUMENTS_READ, PERMISSIONS.TAKEOFF_MANAGE]);
+  const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
+  const meta = await assertFileScope(runtime, input.hostFileId);
+  if (!meta.parentId) return { status: 'missing', reason: 'not_found' };
+  await assertSemanticFolderBrowseAccess(context, runtime, meta.parentId);
+  const mappings = await listFolderMappingsForProject(
+    context.db,
+    context.organizationId,
+    runtime.connection.id,
+    input.projectId,
+  );
+  const rootFolder =
+    mappings.find((row) => row.status === 'ready')?.externalFolderId ?? meta.parentId;
+  const outcome = await resolveStorageXrefPathAsync({
+    adapter: runtime.adapter,
+    accessToken: runtime.accessToken,
+    startFolderId: meta.parentId,
+    rootFolderId: rootFolder,
+    xrefName: input.xrefName ?? input.xrefPath,
+    savedPath: input.xrefPath,
+    anchorPath: input.anchorPath,
+  });
+  return xrefOutcomeToApi(outcome, outcome.status === 'found' ? outcome.folderId : undefined);
+}
+
 export async function resolveProjectStorageXref(
   context: OrgContext,
   input: { projectId: string; hostFileId: string; xrefPath: string; anchorPath?: string | null },
 ): Promise<ResolvedStorageXref | null> {
+  const body = await resolveProjectStorageXrefDetailed(context, {
+    ...input,
+    xrefName: input.xrefPath,
+  });
+  if (body.status !== 'found') return null;
+  return {
+    fileId: body.fileId,
+    name: body.name,
+    parentFolderId: body.parentFolderId,
+    sizeBytes: body.sizeBytes,
+    resolvedBy: body.resolvedBy,
+  };
+}
+
+export async function resolveProjectStorageXrefs(
+  context: OrgContext,
+  input: { projectId: string; hostFileId: string; items: readonly XrefBatchItem[] },
+): Promise<Record<string, XrefResolveApiBody>> {
   assertAnyPermission(context, [PERMISSIONS.DOCUMENTS_READ, PERMISSIONS.TAKEOFF_MANAGE]);
   const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
   const meta = await assertFileScope(runtime, input.hostFileId);
-  if (!meta.parentId) return null;
+  if (!meta.parentId) return {};
   await assertSemanticFolderBrowseAccess(context, runtime, meta.parentId);
-  return resolveStorageXrefPath({
+  const mappings = await listFolderMappingsForProject(
+    context.db,
+    context.organizationId,
+    runtime.connection.id,
+    input.projectId,
+  );
+  const rootFolder =
+    mappings.find((row) => row.status === 'ready')?.externalFolderId ?? meta.parentId;
+  return resolveStorageXrefsBatch({
     adapter: runtime.adapter,
     accessToken: runtime.accessToken,
     startFolderId: meta.parentId,
-    xrefPath: input.xrefPath,
-    anchorPath: input.anchorPath,
+    rootFolderId: rootFolder,
+    items: input.items,
   });
+}
+
+export function xrefResolveHttpStatus(body: XrefResolveApiBody): number {
+  return xrefApiHttpStatus(body);
 }
 
 export async function streamProjectStorageFileDownload(

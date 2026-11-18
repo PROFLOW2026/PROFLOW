@@ -42,6 +42,19 @@ export async function GET(request: Request) {
       anchorPath,
     });
     if (!resolved) return new Response(null, { status: 404 });
+    if ('error' in resolved) {
+      const body =
+        resolved.error.status === 'ambiguous'
+          ? {
+              status: resolved.error.status,
+              candidates: resolved.error.candidates.map((row) => ({
+                name: row.name,
+                relativeFolder: row.relativeFolder,
+              })),
+            }
+          : { status: resolved.error.status, reason: 'reason' in resolved.error ? resolved.error.reason : 'error' };
+      return Response.json(body, { status: resolved.httpStatus, headers: { 'Cache-Control': 'private, no-store' } });
+    }
     return Response.json(resolved, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) {
     return apiRouteErrorFromUnknown(error, 'errors.unexpected');

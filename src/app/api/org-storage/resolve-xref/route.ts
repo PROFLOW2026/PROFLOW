@@ -1,4 +1,8 @@
-import { resolveOrgStorageXref, resolveProjectStorageXref } from '@/modules/external-storage/server';
+import {
+  resolveOrgStorageXrefDetailed,
+  resolveProjectStorageXrefDetailed,
+  xrefApiHttpStatus,
+} from '@/modules/external-storage/server';
 import { requireSession, runInOrgContext } from '@/shared/auth/session';
 import { apiRouteErrorFromUnknown, apiRouteErrorResponse } from '@/shared/errors';
 
@@ -19,18 +23,20 @@ export async function GET(request: Request) {
     if (!fileId || !xrefPath) return apiRouteErrorResponse('errors.validationFailed', 400);
     if (scope !== 'org' && !projectId) return apiRouteErrorResponse('errors.validationFailed', 400);
 
-    const resolved = await runInOrgContext(session.user.id, session.activeOrganizationId, async (orgContext) =>
+    const body = await runInOrgContext(session.user.id, session.activeOrganizationId, async (orgContext) =>
       scope === 'org'
-        ? resolveOrgStorageXref(orgContext, { hostFileId: fileId, xrefPath, anchorPath })
-        : resolveProjectStorageXref(orgContext, {
+        ? resolveOrgStorageXrefDetailed(orgContext, { hostFileId: fileId, xrefPath, anchorPath })
+        : resolveProjectStorageXrefDetailed(orgContext, {
             projectId: projectId!,
             hostFileId: fileId,
             xrefPath,
             anchorPath,
           }),
     );
-    if (!resolved) return new Response(null, { status: 404 });
-    return Response.json(resolved, { headers: { 'Cache-Control': 'private, no-store' } });
+    return Response.json(body, {
+      status: xrefApiHttpStatus(body),
+      headers: { 'Cache-Control': 'private, no-store' },
+    });
   } catch (error) {
     return apiRouteErrorFromUnknown(error, 'errors.unexpected');
   }
