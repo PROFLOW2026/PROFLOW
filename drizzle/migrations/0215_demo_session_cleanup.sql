@@ -10,22 +10,61 @@ ALTER TABLE public.organizations
 COMMENT ON COLUMN public.organizations.demo_abandoned_at IS
   'Set when a demo session org is soft-abandoned; required identity for gated abandoned-org sweeper.';
 
+-- Demo-only budget purge. `app.demo_provisioner` is a session GUC and is NOT an identity:
+-- anyone can set_config it. Authorization therefore rests on the effective role (current_user)
+-- and its catalog attributes, which set_config cannot change. Request traffic runs as
+-- `authenticated` / `anon` (PostgREST also uses `authenticator`) and is always refused before any
+-- table is read. The trusted service connection must be superuser or BYPASSRLS — it already needs
+-- that to read FORCE-RLS `demo_sessions`. Invoker rights on purpose: SECURITY DEFINER would
+-- replace current_user with the owner and erase the caller identity.
 CREATE OR REPLACE FUNCTION app.demo_session_budget_purge_allowed(p_org_id uuid)
 RETURNS boolean
-LANGUAGE sql
+LANGUAGE plpgsql
 STABLE
 SET search_path = pg_catalog, public
 AS $$
-  SELECT current_setting('app.demo_provisioner', true) = 'on'
-    AND EXISTS (
-      SELECT 1
-      FROM public.organizations AS o
-      WHERE o.id = p_org_id
-        AND o.demo_kind = 'session'
-    );
+DECLARE
+  v_trusted boolean;
+BEGIN
+  IF current_setting('app.demo_provisioner', true) IS DISTINCT FROM 'on' THEN
+    RETURN false;
+  END IF;
+
+  IF current_user IN ('authenticated', 'anon', 'authenticator') THEN
+    RETURN false;
+  END IF;
+
+  SELECT r.rolsuper OR r.rolbypassrls
+    INTO v_trusted
+    FROM pg_catalog.pg_roles AS r
+    WHERE r.rolname = current_user;
+  IF NOT COALESCE(v_trusted, false) THEN
+    RETURN false;
+  END IF;
+
+  -- Same identity the application requires to delete the organization row: a session org with
+  -- either a live demo_sessions row or a durable demo_abandoned_at marker. Never name-based.
+  RETURN EXISTS (
+    SELECT 1
+    FROM public.organizations AS o
+    WHERE o.id = p_org_id
+      AND o.demo_kind = 'session'
+      AND (
+        EXISTS (
+          SELECT 1 FROM public.demo_sessions AS session_row
+          WHERE session_row.organization_id = o.id
+        )
+        OR o.demo_abandoned_at IS NOT NULL
+      )
+  );
+END
 $$;
 
 REVOKE ALL ON FUNCTION app.demo_session_budget_purge_allowed(uuid) FROM PUBLIC;
+-- Budget guards call this as the invoking role. Request roles need EXECUTE so a legitimate
+-- pristine-draft delete on a real organization does not fail with "permission denied";
+-- the function returns false for them before touching any table.
+GRANT EXECUTE ON FUNCTION app.demo_session_budget_purge_allowed(uuid) TO authenticated, service_role;
 
 -- Abandoned session orgs (demo_abandoned_at, no demo_sessions row) still need takeoff purge proof.
 CREATE OR REPLACE FUNCTION app.demo_takeoff_purge_proof_write()
