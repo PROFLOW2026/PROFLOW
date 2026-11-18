@@ -32,7 +32,7 @@ export async function POST(request: Request): Promise<Response> {
         .where(eq(organizationMemberships.userId, profileId));
       return rows.map((row) => row.organizationId);
     },
-  });
+  }, new Date(), { includeAbandonedSessionOrgs: true });
   return NextResponse.json(result);
 }
 

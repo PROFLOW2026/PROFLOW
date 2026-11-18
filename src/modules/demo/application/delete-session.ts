@@ -1,15 +1,19 @@
 import 'server-only';
 
 import { sql } from 'drizzle-orm';
+import { withTransaction } from '@/shared/db/client';
 import type { DbExecutor } from '@/shared/db/types';
 import type { DeleteDemoSessionOrganizationResult } from '../domain/session-cleanup';
 
-function isReplicationRoleDenied(error: unknown): boolean {
+function errorText(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
   const cause =
     error instanceof Error && error.cause instanceof Error ? error.cause.message : '';
-  const text = `${message}\n${cause}`;
-  return /session_replication_role|permission denied to set parameter/i.test(text);
+  return `${message}\n${cause}`;
+}
+
+function isReplicationRoleDenied(error: unknown): boolean {
+  return /session_replication_role|permission denied to set parameter/i.test(errorText(error));
 }
 
 function rowCount(result: unknown): number {
@@ -18,61 +22,80 @@ function rowCount(result: unknown): number {
   return Array.isArray(rows) ? rows.length : 0;
 }
 
+async function deleteBudgetRows(db: DbExecutor, organizationId: string): Promise<void> {
+  await db.execute(sql`
+    delete from project_budget_lines
+    where organization_id = ${organizationId}::uuid
+  `);
+  await db.execute(sql`
+    delete from project_budget_revisions
+    where organization_id = ${organizationId}::uuid
+  `);
+  await db.execute(sql`
+    delete from project_budgets
+    where organization_id = ${organizationId}::uuid
+  `);
+}
+
 /**
  * Demo session budgets are immutable for real orgs. With `app.demo_provisioner=on` and
  * migration 0215, guards allow ordered purge without `session_replication_role`.
+ * Each attempt runs in a savepoint: a failed statement would otherwise abort the caller's
+ * transaction and every later statement (including the soft-abandon fallback).
  */
 async function clearDemoSessionBudgets(
   db: DbExecutor,
   organizationId: string,
 ): Promise<boolean> {
   try {
-    await db.execute(sql`
-      delete from project_budget_lines
-      where organization_id = ${organizationId}::uuid
-    `);
-    await db.execute(sql`
-      delete from project_budget_revisions
-      where organization_id = ${organizationId}::uuid
-    `);
-    await db.execute(sql`
-      delete from project_budgets
-      where organization_id = ${organizationId}::uuid
-    `);
+    await withTransaction(db, (savepoint) => deleteBudgetRows(savepoint, organizationId));
     return true;
   } catch (error) {
     if (!isBudgetPurgeGuardError(error)) throw error;
   }
 
   try {
-    await db.execute(sql`select set_config('session_replication_role', 'replica', true)`);
-    try {
-      await db.execute(sql`
-        delete from project_budget_lines
-        where organization_id = ${organizationId}::uuid
-      `);
-      await db.execute(sql`
-        delete from project_budget_revisions
-        where organization_id = ${organizationId}::uuid
-      `);
-      await db.execute(sql`
-        delete from project_budgets
-        where organization_id = ${organizationId}::uuid
-      `);
-      return true;
-    } finally {
-      await db.execute(sql`select set_config('session_replication_role', 'origin', true)`);
-    }
+    await withTransaction(db, async (savepoint) => {
+      await savepoint.execute(sql`select set_config('session_replication_role', 'replica', true)`);
+      await deleteBudgetRows(savepoint, organizationId);
+      await savepoint.execute(sql`select set_config('session_replication_role', 'origin', true)`);
+    });
+    return true;
   } catch (error) {
     if (isReplicationRoleDenied(error)) return false;
     throw error;
   }
-  return false;
+}
+
+/**
+ * Locks the organization row only when it is unambiguously a demo session org: an active
+ * `demo_sessions` row, or the durable `demo_abandoned_at` marker. Anything else (real orgs,
+ * templates, unknown ids) is left completely untouched.
+ */
+async function lockDeletableDemoSessionOrganization(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<boolean> {
+  const locked = await db.execute(sql`
+    select id
+    from organizations
+    where id = ${organizationId}::uuid
+      and demo_kind = 'session'
+      and (
+        exists (
+          select 1
+          from demo_sessions as session_row
+          where session_row.organization_id = organizations.id
+        )
+        or demo_abandoned_at is not null
+      )
+    for update
+  `);
+  return rowCount(locked) > 0;
 }
 
 function isBudgetPurgeGuardError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  return /project_budgets:|project_budget_revisions:|project_budget_lines:/i.test(message);
+  return /project_budgets:|project_budget_revisions:|project_budget_lines:/i.test(errorText(error));
 }
 
 /**
@@ -145,6 +168,9 @@ export async function deleteDemoSessionOrganization(
   organizationId: string,
 ): Promise<DeleteDemoSessionOrganizationResult> {
   await db.execute(sql`select set_config('app.demo_provisioner', 'on', true)`);
+  if (!(await lockDeletableDemoSessionOrganization(db, organizationId))) {
+    return { removedOrganization: false, softAbandoned: false };
+  }
   // Home organization uses ON DELETE SET NULL, and that update is rejected for contractors.
   // Remove the demo principal before the organization row so the identity stays immutable.
   await db.execute(sql`delete from external_access_grants where organization_id = ${organizationId}::uuid`);

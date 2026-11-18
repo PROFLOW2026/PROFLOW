@@ -65,8 +65,8 @@ async function loadRun(db: DbExecutor, jerusalemDate: string) {
 export interface NightlyResetOptions {
   readonly failPhase?: 'rows' | 'storage' | 'auth';
   /**
-   * When false (default), abandoned session orgs are not enqueued. Production cron
-   * must leave this unset until Owner explicitly enables sweeper cleanup.
+   * Also enqueue session orgs that carry `demo_abandoned_at` and have no `demo_sessions` row.
+   * The Production cron enables this (Owner decision 2026-11-18); default stays off.
    */
   readonly includeAbandonedSessionOrgs?: boolean;
 }
@@ -163,15 +163,22 @@ export async function runNightlyReset(
     try {
       if (item.phase === 'rows') {
         if (options?.failPhase === 'rows') throw new Error('injected rows failure');
-        const deleted = await withTransaction(db, (tx) =>
-          deleteDemoSessionOrganization(tx, item.organizationId),
-        );
-        if (!deleteDemoSessionOrganizationSucceeded(deleted)) {
-          throw new Error(
-            deleted.softAbandoned
-              ? 'session delete soft-abandoned only; organization row remains'
-              : 'session delete did not remove the organization',
+        const [stillPresent] = await db
+          .select({ id: organizations.id })
+          .from(organizations)
+          .where(eq(organizations.id, item.organizationId))
+          .limit(1);
+        if (stillPresent) {
+          const deleted = await withTransaction(db, (tx) =>
+            deleteDemoSessionOrganization(tx, item.organizationId),
           );
+          if (!deleteDemoSessionOrganizationSucceeded(deleted)) {
+            throw new Error(
+              deleted.softAbandoned
+                ? 'session delete soft-abandoned only; organization row remains'
+                : 'session delete did not remove the organization',
+            );
+          }
         }
         rowsCompleted.add(item.organizationId);
       } else if (item.phase === 'storage') {
