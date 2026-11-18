@@ -11,6 +11,23 @@ export function isDemoMintedEmail(email: string): boolean {
   return false;
 }
 
+const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
+const MINTED_PATTERNS = [
+  new RegExp(`^(${UUID})\\.(owner|manager|finance|worker)@demo\\.pf\\.internal$`),
+  new RegExp(`^demo\\.(${UUID})\\.employee@employees\\.pf\\.internal$`),
+  new RegExp(`^demo\\.(${UUID})\\.contractor@contractors\\.pf\\.internal$`),
+];
+
+/** The session organization a demo actor email was minted for, or null when it is not an exact demo actor address. */
+export function demoMintedOrganizationId(email: string): string | null {
+  const normalized = email.trim().toLowerCase();
+  for (const pattern of MINTED_PATTERNS) {
+    const match = pattern.exec(normalized);
+    if (match) return match[1] ?? null;
+  }
+  return null;
+}
+
 /** Delete only a demo-minted user. Any membership outside this reset's session orgs blocks deletion. No remaining membership is safe: the org row is already gone, and the caller passes only ids saved before that delete. */
 export function mayDeleteDemoIdentity(input: {
   readonly email: string;

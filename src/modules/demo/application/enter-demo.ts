@@ -23,6 +23,7 @@ import type { DbExecutor } from '@/shared/db/types';
 import { isDemoRoleKey, type DemoRoleKey } from '../domain/demo-org';
 import { buildDemoFixture } from '../fixtures/fixture-builder';
 import { deleteDemoSessionOrganization } from './delete-session';
+import { deleteRemovedSessionActorLogins, loadDemoSessionActorIdentities } from './orphan-identities';
 import { insertDemoOrganization, withDemoProvisioner } from './provision';
 import { seedDemoFixture } from './seed-fixture';
 
@@ -93,10 +94,20 @@ export async function enterDemo(
   const fixture = buildDemoFixture(profileKey);
 
   if (input.previousSessionId) {
+    const previousSessionId = input.previousSessionId;
     try {
-      await withDemoProvisioner(db, (tx) =>
-        deleteDemoSessionOrganization(tx, input.previousSessionId as string),
+      const previousActors = await loadDemoSessionActorIdentities(db, previousSessionId);
+      const removed = await withDemoProvisioner(db, (tx) =>
+        deleteDemoSessionOrganization(tx, previousSessionId),
       );
+      if (removed.removedOrganization || removed.softAbandoned) {
+        await deleteRemovedSessionActorLogins(
+          db,
+          (userId) => auth.deleteUser(userId),
+          previousSessionId,
+          previousActors,
+        );
+      }
     } catch (error) {
       // Never block a new demo entry on cleanup of a previous session (e.g. hosted DB
       // denying session_replication_role while clearing immutable budgets).

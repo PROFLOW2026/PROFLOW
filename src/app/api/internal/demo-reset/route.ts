@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { organizationMemberships, profiles } from "@drizzle/schema";
 import { runNightlyReset } from "@/modules/demo/application/nightly-reset";
+import { sweepOrphanDemoIdentities } from "@/modules/demo/application/orphan-identities";
+import { deleteDemoAuthUserViaSupabase } from "@/modules/demo/application/supabase-demo-auth-deletion";
 import { getAdminDb } from "@/shared/db/client";
 import { rejectUnauthorizedInternalWorker } from "@/shared/http/internal-worker-auth";
 import { getSupabaseAdminClient, isSupabaseAdminConfigured } from "@/shared/supabase/admin";
@@ -33,7 +35,18 @@ export async function POST(request: Request): Promise<Response> {
       return rows.map((row) => row.organizationId);
     },
   }, new Date(), { includeAbandonedSessionOrgs: true });
-  return NextResponse.json(result);
+  let identities: Awaited<ReturnType<typeof sweepOrphanDemoIdentities>> | { error: string } | null = null;
+  if (isSupabaseAdminConfigured()) {
+    try {
+      identities = await sweepOrphanDemoIdentities(getAdminDb(), {
+        deleteAuthUser: deleteDemoAuthUserViaSupabase,
+      });
+    } catch (error) {
+      console.error('demo orphan identity sweep failed', error);
+      identities = { error: 'orphan identity sweep failed' };
+    }
+  }
+  return NextResponse.json({ ...result, identities });
 }
 
 /** Vercel Cron calls GET. The same bearer secret as POST is required. */

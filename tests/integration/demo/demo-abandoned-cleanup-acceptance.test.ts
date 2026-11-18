@@ -1,7 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { eq, sql } from 'drizzle-orm';
-import { demoResetItems, demoResetRuns, demoSessions, organizations } from '@drizzle/schema';
+import {
+  demoResetItems,
+  demoResetRuns,
+  demoSessionActors,
+  demoSessions,
+  organizations,
+} from '@drizzle/schema';
+import { sweepOrphanDemoIdentities } from '@/modules/demo/application/orphan-identities';
 import { enterDemo, type DemoAuthPort } from '@/modules/demo/application/enter-demo';
 import * as deleteSession from '@/modules/demo/application/delete-session';
 import { deleteDemoSessionOrganization } from '@/modules/demo/application/delete-session';
@@ -20,7 +27,7 @@ import { seedSystem } from '@tests/setup/fixtures';
 const SWEEPER_DAY = new Date('2026-07-16T00:00:00.000Z');
 const ROWS_FAIL_DAY = new Date('2026-07-20T00:00:00.000Z');
 
-function recordingAuth(): DemoAuthPort {
+function recordingAuth(deleted: string[] = []): DemoAuthPort {
   const byEmail = new Map<string, string>();
   return {
     async createConfirmedUser(email) {
@@ -33,7 +40,9 @@ function recordingAuth(): DemoAuthPort {
       if (!userId) throw new Error('missing user');
       return { userId, emailSent: false, exposedSecret: false };
     },
-    async deleteUser() {},
+    async deleteUser(userId) {
+      deleted.push(userId);
+    },
   };
 }
 
@@ -389,11 +398,19 @@ describe('demo abandoned cleanup acceptance (C1–C4)', () => {
     expect(remains).toHaveLength(1);
   });
 
-  it('C4: profile switch leaves a single active demo session org', async () => {
-    const auth = recordingAuth();
+  it('C4: profile switch leaves a single active demo session org and removes its logins', async () => {
+    const deletedLogins: string[] = [];
+    const auth = recordingAuth(deletedLogins);
     const first = await database.asService((db) =>
       enterDemo(db, auth, { profileKey: 'PLUMBING', roleKey: 'owner' }),
     );
+    const firstActors = await database.asService(async (db) =>
+      db
+        .select({ authUserId: demoSessionActors.authUserId })
+        .from(demoSessionActors)
+        .where(eq(demoSessionActors.organizationId, first.sessionId)),
+    );
+    expect(firstActors).toHaveLength(6);
     const second = await database.asService((db) =>
       enterDemo(db, auth, {
         profileKey: 'HVAC',
@@ -422,5 +439,79 @@ describe('demo abandoned cleanup acceptance (C1–C4)', () => {
       resultRows(await db.execute(sql`select id from organizations where id = ${first.sessionId}::uuid`)),
     );
     expect(firstGone).toHaveLength(0);
+    expect([...deletedLogins].sort()).toEqual(firstActors.map((actor) => actor.authUserId).sort());
+  }, 300_000);
+
+  it('C8: orphan identity sweep removes only identities of removed demo sessions', async () => {
+    const auth = recordingAuth();
+    const removedSession = await database.asService((db) =>
+      enterDemo(db, auth, { profileKey: 'HVAC', roleKey: 'owner' }),
+    );
+    const liveSession = await database.asService((db) =>
+      enterDemo(db, auth, { profileKey: 'PLUMBING', roleKey: 'owner' }),
+    );
+    const actorIds = async (organizationId: string) =>
+      (
+        await database.asService(async (db) =>
+          db
+            .select({ authUserId: demoSessionActors.authUserId })
+            .from(demoSessionActors)
+            .where(eq(demoSessionActors.organizationId, organizationId)),
+        )
+      ).map((row) => row.authUserId);
+    const removedActors = await actorIds(removedSession.sessionId);
+    const liveActors = await actorIds(liveSession.sessionId);
+    await database.asService((db) =>
+      withDemoProvisioner(db, (tx) => deleteDemoSessionOrganization(tx, removedSession.sessionId)),
+    );
+
+    const realOrgId = randomUUID();
+    const realUser = randomUUID();
+    const mintedForLiveOrg = randomUUID();
+    const referencedOrphan = randomUUID();
+    await database.asService(async (db) => {
+      await db.execute(sql`insert into organizations (id, name) values (${realOrgId}::uuid, 'real org')`);
+      await db.execute(sql`
+        insert into profiles (id, email) values
+          (${realUser}::uuid, 'someone@example.com'),
+          (${mintedForLiveOrg}::uuid, ${`${realOrgId}.owner@demo.pf.internal`}),
+          (${referencedOrphan}::uuid, ${`${randomUUID()}.manager@demo.pf.internal`})
+      `);
+      await db.execute(sql`
+        insert into user_preferences (user_id, active_organization_id)
+        values (${referencedOrphan}::uuid, ${realOrgId}::uuid)
+      `);
+    });
+
+    const authDeleted: string[] = [];
+    const result = await database.asService((db) =>
+      sweepOrphanDemoIdentities(
+        db,
+        {
+          async deleteAuthUser(userId) {
+            authDeleted.push(userId);
+            return 'deleted';
+          },
+        },
+        { limit: 1000 },
+      ),
+    );
+    expect(result.skipped).toBeGreaterThanOrEqual(1);
+
+    const remainingProfiles = new Set(
+      resultRows<{ id: string }>(
+        await database.asService(async (db) => db.execute(sql`select id from profiles`)),
+      ).map((row) => row.id),
+    );
+    for (const id of removedActors) {
+      expect(authDeleted).toContain(id);
+      expect(remainingProfiles.has(id)).toBe(false);
+    }
+    for (const id of [...liveActors, realUser, mintedForLiveOrg]) {
+      expect(authDeleted).not.toContain(id);
+      expect(remainingProfiles.has(id)).toBe(true);
+    }
+    expect(authDeleted).toContain(referencedOrphan);
+    expect(remainingProfiles.has(referencedOrphan)).toBe(true);
   }, 300_000);
 });
