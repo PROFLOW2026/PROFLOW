@@ -269,7 +269,8 @@ jobs:
     needs: scope
     if: github.event_name != 'schedule' && needs.scope.outputs.migration == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # The serial suite takes 19-21 minutes on a hosted runner; 25 cancelled it on slower runners.
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -290,7 +291,7 @@ jobs:
     name: Migration hardening (nightly)
     if: github.event_name == 'schedule' && github.event.schedule == '0 1 * * *'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4

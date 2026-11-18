@@ -43,7 +43,7 @@ export async function POST(request: Request): Promise<Response> {
       });
     } catch (error) {
       console.error('demo orphan identity sweep failed', error);
-      identities = { error: 'orphan identity sweep failed' };
+      identities = { error: 'orphan_identity_sweep_failed' };
     }
   }
   return NextResponse.json({ ...result, identities });
