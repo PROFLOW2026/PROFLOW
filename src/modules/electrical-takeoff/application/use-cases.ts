@@ -316,6 +316,7 @@ export async function startAnalysisUseCase(
       resultUrl: `${origin}/api/takeoff/worker/result/${jobId}`,
       artifactUrl: `${origin}/api/takeoff/worker/artifact/${jobId}`,
       token: token.bearer,
+      xrefUrl: `${origin}/api/takeoff/worker/xref/${jobId}`,
     },
     catalog,
     symbolLibrary,

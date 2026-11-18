@@ -13,6 +13,7 @@ import { findFolderMapping } from '../data/folder-mappings.repository';
 import type { ProviderFileItem, ProviderFolderListing, StorageConnectionRecord } from '../domain/types';
 import { ProviderHttpError } from '../providers/http-utils';
 import { getStorageProviderAdapter } from '../providers/registry';
+import { resolveStorageXrefPath } from './resolve-storage-xref';
 import {
   assertOrganizationStorageAvailable,
   resolveValidAccessToken,
@@ -372,6 +373,61 @@ export async function getExternalFileDownload(
     stream: downloaded.stream,
     filename: input.filename,
     mimeType: downloaded.mimeType,
+  };
+}
+
+export async function streamExternalDocumentXref(
+  context: OrgContext,
+  documentId: string,
+  input: { xrefPath: string; anchorPath?: string | null },
+): Promise<{
+  stream: ReadableStream<Uint8Array>;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number | null;
+  httpStatus: number;
+  contentRange: string | null;
+  byteRange: null;
+} | null> {
+  const document = await findDocumentById(context.db, context.organizationId, documentId);
+  if (!document || document.status !== 'available' || document.deletedAt) return null;
+  if (document.storageBackend !== 'external' || !document.externalConnectionId || !document.externalFileId) {
+    return null;
+  }
+  const { findStorageConnectionById } = await import('../data/connections.repository');
+  const connection = await findStorageConnectionById(
+    context.db,
+    context.organizationId,
+    document.externalConnectionId,
+  );
+  if (!connection || connection.status !== 'connected') return null;
+  const accessToken = await resolveValidAccessToken(context.db, context.organizationId, connection);
+  const adapter = getStorageProviderAdapter(connection.provider);
+  const meta = await adapter.getFileMetadata(accessToken, document.externalFileId);
+  if (!meta?.parentId) return null;
+  const resolved = await resolveStorageXrefPath({
+    adapter,
+    accessToken,
+    startFolderId: meta.parentId,
+    xrefPath: input.xrefPath,
+    anchorPath: input.anchorPath,
+  });
+  if (!resolved) return null;
+  if (resolved.sizeBytes != null && resolved.sizeBytes > 250 * 1024 * 1024) return null;
+  let downloaded;
+  try {
+    downloaded = await adapter.downloadFileStream(accessToken, resolved.fileId, { knownMeta: null });
+  } catch {
+    return null;
+  }
+  return {
+    stream: downloaded.stream,
+    filename: resolved.name,
+    mimeType: downloaded.mimeType || 'application/octet-stream',
+    sizeBytes: resolved.sizeBytes ?? downloaded.sizeBytes ?? null,
+    httpStatus: 200,
+    contentRange: null,
+    byteRange: null,
   };
 }
 

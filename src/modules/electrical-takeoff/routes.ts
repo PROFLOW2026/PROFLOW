@@ -12,7 +12,7 @@ import { isWorkerIngestError } from './domain/worker-ingest-error';
 import { buildExportBytes, takeoffExportDownloadHeaders } from './application/export-download';
 import type { ExportKind } from './domain/contracts';
 import { assertAnalysisAccess, externalActorFrom, internalActorFrom, takeoffOrgScope } from './application/access';
-import { openArchitecturalBackground } from './application/takeoff-architectural-background';
+import { openArchitecturalBackground, openWorkerXref } from './application/takeoff-architectural-background';
 import type { OrgContext } from '@/shared/auth/context';
 import type { DbExecutor } from '@/shared/db/types';
 
@@ -116,6 +116,36 @@ export async function handleWorkerProgress(request: Request, jobId: string): Pro
   if (!(await authorizeWorkerJob(db, jobId, bearer(request), secret))) return new Response(null, { status: 401 });
   await applyWorkerProgress(db, jobId, await request.json());
   return new Response(null, { status: 204 });
+}
+
+export async function handleWorkerXref(request: Request, jobId: string): Promise<Response> {
+  const secret = process.env.TAKEOFF_WORKER_SECRET;
+  if (!secret) return new Response(null, { status: 503 });
+  const db = takeoffAdminDb();
+  const job = await authorizeWorkerJob(db, jobId, bearer(request), secret);
+  if (!job) return new Response(null, { status: 401 });
+  const url = new URL(request.url);
+  const fileId = url.searchParams.get('fileId') ?? '';
+  const xrefPath = url.searchParams.get('path') ?? '';
+  const anchor = url.searchParams.get('anchor') ?? '';
+  const file = await findFile(db, job.organizationId, fileId);
+  if (!file || file.analysisId !== job.analysisId) return new Response(null, { status: 404 });
+  const opened = await openWorkerXref({
+    db,
+    organizationId: job.organizationId,
+    fileId,
+    xrefPath,
+    anchorPath: anchor,
+  });
+  if (!opened) return new Response(null, { status: 404 });
+  return new Response(opened.stream, {
+    headers: {
+      'Content-Type': opened.mimeType,
+      ...(opened.sizeBytes !== null ? { 'Content-Length': String(opened.sizeBytes) } : {}),
+      'X-Provider-File-Id': opened.providerFileId,
+      'Cache-Control': 'private, no-store',
+    },
+  });
 }
 
 export async function handleWorkerArtifact(request: Request, jobId: string): Promise<Response> {

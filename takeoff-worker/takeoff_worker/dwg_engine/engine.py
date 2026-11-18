@@ -25,6 +25,7 @@ from ..models import (
     WorkerSheet,
     WorkerWarning,
     XrefMissing,
+    XrefRefRecord,
 )
 from .blocks import is_xref_block
 from .convert import convert_dwg_to_dxf, find_dwg2dxf
@@ -33,12 +34,14 @@ from .xref_merge import collect_merged_xref_inserts, sheet_has_missing_xref_cont
 from .detections import collect_layout_symbols, dedupe, raw_to_worker
 from .doc_context import DocContext
 from .exploded import find_exploded_symbols
-from .legend import collect_drawing_legend_rows
+from .legend import collect_drawing_legend_rows, count_anchor_points, count_anchor_rows
 from .legend_types import accepted_legend_rows, socket_bank_signatures, type_map_from_legend_rows
 from .linear_extract import extract_linear
 from .preview import render_viewport_png
 from .rules import LayerRules
+from .sheet_owner import SheetClaim, decide_sheet_owner, is_overview_viewport
 from .viewport import pick_sheet_viewport, region_around_points, regions_for_layout
+from .xref_budget import XrefBudget
 
 log = logging.getLogger(__name__)
 
@@ -57,6 +60,7 @@ class DwgEngine:
         library: list[SymbolLibraryEntry],
         sheet_keys: set[str] | None = None,
         progress: ProgressFn | None = None,
+        xref_fetch=None,
     ) -> EngineOutput:
         t0 = time.perf_counter()
         tmp = tempfile.mkdtemp(prefix="takeoff_dwg_job_")
@@ -150,29 +154,58 @@ class DwgEngine:
                     )
                 )
 
-            loaded_xrefs, xref_docs = self._load_xrefs(xref_paths, warnings, file_id)
-            missing_xrefs = self._missing_xrefs(ctx, loaded_xrefs, warnings, file_id)
+            host_bytes = int(src.stat().st_size) if src.is_file() else 0
+            loaded_xrefs, xref_docs, xref_records = self._load_xrefs(
+                ctx,
+                xref_paths,
+                warnings,
+                file_id,
+                host_bytes=host_bytes,
+                xref_fetch=xref_fetch,
+            )
+            missing_xrefs = self._missing_xrefs(ctx, loaded_xrefs, warnings, file_id, xref_records)
 
             try:
                 catalog = load_default_catalog()
             except FileNotFoundError:
                 catalog = []
-            collected_rows = collect_drawing_legend_rows(ctx)
+            try:
+                collected_rows = collect_drawing_legend_rows(ctx)
+            except Exception as ex:
+                collected_rows = []
+                warnings.append(
+                    WorkerWarning(
+                        code="legend_rows_read",
+                        severity="warning",
+                        message=f"Legend detection stopped: {ex}"[:300],
+                        fileId=file_id,
+                    )
+                )
             legend_rows = accepted_legend_rows(collected_rows, catalog)
             legend_types = type_map_from_legend_rows(legend_rows, catalog)
+            warnings.append(
+                WorkerWarning(
+                    code="legend_rows_read",
+                    severity="info",
+                    message=(
+                        f"Legend rows read: {len(legend_rows)}. "
+                        "Text-only tables, images, and irregular pairs were not identified."
+                    ),
+                    fileId=file_id,
+                )
+            )
             bank_sigs = socket_bank_signatures(legend_rows)
             legend_names: set[str] = set()
-            anchors: list[tuple[float, float]] = []
-            # A note column is not a legend, but its symbols stay out of the count.
-            for row in collected_rows:
+            anchors = count_anchor_points(ctx)
+            # Only the rows that already named a block may pull it into the count.
+            # A newly read legend row classifies; it does not add symbols.
+            for row in count_anchor_rows(ctx):
                 if not (row.get("rawText") or row.get("decodedText")):
                     continue
                 if row.get("resolved"):
                     legend_names.add(str(row["resolved"]).lower())
                 if row.get("blockName"):
                     legend_names.add(str(row["blockName"]).lower())
-                if row.get("x") is not None and row.get("y") is not None:
-                    anchors.append((float(row["x"]), float(row["y"])))
 
             sheets_out: list[WorkerSheet] = []
             detections: list[WorkerDetection] = []
@@ -200,10 +233,10 @@ class DwgEngine:
             index = 0
             det_seq = 0
             n_layouts = len(plan_layouts)
-            # One model insert shown on two layouts is one device.
-            seen_model: set[tuple] = set()
             issued_regions = [regions_for_layout(ctx.doc, name) for name in plan_layouts]
             outside_open = True
+            model_height = _model_span_height(ctx)
+            placements: list[dict] = []
 
             for i, lname in enumerate(plan_layouts):
                 sheet_key = f"layout:{lname}" if lname != "Model" else "model"
@@ -335,38 +368,28 @@ class DwgEngine:
                     if sheet_has_missing_xref_content(ctx, reg, missing_xrefs, lname):
                         analyzed = "partial"
 
+                    cover = regs if lname != "Model" else [reg]
                     for raw in vis:
-                        model_key = (raw.resolved, round(raw.x, 1), round(raw.y, 1))
-                        if model_key in seen_model:
-                            continue
-                        seen_model.add(model_key)
-                        det_seq += 1
-                        d = raw_to_worker(
-                            raw,
-                            sheet_key=sheet_key,
-                            file_id=file_id,
-                            seq=det_seq,
-                            reg=reg,
-                            width_px=width_px,
-                            height_px=height_px,
-                            library_map=library_map,
-                            legend_types=legend_types,
+                        partial = False
+                        overview = False
+                        for window in cover:
+                            if not window.contains(raw.x, raw.y):
+                                continue
+                            if is_overview_viewport(window.view_height, model_height):
+                                overview = True
+                            else:
+                                partial = True
+                        placements.append(
+                            {
+                                "sheet_key": sheet_key,
+                                "raw": raw,
+                                "reg": reg,
+                                "width_px": width_px,
+                                "height_px": height_px,
+                                "partial": partial,
+                                "overview": overview,
+                            }
                         )
-                        # A socket bank has no catalog type until someone counts it.
-                        # Do not multiply the insert by an assumed number of sockets.
-                        if d["typeKey"] is None and (
-                            d["signature"] in bank_sigs or d["signature"].lower() in bank_sigs
-                        ):
-                            d["classifiedBy"] = "none"
-                            d["confidence"] = "none"
-                            if "unclassified" not in d["reasons"]:
-                                d["reasons"].append("unclassified")
-                        det = WorkerDetection(**d)
-                        if "xref_missing" in det.reasons and analyzed != "partial":
-                            analyzed = "partial"
-                        detections.append(det)
-                        sig = d["signature"]
-                        block_counts[sig] += 1
 
                     mpp = None
                     if scale.verified and scale.metersPerPreviewPx:
@@ -385,7 +408,13 @@ class DwgEngine:
                     for row in lin_rows:
                         linear.append(WorkerLinear(**row))
 
-                    xrefs_missing = [XrefMissing(name=n) for n in sorted(missing_xrefs)]
+                    xrefs_missing = [
+                        XrefMissing(
+                            name=n,
+                            path=next((record.path for record in xref_records if record.name == n), None),
+                        )
+                        for n in sorted(missing_xrefs)
+                    ]
                     if analyzed == "partial":
                         warnings.append(
                             WorkerWarning(
@@ -411,6 +440,7 @@ class DwgEngine:
                             analyzed=analyzed,
                             note=note,
                             xrefsMissing=xrefs_missing,
+                            xrefRefs=xref_records,
                             hiddenByLayers=hidden,
                         )
                     )
@@ -440,6 +470,18 @@ class DwgEngine:
                         )
                     )
                     index += 1
+
+            det_seq, detections, block_counts = _emit_owned_detections(
+                placements,
+                file_id=file_id,
+                library_map=library_map,
+                legend_types=legend_types,
+                bank_sigs=bank_sigs,
+                block_counts=block_counts,
+            )
+            for sheet in sheets_out:
+                if any(d.sheetKey == sheet.sheetKey and "xref_missing" in d.reasons for d in detections):
+                    sheet.analyzed = "partial"
 
             if progress:
                 progress("legend", 85, "Legend")
@@ -486,17 +528,94 @@ class DwgEngine:
         )
 
     def _load_xrefs(
-        self, xref_paths: dict[str, str], warnings: list[WorkerWarning], file_id: str
-    ) -> tuple[set[str], dict[str, DocContext]]:
+        self,
+        ctx: DocContext,
+        xref_paths: dict[str, str],
+        warnings: list[WorkerWarning],
+        file_id: str,
+        *,
+        host_bytes: int,
+        xref_fetch,
+    ) -> tuple[set[str], dict[str, DocContext], list[XrefRefRecord]]:
+        budget = XrefBudget(host_bytes, len(ctx.inserts))
         loaded: set[str] = set()
         docs: dict[str, DocContext] = {}
+        records: list[XrefRefRecord] = []
+        if budget.host_over_budget:
+            warnings.append(
+                WorkerWarning(
+                    code="xref_budget",
+                    severity="warning",
+                    message="Host file is over 150 MB, so no XREF was loaded",
+                    fileId=file_id,
+                )
+            )
+            for xr in ctx.xrefs:
+                records.append(XrefRefRecord(name=xr["name"], path=xr.get("path") or None, loaded=False))
+            return loaded, docs, records
+
+        queue: list[tuple[str, str, str]] = []
+        for xr in ctx.xrefs:
+            queue.append((xr["name"], str(xr.get("path") or ""), ""))
         for name, xpath in xref_paths.items():
-            if not os.path.isfile(xpath):
+            if name not in {item[0] for item in queue}:
+                queue.append((name, "", ""))
+                xref_paths.setdefault(name, xpath)
+
+        while queue:
+            name, saved_path, anchor = queue.pop(0)
+            if name in loaded or any(record.name == name for record in records):
+                continue
+            if budget.timed_out():
+                warnings.append(
+                    WorkerWarning(
+                        code="xref_budget",
+                        severity="warning",
+                        message="XREF closure stopped after 600 seconds",
+                        fileId=file_id,
+                    )
+                )
+                records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=False))
+                break
+            local = xref_paths.get(name) if os.path.isfile(xref_paths.get(name, "")) else None
+            size = os.path.getsize(local) if local else None
+            identity = saved_path or name
+            if local is None and xref_fetch is not None and saved_path:
+                try:
+                    fetched = xref_fetch(name, saved_path, anchor)
+                except Exception as ex:
+                    warnings.append(
+                        WorkerWarning(
+                            code="xref_missing",
+                            severity="warning",
+                            message=f"Xref {name}: {ex}"[:300],
+                            fileId=file_id,
+                        )
+                    )
+                    records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=False))
+                    continue
+                if fetched:
+                    local, size, identity = fetched
+            if not local or not os.path.isfile(local):
+                records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=False))
+                continue
+            if size is None:
+                size = os.path.getsize(local)
+            reason = budget.reject(size, identity)
+            if reason:
+                warnings.append(
+                    WorkerWarning(
+                        code="xref_budget",
+                        severity="warning",
+                        message=f"Xref {name} skipped ({reason})",
+                        fileId=file_id,
+                    )
+                )
+                records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=False))
                 continue
             try:
-                dxf_p, _, _ = ensure_dxf(xpath)
-                docs[name] = DocContext(str(dxf_p), self.rules)
-                loaded.add(name)
+                dxf_p, _, _ = ensure_dxf(local)
+                doc = DocContext(str(dxf_p), self.rules)
             except Exception as ex:
                 warnings.append(
                     WorkerWarning(
@@ -506,26 +625,62 @@ class DwgEngine:
                         fileId=file_id,
                     )
                 )
-        return loaded, docs
+                records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=False))
+                continue
+            if budget.reject_inserts(len(doc.inserts)):
+                warnings.append(
+                    WorkerWarning(
+                        code="xref_budget",
+                        severity="warning",
+                        message=f"Xref {name} not merged: INSERT budget {budget.max_inserts}",
+                        fileId=file_id,
+                    )
+                )
+                records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=False))
+                continue
+            budget.note_file(size, identity)
+            if saved_path:
+                budget.seen.add(saved_path)
+            budget.note_inserts(len(doc.inserts))
+            docs[name] = doc
+            loaded.add(name)
+            records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=True))
+            for child in doc.xrefs:
+                if int(child.get("inserted") or 0) <= 0:
+                    continue
+                child_name = str(child.get("name") or "")
+                if not child_name or child_name in loaded:
+                    continue
+                queue.append((child_name, str(child.get("path") or ""), saved_path))
+        return loaded, docs, records
 
     def _missing_xrefs(
-        self, ctx: DocContext, loaded: set[str], warnings: list[WorkerWarning], file_id: str
+        self,
+        ctx: DocContext,
+        loaded: set[str],
+        warnings: list[WorkerWarning],
+        file_id: str,
+        records: list[XrefRefRecord],
     ) -> set[str]:
         missing: set[str] = set()
+        path_of = {record.name: record.path for record in records}
         for xr in ctx.xrefs:
             n = xr["name"]
             if xr.get("inserted", 0) <= 0:
                 continue
-            if n not in loaded:
-                missing.add(n)
-                warnings.append(
-                    WorkerWarning(
-                        code="xref_missing",
-                        severity="warning",
-                        message=f"Xref '{n}' referenced but file not provided",
-                        fileId=file_id,
-                    )
+            if n in loaded:
+                continue
+            missing.add(n)
+            warnings.append(
+                WorkerWarning(
+                    code="xref_missing",
+                    severity="warning",
+                    message=f"Xref '{n}' referenced but file not provided",
+                    fileId=file_id,
                 )
+            )
+            if n not in path_of:
+                records.append(XrefRefRecord(name=n, path=xr.get("path") or None, loaded=False))
         return missing
 
     def _build_legend(
@@ -560,6 +715,72 @@ class DwgEngine:
                 )
             )
         return out
+
+
+def _model_span_height(ctx: DocContext) -> float:
+    try:
+        ext = ezdxf.bbox.extents(ctx.doc.modelspace(), fast=True)
+        if ext.has_data:
+            return float(ext.extmax.y - ext.extmin.y)
+    except Exception:
+        return 0.0
+    return 0.0
+
+
+def _emit_owned_detections(
+    placements: list[dict],
+    *,
+    file_id: str,
+    library_map: dict,
+    legend_types: dict,
+    bank_sigs: set[str],
+    block_counts: Counter,
+) -> tuple[int, list[WorkerDetection], Counter]:
+    groups: dict[tuple, list[dict]] = {}
+    order: list[tuple] = []
+    for place in placements:
+        raw = place["raw"]
+        key = (raw.resolved, round(raw.x, 1), round(raw.y, 1))
+        if key not in groups:
+            groups[key] = []
+            order.append(key)
+        groups[key].append(place)
+    detections: list[WorkerDetection] = []
+    seq = 0
+    for key in order:
+        group = groups[key]
+        decision = decide_sheet_owner(
+            [
+                SheetClaim(place["sheet_key"], bool(place["partial"]), bool(place["overview"]))
+                for place in group
+            ]
+        )
+        chosen = next((place for place in group if place["sheet_key"] == decision.owner_sheet_key), group[0])
+        raw = chosen["raw"]
+        seq += 1
+        d = raw_to_worker(
+            raw,
+            sheet_key=chosen["sheet_key"],
+            file_id=file_id,
+            seq=seq,
+            reg=chosen["reg"],
+            width_px=chosen["width_px"],
+            height_px=chosen["height_px"],
+            library_map=library_map,
+            legend_types=legend_types,
+        )
+        if decision.needs_review:
+            if "sheet_unassigned" not in d["reasons"]:
+                d["reasons"].append("sheet_unassigned")
+            d["candidateSheetKeys"] = list(decision.candidate_sheet_keys)
+        if d["typeKey"] is None and (d["signature"] in bank_sigs or d["signature"].lower() in bank_sigs):
+            d["classifiedBy"] = "none"
+            d["confidence"] = "none"
+            if "unclassified" not in d["reasons"]:
+                d["reasons"].append("unclassified")
+        detections.append(WorkerDetection(**d))
+        block_counts[d["signature"]] += 1
+    return seq, detections, block_counts
 
 
 def _is_legend_anchor(x: float, y: float, anchors: list[tuple[float, float]]) -> bool:

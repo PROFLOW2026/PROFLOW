@@ -153,15 +153,90 @@ def _median(vals: list[float], default: float) -> float:
 
 
 def collect_drawing_legend_rows(ctx: DocContext) -> list[dict]:
-    """Legend rows: a vertical column of distinct blocks, each with adjacent text.
+    """Supported legend structures only: a vertical column, a horizontal row, or a simple table.
 
-    Block names are not types. Rows only carry the text that sits beside the symbol
-    so a later catalog match can assign a typeKey. Plan grids of one repeated block
-    are not columns.
+    Each accepted row has a description beside one symbol. Block names are not types.
+    Text-only tables, images, and irregular pairs are not rows.
     """
-    rows = _legend_columns_in_model(ctx)
+    rows = _legend_structures(ctx, _legend_candidate_inserts(ctx), _model_texts(ctx))
+    for lay in ctx.doc.layouts:
+        if lay.name == "Model":
+            continue
+        rows.extend(_legend_structures(ctx, _layout_inserts(ctx, lay), _layout_texts(ctx, lay)))
     named = _named_layout_legend_rows(ctx)
     return _dedupe_legend_rows(rows + named)
+
+
+def count_anchor_rows(ctx: DocContext) -> list[dict]:
+    """Rows that already decided which symbols stay out of the quantity.
+
+    Wider legend structures classify types. They do not add or remove symbols.
+    """
+    return _tight_model_columns(ctx) + _named_layout_legend_rows(ctx)
+
+
+def count_anchor_points(ctx: DocContext) -> list[tuple[float, float]]:
+    points: list[tuple[float, float]] = []
+    for row in count_anchor_rows(ctx):
+        if row.get("x") is None or row.get("y") is None:
+            continue
+        points.append((float(row["x"]), float(row["y"])))
+    return points
+
+
+def _tight_model_columns(ctx: DocContext) -> list[dict]:
+    inserts = _legend_candidate_inserts(ctx)
+    texts = _model_texts(ctx)
+    if len(inserts) < 3 or not texts:
+        return []
+    heights = [t["height"] for t in texts if t["height"] > 0]
+    med_h = _median(heights, 10.0)
+    x_tol = max(med_h * 3.0, 12.0)
+    x_span_max = max(med_h * 2.2, 8.0)
+    y_gap = max(med_h * 20.0, 80.0)
+    rows: list[dict] = []
+    for col in _cluster_by_x(inserts, x_tol):
+        for run in _split_y_runs(col, y_gap):
+            rows.extend(_tight_rows(run, texts, med_h=med_h, x_span_max=x_span_max, x_reach=x_tol, start_index=len(rows)))
+    return rows
+
+
+def _tight_rows(
+    col: list[dict],
+    texts: list[dict],
+    *,
+    med_h: float,
+    x_span_max: float,
+    x_reach: float,
+    start_index: int,
+) -> list[dict]:
+    if len(col) < 3:
+        return []
+    names = [c["resolved"].lower() for c in col]
+    if len(set(names)) / len(col) < 0.6:
+        return []
+    ys = sorted(c["y"] for c in col)
+    xs = [c["x"] for c in col]
+    y_span = ys[-1] - ys[0]
+    x_span = max(xs) - min(xs)
+    if x_span > x_span_max or y_span < max(med_h * 2, 1.0) or y_span < x_span:
+        return []
+    gaps = [b - a for a, b in zip(ys, ys[1:]) if b - a > 0.5]
+    pitch = _median(gaps, med_h * 2)
+    y_tol = max(med_h * 0.8, min(pitch * 0.45, med_h * 2.2))
+    attached = _assign_texts(col, texts, y_tol=y_tol, x_min=max(med_h * 0.4, 2.0), x_max=max(x_reach * 8.0, med_h * 18.0))
+    built: list[dict] = []
+    for ins in col:
+        picked = attached.get(id(ins), [])
+        if not picked:
+            continue
+        row = _row_from_insert(ins, picked, row_index=start_index + len(built))
+        if _hebrew_count(str(row.get("decodedText") or "")) < 3:
+            continue
+        built.append(row)
+    if len(built) < 3 or len(built) / len(col) < 0.5:
+        return []
+    return built
 
 
 def _named_layout_legend_rows(ctx: DocContext) -> list[dict]:
@@ -194,32 +269,42 @@ def _dedupe_legend_rows(rows: list[dict]) -> list[dict]:
     return out
 
 
-def _legend_columns_in_model(ctx: DocContext) -> list[dict]:
-    inserts = _legend_candidate_inserts(ctx)
-    texts = _model_texts(ctx)
+def _legend_structures(ctx: DocContext, inserts: list[dict], texts: list[dict]) -> list[dict]:
     if len(inserts) < 3 or not texts:
         return []
     heights = [t["height"] for t in texts if t["height"] > 0]
     med_h = _median(heights, 10.0)
-    x_tol = max(med_h * 3.0, 12.0)
-    columns = _cluster_by_x(inserts, x_tol)
-    # A legend is one tight stack. Split building-high columns on large Y gaps, and
-    # reject a stack whose symbols drift apart in X (a diagonal of unrelated blocks).
-    x_span_max = max(med_h * 2.2, 8.0)
-    y_gap = max(med_h * 20.0, 80.0)
+    axis_tol = max(med_h * 3.0, 12.0)
+    gap = max(med_h * 20.0, 80.0)
+    reach = max(axis_tol * 8.0, med_h * 18.0)
     rows: list[dict] = []
-    for col in columns:
-        for run in _split_y_runs(col, y_gap):
+    for col in _cluster_by_x(inserts, axis_tol):
+        for run in _split_runs(col, gap, "y"):
             rows.extend(
                 _rows_from_legend_run(
                     run,
                     texts,
                     med_h=med_h,
-                    x_span_max=x_span_max,
-                    x_reach=x_tol,
+                    span_max=reach,
+                    reach=reach,
+                    along="y",
                     start_index=len(rows),
                 )
             )
+    for row in _cluster_by_y(inserts, axis_tol):
+        for run in _split_runs(row, gap, "x"):
+            rows.extend(
+                _rows_from_legend_run(
+                    run,
+                    texts,
+                    med_h=med_h,
+                    span_max=reach,
+                    reach=reach,
+                    along="x",
+                    start_index=len(rows),
+                )
+            )
+    rows.extend(_rows_from_table(inserts, texts, med_h=med_h, reach=reach, start_index=len(rows)))
     return rows
 
 
@@ -228,41 +313,85 @@ def _rows_from_legend_run(
     texts: list[dict],
     *,
     med_h: float,
-    x_span_max: float,
-    x_reach: float,
+    span_max: float,
+    reach: float,
+    along: str,
     start_index: int,
+    shape: str = "stack",
 ) -> list[dict]:
     if len(col) < 3:
         return []
     names = [c["resolved"].lower() for c in col]
     if len(set(names)) / len(col) < 0.6:
         return []
-    ys = sorted(c["y"] for c in col)
     xs = [c["x"] for c in col]
-    y_span = ys[-1] - ys[0]
+    ys = [c["y"] for c in col]
     x_span = max(xs) - min(xs)
-    if x_span > x_span_max:
+    y_span = max(ys) - min(ys)
+    long_span = y_span if along == "y" else x_span
+    cross_span = x_span if along == "y" else y_span
+    if cross_span > span_max:
         return []
-    if y_span < max(med_h * 2, 1.0) or y_span < x_span:
+    if shape != "table" and (long_span < max(med_h * 2, 1.0) or long_span < cross_span):
         return []
-    gaps = [b - a for a, b in zip(ys, ys[1:]) if b - a > 0.5]
+    ordered = sorted(col, key=lambda item: item[along])
+    coords = [item[along] for item in ordered]
+    gaps = [b - a for a, b in zip(coords, coords[1:]) if b - a > 0.5]
     pitch = _median(gaps, med_h * 2)
-    y_tol = max(med_h * 0.8, min(pitch * 0.45, med_h * 2.2))
-    x_max = max(x_reach * 8.0, med_h * 18.0)
-    x_min = max(med_h * 0.4, 2.0)
-    attached_by_id = _assign_texts(col, texts, y_tol=y_tol, x_min=x_min, x_max=x_max)
+    band = max(med_h * 0.8, min(pitch * 0.45, med_h * 2.2))
+    near = max(med_h * 0.4, 2.0)
+    attached_by_id = _assign_texts_axis(ordered, texts, along=along, band=band, near=near, far=reach)
     built: list[dict] = []
-    for ins in col:
+    for ins in ordered:
         attached = attached_by_id.get(id(ins), [])
         if not attached:
             continue
         row = _row_from_insert(ins, attached, row_index=start_index + len(built))
-        if _hebrew_count(str(row.get("decodedText") or "")) < 3:
+        text = str(row.get("decodedText") or row.get("rawText") or "")
+        if _is_continuation(text):
+            row["continuation"] = True
+            built.append(row)
+            continue
+        if not _is_description(text, str(ins.get("block_name") or "")):
             continue
         built.append(row)
-    if len(built) < 3 or len(built) / len(col) < 0.5:
+    described = [row for row in built if not row.get("continuation")]
+    if len(described) < 3 or len(described) / len(col) < 0.5:
         return []
     return built
+
+
+_CONTINUATION = re.compile(r"(?i)^(כנ[\"'״׳]?ל|as above|ditto|same)\b")
+_HEBREW_CHAR = re.compile(r"[\u0590-\u05FF]")
+_LATIN_WORD = re.compile(r"[A-Za-z]{2,}")
+
+
+def _is_continuation(text: str) -> bool:
+    return bool(_CONTINUATION.match(" ".join(text.split())))
+
+
+def _is_description(text: str, block_name: str) -> bool:
+    folded = " ".join(text.split())
+    if not folded or _is_continuation(folded):
+        return False
+    if block_name and folded.casefold() == block_name.casefold():
+        return False
+    if re.fullmatch(r"[\d./\-]+", folded):
+        return False
+    if _HEBREW_CHAR.search(folded):
+        return True
+    return bool(_LATIN_WORD.search(folded)) and (" " in folded or len(folded) >= 4)
+
+
+def _split_runs(col: list[dict], gap: float, axis: str) -> list[list[dict]]:
+    ordered = sorted(col, key=lambda item: item[axis])
+    runs: list[list[dict]] = []
+    for ins in ordered:
+        if not runs or ins[axis] - runs[-1][-1][axis] > gap:
+            runs.append([ins])
+        else:
+            runs[-1].append(ins)
+    return runs
 
 
 def _split_y_runs(col: list[dict], gap: float) -> list[list[dict]]:
@@ -322,6 +451,17 @@ def _model_texts(ctx: DocContext) -> list[dict]:
             )
         )
     return out
+
+
+def _cluster_by_y(inserts: list[dict], tol: float) -> list[list[dict]]:
+    ordered = sorted(inserts, key=lambda item: (item["y"], item["x"]))
+    clusters: list[list[dict]] = []
+    for ins in ordered:
+        if not clusters or abs(ins["y"] - clusters[-1][-1]["y"]) > tol:
+            clusters.append([ins])
+        else:
+            clusters[-1].append(ins)
+    return clusters
 
 
 def _cluster_by_x(inserts: list[dict], tol: float) -> list[list[dict]]:
@@ -396,6 +536,124 @@ def _row_from_insert(ins: dict, texts: list[dict], *, row_index: int) -> dict:
         x=ins["x"],
         y=ins["y"],
         layer=ins["layer"],
+    )
+
+
+def _assign_texts_axis(
+    col: list[dict],
+    texts: list[dict],
+    *,
+    along: str,
+    band: float,
+    near: float,
+    far: float,
+) -> dict[int, list[dict]]:
+    cross = "x" if along == "y" else "y"
+    buckets: dict[int, list[dict]] = {id(ins): [] for ins in col}
+    for text in texts:
+        best = None
+        best_d = 1e18
+        for ins in col:
+            along_d = abs(text[along] - ins[along])
+            cross_d = abs(text[cross] - ins[cross])
+            if along_d > band or cross_d < near or cross_d > far:
+                continue
+            dist = along_d * 4.0 + cross_d
+            if dist < best_d:
+                best, best_d = ins, dist
+        if best is not None:
+            buckets[id(best)].append(text)
+    out: dict[int, list[dict]] = {}
+    for ins in col:
+        picked = buckets[id(ins)]
+        if not picked:
+            continue
+        nearest = min(picked, key=lambda item: (abs(item[along] - ins[along]), abs(item[cross] - ins[cross])))
+        side = 1 if nearest[cross] >= ins[cross] else -1
+        row = [item for item in picked if (1 if item[cross] >= ins[cross] else -1) == side]
+        row.sort(key=lambda item: item[along])
+        out[id(ins)] = row[:6]
+    return out
+
+
+def _layout_inserts(ctx: DocContext, layout) -> list[dict]:
+    out: list[dict] = []
+    for entity in layout:
+        if entity.dxftype() != "INSERT":
+            continue
+        name = str(entity.dxf.name or "")
+        if not name or name.startswith("*") or is_xref_block(ctx.doc, name):
+            continue
+        resolved, _, _ = ctx.resolved_name(name)
+        if not resolved or resolved.startswith("*"):
+            continue
+        out.append(
+            dict(
+                x=float(entity.dxf.insert.x),
+                y=float(entity.dxf.insert.y),
+                resolved=resolved,
+                block_name=name,
+                layer=str(entity.dxf.layer or ""),
+            )
+        )
+    return out
+
+
+def _layout_texts(ctx: DocContext, layout) -> list[dict]:
+    out: list[dict] = []
+    for entity in layout:
+        if entity.dxftype() not in ("TEXT", "MTEXT"):
+            continue
+        raw = entity.dxf.text if entity.dxftype() == "TEXT" else entity.text
+        raw = str(raw or "").strip()
+        if not raw:
+            continue
+        height = 0.0
+        for attr in ("char_height", "height"):
+            try:
+                height = float(entity.dxf.get(attr, 0) or 0)
+            except Exception:
+                height = 0.0
+            if height:
+                break
+        out.append(dict(x=float(entity.dxf.insert.x), y=float(entity.dxf.insert.y), raw=raw, font="", big="", height=height))
+    return out
+
+
+def _rows_from_table(
+    inserts: list[dict],
+    texts: list[dict],
+    *,
+    med_h: float,
+    reach: float,
+    start_index: int,
+) -> list[dict]:
+    """A regular grid: one symbol and one description per cell. A header without a symbol is ignored."""
+    if len(inserts) < 4:
+        return []
+    ys = sorted({round(item["y"], 1) for item in inserts})
+    xs = sorted({round(item["x"], 1) for item in inserts})
+    if len(ys) < 2 or len(xs) < 2:
+        return []
+    y_gaps = [b - a for a, b in zip(ys, ys[1:]) if b - a > med_h]
+    x_gaps = [b - a for a, b in zip(xs, xs[1:]) if b - a > med_h]
+    if len(y_gaps) < 1 or len(x_gaps) < 1:
+        return []
+    y_pitch = _median(y_gaps, med_h * 2)
+    x_pitch = _median(x_gaps, med_h * 2)
+    if y_pitch <= 0 or x_pitch <= 0:
+        return []
+    if max(y_gaps) > y_pitch * 1.8 or max(x_gaps) > x_pitch * 1.8:
+        return []
+    return _rows_from_legend_run(
+        inserts,
+        texts,
+        med_h=med_h,
+        span_max=max(reach, max(xs) - min(xs), max(ys) - min(ys)),
+        reach=reach,
+        along="y",
+        start_index=start_index,
+        shape="table",
     )
 
 

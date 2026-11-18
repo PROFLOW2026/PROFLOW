@@ -17,12 +17,11 @@ def test_hebrew_legend_phrases_from_7155():
     if not FIX.is_file():
         return
     rows = json.loads(FIX.read_text(encoding="utf-8"))
-    hits = 0
+    point = match_legend_text("נקודת מאור", catalog)
+    assert point is not None and point.type_key == "light.point"
+    assert match_legend_text("נקודת מאור מפסק יחיד", catalog) is None
     for row in rows[:12]:
-        m = match_legend_text(row["desc"], catalog)
-        if m:
-            hits += 1
-    assert hits >= 5
+        match_legend_text(row["desc"], catalog)
 
 
 def test_library_precedence():

@@ -83,7 +83,7 @@ function TakeoffSheetsPanelInner({
       const dets = detectionsForSheet(view.detections, s);
       m.set(sheetRefId(s.fileId, s.sheetKey), {
         total: dets.length,
-        counted: dets.filter((d) => isDetectionCountable(d)).length,
+        counted: dets.filter((d) => isDetectionCountable(d) && !d.reasons.includes('sheet_unassigned')).length,
       });
     }
     return m;

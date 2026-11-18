@@ -2,6 +2,7 @@ import type { ScenePayload } from './types';
 
 export type CadIndexedFile = {
   name: string;
+  sizeBytes?: number | null;
   getBytes: () => Promise<Uint8Array>;
 };
 
@@ -100,6 +101,8 @@ export function lookupInIndex(
   const byLower = index.byRelativePathLower.get(lower);
   if (byLower) return byLower;
 
+  const savedHasFolder = xrefPath.replace(/\\/g, '/').split('/').filter((part) => part && part !== '.').length > 1;
+  if (savedHasFolder) return null;
   const base = basenameKey(key);
   const hits = index.byBasenameLower.get(base);
   if (hits?.length === 1) {
@@ -176,6 +179,7 @@ export async function collectXrefClosure(options: {
   index: FileIndex;
   probeParse: ProbeParseFn;
   maxFiles?: number;
+  resolveMissing?: (xrefPath: string, hostPath: string) => Promise<CadIndexedFile | null>;
   fetchConcurrency?: number;
   onFetchProgress?: (loaded: number, targetBatch: number) => void;
   stats?: XrefClosureStats;
@@ -184,8 +188,14 @@ export async function collectXrefClosure(options: {
   const fetchConcurrency = options.fetchConcurrency ?? DEFAULT_XREF_FETCH_CONCURRENCY;
   const depsByPath = new Map<string, Uint8Array>();
   const hostPath = normalizeCadPath(options.hostPath);
+  const started = performance.now();
+  const closureLimit = 150 * 1024 * 1024;
+  const closureMs = 600_000;
+  let acceptedBytes = options.hostBytes.byteLength;
+  if (acceptedBytes > closureLimit) return [];
 
   for (let round = 0; round < maxFiles; round += 1) {
+    if (performance.now() - started > closureMs) break;
     const depsSnapshot: XrefDepBytes[] = [...depsByPath.entries()].map(
       ([path, bytes]) => ({ path, bytes }),
     );
@@ -203,7 +213,10 @@ export async function collectXrefClosure(options: {
       if (depsByPath.size + pending.length >= maxFiles) {
         break;
       }
-      const hit = lookupInIndex(options.index, hostPath, xrefPath);
+      let hit = lookupInIndex(options.index, hostPath, xrefPath);
+      if (!hit && options.resolveMissing) {
+        hit = await options.resolveMissing(xrefPath, hostPath);
+      }
       if (!hit) continue;
       const depKey = normalizeCadPath(hit.name);
       if (depsByPath.has(depKey)) continue;
@@ -217,8 +230,18 @@ export async function collectXrefClosure(options: {
 
     const batchTotal = depsByPath.size + pending.length;
     await runPool(pending, fetchConcurrency, async ({ depKey, hit }) => {
+      if (performance.now() - started > closureMs) return;
+      if (hit.sizeBytes != null && acceptedBytes + hit.sizeBytes > closureLimit) return;
       const t0 = performance.now();
-      const bytes = await hit.getBytes();
+      let bytes: Uint8Array;
+      try {
+        bytes = await hit.getBytes();
+      } catch {
+        return;
+      }
+      if (bytes.byteLength > 250 * 1024 * 1024) return;
+      if (acceptedBytes + bytes.byteLength > closureLimit) return;
+      acceptedBytes += bytes.byteLength;
       if (options.stats) {
         options.stats.downloadMs += performance.now() - t0;
       }

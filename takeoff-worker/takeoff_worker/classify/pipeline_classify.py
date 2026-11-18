@@ -3,37 +3,13 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import re
 
 from ..models import CatalogType, Confidence, SymbolLibraryEntry, WorkerDetection, WorkerLegendEntry
-from .indices import TypeHint, build_legend_indices, combined_detection_text
+from .indices import TypeHint, build_legend_indices
 from .legend_map import LegendMatch, match_legend_text
 from .text_norm import normalize_legend_text
 
 log = logging.getLogger(__name__)
-
-_HEB = re.compile(r"[\u0590-\u05FF]")
-_CAD_TAG = re.compile(r"^[\w.\-*]+$", re.IGNORECASE)
-
-
-def _looks_like_short_cad_tag(text: str) -> bool:
-    t = text.strip()
-    if not t or len(t) > 12 or _HEB.search(t):
-        return False
-    return bool(_CAD_TAG.fullmatch(t))
-
-
-def _detection_catalog_text_allowed(det: WorkerDetection, blob: str) -> bool:
-    """Skip bare CAD block/layer tags — catalog match needs real legend/hebrew text."""
-    if _HEB.search(blob):
-        return True
-    if det.source != "dwg":
-        return True
-    parts = [det.blockName or "", det.rawClass or "", det.layer or "", det.tagText or ""]
-    filled = [p.strip() for p in parts if p and p.strip()]
-    if not filled:
-        return False
-    return not all(_looks_like_short_cad_tag(p) for p in filled)
 
 
 def legend_key_signature(legend_key: str) -> str:
@@ -186,20 +162,6 @@ def classify_detections(
                 h = indices["block"].get(rc)
                 if h:
                     _apply_hint(d, h, "dwg_block_map")
-
-            if d.typeKey is None:
-                blob = combined_detection_text(d)
-                if blob and _detection_catalog_text_allowed(d, blob):
-                    match = match_legend_text(blob, catalog)
-                    if match:
-                        conf = match.confidence if not match.ambiguous else "low"
-                        _apply_hint(
-                            d,
-                            TypeHint(match.type_key, conf, "catalog_text"),
-                            "legend_text" if d.legendKey else "dwg_block_map",
-                        )
-                        if match.ambiguous and "type_ambiguous" not in d.reasons:
-                            d.reasons.append("type_ambiguous")
 
             if d.typeKey is None and d.tagText:
                 match = match_legend_text(d.tagText, catalog)

@@ -212,7 +212,8 @@ def test_single_phase_outlet_is_not_three_phase():
         dict(signature="block:lt", rawText="לטבעת גישור", decodedText="לטבעת גישור"),
         dict(signature="block:da3", rawText="L53 לוח גנרטור", decodedText="L53 לוח גנרטור"),
     ]
-    assert accepted_legend_rows(notes, catalog) == []
+    kept = accepted_legend_rows(notes, catalog)
+    assert [row["signature"] for row in kept] == ["block:da3"]
     assert "block:da3" not in type_map_from_legend_rows(notes, catalog)
 
 

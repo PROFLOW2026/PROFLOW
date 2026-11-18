@@ -25,7 +25,7 @@ export type StreamDocumentContentResult =
 
 export async function streamDocumentContent(
   context: OrgContext,
-  rawInput: { documentId: string; rangeHeader?: string | null },
+  rawInput: { documentId: string; rangeHeader?: string | null; xrefPath?: string | null; anchorPath?: string | null },
 ): Promise<StreamDocumentContentResult> {
   const parsed = documentIdSchema.safeParse(rawInput);
   if (!parsed.success) {
@@ -44,6 +44,16 @@ export async function streamDocumentContent(
   }
 
   if (document.storageBackend === 'external') {
+    const xrefPath = rawInput.xrefPath?.trim();
+    if (xrefPath) {
+      const { streamExternalDocumentXref } = await import('@/modules/external-storage/server');
+      const opened = await streamExternalDocumentXref(context, document.id, {
+        xrefPath,
+        anchorPath: rawInput.anchorPath,
+      });
+      if (!opened) throw new NotFoundError('Document');
+      return opened;
+    }
     const { streamExternalDocumentDownload } = await import('@/modules/external-storage/server');
     return streamExternalDocumentDownload(context, document.id, {
       rangeHeader: rawInput.rangeHeader ?? null,

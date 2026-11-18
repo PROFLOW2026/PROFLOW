@@ -177,6 +177,25 @@ def run_job(
                         warnings.append(
                             WorkerWarning(code="xref_missing", severity="warning", message=f"xref חסר: {xr.name}", fileId=wf.fileId)
                         )
+                def fetch_xref(name: str, saved_path: str, anchor: str):
+                    xref_url = getattr(request.callback, "xrefUrl", None)
+                    if not xref_url or not saved_path:
+                        return None
+                    from urllib.parse import urlencode
+
+                    query = urlencode({"fileId": wf.fileId, "path": saved_path, "anchor": anchor})
+                    joiner = "&" if "?" in xref_url else "?"
+                    dest = workdir / f"xr_{wf.fileId}_{abs(hash((anchor, saved_path))) & 0xFFFFFFFF}.bin"
+                    try:
+                        download(xref_url + joiner + query, dest)
+                    except OSError:
+                        return None
+                    if not dest.is_file() or dest.stat().st_size <= 0:
+                        return None
+                    marker = dest.with_name(dest.name + ".xid")
+                    identity = marker.read_text(encoding="utf-8").strip() if marker.is_file() else saved_path
+                    return str(dest), dest.stat().st_size, identity or saved_path
+
                 out = dwg_engine.analyze(
                     str(path),
                     wf.fileId,
@@ -186,6 +205,7 @@ def run_job(
                     library=request.symbolLibrary,
                     sheet_keys=sk,
                     progress=lambda st, pct, msg: prog("extract", _pct(file_base, 12, pct / 100), msg, file_id=wf.fileId),
+                    xref_fetch=fetch_xref,
                 )
                 outputs[wf.fileId] = out
                 engine_versions.update(out.versions)

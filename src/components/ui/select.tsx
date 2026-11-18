@@ -48,20 +48,37 @@ export const SelectTrigger = React.forwardRef<
   );
 });
 
+type SelectContentProps = React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> & {
+  /**
+   * When true (default), the open list is as wide as its trigger.
+   * When false, the list grows up to 22rem or the screen, and items wrap.
+   * Other menus keep the default so they stay attached to their trigger.
+   */
+  matchTriggerWidth?: boolean;
+};
+
 export const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(function SelectContent({ className, children, position = 'popper', dir, ...props }, ref) {
+  SelectContentProps
+>(function SelectContent(
+  { className, children, position = 'popper', dir, matchTriggerWidth = true, ...props },
+  ref,
+) {
   const localeDir = useLocaleDir();
+  const widthClass = matchTriggerWidth
+    ? 'w-[min(var(--radix-select-trigger-width),calc(100vw-1rem))] min-w-[min(var(--radix-select-trigger-width),calc(100vw-1rem))] max-w-[calc(100vw-1rem)]'
+    : 'w-[min(22rem,calc(100vw-1rem))] min-w-[min(22rem,calc(100vw-1rem))] max-w-[calc(100vw-1rem)]';
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         ref={ref}
         position={position}
         sideOffset={4}
+        collisionPadding={8}
         dir={dir ?? localeDir}
         className={cn(
-          'relative z-popover max-h-72 w-[min(var(--radix-select-trigger-width),calc(100vw-1rem))] min-w-[min(var(--radix-select-trigger-width),calc(100vw-1rem))] max-w-[calc(100vw-1rem)] overflow-hidden rounded-md',
+          'relative z-popover max-h-[min(18rem,calc(100dvh-1rem))] overflow-x-hidden overflow-y-auto rounded-md',
+          widthClass,
           'border border-[var(--pf-border-default)] bg-[var(--pf-bg-elevated)] shadow-[var(--pf-shadow-md)] text-start',
           className,
         )}

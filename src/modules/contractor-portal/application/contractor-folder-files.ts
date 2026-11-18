@@ -24,6 +24,7 @@ import {
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import { NotFoundError, ServiceUnavailableError } from '@/shared/errors';
 import { type ExternalCapability, type ExternalContext } from '@/shared/external';
+import { resolveStorageXrefPath } from '@/modules/external-storage/application/resolve-storage-xref';
 import {
   capabilityForContractorFolder,
   CONTRACTOR_SEMANTIC_FOLDER_CAPABILITY,
@@ -274,6 +275,50 @@ export async function openContractorFolderDocument(
     rangeHeader: raw.rangeHeader,
   });
   return { ...opened, mimeType: location.mimeType ?? opened.mimeType, fileName: location.fileName };
+}
+
+/** Resolve one relative XREF inside the same semantic folder the contractor may already open. */
+export async function resolveContractorFolderXref(
+  context: ExternalContext,
+  raw: {
+    readonly organizationId: string;
+    readonly projectId: string;
+    readonly folder: SemanticFolderType;
+    readonly externalFileId: string;
+    readonly xrefPath: string;
+    readonly anchorPath?: string | null;
+  },
+): Promise<{ fileId: string; name: string; parentFolderId: string; sizeBytes: number | null } | null> {
+  const organizationId = uuid.parse(raw.organizationId);
+  const projectId = uuid.parse(raw.projectId);
+  assertFolderCapability(context, organizationId, projectId, raw.folder);
+
+  return runCommittedStorageWrite(async (db) => {
+    const connection = await ensureUsablePrimaryStorageConnection(db, organizationId);
+    if (!connection || !organizationHasActiveStorage(connection)) return null;
+    const mappings = await listFolderMappingsForProject(db, organizationId, connection.id, projectId);
+    const root = mappings.find(
+      (mapping) => mapping.semanticFolderType === raw.folder && mapping.status === 'ready',
+    );
+    if (!root?.externalFolderId) return null;
+    const accessToken = await resolveValidAccessToken(db, organizationId, connection);
+    const adapter = getStorageProviderAdapter(connection.provider);
+    const meta = await adapter.getFileMetadata(accessToken, raw.externalFileId);
+    if (!meta?.parentId) return null;
+    await assertUnderSemanticRoot({
+      accessToken,
+      adapter,
+      rootExternalId: root.externalFolderId,
+      targetFolderId: meta.parentId,
+    });
+    return resolveStorageXrefPath({
+      adapter,
+      accessToken,
+      startFolderId: meta.parentId,
+      xrefPath: raw.xrefPath,
+      anchorPath: raw.anchorPath,
+    });
+  });
 }
 
 /** Download a provider file inside an allowed semantic folder (linked or unlinked). */

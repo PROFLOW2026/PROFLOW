@@ -34,6 +34,7 @@ import type {
 import type { StorageProviderAdapter } from '../domain/provider-interface';
 import { ProviderHttpError } from '../providers/http-utils';
 import { getStorageProviderAdapter } from '../providers/registry';
+import { resolveStorageXrefPath, type ResolvedStorageXref } from './resolve-storage-xref';
 import {
   assertOrganizationStorageAvailable,
   resolveValidAccessToken,
@@ -794,6 +795,24 @@ export async function listProjectStorageMoveTargets(
   }
 
   return targets;
+}
+
+export async function resolveProjectStorageXref(
+  context: OrgContext,
+  input: { projectId: string; hostFileId: string; xrefPath: string; anchorPath?: string | null },
+): Promise<ResolvedStorageXref | null> {
+  assertAnyPermission(context, [PERMISSIONS.DOCUMENTS_READ, PERMISSIONS.TAKEOFF_MANAGE]);
+  const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
+  const meta = await assertFileScope(runtime, input.hostFileId);
+  if (!meta.parentId) return null;
+  await assertSemanticFolderBrowseAccess(context, runtime, meta.parentId);
+  return resolveStorageXrefPath({
+    adapter: runtime.adapter,
+    accessToken: runtime.accessToken,
+    startFolderId: meta.parentId,
+    xrefPath: input.xrefPath,
+    anchorPath: input.anchorPath,
+  });
 }
 
 export async function streamProjectStorageFileDownload(

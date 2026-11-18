@@ -77,8 +77,30 @@ def _post_multipart(url: str, token: str, name: str, mime: str, body: bytes) -> 
 
 def _download(url: str, token: str, dest: Path) -> Path:
     req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
-    with urllib.request.urlopen(req, timeout=300) as resp, dest.open("wb") as out:
-        shutil.copyfileobj(resp, out)
+    try:
+        with urllib.request.urlopen(req, timeout=300) as resp:
+            expected = resp.headers.get("Content-Length")
+            expected_n = int(expected) if expected and str(expected).isdigit() else None
+            provider_id = resp.headers.get("X-Provider-File-Id") or ""
+            written = 0
+            with dest.open("wb") as out:
+                while True:
+                    chunk = resp.read(256 * 1024)
+                    if not chunk:
+                        break
+                    out.write(chunk)
+                    written += len(chunk)
+            if expected_n is not None and written < expected_n:
+                raise OSError("partial download")
+            if provider_id:
+                dest.with_name(dest.name + ".xid").write_text(provider_id, encoding="utf-8")
+    except Exception:
+        if dest.is_file():
+            dest.unlink()
+        marker = dest.with_name(dest.name + ".xid")
+        if marker.is_file():
+            marker.unlink()
+        raise
     return dest
 
 

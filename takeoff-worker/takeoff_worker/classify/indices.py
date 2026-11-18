@@ -27,8 +27,18 @@ def build_legend_indices(legend: list[WorkerLegendEntry]) -> dict[str, dict[str,
     by_sig: dict[str, TypeHint] = {}
     by_block: dict[str, TypeHint] = {}
     by_key: dict[str, TypeHint] = {}
+    conflict: set[str] = set()
+    for row in legend:
+        if not row.typeKey or not row.signature:
+            continue
+        previous = by_sig.get(row.signature)
+        if previous is not None and previous.type_key != row.typeKey:
+            conflict.add(row.signature)
+            conflict.add(row.signature.lower())
     for row in legend:
         if not row.typeKey:
+            continue
+        if row.signature and (row.signature in conflict or row.signature.lower() in conflict):
             continue
         conf: Confidence = (
             row.confidence
@@ -44,7 +54,7 @@ def build_legend_indices(legend: list[WorkerLegendEntry]) -> dict[str, dict[str,
             by_key[row.key.lower()] = hint
         if row.signatureKind == "dwg-block":
             bn = _norm_block(row.key) or _norm_block(row.signature)
-            if bn:
+            if bn and bn not in conflict:
                 by_block[bn] = hint
     return {"signature": by_sig, "block": by_block, "key": by_key}
 

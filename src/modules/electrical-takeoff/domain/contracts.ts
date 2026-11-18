@@ -50,6 +50,8 @@ export const reviewReasonSchema = z.enum([
   'symbol_group_candidate',
   /** Line, text, or near-empty vector fragment. Not an electrical device and not counted. */
   'drawing_noise',
+  /** The symbol sits on two partial sheets. Counted once. The sheet is not chosen. */
+  'sheet_unassigned',
 ]);
 export type TakeoffReviewReason = z.infer<typeof reviewReasonSchema>;
 
@@ -197,6 +199,7 @@ export const workerCallbackSchema = z.object({
   artifactUrl: z.string(),
   /** Bearer token, single job, expires; the worker never sees user sessions or provider tokens. */
   token: z.string(),
+  xrefUrl: z.string().optional(),
 });
 
 export const workerJobRequestSchema = z.object({
@@ -259,6 +262,7 @@ export const workerSheetSchema = z.object({
   note: z.string().nullish(), // why partial/skipped (Hebrew-safe plain text)
   floorHint: z.string().nullish(),
   xrefsMissing: z.array(z.object({ name: z.string(), path: z.string().nullish() })).default([]),
+  xrefRefs: z.array(z.object({ name: z.string(), path: z.string().nullish(), loaded: z.boolean() })).optional(),
   /** Hidden by frozen/off layers in the sheet viewport and therefore NOT counted (DWG). */
   hiddenByLayers: z.number().int().nonnegative().default(0),
 });
@@ -299,6 +303,8 @@ export const workerDetectionSchema = z.object({
   /** Fingerprint of the DWG block definition. Rotation, scale and mirror of an insert do not change it. */
   geometryHash: z.string().min(8).optional(),
   native: z.object({ x: z.number(), y: z.number() }).optional(), // pdf pt (unrotated page) or dwg model units
+  /** Partial sheets that contain this symbol when the sheet itself was not chosen. */
+  candidateSheetKeys: z.array(z.string()).optional(),
 });
 export type WorkerDetection = z.infer<typeof workerDetectionSchema>;
 

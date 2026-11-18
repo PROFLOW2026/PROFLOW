@@ -67,6 +67,7 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
     scale: s.scale,
     analyzed: s.analyzed,
     xrefsMissing: s.xrefsMissing ?? [],
+    xrefRefs: s.xrefRefs ?? [],
     hiddenByLayers: s.hiddenByLayers ?? 0,
   }));
 

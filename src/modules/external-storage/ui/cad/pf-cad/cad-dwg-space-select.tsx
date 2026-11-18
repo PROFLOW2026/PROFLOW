@@ -23,9 +23,10 @@ const contentClass = cn(
 );
 
 const itemClass = cn(
-  'min-h-10 text-sm font-medium text-[#0b1220]',
+  'h-auto min-h-10 items-start whitespace-normal break-words text-start text-sm font-medium text-[#0b1220]',
   'data-[highlighted]:bg-[#0b1220]/12 data-[highlighted]:outline-none',
   'data-[state=checked]:bg-[#0b1220]/16 data-[state=checked]:font-semibold',
+  '[&_span]:whitespace-normal [&_span]:break-words',
 );
 
 export function CadDwgSpaceSelect({
@@ -53,7 +54,7 @@ export function CadDwgSpaceSelect({
       >
         <SelectValue />
       </SelectTrigger>
-      <SelectContent className={contentClass} position="popper">
+      <SelectContent className={contentClass} position="popper" matchTriggerWidth={false}>
         {spaces.map((sp) => (
           <SelectItem key={sp} value={sp} className={itemClass}>
             {formatCadSpaceLabel(sp)}

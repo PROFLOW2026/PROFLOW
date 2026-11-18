@@ -27,7 +27,12 @@ export async function GET(
       session.user.id,
       session.activeOrganizationId,
       async (orgContext) =>
-        streamDocumentContent(orgContext, { documentId, rangeHeader }),
+        streamDocumentContent(orgContext, {
+          documentId,
+          rangeHeader,
+          xrefPath: url.searchParams.get('xrefPath'),
+          anchorPath: url.searchParams.get('anchorPath'),
+        }),
     );
 
     if ('unsatisfiable' in payload) {

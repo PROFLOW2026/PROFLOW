@@ -9,6 +9,7 @@ import { cadDepsSignature } from './font-resolver';
 import {
   collectXrefClosure,
   normalizeCadPath,
+  type CadIndexedFile,
   type FileIndex,
   type XrefDepBytes,
 } from './xref-resolver';
@@ -44,6 +45,7 @@ export type CadEngineClientCallbacks = {
   onReady?: (scene: ScenePayload) => void;
   onError?: (message: string, detail?: string) => void;
   onTimings?: (timings: CadLoadTimings) => void;
+  resolveMissing?: (xrefPath: string, hostPath: string) => Promise<CadIndexedFile | null>;
 };
 
 let requestCounter = 0;
@@ -266,6 +268,7 @@ export class CadEngineClient {
                 return res.scene;
               },
               fetchConcurrency: 4,
+              resolveMissing: this.callbacks.resolveMissing,
             });
             downloadXrefMs = xrefStats.downloadMs;
             return closure;

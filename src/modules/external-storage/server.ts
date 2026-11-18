@@ -59,6 +59,7 @@ export {
   listProjectStorageFolder,
   refreshExternalFileMetadata,
   streamExternalDocumentDownload,
+  streamExternalDocumentXref,
   uploadDocumentToExternalStorage,
   uploadBytesToOrgStorageFolder,
 } from './application/file-service';
@@ -70,6 +71,7 @@ export {
   getProjectStorageFileDownload,
   getProjectStorageFileDownloadMeta,
   streamProjectStorageFileDownload,
+  resolveProjectStorageXref,
   getProjectStorageProviderWebUrl,
   listProjectStorageMoveTargets,
   loadProjectFileBrowserInitial,
@@ -89,6 +91,7 @@ export {
   getOrgStorageFileDownload,
   getOrgStorageFileDownloadMeta,
   streamOrgStorageFileDownload,
+  resolveOrgStorageXref,
   getOrgStorageProviderWebUrl,
   listOrgStorageMoveTargets,
   loadOrgFileBrowserInitial,

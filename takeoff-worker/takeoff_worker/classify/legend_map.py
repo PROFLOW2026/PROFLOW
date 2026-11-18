@@ -28,6 +28,19 @@ class LegendMatch:
     ambiguous: bool = False
 
 
+def _keyword_may_assign(keyword: str, description: str) -> bool:
+    """A one-word keyword assigns a type only when it is the whole description."""
+    words = [part for part in keyword.split() if part]
+    if len(words) >= 2:
+        return True
+    return " ".join(keyword.casefold().split()) == " ".join(description.casefold().split())
+
+
+def _with_token_order_restored(text: str) -> str:
+    """``match_legend_text`` stores visual Hebrew. A catalog phrase is logical."""
+    return " ".join(reversed(text.split()))
+
+
 def _phrase_in(hay: str, phrase: str) -> bool:
     """A keyword must not match inside a longer Hebrew word (אחר inside אחרת)."""
     if not phrase:
@@ -77,30 +90,25 @@ def match_legend_text(text: str, catalog: list[CatalogType]) -> LegendMatch | No
     if "מקבצ" in text and "שקע" in text:
         return None
     lower = text.lower()
-    tokens = _tokens(text)
     best: LegendMatch | None = None
-    tied_at_top = 0
+    longest: dict[str, str] = {}
 
     for item in catalog:
         if item.archived:
             continue
         score = 0.0
         matched_kw = 0
-        overlap_tokens: set[str] = set()
         for kw in item.keywordsHe:
             kwt = _final_to_standard(kw.lower().strip())
             if not kwt:
                 continue
-            if _phrase_in(lower, kwt):
+            if not _keyword_may_assign(kwt, lower):
+                continue
+            if _phrase_in(lower, kwt) or _phrase_in(_with_token_order_restored(lower), kwt):
                 score += 3.0 + min(len(kwt) / 20.0, 1.5)
                 matched_kw += 1
-            else:
-                # One shared word across several keywords must not stack into a type.
-                # "פאזי" alone is not "תלת פאזי".
-                overlap_tokens |= _tokens(kwt) & tokens
-        if overlap_tokens:
-            score += 1.5
-            matched_kw += 1
+                if len(kwt) > len(longest.get(item.key, "")):
+                    longest[item.key] = kwt
         # "פאזי" is shared by single-phase and three-phase lines. A sealed outlet
         # needs a word that actually says it is sealed.
         if item.key == "power.socket.three_phase" and "תלת" not in lower:
@@ -124,26 +132,25 @@ def match_legend_text(text: str, catalog: list[CatalogType]) -> LegendMatch | No
         if score >= 10 and matched_kw >= 3 and len(item.keywordsHe) <= matched_kw + 1:
             conf = "high"
         cand = LegendMatch(item.key, conf, score)
-        if best is None or cand.score > best.score + 0.01:
+        if score < 2.5:
+            longest.pop(item.key, None)
+        if best is None or cand.score > best.score:
             best = cand
-            tied_at_top = 1
-        elif best and abs(cand.score - best.score) < 0.01:
-            tied_at_top += 1
-
-    canon = _HEB_SHORT_ROOT.get(lower.strip())
-    if canon is not None:
-        if best is None or best.score < 2.5 or best.type_key != canon:
-            conf: Confidence = best.confidence if best and best.type_key == canon else "low"
-            score = best.score if best else 2.5
-            amb = best is not None and best.type_key != canon
-            return LegendMatch(canon, conf, score, ambiguous=amb)
 
     if best is None:
         return None
     # A shared word such as לוח does not name a panel, and it does not name the generator.
     if "לוח" in lower and not best.type_key.startswith("panel."):
         return None
-    ambiguous = tied_at_top > 1
+    phrases = list(longest.items())
+    kept = [
+        key
+        for key, phrase in phrases
+        if not any(key != other and phrase != other_phrase and phrase in other_phrase for other, other_phrase in phrases)
+    ]
+    if len(kept) != 1:
+        return None
+    ambiguous = False
     if best.confidence == "high" and ambiguous:
         return LegendMatch(best.type_key, "low", best.score, ambiguous=True)
     if best.score < 2.5:

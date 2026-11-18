@@ -21,6 +21,7 @@ import type {
 import type { StorageProviderAdapter } from '../domain/provider-interface';
 import { ProviderHttpError } from '../providers/http-utils';
 import { getStorageProviderAdapter } from '../providers/registry';
+import { resolveStorageXrefPath, type ResolvedStorageXref } from './resolve-storage-xref';
 import {
   assertOrganizationStorageAvailable,
   resolveValidAccessToken,
@@ -448,6 +449,23 @@ export async function listOrgStorageMoveTargets(
   }
 
   return targets;
+}
+
+export async function resolveOrgStorageXref(
+  context: OrgContext,
+  input: { hostFileId: string; xrefPath: string; anchorPath?: string | null },
+): Promise<ResolvedStorageXref | null> {
+  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  const runtime = await resolveOrgBrowserRuntime(context);
+  const meta = await assertOrgFileScope(runtime, input.hostFileId);
+  if (!meta.parentId) return null;
+  return resolveStorageXrefPath({
+    adapter: runtime.adapter,
+    accessToken: runtime.accessToken,
+    startFolderId: meta.parentId,
+    xrefPath: input.xrefPath,
+    anchorPath: input.anchorPath,
+  });
 }
 
 export async function streamOrgStorageFileDownload(

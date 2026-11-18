@@ -96,7 +96,9 @@ export function computeBoq(input: ComputeBoqInput): Boq {
 
   const withFloor: CountableDetection[] = countable.map((d) => ({
     ...d,
-    floor: floorBySheet.get(d.sheetKey) ?? input.sheets.find((s) => s.sheetKey === d.sheetKey)?.floorHint ?? null,
+    floor: d.reasons.includes('sheet_unassigned')
+      ? null
+      : floorBySheet.get(d.sheetKey) ?? input.sheets.find((s) => s.sheetKey === d.sheetKey)?.floorHint ?? null,
   }));
 
   const lines: BoqLine[] = [];

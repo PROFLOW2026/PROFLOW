@@ -39,6 +39,7 @@ import {
   mergeMissingFontsIntoReport,
   resolveCadFontsFromStorage,
 } from './font-resolver';
+import { createStorageXrefResolver } from '../resolve-storage-xref-client';
 import { buildStorageCadFileIndex } from './storage-cad-file-index';
 import {
   buildFileIndex,
@@ -481,6 +482,7 @@ function PfDwgViewerInner({
     let progressRaf = 0;
     let pendingProgress: ParseProgress | null = null;
     const client = new CadEngineClient({
+      resolveMissing: createStorageXrefResolver(url),
       onProgress: (p) => {
         pendingProgress = p;
         cancelAnimationFrame(progressRaf);

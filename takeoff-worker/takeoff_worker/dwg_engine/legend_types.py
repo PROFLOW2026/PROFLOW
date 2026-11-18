@@ -41,8 +41,24 @@ def legend_row_is_description(row: dict, catalog: list[CatalogType]) -> bool:
     return match_legend_text(text, catalog) is not None
 
 
+def _is_note(row: dict) -> bool:
+    text = legend_match_text(row).casefold()
+    return any(marker in text for marker in _NOTE_MARKERS)
+
+
 def accepted_legend_rows(rows: list[dict], catalog: list[CatalogType]) -> list[dict]:
-    return [row for row in rows if legend_row_is_description(row, catalog)]
+    """A symbol description is kept even when the catalog has no type for it.
+
+    A floor note, a cable note, or a jumper note is not a legend row.
+    """
+    del catalog
+    kept: list[dict] = []
+    for row in rows:
+        text = str(row.get("decodedText") or row.get("rawText") or "").strip()
+        if not text or _is_note(row):
+            continue
+        kept.append(row)
+    return kept
 
 
 def type_map_from_legend_rows(
@@ -52,7 +68,7 @@ def type_map_from_legend_rows(
     """signature → (typeKey, confidence). Conflicting texts for one block stay unmapped."""
     grouped: dict[str, list] = {}
     for row in rows:
-        if not legend_row_is_description(row, catalog):
+        if row.get("continuation"):
             continue
         text = legend_match_text(row)
         if not text.strip():

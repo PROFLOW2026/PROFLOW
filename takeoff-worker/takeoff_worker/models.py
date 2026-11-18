@@ -21,6 +21,7 @@ ReviewReason = Literal[
     "legend_text_undecodable",
     "symbol_group_candidate",
     "drawing_noise",
+    "sheet_unassigned",
 ]
 ElectricalCategory = Literal[
     "lighting", "emergency_lighting", "power", "communication", "low_voltage", "fire_detection",
@@ -86,6 +87,7 @@ class WorkerCallback(_M):
     resultUrl: str
     artifactUrl: str
     token: str
+    xrefUrl: Optional[str] = None
 
 
 class Pairing(_M):
@@ -147,6 +149,12 @@ class XrefMissing(_M):
     path: Optional[str] = None
 
 
+class XrefRefRecord(_M):
+    name: str
+    path: Optional[str] = None
+    loaded: bool = False
+
+
 class WorkerSheet(_M):
     sheetKey: str
     fileId: str
@@ -161,6 +169,7 @@ class WorkerSheet(_M):
     note: Optional[str] = None
     floorHint: Optional[str] = None
     xrefsMissing: list[XrefMissing] = Field(default_factory=list)
+    xrefRefs: list[XrefRefRecord] = Field(default_factory=list)
     hiddenByLayers: int = 0
 
 
@@ -197,6 +206,7 @@ class WorkerDetection(_M):
     maskB64: Optional[str] = None
     geometryHash: Optional[str] = None
     native: Optional[Native] = None
+    candidateSheetKeys: list[str] = Field(default_factory=list)
 
 
 class LegendTextBox(_M):

@@ -3,5 +3,10 @@ export async function fetchStoragePreviewBytes(url: string, signal?: AbortSignal
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }
-  return response.arrayBuffer();
+  const buffer = await response.arrayBuffer();
+  const expected = Number(response.headers.get('content-length') || 0);
+  if (Number.isFinite(expected) && expected > 0 && buffer.byteLength < expected) {
+    throw new Error('partial download');
+  }
+  return buffer;
 }
