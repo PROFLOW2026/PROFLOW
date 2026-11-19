@@ -24,6 +24,18 @@ function isLegendPdfName(name: string): boolean {
   return LEGEND_PDF.test(name);
 }
 
+/** Runtime origin for worker file GET URLs (not client-bundled). Prefer TAKEOFF_WORKER_FILE_ORIGIN in harness/E2E. */
+export function resolveTakeoffWorkerFileOrigin(): string {
+  const explicit =
+    process.env.TAKEOFF_WORKER_FILE_ORIGIN?.trim() ||
+    process.env.TAKEOFF_EXPORT_ORIGIN?.trim() ||
+    process.env.APP_URL?.trim();
+  if (explicit) return explicit.replace(/\/$/, '');
+  const baked = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (baked) return baked.replace(/\/$/, '');
+  return 'http://127.0.0.1:3100';
+}
+
 export function resolveAnnotatedExportTarget(
   files: Awaited<ReturnType<typeof listFilesForAnalysis>>,
   rawSheets: Awaited<ReturnType<typeof listSheetsForJob>>,
@@ -97,7 +109,7 @@ export async function buildExportBytes(
   const secret = process.env.TAKEOFF_WORKER_SECRET;
   if (!secret) throw new Error('worker secret missing');
   const token = sealJobToken(job.id, secret, 1000 * 60 * 15, Date.now());
-  const origin = process.env.NEXT_PUBLIC_APP_URL ?? 'http://127.0.0.1:3000';
+  const origin = resolveTakeoffWorkerFileOrigin();
 
   if (kind === 'annotated-pdf') {
     const rawSheets = await listSheetsForJob(db, organizationId, job.id);
