@@ -139,7 +139,12 @@
     "archHidden": "Hidden",
     "archStrength": "Background strength",
     "fontSubstituted": "A missing font was substituted for drawing",
-    "tools": "Tools"
+    "tools": "Tools",
+    "symbolFocusZoom": "Symbol focus size",
+    "symbolFocusZoomWide": "Wide",
+    "symbolFocusZoomClose": "Very close",
+    "symbolFocusZoomValue": "{value}%",
+    "symbolFocusZoomReset": "Reset"
   },
   "tools": {
     "navigate": "Navigate",

@@ -462,18 +462,29 @@ export function symbolGlyphSvg(
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${viewW.toFixed(2)} ${viewH.toFixed(2)}" fill="none" stroke="${colorHex}" stroke-width="${Math.max(viewW, viewH) * 0.035}" stroke-linecap="round" stroke-linejoin="round"><path d="${d}" /></svg>`;
 }
 
+/** Default pad around a located CAD symbol (~current 0.37 body). Slider may pass a different factor. */
+export const CAD_SYMBOL_FOCUS_PAD_DEFAULT = 0.37;
+const CAD_SYMBOL_FOCUS_PAD_MIN = 0.125;
+export const CAD_INSERT_FOCUS_HALF_DEFAULT = 32;
+
 /** Tight native window around one located CAD symbol — not the sheet or the whole group. */
-export function cadSymbolFocusExtent(box: Pick<SymbolBox, 'minX' | 'minY' | 'maxX' | 'maxY'>): [number, number, number, number] {
+export function cadSymbolFocusExtent(
+  box: Pick<SymbolBox, 'minX' | 'minY' | 'maxX' | 'maxY'>,
+  padFactor: number = CAD_SYMBOL_FOCUS_PAD_DEFAULT,
+): [number, number, number, number] {
   const body = Math.max(box.maxX - box.minX, box.maxY - box.minY, 1);
-  const pad = body * 0.37;
+  const pad = Math.max(body * padFactor, body * CAD_SYMBOL_FOCUS_PAD_MIN);
   return [box.minX - pad, box.minY - pad, box.maxX + pad, box.maxY + pad];
 }
 
-const INSERT_FOCUS_HALF = 32;
-
 /** Window around an insert whose own strokes were not located. Tight enough to identify, not a sheet fit. */
-export function cadInsertFocusExtent(x: number, y: number): [number, number, number, number] {
-  return [x - INSERT_FOCUS_HALF, y - INSERT_FOCUS_HALF, x + INSERT_FOCUS_HALF, y + INSERT_FOCUS_HALF];
+export function cadInsertFocusExtent(
+  x: number,
+  y: number,
+  half: number = CAD_INSERT_FOCUS_HALF_DEFAULT,
+): [number, number, number, number] {
+  const span = Math.max(half, 8);
+  return [x - span, y - span, x + span, y + span];
 }
 
 export function isPlausibleSymbolBox(box: Pick<SymbolBox, 'located' | 'minX' | 'minY' | 'maxX' | 'maxY'>): boolean {

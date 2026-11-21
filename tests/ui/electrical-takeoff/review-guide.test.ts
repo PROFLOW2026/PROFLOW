@@ -213,6 +213,48 @@ describe('guided review groups', () => {
     expect(l39Crop.sw).toBeLessThan(context.sw);
   });
 
+  it('does not reopen an 85-mark lighting group after those ids were confirmed without a typeKey', () => {
+    const marks = Array.from({ length: 85 }, (_, index) =>
+      mark({
+        id: `layout:F0#${index + 1}`,
+        typeKey: null,
+        status: 'confirmed',
+        needsReview: false,
+        rawClass: '1e',
+        signature: 'block:1e',
+        originalText: 'נקודת מאור',
+        legendUnambiguous: true,
+        identitySource: 'legend',
+        reasons: ['unclassified'],
+      }),
+    );
+    expect(buildReviewGroups(marks)).toEqual([]);
+  });
+
+  it('drops a confirmed mark from guided review even when typeKey is still empty', () => {
+    const pending = mark({
+      id: 'open',
+      typeKey: null,
+      originalText: 'נקודת מאור',
+      legendUnambiguous: true,
+      identitySource: 'legend',
+      reasons: ['unclassified'],
+    });
+    const confirmed = mark({
+      id: 'done',
+      typeKey: null,
+      status: 'confirmed',
+      needsReview: false,
+      originalText: 'נקודת מאור',
+      legendUnambiguous: true,
+      identitySource: 'legend',
+      reasons: ['unclassified'],
+    });
+    const groups = buildReviewGroups([pending, confirmed]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.detectionIds).toEqual(['open']);
+  });
+
   it('counts a group as checked only after it leaves the queue', () => {
     const seen = new Set(['missingType::::signature:sig-a']);
     expect(reviewProgress(seen, [{ key: 'missingType::::signature:sig-a' }])).toEqual({ checked: 0, total: 1 });

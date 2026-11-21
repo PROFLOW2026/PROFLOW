@@ -7,6 +7,7 @@ import {
 import { isDrawableShxCharacter, shxGlyphAdvance, type ShxSegment } from './cad-shx-font';
 import { attachmentToAlign, anchorOffset, mirrorScale } from './draw-cad-text';
 import { decodeCadTextLine } from './hebrew-shx-decode';
+import { cadLineHasHebrew, cadShxVisualLine, shouldApplyCadBackwardsMirror } from './cad-text-bidi';
 import {
   mayMarkTextGpu,
   P8_GPU_TEXT_HANDOFF_ENABLED,
@@ -67,7 +68,11 @@ function textLines(tx: CadText): string[] {
     tx.lines && tx.lines.length > 0
       ? tx.lines
       : tx.t.split('\n').filter((line, i, arr) => line.length > 0 || arr.length === 1);
-  return raw.map((line) => decodeCadTextLine(line, tx.style));
+  const lines = raw.map((line) => decodeCadTextLine(line, tx.style));
+  if (lines.some((line) => cadLineHasHebrew(line))) {
+    return lines.map(cadShxVisualLine);
+  }
+  return lines;
 }
 
 type TextLayout = {
@@ -116,7 +121,8 @@ function layoutShxText(tx: CadText, origin: [number, number]): TextLayout | null
 
   let m: Affine = translate(tx.x - origin[0], tx.y - origin[1]);
   m = mul(m, rotate(-tx.r));
-  const mx = mirrorScale(tx.bx);
+  const joined = lines.join('\n');
+  const mx = shouldApplyCadBackwardsMirror(joined, tx.bx) ? mirrorScale(tx.bx) : 1;
   const my = mirrorScale(tx.by);
   if (mx !== 1 || my !== 1) {
     m = mul(m, [mx, 0, 0, my, 0, 0]);

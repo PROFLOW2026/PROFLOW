@@ -139,7 +139,12 @@
     "archHidden": "Скрыт",
     "archStrength": "Сила фона",
     "fontSubstituted": "Отсутствующий шрифт заменён для черчения",
-    "tools": "Инструменты"
+    "tools": "Инструменты",
+    "symbolFocusZoom": "Размер фокуса символа",
+    "symbolFocusZoomWide": "Широкий",
+    "symbolFocusZoomClose": "Очень близко",
+    "symbolFocusZoomValue": "уровень {value}%",
+    "symbolFocusZoomReset": "Сброс"
   },
   "tools": {
     "navigate": "Навигация",

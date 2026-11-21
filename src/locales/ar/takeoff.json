@@ -139,7 +139,12 @@
     "archHidden": "مخفي",
     "archStrength": "شدة الخلفية",
     "fontSubstituted": "تم استبدال خط ناقص للرسم",
-    "tools": "أدوات"
+    "tools": "أدوات",
+    "symbolFocusZoom": "حجم تركيز الرمز",
+    "symbolFocusZoomWide": "واسع",
+    "symbolFocusZoomClose": "قريب جداً",
+    "symbolFocusZoomValue": "مستوى {value}%",
+    "symbolFocusZoomReset": "إعادة ضبط"
   },
   "tools": {
     "navigate": "تنقل",

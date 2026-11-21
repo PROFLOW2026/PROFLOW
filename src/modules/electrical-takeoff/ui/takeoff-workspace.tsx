@@ -870,7 +870,10 @@ export function TakeoffWorkspace({
                 separateOccurrences={Math.max(
                   0,
                   sameSymbolDetections(guideFocus, view.detections).filter(
-                    (item) => !item.reasons.includes('drawing_noise') && !item.reasons.includes('legend_zone'),
+                    (item) =>
+                      item.status !== 'confirmed' &&
+                      !item.reasons.includes('drawing_noise') &&
+                      !item.reasons.includes('legend_zone'),
                   ).length - activeGuide.detectionIds.length,
                 )}
                 readOnly={readOnly}

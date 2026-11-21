@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Maximize2, Minus, Plus } from 'lucide-react';
 import { useCadLoadNotice } from '@/modules/external-storage/ui/cad/use-cad-load-notice';
 import { useCadTools } from '@/modules/external-storage/ui/cad/use-cad-tools';
@@ -30,6 +30,16 @@ import {
   type CadSheetMark,
 } from '../../domain/cad-sheet-frame';
 import { chooseTakeoffSheetId, focusLevel, type FocusLevel } from '../../domain/focus-level';
+import {
+  insertHalfForSymbolFocus,
+  padFactorForSymbolFocus,
+  readStoredSymbolFocusZoom,
+  subscribeSymbolFocusZoom,
+  SYMBOL_FOCUS_ZOOM_DEFAULT,
+  SYMBOL_FOCUS_ZOOM_MAX,
+  SYMBOL_FOCUS_ZOOM_MIN,
+  writeStoredSymbolFocusZoom,
+} from './symbol-focus-zoom';
 import {
   buildDisplaySheets,
   modelToPaper,
@@ -75,6 +85,22 @@ type ShownMark = {
   maxY: number;
   located: boolean;
 };
+
+function applyOccurrenceFocus(
+  renderer: CadRendererHandle,
+  active: ShownMark,
+  level: FocusLevel,
+  zoomLevel: number,
+) {
+  if (level === 'point' || !isPlausibleSymbolBox(active)) {
+    renderer.focusExtent(
+      cadInsertFocusExtent(active.x, active.y, insertHalfForSymbolFocus(zoomLevel)),
+      28,
+    );
+    return;
+  }
+  renderer.focusExtent(cadSymbolFocusExtent(active, padFactorForSymbolFocus(zoomLevel)), 24);
+}
 
 /**
  * Shared by the main app, the employee app and the contractor app.
@@ -140,8 +166,17 @@ export function TakeoffDwgPlan({
   const shownRef = useRef<ShownMark[]>([]);
   const fittedRef = useRef(false);
   const lastFitKeyRef = useRef('');
-  const lastFocusIdRef = useRef<string | null>(null);
+  const lastFocusKeyRef = useRef('');
   const fittedSizeRef = useRef({ w: 0, h: 0 });
+  const focusZoom = useSyncExternalStore(
+    subscribeSymbolFocusZoom,
+    readStoredSymbolFocusZoom,
+    () => SYMBOL_FOCUS_ZOOM_DEFAULT,
+  );
+  const focusZoomRef = useRef(focusZoom);
+  useEffect(() => {
+    focusZoomRef.current = focusZoom;
+  }, [focusZoom]);
   const selectRef = useRef(onSelectMark);
   const planClickRef = useRef(onPlanClick);
   const unavailableRef = useRef(onUnavailable);
@@ -284,7 +319,13 @@ export function TakeoffDwgPlan({
       const extentReady = x1 - x0 > 2 && y1 - y0 > 2;
       const grewFromEmpty = fittedRef.current && fittedSizeRef.current.w < 64 && width >= 64 && height >= 64;
       if (extentReady && ((!fittedRef.current && width >= 64 && height >= 64) || grewFromEmpty)) {
-        renderer.focusExtent(extentRef.current, 28);
+        const active = shownRef.current.find((item) => item.id === focusIdRef.current);
+        if (active) {
+          const located = Boolean(active.located && isPlausibleSymbolBox(active));
+          applyOccurrenceFocus(renderer, active, focusLevel(true, located), focusZoomRef.current);
+        } else {
+          renderer.focusExtent(extentRef.current, 28);
+        }
         fittedRef.current = true;
         fittedSizeRef.current = { w: width, h: height };
       }
@@ -488,7 +529,15 @@ export function TakeoffDwgPlan({
     ).then(() => {
       if (cancelled) return;
       renderer.setArchitectureDisplay(architecturalRef.current, { mode: archModeRef.current, strength: archStrengthRef.current });
-      if (shouldFitWhole) renderer.focusExtent(drawing.extent, 28);
+      if (shouldFitWhole) {
+        const active = shownRef.current.find((item) => item.id === focusIdRef.current);
+        if (active) {
+          const located = Boolean(active.located && isPlausibleSymbolBox(active));
+          applyOccurrenceFocus(renderer, active, focusLevel(true, located), focusZoomRef.current);
+        } else {
+          renderer.focusExtent(drawing.extent, 28);
+        }
+      }
       fittedRef.current = true;
       const rect = glRef.current?.getBoundingClientRect();
       fittedSizeRef.current = { w: rect?.width ?? 0, h: rect?.height ?? 0 };
@@ -511,9 +560,8 @@ export function TakeoffDwgPlan({
     const located = Boolean(active?.located && isPlausibleSymbolBox(active));
     const level = focusLevel(Boolean(active), located);
     setFocused(focusId ? { id: focusId, level } : null);
-    const focusChanged = lastFocusIdRef.current !== focusId;
-    lastFocusIdRef.current = focusId;
     if (!focusId) {
+      lastFocusKeyRef.current = '';
       drawRef.current();
       return;
     }
@@ -521,12 +569,10 @@ export function TakeoffDwgPlan({
       drawRef.current();
       return;
     }
-    if (focusChanged) {
-      if (level === 'point' || !isPlausibleSymbolBox(active)) {
-        renderer.focusExtent(cadInsertFocusExtent(active.x, active.y), 28);
-      } else {
-        renderer.focusExtent(cadSymbolFocusExtent(active), 24);
-      }
+    const focusKey = `${focusId}:${focusZoom}:${viewToken}:${current.id}:${level}`;
+    if (lastFocusKeyRef.current !== focusKey) {
+      lastFocusKeyRef.current = focusKey;
+      applyOccurrenceFocus(renderer, active, level, focusZoom);
     }
     if (active.located && isPlausibleSymbolBox(active) && onSymbolGlyphs) {
       const source = marks.find((item) => item.id === active.id);
@@ -550,7 +596,7 @@ export function TakeoffDwgPlan({
       }
     }
     drawRef.current();
-  }, [activeIds, focusId, marks, onSymbolGlyphs, phase, sheet, viewToken]);
+  }, [activeIds, focusId, focusZoom, marks, onSymbolGlyphs, phase, sheet, viewToken]);
 
   useEffect(() => {
     if (phase !== 'ready' || viewToken === 0 || !onSymbolGlyphs || !sheet) return;
@@ -722,6 +768,51 @@ export function TakeoffDwgPlan({
         >
           <Maximize2 className="size-4" />
         </Button>
+        <label className="flex min-w-0 max-w-full flex-wrap items-center gap-2 px-1 text-xs text-white">
+          <span className="whitespace-nowrap">{t('viewer.symbolFocusZoom')}</span>
+          <span className="text-white/70">{t('viewer.symbolFocusZoomWide')}</span>
+          <input
+            type="range"
+            min={SYMBOL_FOCUS_ZOOM_MIN}
+            max={SYMBOL_FOCUS_ZOOM_MAX}
+            value={focusZoom}
+            aria-label={t('viewer.symbolFocusZoom')}
+            data-testid="takeoff-symbol-focus-zoom"
+            className="min-h-11 w-28"
+            onChange={(event) => {
+              const next = writeStoredSymbolFocusZoom(Number(event.target.value));
+              const renderer = rendererRef.current;
+              const active = shownRef.current.find((item) => item.id === focusIdRef.current);
+              if (!renderer || !active) return;
+              const located = Boolean(active.located && isPlausibleSymbolBox(active));
+              lastFocusKeyRef.current = '';
+              applyOccurrenceFocus(renderer, active, focusLevel(true, located), next);
+              drawRef.current();
+            }}
+          />
+          <span className="text-white/70">{t('viewer.symbolFocusZoomClose')}</span>
+          <span className="tabular-nums" data-testid="takeoff-symbol-focus-zoom-value">
+            {t('viewer.symbolFocusZoomValue', { value: focusZoom })}
+          </span>
+          <Button
+            type="button"
+            variant="secondary"
+            className="min-h-8 px-2 text-xs"
+            data-testid="takeoff-symbol-focus-zoom-reset"
+            onClick={() => {
+              const next = writeStoredSymbolFocusZoom(SYMBOL_FOCUS_ZOOM_DEFAULT);
+              const renderer = rendererRef.current;
+              const active = shownRef.current.find((item) => item.id === focusIdRef.current);
+              if (!renderer || !active) return;
+              const located = Boolean(active.located && isPlausibleSymbolBox(active));
+              lastFocusKeyRef.current = '';
+              applyOccurrenceFocus(renderer, active, focusLevel(true, located), next);
+              drawRef.current();
+            }}
+          >
+            {t('viewer.symbolFocusZoomReset')}
+          </Button>
+        </label>
         {phase === 'ready' && plan && plan.sheets.length > 1 ? (
           <label className="flex max-w-full items-center gap-2 text-xs text-white">
             <span>{t('viewer.sheetPicker')}</span>

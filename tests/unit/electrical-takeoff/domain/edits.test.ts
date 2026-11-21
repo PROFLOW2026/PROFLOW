@@ -44,6 +44,17 @@ describe('applyEdits', () => {
     expect(row?.needsReview).toBe(false);
   });
 
+  it('keeps a stored confirmation when a later reclassify only fills the type', () => {
+    const out = applyEdits(base, [
+      { op: 'confirm', detectionIds: ['d2'] },
+      { op: 'reclassify', detectionId: 'd2', typeKey: 'light.point', saveToLibrary: false },
+    ]);
+    const row = out.find((d) => d.id === 'd2');
+    expect(row?.typeKey).toBe('light.point');
+    expect(row?.status).toBe('confirmed');
+    expect(row?.needsReview).toBe(false);
+  });
+
   it('renames and reassigns a legend row, then keeps the decision on replay', () => {
     const edits = [
       { op: 'set_label' as const, detectionId: 'd2', label: 'שקע יחיד' },

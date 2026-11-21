@@ -74,6 +74,9 @@ export function resolveSaveReviewPlan(input: {
       ids.push(item.id);
       continue;
     }
+    if (item.status === 'confirmed') {
+      continue;
+    }
     if (!sameConfirmIdentity(input.selected, item)) {
       skippedConflict += 1;
       continue;

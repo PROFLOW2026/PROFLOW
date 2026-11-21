@@ -126,7 +126,9 @@ export function applyEdits(
         row.typeKey = edit.typeKey;
         row.userChangedType = true;
         row.origin = 'user_changed';
-        row.status = 'suggested';
+        if (row.status !== 'confirmed') {
+          row.status = 'suggested';
+        }
         if (edit.typeKey) {
           row.reasons = row.reasons.filter((reason) => reason !== 'unclassified');
         } else if (!row.reasons.includes('unclassified')) {

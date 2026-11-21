@@ -2,6 +2,7 @@ import type { CadText } from './types';
 import type { CadView } from './renderer';
 import { worldToScreen } from './renderer';
 import { hasHebrewBlock, decodeCadTextLine } from './hebrew-shx-decode';
+import { cadLineHasHebrew, cadShxVisualLine, shouldApplyCadBackwardsMirror } from './cad-text-bidi';
 import { drawShxLine, measureShxTextBlock, type ShxFont } from './cad-shx-font';
 import { resolveShxDrawContext } from './cad-shx-registry';
 import { cadTextCanvasPaint } from './cad-text-canvas-color';
@@ -105,8 +106,8 @@ export function mirrorScale(value: boolean | number | undefined): number {
   return 1;
 }
 
-function applyTextMatrix(ctx: CanvasRenderingContext2D, tx: CadText): void {
-  const mx = mirrorScale(tx.bx);
+function applyTextMatrix(ctx: CanvasRenderingContext2D, tx: CadText, skipBx: boolean): void {
+  const mx = skipBx ? 1 : mirrorScale(tx.bx);
   const my = mirrorScale(tx.by);
   if (mx !== 1 || my !== 1) {
     ctx.transform(mx, 0, 0, my, 0, 0);
@@ -154,6 +155,9 @@ export function drawCadText(
       : tx.t.split('\n').filter((line, i, arr) => line.length > 0 || arr.length === 1);
   const lines = rawLines.map((line) => decodeCadTextLine(line, tx.style));
   if (lines.length === 0 || (lines.length === 1 && !lines[0]?.trim())) return;
+  const hebrew = lines.some((line) => cadLineHasHebrew(line));
+  const skipBx = hebrew && !shouldApplyCadBackwardsMirror(lines.join('\n'), tx.bx);
+  const shxLines = hebrew ? lines.map(cadShxVisualLine) : lines;
 
   const shx = draw.shxFont?.(tx.style);
   const shxCtx =
@@ -175,7 +179,7 @@ export function drawCadText(
   if (shxPrimary && shxCtx) {
     const measured = measureShxTextBlock(
       shxPrimary,
-      lines,
+      shxLines,
       capH,
       tx.lsf,
       shxCtx.mapCode,
@@ -206,12 +210,15 @@ export function drawCadText(
 
   draw.ctx.translate(sx, sy);
   draw.ctx.rotate(-tx.r);
-  applyTextMatrix(draw.ctx, tx);
+  applyTextMatrix(draw.ctx, tx, skipBx);
   draw.ctx.translate(dx, dy);
 
   draw.ctx.fillStyle = fillStyle;
   draw.ctx.textAlign = mapCanvasTextAlign(ha);
   draw.ctx.textBaseline = 'alphabetic';
+  if (hebrew && !shxPrimary) {
+    draw.ctx.direction = 'rtl';
+  }
 
   const anchorX = ha === 1 ? w / 2 : ha === 2 ? w : 0;
   if (shxPrimary && shxCtx) {
@@ -222,7 +229,7 @@ export function drawCadText(
       drawShxLine(
         draw.ctx,
         shxPrimary,
-        lines[i]!,
+        shxLines[i]!,
         capH,
         fillStyle,
         shxCtx.mapCode,

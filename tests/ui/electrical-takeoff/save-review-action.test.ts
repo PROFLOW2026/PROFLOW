@@ -322,6 +322,29 @@ describe('resolveSaveReviewPlan', () => {
     ]);
   });
 
+  it('does not ask to re-approve marks that are already confirmed', () => {
+    const selected = detection({ id: 'open' });
+    const done = Array.from({ length: 84 }, (_, index) =>
+      detection({
+        id: `done-${index + 1}`,
+        status: 'confirmed',
+        needsReview: false,
+        reasons: [],
+      }),
+    );
+    const plan = resolveSaveReviewPlan({
+      selected,
+      detections: [selected, ...done],
+      applyToGroup: true,
+      typeKey: null,
+      confirm: true,
+      saveToLibrary: false,
+    });
+    expect(plan.includedCount).toBe(1);
+    expect(plan.ids).toEqual(['open']);
+    expect(plan.skippedCount).toBe(0);
+  });
+
   it('saves a type without confirming', () => {
     const mark = detection({ id: 'a' });
     const plan = resolveSaveReviewPlan({
