@@ -8,18 +8,18 @@ type ConfirmableLegendDetection = Pick<
 
 /**
  * A planner legend name can be approved without inventing a catalog typeKey.
- * Conflict, unread, note and cable rows still need a catalog pick or a user name.
+ * Catalog-family `type_ambiguous` is not a legend conflict. Notes, cables and
+ * site work still need a catalog pick or a typed name.
  */
 export function hasConfirmableLegendName(
   detection: ConfirmableLegendDetection,
   extraName?: string,
 ): boolean {
-  if (detection.reasons.includes('type_ambiguous') && detection.legendUnambiguous !== true) return false;
   const userName = extraName?.trim() || detection.userLabel?.trim() || '';
   if (userName) return true;
   const legendName = detection.originalText?.trim() || '';
   if (!legendName || isLegendHoldText(legendName)) return false;
-  return Boolean(detection.legendUnambiguous || detection.identitySource === 'legend');
+  return true;
 }
 
 export function canSaveReviewIdentity(
@@ -93,21 +93,31 @@ export function boqLineIdentityStatus(input: {
   return identified ? 'autoIdentified' : 'unclassified';
 }
 
+function hasLegendTextConflict(
+  detection: Pick<EffectiveDetection, 'legendUnambiguous' | 'legendRowIds'> & { legendHoldReason?: string },
+): boolean {
+  if (detection.legendUnambiguous === true) return false;
+  if (detection.legendHoldReason === 'conflict') return true;
+  return (detection.legendRowIds?.length ?? 0) > 1;
+}
+
 export function reviewPlainKey(
-  detection: Pick<EffectiveDetection, 'typeKey' | 'reasons' | 'originalText' | 'legendUnambiguous' | 'legendRowIds'>,
+  detection: Pick<EffectiveDetection, 'typeKey' | 'reasons' | 'originalText' | 'legendUnambiguous' | 'legendRowIds'> & {
+    legendHoldReason?: string;
+  },
 ): ReviewPlainKey {
   if (detection.reasons.includes('sheet_unassigned')) return 'sheetUnassigned';
   if (detection.reasons.includes('legend_text_undecodable') || detection.reasons.includes('tag_unread')) {
     return 'legendUnread';
   }
-  if (detection.reasons.includes('type_ambiguous')) return 'legendConflict';
+  if (hasLegendTextConflict(detection)) return 'legendConflict';
   const text = detection.originalText?.trim();
   if (text && classifyLegendText(text) === 'linear') return 'looksLikeLinear';
   if (text && classifyLegendText(text) === 'site_work') return 'looksLikeSiteWork';
   if (text && isLegendNoteText(text)) return 'looksLikeNote';
-  if (detection.reasons.includes('legend_unmapped')) return 'legendUnmapped';
-  if (!detection.typeKey && !detection.legendUnambiguous) return 'missingType';
-  if (!detection.legendRowIds?.length && !detection.originalText) return 'legendUnmapped';
+  if (detection.reasons.includes('legend_unmapped') && !text) return 'legendUnmapped';
+  if (!detection.typeKey && !text && !detection.legendUnambiguous) return 'missingType';
+  if (!detection.legendRowIds?.length && !text) return 'legendUnmapped';
   return 'uncertain';
 }
 
@@ -116,7 +126,7 @@ export function reviewReasonsPlain(reasons: readonly TakeoffReviewReason[]): Rev
   for (const reason of reasons) {
     if (reason === 'sheet_unassigned') keys.add('sheetUnassigned');
     else if (reason === 'legend_text_undecodable' || reason === 'tag_unread') keys.add('legendUnread');
-    else if (reason === 'type_ambiguous') keys.add('legendConflict');
+    else if (reason === 'type_ambiguous') keys.add('uncertain');
     else if (reason === 'legend_unmapped') keys.add('legendUnmapped');
     else if (reason === 'unclassified') keys.add('missingType');
     else keys.add('uncertain');

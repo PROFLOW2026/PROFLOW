@@ -7,7 +7,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { cadHtmlTextLine } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-text-bidi';
 import type { CatalogType, EffectiveDetection, SheetDto, WorkerLegendEntry } from '../domain/contracts';
-import { canSaveReviewIdentity, reviewPlainKey } from '../domain/review-copy';
+import { canSaveReviewIdentity, hasConfirmableLegendName, reviewPlainKey } from '../domain/review-copy';
 import { classifyLegendText, isLegendNoteText } from '../domain/legend-identity';
 import { detectionDisplayLabel } from './boq-display';
 import { defaultReviewScope, type ReviewGroup, type TypeSuggestion } from './review-guide';
@@ -85,7 +85,7 @@ export function TakeoffReviewGuide({
     saveLib: false,
     rename: '',
     legendPick: current.legendRowIds?.[0] ?? '',
-    showType: !group.typeKey,
+    showType: group.kind === 'missingType' || (!group.typeKey && !hasConfirmableLegendName(current)),
     showRename: false,
     showLegend: false,
     context: false,
@@ -99,7 +99,7 @@ export function TakeoffReviewGuide({
       saveLib: false,
       rename: '',
       legendPick: current.legendRowIds?.[0] ?? '',
-      showType: !group.typeKey,
+      showType: group.kind === 'missingType' || (!group.typeKey && !hasConfirmableLegendName(current)),
       showRename: false,
       showLegend: false,
       context: false,

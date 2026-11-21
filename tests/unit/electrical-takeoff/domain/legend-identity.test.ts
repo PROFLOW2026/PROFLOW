@@ -208,7 +208,7 @@ describe('resolveLegendIdentity', () => {
 });
 
 describe('enrichDetectionsWithLegendIdentity', () => {
-  it('holds a legend row that was attached to more than one block', () => {
+  it('keeps a unique symbol↔legend match even when another block also lists that legend row', () => {
     const rows = enrichDetectionsWithLegendIdentity(
       applyEdits(
         [
@@ -235,9 +235,51 @@ describe('enrichDetectionsWithLegendIdentity', () => {
       ),
       [legend({ key: 'row:c', decodedText: 'מפסק מאור', signature: 'block:lu24' })],
     );
-    expect(rows[0]?.legendUnambiguous).toBe(false);
+    expect(rows[0]?.legendUnambiguous).toBe(true);
+    expect(hasLegendQuantityIdentity(rows[0]!)).toBe(true);
     expect(rows[1]?.legendUnambiguous).toBe(false);
+    expect(hasLegendQuantityIdentity(rows[1]!)).toBe(false);
     expect(rows[0]?.originalText).toBe('מפסק מאור');
+  });
+
+  it('auto-identifies five 3-pole safety switches whose legend text is unique to that block', () => {
+    const threePole = Array.from({ length: 5 }, (_, index) =>
+      workerDet({
+        id: `3p-${index + 1}`,
+        sheetKey: 'layout:F0',
+        typeKey: null,
+        classifiedBy: 'none',
+        confidence: 'none',
+        signature: 'block:3pol',
+        rawClass: '3pol',
+        legendRowIds: ['row:3p'],
+        reasons: ['unclassified', 'legend_unmapped', 'type_ambiguous'],
+      }),
+    );
+    const fourPole = Array.from({ length: 2 }, (_, index) =>
+      workerDet({
+        id: `4p-${index + 1}`,
+        sheetKey: 'layout:F0',
+        typeKey: null,
+        classifiedBy: 'none',
+        confidence: 'none',
+        signature: 'block:4pol',
+        rawClass: '4pol',
+        legendRowIds: ['row:3p', 'row:4p'],
+        reasons: ['unclassified', 'legend_unmapped', 'type_ambiguous'],
+      }),
+    );
+    const rows = enrichDetectionsWithLegendIdentity(applyEdits([...threePole, ...fourPole], []), [
+      legend({ key: 'row:3p', decodedText: 'מפסק בטחון 3-קוטבי', signature: 'block:3pol' }),
+      legend({ key: 'row:4p', decodedText: 'מפסק בטחון 4-קוטבי', signature: 'block:4pol' }),
+    ]);
+    const identified = rows.filter((row) => row.id.startsWith('3p-'));
+    const conflicting = rows.filter((row) => row.id.startsWith('4p-'));
+    expect(identified.every((row) => hasLegendQuantityIdentity(row))).toBe(true);
+    expect(identified.every((row) => row.originalText === 'מפסק בטחון 3-קוטבי')).toBe(true);
+    expect(identified.every((row) => row.needsReview)).toBe(false);
+    expect(conflicting.every((row) => row.legendUnambiguous)).toBe(false);
+    expect(conflicting.every((row) => hasLegendQuantityIdentity(row))).toBe(false);
   });
 
   it('drops guided review for an unambiguous legend match without a catalog type', () => {

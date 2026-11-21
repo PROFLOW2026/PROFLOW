@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { EffectiveDetection } from '@/modules/electrical-takeoff/domain/contracts';
+import { canSaveReviewIdentity, reviewPlainKey } from '@/modules/electrical-takeoff/domain/review-copy';
 import { getReal7155Fixture } from '@/modules/electrical-takeoff/ui/fixtures/real7155-fixture';
 import {
   buildReviewGroups,
   defaultReviewScope,
+  needsGuidedReview,
   reviewKind,
   reviewProgress,
   symbolCropSource,
@@ -212,6 +214,51 @@ describe('guided review groups', () => {
     const thumb = symbolCropSource(l39, l39Sheet, l39Image, 'thumb');
     expect(thumb.sw).toBeLessThan(l39Crop.sw);
     expect(l39Crop.sw).toBeLessThan(context.sw);
+  });
+
+  it('drops five unique 3-pole safety switches from guided review without a catalog type', () => {
+    const marks = Array.from({ length: 5 }, (_, index) =>
+      mark({
+        id: `3p-${index + 1}`,
+        typeKey: null,
+        originalText: 'מפסק בטחון 3-קוטבי',
+        legendUnambiguous: true,
+        identitySource: 'legend',
+        legendRowIds: ['row:3p'],
+        reasons: ['unclassified', 'legend_unmapped', 'type_ambiguous'],
+        needsReview: false,
+        rawClass: '3pol',
+        signature: 'block:3pol',
+      }),
+    );
+    expect(marks.every((item) => needsGuidedReview(item) === false)).toBe(true);
+    expect(buildReviewGroups(marks)).toEqual([]);
+  });
+
+  it('lets a shown planner name be confirmed without a catalog type, and does not call that a missing typeKey', () => {
+    const marks = Array.from({ length: 5 }, (_, index) =>
+      mark({
+        id: `3p-${index + 1}`,
+        typeKey: null,
+        originalText: 'מפסק בטחון 3-קוטבי',
+        legendUnambiguous: false,
+        identitySource: 'uncertain',
+        legendHoldReason: 'conflict',
+        legendRowIds: ['row:3p', 'row:4p'],
+        reasons: ['unclassified', 'type_ambiguous'],
+        needsReview: true,
+        rawClass: '3pol',
+        signature: 'block:3pol',
+      }),
+    );
+    expect(marks.every((item) => needsGuidedReview(item))).toBe(true);
+    expect(reviewKind(marks[0]!)).toBe('uncertain');
+    expect(reviewPlainKey(marks[0]!)).toBe('legendConflict');
+    expect(canSaveReviewIdentity(null, marks[0]!)).toBe(true);
+    const groups = buildReviewGroups(marks);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.kind).not.toBe('missingType');
+    expect(groups[0]?.occurrences).toBe(5);
   });
 
   it('does not reopen an 85-mark lighting group after those ids were confirmed without a typeKey', () => {

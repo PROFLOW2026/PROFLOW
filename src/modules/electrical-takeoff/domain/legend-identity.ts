@@ -287,12 +287,16 @@ export function hasLegendQuantityIdentity(
   return Boolean(detection.legendUnambiguous && detection.originalText);
 }
 
+function normalizedSymbolSignature(signature: string | null | undefined): string {
+  return (signature ?? '').replace(/^block:/i, '').trim().toLowerCase();
+}
+
 function mixedSignatureLegendRows(
   detections: readonly Pick<EffectiveDetection, 'legendRowIds' | 'signature'>[],
 ): Set<string> {
   const signatures = new Map<string, Set<string>>();
   for (const detection of detections) {
-    const signature = (detection.signature ?? '').replace(/^block:/i, '').trim().toLowerCase();
+    const signature = normalizedSymbolSignature(detection.signature);
     if (!signature) continue;
     for (const id of detection.legendRowIds ?? []) {
       const set = signatures.get(id) ?? new Set<string>();
@@ -307,6 +311,15 @@ function mixedSignatureLegendRows(
   return mixed;
 }
 
+function detectionMatchesLegendRowSignature(
+  detection: Pick<EffectiveDetection, 'signature'>,
+  row: LegendRow | undefined,
+): boolean {
+  const detectionSignature = normalizedSymbolSignature(detection.signature);
+  const rowSignature = normalizedSymbolSignature(row?.signature);
+  return Boolean(detectionSignature && rowSignature && detectionSignature === rowSignature);
+}
+
 export function enrichDetectionsWithLegendIdentity(
   detections: readonly EffectiveDetection[],
   legend: readonly LegendRow[],
@@ -319,7 +332,9 @@ export function enrichDetectionsWithLegendIdentity(
     let identity = resolveLegendIdentity({ ...detection, classifiedBy }, legend, index);
     if (
       identity.unambiguous &&
-      detection.legendRowIds?.some((id) => mixedRows.has(id))
+      identity.legendRowId &&
+      mixedRows.has(identity.legendRowId) &&
+      !detectionMatchesLegendRowSignature(detection, index.byKey.get(identity.legendRowId))
     ) {
       identity = {
         ...identity,

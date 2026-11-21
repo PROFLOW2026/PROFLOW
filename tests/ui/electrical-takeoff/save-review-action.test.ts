@@ -298,6 +298,36 @@ describe('resolveSaveReviewPlan', () => {
     ]);
   });
 
+  it('confirms five shown 3-pole safety-switch names without a catalog type', () => {
+    const marks = Array.from({ length: 5 }, (_, index) =>
+      detection({
+        id: `3p-${index + 1}`,
+        typeKey: null,
+        originalText: 'מפסק בטחון 3-קוטבי',
+        legendUnambiguous: false,
+        identitySource: 'uncertain',
+        legendRowIds: ['row:3p'],
+        signature: 'block:3pol',
+        rawClass: 'block:3pol',
+        reasons: ['unclassified', 'type_ambiguous'],
+        needsReview: true,
+      }),
+    );
+    const plan = resolveSaveReviewPlan({
+      selected: marks[0]!,
+      detections: marks,
+      applyToGroup: true,
+      typeKey: null,
+      confirm: true,
+      saveToLibrary: false,
+    });
+    expect(plan.includedCount).toBe(5);
+    expect(plan.skippedCount).toBe(0);
+    expect(buildSaveReviewEdits(plan, marks)).toEqual([
+      { op: 'confirm', detectionIds: marks.map((item) => item.id) },
+    ]);
+  });
+
   it('does not confirm unnamed mates when approving a legend name', () => {
     const named = detection({
       id: 'named',

@@ -142,16 +142,44 @@ describe('review-copy identity statuses', () => {
     expect(canSaveReviewIdentity('light.point', row)).toBe(true);
   });
 
-  it('does not treat a legend conflict as a confirmable name', () => {
+  it('allows save-and-confirm from planner legend text without a catalog type, even when the catalog family is ambiguous', () => {
+    const row = detection({
+      id: 'switch-3p-1',
+      originalText: 'מפסק בטחון 3-קוטבי',
+      identitySource: 'uncertain',
+      legendUnambiguous: false,
+      reasons: ['unclassified', 'type_ambiguous'],
+      legendRowIds: ['row:3p'],
+    });
+    expect(hasConfirmableLegendName(row)).toBe(true);
+    expect(canSaveReviewIdentity(null, row)).toBe(true);
+    expect(reviewPlainKey(row)).toBe('uncertain');
+  });
+
+  it('keeps a real two-text legend conflict in review but still lets the planner name be confirmed without a catalog type', () => {
     const row = detection({
       id: 'conflict-1',
       originalText: 'מפסק מאור',
-      identitySource: 'legend',
+      identitySource: 'uncertain',
       legendUnambiguous: false,
+      legendHoldReason: 'conflict',
       reasons: ['type_ambiguous'],
       legendRowIds: ['a', 'b'],
     });
-    expect(hasConfirmableLegendName(row)).toBe(false);
-    expect(canSaveReviewIdentity(null, row)).toBe(false);
+    expect(hasConfirmableLegendName(row)).toBe(true);
+    expect(canSaveReviewIdentity(null, row)).toBe(true);
+    expect(reviewPlainKey(row)).toBe('legendConflict');
+  });
+
+  it('does not treat a catalog type_ambiguous flag as a missing typeKey when planner text is already shown', () => {
+    const row = detection({
+      id: 'shown-1',
+      originalText: 'מפסק בטחון 3-קוטבי',
+      identitySource: 'uncertain',
+      legendUnambiguous: false,
+      reasons: ['unclassified', 'type_ambiguous'],
+    });
+    expect(reviewPlainKey(row)).toBe('uncertain');
+    expect(canSaveReviewIdentity(null, row)).toBe(true);
   });
 });
