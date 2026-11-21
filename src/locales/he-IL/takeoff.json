@@ -264,7 +264,8 @@
     "legend_zone": "אזור מקרא",
     "legend_text_undecodable": "טקסט מקרא לא נקרא",
     "symbol_group_candidate": "קבוצת סמל ללא סוג",
-    "drawing_noise": "רעש שרטוט"
+    "drawing_noise": "רעש שרטוט",
+    "sheet_unassigned": "לא משויך לגיליון"
   },
   "catalogCategory": {
     "all": "הכל",
@@ -288,6 +289,7 @@
     "occurrences": "{count} מופעים",
     "blockName": "שם בלוק: {name}",
     "legendKey": "מפתח מקרא: {name}",
+    "legendText": "מקרא: {text}",
     "reason": {
       "missingType": "סוג האביזר לא זוהה",
       "confirmType": "זוהה סוג, אך נדרש אישור",
@@ -404,7 +406,11 @@
   "errors": {
     "loadFailed": "לא ניתן לטעון את הניתוח",
     "approval_blocked_review": "אי אפשר לאשר כתב כמויות כל עוד יש פריטים ללא סוג או פריטים שדורשים אישור.",
-    "approval_blocked_plan_review": "אי אפשר לאשר כתב כמויות לפני אישור שבדקתם גם אביזרים שלא זוהו אוטומטית."
+    "approval_blocked_plan_review": "אי אפשר לאשר כתב כמויות לפני אישור שבדקתם גם אביזרים שלא זוהו אוטומטית.",
+    "catalog_duplicate": "שם האביזר כבר קיים בארגון. בחרו את הסוג הקיים או שם אחר.",
+    "catalog_invalid": "לא ניתן לשמור את סוג האביזר.",
+    "catalog_type_archived": "סוג האביזר בארכיון. שחזרו אותו לפני שמירה לספרייה.",
+    "forbidden": "אין הרשאה לפעולה זו."
   },
   "rules": {
     "open": "כללי מדידה",

@@ -10,8 +10,9 @@ import type {
   CatalogTypeUpdateInput,
   ElectricalCategory,
 } from '../domain/contracts';
-import { isDefaultCatalogKey } from '../domain/catalog';
+import { findActiveNameDuplicate, isDefaultCatalogKey } from '../domain/catalog';
 import { blurSelectOnWheel } from './blur-select-on-wheel';
+import { takeoffErrorCode } from './takeoff-errors';
 import { CATALOG_CATEGORY_ORDER, filterCatalog, groupCatalog } from './review-guide';
 
 export type TakeoffCatalogMutations = {
@@ -63,11 +64,32 @@ export function TakeoffTypePicker({
   const showManage = Boolean(canManageCatalog && mutations && !disabled);
   const emptySearch = query.trim().length > 0 && filterCatalog(catalog, category, query, '').length === 0;
 
+  function catalogErrorMessage(caught: unknown): string {
+    const code = takeoffErrorCode(caught);
+    if (code === 'catalog_duplicate' || code === 'catalog_invalid' || code === 'catalog_type_archived' || code === 'forbidden') {
+      return t(`errors.${code}`);
+    }
+    if (caught instanceof Error && caught.message.trim()) return caught.message;
+    return t('catalog.saveFailed');
+  }
+
+  function selectExistingType(type: CatalogType) {
+    onChange(type.key);
+    setQuery('');
+    setDialog({ mode: 'closed' });
+    setError(null);
+  }
+
   async function submitCreate() {
     if (dialog.mode !== 'create' || !mutations) return;
     const chosenCategory = dialog.category === 'all' ? null : dialog.category;
     if (!chosenCategory) {
       setError(t('catalog.pickCategory'));
+      return;
+    }
+    const existing = findActiveNameDuplicate(catalog, dialog.nameHe);
+    if (existing) {
+      selectExistingType(existing);
       return;
     }
     setSaving(true);
@@ -79,7 +101,7 @@ export function TakeoffTypePicker({
       setQuery('');
       setDialog({ mode: 'closed' });
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : t('catalog.saveFailed'));
+      setError(catalogErrorMessage(caught));
     } finally {
       setSaving(false);
     }
@@ -95,7 +117,7 @@ export function TakeoffTypePicker({
       onChange(saved.key);
       setDialog({ mode: 'closed' });
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : t('catalog.saveFailed'));
+      setError(catalogErrorMessage(caught));
     } finally {
       setSaving(false);
     }
@@ -111,7 +133,7 @@ export function TakeoffTypePicker({
       if (archived && value === dialog.key) onChange('');
       setDialog({ mode: 'closed' });
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : t('catalog.saveFailed'));
+      setError(catalogErrorMessage(caught));
     } finally {
       setSaving(false);
     }

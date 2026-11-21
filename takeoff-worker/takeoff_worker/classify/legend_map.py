@@ -90,6 +90,7 @@ def match_legend_text(text: str, catalog: list[CatalogType]) -> LegendMatch | No
     if "מקבצ" in text and "שקע" in text:
         return None
     lower = text.lower()
+    restored = _with_token_order_restored(lower)
     best: LegendMatch | None = None
     longest: dict[str, str] = {}
 
@@ -104,7 +105,7 @@ def match_legend_text(text: str, catalog: list[CatalogType]) -> LegendMatch | No
                 continue
             if not _keyword_may_assign(kwt, lower):
                 continue
-            if _phrase_in(lower, kwt) or _phrase_in(_with_token_order_restored(lower), kwt):
+            if _phrase_in(lower, kwt) or _phrase_in(restored, kwt):
                 score += 3.0 + min(len(kwt) / 20.0, 1.5)
                 matched_kw += 1
                 if len(kwt) > len(longest.get(item.key, "")):
@@ -114,7 +115,8 @@ def match_legend_text(text: str, catalog: list[CatalogType]) -> LegendMatch | No
         if item.key == "power.socket.three_phase" and "תלת" not in lower:
             score = 0.0
             matched_kw = 0
-        if item.key == "power.socket.ip" and not any(w in lower for w in ("הרמטי", "מוגן", "ip", "ןפ")):
+        ip_marks = tuple(_final_to_standard(w) for w in ("הרמטי", "מוגן", "ip", "ןפ"))
+        if item.key == "power.socket.ip" and not any(w in lower or w in restored for w in ip_marks):
             score = 0.0
             matched_kw = 0
         # חד-תכליתי is a single-purpose emergency light, not a combo fixture.

@@ -24,6 +24,49 @@ def test_hebrew_legend_phrases_from_7155():
         match_legend_text(row["desc"], catalog)
 
 
+def test_untyped_second_legend_row_does_not_block_agreed_type():
+    catalog = load_default_catalog()
+    det = WorkerDetection(
+        id="d1",
+        sheetKey="p1",
+        fileId="f",
+        source="dwg",
+        x=1,
+        y=2,
+        signature="block:sw1",
+        signatureKind="dwg-block",
+        rawClass="SW1",
+        blockName="SW1",
+        typeKey=None,
+        classifiedBy="none",
+        confidence="none",
+        legendRowIds=["row:aaaa", "row:bbbb"],
+    )
+    legend = [
+        WorkerLegendEntry(
+            key="row:aaaa",
+            fileId="f",
+            signature="block:sw1",
+            signatureKind="dwg-block",
+            decodedText="מפסק יחיד",
+            typeKey="control.switch.single",
+            confidence="medium",
+        ),
+        WorkerLegendEntry(
+            key="row:bbbb",
+            fileId="f",
+            signature="block:sw1",
+            signatureKind="dwg-block",
+            decodedText="הערה למתקין",
+            typeKey=None,
+            confidence="low",
+        ),
+    ]
+    out = classify_detections([det], catalog=catalog, library=[], legend=legend)[0]
+    assert out.typeKey == "control.switch.single"
+    assert out.classifiedBy == "legend_text"
+
+
 def test_library_does_not_override_current_legend_conflict():
     catalog = load_default_catalog()
     det = WorkerDetection(

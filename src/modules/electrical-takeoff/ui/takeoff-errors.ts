@@ -43,6 +43,7 @@ export function takeoffErrorCode(error: unknown): string | null {
     }
     if (error.message.includes('takeoff.errors.approval_blocked_review')) return 'approval_blocked_review';
     if (error.message.includes('אי אפשר לאשר כתב כמויות')) return 'approval_blocked_review';
+    if (error.message.includes('שם האביזר כבר קיים')) return 'catalog_duplicate';
   }
   return null;
 }

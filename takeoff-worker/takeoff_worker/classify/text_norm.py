@@ -22,6 +22,8 @@ _BET_TAKA = re.compile(r"(?<![\u0590-\u05FF])ב\s*\.\s*ת(?![\u0590-\u05FF])")
 _GIMEL_TAV = re.compile(r"ג\s*[\"״']\s*ת")
 # בית-תקע must stay one phrase. A hyphen is not a letter boundary the catalog knows.
 _HEB_HYPHEN = re.compile(r"(?<=[\u0590-\u05FF])[-\u05be](?=[\u0590-\u05FF])")
+# ושקע רגיל is "and a regular socket". Keep the catalog phrase intact.
+_CONJ_VAV = re.compile(r"(?<![\u0590-\u05FF])ו(?=[\u0590-\u05FF]{3,})")
 
 
 def _tokenize_mixed(s: str) -> list[str]:
@@ -45,10 +47,12 @@ def reverse_visual_hebrew(s: str) -> str:
     return " ".join(rev)
 
 
-# נקודה לטלפון → נקודת טלפון. Extra words after X stay as written, so a location word cannot pick a type.
-_POINT_TO_ONE = re.compile(r"נקודה\s+ל[\u05be\-–]?\s*([\u0590-\u05FF]+)\s*$")
+# נקודה לטלפון → נקודת טלפון. A trailing location word is not a type.
+_POINT_TO_ONE = re.compile(
+    r"נקודה\s+ל[\u05be\-–]?\s*([\u0590-\u05FF]+)(?:\s+(חוץ|פנים|חיצוני|פנימי|גינה|מרפסת|גג|חניה))?\s*$"
+)
 # מפסק מאור חילוף → מפסק חילוף. Bare מפסק מאור → מפסק תאורה.
-_SWITCH_MAOR = re.compile(r"מפסק\s+מאור(?:\s+(כפול|חילוף|ביניים|תריס))?")
+_SWITCH_MAOR = re.compile(r"מפסק\s+מאור(?:\s+(כפול|חילוף|ביניים|תריס|יחיד|צלב|מחליף))?")
 
 
 def _expand_point_to(t: str) -> str:
@@ -94,6 +98,10 @@ def _join_hebrew_hyphen(t: str) -> str:
     return _HEB_HYPHEN.sub(" ", t)
 
 
+def _split_conjunctive_vav(t: str) -> str:
+    return _CONJ_VAV.sub("", t)
+
+
 def _final_to_standard(s: str) -> str:
     return (
         s.replace("\u05dd", "\u05de")
@@ -118,6 +126,7 @@ def normalize_legend_text(raw: str, *, decoded_by: str | None = None) -> str:
     t = _expand_point_to(t)
     t = _expand_switch_maor(t)
     t = _join_hebrew_hyphen(t)
+    t = _split_conjunctive_vav(t)
     t = _expand_bet_taka(t)
     t = reverse_visual_hebrew(t)
     if HEB.search(t):

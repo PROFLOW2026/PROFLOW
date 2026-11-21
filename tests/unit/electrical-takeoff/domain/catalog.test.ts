@@ -22,6 +22,9 @@ describe('catalog', () => {
     const types = loadDefaultCatalog();
     expect(types.length).toBeGreaterThanOrEqual(80);
     assertCatalogIntegrity(types);
+    expect(types.some((type) => type.key === 'control.stair_button')).toBe(true);
+    expect(types.some((type) => type.key === 'power.shutter_feed')).toBe(true);
+    expect(types.some((type) => type.key === 'control.shutter' && type.nameHe === 'מפסק תריס')).toBe(true);
     const keys = new Set(types.map((t) => t.key));
     expect(keys.size).toBe(types.length);
     for (const t of types) {
@@ -102,13 +105,13 @@ describe('catalog', () => {
       customTypes: [
         buildCustomCatalogType({
           category: 'control',
-          nameHe: 'לחצן חדר מדרגות',
+          nameHe: 'לחצן דירה ייעודי',
           catalog: loadDefaultCatalog(),
           key: 'custom.control.aaaaaaaaaaaa',
         }),
       ],
     });
-    expect(findActiveNameDuplicate(catalog, '  לחצן   חדר מדרגות ' )?.key).toBe('custom.control.aaaaaaaaaaaa');
+    expect(findActiveNameDuplicate(catalog, '  לחצן   דירה ייעודי ' )?.key).toBe('custom.control.aaaaaaaaaaaa');
     expect(findActiveNameDuplicate(catalog, 'מפסק יחיד')?.key).toBe('control.switch.single');
   });
 

@@ -788,6 +788,7 @@ export function TakeoffWorkspace({
                 canManageCatalog={view.permissions.canManageLibrary}
                 catalogMutations={catalogMutations}
                 onCatalogSaved={onCatalogSaved}
+                legendRows={view.legend ?? []}
                 saving={guideSaving}
                 progress={guidedProgress}
                 shownId={shownOccurrenceId ?? guideFocus.id}

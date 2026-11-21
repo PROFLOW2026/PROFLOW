@@ -65,6 +65,22 @@ export function reviewKind(detection: EffectiveDetection): ReviewKind | null {
   return 'confirmType';
 }
 
+const CONFLICT_SCOPE_REASONS = new Set<TakeoffReviewReason>([
+  'type_ambiguous',
+  'pdf_dwg_mismatch',
+  'possible_duplicate',
+]);
+
+/** Bulk apply is the default only for identical marks with no legend/type conflict. */
+export function defaultReviewScope(
+  group: Pick<ReviewGroup, 'kind' | 'occurrences' | 'reasons'>,
+): 'one' | 'group' {
+  if (group.occurrences <= 1) return 'one';
+  if (group.kind === 'uncertain') return 'one';
+  if (group.reasons.some((reason) => CONFLICT_SCOPE_REASONS.has(reason))) return 'one';
+  return 'group';
+}
+
 /** Block name or legend key already stored on the mark. Nothing is inferred from the drawing. */
 export function symbolIdentityLabel(
   detection: { rawClass: string; signature?: string | null },

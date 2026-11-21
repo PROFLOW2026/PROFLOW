@@ -15,12 +15,12 @@ function wrap(ui: ReactNode) {
 }
 
 describe('TakeoffTypePicker org catalog', () => {
-  it('adds לחצן חדר מדרגות under מפסקים and selects it immediately', async () => {
+  it('adds לחצן דירה ייעודי under מפסקים and selects it immediately', async () => {
     const created = {
       key: 'custom.control.stairbtn01',
       category: 'control' as const,
       role: 'device' as const,
-      nameHe: 'לחצן חדר מדרגות',
+      nameHe: 'לחצן דירה ייעודי',
       unit: "יח'",
       keywordsHe: [] as string[],
       colorHex: '#7f7f7f',
@@ -47,13 +47,41 @@ describe('TakeoffTypePicker org catalog', () => {
     fireEvent.click(screen.getByRole('button', { name: heTakeoff.catalogCategory.control }));
     fireEvent.click(screen.getByTestId('takeoff-guide-type-add'));
     fireEvent.change(screen.getByTestId('takeoff-guide-type-catalog-name'), {
-      target: { value: 'לחצן חדר מדרגות' },
+      target: { value: 'לחצן דירה ייעודי' },
     });
     fireEvent.click(screen.getByTestId('takeoff-guide-type-catalog-save'));
 
-    await waitFor(() => expect(create).toHaveBeenCalledWith({ category: 'control', nameHe: 'לחצן חדר מדרגות' }));
+    await waitFor(() => expect(create).toHaveBeenCalledWith({ category: 'control', nameHe: 'לחצן דירה ייעודי' }));
     expect(onChange).toHaveBeenCalledWith(created.key);
     expect(onCatalogSaved).toHaveBeenCalledWith(created);
+  });
+
+  it('selects an existing built-in instead of creating a duplicate name', async () => {
+    const create = vi.fn();
+    const onChange = vi.fn();
+    render(
+      wrap(
+        <TakeoffTypePicker
+          catalog={loadDefaultCatalog()}
+          value=""
+          onChange={onChange}
+          testId="takeoff-guide-type"
+          canManageCatalog
+          mutations={{ create, update: vi.fn(), archive: vi.fn() }}
+        />,
+      ),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: heTakeoff.catalogCategory.control }));
+    fireEvent.click(screen.getByTestId('takeoff-guide-type-add'));
+    fireEvent.change(screen.getByTestId('takeoff-guide-type-catalog-name'), {
+      target: { value: 'מפסק תריס' },
+    });
+    fireEvent.click(screen.getByTestId('takeoff-guide-type-catalog-save'));
+
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith('control.shutter'));
+    expect(create).not.toHaveBeenCalled();
+    expect(screen.queryByText(/Minified React error/i)).toBeNull();
   });
 
   it('hides add actions without library manage permission', () => {

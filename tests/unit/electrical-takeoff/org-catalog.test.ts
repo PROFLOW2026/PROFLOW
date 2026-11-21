@@ -42,7 +42,7 @@ describe('org catalog write', () => {
   it('refuses create without takeoff.library.manage before any write', async () => {
     const ctx = context([PERMISSIONS.TAKEOFF_MANAGE]);
     await expect(
-      createOrgCatalogTypeUseCase(ctx, { category: 'control', nameHe: 'לחצן חדר מדרגות' }),
+      createOrgCatalogTypeUseCase(ctx, { category: 'control', nameHe: 'לחצן דירה ייעודי' }),
     ).rejects.toMatchObject({ takeoffCode: 'forbidden' });
     expect(upsertCatalogType).not.toHaveBeenCalled();
   });
@@ -50,10 +50,10 @@ describe('org catalog write', () => {
   it('creates a custom control type with empty keywords and a stable custom key', async () => {
     const saved = await createOrgCatalogTypeUseCase(context([PERMISSIONS.TAKEOFF_LIBRARY_MANAGE]), {
       category: 'control',
-      nameHe: 'לחצן חדר מדרגות',
+      nameHe: 'לחצן דירה ייעודי',
     });
     expect(saved.key.startsWith('custom.control.')).toBe(true);
-    expect(saved.nameHe).toBe('לחצן חדר מדרגות');
+    expect(saved.nameHe).toBe('לחצן דירה ייעודי');
     expect(saved.keywordsHe).toEqual([]);
     expect(saved.builtIn).toBe(false);
     expect(upsertCatalogType).toHaveBeenCalledTimes(1);
@@ -74,13 +74,13 @@ describe('org catalog write', () => {
     await expect(
       createOrgCatalogTypeUseCase(context([PERMISSIONS.TAKEOFF_LIBRARY_MANAGE]), {
         category: 'control',
-        nameHe: 'לחצן חדר מדרגות',
+        nameHe: 'לחצן דירה ייעודי',
       }),
     ).rejects.toBeInstanceOf(TakeoffError);
     await expect(
       createOrgCatalogTypeUseCase(context([PERMISSIONS.TAKEOFF_LIBRARY_MANAGE]), {
         category: 'control',
-        nameHe: 'לחצן חדר מדרגות',
+        nameHe: 'לחצן דירה ייעודי',
       }),
     ).rejects.toMatchObject({ takeoffCode: 'catalog_duplicate' });
   });

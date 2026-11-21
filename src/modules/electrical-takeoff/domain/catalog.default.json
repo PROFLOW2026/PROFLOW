@@ -24,7 +24,8 @@
     "unit": "יח'",
     "keywordsHe": [
       "נקודת מאור",
-      "נקודת תאורה"
+      "נקודת תאורה",
+      "נקודת מאור רגילה"
     ],
     "colorHex": "#9467bd",
     "builtIn": true,
@@ -277,7 +278,10 @@
       "שקע כח",
       "נקודת כח",
       "מ\"ז יחיד",
-      "בית תקע"
+      "בית תקע",
+      "שקע רגיל",
+      "שקע 16A",
+      "שקע 16 A"
     ],
     "colorHex": "#808000",
     "builtIn": true,
@@ -292,7 +296,8 @@
     "keywordsHe": [
       "שקע כפול",
       "ח\"ק כפול",
-      "שקע כפול תה\"ט"
+      "שקע כפול תה\"ט",
+      "בית תקע כפול"
     ],
     "colorHex": "#ffd8b1",
     "builtIn": true,
@@ -417,8 +422,7 @@
     "keywordsHe": [
       "נקודת כוח",
       "שקע כוח",
-      "שקע כח",
-      "כוח"
+      "נקודת כוח מסחרית"
     ],
     "colorHex": "#8c564b",
     "builtIn": true,
@@ -440,6 +444,23 @@
     "archived": false
   },
   {
+    "key": "power.shutter_feed",
+    "category": "power",
+    "role": "device",
+    "nameHe": "נקודת הזנה לתריס",
+    "unit": "יח'",
+    "keywordsHe": [
+      "נקודת הזנה לתריס",
+      "הזנה לתריס",
+      "נקודה לתריס חשמלי",
+      "נקודת תריס חשמלי",
+      "נקודה לתריס"
+    ],
+    "colorHex": "#c2410c",
+    "builtIn": true,
+    "archived": false
+  },
+  {
     "key": "control.switch.single",
     "category": "control",
     "role": "device",
@@ -448,7 +469,8 @@
     "keywordsHe": [
       "מפסק יחיד",
       "מפסק תאורה",
-      "מפסק חד אורי"
+      "מפסק חד אורי",
+      "מפסק מאור"
     ],
     "colorHex": "#7f7f7f",
     "builtIn": true,
@@ -478,7 +500,9 @@
       "מפסק חילוף",
       "חילוף",
       "two way",
-      "שתי נקודות"
+      "שתי נקודות",
+      "מפסק מחליף",
+      "מחליף"
     ],
     "colorHex": "#17becf",
     "builtIn": true,
@@ -493,7 +517,9 @@
     "keywordsHe": [
       "מפסק ביניים",
       "מפסח ביניים",
-      "intermediate"
+      "intermediate",
+      "מפסק צלב",
+      "צלב"
     ],
     "colorHex": "#393b79",
     "builtIn": true,
@@ -524,7 +550,11 @@
       "מפסק תריס",
       "תריס",
       "shutter",
-      "מסך נגלל"
+      "מסך נגלל",
+      "לחצן תריס",
+      "מפסק לתריס",
+      "מפסק תריס חשמלי",
+      "לחצן תריס חשמלי"
     ],
     "colorHex": "#8c6d31",
     "builtIn": true,
@@ -603,6 +633,22 @@
     "archived": false
   },
   {
+    "key": "control.stair_button",
+    "category": "control",
+    "role": "device",
+    "nameHe": "לחצן חדר מדרגות",
+    "unit": "יח'",
+    "keywordsHe": [
+      "לחצן חדר מדרגות",
+      "לחצן מדרגות",
+      "לחצן חדר-מדרגות",
+      "לחצן לחדר מדרגות"
+    ],
+    "colorHex": "#0d9488",
+    "builtIn": true,
+    "archived": false
+  },
+  {
     "key": "comm.data",
     "category": "communication",
     "role": "device",
@@ -614,7 +660,9 @@
       "לנ\"א",
       "data",
       "RJ45",
-      "UTP"
+      "UTP",
+      "נקודת מחשב",
+      "נקודת נתונים"
     ],
     "colorHex": "#636363",
     "builtIn": true,
@@ -643,7 +691,8 @@
     "keywordsHe": [
       "טלפון",
       "נקודת טלפון",
-      "RJ11"
+      "RJ11",
+      "נקודה לטלפון"
     ],
     "colorHex": "#74c476",
     "builtIn": true,
@@ -1230,7 +1279,10 @@
     "keywordsHe": [
       "קופסת חיבור",
       "קופסה",
-      "junction box"
+      "junction box",
+      "קופסת הסתעפות",
+      "קופסת חיבורים",
+      "פנדל"
     ],
     "colorHex": "#ffa15a",
     "builtIn": true,

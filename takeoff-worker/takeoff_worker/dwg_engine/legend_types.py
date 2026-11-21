@@ -94,10 +94,7 @@ def uncertain_block_signatures(rows: list[dict], catalog: list[CatalogType]) -> 
         if len(items) < 2:
             continue
         keys = {match.type_key for _, match in items if match is not None and getattr(match, "type_key", None)}
-        agreed = len(keys) == 1 and all(
-            match is not None and getattr(match, "type_key", None) == next(iter(keys)) for _, match in items
-        )
-        if agreed:
+        if len(keys) <= 1:
             continue
         out.add(sig)
         out.add(sig.lower())

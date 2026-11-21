@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { CatalogType, EffectiveDetection, SheetDto } from '../domain/contracts';
+import type { CatalogType, EffectiveDetection, SheetDto, WorkerLegendEntry } from '../domain/contracts';
 import { detectionDisplayLabel } from './boq-display';
-import type { ReviewGroup, TypeSuggestion } from './review-guide';
+import { defaultReviewScope, type ReviewGroup, type TypeSuggestion } from './review-guide';
 import { symbolCropSource, symbolIdentityLabel } from './review-guide';
-import { canSaveReclassifyToLibrary } from './takeoff-analysis-view';
+import { canSaveReclassifyToLibrary, legendDisplayText } from './takeoff-analysis-view';
 import { TakeoffTypePicker, type TakeoffCatalogMutations } from './takeoff-type-picker';
 
 export function TakeoffReviewGuide({
@@ -30,6 +30,7 @@ export function TakeoffReviewGuide({
   canManageCatalog = false,
   catalogMutations,
   onCatalogSaved,
+  legendRows = [],
 }: {
   group: ReviewGroup;
   focus: EffectiveDetection;
@@ -50,6 +51,7 @@ export function TakeoffReviewGuide({
   canManageCatalog?: boolean;
   catalogMutations?: TakeoffCatalogMutations;
   onCatalogSaved?: (type: CatalogType) => void;
+  legendRows?: readonly WorkerLegendEntry[];
 }) {
   const t = useTranslations('takeoff');
   const marks = occurrences.length > 0 ? occurrences : [focus];
@@ -58,11 +60,16 @@ export function TakeoffReviewGuide({
   const [form, setForm] = useState({
     key: group.key,
     pick: group.typeKey ?? '',
-    scope: 'one' as 'one' | 'group',
+    scope: defaultReviewScope(group),
     saveLib: false,
   });
   if (form.key !== group.key) {
-    setForm({ key: group.key, pick: group.typeKey ?? '', scope: 'one', saveLib: false });
+    setForm({
+      key: group.key,
+      pick: group.typeKey ?? '',
+      scope: defaultReviewScope(group),
+      saveLib: false,
+    });
   }
   const [symbolState, setSymbolState] = useState({ id: current.id, ready: Boolean(sheet?.previewUrl) });
   if (symbolState.id !== current.id) {
@@ -76,6 +83,14 @@ export function TakeoffReviewGuide({
   const setScope = (value: 'one' | 'group') => setForm((currentForm) => ({ ...currentForm, scope: value }));
   const setSaveLib = (value: boolean) => setForm((currentForm) => ({ ...currentForm, saveLib: value }));
   const identity = symbolIdentityLabel(current);
+  const legendTexts = Array.from(
+    new Set(
+      (current.legendRowIds ?? [])
+        .flatMap((id) => legendRows.filter((row) => row.key === id).map((row) => legendDisplayText(row)))
+        .map((text) => text.trim())
+        .filter(Boolean),
+    ),
+  );
   const showTypeChoice = symbolReady;
   const libraryAllowed = canManageLibrary && canSaveReclassifyToLibrary(current, pick || null);
   const needsType = !pick;
@@ -151,6 +166,11 @@ export function TakeoffReviewGuide({
                 : t('guide.legendKey', { name: identity.value })}
             </p>
           ) : null}
+          {legendTexts.map((text) => (
+            <p key={text} className="break-words text-xs text-[var(--pf-text-primary)]" data-testid="takeoff-guide-legend-text">
+              {t('guide.legendText', { text })}
+            </p>
+          ))}
           <p className="text-xs font-medium text-[var(--pf-status-warning-fg)]" data-testid="takeoff-guide-reason">
             {t(`guide.reason.${group.kind}`)}
           </p>

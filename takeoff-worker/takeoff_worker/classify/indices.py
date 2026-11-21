@@ -41,8 +41,7 @@ def build_legend_indices(legend: list[WorkerLegendEntry]) -> dict[str, dict[str,
         if len(items) < 2:
             continue
         keys = {item.typeKey for item in items if item.typeKey}
-        agreed = len(keys) == 1 and all(item.typeKey == next(iter(keys)) for item in items)
-        if agreed:
+        if len(keys) <= 1:
             continue
         conflict.add(sig)
         conflict.add(sig.lower())

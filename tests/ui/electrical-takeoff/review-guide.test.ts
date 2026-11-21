@@ -3,6 +3,7 @@ import type { EffectiveDetection } from '@/modules/electrical-takeoff/domain/con
 import { getReal7155Fixture } from '@/modules/electrical-takeoff/ui/fixtures/real7155-fixture';
 import {
   buildReviewGroups,
+  defaultReviewScope,
   reviewKind,
   reviewProgress,
   symbolCropSource,
@@ -52,6 +53,38 @@ describe('guided review groups', () => {
     expect(reviewKind(mark({ id: '9', typeKey: 'light.recessed', confidence: 'low', reasons: ['type_ambiguous'] }))).toBe(
       'uncertain',
     );
+  });
+
+  it('defaults bulk apply only when the group has no type conflict', () => {
+    expect(
+      defaultReviewScope({
+        kind: 'missingType',
+        occurrences: 8,
+        reasons: ['unclassified'],
+      }),
+    ).toBe('group');
+    expect(
+      defaultReviewScope({
+        kind: 'missingType',
+        occurrences: 8,
+        reasons: ['unclassified', 'type_ambiguous'],
+      }),
+    ).toBe('one');
+    expect(
+      defaultReviewScope({
+        kind: 'uncertain',
+        occurrences: 8,
+        reasons: ['type_ambiguous'],
+      }),
+    ).toBe('one');
+    expect(
+      defaultReviewScope({
+        kind: 'confirmType',
+        occurrences: 3,
+        reasons: ['low_confidence'],
+      }),
+    ).toBe('group');
+    expect(defaultReviewScope({ kind: 'missingType', occurrences: 1, reasons: ['unclassified'] })).toBe('one');
   });
 
   it('suggests only a type that already exists on the library signature or the same symbol', () => {

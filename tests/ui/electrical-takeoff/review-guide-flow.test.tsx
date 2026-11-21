@@ -52,6 +52,8 @@ describe('guided takeoff review', () => {
     const ids = guide.getAttribute('data-group-ids')?.split(',') ?? [];
     const focusId = guide.getAttribute('data-focus-id');
     expect(ids.length).toBeGreaterThan(1);
+    expect(screen.getByTestId('takeoff-guide-scope-group')).toBeChecked();
+    fireEvent.click(screen.getByTestId('takeoff-guide-scope-one'));
     expect(screen.getByTestId('takeoff-guide-scope-one')).toBeChecked();
     expect(screen.getByTestId('takeoff-guide-reason')).toHaveTextContent(heTakeoff.guide.reason.missingType);
     expect(screen.getByTestId('takeoff-guide-symbol')).toHaveAttribute('data-symbol-state', 'ready');

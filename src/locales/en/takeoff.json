@@ -264,7 +264,8 @@
     "legend_zone": "Legend area",
     "legend_text_undecodable": "Legend text was not read",
     "symbol_group_candidate": "Symbol group without a type",
-    "drawing_noise": "Drawing noise"
+    "drawing_noise": "Drawing noise",
+    "sheet_unassigned": "Sheet not assigned"
   },
   "catalogCategory": {
     "all": "All",
@@ -288,6 +289,7 @@
     "occurrences": "{count} occurrences",
     "blockName": "Block name: {name}",
     "legendKey": "Legend key: {name}",
+    "legendText": "Legend: {text}",
     "reason": {
       "missingType": "The device type was not identified",
       "confirmType": "A type was identified and still needs approval",
@@ -404,7 +406,11 @@
   "errors": {
     "loadFailed": "Could not load analysis",
     "approval_blocked_review": "BOQ cannot be approved while items have no type or still need review.",
-    "approval_blocked_plan_review": "BOQ cannot be approved before you confirm that missed devices were checked on the plan."
+    "approval_blocked_plan_review": "BOQ cannot be approved before you confirm that missed devices were checked on the plan.",
+    "catalog_duplicate": "This accessory name already exists. Choose the existing type or a different name.",
+    "catalog_invalid": "The accessory type could not be saved.",
+    "catalog_type_archived": "This accessory type is archived. Restore it before saving it to the library.",
+    "forbidden": "You do not have permission for this action."
   },
   "rules": {
     "open": "Measurement rules",

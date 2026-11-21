@@ -264,7 +264,8 @@
     "legend_zone": "منطقة المفتاح",
     "legend_text_undecodable": "لم يُقرأ نص المفتاح",
     "symbol_group_candidate": "مجموعة رموز بلا نوع",
-    "drawing_noise": "ضوضاء الرسم"
+    "drawing_noise": "ضوضاء الرسم",
+    "sheet_unassigned": "غير مرتبط بورقة"
   },
   "catalogCategory": {
     "all": "الكل",
@@ -288,6 +289,7 @@
     "occurrences": "{count} مرات ظهور",
     "blockName": "اسم البلوك: {name}",
     "legendKey": "مفتاح الرسم: {name}",
+    "legendText": "المفتاح: {text}",
     "reason": {
       "missingType": "لم يُتعرف على نوع التجهيز",
       "confirmType": "تم التعرف على نوع ويحتاج اعتماداً",
@@ -404,7 +406,11 @@
   "errors": {
     "loadFailed": "تعذّر تحميل التحليل",
     "approval_blocked_review": "لا يمكن اعتماد جدول الكميات ما دامت هناك بنود بلا نوع أو بنود تتطلب مراجعة.",
-    "approval_blocked_plan_review": "لا يمكن اعتماد جدول الكميات قبل التأكيد أن التجهيزات غير المكتشفة فُحصت على المخطط."
+    "approval_blocked_plan_review": "لا يمكن اعتماد جدول الكميات قبل التأكيد أن التجهيزات غير المكتشفة فُحصت على المخطط.",
+    "catalog_duplicate": "اسم الملحق موجود أصلاً. اختاروا النوع الحالي أو اسماً آخر.",
+    "catalog_invalid": "تعذّر حفظ نوع الملحق.",
+    "catalog_type_archived": "نوع الملحق في الأرشيف. استعيدوه قبل الحفظ في المكتبة.",
+    "forbidden": "لا صلاحية لهذا الإجراء."
   },
   "rules": {
     "open": "قواعد القياس",

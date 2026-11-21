@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import en from '@/locales/en/takeoff.json';
 import ar from '@/locales/ar/takeoff.json';
 import ru from '@/locales/ru/takeoff.json';
+import he from '@/locales/he-IL/takeoff.json';
+import { reviewReasonSchema } from '@/modules/electrical-takeoff/domain/contracts';
 import { flattenLocaleCatalog, readLocaleCatalog } from '../../unit/shared/i18n-catalog-helpers';
 
 const ARABIC_CHAR = /[\u0600-\u06FF]/;
@@ -67,5 +69,15 @@ describe('takeoff locale catalogs (ar / ru)', () => {
   it('registers in shared locale flatten helper', () => {
     const fromHelper = flattenLocaleCatalog(readLocaleCatalog('ar', 'takeoff'));
     expect(fromHelper.size).toBe(enFlat.size);
+  });
+
+  it('covers every reviewReason in he / en / ar / ru', () => {
+    const catalogs = [he, en, ar, ru] as const;
+    for (const reason of reviewReasonSchema.options) {
+      for (const catalog of catalogs) {
+        const value = (catalog.reviewReason as Record<string, string>)[reason];
+        expect(value, `${reason}`).toBeTruthy();
+      }
+    }
   });
 });

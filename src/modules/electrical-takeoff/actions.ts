@@ -2,7 +2,7 @@
 
 import { requireSession, runInOrgContext } from '@/shared/auth/session';
 import type { OrgContext } from '@/shared/auth/context';
-import { mapTakeoffCaught } from './domain/errors';
+import { catalogActionFailure, mapTakeoffCaught, TakeoffError, type CatalogActionFailure } from './domain/errors';
 import type {
   AnalysisSummary,
   AnalysisView,
@@ -165,16 +165,25 @@ export async function saveCatalogType(type: CatalogType): Promise<CatalogType> {
   return withOrg((ctx) => saveCatalogTypeUseCase(ctx, type));
 }
 
-export async function createCatalogType(input: CatalogTypeCreateInput): Promise<CatalogType> {
-  return withOrg((ctx) => createCatalogTypeUseCase(ctx, input));
+async function withOrgCatalog(run: (ctx: OrgContext) => Promise<CatalogType>): Promise<CatalogType | CatalogActionFailure> {
+  try {
+    return await withOrg(run);
+  } catch (error) {
+    if (error instanceof TakeoffError) return catalogActionFailure(error);
+    throw error;
+  }
 }
 
-export async function updateCatalogType(input: CatalogTypeUpdateInput): Promise<CatalogType> {
-  return withOrg((ctx) => updateCatalogTypeUseCase(ctx, input));
+export async function createCatalogType(input: CatalogTypeCreateInput): Promise<CatalogType | CatalogActionFailure> {
+  return withOrgCatalog((ctx) => createCatalogTypeUseCase(ctx, input));
 }
 
-export async function archiveCatalogType(input: CatalogTypeArchiveInput): Promise<CatalogType> {
-  return withOrg((ctx) => archiveCatalogTypeUseCase(ctx, input));
+export async function updateCatalogType(input: CatalogTypeUpdateInput): Promise<CatalogType | CatalogActionFailure> {
+  return withOrgCatalog((ctx) => updateCatalogTypeUseCase(ctx, input));
+}
+
+export async function archiveCatalogType(input: CatalogTypeArchiveInput): Promise<CatalogType | CatalogActionFailure> {
+  return withOrgCatalog((ctx) => archiveCatalogTypeUseCase(ctx, input));
 }
 
 export async function requestExport(analysisId: string, kind: ExportKind): Promise<{ url: string; fileName: string }> {

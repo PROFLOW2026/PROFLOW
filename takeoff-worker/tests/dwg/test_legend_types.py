@@ -241,16 +241,27 @@ def test_conflicting_legend_text_does_not_invent_a_type():
     assert "block:so1" not in mapped
 
 
-def test_unmatched_legend_sentence_is_kept_and_stays_untyped():
+def test_outdoor_phone_is_phone_not_outdoor_light():
     catalog = load_default_catalog()
     rows = [dict(signature="block:12e", rawText="נקודה לטלפון חוץ", decodedText="נקודה לטלפון חוץ")]
     kept = accepted_legend_rows(rows, catalog)
     assert kept[0]["decodedText"] == "נקודה לטלפון חוץ"
-    assert "block:12e" not in type_map_from_legend_rows(rows, catalog)
+    mapped = type_map_from_legend_rows(rows, catalog)
+    assert mapped["block:12e"][0] == "comm.phone"
     from takeoff_worker.classify.legend_map import match_legend_text
 
     hit = match_legend_text("נקודה לטלפון חוץ", catalog)
-    assert hit is None or hit.type_key != "light.outdoor"
+    assert hit is not None and hit.type_key == "comm.phone"
+
+
+def test_typed_row_plus_untyped_note_keeps_agreed_type():
+    catalog = load_default_catalog()
+    rows = [
+        dict(signature="block:sw1", rawText="מפסק יחיד", decodedText="מפסק יחיד"),
+        dict(signature="block:sw1", rawText="הערה למתקין", decodedText="הערה למתקין"),
+    ]
+    mapped = type_map_from_legend_rows(rows, catalog)
+    assert mapped["block:sw1"][0] == "control.switch.single"
 
 
 def test_typed_and_untyped_rows_on_same_block_are_uncertain():
