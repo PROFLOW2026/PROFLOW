@@ -42,6 +42,14 @@ describe('cad glyph status handoff', () => {
     ).toBe(true);
   });
 
+  it('keeps mixed Hebrew numbers on Canvas even when WASM marked the record gpu RESOLVED', () => {
+    expect(
+      shouldDrawTextOnCanvas(
+        text({ t: 'מוליכים 1.5 ממ"ר', gpu: true, glyphStatus: 'RESOLVED' }),
+      ),
+    ).toBe(true);
+  });
+
   it('does not treat a short segment buffer as a complete record', () => {
     expect(mayMarkTextGpu(0, 3)).toBe(false);
     expect(mayMarkTextGpu(3, 3)).toBe(true);

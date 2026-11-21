@@ -1,31 +1,60 @@
 const STORAGE_KEY = 'exlfy.takeoff.symbolFocusZoom';
 
-/** 0 = wide context, 100 = very close. Default matches the previous CAD pad ~0.37. */
-export const SYMBOL_FOCUS_ZOOM_DEFAULT = 72;
+/** 0 = smaller symbol, 100 = larger symbol. Mid default is clearly zoomed on the mark. */
+export const SYMBOL_FOCUS_ZOOM_DEFAULT = 55;
 export const SYMBOL_FOCUS_ZOOM_MIN = 0;
 export const SYMBOL_FOCUS_ZOOM_MAX = 100;
+export const SYMBOL_FOCUS_ZOOM_STEP = 10;
 
-const PAD_WIDE = 1.2;
-const PAD_CLOSE = 0.08;
-const INSERT_WIDE = 72;
-const INSERT_CLOSE = 12;
+const COVERAGE_SMALL = 0.22;
+const COVERAGE_LARGE = 0.82;
+const BODY_MIN = 8;
+const BODY_MAX = 48;
+const INSERT_BODY = 24;
 
 function clampLevel(value: number): number {
   if (!Number.isFinite(value)) return SYMBOL_FOCUS_ZOOM_DEFAULT;
   return Math.min(SYMBOL_FOCUS_ZOOM_MAX, Math.max(SYMBOL_FOCUS_ZOOM_MIN, Math.round(value)));
 }
 
-function mix(wide: number, close: number, level: number): number {
+function clampZoom(zoom: number): number {
+  if (!Number.isFinite(zoom) || zoom < 1e-9) return 1e-9;
+  return zoom;
+}
+
+/** Fraction of the short viewport side occupied by the selected symbol. */
+export function symbolCoverage(level: number): number {
   const t = clampLevel(level) / SYMBOL_FOCUS_ZOOM_MAX;
-  return wide * (1 - t) + close * t;
+  return COVERAGE_SMALL + t * (COVERAGE_LARGE - COVERAGE_SMALL);
 }
 
-export function padFactorForSymbolFocus(level: number): number {
-  return mix(PAD_WIDE, PAD_CLOSE, level);
+/** World size used for zoom. Caps a bad/huge box so the slider cannot fit the sheet. */
+export function symbolBodyForSize(
+  box: { located?: boolean; minX: number; minY: number; maxX: number; maxY: number },
+  fallback = INSERT_BODY,
+): number {
+  const span = Math.max(box.maxX - box.minX, box.maxY - box.minY);
+  if (box.located && span > 0 && span <= 96) {
+    return Math.min(Math.max(span, BODY_MIN), BODY_MAX);
+  }
+  return fallback;
 }
 
-export function insertHalfForSymbolFocus(level: number): number {
-  return mix(INSERT_WIDE, INSERT_CLOSE, level);
+export function cadViewForSymbolSize(input: {
+  x: number;
+  y: number;
+  body: number;
+  viewport: { width: number; height: number };
+  level: number;
+}): { panX: number; panY: number; zoom: number } {
+  const coverage = symbolCoverage(input.level);
+  const short = Math.max(Math.min(input.viewport.width, input.viewport.height), 1);
+  const body = Math.min(Math.max(input.body, BODY_MIN), BODY_MAX);
+  return {
+    panX: input.x,
+    panY: input.y,
+    zoom: clampZoom((short * coverage) / body),
+  };
 }
 
 const listeners = new Set<() => void>();
@@ -66,4 +95,8 @@ export function writeStoredSymbolFocusZoom(level: number): number {
   }
   notifySymbolFocusZoom();
   return next;
+}
+
+export function stepStoredSymbolFocusZoom(delta: number): number {
+  return writeStoredSymbolFocusZoom(readStoredSymbolFocusZoom() + delta);
 }

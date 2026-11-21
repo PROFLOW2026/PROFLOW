@@ -140,10 +140,9 @@
     "archStrength": "Background strength",
     "fontSubstituted": "A missing font was substituted for drawing",
     "tools": "Tools",
-    "symbolFocusZoom": "Symbol focus size",
-    "symbolFocusZoomWide": "Wide",
-    "symbolFocusZoomClose": "Very close",
-    "symbolFocusZoomValue": "{value}%",
+    "symbolSize": "Symbol size",
+    "symbolSizeSmaller": "Smaller",
+    "symbolSizeLarger": "Larger",
     "symbolFocusZoomReset": "Reset"
   },
   "tools": {

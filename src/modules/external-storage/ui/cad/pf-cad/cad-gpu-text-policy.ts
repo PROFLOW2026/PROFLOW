@@ -44,6 +44,7 @@ export type GpuHandoffText = CadText & {
  */
 export function shouldDrawTextOnCanvas(text: GpuHandoffText): boolean {
   if (text.glyphStatus === 'MISSING') return true;
+  if (shxTextRequiresCanvasFallback(text)) return true;
   if (
     text.glyphStatus === 'RESOLVED' &&
     text.gpu === true &&
@@ -51,7 +52,6 @@ export function shouldDrawTextOnCanvas(text: GpuHandoffText): boolean {
   ) {
     return false;
   }
-  if (shxTextRequiresCanvasFallback(text)) return true;
   if (text.glyphStatus === 'SUBSTITUTED' && shxTextRequiresCanvasFallback(text)) return true;
   if (!text.gpu) return true;
   if (!P8_GPU_TEXT_HANDOFF_ENABLED) return true;

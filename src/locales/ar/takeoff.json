@@ -140,10 +140,9 @@
     "archStrength": "شدة الخلفية",
     "fontSubstituted": "تم استبدال خط ناقص للرسم",
     "tools": "أدوات",
-    "symbolFocusZoom": "حجم تركيز الرمز",
-    "symbolFocusZoomWide": "واسع",
-    "symbolFocusZoomClose": "قريب جداً",
-    "symbolFocusZoomValue": "مستوى {value}%",
+    "symbolSize": "حجم الرمز",
+    "symbolSizeSmaller": "تصغير",
+    "symbolSizeLarger": "تكبير",
     "symbolFocusZoomReset": "إعادة ضبط"
   },
   "tools": {

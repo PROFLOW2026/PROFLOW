@@ -140,10 +140,9 @@
     "archStrength": "עוצמת הרקע",
     "fontSubstituted": "גופן חסר הוחלף לציור",
     "tools": "כלים",
-    "symbolFocusZoom": "גודל מיקוד הסמל",
-    "symbolFocusZoomWide": "רחב",
-    "symbolFocusZoomClose": "קרוב מאוד",
-    "symbolFocusZoomValue": "{value}%",
+    "symbolSize": "גודל הסמל",
+    "symbolSizeSmaller": "הקטנה",
+    "symbolSizeLarger": "הגדלה",
     "symbolFocusZoomReset": "איפוס"
   },
   "tools": {

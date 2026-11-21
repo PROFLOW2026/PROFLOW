@@ -140,10 +140,9 @@
     "archStrength": "Сила фона",
     "fontSubstituted": "Отсутствующий шрифт заменён для черчения",
     "tools": "Инструменты",
-    "symbolFocusZoom": "Размер фокуса символа",
-    "symbolFocusZoomWide": "Широкий",
-    "symbolFocusZoomClose": "Очень близко",
-    "symbolFocusZoomValue": "уровень {value}%",
+    "symbolSize": "Размер символа",
+    "symbolSizeSmaller": "Уменьшить",
+    "symbolSizeLarger": "Увеличить",
     "symbolFocusZoomReset": "Сброс"
   },
   "tools": {

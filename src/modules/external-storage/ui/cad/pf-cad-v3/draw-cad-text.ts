@@ -2,7 +2,7 @@ import type { CadText } from './types';
 import type { CadView } from './renderer';
 import { worldToScreen } from './renderer';
 import { hasHebrewBlock, decodeCadTextLine } from './hebrew-shx-decode';
-import { cadLineHasHebrew, cadShxVisualLine, shouldApplyCadBackwardsMirror } from './cad-text-bidi';
+import { cadCanvasTextLine, cadLineHasHebrew, cadShxVisualLine, shouldApplyCadBackwardsMirror } from './cad-text-bidi';
 import { drawShxLine, measureShxTextBlock, type ShxFont } from './cad-shx-font';
 import { resolveShxDrawContext } from './cad-shx-registry';
 import { cadTextCanvasPaint } from './cad-text-canvas-color';
@@ -156,7 +156,8 @@ export function drawCadText(
   const lines = rawLines.map((line) => decodeCadTextLine(line, tx.style));
   if (lines.length === 0 || (lines.length === 1 && !lines[0]?.trim())) return;
   const hebrew = lines.some((line) => cadLineHasHebrew(line));
-  const skipBx = hebrew && !shouldApplyCadBackwardsMirror(lines.join('\n'), tx.bx);
+  const skipBx = !shouldApplyCadBackwardsMirror(lines.join('\n'), tx.bx);
+  const canvasLines = hebrew ? lines.map(cadCanvasTextLine) : lines;
   const shxLines = hebrew ? lines.map(cadShxVisualLine) : lines;
 
   const shx = draw.shxFont?.(tx.style);
@@ -190,7 +191,7 @@ export function drawCadText(
     descent = measured.descent;
   } else {
     draw.ctx.font = `${fontPx}px ${family}, ${draw.fontFamily}`;
-    ({ w, blockH, descent } = measureBlock(draw.ctx, lines, capH, tx.lsf));
+    ({ w, blockH, descent } = measureBlock(draw.ctx, canvasLines, capH, tx.lsf));
   }
   if (isCulled(sx, sy, w, blockH, draw.viewport)) {
     draw.ctx.restore();
@@ -216,9 +217,7 @@ export function drawCadText(
   draw.ctx.fillStyle = fillStyle;
   draw.ctx.textAlign = mapCanvasTextAlign(ha);
   draw.ctx.textBaseline = 'alphabetic';
-  if (hebrew && !shxPrimary) {
-    draw.ctx.direction = 'rtl';
-  }
+  draw.ctx.direction = 'ltr';
 
   const anchorX = ha === 1 ? w / 2 : ha === 2 ? w : 0;
   if (shxPrimary && shxCtx) {
@@ -246,9 +245,9 @@ export function drawCadText(
       draw.ctx.restore();
     }
   } else {
-    for (let i = 0; i < lines.length; i += 1) {
+    for (let i = 0; i < canvasLines.length; i += 1) {
       const y = i * spacing;
-      draw.ctx.fillText(lines[i]!, anchorX, y);
+      draw.ctx.fillText(canvasLines[i]!, anchorX, y);
     }
   }
 
