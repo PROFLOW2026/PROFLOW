@@ -140,7 +140,7 @@
     "archStrength": "Background strength",
     "fontSubstituted": "A missing font was substituted for drawing",
     "tools": "Tools",
-    "symbolSize": "Symbol size",
+    "symbolSize": "Marker size",
     "symbolSizeSmaller": "Smaller",
     "symbolSizeLarger": "Larger",
     "symbolFocusZoomReset": "Reset"

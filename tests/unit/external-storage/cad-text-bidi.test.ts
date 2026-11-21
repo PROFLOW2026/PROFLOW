@@ -28,4 +28,18 @@ describe('CAD mixed Hebrew / number order', () => {
     expect(cadShxVisualLine('ROOM 101')).toBe('ROOM 101');
     expect(cadShxVisualLine('12.5')).toBe('12.5');
   });
+
+  it('protects canvas fillText so mixed Hebrew cannot reverse 1.5 / 3x1.5', () => {
+    const decimal = cadCanvasTextLine('חתך 1.5 ממ');
+    const two = cadCanvasTextLine('כבל 2.5 ממ');
+    const multiply = cadCanvasTextLine('מוליך 3x1.5');
+    expect(decimal).toContain('\u202D1.5\u202C');
+    expect(decimal.startsWith('\u202A')).toBe(true);
+    expect(decimal).not.toContain('5.1');
+    expect(two).toContain('\u202D2.5\u202C');
+    expect(two).not.toContain('5.2');
+    expect(multiply).toContain('\u202D3x1.5\u202C');
+    expect(multiply).not.toContain('5.1x3');
+    expect(cadCanvasTextLine('ROOM 101')).toBe('ROOM 101');
+  });
 });

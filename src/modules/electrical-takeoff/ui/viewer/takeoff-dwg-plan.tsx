@@ -22,6 +22,8 @@ import type { XrefDepBytes } from '@/modules/external-storage/ui/cad/pf-cad-v3/x
 import { displayArchitecturalLayerIndexes, xrefDependencyPaths } from '../../domain/architectural-background';
 import { solveModelWindow } from '../../domain/cad-sheet-frame';
 import {
+  cadInsertFocusExtent,
+  cadSymbolFocusExtent,
   isPlausibleSymbolBox,
   symbolFrame,
   symbolGlyphStrokes,
@@ -31,11 +33,10 @@ import {
 } from '../../domain/cad-sheet-frame';
 import { chooseTakeoffSheetId, focusLevel, type FocusLevel } from '../../domain/focus-level';
 import {
-  cadViewForSymbolSize,
+  highlightMarkerRadiusPx,
   readStoredSymbolFocusZoom,
   stepStoredSymbolFocusZoom,
   subscribeSymbolFocusZoom,
-  symbolBodyForSize,
   SYMBOL_FOCUS_ZOOM_DEFAULT,
   SYMBOL_FOCUS_ZOOM_MAX,
   SYMBOL_FOCUS_ZOOM_MIN,
@@ -95,34 +96,35 @@ function markCenter(active: ShownMark): { x: number; y: number } {
   return { x: active.x, y: active.y };
 }
 
-function applyOccurrenceFocus(
-  renderer: CadRendererHandle,
-  active: ShownMark,
-  sizeLevel: number,
-) {
+function applyOccurrenceFocus(renderer: CadRendererHandle, active: ShownMark) {
   const viewport = renderer.getRenderer().getViewport();
   if (viewport.width < 8 || viewport.height < 8) return;
-  const center = markCenter(active);
-  renderer.setView(
-    cadViewForSymbolSize({
-      x: center.x,
-      y: center.y,
-      body: symbolBodyForSize(active),
-      viewport,
-      level: sizeLevel,
-    }),
-  );
-}
-
-function zoomRendererAtMark(renderer: CadRendererHandle, active: ShownMark | undefined, factor: number) {
-  if (!active) {
-    renderer.zoom(factor);
+  if (active.located && isPlausibleSymbolBox(active)) {
+    renderer.focusExtent(cadSymbolFocusExtent(active), 28);
     return;
   }
-  const viewport = renderer.getRenderer().getViewport();
   const center = markCenter(active);
-  const [sx, sy] = worldToScreen(center.x, center.y, renderer.getView(), viewport);
-  renderer.zoomAt(sx, sy, factor);
+  renderer.focusExtent(cadInsertFocusExtent(center.x, center.y), 28);
+}
+
+function drawHighlightMarker(
+  ctx: CanvasRenderingContext2D,
+  sx: number,
+  sy: number,
+  radius: number,
+) {
+  ctx.strokeStyle = '#ea580c';
+  ctx.lineWidth = Math.max(2, radius * 0.08);
+  ctx.beginPath();
+  ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+  ctx.stroke();
+  const arm = radius * 1.15;
+  ctx.beginPath();
+  ctx.moveTo(sx - arm, sy);
+  ctx.lineTo(sx + arm, sy);
+  ctx.moveTo(sx, sy - arm);
+  ctx.lineTo(sx, sy + arm);
+  ctx.stroke();
 }
 
 /**
@@ -298,28 +300,12 @@ export function TakeoffDwgPlan({
       ctx.stroke();
     }
     const active = frame.find((mark) => mark.id === focusIdRef.current);
-    if (active && focusLevel(true, active.located) === 'symbol') {
-      const [x0, y0] = worldToScreen(active.minX, active.maxY, view, viewport);
-      const [x1, y1] = worldToScreen(active.maxX, active.minY, view, viewport);
-      ctx.strokeStyle = '#ea580c';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0));
-      return;
-    }
-    if (active && focusLevel(true, active.located) === 'point') {
-      const [sx, sy] = worldToScreen(active.x, active.y, view, viewport);
-      ctx.strokeStyle = '#ea580c';
-      ctx.fillStyle = '#ea580c';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(sx, sy, 7, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(sx - 12, sy);
-      ctx.lineTo(sx + 12, sy);
-      ctx.moveTo(sx, sy - 12);
-      ctx.lineTo(sx, sy + 12);
-      ctx.stroke();
+    const level = active ? focusLevel(true, active.located) : 'unavailable';
+    if (active && (level === 'symbol' || level === 'point')) {
+      const center = markCenter(active);
+      const [sx, sy] = worldToScreen(center.x, center.y, view, viewport);
+      const dpr = overlay.clientWidth > 0 ? overlay.width / overlay.clientWidth : 1;
+      drawHighlightMarker(ctx, sx, sy, highlightMarkerRadiusPx(focusZoomRef.current, dpr));
     }
   };
   const drawRef = useRef(drawOverlay);
@@ -386,7 +372,7 @@ export function TakeoffDwgPlan({
       if (extentReady && ((!fittedRef.current && width >= 64 && height >= 64) || grewFromEmpty)) {
         const active = shownRef.current.find((item) => item.id === focusIdRef.current);
         if (active) {
-          applyOccurrenceFocus(renderer, active, focusZoomRef.current);
+          applyOccurrenceFocus(renderer, active);
         } else {
           renderer.focusExtent(extentRef.current, 28);
         }
@@ -598,7 +584,7 @@ export function TakeoffDwgPlan({
       if (shouldFitWhole) {
         const active = shownRef.current.find((item) => item.id === focusIdRef.current);
         if (active) {
-          applyOccurrenceFocus(renderer, active, focusZoomRef.current);
+          applyOccurrenceFocus(renderer, active);
         } else {
           renderer.focusExtent(drawing.extent, 28);
         }
@@ -634,10 +620,10 @@ export function TakeoffDwgPlan({
       drawRef.current();
       return;
     }
-    const focusKey = `${focusId}:${focusZoom}:${viewToken}:${current.id}:${level}`;
+    const focusKey = `${focusId}:${viewToken}:${current.id}:${level}`;
     if (lastFocusKeyRef.current !== focusKey) {
       lastFocusKeyRef.current = focusKey;
-      applyOccurrenceFocus(renderer, active, focusZoom);
+      applyOccurrenceFocus(renderer, active);
     }
     if (active.located && isPlausibleSymbolBox(active) && onSymbolGlyphs) {
       const source = marks.find((item) => item.id === active.id);
@@ -661,7 +647,11 @@ export function TakeoffDwgPlan({
       }
     }
     drawRef.current();
-  }, [activeIds, focusId, focusZoom, marks, onSymbolGlyphs, phase, sheet, viewToken]);
+  }, [activeIds, focusId, marks, onSymbolGlyphs, phase, sheet, viewToken]);
+
+  useEffect(() => {
+    drawRef.current();
+  }, [focusZoom]);
 
   useEffect(() => {
     if (phase !== 'ready' || viewToken === 0 || !onSymbolGlyphs || !sheet) return;
@@ -788,7 +778,7 @@ export function TakeoffDwgPlan({
       data-cad-tree={PF_CAD_TREE_ID}
       data-focus-level={focused?.level ?? ''}
     >
-      <div className="relative z-10 flex shrink-0 flex-col gap-1 border-b border-white/10 bg-[#1e2124] p-1">
+      <div className="relative z-20 flex shrink-0 flex-col gap-1 border-b border-white/10 bg-[#1e2124] p-1">
         <div className="flex min-w-0 max-w-full flex-wrap items-center gap-1">
         <Button
           type="button"
@@ -796,9 +786,7 @@ export function TakeoffDwgPlan({
           className="min-h-11 min-w-11 px-0"
           aria-label={t('viewer.zoomIn')}
           onClick={() => {
-            const renderer = rendererRef.current;
-            if (!renderer) return;
-            zoomRendererAtMark(renderer, shownRef.current.find((item) => item.id === focusIdRef.current), 1.25);
+            rendererRef.current?.zoom(1.25);
           }}
         >
           <Plus className="size-4" />
@@ -809,9 +797,7 @@ export function TakeoffDwgPlan({
           className="min-h-11 min-w-11 px-0"
           aria-label={t('viewer.zoomOut')}
           onClick={() => {
-            const renderer = rendererRef.current;
-            if (!renderer) return;
-            zoomRendererAtMark(renderer, shownRef.current.find((item) => item.id === focusIdRef.current), 1 / 1.25);
+            rendererRef.current?.zoom(1 / 1.25);
           }}
         >
           <Minus className="size-4" />
@@ -829,6 +815,46 @@ export function TakeoffDwgPlan({
         >
           <Maximize2 className="size-4" />
         </Button>
+        <label className="flex shrink-0 items-center gap-1 text-xs text-white" data-testid="takeoff-symbol-size-row">
+          <span className="shrink-0 whitespace-nowrap">{t('viewer.symbolSize')}</span>
+          <Button
+            type="button"
+            variant="secondary"
+            className="h-8 min-h-8 min-w-8 shrink-0 px-0"
+            aria-label={t('viewer.symbolSizeSmaller')}
+            data-testid="takeoff-symbol-size-minus"
+            onClick={() => {
+              stepStoredSymbolFocusZoom(-SYMBOL_FOCUS_ZOOM_STEP);
+            }}
+          >
+            <Minus className="size-3" />
+          </Button>
+          <input
+            type="range"
+            min={SYMBOL_FOCUS_ZOOM_MIN}
+            max={SYMBOL_FOCUS_ZOOM_MAX}
+            value={focusZoom}
+            aria-label={t('viewer.symbolSize')}
+            data-testid="takeoff-symbol-focus-zoom"
+            className="h-8 min-h-8 w-20 shrink-0 sm:w-24"
+            dir="ltr"
+            onChange={(event) => {
+              writeStoredSymbolFocusZoom(Number(event.target.value));
+            }}
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            className="h-8 min-h-8 min-w-8 shrink-0 px-0"
+            aria-label={t('viewer.symbolSizeLarger')}
+            data-testid="takeoff-symbol-size-plus"
+            onClick={() => {
+              stepStoredSymbolFocusZoom(SYMBOL_FOCUS_ZOOM_STEP);
+            }}
+          >
+            <Plus className="size-3" />
+          </Button>
+        </label>
         {phase === 'ready' && plan && plan.sheets.length > 1 ? (
           <label className="flex max-w-full items-center gap-2 text-xs text-white">
             <span>{t('viewer.sheetPicker')}</span>
@@ -918,75 +944,6 @@ export function TakeoffDwgPlan({
         </Button>
         {focused?.level === 'point' ? <span className="text-xs text-white/90" data-testid="takeoff-focus-point">{t('viewer.focusPoint')}</span> : null}
         {focused?.level === 'unavailable' ? <span className="text-xs text-white/90" data-testid="takeoff-focus-unavailable">{t('viewer.symbolUnlocated')}</span> : null}
-        </div>
-        <div className="flex min-w-0 w-full items-center gap-1" data-testid="takeoff-symbol-size-row">
-          <span className="shrink-0 px-1 text-xs text-white" dir="rtl">{t('viewer.symbolSize')}</span>
-          <div className="flex min-w-0 flex-1 items-center gap-1" dir="ltr">
-            <Button
-              type="button"
-              variant="secondary"
-              className="min-h-11 min-w-11 shrink-0 px-0"
-              aria-label={t('viewer.symbolSizeSmaller')}
-              data-testid="takeoff-symbol-size-minus"
-              onClick={() => {
-                const next = stepStoredSymbolFocusZoom(-SYMBOL_FOCUS_ZOOM_STEP);
-                const renderer = rendererRef.current;
-                const active = shownRef.current.find((item) => item.id === focusIdRef.current);
-                lastFocusKeyRef.current = '';
-                if (renderer && active) applyOccurrenceFocus(renderer, active, next);
-              }}
-            >
-              <Minus className="size-4" />
-            </Button>
-            <input
-              type="range"
-              min={SYMBOL_FOCUS_ZOOM_MIN}
-              max={SYMBOL_FOCUS_ZOOM_MAX}
-              value={focusZoom}
-              aria-label={t('viewer.symbolSize')}
-              data-testid="takeoff-symbol-focus-zoom"
-              className="min-h-11 min-w-0 flex-1"
-              dir="ltr"
-              onChange={(event) => {
-                const next = writeStoredSymbolFocusZoom(Number(event.target.value));
-                const renderer = rendererRef.current;
-                const active = shownRef.current.find((item) => item.id === focusIdRef.current);
-                lastFocusKeyRef.current = '';
-                if (renderer && active) applyOccurrenceFocus(renderer, active, next);
-              }}
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              className="min-h-11 min-w-11 shrink-0 px-0"
-              aria-label={t('viewer.symbolSizeLarger')}
-              data-testid="takeoff-symbol-size-plus"
-              onClick={() => {
-                const next = stepStoredSymbolFocusZoom(SYMBOL_FOCUS_ZOOM_STEP);
-                const renderer = rendererRef.current;
-                const active = shownRef.current.find((item) => item.id === focusIdRef.current);
-                lastFocusKeyRef.current = '';
-                if (renderer && active) applyOccurrenceFocus(renderer, active, next);
-              }}
-            >
-              <Plus className="size-4" />
-            </Button>
-          </div>
-          <Button
-            type="button"
-            variant="secondary"
-            className="min-h-8 shrink-0 px-2 text-xs"
-            data-testid="takeoff-symbol-focus-zoom-reset"
-            onClick={() => {
-              const next = writeStoredSymbolFocusZoom(SYMBOL_FOCUS_ZOOM_DEFAULT);
-              const renderer = rendererRef.current;
-              const active = shownRef.current.find((item) => item.id === focusIdRef.current);
-              lastFocusKeyRef.current = '';
-              if (renderer && active) applyOccurrenceFocus(renderer, active, next);
-            }}
-          >
-            {t('viewer.symbolFocusZoomReset')}
-          </Button>
         </div>
       </div>
       {toolsOpen && phase === 'ready' ? (

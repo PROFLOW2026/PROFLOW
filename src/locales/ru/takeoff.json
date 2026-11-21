@@ -140,7 +140,7 @@
     "archStrength": "Сила фона",
     "fontSubstituted": "Отсутствующий шрифт заменён для черчения",
     "tools": "Инструменты",
-    "symbolSize": "Размер символа",
+    "symbolSize": "Размер маркера",
     "symbolSizeSmaller": "Уменьшить",
     "symbolSizeLarger": "Увеличить",
     "symbolFocusZoomReset": "Сброс"
