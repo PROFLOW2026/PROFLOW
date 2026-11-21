@@ -68,6 +68,16 @@ describe('boqLineDisplayLabel', () => {
     expect(boqLineDisplayLabel(line({ label: 'p1#1' }), catalog, 'לא מסווג')).toBe('שקע');
   });
 
+  it('keeps the planner legend name even when a catalog type exists', () => {
+    expect(
+      boqLineDisplayLabel(
+        line({ typeKey: 'power.socket.single', originalLabel: 'לחצן חדר מדרגות', identitySource: 'legend', label: 'לחצן חדר מדרגות' }),
+        catalog,
+        'לא מסווג',
+      ),
+    ).toBe('לחצן חדר מדרגות');
+  });
+
   it('shows unclassified label when type is missing', () => {
     expect(boqLineDisplayLabel(line({ typeKey: null, label: 'p2#3' }), catalog, 'לא מסווג — לבדיקה')).toBe(
       'לא מסווג — לבדיקה',
@@ -101,6 +111,13 @@ describe('boqLineDisplayLabel', () => {
     expect(
       detectionDisplayLabel({ id: 'p1#4', typeKey: null, rawClass: 'BLOCK_SOCKET', tagText: 'T22' }, catalog, 'לא מסווג — לבדיקה'),
     ).toBe('לא מסווג — לבדיקה');
+    expect(
+      detectionDisplayLabel(
+        { id: 'p1#8', typeKey: null, originalText: 'לחצן חדר מדרגות' },
+        catalog,
+        'לא מסווג — לבדיקה',
+      ),
+    ).toBe('לחצן חדר מדרגות');
   });
 });
 

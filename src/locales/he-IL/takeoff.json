@@ -165,7 +165,7 @@
     "summary": "{unclassified} לא מסווגים · {review} דורשים בקרה",
     "countedShort": "נספרו {count}",
     "statusIdentified": "זוהה",
-    "markCounts": "{total} סימונים · {typed} עם סוג · {untyped} ללא סוג",
+    "markCounts": "{total} סימונים · {typed} מזוהים · {untyped} ללא זיהוי",
     "typedNeedCheck": "{count} מהמסווגים עדיין דורשים בדיקה",
     "empty": "אין שורות עדיין",
     "verified": "כמות מאומתת",
@@ -214,7 +214,13 @@
     },
     "libraryRequiresLegend": "אפשר לשמור בספרייה רק סמל שזוהה בתוכנית ויש לו חתימה. סימון שנוסף ידנית לא נשמר.",
     "libraryMaskHint": "השמירה רושמת את חתימת הסמל בספרייה, כדי שאותו סמל יסווג בניתוח הבא.",
-    "legendRows": "תיאורי מקרא"
+    "legendRows": "תיאורי מקרא",
+    "identitySource": "מקור הזיהוי",
+    "identityLegend": "זוהה מהמקרא",
+    "identityCatalog": "זוהה לפי הקטלוג",
+    "identityLibrary": "זוהה מספריית המתכנן",
+    "identityManual": "סווג ידנית",
+    "originalLegendName": "שם מקורי מהמקרא"
   },
   "catalog": {
     "addAccessory": "הוסף אביזר חדש",

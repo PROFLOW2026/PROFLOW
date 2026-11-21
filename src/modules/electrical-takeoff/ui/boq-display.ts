@@ -11,15 +11,30 @@ export type DetectionCensus = {
   typedNeedingCheck: number;
 };
 
-/** Split marks the way the engine does: a type is a type, even when a review flag remains. */
+function isIdentifiedMark(detection: {
+  typeKey: string | null;
+  identitySource?: string;
+  originalText?: string | null;
+  legendUnambiguous?: boolean;
+}): boolean {
+  return Boolean(detection.typeKey) || Boolean(detection.legendUnambiguous && detection.originalText);
+}
+
+/** Split marks the way the engine does: identified quantity vs leftover review. */
 export function detectionCensus(
-  detections: readonly { typeKey: string | null; needsReview: boolean }[],
+  detections: readonly {
+    typeKey: string | null;
+    needsReview: boolean;
+    identitySource?: string;
+    originalText?: string | null;
+    legendUnambiguous?: boolean;
+  }[],
 ): DetectionCensus {
   let typed = 0;
   let untyped = 0;
   let typedNeedingCheck = 0;
   for (const detection of detections) {
-    if (!detection.typeKey) {
+    if (!isIdentifiedMark(detection)) {
       untyped += 1;
       continue;
     }
@@ -39,14 +54,23 @@ export type ControlGroup = {
 };
 
 /** One row per type and status, so the review list is not a copy of every mark. */
-export function groupDetectionsForControl<T extends { id: string; typeKey: string | null; needsReview: boolean }>(
+export function groupDetectionsForControl<
+  T extends {
+    id: string;
+    typeKey: string | null;
+    needsReview: boolean;
+    identitySource?: string;
+    originalText?: string | null;
+    legendUnambiguous?: boolean;
+  },
+>(
   detections: readonly T[],
   labelOf: (detection: T) => string,
   quantityOf: (detection: T) => number,
 ): ControlGroup[] {
   const groups = new Map<string, ControlGroup>();
   for (const detection of detections) {
-    const needsAttention = detection.needsReview || !detection.typeKey;
+    const needsAttention = detection.needsReview || !isIdentifiedMark(detection);
     const label = labelOf(detection);
     const key = `${needsAttention ? 'check' : 'ok'}::${label}`;
     const quantity = quantityOf(detection);
@@ -108,29 +132,44 @@ export function boqLineDisplayLabel(
   catalog: readonly CatalogType[],
   unclassifiedLabel: string,
 ): string {
+  const original = line.originalLabel?.trim();
+  if (original) return original;
+  const trimmed = line.label.trim();
+  const fromPlanner =
+    line.identitySource === 'legend' || line.identitySource === 'library' || line.identitySource === 'manual';
+  if (fromPlanner && trimmed && !TECHNICAL_ID_LABEL.test(trimmed)) return trimmed;
   if (!line.typeKey) return unclassifiedLabel;
   const fromCatalog = catalog.find((c) => c.key === line.typeKey)?.nameHe?.trim();
   if (fromCatalog) return fromCatalog;
-  const trimmed = line.label.trim();
-  if (trimmed && !TECHNICAL_ID_LABEL.test(trimmed) && !trimmed.includes('#')) {
-    return trimmed;
-  }
+  if (trimmed && !TECHNICAL_ID_LABEL.test(trimmed) && !trimmed.includes('#')) return trimmed;
   return line.typeKey;
 }
 
 export function boqLineStatus(line: BoqLine, suppressVerified: boolean): BoqLineStatus {
-  if (!line.typeKey) return 'forReview';
+  if (!line.typeKey && line.identitySource !== 'legend' && line.identitySource !== 'library' && line.identitySource !== 'manual') {
+    return 'forReview';
+  }
   if (line.breakdown.unclassified > 0) return 'needsReview';
   if (line.verified && !suppressVerified) return 'verified';
+  if (line.identitySource === 'legend' && !line.typeKey) return 'forReview';
   if (line.breakdown.low > 0 || line.breakdown.medium > 0) return 'needsReview';
   return 'forReview';
 }
 
 export function detectionDisplayLabel(
-  detection: { id: string; typeKey: string | null; rawClass?: string | null; tagText?: string | null },
+  detection: {
+    id: string;
+    typeKey: string | null;
+    rawClass?: string | null;
+    tagText?: string | null;
+    originalText?: string | null;
+    legendLabel?: string | null;
+  },
   catalog: readonly CatalogType[],
   unclassifiedLabel: string,
 ): string {
+  const fromLegend = detection.originalText?.trim() || detection.legendLabel?.trim();
+  if (fromLegend) return fromLegend;
   if (detection.typeKey) {
     return catalog.find((c) => c.key === detection.typeKey)?.nameHe?.trim() || detection.typeKey;
   }

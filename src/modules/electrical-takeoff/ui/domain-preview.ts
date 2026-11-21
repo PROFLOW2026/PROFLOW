@@ -1,5 +1,6 @@
 import { applyEdits, type ApplyEditsContext } from '../domain/edits';
 import { computeBoq, type ComputeBoqInput } from '../domain/boq-engine';
+import { enrichDetectionsWithLegendIdentity } from '../domain/legend-identity';
 import { resolveSheetInclusion } from '../domain/sheet-selection';
 import { planReviewConfirmed } from '../domain/plan-review';
 import type {
@@ -26,10 +27,12 @@ export function effectiveToWorker(d: EffectiveDetection, fileId = 'demo-file'): 
     signatureKind: 'pdf-shape',
     rawClass: d.rawClass,
     typeKey: d.typeKey,
-    classifiedBy: 'none',
+    classifiedBy: d.classifiedBy ?? 'none',
     confidence: d.confidence,
     reasons: [...d.reasons],
     tagText: d.tagText ?? undefined,
+    legendRowIds: d.legendRowIds,
+    legendKey: d.legendKey,
   };
 }
 
@@ -42,7 +45,11 @@ export function rebuildViewFromEdits(input: {
     areas: input.view.areas,
     floorBySheet: buildFloorMap(input.view),
   };
-  const detections = applyEdits(input.workerBase, input.edits, ctx);
+  const detections = enrichDetectionsWithLegendIdentity(
+    applyEdits(input.workerBase, input.edits, ctx),
+    input.view.legend ?? [],
+    { classifiedByById: new Map(input.workerBase.map((row) => [row.id, row.classifiedBy])) },
+  );
   let areas: TakeoffArea[] = [...input.view.areas];
   for (const edit of input.edits) {
     if (edit.op === 'upsert_area') {

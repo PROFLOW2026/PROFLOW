@@ -159,6 +159,13 @@ export function TakeoffReviewGuide({
             {detectionDisplayLabel(current, catalog, t('detection.unclassified'))}
           </p>
           <p className="text-xs text-[var(--pf-text-secondary)]">{t('guide.occurrences', { count: group.occurrences })}</p>
+          {current.identitySource && current.identitySource !== 'uncertain' ? (
+            <p className="text-xs text-[var(--pf-text-secondary)]" data-testid="takeoff-guide-identity">
+              {t(
+                `detection.identity${current.identitySource === 'legend' ? 'Legend' : current.identitySource === 'library' ? 'Library' : current.identitySource === 'manual' ? 'Manual' : 'Catalog'}`,
+              )}
+            </p>
+          ) : null}
           {identity ? (
             <p className="break-words text-xs text-[var(--pf-text-secondary)] lg:truncate">
               {identity.kind === 'block'

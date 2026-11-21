@@ -55,6 +55,7 @@ const IGNORED_SYMBOL = /^(unk|unknown|user|manual|none|drawing_noise|legend_marg
 export function needsGuidedReview(detection: EffectiveDetection): boolean {
   if (!isDetectionCountable(detection)) return false;
   if (detection.reasons.includes('drawing_noise') || detection.reasons.includes('legend_zone')) return false;
+  if (detection.legendUnambiguous && detection.originalText && !detection.needsReview) return false;
   return detection.needsReview || detection.typeKey == null;
 }
 

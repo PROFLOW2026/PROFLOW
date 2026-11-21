@@ -113,6 +113,18 @@ export function TakeoffDetectionSheet({
           <dt className="text-xs text-[var(--pf-text-muted)]">{t('detection.source')}</dt>
           <dd>{t(`source.${detection.source}`)}</dd>
         </div>
+        {detection.identitySource && detection.identitySource !== 'uncertain' ? (
+          <div>
+            <dt className="text-xs text-[var(--pf-text-muted)]">{t('detection.identitySource')}</dt>
+            <dd>{t(`detection.identity${detection.identitySource === 'legend' ? 'Legend' : detection.identitySource === 'library' ? 'Library' : detection.identitySource === 'manual' ? 'Manual' : 'Catalog'}`)}</dd>
+          </div>
+        ) : null}
+        {detection.originalText ? (
+          <div>
+            <dt className="text-xs text-[var(--pf-text-muted)]">{t('detection.originalLegendName')}</dt>
+            <dd>{detection.originalText}</dd>
+          </div>
+        ) : null}
         {twin ? (
           <div>
             <dt className="text-xs text-[var(--pf-text-muted)]">{t('detection.twin')}</dt>

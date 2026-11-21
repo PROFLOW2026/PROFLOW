@@ -25,7 +25,9 @@ export function TakeoffBoqPanel({
   onToggleUnclassified?: () => void;
 }) {
   const t = useTranslations('takeoff');
-  const classifiedQty = boq.lines.filter((l) => l.typeKey != null && !l.excluded).reduce((s, l) => s + l.quantity, 0);
+  const classifiedQty = boq.lines
+    .filter((l) => !l.excluded && (l.typeKey != null || l.identitySource === 'legend' || l.identitySource === 'library' || l.identitySource === 'manual'))
+    .reduce((s, l) => s + l.quantity, 0);
   const unclassifiedLabel = t('detection.unclassified');
   const displayLines = groupBoqLinesForDisplay(lines, catalog, unclassifiedLabel, Boolean(suppressVerified));
 
@@ -93,7 +95,7 @@ export function TakeoffBoqPanel({
                     <td className="p-0">
                       <button
                         type="button"
-                        data-testid={line.typeKey == null ? 'takeoff-boq-line-unclassified' : 'takeoff-boq-line'}
+                        data-testid={line.typeKey == null && line.identitySource !== 'legend' ? 'takeoff-boq-line-unclassified' : 'takeoff-boq-line'}
                         className={`flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md px-2 py-2 text-start hover:bg-[var(--pf-action-subtle-hover)] ${
                           focusKey === line.key ? 'bg-[var(--pf-action-subtle-active)]' : ''
                         }`}
@@ -108,7 +110,14 @@ export function TakeoffBoqPanel({
                           }}
                           aria-hidden
                         />
-                        <span className="min-w-0 truncate font-medium text-[var(--pf-text-primary)]">{displayName}</span>
+                        <span className="min-w-0 truncate font-medium text-[var(--pf-text-primary)]">
+                          {displayName}
+                          {line.identitySource === 'legend' ? (
+                            <span className="ms-1 text-[11px] font-normal text-[var(--pf-text-secondary)]">
+                              {t('detection.identityLegend')}
+                            </span>
+                          ) : null}
+                        </span>
                       </button>
                     </td>
                     <td className="px-2 py-2 text-end align-middle font-semibold tabular-nums text-[var(--pf-text-brand)]">

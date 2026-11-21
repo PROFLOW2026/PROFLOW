@@ -1,0 +1,134 @@
+import { describe, expect, it } from 'vitest';
+
+import { computeBoq } from '@/modules/electrical-takeoff/domain/boq-engine';
+import { mergeCatalog } from '@/modules/electrical-takeoff/domain/catalog';
+import { applyEdits } from '@/modules/electrical-takeoff/domain/edits';
+import { enrichDetectionsWithLegendIdentity } from '@/modules/electrical-takeoff/domain/legend-identity';
+import { DEFAULT_RULE_SET } from '@/modules/electrical-takeoff/domain/measurement';
+import { buildReviewGroups } from '@/modules/electrical-takeoff/ui/review-guide';
+import type { WorkerLegendEntry } from '@/modules/electrical-takeoff/domain/contracts';
+import { sheetDto, workerDet } from './fixtures';
+
+const catalog = mergeCatalog();
+
+function legend(partial: Partial<WorkerLegendEntry> & Pick<WorkerLegendEntry, 'key' | 'decodedText'>): WorkerLegendEntry {
+  return {
+    fileId: 'f1',
+    sheetKey: 'layout:F0',
+    signature: 'block:stair',
+    signatureKind: 'dwg-block',
+    rawText: partial.decodedText,
+    reasons: [],
+    ...partial,
+  };
+}
+
+describe('BOQ from planner legend', () => {
+  it('counts unambiguous legend matches under the original name without a catalog typeKey', () => {
+    const base = Array.from({ length: 35 }, (_, i) =>
+      workerDet({
+        id: `d${i}`,
+        sheetKey: 'p1',
+        typeKey: null,
+        classifiedBy: 'none',
+        confidence: 'none',
+        signature: 'block:stair',
+        rawClass: 'stair',
+        legendRowIds: ['row:1'],
+        reasons: ['unclassified', 'legend_unmapped'],
+      }),
+    );
+    const detections = enrichDetectionsWithLegendIdentity(applyEdits(base, []), [
+      legend({ key: 'row:1', decodedText: 'לחצן חדר מדרגות' }),
+    ]);
+    const boq = computeBoq({
+      detections,
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+      areas: [],
+      catalog,
+      ruleSet: DEFAULT_RULE_SET,
+      linear: [],
+      state: 'draft',
+    });
+    const line = boq.lines.find((row) => row.originalLabel === 'לחצן חדר מדרגות');
+    expect(line?.quantity).toBe(35);
+    expect(line?.typeKey).toBeNull();
+    expect(line?.identitySource).toBe('legend');
+    expect(line?.label).toBe('לחצן חדר מדרגות');
+    expect(boq.unclassifiedCount).toBe(0);
+    expect(boq.needsReviewCount).toBe(0);
+    expect(buildReviewGroups(detections)).toHaveLength(0);
+  });
+
+  it('does not merge two different legend names that share a catalog type', () => {
+    const base = [
+      workerDet({
+        id: 'a',
+        sheetKey: 'p1',
+        typeKey: 'control.switch.single',
+        classifiedBy: 'legend_text',
+        signature: 'block:s1',
+        legendRowIds: ['row:a'],
+        reasons: [],
+      }),
+      workerDet({
+        id: 'b',
+        sheetKey: 'p1',
+        typeKey: 'control.switch.single',
+        classifiedBy: 'legend_text',
+        signature: 'block:s2',
+        legendRowIds: ['row:b'],
+        reasons: [],
+      }),
+    ];
+    const detections = enrichDetectionsWithLegendIdentity(applyEdits(base, []), [
+      legend({ key: 'row:a', decodedText: 'מפסק יחיד', signature: 'block:s1' }),
+      legend({ key: 'row:b', decodedText: 'לחצן חדר מדרגות', signature: 'block:s2' }),
+    ]);
+    const boq = computeBoq({
+      detections,
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+      areas: [],
+      catalog,
+      ruleSet: DEFAULT_RULE_SET,
+      linear: [],
+      state: 'draft',
+    });
+    const labels = boq.lines.filter((row) => !row.excluded).map((row) => row.label).sort();
+    expect(labels).toEqual(['לחצן חדר מדרגות', 'מפסק יחיד']);
+    expect(boq.lines.reduce((sum, row) => sum + row.quantity, 0)).toBe(2);
+  });
+
+  it('leaves a conflicting 36e group in review and does not invent a quantity name', () => {
+    const base = [
+      workerDet({
+        id: 'c1',
+        sheetKey: 'p1',
+        typeKey: null,
+        classifiedBy: 'none',
+        signature: 'block:36e',
+        rawClass: '36e',
+        legendRowIds: ['row:aaaa', 'row:bbbb'],
+        reasons: ['type_ambiguous', 'legend_unmapped'],
+        confidence: 'none',
+      }),
+    ];
+    const detections = enrichDetectionsWithLegendIdentity(applyEdits(base, []), [
+      legend({ key: 'row:aaaa', decodedText: 'נקודת מאור חירום', signature: 'block:36e' }),
+      legend({ key: 'row:bbbb', decodedText: 'תאורה שקועה', signature: 'block:36e' }),
+    ]);
+    expect(detections[0]?.needsReview).toBe(true);
+    expect(buildReviewGroups(detections)).toHaveLength(1);
+    const boq = computeBoq({
+      detections,
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+      areas: [],
+      catalog,
+      ruleSet: DEFAULT_RULE_SET,
+      linear: [],
+      state: 'draft',
+    });
+    expect(boq.unclassifiedCount).toBe(1);
+    expect(boq.lines.some((row) => row.identitySource === 'legend')).toBe(false);
+  });
+});

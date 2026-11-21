@@ -165,7 +165,7 @@
     "summary": "{unclassified} unclassified · {review} need review",
     "countedShort": "Counted {count}",
     "statusIdentified": "Identified",
-    "markCounts": "{total} marks · {typed} typed · {untyped} untyped",
+    "markCounts": "{total} marks · {typed} identified · {untyped} unidentified",
     "typedNeedCheck": "{count} typed marks still need a check",
     "empty": "No lines yet",
     "verified": "Verified quantity",
@@ -214,7 +214,13 @@
     },
     "libraryRequiresLegend": "Only a symbol found on the plan, with a signature, can be saved to the library. A mark added by hand is not saved.",
     "libraryMaskHint": "Saving stores this symbol signature in the library so the same symbol is labeled next time.",
-    "legendRows": "Legend descriptions"
+    "legendRows": "Legend descriptions",
+    "identitySource": "Identification source",
+    "identityLegend": "Identified from the legend",
+    "identityCatalog": "Identified from the catalog",
+    "identityLibrary": "Identified from the planner library",
+    "identityManual": "Manually classified",
+    "originalLegendName": "Original legend name"
   },
   "catalog": {
     "addAccessory": "Add new accessory",

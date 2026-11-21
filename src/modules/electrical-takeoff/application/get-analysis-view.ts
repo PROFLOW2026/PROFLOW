@@ -20,6 +20,7 @@ import {
 } from '../data/takeoff.repository';
 import { warningFromRow } from '../domain/worker-warnings';
 import { computeBoq } from '../domain/boq-engine';
+import { enrichDetectionsWithLegendIdentity } from '../domain/legend-identity';
 import { freezeApprovedBoq } from '../domain/approved-boq';
 import { DEFAULT_RULE_SET } from '../domain/measurement';
 import type { MeasurementRuleSet } from '../domain/contracts';
@@ -60,7 +61,7 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
   const baseDetections = job ? await listDetectionsForJob(db, orgId, job.id) : [];
   const workerSheets = job ? await listSheetsForJob(db, orgId, job.id) : [];
   const editList = editsFromRows(editRows);
-  const { detections } = applyEdits(baseDetections, editList);
+  const { detections: edited } = applyEdits(baseDetections, editList);
 
   const sheetDtos: SheetDto[] = workerSheets.map((s, index) => {
     const xrefs = sanitizeTakeoffSheetXrefsForActor(actor, {
@@ -119,6 +120,9 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
         : undefined;
   const legendRows = job ? await listLegendEntriesForJob(db, orgId, job.id) : [];
   const legend = sanitizeTakeoffLegendForActor(actor, legendRows);
+  const detections = enrichDetectionsWithLegendIdentity(edited, legend, {
+    classifiedByById: new Map(baseDetections.map((row) => [row.id, row.classifiedBy])),
+  });
   const liveBoq = computeBoq({
     detections,
     workerDetections: baseDetections,

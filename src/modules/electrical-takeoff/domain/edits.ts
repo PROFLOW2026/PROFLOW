@@ -36,6 +36,7 @@ type MutableRow = {
   native: { x: number; y: number } | null;
   legendRowIds: string[];
   legendKey: string | undefined;
+  classifiedBy: WorkerDetection['classifiedBy'] | undefined;
 };
 
 export function deriveNeedsReview(input: {
@@ -44,9 +45,22 @@ export function deriveNeedsReview(input: {
   readonly typeKey: string | null;
   readonly status: DetectionStatus;
   readonly userChangedType: boolean;
+  readonly legendUnambiguous?: boolean;
 }): boolean {
   if (input.status === 'confirmed') return false;
   if (input.userChangedType && input.typeKey !== null && input.confidence !== 'none') return false;
+  if (input.legendUnambiguous) {
+    return input.reasons.some(
+      (reason) =>
+        reason === 'type_ambiguous' ||
+        reason === 'possible_duplicate' ||
+        reason === 'pdf_dwg_mismatch' ||
+        reason === 'sheet_unassigned' ||
+        reason === 'xref_missing' ||
+        reason === 'legend_text_undecodable' ||
+        reason === 'dynamic_block_unresolved',
+    );
+  }
   if (input.reasons.length > 0) return true;
   if (input.typeKey === null) return true;
   if (input.confidence === 'low' || input.confidence === 'none') return true;
@@ -81,6 +95,7 @@ function toRow(d: WorkerDetection): MutableRow {
     native: d.native ? { x: d.native.x, y: d.native.y } : null,
     legendRowIds: d.legendRowIds ?? [],
     legendKey: d.legendKey,
+    classifiedBy: d.classifiedBy,
   };
 }
 
@@ -158,6 +173,7 @@ export function applyEdits(
           native: null,
           legendRowIds: [],
           legendKey: undefined,
+          classifiedBy: undefined,
         });
         break;
       }
@@ -277,6 +293,7 @@ function toEffective(
     ...(row.native ? { native: row.native } : {}),
     ...(row.legendRowIds.length > 0 ? { legendRowIds: row.legendRowIds } : {}),
     ...(row.legendKey ? { legendKey: row.legendKey } : {}),
+    ...(row.classifiedBy ? { classifiedBy: row.classifiedBy } : {}),
   };
 }
 

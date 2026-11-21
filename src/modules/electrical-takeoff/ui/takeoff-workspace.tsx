@@ -143,7 +143,7 @@ export function TakeoffWorkspace({
   const boqDisplayLines = useMemo(() => {
     const lines = state.view?.boq.lines ?? [];
     if (showUnclassifiedBoq) return lines;
-    return lines.filter((l) => l.typeKey != null);
+    return lines.filter((l) => l.typeKey != null || l.identitySource === 'legend' || l.identitySource === 'library' || l.identitySource === 'manual');
   }, [showUnclassifiedBoq, state.view?.boq.lines]);
 
   const flushEdits = useCallback(

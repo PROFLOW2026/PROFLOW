@@ -84,6 +84,7 @@ import {
   updateOrgCatalogTypeUseCase,
 } from './org-catalog';
 import { archivedCatalogKeys, catalogForWorker } from '../domain/catalog';
+import { takeoffBoqApprovalBlocked } from '../domain/legend-identity';
 
 function internalActor(context: OrgContext): TakeoffActor {
   return { kind: 'internal', context };
@@ -511,9 +512,7 @@ export async function approveAnalysisUseCase(context: OrgContext, analysisId: st
   const analysis = await findAnalysis(context.db, context.organizationId, analysisId);
   if (!analysis) throw new TakeoffError('not_found');
   const preview = await buildAnalysisView(internalActor(context), analysisId);
-  const openReview = preview.boq.unclassifiedCount > 0 || preview.boq.needsReviewCount > 0;
-  const hasQuantity = preview.boq.lines.some((line) => !line.excluded && line.quantity > 0 && line.typeKey != null);
-  if (openReview || !hasQuantity) throw new TakeoffError('approval_blocked_review');
+  if (takeoffBoqApprovalBlocked(preview.boq)) throw new TakeoffError('approval_blocked_review');
   if (!preview.planReviewConfirmed) throw new TakeoffError('approval_blocked_plan_review');
   const bumped = await bumpAnalysisRevision(context.db, context.organizationId, analysisId, expectedRevision);
   if (bumped === null) takeoffRevisionConflict();

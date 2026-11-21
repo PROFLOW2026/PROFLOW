@@ -165,7 +165,7 @@
     "summary": "{unclassified} غير مصنّف · {review} تحتاج مراجعة",
     "countedShort": "المحسوب {count}",
     "statusIdentified": "مُعرَّف",
-    "markCounts": "{total} علامات · {typed} بنوع · {untyped} بلا نوع",
+    "markCounts": "{total} علامات · {typed} مُعرَّفة · {untyped} بلا تعريف",
     "typedNeedCheck": "{count} من المصنّفة ما زالت تحتاج فحصاً",
     "empty": "لا توجد بنود بعد",
     "verified": "كمية معتمدة",
@@ -214,7 +214,13 @@
     },
     "libraryRequiresLegend": "يمكن حفظ رمز وُجد في المخطط وله توقيع فقط. العلامة المضافة يدويًا لا تُحفظ.",
     "libraryMaskHint": "الحفظ يسجّل توقيع الرمز في المكتبة ليُصنَّف الرمز نفسه في التحليل التالي.",
-    "legendRows": "أوصاف المفتاح"
+    "legendRows": "أوصاف المفتاح",
+    "identitySource": "مصدر التحديد",
+    "identityLegend": "حُدّد من المفتاح",
+    "identityCatalog": "حُدّد من الكتالوج",
+    "identityLibrary": "حُدّد من مكتبة المخطط",
+    "identityManual": "صُنّف يدوياً",
+    "originalLegendName": "الاسم الأصلي من المفتاح"
   },
   "catalog": {
     "addAccessory": "إضافة ملحق جديد",

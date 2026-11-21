@@ -60,8 +60,13 @@ export function legendDisplayText(row: {
 export function legendConflictOnDetection(detection: {
   legendRowIds?: readonly string[];
   reasons: readonly string[];
+  identitySource?: string;
+  originalText?: string | null;
+  legendUnambiguous?: boolean;
 }): boolean {
-  return (detection.legendRowIds?.length ?? 0) > 1 || detection.reasons.includes('type_ambiguous');
+  if (detection.reasons.includes('type_ambiguous')) return true;
+  if (detection.legendUnambiguous) return false;
+  return (detection.legendRowIds?.length ?? 0) > 1 && !detection.originalText;
 }
 
 /** Legend-library save. Works when the symbol has no plan detection. */

@@ -23,6 +23,7 @@ import { PINS_ANALYSIS_ID, getPinsFixture } from './fixtures/pins-fixture';
 import { effectiveToWorker, rebuildViewFromEdits } from './domain-preview';
 import { buildLegendLibraryEntry } from '../domain/library';
 import { TakeoffError } from '../domain/errors';
+import { takeoffBoqApprovalBlocked } from '../domain/legend-identity';
 import { TakeoffRevisionConflictError } from './takeoff-errors';
 import {
   applyOrgDisplayName,
@@ -274,7 +275,7 @@ export function createMockTakeoffApi(fixture: TakeoffMockFixture = 'default'): T
       const record = store.analyses.get(analysisId);
       if (!record) throw new Error('not_found');
       if (record.view.summary.revision !== expectedRevision) throw new TakeoffRevisionConflictError();
-      if (record.view.boq.needsReviewCount > 0 || record.view.boq.unclassifiedCount > 0) {
+      if (takeoffBoqApprovalBlocked(record.view.boq)) {
         throw new TakeoffError('approval_blocked_review');
       }
       if (!record.view.planReviewConfirmed) throw new TakeoffError('approval_blocked_plan_review');

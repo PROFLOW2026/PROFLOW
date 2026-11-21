@@ -9,6 +9,7 @@ import type {
 import { workerResultSchema } from '../../domain/contracts';
 import { applyEdits } from '../../domain/edits';
 import { computeBoq } from '../../domain/boq-engine';
+import { enrichDetectionsWithLegendIdentity } from '../../domain/legend-identity';
 import { loadDefaultCatalog } from '../../domain/catalog';
 import { collectWorkerWarningsFromResult } from '../../domain/worker-warnings';
 
@@ -55,7 +56,9 @@ export function buildAnalysisViewFromWorkerResult(
 ): { view: AnalysisView; workerBase: WorkerDetection[] } {
   const catalog = loadDefaultCatalog();
   const workerBase = result.detections;
-  const detections = applyEdits(workerBase, [], {});
+  const detections = enrichDetectionsWithLegendIdentity(applyEdits(workerBase, [], {}), result.legend ?? [], {
+    classifiedByById: new Map(workerBase.map((row) => [row.id, row.classifiedBy])),
+  });
   const sheets: SheetDto[] = [...result.sheets]
     .sort((a, b) => {
       if (a.fileId === 'lightg') return -1;
@@ -198,7 +201,7 @@ export function normalizeCorpusWorkerJson(raw: unknown): unknown {
     contractVersion: 2,
     sheets,
     detections,
-    legend: [],
+    legend: Array.isArray(body.legend) ? body.legend : [],
     linear: body.linear ?? [],
     warnings: Array.isArray(body.warnings)
       ? body.warnings.map((row) => {

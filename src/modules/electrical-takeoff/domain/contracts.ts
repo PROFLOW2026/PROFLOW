@@ -432,6 +432,9 @@ export type DetectionOrigin = z.infer<typeof detectionOriginSchema>;
 export const detectionStatusSchema = z.enum(['suggested', 'confirmed']);
 export type DetectionStatus = z.infer<typeof detectionStatusSchema>;
 
+export const identitySourceSchema = z.enum(['legend', 'catalog', 'library', 'manual', 'uncertain']);
+export type IdentitySource = z.infer<typeof identitySourceSchema>;
+
 export const effectiveDetectionSchema = z.object({
   id: z.string(),
   sheetKey: z.string(),
@@ -455,6 +458,11 @@ export const effectiveDetectionSchema = z.object({
   native: z.object({ x: z.number(), y: z.number() }).optional(),
   legendRowIds: z.array(z.string()).optional(),
   legendKey: z.string().optional(),
+  classifiedBy: z.enum(['library', 'dwg_block_map', 'legend_text', 'ai', 'shape_cluster', 'none']).optional(),
+  identitySource: identitySourceSchema.optional(),
+  originalText: z.string().nullable().optional(),
+  legendLabel: z.string().nullable().optional(),
+  legendUnambiguous: z.boolean().optional(),
 });
 export type EffectiveDetection = z.infer<typeof effectiveDetectionSchema>;
 
@@ -477,6 +485,8 @@ export const boqLineSchema = z.object({
   key: z.string(), // deterministic: '<lineKind>|<typeKey>|<floor>|<areaId>|<ruleId>'
   typeKey: z.string().nullable(),
   label: z.string(),
+  originalLabel: z.string().nullable().optional(),
+  identitySource: identitySourceSchema.optional(),
   category: electricalCategorySchema,
   lineKind: lineKindSchema,
   unit: z.string(),

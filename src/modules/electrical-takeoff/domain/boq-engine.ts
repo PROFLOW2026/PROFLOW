@@ -4,6 +4,7 @@ import type {
   BoqLineKind,
   CatalogType,
   EffectiveDetection,
+  IdentitySource,
   MeasurementRule,
   MeasurementRuleSet,
   SheetDto,
@@ -34,6 +35,7 @@ import { applyUnpairedPdfPolicy } from './unpaired-pdf-policy';
 import { catalogByKey } from './catalog';
 import { distancePx } from './geometry';
 import { resolveRuleForType, roleToLineKind } from './measurement';
+import { hasLegendQuantityIdentity } from './legend-identity';
 
 export type ComputeBoqInput = {
   readonly detections: readonly EffectiveDetection[];
@@ -106,7 +108,14 @@ export function computeBoq(input: ComputeBoqInput): Boq {
 
   const byBucket = new Map<string, CountableDetection[]>();
   for (const d of withFloor) {
-    // floor / area already on d
+    const manualType = (d.origin === 'user_changed' || d.origin === 'user_added') && d.typeKey;
+    if (!manualType && hasLegendQuantityIdentity(d) && d.originalText) {
+      const key = bucketKey('legend', d.originalText, d.floor, d.areaId, 'legend-count');
+      const list = byBucket.get(key) ?? [];
+      list.push(d);
+      byBucket.set(key, list);
+      continue;
+    }
     if (d.typeKey === null) {
       const family = unclassifiedFamily(d.rawClass);
       const key = bucketKey('unclassified', family, d.floor, d.areaId, 'unclassified');
@@ -136,6 +145,10 @@ export function computeBoq(input: ComputeBoqInput): Boq {
 
   for (const [, group] of byBucket) {
     const sample = group[0]!;
+    if (hasLegendQuantityIdentity(sample) && sample.originalText && !(sample.origin === 'user_changed' || sample.origin === 'user_added')) {
+      lines.push(buildLegendLine(group, sample, catalogMap, input.ruleSet.rules, input.state, completeness));
+      continue;
+    }
     if (sample.typeKey === null) {
       lines.push(buildUnclassifiedLine(group, unclassifiedFamily(sample.rawClass)));
       continue;
@@ -165,11 +178,14 @@ export function computeBoq(input: ComputeBoqInput): Boq {
     const deviceCount = group.reduce((sum, detection) => sum + devicesFromNote(detection.tagText), 0);
     const quantity = rule.mode === 'group_by_proximity' ? clusters.length : deviceCount;
     const rep = group[0]!;
+    const legendName = sample.originalText?.trim() || sample.legendLabel?.trim() || null;
     lines.push(
       buildQuantityLine({
         cluster: group,
         typeKey: sample.typeKey,
-        label: rule.output.label ?? cat?.nameHe ?? sample.typeKey,
+        label: legendName ?? rule.output.label ?? cat?.nameHe ?? sample.typeKey,
+        originalLabel: legendName,
+        identitySource: sample.identitySource ?? (sample.origin === 'user_changed' || sample.origin === 'user_added' ? 'manual' : 'catalog'),
         category: cat?.category ?? 'unknown',
         lineKind,
         unit: cat?.unit ?? "יח'",
@@ -191,7 +207,7 @@ export function computeBoq(input: ComputeBoqInput): Boq {
   const sorted = [...lines].sort((a, b) => a.key.localeCompare(b.key, 'en'));
 
   const needsReviewCount = countable.filter((d) => d.needsReview).length;
-  const unclassifiedCount = countable.filter((d) => d.typeKey === null).length;
+  const unclassifiedCount = countable.filter((d) => d.typeKey === null && !hasLegendQuantityIdentity(d)).length;
   if (unclassifiedCount > 0) warnings.push(BOQ_WARNING_UNCLASSIFIED);
   if (needsReviewCount > 0) warnings.push(BOQ_WARNING_NEEDS_REVIEW);
 
@@ -323,7 +339,7 @@ function buildBreakdown(cluster: readonly EffectiveDetection[]): BoqLine['breakd
   for (const d of cluster) {
     if (d.origin === 'user_added') userAdded++;
     if (d.status === 'confirmed') userConfirmed++;
-    if (d.typeKey === null) unclassified++;
+    if (d.typeKey === null && !hasLegendQuantityIdentity(d)) unclassified++;
     else if (d.confidence === 'high') high++;
     else if (d.confidence === 'medium') medium++;
     else low++;
@@ -350,8 +366,10 @@ function lineKey(parts: {
 
 function buildQuantityLine(input: {
   cluster: readonly EffectiveDetection[];
-  typeKey: string;
+  typeKey: string | null;
   label: string;
+  originalLabel?: string | null;
+  identitySource?: IdentitySource;
   category: BoqLine['category'];
   lineKind: BoqLineKind;
   unit: string;
@@ -376,6 +394,8 @@ function buildQuantityLine(input: {
     }),
     typeKey: input.typeKey,
     label: input.label,
+    originalLabel: input.originalLabel ?? null,
+    identitySource: input.identitySource,
     category: input.category,
     lineKind: input.lineKind,
     unit: input.unit,
@@ -388,6 +408,59 @@ function buildQuantityLine(input: {
     breakdown: buildBreakdown(input.cluster),
     verified: lineVerified(input.state, input.cluster, input.completeness),
     excluded: input.excluded,
+  };
+}
+
+const LEGEND_COUNT_RULE: MeasurementRule = {
+  id: 'legend-count',
+  label: 'ספירה לפי מקרא',
+  appliesTo: {},
+  mode: 'count_each',
+  output: { lineKind: 'device_count' },
+};
+
+function buildLegendLine(
+  cluster: readonly CountableDetection[],
+  sample: CountableDetection,
+  catalogMap: ReadonlyMap<string, CatalogType>,
+  rules: readonly MeasurementRule[],
+  state: 'draft' | 'approved',
+  completeness: Boq['completeness'],
+): BoqLine {
+  const typeKeys = new Set(cluster.map((row) => row.typeKey).filter((key): key is string => Boolean(key)));
+  const typeKey = typeKeys.size === 1 ? [...typeKeys][0]! : null;
+  const cat = typeKey ? catalogMap.get(typeKey) : undefined;
+  const category = cat?.category ?? 'unknown';
+  const rule = typeKey ? resolveRuleForType(rules, typeKey, category) ?? LEGEND_COUNT_RULE : LEGEND_COUNT_RULE;
+  const name = sample.originalText!.trim();
+  const deviceCount = cluster.reduce((sum, detection) => sum + devicesFromNote(detection.tagText), 0);
+  const line = buildQuantityLine({
+    cluster,
+    typeKey,
+    label: name,
+    originalLabel: name,
+    identitySource: 'legend',
+    category,
+    lineKind: rule.output.lineKind ?? (cat ? roleToLineKind(cat.role) : 'device_count'),
+    unit: cat?.unit ?? "יח'",
+    rule,
+    floor: sample.floor,
+    areaId: sample.areaId,
+    state,
+    completeness,
+    excluded: false,
+    quantityOverride: deviceCount,
+    symbolCount: cluster.length,
+  });
+  return {
+    ...line,
+    key: lineKey({
+      lineKind: line.lineKind,
+      typeKey: `legend:${name}`,
+      floor: sample.floor,
+      areaId: sample.areaId,
+      ruleId: 'legend-count',
+    }),
   };
 }
 
@@ -418,6 +491,7 @@ function buildUnclassifiedLine(
     }),
     typeKey: null,
     label: unclassifiedLineLabel(family),
+    identitySource: 'uncertain',
     category: 'unknown',
     lineKind: 'manual',
     unit: "יח'",

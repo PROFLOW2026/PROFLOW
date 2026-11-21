@@ -72,18 +72,23 @@ export async function exportTakeoffBoqXlsx(input: ExportTakeoffXlsxInput): Promi
     { header: 'ביטחון', key: 'confidence', width: 12 },
     { header: 'סטטוס', key: 'status', width: 12 },
     { header: 'מקור', key: 'origin', width: 12 },
+    { header: 'זיהוי', key: 'identity', width: 16 },
+    { header: 'שם מקורי', key: 'original', width: 36 },
     { header: 'X', key: 'x', width: 10 },
     { header: 'Y', key: 'y', width: 10 },
   ];
   const typeName = new Map(input.catalog.map((c) => [c.key, c.nameHe]));
   for (const d of input.detections) {
+    const legendName = d.originalText?.trim() || d.legendLabel?.trim();
     detail.addRow({
       id: d.id,
       sheet: sheetName.get(d.sheetKey) ?? d.sheetKey,
-      type: d.typeKey ? (typeName.get(d.typeKey) ?? d.typeKey) : 'לא מסווג',
+      type: legendName || (d.typeKey ? (typeName.get(d.typeKey) ?? d.typeKey) : 'לא מסווג'),
       confidence: d.confidence,
       status: d.status,
       origin: d.origin,
+      identity: d.identitySource === 'legend' ? 'מקרא' : d.identitySource === 'library' ? 'ספרייה' : d.identitySource === 'manual' ? 'ידני' : d.identitySource === 'catalog' ? 'קטלוג' : '',
+      original: d.originalText ?? '',
       x: d.x,
       y: d.y,
     });
