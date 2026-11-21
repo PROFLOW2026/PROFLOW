@@ -20,7 +20,9 @@ import type { XrefDepBytes } from '@/modules/external-storage/ui/cad/pf-cad-v3/x
 import { displayArchitecturalLayerIndexes, xrefDependencyPaths } from '../../domain/architectural-background';
 import { solveModelWindow } from '../../domain/cad-sheet-frame';
 import {
+  cadInsertFocusExtent,
   cadSymbolFocusExtent,
+  isPlausibleSymbolBox,
   symbolFrame,
   symbolGlyphStrokes,
   symbolGlyphSvg,
@@ -142,6 +144,7 @@ export function TakeoffDwgPlan({
   const planClickRef = useRef(onPlanClick);
   const unavailableRef = useRef(onUnavailable);
   const focusIdRef = useRef(focusId);
+  const marksRef = useRef(marks);
   const pointerRef = useRef<{ x: number; y: number } | null>(null);
   const layersRef = useRef<UiLayer[]>([]);
   const architecturalRef = useRef<ReadonlySet<number>>(new Set());
@@ -174,6 +177,7 @@ export function TakeoffDwgPlan({
     unavailableRef.current = onUnavailable;
     focusIdRef.current = focusId;
     backgroundRef.current = background;
+    marksRef.current = marks;
   });
 
   const plan = useMemo(() => {
@@ -446,7 +450,7 @@ export function TakeoffDwgPlan({
       triangles: model.triangles,
       extent: modelViewExtent(
         model.contentExtent,
-        marks.map((mark) => ({ x: mark.nativeX, y: mark.nativeY })),
+        marksRef.current.map((mark) => ({ x: mark.nativeX, y: mark.nativeY })),
         model.origin,
       ),
     };
@@ -489,7 +493,7 @@ export function TakeoffDwgPlan({
     return () => {
       cancelled = true;
     };
-  }, [activeIds, marks, phase, sheet]);
+  }, [activeIds, phase, sheet]);
 
   useEffect(() => {
     const model = modelRef.current;
@@ -499,22 +503,23 @@ export function TakeoffDwgPlan({
     const frame = placeMarks(current, activeIds, marks, model, drawnRef.current, focusId, architecturalRef.current);
     shownRef.current = frame;
     const active = frame.find((item) => item.id === focusId) ?? null;
-    const level = focusLevel(Boolean(active), Boolean(active?.located));
+    const located = Boolean(active?.located && isPlausibleSymbolBox(active));
+    const level = focusLevel(Boolean(active), located);
     setFocused(focusId ? { id: focusId, level } : null);
-    if (!active || level === 'region') {
-      renderer.focusExtent(extentRef.current, 48);
-    } else if (level === 'point') {
-      const body = Math.max(active.maxX - active.minX, active.maxY - active.minY, 8);
-      renderer.focusExtent(cadSymbolFocusExtent({
-        minX: active.x - body / 2,
-        minY: active.y - body / 2,
-        maxX: active.x + body / 2,
-        maxY: active.y + body / 2,
-      }), 28);
+    if (!focusId) {
+      drawRef.current();
+      return;
+    }
+    if (!active || level === 'unavailable') {
+      drawRef.current();
+      return;
+    }
+    if (level === 'point' || !isPlausibleSymbolBox(active)) {
+      renderer.focusExtent(cadInsertFocusExtent(active.x, active.y), 28);
     } else {
       renderer.focusExtent(cadSymbolFocusExtent(active), 24);
     }
-    if (active?.located && onSymbolGlyphs) {
+    if (active.located && isPlausibleSymbolBox(active) && onSymbolGlyphs) {
       const source = marks.find((item) => item.id === active.id);
       const box = {
         half: Math.max(active.maxX - active.minX, active.maxY - active.minY, 1) / 2,
@@ -527,7 +532,7 @@ export function TakeoffDwgPlan({
       const svg = symbolGlyphSvg(
         symbolGlyphStrokes(drawnRef.current, box, architecturalRef.current),
         box,
-        source?.colorHex,
+        '#111827',
       );
       if (svg) {
         const next: Record<string, string> = { [active.id]: svg };
@@ -554,8 +559,8 @@ export function TakeoffDwgPlan({
       if (seen.has(key)) continue;
       seen.add(key);
       const box = symbolFrame(segments, mark.x, mark.y, placed, mark.id, architecturalRef.current);
-      if (!box.located) continue;
-      const svg = symbolGlyphSvg(symbolGlyphStrokes(segments, box, architecturalRef.current), box, mark.colorHex);
+      if (!isPlausibleSymbolBox(box)) continue;
+      const svg = symbolGlyphSvg(symbolGlyphStrokes(segments, box, architecturalRef.current), box, '#111827');
       if (!svg) continue;
       glyphs[mark.id] = svg;
       if (mark.signature) glyphs[`sig:${mark.signature}`] = svg;
@@ -796,6 +801,7 @@ export function TakeoffDwgPlan({
           {t('viewer.tools')}
         </Button>
         {focused?.level === 'point' ? <span className="text-xs text-white/90" data-testid="takeoff-focus-point">{t('viewer.focusPoint')}</span> : null}
+        {focused?.level === 'unavailable' ? <span className="text-xs text-white/90" data-testid="takeoff-focus-unavailable">{t('viewer.symbolUnlocated')}</span> : null}
       </div>
       {toolsOpen && phase === 'ready' ? (
         <div className="max-h-52 min-h-0 w-full shrink-0 overflow-x-hidden overflow-y-auto border-b border-white/10 bg-[#2a2e32] p-1.5 text-xs text-white">

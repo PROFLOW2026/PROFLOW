@@ -6,7 +6,7 @@ import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { CatalogType, EffectiveDetection, SheetDto, WorkerLegendEntry } from '../domain/contracts';
 import { reviewPlainKey } from '../domain/review-copy';
-import { isLegendNoteText } from '../domain/legend-identity';
+import { classifyLegendText, isLegendNoteText } from '../domain/legend-identity';
 import { detectionDisplayLabel } from './boq-display';
 import { defaultReviewScope, type ReviewGroup, type TypeSuggestion } from './review-guide';
 import { symbolIdentityLabel } from './review-guide';
@@ -148,6 +148,7 @@ export function TakeoffReviewGuide({
             sheet={sheet}
             svgMarkup={planSvgMarkup}
             mode={form.context ? 'context' : 'focus'}
+            highlight={false}
             className="aspect-square h-auto w-full"
             testId="takeoff-guide-symbol"
           />
@@ -233,6 +234,12 @@ export function TakeoffReviewGuide({
         <p className="text-xs font-medium text-[var(--pf-status-warning-fg)]" data-testid="takeoff-guide-reason">
           {t(`guide.plain.${plain}`)}
         </p>
+        {current.originalText && classifyLegendText(current.originalText) === 'linear' ? (
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('guide.plain.looksLikeLinear')}</p>
+        ) : null}
+        {current.originalText && classifyLegendText(current.originalText) === 'site_work' ? (
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('guide.plain.looksLikeSiteWork')}</p>
+        ) : null}
         {current.originalText && isLegendNoteText(current.originalText) ? (
           <p className="text-xs text-[var(--pf-text-muted)]">{t('guide.plain.looksLikeNote')}</p>
         ) : null}

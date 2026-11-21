@@ -18,7 +18,11 @@ export type LegendHoldReason =
   | 'unread'
   | 'weak_match'
   | 'sheet_unassigned'
-  | 'note';
+  | 'note'
+  | 'linear'
+  | 'site_work';
+
+export type LegendTextKind = 'device' | 'linear' | 'note' | 'site_work';
 
 export type LegendIdentity = {
   source: IdentitySource;
@@ -29,8 +33,20 @@ export type LegendIdentity = {
   holdReason: LegendHoldReason;
 };
 
-const NOTE_MARKERS = ['בקומות', 'גישור', 'כבל', 'מעבר', 'קומה'] as const;
+const NOTE_MARKERS = ['בקומות', 'גישור', 'מעבר', 'קומה'] as const;
 const HEBREW = /[\u0590-\u05FF]/;
+const DEVICE_NOUN =
+  /שקע|בית\s*תקע|מפסק|מפסח|לחצן|נקוד(?:ה|ת)?\s*(?:מאור|תאור|חשמל|טלפון|תקשורת|כח|כוח)|נקודה\s+ל|גוף(?:\s*תאור)?|ג["״']?ת\b|תאורת|חיישן|פעמון|מאור|חירום|תריס|פנדל|לוח|ממסר|מנתק|מאריך|קופס|גלאי|מאוורר|שנאי|ממיר|דוד/;
+const LINEAR_CODE = /\bN2XY\b|\bN2XH\b|\bN2XSY\b|\bNHXMH\b|\bNYY\b|\bNYM\b|\bXLPE\b|\+\s*\d+\s*CU\b/i;
+const LINEAR_WORD = /כבל|מוליך|תעלה|צנרת|מגש|שרוול/;
+const CROSS_SECTION = /\(\s*\d+\s*[xX×]\s*\d+(?:\.\d+)?|\b\d+\s*[xX×]\s*\d+(?:\.\d+)?(?:\s*(?:mm|ממ))/i;
+const MANUFACTURER = /תוצרת|יצרן|לפי מפרט|בתאום עם/;
+/** Earth / weld / bonding work — countable in units only after the match is confirmed. */
+const SITE_WORK =
+  /ריתוך|הארקת\s*יסוד|טבעת\s*הארק|פס\s*הארק|שו[וו]ה\s*פוטנציאל|אלקטרודת\s*הארק|מהדק\s*הארק/;
+/** Installation notes that mention a device in passing are not a quantity line. */
+const INSTRUCTION_PREFIX =
+  /^(?:מיקום סופי|במידה\s*ו|הכנה\s+ל|גובה אותיות|יש להתקין|לפי תוכנית|עפ["״']י תוכנית)/;
 
 /** Reasons that still require a person even when the legend text is unique. */
 export const LEGEND_HOLD_REASONS: ReadonlySet<TakeoffReviewReason> = new Set([
@@ -60,11 +76,30 @@ export function legendRowDisplayText(row: Pick<LegendRow, 'decodedText' | 'rawTe
   return null;
 }
 
+export function classifyLegendText(text: string): LegendTextKind {
+  const trimmed = normalizeLegendDisplayText(text);
+  if (!trimmed) return 'note';
+  if (/^\s*כמות\b/.test(trimmed)) return 'note';
+  if (INSTRUCTION_PREFIX.test(trimmed)) return 'note';
+  if (SITE_WORK.test(trimmed)) return 'site_work';
+  const hasDevice = DEVICE_NOUN.test(trimmed);
+  const hasLinear = LINEAR_WORD.test(trimmed) || LINEAR_CODE.test(trimmed) || CROSS_SECTION.test(trimmed);
+  if (hasDevice) return 'device';
+  if (hasLinear) return 'linear';
+  if (NOTE_MARKERS.some((marker) => trimmed.includes(marker)) || MANUFACTURER.test(trimmed)) return 'note';
+  return 'device';
+}
+
 export function isLegendNoteText(text: string): boolean {
-  const trimmed = text.trim();
-  if (!trimmed) return true;
-  if (/^\s*כמות\b/.test(trimmed)) return true;
-  return NOTE_MARKERS.some((marker) => trimmed.includes(marker));
+  return classifyLegendText(text) === 'note';
+}
+
+export function isLegendLinearText(text: string): boolean {
+  return classifyLegendText(text) === 'linear';
+}
+
+export function isLegendHoldText(text: string): boolean {
+  return classifyLegendText(text) !== 'device';
 }
 
 function isUnreadLegendRow(row: LegendRow, text: string): boolean {
@@ -160,7 +195,10 @@ export function resolveLegendIdentity(
   const unique = new Map<string, { text: string; key: string }>();
   let unread = false;
   let sawNote = false;
+  let sawLinear = false;
+  let sawSiteWork = false;
   let sawDescription = false;
+  let held: { text: string; key: string; kind: Exclude<LegendTextKind, 'device'> } | null = null;
   for (const id of ids) {
     const row = index.byKey.get(id);
     if (!row) continue;
@@ -169,12 +207,16 @@ export function resolveLegendIdentity(
       unread = true;
       continue;
     }
-    if (isUnreadLegendRow(row, text)) {
-      unread = true;
+    const kind = classifyLegendText(text);
+    if (kind !== 'device') {
+      if (kind === 'note') sawNote = true;
+      else if (kind === 'linear') sawLinear = true;
+      else sawSiteWork = true;
+      held ??= { text, key: row.key, kind };
       continue;
     }
-    if (isLegendNoteText(text)) {
-      sawNote = true;
+    if (isUnreadLegendRow(row, text)) {
+      unread = true;
       continue;
     }
     sawDescription = true;
@@ -195,6 +237,16 @@ export function resolveLegendIdentity(
 
   if (unique.size === 0) {
     const source = sourceFromOrigin(detection.origin, detection.classifiedBy, false, detection.typeKey);
+    if (held && (sawLinear || sawNote || sawSiteWork) && !sawDescription) {
+      return {
+        source,
+        originalText: held.text,
+        displayName: held.text,
+        legendRowId: held.key,
+        unambiguous: false,
+        holdReason: held.kind,
+      };
+    }
     return empty(unread ? 'unread' : sawNote && !sawDescription ? 'note' : 'weak_match', source);
   }
 
@@ -222,15 +274,47 @@ export function hasLegendQuantityIdentity(
   return Boolean(detection.legendUnambiguous && detection.originalText);
 }
 
+function mixedSignatureLegendRows(
+  detections: readonly Pick<EffectiveDetection, 'legendRowIds' | 'signature'>[],
+): Set<string> {
+  const signatures = new Map<string, Set<string>>();
+  for (const detection of detections) {
+    const signature = (detection.signature ?? '').replace(/^block:/i, '').trim().toLowerCase();
+    if (!signature) continue;
+    for (const id of detection.legendRowIds ?? []) {
+      const set = signatures.get(id) ?? new Set<string>();
+      set.add(signature);
+      signatures.set(id, set);
+    }
+  }
+  const mixed = new Set<string>();
+  for (const [id, set] of signatures) {
+    if (set.size > 1) mixed.add(id);
+  }
+  return mixed;
+}
+
 export function enrichDetectionsWithLegendIdentity(
   detections: readonly EffectiveDetection[],
   legend: readonly LegendRow[],
   options?: { classifiedByById?: ReadonlyMap<string, WorkerDetection['classifiedBy']> },
 ): EffectiveDetection[] {
   const index = legendIndex(legend);
+  const mixedRows = mixedSignatureLegendRows(detections);
   return detections.map((detection) => {
     const classifiedBy = detection.classifiedBy ?? options?.classifiedByById?.get(detection.id);
-    const identity = resolveLegendIdentity({ ...detection, classifiedBy }, legend, index);
+    let identity = resolveLegendIdentity({ ...detection, classifiedBy }, legend, index);
+    if (
+      identity.unambiguous &&
+      detection.legendRowIds?.some((id) => mixedRows.has(id))
+    ) {
+      identity = {
+        ...identity,
+        unambiguous: false,
+        holdReason: 'conflict',
+        source: 'uncertain',
+      };
+    }
     const userChangedType = detection.origin === 'user_changed';
     const needsReview = deriveNeedsReview({
       reasons: detection.reasons,
@@ -247,15 +331,44 @@ export function enrichDetectionsWithLegendIdentity(
       originalText: identity.originalText,
       legendLabel: identity.displayName,
       legendUnambiguous: identity.unambiguous,
+      legendHoldReason: identity.holdReason,
       needsReview,
     };
   });
 }
 
-export function isQuantityIdentityLine(
-  line: Pick<BoqLine, 'excluded' | 'quantity' | 'typeKey' | 'identitySource'>,
+const UNDETERMINED_QUANTITY_RULE_IDS = new Set(['legend-linear', 'legend-note', 'legend-site-work']);
+
+export function isUndeterminedQuantityLine(
+  line: Pick<BoqLine, 'ruleId' | 'verified' | 'quantity' | 'identitySource'>,
 ): boolean {
-  if (line.excluded || line.quantity <= 0) return false;
+  if (line.verified) return false;
+  if (line.ruleId && UNDETERMINED_QUANTITY_RULE_IDS.has(line.ruleId)) return true;
+  return line.identitySource === 'uncertain' && line.quantity <= 0;
+}
+
+/** Display for BOQ / export. Never show 0 as if the work is absent. */
+export function boqQuantityDisplay(line: Pick<BoqLine, 'ruleId' | 'verified' | 'quantity' | 'identitySource'>): string {
+  return isUndeterminedQuantityLine(line) ? '—' : String(line.quantity);
+}
+
+export function undeterminedQuantityRemarkHe(
+  kind: LegendTextKind,
+  symbolCount: number,
+): string {
+  if (kind === 'linear') {
+    return `כמות לא נקבעה — חסר אורך מדיד במטרים. ${symbolCount} מופעי CAD הם ראיה בלבד, לא אורך הכבל.`;
+  }
+  if (kind === 'site_work') {
+    return `כמות לא נקבעה — נדרש אישור שהסמל הוא פריט העבודה. ${symbolCount} מופעי CAD הם ראיה, לא כמות מאושרת.`;
+  }
+  return 'כמות לא נקבעה — הערה או פרט יצרן, לא שורת כמות.';
+}
+
+export function isQuantityIdentityLine(
+  line: Pick<BoqLine, 'excluded' | 'quantity' | 'typeKey' | 'identitySource' | 'ruleId' | 'verified'>,
+): boolean {
+  if (line.excluded || isUndeterminedQuantityLine(line) || line.quantity <= 0) return false;
   if (line.typeKey != null) return true;
   return line.identitySource === 'legend' || line.identitySource === 'library' || line.identitySource === 'manual';
 }

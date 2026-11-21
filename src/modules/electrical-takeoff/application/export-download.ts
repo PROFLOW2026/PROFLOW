@@ -15,6 +15,7 @@ import type { EffectiveDetection } from '../domain/contracts';
 import { sealJobToken } from './worker-token';
 import { takeoffNotFound } from '../domain/errors';
 import type { OrgContext } from '@/shared/auth/context';
+import { isUndeterminedQuantityLine, undeterminedQuantityRemarkHe, classifyLegendText } from '../domain/legend-identity';
 
 /** Safe Content-Disposition for Hebrew / non-ASCII takeoff export filenames (RFC 5987). */
 const LEGEND_PDF = /מקרא|legend|מפתח/i;
@@ -145,7 +146,10 @@ export async function buildExportBytes(
         colorHex: t.colorHex,
       })),
       title: view.summary.name,
-      boqSummary: view.boq.lines.slice(0, 20).map((l) => ({ label: l.label, quantity: l.quantity, unit: l.unit })),
+      boqSummary: view.boq.lines
+        .filter((l) => !l.excluded && !isUndeterminedQuantityLine(l))
+        .slice(0, 20)
+        .map((l) => ({ label: l.label, quantity: l.quantity, unit: l.unit })),
     });
     const bytes = await takeoffDeps.worker.exportAnnotatedPdf({ ...body, jobBearer: token.bearer });
     return { bytes, fileName: `${view.summary.name}-annotated.pdf`, mimeType: 'application/pdf' };
@@ -156,16 +160,29 @@ export async function buildExportBytes(
     title: view.summary.name,
     approved: view.summary.status === 'approved',
     generatedAtIso: new Date().toISOString(),
-    limitations: view.boq.warnings,
-    lines: view.boq.lines.map((l) => ({
-      label: l.label,
-      category: l.category,
-      unit: l.unit,
-      quantity: l.quantity,
-      floor: l.floor ?? undefined,
-      area: l.areaId ?? undefined,
-      status: l.verified ? 'verified' : 'draft',
-    })),
+    limitations: [
+      ...view.boq.warnings,
+      ...view.boq.lines
+        .filter((l) => !l.excluded && isUndeterminedQuantityLine(l))
+        .map((l) =>
+          undeterminedQuantityRemarkHe(
+            l.originalLabel ? classifyLegendText(l.originalLabel) : 'device',
+            l.symbolCount ?? l.detectionIds.length,
+          ),
+        ),
+    ],
+    lines: view.boq.lines.map((l) => {
+      const undetermined = isUndeterminedQuantityLine(l);
+      return {
+        label: l.label,
+        category: l.category,
+        unit: l.unit,
+        quantity: undetermined ? 0 : l.quantity,
+        floor: l.floor ?? undefined,
+        area: l.areaId ?? undefined,
+        status: undetermined ? 'כמות לא נקבעה' : l.verified ? 'verified' : 'draft',
+      };
+    }),
   });
   const bytes = await takeoffDeps.worker.exportBoqPdf(boqBody);
   return { bytes, fileName: `${view.summary.name}-boq.pdf`, mimeType: 'application/pdf' };

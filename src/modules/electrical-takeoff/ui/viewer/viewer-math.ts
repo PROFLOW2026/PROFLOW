@@ -19,7 +19,11 @@ export interface Rect {
 }
 
 export const VIEWER_MIN_SCALE = 0.05;
-export const VIEWER_MAX_SCALE = 12;
+export const VIEWER_MAX_SCALE = 48;
+
+export function hasReliableOccurrenceBounds(mark: { x: number; y: number; w: number; h: number }): boolean {
+  return Number.isFinite(mark.x) && Number.isFinite(mark.y) && mark.w > 0 && mark.h > 0;
+}
 
 export function clampScale(scale: number): number {
   return Math.min(VIEWER_MAX_SCALE, Math.max(VIEWER_MIN_SCALE, scale));
@@ -120,7 +124,7 @@ function clampedSymbolWindow(
 
 /** Tight window around one mark. Never the union of a group or the whole sheet. */
 export function occurrenceFocusRect(mark: { x: number; y: number; w: number; h: number }): Rect {
-  return clampedSymbolWindow(mark, 2.6, 36, 180);
+  return clampedSymbolWindow(mark, 3.2, 28, 96);
 }
 
 /** Even tighter crop for a list thumbnail of the real symbol. */

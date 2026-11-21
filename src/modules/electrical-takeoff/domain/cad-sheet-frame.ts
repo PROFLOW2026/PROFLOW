@@ -330,7 +330,7 @@ export function symbolFrame(
     const distance = Math.hypot(other.x - x, other.y - y);
     if (distance > 1 && distance < nearest) nearest = distance;
   }
-  const radius = Number.isFinite(nearest) ? Math.min(nearest * 0.45, 200) : 80;
+  const radius = Number.isFinite(nearest) ? Math.min(nearest * 0.45, 64) : 32;
   const empty = { half: 0, minX: x, minY: y, maxX: x, maxY: y, located: false };
   if (!(radius > 1)) return empty;
   const maxLen = radius * 2;
@@ -404,7 +404,7 @@ export function symbolFrame(
   if (!best || best.distance > radius * radius) return empty;
   const { count, minX, minY, maxX, maxY } = best;
   const span = Math.max(maxX - minX, maxY - minY);
-  if (count < 3 || !(span > 0) || span > radius * 2.2) return empty;
+  if (count < 3 || !(span > 0) || span > radius * 2.2 || span > 96) return empty;
   const pad = span * 0.08;
   return {
     half: span * 0.5 + pad,
@@ -467,6 +467,19 @@ export function cadSymbolFocusExtent(box: Pick<SymbolBox, 'minX' | 'minY' | 'max
   const body = Math.max(box.maxX - box.minX, box.maxY - box.minY, 1);
   const pad = body * 0.8;
   return [box.minX - pad, box.minY - pad, box.maxX + pad, box.maxY + pad];
+}
+
+const INSERT_FOCUS_HALF = 48;
+
+/** Window around an insert whose own strokes were not located. Tight enough to identify, not a sheet fit. */
+export function cadInsertFocusExtent(x: number, y: number): [number, number, number, number] {
+  return [x - INSERT_FOCUS_HALF, y - INSERT_FOCUS_HALF, x + INSERT_FOCUS_HALF, y + INSERT_FOCUS_HALF];
+}
+
+export function isPlausibleSymbolBox(box: Pick<SymbolBox, 'located' | 'minX' | 'minY' | 'maxX' | 'maxY'>): boolean {
+  if (!box.located) return false;
+  const span = Math.max(box.maxX - box.minX, box.maxY - box.minY);
+  return span > 0 && span <= 96;
 }
 
 export function segmentNear(segments: Float32Array, x: number, y: number, radius: number): boolean {

@@ -188,6 +188,10 @@
     "identityCatalog": "קטלוג",
     "identityLibrary": "ספריית מתכנן",
     "identityManual": "סיווג ידני",
+    "quantityUndetermined": "כמות לא נקבעה",
+    "cableNoLength": "חסר אורך מדיד במטרים. {count} מופעי CAD הם ראיה בלבד, לא אורך הכבל.",
+    "noteNotQuantity": "הערה או פרט יצרן — לא שורת כמות.",
+    "siteWorkNeedsConfirm": "פריט עבודה שניתן לספור ביחידות רק אחרי אישור שהסמל תואם. {count} מופעי CAD הם ראיה, לא כמות מאושרת.",
     "countingSummary": "נספרו {counted} (PDF {pdf}, DWG {dwg}, מיזוג {merged}) · תאומים {twins} · PDF בלבד {pdfOnly} · מקרא {legend} · גליונות מוחרגים {sheetExcluded}"
   },
   "detection": {
@@ -356,6 +360,8 @@
       "legendUnread": "תיאור המקרא לא נקרא במלואו.",
       "sheetUnassigned": "נדרש בירור שיוך לגיליון.",
       "looksLikeNote": "התיאור נראה כמו הערה או פרט יצרן ולא שם אביזר.",
+      "looksLikeLinear": "התיאור הוא כבל, מוליך או מפרט אורך, לא אביזר לספירה.",
+      "looksLikeSiteWork": "התיאור הוא עבודת הארקה או ריתוך, לא אביזר חשמל לספירה אוטומטית.",
       "uncertain": "יש התאמה מוצעת, אבל קיים ספק שצריך לפתור."
     },
     "confirmMatch": "אשר התאמה ({count})",
@@ -367,7 +373,7 @@
     "assignLegendNone": "ללא שיוך למקרא",
     "pickOrNameRequired": "אשרו שם מהמקרא או בחרו סוג מהקטלוג.",
     "technicalOnly": "מזהה טכני (לא מוצג כשם): {name}",
-    "symbolUnavailableShort": "אין תמונת סמל",
+    "symbolUnavailableShort": "תצוגת סמל אינה זמינה",
     "conflictForcesOne": "יש סתירה — האישור יחול רק על המופע הנוכחי."
   },
   "workspace": {

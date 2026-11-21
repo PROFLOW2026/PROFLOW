@@ -1,9 +1,9 @@
 import { viewportForMark, type DisplaySheet } from './layout-display';
 
-export type FocusLevel = 'symbol' | 'point' | 'region';
+export type FocusLevel = 'symbol' | 'point' | 'unavailable';
 
 export function focusLevel(onSheet: boolean, located: boolean): FocusLevel {
-  if (!onSheet) return 'region';
+  if (!onSheet) return 'unavailable';
   if (located) return 'symbol';
   return 'point';
 }

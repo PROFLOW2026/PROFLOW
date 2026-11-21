@@ -5,7 +5,9 @@ import { exportTakeoffBoqXlsx } from '@/modules/electrical-takeoff/application/e
 import { computeBoq } from '@/modules/electrical-takeoff/domain/boq-engine';
 import { mergeCatalog } from '@/modules/electrical-takeoff/domain/catalog';
 import { applyEdits } from '@/modules/electrical-takeoff/domain/edits';
+import { enrichDetectionsWithLegendIdentity } from '@/modules/electrical-takeoff/domain/legend-identity';
 import { DEFAULT_RULE_SET } from '@/modules/electrical-takeoff/domain/measurement';
+import type { WorkerLegendEntry } from '@/modules/electrical-takeoff/domain/contracts';
 import { getReal7155Fixture } from '@/modules/electrical-takeoff/ui/fixtures/real7155-fixture';
 import { sheetDto, workerDet } from './fixtures';
 
@@ -176,5 +178,65 @@ describe('exportTakeoffBoqXlsx', () => {
       approvedAtIso: new Date().toISOString(),
     });
     expect(buf.byteLength).toBeGreaterThan(1000);
+  });
+
+  it('writes an undetermined quantity as a dash, not zero', async () => {
+    const catalog = mergeCatalog();
+    const legend: WorkerLegendEntry = {
+      key: 'row:cable',
+      fileId: 'f1',
+      sheetKey: 'layout:F0',
+      signature: 'block:n2xy',
+      signatureKind: 'dwg-block',
+      rawText: '(4x150) N2XY+70CU',
+      decodedText: '(4x150) N2XY+70CU',
+      reasons: [],
+    };
+    const detections = enrichDetectionsWithLegendIdentity(
+      applyEdits(
+        Array.from({ length: 91 }, (_, i) =>
+          workerDet({
+            id: `c${i}`,
+            sheetKey: 'p1',
+            typeKey: null,
+            classifiedBy: 'none',
+            legendRowIds: ['row:cable'],
+            reasons: ['unclassified'],
+          }),
+        ),
+        [],
+      ),
+      [legend],
+    );
+    const boq = computeBoq({
+      detections,
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+      areas: [],
+      catalog,
+      ruleSet: DEFAULT_RULE_SET,
+      linear: [],
+      state: 'draft',
+    });
+    const buf = await exportTakeoffBoqXlsx({
+      title: 'כבל',
+      boq,
+      catalog,
+      detections,
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+    });
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buf as unknown as Parameters<typeof wb.xlsx.load>[0]);
+    const sheet = wb.getWorksheet('סיכום כתב כמויות');
+    const quantities: Array<string | number> = [];
+    const notes: string[] = [];
+    sheet?.eachRow((row, index) => {
+      if (index === 1) return;
+      quantities.push(row.getCell(4).value as string | number);
+      notes.push(String(row.getCell(6).value ?? ''));
+    });
+    expect(quantities).toContain('—');
+    expect(quantities).not.toContain(0);
+    expect(quantities).not.toContain(91);
+    expect(notes.some((note) => note.includes('חסר אורך מדיד'))).toBe(true);
   });
 });

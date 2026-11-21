@@ -69,6 +69,32 @@ describe('review-copy identity statuses', () => {
     expect(reviewPlainKey(row)).toBe('legendConflict');
   });
 
+  it('flags a cable legend description for review instead of treating it as identified', () => {
+    const row = detection({
+      id: 'n2xy-1',
+      originalText: '(4x150) N2XY+70CU',
+      legendUnambiguous: false,
+      identitySource: 'uncertain',
+      needsReview: true,
+      reasons: ['unclassified', 'legend_unmapped'],
+    });
+    expect(detectionIdentityStatus(row)).toBe('needsCheck');
+    expect(reviewPlainKey(row)).toBe('looksLikeLinear');
+  });
+
+  it('flags earthing weld work for review instead of treating it as an identified accessory', () => {
+    const row = detection({
+      id: 'wp-1',
+      originalText: 'נקודת ריתוך בין 2 מוליכי טבעת הארקת יסוד',
+      legendUnambiguous: false,
+      identitySource: 'uncertain',
+      needsReview: true,
+      reasons: ['unclassified', 'legend_unmapped'],
+    });
+    expect(detectionIdentityStatus(row)).toBe('needsCheck');
+    expect(reviewPlainKey(row)).toBe('looksLikeSiteWork');
+  });
+
   it('marks a symbol with no legend row as unclassified or unmapped', () => {
     const row = detection({
       id: 'orphan-1',

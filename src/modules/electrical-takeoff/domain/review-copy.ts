@@ -1,5 +1,5 @@
 import type { EffectiveDetection, TakeoffReviewReason } from './contracts';
-import { isLegendNoteText } from './legend-identity';
+import { classifyLegendText, isLegendNoteText } from './legend-identity';
 
 /** Identity of one mark for control / quantities — not the final BOQ document approval. */
 export type IdentityReviewStatus = 'autoIdentified' | 'needsCheck' | 'unclassified' | 'manuallyApproved';
@@ -11,6 +11,8 @@ export type ReviewPlainKey =
   | 'legendUnread'
   | 'sheetUnassigned'
   | 'looksLikeNote'
+  | 'looksLikeLinear'
+  | 'looksLikeSiteWork'
   | 'uncertain';
 
 export function detectionIdentityStatus(
@@ -23,6 +25,7 @@ export function detectionIdentityStatus(
   const identified = Boolean(
     detection.typeKey ||
       detection.userLabel?.trim() ||
+      detection.originalText?.trim() ||
       (detection.legendUnambiguous && detection.originalText) ||
       detection.identitySource === 'legend' ||
       detection.identitySource === 'library' ||
@@ -68,9 +71,11 @@ export function reviewPlainKey(
     return 'legendUnread';
   }
   if (detection.reasons.includes('type_ambiguous')) return 'legendConflict';
-  if (detection.reasons.includes('legend_unmapped')) return 'legendUnmapped';
   const text = detection.originalText?.trim();
+  if (text && classifyLegendText(text) === 'linear') return 'looksLikeLinear';
+  if (text && classifyLegendText(text) === 'site_work') return 'looksLikeSiteWork';
   if (text && isLegendNoteText(text)) return 'looksLikeNote';
+  if (detection.reasons.includes('legend_unmapped')) return 'legendUnmapped';
   if (!detection.typeKey && !detection.legendUnambiguous) return 'missingType';
   if (!detection.legendRowIds?.length && !detection.originalText) return 'legendUnmapped';
   return 'uncertain';

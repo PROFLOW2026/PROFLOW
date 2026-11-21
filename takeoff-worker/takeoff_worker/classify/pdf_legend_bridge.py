@@ -40,8 +40,9 @@ def _dwg_block_index(dwg_legend: list[WorkerLegendEntry]) -> dict[str, WorkerLeg
         bn = _block_from_legend_row(row)
         if bn:
             out[bn] = row
-        if row.tagText:
-            out[row.tagText.strip().lower()] = row
+        label = (row.decodedText or row.rawText or "").strip()
+        if label:
+            out[label.lower()] = row
     return out
 
 

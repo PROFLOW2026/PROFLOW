@@ -3,6 +3,8 @@ import {
   clampScale,
   fitSelection,
   fitToRect,
+  hasReliableOccurrenceBounds,
+  occurrenceFocusRect,
   screenToPlan,
   wheelZoomsPlan,
   zoomAtPoint,
@@ -42,5 +44,19 @@ describe('takeoff viewer-math', () => {
   it('fits selection to center', () => {
     const v = fitSelection({ width: 500, height: 400 }, { x: 200, y: 100, width: 40, height: 40 });
     expect(v.scale).toBeGreaterThan(0);
+  });
+
+  it('refuses a zero-size mark as a focus target', () => {
+    expect(hasReliableOccurrenceBounds({ x: 10, y: 20, w: 12, h: 12 })).toBe(true);
+    expect(hasReliableOccurrenceBounds({ x: 10, y: 20, w: 0, h: 0 })).toBe(false);
+  });
+
+  it('keeps each occurrence window on that mark, not a sheet-sized box', () => {
+    const a = occurrenceFocusRect({ x: 80, y: 90, w: 14, h: 14 });
+    const b = occurrenceFocusRect({ x: 2400, y: 1800, w: 14, h: 14 });
+    expect(a.x).toBe(80);
+    expect(b.x).toBe(2400);
+    expect(a.width).toBeLessThanOrEqual(96);
+    expect(a.width).toBeGreaterThanOrEqual(28);
   });
 });

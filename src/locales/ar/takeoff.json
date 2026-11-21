@@ -188,6 +188,10 @@
     "identityCatalog": "الكتالوج",
     "identityLibrary": "مكتبة المخطط",
     "identityManual": "تصنيف يدوي",
+    "quantityUndetermined": "الكمية غير محددة",
+    "cableNoLength": "ينقص طول مقيس بالأمتار. {count} ظهورات CAD هي دليل فقط وليست طول الكابل.",
+    "noteNotQuantity": "ملاحظة أو بيان مُصنّع — ليست بند كمية.",
+    "siteWorkNeedsConfirm": "بند عمل يمكن عدّه بالوحدات فقط بعد تأكيد تطابق الرمز. {count} ظهورات CAD دليل وليست كمية معتمدة.",
     "countingSummary": "المحسوب: {counted} (PDF {pdf}، DWG {dwg}، دمج {merged}) · توائم {twins} · PDF فقط {pdfOnly} · المفتاح {legend} · صفحات مستثناة {sheetExcluded}"
   },
   "detection": {
@@ -356,6 +360,8 @@
       "legendUnread": "لم يُقرأ نص المفتاح بالكامل.",
       "sheetUnassigned": "يلزم التحقق من ربط اللوحة.",
       "looksLikeNote": "النص يبدو ملاحظة أو تفصيل مُصنّع وليس اسم تجهيز.",
+      "looksLikeLinear": "النص كابل أو موصل أو مواصفة طول، وليس تجهيزاً يُحسب بالوحدة.",
+      "looksLikeSiteWork": "النص عمل تأريض أو لحام، وليس تجهيزاً كهربائياً للعد التلقائي.",
       "uncertain": "هناك مطابقة مقترحة، لكن ما زال هناك شك يحتاج حسمًا."
     },
     "confirmMatch": "اعتماد المطابقة ({count})",
@@ -367,7 +373,7 @@
     "assignLegendNone": "بدون ربط بالمفتاح",
     "pickOrNameRequired": "اعتمدوا اسمًا من المفتاح أو اختاروا نوعًا من الكتالوج.",
     "technicalOnly": "معرّف تقني (لا يُعرض كاسم): {name}",
-    "symbolUnavailableShort": "لا توجد صورة للرمز",
+    "symbolUnavailableShort": "عرض الرمز غير متاح",
     "conflictForcesOne": "هناك تعارض — الاعتماد يسري على هذا الظهور فقط."
   },
   "workspace": {

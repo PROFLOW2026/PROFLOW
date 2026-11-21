@@ -58,7 +58,8 @@ def export_boq_pdf(req: ExportBoqPdfRequest) -> bytes:
         if y < 25 * mm:
             c.showPage()
             y = h - 25 * mm
-        c.drawString(xcols[0] * mm, y, f"{line.quantity:g}")
+        qty = "—" if line.status in ("quantity_undetermined", "כמות לא נקבעה") else f"{line.quantity:g}"
+        c.drawString(xcols[0] * mm, y, qty)
         c.drawString(xcols[1] * mm, y, shape_rtl(line.unit))
         c.drawString(xcols[2] * mm, y, shape_rtl(line.label)[:48])
         c.drawString(xcols[3] * mm, y, shape_rtl(line.floor or "-"))

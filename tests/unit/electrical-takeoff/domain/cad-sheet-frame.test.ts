@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { applyEdits } from '@/modules/electrical-takeoff/domain/edits';
 import {
+  cadInsertFocusExtent,
   cadSymbolFocusExtent,
   chooseCadSheetFrame,
+  isPlausibleSymbolBox,
   modelToWorld,
   paperRects,
   segmentNear,
@@ -173,5 +175,9 @@ describe('cad sheet frame', () => {
     expect(svg).toContain('path');
     const extent = cadSymbolFocusExtent(box);
     expect(extent[2] - extent[0]).toBeLessThan(80);
+    expect(isPlausibleSymbolBox(box)).toBe(true);
+    const insert = cadInsertFocusExtent(10, 20);
+    expect(insert[2] - insert[0]).toBe(96);
+    expect(insert[3] - insert[1]).toBe(96);
   });
 });

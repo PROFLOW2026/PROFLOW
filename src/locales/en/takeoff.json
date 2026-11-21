@@ -188,6 +188,10 @@
     "identityCatalog": "Catalog",
     "identityLibrary": "Planner library",
     "identityManual": "Manual classification",
+    "quantityUndetermined": "Quantity not determined",
+    "cableNoLength": "Measured length in metres is missing. {count} CAD occurrences are diagnostic only, not cable length.",
+    "noteNotQuantity": "A note or manufacturer detail — not a quantity line.",
+    "siteWorkNeedsConfirm": "A work item that can be counted in units only after the symbol match is confirmed. {count} CAD occurrences are evidence, not an approved quantity.",
     "countingSummary": "Counted {counted} (PDF {pdf}, DWG {dwg}, merged {merged}) · twins {twins} · PDF-only {pdfOnly} · legend {legend} · sheets excluded {sheetExcluded}"
   },
   "detection": {
@@ -356,6 +360,8 @@
       "legendUnread": "The legend text was not read in full.",
       "sheetUnassigned": "Sheet assignment still needs a check.",
       "looksLikeNote": "The text looks like a note or manufacturer detail, not an accessory name.",
+      "looksLikeLinear": "The text is a cable, conductor or length spec, not a counted accessory.",
+      "looksLikeSiteWork": "The text is earthing or welding work, not an electrical accessory to auto-count.",
       "uncertain": "There is a proposed match, but a doubt still needs to be resolved."
     },
     "confirmMatch": "Confirm match ({count})",
@@ -367,7 +373,7 @@
     "assignLegendNone": "No legend assignment",
     "pickOrNameRequired": "Confirm a legend name or pick a catalog type.",
     "technicalOnly": "Technical id (not shown as the name): {name}",
-    "symbolUnavailableShort": "No symbol image",
+    "symbolUnavailableShort": "Symbol view is not available",
     "conflictForcesOne": "There is a conflict — approval applies only to this occurrence."
   },
   "workspace": {

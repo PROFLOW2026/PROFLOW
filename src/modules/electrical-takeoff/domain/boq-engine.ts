@@ -35,7 +35,7 @@ import { applyUnpairedPdfPolicy } from './unpaired-pdf-policy';
 import { catalogByKey } from './catalog';
 import { distancePx } from './geometry';
 import { resolveRuleForType, roleToLineKind } from './measurement';
-import { hasLegendQuantityIdentity } from './legend-identity';
+import { classifyLegendText, hasLegendQuantityIdentity, isLegendHoldText } from './legend-identity';
 
 export type ComputeBoqInput = {
   readonly detections: readonly EffectiveDetection[];
@@ -116,6 +116,15 @@ export function computeBoq(input: ComputeBoqInput): Boq {
       byBucket.set(key, list);
       continue;
     }
+    const holdText = d.originalText?.trim() || d.legendLabel?.trim() || '';
+    if (!manualType && holdText && isLegendHoldText(holdText)) {
+      const kind = classifyLegendText(holdText);
+      const key = bucketKey('legend-hold', holdText, d.floor, d.areaId, kind);
+      const list = byBucket.get(key) ?? [];
+      list.push(d);
+      byBucket.set(key, list);
+      continue;
+    }
     if (d.typeKey === null) {
       const family = unclassifiedFamily(d.rawClass);
       const key = bucketKey('unclassified', family, d.floor, d.areaId, 'unclassified');
@@ -151,6 +160,11 @@ export function computeBoq(input: ComputeBoqInput): Boq {
       !((sample.origin === 'user_changed' || sample.origin === 'user_added') && sample.typeKey)
     ) {
       lines.push(buildLegendLine(group, sample, catalogMap, input.ruleSet.rules, input.state, completeness));
+      continue;
+    }
+    const holdText = sample.originalText?.trim() || sample.legendLabel?.trim() || '';
+    if (holdText && isLegendHoldText(holdText) && !((sample.origin === 'user_changed' || sample.origin === 'user_added') && sample.typeKey)) {
+      lines.push(buildLegendHoldLine(group, sample, holdText));
       continue;
     }
     if (sample.typeKey === null) {
@@ -211,7 +225,11 @@ export function computeBoq(input: ComputeBoqInput): Boq {
   const sorted = [...lines].sort((a, b) => a.key.localeCompare(b.key, 'en'));
 
   const needsReviewCount = countable.filter((d) => d.needsReview).length;
-  const unclassifiedCount = countable.filter((d) => d.typeKey === null && !hasLegendQuantityIdentity(d)).length;
+  const unclassifiedCount = countable.filter((d) => {
+    if (d.typeKey !== null || hasLegendQuantityIdentity(d)) return false;
+    const text = d.originalText?.trim() || d.legendLabel?.trim() || '';
+    return !text || !isLegendHoldText(text);
+  }).length;
   if (unclassifiedCount > 0) warnings.push(BOQ_WARNING_UNCLASSIFIED);
   if (needsReviewCount > 0) warnings.push(BOQ_WARNING_NEEDS_REVIEW);
 
@@ -465,6 +483,47 @@ function buildLegendLine(
       areaId: sample.areaId,
       ruleId: 'legend-count',
     }),
+  };
+}
+
+function buildLegendHoldLine(
+  cluster: readonly CountableDetection[],
+  sample: CountableDetection,
+  text: string,
+): BoqLine {
+  const kind = classifyLegendText(text);
+  const ruleId = kind === 'linear' ? 'legend-linear' : kind === 'site_work' ? 'legend-site-work' : 'legend-note';
+  return {
+    key: lineKey({
+      lineKind: kind === 'linear' ? 'length' : 'manual',
+      typeKey: `legend-hold:${text}`,
+      floor: sample.floor,
+      areaId: sample.areaId,
+      ruleId,
+    }),
+    typeKey: null,
+    label: text,
+    originalLabel: text,
+    identitySource: 'uncertain',
+    category: 'unknown',
+    lineKind: kind === 'linear' ? 'length' : kind === 'site_work' ? 'device_count' : 'manual',
+    unit: kind === 'linear' ? 'מ׳' : kind === 'site_work' ? "יח'" : '—',
+    quantity: 0,
+    symbolCount: cluster.length,
+    floor: sample.floor ?? null,
+    areaId: sample.areaId,
+    ruleId,
+    detectionIds: cluster.map((d) => d.id).sort(),
+    breakdown: {
+      high: 0,
+      medium: 0,
+      low: 0,
+      unclassified: cluster.length,
+      userAdded: 0,
+      userConfirmed: 0,
+    },
+    verified: false,
+    excluded: false,
   };
 }
 

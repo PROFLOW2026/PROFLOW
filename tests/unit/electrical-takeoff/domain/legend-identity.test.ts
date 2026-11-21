@@ -71,6 +71,107 @@ describe('resolveLegendIdentity', () => {
     expect(identity.originalText).toBe('נקודה לטלפון חוץ');
   });
 
+  it('does not treat an earthing weld as an electrical accessory just because it says נקודה', () => {
+    const detection = applyEdits(
+      [workerDet({ id: 'a', sheetKey: 'p1', typeKey: null, classifiedBy: 'none', legendRowIds: ['row:w'], reasons: ['unclassified'] })],
+      [],
+    )[0]!;
+    const identity = resolveLegendIdentity(detection, [
+      legend({
+        key: 'row:w',
+        decodedText: 'מבוצעת ע"פ התקן הישראלי. נקודת ריתוך בין 2 מוליכי טבעת הארקת יסוד',
+        signature: 'block:WP',
+      }),
+    ]);
+    expect(identity.unambiguous).toBe(false);
+    expect(identity.holdReason).toBe('site_work');
+    expect(identity.source).toBe('uncertain');
+  });
+
+  it('still treats a lighting point as a device', () => {
+    const detection = applyEdits(
+      [workerDet({ id: 'a', sheetKey: 'p1', typeKey: null, classifiedBy: 'none', legendRowIds: ['row:p'], reasons: ['unclassified'] })],
+      [],
+    )[0]!;
+    const identity = resolveLegendIdentity(detection, [
+      legend({ key: 'row:p', decodedText: 'נקודת מאור חירום', signature: 'block:36e' }),
+    ]);
+    expect(identity.unambiguous).toBe(true);
+    expect(identity.holdReason).toBe('none');
+  });
+
+  it('does not count a cable specification as accessories', () => {
+    const detection = applyEdits(
+      [workerDet({ id: 'a', sheetKey: 'p1', typeKey: null, classifiedBy: 'none', legendRowIds: ['row:c'], reasons: ['unclassified'] })],
+      [],
+    )[0]!;
+    const identity = resolveLegendIdentity(detection, [
+      legend({ key: 'row:c', decodedText: '(4x150) N2XY+70CU', signature: 'block:cable' }),
+    ]);
+    expect(identity.unambiguous).toBe(false);
+    expect(identity.holdReason).toBe('linear');
+    expect(identity.originalText).toBe('(4x150) N2XY+70CU');
+    expect(identity.source).toBe('uncertain');
+  });
+
+  it('keeps a manufacturer prefix with a socket noun as a device name', () => {
+    const detection = applyEdits(
+      [workerDet({ id: 'a', sheetKey: 'p1', typeKey: null, classifiedBy: 'none', legendRowIds: ['row:e'], reasons: ['unclassified'] })],
+      [],
+    )[0]!;
+    const identity = resolveLegendIdentity(detection, [
+      legend({ key: 'row:e', decodedText: 'תוצרת אלקטרולייט שקע יחיד', signature: 'block:so' }),
+    ]);
+    expect(identity.unambiguous).toBe(true);
+    expect(identity.holdReason).toBe('none');
+    expect(identity.originalText).toBe('תוצרת אלקטרולייט שקע יחיד');
+  });
+
+  it('does not treat an installation note that mentions a socket as a socket quantity', () => {
+    const detection = applyEdits(
+      [workerDet({ id: 'a', sheetKey: 'p1', typeKey: null, classifiedBy: 'none', legendRowIds: ['row:n'], reasons: ['unclassified'] })],
+      [],
+    )[0]!;
+    const identity = resolveLegendIdentity(detection, [
+      legend({
+        key: 'row:n',
+        decodedText: 'מיקום סופי עפ"י תוכנית יועץ בטיחות שקע טלפון כבאים',
+        signature: 'block:nfpa72',
+      }),
+    ]);
+    expect(identity.unambiguous).toBe(false);
+    expect(identity.holdReason).toBe('note');
+  });
+
+  it('does not treat oven-prep instructions as counted sockets', () => {
+    const detection = applyEdits(
+      [workerDet({ id: 'a', sheetKey: 'p1', typeKey: null, classifiedBy: 'none', legendRowIds: ['row:o'], reasons: ['unclassified'] })],
+      [],
+    )[0]!;
+    const identity = resolveLegendIdentity(detection, [
+      legend({
+        key: 'row:o',
+        decodedText: 'הכנה לתנור חימום צינור מ"מ +מוליכים גמר בשקע',
+        signature: 'block:33e',
+      }),
+    ]);
+    expect(identity.unambiguous).toBe(false);
+    expect(identity.holdReason).toBe('note');
+  });
+
+  it('does not treat a manufacturer-only legend row as a fixture name', () => {
+    const detection = applyEdits(
+      [workerDet({ id: 'a', sheetKey: 'p1', typeKey: null, classifiedBy: 'none', legendRowIds: ['row:m'], reasons: ['unclassified'] })],
+      [],
+    )[0]!;
+    const identity = resolveLegendIdentity(detection, [
+      legend({ key: 'row:m', decodedText: 'תוצרת אלקטרולייט', signature: 'block:note' }),
+    ]);
+    expect(identity.unambiguous).toBe(false);
+    expect(identity.holdReason).toBe('note');
+    expect(identity.originalText).toBe('תוצרת אלקטרולייט');
+  });
+
   it('does not treat a floor note as a fixture name', () => {
     const detection = applyEdits(
       [workerDet({ id: 'a', sheetKey: 'p1', typeKey: null, classifiedBy: 'none', legendRowIds: ['row:n'], reasons: ['unclassified'] })],
@@ -107,6 +208,38 @@ describe('resolveLegendIdentity', () => {
 });
 
 describe('enrichDetectionsWithLegendIdentity', () => {
+  it('holds a legend row that was attached to more than one block', () => {
+    const rows = enrichDetectionsWithLegendIdentity(
+      applyEdits(
+        [
+          workerDet({
+            id: 'a',
+            sheetKey: 'p1',
+            typeKey: null,
+            classifiedBy: 'none',
+            signature: 'block:lu24',
+            legendRowIds: ['row:c'],
+            reasons: ['unclassified'],
+          }),
+          workerDet({
+            id: 'b',
+            sheetKey: 'p1',
+            typeKey: null,
+            classifiedBy: 'none',
+            signature: 'block:*u172',
+            legendRowIds: ['row:c'],
+            reasons: ['unclassified'],
+          }),
+        ],
+        [],
+      ),
+      [legend({ key: 'row:c', decodedText: 'מפסק מאור', signature: 'block:lu24' })],
+    );
+    expect(rows[0]?.legendUnambiguous).toBe(false);
+    expect(rows[1]?.legendUnambiguous).toBe(false);
+    expect(rows[0]?.originalText).toBe('מפסק מאור');
+  });
+
   it('drops guided review for an unambiguous legend match without a catalog type', () => {
     const base = workerDet({
       id: 'a',

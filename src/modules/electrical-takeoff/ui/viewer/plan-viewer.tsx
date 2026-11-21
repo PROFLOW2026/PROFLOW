@@ -8,6 +8,7 @@ import type { CatalogType, EffectiveDetection, SheetDto } from '../../domain/con
 import {
   fitSelection,
   fitToRect,
+  hasReliableOccurrenceBounds,
   occurrenceFocusRect,
   panBy,
   screenToPlan,
@@ -20,7 +21,7 @@ import {
 import { formatTakeoffDisplayName } from '../../domain/format-display-name';
 import { detectionDisplayLabel } from '../boq-display';
 import { devicesFromNote } from '../../domain/quantity-notes';
-import { colorForDetection, detectionVisible, type TypeFilterState } from '../workspace/takeoff-workspace-state';
+import { detectionVisible, type TypeFilterState } from '../workspace/takeoff-workspace-state';
 
 interface PlanViewerProps {
   sheet: SheetDto;
@@ -67,6 +68,7 @@ export function PlanViewer({
   const previewBroken = previewState.identity === previewIdentity && previewState.broken;
   const fittedSheet = useRef<string | null>(null);
   const userAdjusted = useRef(false);
+  const holdOccurrenceFocus = useRef(false);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
   const pinchRef = useRef<{ startDist: number; startScale: number } | null>(null);
   const activePointers = useRef(new Map<number, { x: number; y: number }>());
@@ -76,6 +78,11 @@ export function PlanViewer({
       detections.filter((d) => d.sheetKey === sheet.sheetKey && !d.reasons.includes('drawing_noise')),
     [detections, sheet.sheetKey],
   );
+  const focusTarget = useMemo(() => {
+    const selected = selectedId ? sheetDetections.find((detection) => detection.id === selectedId) : undefined;
+    return selected ?? sheetDetections.find((detection) => highlightedIds.has(detection.id));
+  }, [highlightedIds, selectedId, sheetDetections]);
+  const focusUnavailable = Boolean((selectedId || highlightedIds.size > 0) && (!focusTarget || !hasReliableOccurrenceBounds(focusTarget)));
 
   const applyFit = useCallback((width: number, height: number, force: boolean) => {
     if (width < 40 || height < 40) return;
@@ -98,7 +105,24 @@ export function PlanViewer({
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const measure = () => applyFit(el.clientWidth, el.clientHeight, false);
+    const measure = () => {
+      if (
+        holdOccurrenceFocus.current &&
+        focusTarget &&
+        hasReliableOccurrenceBounds(focusTarget)
+      ) {
+        setViewerSize({ width: el.clientWidth, height: el.clientHeight });
+        setViewport(
+          fitSelection(
+            { width: el.clientWidth, height: el.clientHeight },
+            occurrenceFocusRect(focusTarget),
+            72,
+          ),
+        );
+        return;
+      }
+      applyFit(el.clientWidth, el.clientHeight, false);
+    };
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     const frame = requestAnimationFrame(measure);
@@ -106,22 +130,25 @@ export function PlanViewer({
       cancelAnimationFrame(frame);
       ro.disconnect();
     };
-  }, [applyFit]);
+  }, [applyFit, focusTarget]);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el || el.clientWidth < 40 || el.clientHeight < 40) return;
-    const selected = selectedId ? sheetDetections.find((detection) => detection.id === selectedId) : undefined;
-    const highlighted = sheetDetections.filter((detection) => highlightedIds.has(detection.id));
-    const target = selected ?? highlighted[0];
-    if (!target) return;
+    const target = focusTarget;
+    if (!target || !hasReliableOccurrenceBounds(target)) {
+      holdOccurrenceFocus.current = false;
+      return;
+    }
+    holdOccurrenceFocus.current = true;
     userAdjusted.current = true;
     setViewport(fitSelection({ width: el.clientWidth, height: el.clientHeight }, occurrenceFocusRect(target), 72));
-  }, [focusNonce, highlightedIds, selectedId, sheetDetections]);
+  }, [focusNonce, focusTarget]);
 
   const zoomAtCenter = useCallback((factor: number) => {
     const el = containerRef.current;
     if (!el) return;
+    holdOccurrenceFocus.current = false;
     userAdjusted.current = true;
     setViewport((v) => zoomAtPoint(v, factor, el.clientWidth / 2, el.clientHeight / 2));
   }, []);
@@ -132,6 +159,7 @@ export function PlanViewer({
     const onNativeWheel = (event: WheelEvent) => {
       if (!wheelZoomsPlan(event)) return;
       event.preventDefault();
+      holdOccurrenceFocus.current = false;
       userAdjusted.current = true;
       const rect = el.getBoundingClientRect();
       const factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
@@ -169,6 +197,7 @@ export function PlanViewer({
       const cy = (pts[0]!.y + pts[1]!.y) / 2 - rect.top;
       const nextScale = clampScale(pinchRef.current.startScale * (dist / pinchRef.current.startDist));
       const ratio = nextScale / viewport.scale;
+      holdOccurrenceFocus.current = false;
       userAdjusted.current = true;
       setViewport((v) => zoomAtPoint(v, ratio, cx, cy));
       return;
@@ -178,6 +207,7 @@ export function PlanViewer({
     const dx = e.clientX - start.x;
     const dy = e.clientY - start.y;
     dragRef.current = { x: e.clientX, y: e.clientY };
+    holdOccurrenceFocus.current = false;
     userAdjusted.current = true;
     setViewport((v) => panBy(v, dx, dy));
   }, [viewport.scale]);
@@ -217,12 +247,9 @@ export function PlanViewer({
   );
 
   const visibleMarkers = useMemo(() => {
-    return sheetDetections.filter((d) => {
-      if (!detectionVisible(d, filter, highlightedIds, dimOthers)) return false;
-      if (sheetDetections.length < 400) return true;
-      return planPointInViewport(d.x, d.y, viewerSize, viewport);
-    });
-  }, [dimOthers, filter, highlightedIds, sheetDetections, viewport, viewerSize]);
+    const focused = sheetDetections.filter((d) => d.id === selectedId || highlightedIds.has(d.id));
+    return focused.filter((d) => planPointInViewport(d.x, d.y, viewerSize, viewport) || focused.length <= 4);
+  }, [highlightedIds, selectedId, sheetDetections, viewport, viewerSize]);
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]">
@@ -230,6 +257,7 @@ export function PlanViewer({
         <p className="truncate text-xs text-[var(--pf-text-secondary)]">
           {formatTakeoffDisplayName(sheet.name)}
           {!sheet.previewUrl || previewBroken ? <span className="ms-2 text-[var(--pf-text-muted)]">{t('viewer.noPreview')}</span> : null}
+          {focusUnavailable ? <span className="ms-2 text-[var(--pf-status-warning-fg)]" data-testid="takeoff-focus-unavailable">{t('viewer.symbolUnlocated')}</span> : null}
         </p>
         <div className="flex shrink-0 items-center gap-1">
           <Button type="button" variant="ghost" size="sm" className="min-h-11 min-w-11" onClick={() => zoomAtCenter(1.2)} aria-label={t('viewer.zoomIn')}>
@@ -261,6 +289,7 @@ export function PlanViewer({
         onKeyDown={(e) => {
           const step = 24;
           if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === '+' || e.key === '=' || e.key === '-') {
+            holdOccurrenceFocus.current = false;
             userAdjusted.current = true;
           }
           if (e.key === 'ArrowLeft') setViewport((v) => panBy(v, step, 0));
@@ -311,12 +340,10 @@ export function PlanViewer({
               />
             ))}
             {visibleMarkers.map((d) => {
-              const color = colorForDetection(d, catalog);
               const count = devicesFromNote(d.tagText);
               const label = `${detectionDisplayLabel(d, catalog, t('detection.unclassified'))}${count > 1 ? ` · ${count}` : ''}`;
-              const selected = d.id === selectedId;
-              const hl = highlightedIds.has(d.id);
-              const opacity = dimOthers && !hl ? 0.25 : 1;
+              const body = Math.min(Math.max(d.w, d.h, 10), 18);
+              const pad = body * 0.25;
               return (
                 <g
                   key={d.id}
@@ -325,21 +352,19 @@ export function PlanViewer({
                   data-x={d.x}
                   data-y={d.y}
                   data-mark-label={label}
-                  opacity={opacity}
                   role="img"
                   aria-label={label}
                 >
                   <title>{label}</title>
                   <rect
-                    x={d.x - d.w / 2}
-                    y={d.y - d.h / 2}
-                    width={d.w}
-                    height={d.h}
-                    fill={selected ? 'none' : color}
-                    fillOpacity={selected ? 0 : hl ? 0.28 : 0.45}
-                    stroke={selected ? '#ea580c' : color}
-                    strokeWidth={selected ? Math.max(1.25, Math.max(d.w, d.h) * 0.08) : 1}
-                    data-mark-fill={selected ? 'none' : color}
+                    x={d.x - body / 2 - pad}
+                    y={d.y - body / 2 - pad}
+                    width={body + pad * 2}
+                    height={body + pad * 2}
+                    fill="none"
+                    stroke="#ea580c"
+                    strokeWidth={1.5}
+                    data-mark-fill="none"
                   />
                 </g>
               );

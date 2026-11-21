@@ -5,6 +5,7 @@ import type { Boq, BoqLine, CatalogType, EffectiveDetection, SheetDto } from '..
 import { boqLineDisplayLabel, boqLineStatus, groupBoqLinesForDisplay } from './boq-display';
 import { TakeoffSymbolGlyph } from './takeoff-symbol-glyph';
 import { detectionIdentityStatus } from '../domain/review-copy';
+import { boqQuantityDisplay, classifyLegendText, isUndeterminedQuantityLine } from '../domain/legend-identity';
 
 function identityCopyKey(source: string | undefined): 'identityLegend' | 'identityCatalog' | 'identityLibrary' | 'identityManual' | null {
   if (source === 'legend') return 'identityLegend';
@@ -123,7 +124,10 @@ export function TakeoffBoqPanel({
                 const sample = line.detectionIds.map((id) => byId.get(id)).find((item): item is EffectiveDetection => Boolean(item));
                 const sheet = sample ? sheets.find((item) => item.sheetKey === sample.sheetKey) : undefined;
                 const identity = identityCopyKey(line.identitySource);
-                const needsAction = tone === 'needsCheck' || tone === 'unclassified';
+                const holdKind = line.originalLabel ? classifyLegendText(line.originalLabel) : 'device';
+                const holdLine = isUndeterminedQuantityLine(line);
+                const diagnosticCount = line.symbolCount ?? line.detectionIds.length;
+                const needsAction = tone === 'needsCheck' || tone === 'unclassified' || holdLine;
                 const sampleStatus = sample ? detectionIdentityStatus(sample) : tone;
                 return (
                   <tr key={line.key} data-identity-status={sampleStatus}>
@@ -142,11 +146,16 @@ export function TakeoffBoqPanel({
                             sheet={sheet}
                             svgMarkup={glyphByKey[glyphKey(sample)] ?? glyphByKey[sample.id]}
                             mode="thumb"
+                            highlight={false}
                             className="size-12 shrink-0"
                             testId="takeoff-boq-glyph"
                           />
                         ) : (
-                          <span className="size-12 shrink-0 rounded-md border border-dashed border-[var(--pf-border-default)]" />
+                          <TakeoffSymbolGlyph
+                            detection={{ id: line.key, maskB64: undefined, colorHex: undefined }}
+                            className="size-12 shrink-0"
+                            testId="takeoff-boq-glyph"
+                          />
                         )}
                         <span className="min-w-0">
                           <span className="block break-words font-medium text-[var(--pf-text-primary)]">{displayName}</span>
@@ -158,12 +167,32 @@ export function TakeoffBoqPanel({
                           {identity ? (
                             <span className="mt-0.5 block text-[11px] text-[var(--pf-text-muted)]">{t(`boq.${identity}`)}</span>
                           ) : null}
+                          {holdKind === 'linear' ? (
+                            <span className="mt-0.5 block text-[11px] text-[var(--pf-status-warning-fg)]">
+                              {t('boq.cableNoLength', { count: diagnosticCount })}
+                            </span>
+                          ) : null}
+                          {holdKind === 'note' ? (
+                            <span className="mt-0.5 block text-[11px] text-[var(--pf-status-warning-fg)]">{t('boq.noteNotQuantity')}</span>
+                          ) : null}
+                          {holdKind === 'site_work' ? (
+                            <span className="mt-0.5 block text-[11px] text-[var(--pf-status-warning-fg)]">
+                              {t('boq.siteWorkNeedsConfirm', { count: diagnosticCount })}
+                            </span>
+                          ) : null}
                         </span>
                       </button>
                     </td>
                     <td className="px-2 py-2 text-end align-middle font-semibold tabular-nums text-[var(--pf-text-brand)]">
-                      {line.quantity}
-                      {line.symbolCount != null && line.symbolCount !== line.quantity ? (
+                      {holdLine ? (
+                        <span>
+                          {t('boq.quantityUndetermined')}
+                          <span className="sr-only"> {boqQuantityDisplay(line)}</span>
+                        </span>
+                      ) : (
+                        line.quantity
+                      )}
+                      {!holdLine && line.symbolCount != null && line.symbolCount !== line.quantity ? (
                         <span className="block text-xs font-normal text-[var(--pf-text-secondary)]">
                           {t('boq.symbolCount', { count: line.symbolCount })}
                         </span>

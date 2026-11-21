@@ -2,6 +2,12 @@ import ExcelJS from 'exceljs';
 
 import { BOQ_XLSX_DRAFT_BANNER } from '../domain/boq-warnings';
 import type { Boq, CatalogType, EffectiveDetection, SheetDto } from '../domain/contracts';
+import {
+  boqQuantityDisplay,
+  classifyLegendText,
+  isUndeterminedQuantityLine,
+  undeterminedQuantityRemarkHe,
+} from '../domain/legend-identity';
 
 export type ExportTakeoffXlsxInput = {
   readonly title: string;
@@ -27,31 +33,35 @@ export async function exportTakeoffBoqXlsx(input: ExportTakeoffXlsxInput): Promi
     { header: 'סוג', key: 'label', width: 36 },
     { header: 'קטגוריה', key: 'category', width: 18 },
     { header: 'יחידה', key: 'unit', width: 10 },
-    { header: 'כמות', key: 'quantity', width: 12 },
+    { header: 'כמות', key: 'quantity', width: 18 },
     { header: 'מאומת', key: 'verified', width: 10 },
+    { header: 'הערה', key: 'note', width: 56 },
   ];
   const summaryRows = input.boq.lines.filter((l) => !l.excluded);
   for (const line of summaryRows) {
+    const undetermined = isUndeterminedQuantityLine(line);
+    const kind = line.originalLabel ? classifyLegendText(line.originalLabel) : 'device';
     summary.addRow({
       label: line.label,
       category: line.category,
       unit: line.unit,
-      quantity: line.quantity,
-      verified: line.verified ? 'כן' : 'לא',
+      quantity: undetermined ? boqQuantityDisplay(line) : line.quantity,
+      verified: line.verified && !undetermined ? 'כן' : 'לא',
+      note: undetermined
+        ? undeterminedQuantityRemarkHe(kind, line.symbolCount ?? line.detectionIds.length)
+        : '',
     });
   }
-  const summaryDataRows = Math.max(0, summary.rowCount - 1);
-  if (summaryDataRows > 0) {
-    for (const row of summary.getRows(2, summaryDataRows) ?? []) {
-      row.getCell('quantity').numFmt = '#,##0.##';
-    }
-  }
+  summaryRows.forEach((line, index) => {
+    if (isUndeterminedQuantityLine(line)) return;
+    summary.getRow(index + 2).getCell('quantity').numFmt = '#,##0.##';
+  });
 
   byFloor.columns = [
     { header: 'קומה', key: 'floor', width: 14 },
     { header: 'אזור', key: 'area', width: 16 },
     { header: 'סוג', key: 'label', width: 32 },
-    { header: 'כמות', key: 'quantity', width: 12 },
+    { header: 'כמות', key: 'quantity', width: 18 },
     { header: 'יחידה', key: 'unit', width: 10 },
   ];
   for (const line of input.boq.lines.filter((l) => !l.excluded)) {
@@ -59,7 +69,7 @@ export async function exportTakeoffBoqXlsx(input: ExportTakeoffXlsxInput): Promi
       floor: line.floor ?? '',
       area: line.areaId ?? '',
       label: line.label,
-      quantity: line.quantity,
+      quantity: isUndeterminedQuantityLine(line) ? boqQuantityDisplay(line) : line.quantity,
       unit: line.unit,
     });
   }

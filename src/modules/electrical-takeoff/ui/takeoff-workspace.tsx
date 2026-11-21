@@ -935,6 +935,7 @@ export function TakeoffWorkspace({
                             sheet={hostSheet}
                             svgMarkup={cadGlyphs[sample.signature ? `sig:${sample.signature}` : sample.id] ?? cadGlyphs[sample.id]}
                             mode="thumb"
+                            highlight={false}
                             className="size-10 shrink-0"
                             testId="takeoff-group-glyph"
                           />

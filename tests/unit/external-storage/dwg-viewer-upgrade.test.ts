@@ -92,7 +92,7 @@ describe('dwg viewer upgrade', () => {
   it('focuses a known point as a point and follows the layout that contains it', () => {
     expect(focusLevel(true, true)).toBe('symbol');
     expect(focusLevel(true, false)).toBe('point');
-    expect(focusLevel(false, false)).toBe('region');
+    expect(focusLevel(false, false)).toBe('unavailable');
     const sheets: DisplaySheet[] = [
       { id: 'model', label: 'Model', kind: 'model', space: '*Model_Space', stacks: [] },
       {

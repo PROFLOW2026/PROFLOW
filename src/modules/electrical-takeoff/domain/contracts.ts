@@ -463,6 +463,9 @@ export const effectiveDetectionSchema = z.object({
   originalText: z.string().nullable().optional(),
   legendLabel: z.string().nullable().optional(),
   legendUnambiguous: z.boolean().optional(),
+  legendHoldReason: z
+    .enum(['none', 'conflict', 'unread', 'weak_match', 'sheet_unassigned', 'note', 'linear', 'site_work'])
+    .optional(),
   /** Packed 64×64 symbol mask from the worker, when stored. */
   maskB64: z.string().optional(),
   colorHex: z.string().optional(),

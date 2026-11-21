@@ -3,7 +3,13 @@ import { describe, expect, it } from 'vitest';
 import { computeBoq } from '@/modules/electrical-takeoff/domain/boq-engine';
 import { mergeCatalog } from '@/modules/electrical-takeoff/domain/catalog';
 import { applyEdits } from '@/modules/electrical-takeoff/domain/edits';
-import { enrichDetectionsWithLegendIdentity } from '@/modules/electrical-takeoff/domain/legend-identity';
+import {
+  boqQuantityDisplay,
+  enrichDetectionsWithLegendIdentity,
+  isQuantityIdentityLine,
+  isUndeterminedQuantityLine,
+  takeoffBoqApprovalBlocked,
+} from '@/modules/electrical-takeoff/domain/legend-identity';
 import { DEFAULT_RULE_SET } from '@/modules/electrical-takeoff/domain/measurement';
 import { buildReviewGroups } from '@/modules/electrical-takeoff/ui/review-guide';
 import type { WorkerLegendEntry } from '@/modules/electrical-takeoff/domain/contracts';
@@ -97,6 +103,86 @@ describe('BOQ from planner legend', () => {
     const labels = boq.lines.filter((row) => !row.excluded).map((row) => row.label).sort();
     expect(labels).toEqual(['לחצן חדר מדרגות', 'מפסק יחיד']);
     expect(boq.lines.reduce((sum, row) => sum + row.quantity, 0)).toBe(2);
+  });
+
+  it('does not present 91 cable-legend inserts as 91 accessories', () => {
+    const base = Array.from({ length: 91 }, (_, i) =>
+      workerDet({
+        id: `c${i}`,
+        sheetKey: 'p1',
+        typeKey: null,
+        classifiedBy: 'none',
+        confidence: 'none',
+        signature: 'block:n2xy',
+        rawClass: 'n2xy',
+        legendRowIds: ['row:cable'],
+        reasons: ['unclassified', 'legend_unmapped'],
+      }),
+    );
+    const detections = enrichDetectionsWithLegendIdentity(applyEdits(base, []), [
+      legend({ key: 'row:cable', decodedText: '(4x150) N2XY+70CU', signature: 'block:n2xy' }),
+    ]);
+    const boq = computeBoq({
+      detections,
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+      areas: [],
+      catalog,
+      ruleSet: DEFAULT_RULE_SET,
+      linear: [],
+      state: 'draft',
+    });
+    const line = boq.lines.find((row) => row.originalLabel === '(4x150) N2XY+70CU');
+    expect(line?.quantity).toBe(0);
+    expect(line?.symbolCount).toBe(91);
+    expect(line?.identitySource).toBe('uncertain');
+    expect(line?.unit).toBe('מ׳');
+    expect(boq.lines.some((row) => row.identitySource === 'legend' && row.quantity === 91)).toBe(false);
+    expect(detections.every((row) => row.needsReview)).toBe(true);
+    expect(isUndeterminedQuantityLine(line!)).toBe(true);
+    expect(boqQuantityDisplay(line!)).toBe('—');
+    expect(isQuantityIdentityLine(line!)).toBe(false);
+    expect(takeoffBoqApprovalBlocked(boq)).toBe(true);
+  });
+
+  it('does not auto-approve earthing weld occurrences as electrical accessory quantity', () => {
+    const base = Array.from({ length: 163 }, (_, i) =>
+      workerDet({
+        id: `w${i}`,
+        sheetKey: 'p1',
+        typeKey: null,
+        classifiedBy: 'none',
+        confidence: 'none',
+        signature: 'block:WP',
+        rawClass: 'wp',
+        legendRowIds: ['row:wp'],
+        reasons: ['unclassified', 'legend_unmapped'],
+      }),
+    );
+    const detections = enrichDetectionsWithLegendIdentity(applyEdits(base, []), [
+      legend({
+        key: 'row:wp',
+        decodedText: 'מבוצעת ע"פ התקן הישראלי. נקודת ריתוך בין 2 מוליכי טבעת הארקת יסוד',
+        signature: 'block:WP',
+      }),
+    ]);
+    const boq = computeBoq({
+      detections,
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+      areas: [],
+      catalog,
+      ruleSet: DEFAULT_RULE_SET,
+      linear: [],
+      state: 'draft',
+    });
+    const line = boq.lines.find((row) => row.originalLabel?.includes('נקודת ריתוך'));
+    expect(line?.quantity).toBe(0);
+    expect(line?.symbolCount).toBe(163);
+    expect(line?.identitySource).toBe('uncertain');
+    expect(line?.unit).toBe("יח'");
+    expect(boqQuantityDisplay(line!)).toBe('—');
+    expect(isQuantityIdentityLine(line!)).toBe(false);
+    expect(takeoffBoqApprovalBlocked(boq)).toBe(true);
+    expect(detections.every((row) => row.needsReview)).toBe(true);
   });
 
   it('leaves a conflicting 36e group in review and does not invent a quantity name', () => {
