@@ -32,14 +32,12 @@ import {
   takeoffArchivedDisplayName,
   upsertLibraryEntry,
   deleteLibraryEntry,
-  upsertCatalogType,
   findRuleSet,
   saveRuleSetRow,
   setAnalysisRuleSetId,
   latestSuccessfulJob,
   listDetectionsForJob,
   listLegendEntriesForJob,
-  listCatalogOverrides,
   listLibrary,
   listRuleSets,
   listFilesForAnalysis,
@@ -75,9 +73,17 @@ import { linkTakeoffCloudFileUseCase, type LinkTakeoffCloudFileClientInput } fro
 import { ephemeralExpiryDate, purgeEphemeralTakeoffUseCase } from './purge-ephemeral-takeoff';
 import { isOrganizationStorageConfigured } from '@/modules/external-storage/application/org-storage-gate';
 import { ingestFakeWorkerResult } from './fake-worker-client';
-import { loadDefaultCatalog } from './domain-runtime';
 import { TAKEOFF_CONTRACT_VERSION, workerJobRequestSchema } from '../domain/contracts';
 import { libraryTemplateForStorage, splitStoredTemplate, symbolLibraryForWorker } from './symbol-library-request';
+import {
+  archiveOrgCatalogTypeUseCase,
+  createOrgCatalogTypeUseCase,
+  listOrgCatalogUseCase,
+  loadCatalogForOrg,
+  saveOrgCatalogTypeUseCase,
+  updateOrgCatalogTypeUseCase,
+} from './org-catalog';
+import { archivedCatalogKeys, catalogForWorker } from '../domain/catalog';
 
 function internalActor(context: OrgContext): TakeoffActor {
   return { kind: 'internal', context };
@@ -306,9 +312,11 @@ export async function startAnalysisUseCase(
 
   const { resolveTakeoffWorkerFileOrigin } = await import('./export-download');
   const origin = resolveTakeoffWorkerFileOrigin();
-  const catalog = await loadDefaultCatalog();
+  const orgCatalog = await loadCatalogForOrg(context.db, context.organizationId);
+  const catalog = catalogForWorker(orgCatalog);
   const symbolLibrary = symbolLibraryForWorker(
     await listLibrary(context.db, context.organizationId, analysis.plannerKey),
+    archivedCatalogKeys(orgCatalog),
   );
   const request = workerJobRequestSchema.parse({
     contractVersion: TAKEOFF_CONTRACT_VERSION,
@@ -430,6 +438,16 @@ async function persistLibraryFromReclassify(
   const saves = edits.filter((op) => op.op === 'reclassify' && op.saveToLibrary && op.typeKey);
   if (legendSaves.length === 0 && saves.length === 0) return;
   if (!hasPermission(context, PERMISSIONS.TAKEOFF_LIBRARY_MANAGE)) return;
+
+  const orgCatalog = await loadCatalogForOrg(context.db, context.organizationId);
+  const archivedKeys = archivedCatalogKeys(orgCatalog);
+  const libraryTypeKeys = [
+    ...legendSaves.map((op) => op.typeKey),
+    ...saves.flatMap((op) => (op.op === 'reclassify' && op.typeKey ? [op.typeKey] : [])),
+  ];
+  if (libraryTypeKeys.some((key) => archivedKeys.has(key))) {
+    throw new TakeoffError('catalog_type_archived');
+  }
 
   const job =
     saves.length > 0 || legendSaves.length > 0
@@ -612,29 +630,23 @@ export async function setAnalysisRuleSetUseCase(
 }
 
 export async function listCatalogUseCase(context: OrgContext): Promise<CatalogType[]> {
-  const overrides = await listCatalogOverrides(context.db, context.organizationId);
-  const { loadDefaultCatalog } = await import('./domain-runtime');
-  const base = await loadDefaultCatalog();
-  if (overrides.length === 0) return [...base];
-  const map = new Map(base.map((t) => [t.key, t]));
-  for (const row of overrides) {
-    map.set(row.key, row.payload as unknown as CatalogType);
-  }
-  return [...map.values()];
+  return listOrgCatalogUseCase(context);
 }
 
 export async function saveCatalogTypeUseCase(context: OrgContext, type: CatalogType): Promise<CatalogType> {
-  assertAnyPermission(context, [PERMISSIONS.TAKEOFF_MANAGE, PERMISSIONS.TAKEOFF_LIBRARY_MANAGE]);
-  const saved = await asServiceRoleWrite(context.db, () =>
-    upsertCatalogType(context.db, {
-      organizationId: context.organizationId,
-      key: type.key,
-      payload: type as unknown as Record<string, unknown>,
-      builtIn: false,
-      archived: false,
-    }),
-  );
-  return saved.payload as unknown as CatalogType;
+  return saveOrgCatalogTypeUseCase(context, type);
+}
+
+export async function createCatalogTypeUseCase(context: OrgContext, input: Parameters<typeof createOrgCatalogTypeUseCase>[1]) {
+  return createOrgCatalogTypeUseCase(context, input);
+}
+
+export async function updateCatalogTypeUseCase(context: OrgContext, input: Parameters<typeof updateOrgCatalogTypeUseCase>[1]) {
+  return updateOrgCatalogTypeUseCase(context, input);
+}
+
+export async function archiveCatalogTypeUseCase(context: OrgContext, input: Parameters<typeof archiveOrgCatalogTypeUseCase>[1]) {
+  return archiveOrgCatalogTypeUseCase(context, input);
 }
 
 export async function requestExportUseCase(

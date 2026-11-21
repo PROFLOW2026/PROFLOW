@@ -184,9 +184,11 @@ export function filterCatalog(
 ): CatalogType[] {
   const q = query.trim().toLowerCase();
   const rows = catalog.filter((type) => {
+    if (type.archived && type.key !== selectedKey) return false;
     if (category !== 'all' && type.category !== category) return false;
     if (!q) return true;
-    return type.nameHe.toLowerCase().includes(q) || type.key.toLowerCase().includes(q);
+    if (type.nameHe.toLowerCase().includes(q) || type.key.toLowerCase().includes(q)) return true;
+    return type.builtIn && type.keywordsHe.some((keyword) => keyword.toLowerCase().includes(q));
   });
   if (selectedKey && !rows.some((type) => type.key === selectedKey)) {
     const selected = catalog.find((type) => type.key === selectedKey);

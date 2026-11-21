@@ -127,6 +127,24 @@ export const catalogTypeSchema = z.object({
 });
 export type CatalogType = z.infer<typeof catalogTypeSchema>;
 
+export const catalogTypeCreateSchema = z.object({
+  category: electricalCategorySchema,
+  nameHe: z.string().min(1).max(80),
+});
+export type CatalogTypeCreateInput = z.infer<typeof catalogTypeCreateSchema>;
+
+export const catalogTypeUpdateSchema = z.object({
+  key: z.string().min(1).max(80),
+  nameHe: z.string().min(1).max(80),
+});
+export type CatalogTypeUpdateInput = z.infer<typeof catalogTypeUpdateSchema>;
+
+export const catalogTypeArchiveSchema = z.object({
+  key: z.string().min(1).max(80),
+  archived: z.boolean(),
+});
+export type CatalogTypeArchiveInput = z.infer<typeof catalogTypeArchiveSchema>;
+
 export const symbolSignatureKindSchema = z.enum(['pdf-shape', 'dwg-block', 'legend-key']);
 
 /** One learned mapping, scoped to a planner (never global). Sent to the worker with every job. */
@@ -673,6 +691,9 @@ export interface TakeoffClientApi {
   setAnalysisRuleSet(analysisId: string, ruleSetId: string, expectedRevision: number): Promise<AnalysisView>;
   listCatalog(): Promise<CatalogType[]>;
   saveCatalogType(type: CatalogType): Promise<CatalogType>;
+  createCatalogType(input: CatalogTypeCreateInput): Promise<CatalogType>;
+  updateCatalogType(input: CatalogTypeUpdateInput): Promise<CatalogType>;
+  archiveCatalogType(input: CatalogTypeArchiveInput): Promise<CatalogType>;
   /** Returns a same-origin download URL (permission-checked route). */
   requestExport(analysisId: string, kind: ExportKind): Promise<{ url: string; fileName: string }>;
 }
@@ -689,5 +710,8 @@ export const TAKEOFF_ERROR_CODES = [
   'not_found',
   'approval_blocked_review',
   'approval_blocked_plan_review',
+  'catalog_duplicate',
+  'catalog_invalid',
+  'catalog_type_archived',
 ] as const;
 export type TakeoffErrorCode = (typeof TAKEOFF_ERROR_CODES)[number];

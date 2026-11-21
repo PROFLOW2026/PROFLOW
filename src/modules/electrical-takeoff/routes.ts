@@ -7,7 +7,14 @@ import { getAdminDb } from '@/shared/db';
 import { TAKEOFF_CHUNK_BYTES, findArtifact, findFile } from './data/takeoff.repository';
 import { handleTakeoffChunk, TAKEOFF_UPLOAD_HEADERS } from './application/chunk-upload';
 import { resolveTakeoffFileStoreForAnalysis } from './application/takeoff-persistence';
-import { applyWorkerArtifact, applyWorkerProgress, applyWorkerResult, authorizeWorkerJob } from './application/worker-callbacks';
+import {
+  applyWorkerArtifact,
+  applyWorkerProgress,
+  applyWorkerResult,
+  authorizeWorkerJob,
+  inspectWorkerCallbackAuth,
+  type WorkerCallbackDenyReason,
+} from './application/worker-callbacks';
 import { isWorkerIngestError } from './domain/worker-ingest-error';
 import { buildExportBytes, takeoffExportDownloadHeaders } from './application/export-download';
 import type { ExportKind } from './domain/contracts';
@@ -93,14 +100,30 @@ function bearer(request: Request): string {
   return request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ?? '';
 }
 
-export async function handleWorkerResult(request: Request, jobId: string): Promise<Response> {
+function logWorkerCallbackDeny(route: 'progress' | 'artifact' | 'result', jobId: string, reason: WorkerCallbackDenyReason) {
+  console.info(`[takeoff-worker-callback] deny route=${route} jobId=${jobId} reason=${reason}`);
+}
+
+async function requireWorkerCallbackJob(
+  request: Request,
+  jobId: string,
+  route: 'progress' | 'artifact' | 'result',
+) {
   const secret = process.env.TAKEOFF_WORKER_SECRET;
-  if (!secret) return new Response(null, { status: 503 });
-  const db = takeoffAdminDb();
-  const job = await authorizeWorkerJob(db, jobId, bearer(request), secret);
-  if (!job) return new Response(null, { status: 401 });
+  if (!secret) return { job: null, deny: new Response(null, { status: 503 }) };
+  const inspected = await inspectWorkerCallbackAuth(takeoffAdminDb(), jobId, bearer(request), secret);
+  if (!inspected.job) {
+    logWorkerCallbackDeny(route, jobId, inspected.reason);
+    return { job: null, deny: new Response(null, { status: 401 }) };
+  }
+  return { job: inspected.job, deny: null };
+}
+
+export async function handleWorkerResult(request: Request, jobId: string): Promise<Response> {
+  const gate = await requireWorkerCallbackJob(request, jobId, 'result');
+  if (gate.deny) return gate.deny;
   try {
-    await applyWorkerResult(db, jobId, await request.json());
+    await applyWorkerResult(takeoffAdminDb(), jobId, await request.json());
     return new Response(null, { status: 204 });
   } catch (error) {
     if (isWorkerIngestError(error)) {
@@ -111,11 +134,9 @@ export async function handleWorkerResult(request: Request, jobId: string): Promi
 }
 
 export async function handleWorkerProgress(request: Request, jobId: string): Promise<Response> {
-  const secret = process.env.TAKEOFF_WORKER_SECRET;
-  if (!secret) return new Response(null, { status: 503 });
-  const db = takeoffAdminDb();
-  if (!(await authorizeWorkerJob(db, jobId, bearer(request), secret))) return new Response(null, { status: 401 });
-  await applyWorkerProgress(db, jobId, await request.json());
+  const gate = await requireWorkerCallbackJob(request, jobId, 'progress');
+  if (gate.deny) return gate.deny;
+  await applyWorkerProgress(takeoffAdminDb(), jobId, await request.json());
   return new Response(null, { status: 204 });
 }
 
@@ -159,10 +180,9 @@ export async function handleWorkerXref(request: Request, jobId: string): Promise
 }
 
 export async function handleWorkerArtifact(request: Request, jobId: string): Promise<Response> {
-  const secret = process.env.TAKEOFF_WORKER_SECRET;
-  if (!secret) return new Response(null, { status: 503 });
+  const gate = await requireWorkerCallbackJob(request, jobId, 'artifact');
+  if (gate.deny) return gate.deny;
   const db = takeoffAdminDb();
-  if (!(await authorizeWorkerJob(db, jobId, bearer(request), secret))) return new Response(null, { status: 401 });
   const form = await request.formData();
   const name = String(form.get('name') ?? 'artifact.bin');
   const mimeType = String(form.get('mimeType') ?? 'application/octet-stream');

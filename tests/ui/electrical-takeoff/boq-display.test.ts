@@ -14,6 +14,17 @@ const catalog: CatalogType[] = [
     builtIn: true,
     archived: false,
   },
+  {
+    key: 'custom.control.stair',
+    nameHe: 'לחצן חדר מדרגות',
+    category: 'control',
+    role: 'device',
+    unit: "יח'",
+    keywordsHe: [],
+    colorHex: '#7f7f7f',
+    builtIn: false,
+    archived: false,
+  },
 ];
 
 function line(partial: Partial<BoqLine>): BoqLine {
@@ -68,6 +79,15 @@ describe('boqLineDisplayLabel', () => {
       boqLineDisplayLabel(line({ typeKey: null, label: 'SOCKET_BLOCK — לבדיקה' }), catalog, 'לא מסווג — לבדיקה'),
     ).toBe('לא מסווג — לבדיקה');
     expect(boqLineStatus(line({ typeKey: null, verified: true }), false)).toBe('forReview');
+  });
+
+  it('shows an org-custom accessory name', () => {
+    expect(
+      boqLineDisplayLabel(line({ typeKey: 'custom.control.stair', label: 'custom.control.stair' }), catalog, 'לא מסווג'),
+    ).toBe('לחצן חדר מדרגות');
+    expect(
+      detectionDisplayLabel({ id: 'p1#9', typeKey: 'custom.control.stair' }, catalog, 'לא מסווג'),
+    ).toBe('לחצן חדר מדרגות');
   });
 
   it('uses the catalog Hebrew name on a typed detection', () => {

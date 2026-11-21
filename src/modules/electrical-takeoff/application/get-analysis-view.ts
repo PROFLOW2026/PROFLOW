@@ -15,16 +15,18 @@ import {
   listLegendEntriesForJob,
   listSheetsForJob,
   listWarningsForJob,
-  listCatalogOverrides,
   findRuleSet,
+  findApproval,
 } from '../data/takeoff.repository';
 import { warningFromRow } from '../domain/worker-warnings';
 import { computeBoq } from '../domain/boq-engine';
+import { freezeApprovedBoq } from '../domain/approved-boq';
 import { DEFAULT_RULE_SET } from '../domain/measurement';
-import type { CatalogType, MeasurementRuleSet } from '../domain/contracts';
+import type { MeasurementRuleSet } from '../domain/contracts';
 import type { DbExecutor } from '@/shared/db/types';
+import { loadCatalogForOrg } from './org-catalog';
 import { resolveSheetInclusion } from '../domain/sheet-selection';
-import { loadApplyEdits, loadDefaultCatalog } from './domain-runtime';
+import { loadApplyEdits } from './domain-runtime';
 import type { SheetDto } from '../domain/contracts';
 import type { TakeoffActor } from './access';
 import { loadPermissionFacts } from './access';
@@ -117,7 +119,7 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
         : undefined;
   const legendRows = job ? await listLegendEntriesForJob(db, orgId, job.id) : [];
   const legend = sanitizeTakeoffLegendForActor(actor, legendRows);
-  const boq = computeBoq({
+  const liveBoq = computeBoq({
     detections,
     workerDetections: baseDetections,
     sheets: sheetDtos,
@@ -136,6 +138,11 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
     includedSheetRefIds,
     mergeMatchedPairs: mergeMatched,
   });
+  const approval =
+    approved && analysis.currentApprovalId
+      ? await findApproval(db, orgId, analysis.currentApprovalId)
+      : null;
+  const boq = approved ? freezeApprovedBoq(approval?.boqJson, liveBoq) : liveBoq;
 
   const summary: AnalysisSummary = {
     id: analysis.id,
@@ -212,21 +219,6 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
     appliedEdits: editList,
     planReviewConfirmed: planReviewConfirmed(editList),
   };
-}
-
-async function loadCatalogForOrg(db: DbExecutor, organizationId: string): Promise<CatalogType[]> {
-  const base = await loadDefaultCatalog();
-  const overrides = await listCatalogOverrides(db, organizationId);
-  if (overrides.length === 0) return [...base];
-  const map = new Map(base.map((type) => [type.key, type]));
-  for (const row of overrides) {
-    if (row.archived) {
-      map.delete(row.key);
-      continue;
-    }
-    map.set(row.key, row.payload as unknown as CatalogType);
-  }
-  return [...map.values()];
 }
 
 async function loadRuleSetForAnalysis(

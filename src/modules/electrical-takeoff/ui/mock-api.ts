@@ -24,6 +24,13 @@ import { effectiveToWorker, rebuildViewFromEdits } from './domain-preview';
 import { buildLegendLibraryEntry } from '../domain/library';
 import { TakeoffError } from '../domain/errors';
 import { TakeoffRevisionConflictError } from './takeoff-errors';
+import {
+  applyOrgDisplayName,
+  buildCustomCatalogType,
+  findActiveNameDuplicate,
+  isDefaultCatalogKey,
+} from '../domain/catalog';
+import type { CatalogTypeArchiveInput, CatalogTypeCreateInput, CatalogTypeUpdateInput } from '../domain/contracts';
 
 export { TakeoffRevisionConflictError };
 
@@ -43,6 +50,14 @@ type Store = {
 
 function toWorkerBase(detections: ReturnType<typeof buildDemoDetections>, fileId = 'file-demo-pdf') {
   return detections.map((d) => effectiveToWorker(d, fileId));
+}
+
+function patchStoreCatalog(store: Store, type: CatalogType): void {
+  for (const record of store.analyses.values()) {
+    const map = new Map(record.view.catalog.map((row) => [row.key, row]));
+    map.set(type.key, type);
+    record.view = { ...record.view, catalog: [...map.values()] };
+  }
 }
 
 function bumpRecord(record: AnalysisRecord, edits: TakeoffEdit[]): AnalysisRecord {
@@ -329,10 +344,44 @@ export function createMockTakeoffApi(fixture: TakeoffMockFixture = 'default'): T
     },
 
     async listCatalog() {
-      return buildDemoAnalysisView().catalog;
+      const first = store.analyses.values().next().value as AnalysisRecord | undefined;
+      return structuredClone(first?.view.catalog ?? buildDemoAnalysisView().catalog);
     },
 
     async saveCatalogType(type: CatalogType) {
+      const existing = [...store.analyses.values()][0]?.view.catalog.find((row) => row.key === type.key);
+      if (!existing) return this.createCatalogType({ category: type.category, nameHe: type.nameHe });
+      if (type.archived !== existing.archived) {
+        return this.archiveCatalogType({ key: type.key, archived: type.archived });
+      }
+      return this.updateCatalogType({ key: type.key, nameHe: type.nameHe });
+    },
+
+    async createCatalogType(input: CatalogTypeCreateInput) {
+      const catalog = [...store.analyses.values()][0]?.view.catalog ?? [];
+      if (findActiveNameDuplicate(catalog, input.nameHe)) throw new TakeoffError('catalog_duplicate');
+      const type = buildCustomCatalogType({ category: input.category, nameHe: input.nameHe, catalog });
+      patchStoreCatalog(store, type);
+      return type;
+    },
+
+    async updateCatalogType(input: CatalogTypeUpdateInput) {
+      const catalog = [...store.analyses.values()][0]?.view.catalog ?? [];
+      const existing = catalog.find((row) => row.key === input.key);
+      if (!existing) throw new TakeoffError('not_found');
+      if (findActiveNameDuplicate(catalog, input.nameHe, existing.key)) throw new TakeoffError('catalog_duplicate');
+      const type = applyOrgDisplayName(existing, input.nameHe);
+      patchStoreCatalog(store, type);
+      return type;
+    },
+
+    async archiveCatalogType(input: CatalogTypeArchiveInput) {
+      const catalog = [...store.analyses.values()][0]?.view.catalog ?? [];
+      const existing = catalog.find((row) => row.key === input.key);
+      if (!existing) throw new TakeoffError('not_found');
+      if (isDefaultCatalogKey(existing.key)) throw new TakeoffError('catalog_invalid');
+      const type = { ...existing, archived: input.archived };
+      patchStoreCatalog(store, type);
       return type;
     },
 

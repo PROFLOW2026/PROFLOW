@@ -10,6 +10,7 @@ Same UI and `TakeoffClientApi` on main app, employee app, and contractor portal.
 | Edit detections / BOQ | yes | yes | yes | `takeoff.manage`; blocked when `approved` |
 | Approve | yes | yes | yes | `takeoff.approve` |
 | Manage symbol library | yes | yes | yes | `takeoff.library.manage` |
+| Manage org accessory catalog | yes | yes | yes | `takeoff.library.manage` / `ext.takeoff.library.manage` |
 | Export xlsx/pdf | yes | yes | yes | `takeoff.view` |
 
 No capability reduction by `employeeApp` / `external` alone.

@@ -208,6 +208,21 @@
     "libraryMaskHint": "الحفظ يسجّل توقيع الرمز في المكتبة ليُصنَّف الرمز نفسه في التحليل التالي.",
     "legendRows": "أوصاف المفتاح"
   },
+  "catalog": {
+    "addAccessory": "إضافة ملحق جديد",
+    "addNamed": "إضافة \"{name}\"",
+    "addTitle": "ملحق جديد لمؤسسة",
+    "editAccessory": "تعديل الاسم",
+    "editOrgName": "اسم العرض في المؤسسة",
+    "editTitle": "تعديل ملحق مخصص",
+    "editOrgTitle": "اسم عرض مؤسسي لنوع مدمج",
+    "category": "الفئة",
+    "pickCategory": "اختاروا فئة",
+    "name": "اسم الملحق",
+    "save": "حفظ",
+    "archive": "أرشفة",
+    "saveFailed": "تعذّر حفظ الملحق."
+  },
   "confidence": {
     "high": "عالٍ",
     "medium": "متوسط",

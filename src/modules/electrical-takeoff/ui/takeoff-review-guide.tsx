@@ -9,7 +9,7 @@ import { detectionDisplayLabel } from './boq-display';
 import type { ReviewGroup, TypeSuggestion } from './review-guide';
 import { symbolCropSource, symbolIdentityLabel } from './review-guide';
 import { canSaveReclassifyToLibrary } from './takeoff-analysis-view';
-import { TakeoffTypePicker } from './takeoff-type-picker';
+import { TakeoffTypePicker, type TakeoffCatalogMutations } from './takeoff-type-picker';
 
 export function TakeoffReviewGuide({
   group,
@@ -27,6 +27,9 @@ export function TakeoffReviewGuide({
   onConfirm,
   vectorPlan = false,
   canManageLibrary = false,
+  canManageCatalog = false,
+  catalogMutations,
+  onCatalogSaved,
 }: {
   group: ReviewGroup;
   focus: EffectiveDetection;
@@ -44,6 +47,9 @@ export function TakeoffReviewGuide({
   /** The plan pane is the vector drawing, so the review card does not crop the raster. */
   vectorPlan?: boolean;
   canManageLibrary?: boolean;
+  canManageCatalog?: boolean;
+  catalogMutations?: TakeoffCatalogMutations;
+  onCatalogSaved?: (type: CatalogType) => void;
 }) {
   const t = useTranslations('takeoff');
   const marks = occurrences.length > 0 ? occurrences : [focus];
@@ -186,6 +192,9 @@ export function TakeoffReviewGuide({
           disabled={readOnly || saving}
           testId="takeoff-guide-type"
           onChange={setPick}
+          canManageCatalog={canManageCatalog}
+          mutations={catalogMutations}
+          onCatalogSaved={onCatalogSaved}
         />
       </div>
       ) : null}

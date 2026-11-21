@@ -208,6 +208,21 @@
     "libraryMaskHint": "השמירה רושמת את חתימת הסמל בספרייה, כדי שאותו סמל יסווג בניתוח הבא.",
     "legendRows": "תיאורי מקרא"
   },
+  "catalog": {
+    "addAccessory": "הוסף אביזר חדש",
+    "addNamed": "הוסף \"{name}\"",
+    "addTitle": "אביזר חדש לקטלוג הארגון",
+    "editAccessory": "עריכת שם",
+    "editOrgName": "שם תצוגה בארגון",
+    "editTitle": "עריכת אביזר מותאם",
+    "editOrgTitle": "שם תצוגה ארגוני לסוג מובנה",
+    "category": "קטגוריה",
+    "pickCategory": "בחרו קטגוריה",
+    "name": "שם האביזר",
+    "save": "שמירה",
+    "archive": "העברה לארכיון",
+    "saveFailed": "שמירת האביזר נכשלה."
+  },
   "confidence": {
     "high": "גבוה",
     "medium": "בינוני",

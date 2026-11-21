@@ -14,13 +14,13 @@ import {
   PlusCircle,
   RotateCcw,
 } from 'lucide-react';
-import type { AnalysisView, SymbolLibraryEntry, TakeoffEdit, TakeoffReviewReason } from '../domain/contracts';
+import type { AnalysisView, CatalogType, SymbolLibraryEntry, TakeoffEdit, TakeoffReviewReason } from '../domain/contracts';
+import { TakeoffTypePicker, type TakeoffCatalogMutations } from './takeoff-type-picker';
 import { useTakeoffApi } from './api-provider';
 import { PlanViewer } from './viewer/plan-viewer';
 import { TakeoffDwgPlan } from './viewer/takeoff-dwg-plan';
 import { formatTakeoffDisplayName } from '../domain/format-display-name';
 import { detectionCensus, detectionDisplayLabel } from './boq-display';
-import { blurSelectOnWheel } from './blur-select-on-wheel';
 import { isRevisionConflictError, takeoffErrorCode } from './takeoff-errors';
 import { TakeoffConflictBanner, TakeoffLibraryDialog, TakeoffRuleSetDialog } from './takeoff-workspace-panels';
 import { initialWorkspaceState, type TypeFilterState } from './workspace/takeoff-workspace-state';
@@ -285,6 +285,19 @@ export function TakeoffWorkspace({
   const view = state.view;
   const guideFocus = activeGuide ? view.detections.find((item) => item.id === activeGuide.focusId) ?? null : null;
   const readOnly = !view.permissions.canEdit || view.summary.status === 'approved';
+  const catalogMutations: TakeoffCatalogMutations = {
+    create: (input) => api.createCatalogType(input),
+    update: (input) => api.updateCatalogType(input),
+    archive: (input) => api.archiveCatalogType(input),
+  };
+  const onCatalogSaved = (type: CatalogType) => {
+    setState((current) => {
+      if (!current.view) return current;
+      const map = new Map(current.view.catalog.map((row) => [row.key, row]));
+      map.set(type.key, type);
+      return { ...current, view: { ...current.view, catalog: [...map.values()] } };
+    });
+  };
   const dimOthers = state.highlightedDetectionIds.size > 0;
   const approvalBlockedByReview = view.boq.unclassifiedCount > 0 || view.boq.needsReviewCount > 0;
   const approvalBlockedByPlan = view.planReviewConfirmed !== true;
@@ -772,6 +785,9 @@ export function TakeoffWorkspace({
                 )}
                 readOnly={readOnly}
                 canManageLibrary={view.permissions.canManageLibrary}
+                canManageCatalog={view.permissions.canManageLibrary}
+                catalogMutations={catalogMutations}
+                onCatalogSaved={onCatalogSaved}
                 saving={guideSaving}
                 progress={guidedProgress}
                 shownId={shownOccurrenceId ?? guideFocus.id}
@@ -875,22 +891,19 @@ export function TakeoffWorkspace({
                 <section aria-label={t('detection.undecodedLegendTitle')} data-testid="takeoff-undecoded-legend" className="mt-2 min-w-0 overflow-x-hidden rounded-lg border border-[var(--pf-border-default)] p-2">
                   <p className="text-xs font-medium text-[var(--pf-text-primary)]">{t('detection.undecodedLegendTitle')}</p>
                   <p className="mb-1 text-xs text-[var(--pf-text-muted)]">{t('detection.undecodedLegendHint')}</p>
-                  <label className="mb-1 flex min-w-0 flex-col gap-1 text-xs text-[var(--pf-text-secondary)]">
-                    <span>{t('detection.pickType')}</span>
-                    <select
-                      data-testid="takeoff-legend-library-type"
-                      className="min-h-11 w-full max-w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-page)] px-2 text-sm"
+                  <div className="mb-1 min-w-0">
+                    <p className="mb-1 text-xs text-[var(--pf-text-secondary)]">{t('detection.pickType')}</p>
+                    <TakeoffTypePicker
+                      catalog={view.catalog}
                       value={legendLibraryType}
                       disabled={readOnly}
-                      onWheel={blurSelectOnWheel}
-                      onChange={(event) => setLegendLibraryType(event.target.value)}
-                    >
-                      <option value="">{t('detection.unclassified')}</option>
-                      {view.catalog.map((type) => (
-                        <option key={type.key} value={type.key}>{type.nameHe}</option>
-                      ))}
-                    </select>
-                  </label>
+                      testId="takeoff-legend-library-type"
+                      onChange={setLegendLibraryType}
+                      canManageCatalog={view.permissions.canManageLibrary}
+                      mutations={catalogMutations}
+                      onCatalogSaved={onCatalogSaved}
+                    />
+                  </div>
                   <div className="flex flex-wrap gap-1">
                     {(view.legend ?? [])
                       .filter((row) => !row.typeKey && !row.continuation)
@@ -992,6 +1005,9 @@ export function TakeoffWorkspace({
           groupSize={selectedSymbolGroup.length}
           defaultApplyToGroup={selectedSymbolGroup.length > 1 && !legendConflictOnDetection(selected)}
           canManageLibrary={view.permissions.canManageLibrary}
+          canManageCatalog={view.permissions.canManageLibrary}
+          catalogMutations={catalogMutations}
+          onCatalogSaved={onCatalogSaved}
           legendRows={view.legend ?? []}
           reasonLabel={reasonLabel}
           onClose={() => setState((s) => ({ ...s, selectedDetectionId: null }))}

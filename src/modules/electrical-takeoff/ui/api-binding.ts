@@ -30,6 +30,9 @@ export function createProductionTakeoffApi(): TakeoffClientApi {
       wrapTakeoffAction(() => actions.setAnalysisRuleSet(analysisId, ruleSetId, expectedRevision)),
     listCatalog: () => wrapTakeoffAction(() => actions.listCatalog()),
     saveCatalogType: (type) => wrapTakeoffAction(() => actions.saveCatalogType(type)),
+    createCatalogType: (input) => wrapTakeoffAction(() => actions.createCatalogType(input)),
+    updateCatalogType: (input) => wrapTakeoffAction(() => actions.updateCatalogType(input)),
+    archiveCatalogType: (input) => wrapTakeoffAction(() => actions.archiveCatalogType(input)),
     requestExport: (analysisId, kind) => wrapTakeoffAction(() => actions.requestExport(analysisId, kind)),
     getTakeoffInputCapabilities: (projectId) =>
       wrapTakeoffAction(() => actions.getTakeoffInputCapabilities(projectId)),

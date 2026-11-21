@@ -20,9 +20,10 @@ export function TakeoffTypeFilterChips({
 
   const options = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const visible = catalog.filter((c) => !c.archived);
     const list = q
-      ? catalog.filter((c) => c.nameHe.toLowerCase().includes(q) || c.key.toLowerCase().includes(q))
-      : catalog;
+      ? visible.filter((c) => c.nameHe.toLowerCase().includes(q) || c.key.toLowerCase().includes(q))
+      : visible;
     return list.slice(0, 40);
   }, [catalog, query]);
 

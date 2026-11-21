@@ -21,6 +21,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response, 
 from fastapi.responses import JSONResponse
 import uvicorn
 
+from takeoff_worker.callback_diag import format_callback_401, utc_now_iso
 from takeoff_worker.models import WorkerJobRequest, ExportAnnotatedPdfRequest, ExportBoqPdfRequest
 
 log = logging.getLogger("takeoff_worker.server")
@@ -30,17 +31,37 @@ _jobs: dict[str, dict[str, Any]] = {}
 _cancelled: set[str] = set()
 _lock = threading.Lock()
 
-SECRET = os.getenv("TAKEOFF_WORKER_SECRET", "")
+def _worker_secret() -> str:
+    return os.getenv("TAKEOFF_WORKER_SECRET", "").strip()
 
 
 def _verify_secret(x_takeoff_secret: str | None = Header(default=None)) -> None:
-    if not SECRET or not x_takeoff_secret:
+    secret = _worker_secret()
+    if not secret or not x_takeoff_secret:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-    if not hmac.compare_digest(x_takeoff_secret.encode(), SECRET.encode()):
+    if not hmac.compare_digest(x_takeoff_secret.encode(), secret.encode()):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
 
-def _post_json(url: str, token: str, payload: dict[str, Any]) -> None:
+def _log_callback_401(exc: urllib.error.HTTPError, *, job_id: str, kind: str) -> None:
+    body = b""
+    try:
+        body = exc.read(180)
+    except Exception:
+        body = b""
+    log.warning(
+        format_callback_401(
+            job_id=job_id,
+            kind=kind,
+            status=int(exc.code),
+            headers=exc.headers,
+            body=body,
+            at_iso=utc_now_iso(),
+        )
+    )
+
+
+def _post_json(url: str, token: str, payload: dict[str, Any], *, job_id: str = "", kind: str = "json") -> None:
     data = json.dumps(payload).encode("utf-8")
     last: urllib.error.URLError | None = None
     for attempt in range(3):
@@ -54,6 +75,11 @@ def _post_json(url: str, token: str, payload: dict[str, Any]) -> None:
             with urllib.request.urlopen(req, timeout=120) as resp:
                 resp.read()
             return
+        except urllib.error.HTTPError as exc:
+            if exc.code == 401:
+                _log_callback_401(exc, job_id=job_id, kind=kind)
+            last = exc
+            time.sleep(0.5 * (attempt + 1))
         except urllib.error.URLError as exc:
             last = exc
             time.sleep(0.5 * (attempt + 1))
@@ -61,7 +87,16 @@ def _post_json(url: str, token: str, payload: dict[str, Any]) -> None:
         raise last
 
 
-def _post_multipart(url: str, token: str, name: str, mime: str, body: bytes) -> None:
+def _post_multipart(
+    url: str,
+    token: str,
+    name: str,
+    mime: str,
+    body: bytes,
+    *,
+    job_id: str = "",
+    kind: str = "artifact",
+) -> None:
     boundary = b"----takeoffboundary"
     parts = [
         b"--" + boundary + b'\r\nContent-Disposition: form-data; name="name"\r\n\r\n' + name.encode() + b"\r\n",
@@ -71,8 +106,13 @@ def _post_multipart(url: str, token: str, name: str, mime: str, body: bytes) -> 
     ]
     payload = b"".join(parts)
     req = urllib.request.Request(url, data=payload, method="POST", headers={"Authorization": f"Bearer {token}", "Content-Type": f"multipart/form-data; boundary={boundary.decode()}"})
-    with urllib.request.urlopen(req, timeout=120) as resp:
-        resp.read()
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            resp.read()
+    except urllib.error.HTTPError as exc:
+        if exc.code == 401:
+            _log_callback_401(exc, job_id=job_id, kind=kind)
+        raise
 
 
 def _download(url: str, token: str, dest: Path) -> Path:
@@ -159,13 +199,19 @@ async def create_job(body: WorkerJobRequest) -> JSONResponse:
             if job_id in _cancelled:
                 raise RuntimeError("cancelled")
             try:
-                _post_json(body.callback.progressUrl, token, {"jobId": job_id, "stage": stage, "percent": int(pct), "message": msg})
+                _post_json(
+                    body.callback.progressUrl,
+                    token,
+                    {"jobId": job_id, "stage": stage, "percent": int(pct), "message": msg},
+                    job_id=job_id,
+                    kind="progress",
+                )
             except urllib.error.URLError as exc:
                 log.warning("progress post failed: %s", exc)
 
         def put_artifact(name: str, data: bytes, mime: str) -> None:
             try:
-                _post_multipart(body.callback.artifactUrl, token, name, mime, data)
+                _post_multipart(body.callback.artifactUrl, token, name, mime, data, job_id=job_id, kind="artifact")
             except urllib.error.URLError as exc:
                 log.warning("artifact post failed: %s", exc)
 
@@ -180,7 +226,7 @@ async def create_job(body: WorkerJobRequest) -> JSONResponse:
             from takeoff_worker.pipeline import run_job
 
             result = run_job(body, workdir, progress, put_artifact, download)
-            _post_json(body.callback.resultUrl, token, result.model_dump())
+            _post_json(body.callback.resultUrl, token, result.model_dump(), job_id=job_id, kind="result")
             with _lock:
                 _jobs[job_id]["status"] = result.status
         except Exception:

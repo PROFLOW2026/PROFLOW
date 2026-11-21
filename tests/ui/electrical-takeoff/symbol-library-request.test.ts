@@ -39,6 +39,24 @@ describe('planner symbol library sent on the next analysis', () => {
     expect(entries).toEqual([]);
   });
 
+  it('omits library rows whose type is archived in the org catalog', () => {
+    const entries = symbolLibraryForWorker(
+      [
+        {
+          id: 'lib-old',
+          plannerKey: '7155',
+          signatureKind: 'dwg-block',
+          signature: 'block:stair',
+          template: { geometryHash: 'block:*geom:aaaaaaaa' },
+          typeKey: 'custom.control.stair',
+          createdAt: new Date('2026-11-16T08:00:00.000Z'),
+        },
+      ],
+      new Set(['custom.control.stair']),
+    );
+    expect(entries).toEqual([]);
+  });
+
   it('sends a saved DWG fingerprint and does not treat it as a PDF mask', () => {
     const hash = 'block:*geom:b73128bb00000000';
     const entry = symbolLibraryForWorker([

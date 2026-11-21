@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { createTakeoffTestDatabase } from '../../setup/takeoff-integration-pglite';
 import { seedSystem, createTestOrganization, createTestUser } from '../../setup/fixtures';
@@ -44,6 +44,66 @@ describe('takeoff route security', () => {
       expect(res.status).toBe(401);
     });
     setTakeoffRouteAdminDbForTests(null);
+  });
+
+  it('logs a coarse deny reason on callback 401 without changing the empty 401', async () => {
+    process.env.TAKEOFF_WORKER_SECRET = 'integration-test-secret-32chars!!';
+    const info = vi.spyOn(console, 'info').mockImplementation(() => {});
+    const database = await createTakeoffTestDatabase();
+    await seedSystem(database);
+    const user = await createTestUser(database, 'takeoff-deny-log@example.test');
+    const { organization } = await createTestOrganization(database, user, 'Deny log org');
+    const projectId = await createProjectAs(database, user.id, organization.id, 'P');
+    try {
+      await database.asService(async (db) => {
+        setTakeoffRouteAdminDbForTests(db);
+        const analysis = await insertAnalysis(db, {
+          organizationId: organization.id,
+          projectId,
+          name: 'A',
+          createdByActorType: 'internal',
+        });
+        const missingJobId = randomUUID();
+        const missingToken = sealJobToken(missingJobId, process.env.TAKEOFF_WORKER_SECRET!, 60_000, Date.now());
+        const missing = await handleWorkerProgress(
+          new Request(`http://test/api/takeoff/worker/progress/${missingJobId}`, {
+            method: 'POST',
+            headers: { authorization: `Bearer ${missingToken.bearer}`, 'content-type': 'application/json' },
+            body: JSON.stringify({ jobId: missingJobId, stage: 'extract', percent: 11 }),
+          }),
+          missingJobId,
+        );
+        expect(missing.status).toBe(401);
+        expect(await missing.text()).toBe('');
+
+        const cancelledId = randomUUID();
+        const cancelledToken = sealJobToken(cancelledId, process.env.TAKEOFF_WORKER_SECRET!, 60_000, Date.now());
+        await insertJob(db, {
+          id: cancelledId,
+          organizationId: organization.id,
+          projectId,
+          analysisId: analysis.id,
+          status: 'cancelled',
+          tokenHash: cancelledToken.hash,
+        });
+        const cancelled = await handleWorkerResult(
+          new Request(`http://test/api/takeoff/worker/result/${cancelledId}`, {
+            method: 'POST',
+            headers: { authorization: `Bearer ${cancelledToken.bearer}`, 'content-type': 'application/json' },
+            body: JSON.stringify({ contractVersion: 2, jobId: cancelledId, status: 'succeeded', sheets: [], detections: [] }),
+          }),
+          cancelledId,
+        );
+        expect(cancelled.status).toBe(401);
+        expect(info.mock.calls.some((call) => String(call[0]).includes('reason=job_missing'))).toBe(true);
+        expect(info.mock.calls.some((call) => String(call[0]).includes('reason=cancelled'))).toBe(true);
+        expect(info.mock.calls.join('\n')).not.toContain(missingToken.bearer);
+        expect(info.mock.calls.join('\n')).not.toContain(process.env.TAKEOFF_WORKER_SECRET);
+      });
+    } finally {
+      info.mockRestore();
+      setTakeoffRouteAdminDbForTests(null);
+    }
   });
 
   it('rejects forged worker bearer for another job', async () => {

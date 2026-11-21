@@ -208,6 +208,21 @@
     "libraryMaskHint": "Saving stores this symbol signature in the library so the same symbol is labeled next time.",
     "legendRows": "Legend descriptions"
   },
+  "catalog": {
+    "addAccessory": "Add new accessory",
+    "addNamed": "Add \"{name}\"",
+    "addTitle": "New organization accessory",
+    "editAccessory": "Edit name",
+    "editOrgName": "Organization display name",
+    "editTitle": "Edit custom accessory",
+    "editOrgTitle": "Organization display name for a built-in type",
+    "category": "Category",
+    "pickCategory": "Choose a category",
+    "name": "Accessory name",
+    "save": "Save",
+    "archive": "Archive",
+    "saveFailed": "Could not save the accessory."
+  },
   "confidence": {
     "high": "High",
     "medium": "Medium",

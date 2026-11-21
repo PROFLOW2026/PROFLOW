@@ -14,14 +14,28 @@ import { formatWorkerIngestError, WorkerIngestError } from '../domain/worker-ing
 import { verifyJobBearer, verifyStoredTokenHash } from './worker-token';
 import type { DbExecutor } from '@/shared/db/types';
 
-export async function authorizeWorkerJob(db: DbExecutor, jobId: string, bearer: string, secret: string) {
-  const verified = verifyJobBearer(bearer, secret, Date.now());
-  if (!verified || verified.jobId !== jobId) return null;
+export type WorkerCallbackDenyReason = 'bad_token' | 'job_mismatch' | 'job_missing' | 'cancelled';
+
+export async function inspectWorkerCallbackAuth(
+  db: DbExecutor,
+  jobId: string,
+  bearer: string,
+  secret: string,
+  nowMs = Date.now(),
+) {
+  const verified = verifyJobBearer(bearer, secret, nowMs);
+  if (!verified) return { job: null, reason: 'bad_token' as const satisfies WorkerCallbackDenyReason };
+  if (verified.jobId !== jobId) return { job: null, reason: 'job_mismatch' as const satisfies WorkerCallbackDenyReason };
   const job = await findJob(db, '', jobId);
-  if (!job) return null;
-  if (job.status === 'cancelled') return null;
+  if (!job) return { job: null, reason: 'job_missing' as const satisfies WorkerCallbackDenyReason };
+  if (job.status === 'cancelled') return { job: null, reason: 'cancelled' as const satisfies WorkerCallbackDenyReason };
   // Job callback token (stored hash) or a freshly re-sealed bearer (e.g. export download URL).
-  if (job.tokenHash && verifyStoredTokenHash(bearer, secret, job.tokenHash)) return job;
+  if (job.tokenHash && verifyStoredTokenHash(bearer, secret, job.tokenHash)) return { job, reason: null };
+  return { job, reason: null };
+}
+
+export async function authorizeWorkerJob(db: DbExecutor, jobId: string, bearer: string, secret: string) {
+  const { job } = await inspectWorkerCallbackAuth(db, jobId, bearer, secret);
   return job;
 }
 

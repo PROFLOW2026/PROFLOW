@@ -500,6 +500,19 @@ export async function insertApproval(db: DbExecutor, row: typeof takeoffApproval
   return created;
 }
 
+export async function findApproval(
+  db: DbExecutor,
+  organizationId: string,
+  approvalId: string,
+) {
+  const [row] = await db
+    .select()
+    .from(takeoffApprovals)
+    .where(and(eq(takeoffApprovals.organizationId, organizationId), eq(takeoffApprovals.id, approvalId)))
+    .limit(1);
+  return row ?? null;
+}
+
 export async function upsertLibraryEntry(
   db: DbExecutor,
   row: typeof takeoffPlannerSymbolLibrary.$inferInsert,
@@ -544,6 +557,7 @@ export async function upsertCatalogType(
       set: {
         payload: row.payload,
         archived: row.archived ?? false,
+        nameNorm: row.nameNorm ?? '',
         updatedAt: new Date(),
       },
     })

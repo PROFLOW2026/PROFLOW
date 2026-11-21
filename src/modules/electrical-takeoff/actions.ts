@@ -7,6 +7,9 @@ import type {
   AnalysisSummary,
   AnalysisView,
   CatalogType,
+  CatalogTypeArchiveInput,
+  CatalogTypeCreateInput,
+  CatalogTypeUpdateInput,
   ExportKind,
   MeasurementRuleSet,
   SymbolLibraryEntry,
@@ -23,12 +26,15 @@ import {
   getAnalysisViewUseCase,
   getJobProgressUseCase,
   listAnalysesUseCase,
+  archiveCatalogTypeUseCase,
+  createCatalogTypeUseCase,
   listCatalogUseCase,
   listLibraryUseCase,
   listRuleSetsUseCase,
   reopenAnalysisUseCase,
   requestExportUseCase,
   saveCatalogTypeUseCase,
+  updateCatalogTypeUseCase,
   saveRuleSetUseCase,
   setAnalysisRuleSetUseCase,
   startAnalysisUseCase,
@@ -157,6 +163,18 @@ export async function listCatalog(): Promise<CatalogType[]> {
 
 export async function saveCatalogType(type: CatalogType): Promise<CatalogType> {
   return withOrg((ctx) => saveCatalogTypeUseCase(ctx, type));
+}
+
+export async function createCatalogType(input: CatalogTypeCreateInput): Promise<CatalogType> {
+  return withOrg((ctx) => createCatalogTypeUseCase(ctx, input));
+}
+
+export async function updateCatalogType(input: CatalogTypeUpdateInput): Promise<CatalogType> {
+  return withOrg((ctx) => updateCatalogTypeUseCase(ctx, input));
+}
+
+export async function archiveCatalogType(input: CatalogTypeArchiveInput): Promise<CatalogType> {
+  return withOrg((ctx) => archiveCatalogTypeUseCase(ctx, input));
 }
 
 export async function requestExport(analysisId: string, kind: ExportKind): Promise<{ url: string; fileName: string }> {

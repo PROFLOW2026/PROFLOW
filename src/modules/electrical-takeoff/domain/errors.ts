@@ -14,6 +14,9 @@ export const TAKEOFF_MESSAGES_HE: Record<TakeoffErrorCode, string> = {
     'אי אפשר לאשר כתב כמויות כל עוד יש פריטים ללא סוג או פריטים שדורשים אישור.',
   approval_blocked_plan_review:
     'אי אפשר לאשר כתב כמויות לפני אישור שבדקתם גם אביזרים שלא זוהו אוטומטית.',
+  catalog_duplicate: 'שם האביזר כבר קיים בארגון. בחרו שם אחר.',
+  catalog_invalid: 'לא ניתן לשמור את סוג האביזר.',
+  catalog_type_archived: 'סוג האביזר בארכיון. שחזרו אותו לפני שמירה לספרייה.',
 };
 
 export class TakeoffError extends DomainRuleError {

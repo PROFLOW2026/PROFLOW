@@ -332,6 +332,7 @@ export const takeoffCatalogTypes = pgTable(
     payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
     builtIn: boolean('built_in').notNull().default(false),
     archived: boolean('archived').notNull().default(false),
+    nameNorm: text('name_norm').notNull().default(''),
     createdAt: ts('created_at').notNull().defaultNow(),
     updatedAt: ts('updated_at').notNull().defaultNow(),
   },

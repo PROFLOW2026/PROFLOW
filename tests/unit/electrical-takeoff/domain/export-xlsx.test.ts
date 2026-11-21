@@ -118,6 +118,53 @@ describe('exportTakeoffBoqXlsx', () => {
     void id0;
   });
 
+  it('writes an org-custom accessory name on the summary sheet', async () => {
+    const catalog = mergeCatalog({
+      customTypes: [
+        {
+          key: 'custom.control.stair',
+          category: 'control',
+          role: 'device',
+          nameHe: 'לחצן חדר מדרגות',
+          unit: "יח'",
+          keywordsHe: [],
+          colorHex: '#7f7f7f',
+          builtIn: false,
+          archived: false,
+        },
+      ],
+    });
+    const boq = computeBoq({
+      detections: applyEdits(
+        [workerDet({ id: 'a', sheetKey: 'p1', typeKey: 'custom.control.stair', confidence: 'high' })],
+        [],
+      ),
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+      areas: [],
+      catalog,
+      ruleSet: DEFAULT_RULE_SET,
+      linear: [],
+      state: 'draft',
+    });
+    const buf = await exportTakeoffBoqXlsx({
+      title: 'מותאם',
+      boq,
+      catalog,
+      detections: applyEdits(
+        [workerDet({ id: 'a', sheetKey: 'p1', typeKey: 'custom.control.stair', confidence: 'high' })],
+        [],
+      ),
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+    });
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buf as unknown as Parameters<typeof wb.xlsx.load>[0]);
+    const labels: string[] = [];
+    wb.getWorksheet('סיכום כתב כמויות')?.eachRow((row) => {
+      labels.push(String(row.getCell(1).value ?? ''));
+    });
+    expect(labels.join(' ')).toContain('לחצן חדר מדרגות');
+  });
+
   it('exports full 7155 corpus view without throwing', async () => {
     const { view } = getReal7155Fixture();
     const buf = await exportTakeoffBoqXlsx({

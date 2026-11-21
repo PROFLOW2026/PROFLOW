@@ -12,7 +12,7 @@ import {
   visibleDetectionReasons,
 } from './takeoff-analysis-view';
 import { detectionDisplayLabel } from './boq-display';
-import { TakeoffTypePicker } from './takeoff-type-picker';
+import { TakeoffTypePicker, type TakeoffCatalogMutations } from './takeoff-type-picker';
 
 export function TakeoffDetectionSheet({
   detection,
@@ -22,6 +22,9 @@ export function TakeoffDetectionSheet({
   groupSize,
   defaultApplyToGroup = false,
   canManageLibrary = false,
+  canManageCatalog = false,
+  catalogMutations,
+  onCatalogSaved,
   legendRows = [],
   onClose,
   onReclassify,
@@ -38,6 +41,9 @@ export function TakeoffDetectionSheet({
   /** When the mark belongs to a symbol group, applying the type covers that group. */
   defaultApplyToGroup?: boolean;
   canManageLibrary?: boolean;
+  canManageCatalog?: boolean;
+  catalogMutations?: TakeoffCatalogMutations;
+  onCatalogSaved?: (type: CatalogType) => void;
   legendRows?: readonly WorkerLegendEntry[];
   reasonLabel: (r: TakeoffReviewReason | string) => string;
   onClose: () => void;
@@ -169,6 +175,9 @@ export function TakeoffDetectionSheet({
             disabled={readOnly}
             testId="takeoff-edit-type"
             onChange={setPick}
+            canManageCatalog={canManageCatalog}
+            mutations={catalogMutations}
+            onCatalogSaved={onCatalogSaved}
           />
           <label className="flex min-h-11 items-center gap-2 text-sm">
             <input

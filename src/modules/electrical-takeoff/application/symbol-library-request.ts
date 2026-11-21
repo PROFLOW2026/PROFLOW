@@ -18,7 +18,10 @@ export interface StoredSymbolLibraryRow {
  * Planner library rows the worker loads on the next job.
  * A stored mask without `size` is still a 64×64 template — that is what the PDF engine matches.
  */
-export function symbolLibraryForWorker(rows: readonly StoredSymbolLibraryRow[]): SymbolLibraryEntry[] {
+export function symbolLibraryForWorker(
+  rows: readonly StoredSymbolLibraryRow[],
+  archivedTypeKeys: ReadonlySet<string> = new Set(),
+): SymbolLibraryEntry[] {
   const out: SymbolLibraryEntry[] = [];
   for (const row of rows) {
     if (!SIGNATURE_KINDS.has(row.signatureKind as SymbolLibraryEntry['signatureKind'])) continue;
@@ -26,6 +29,7 @@ export function symbolLibraryForWorker(rows: readonly StoredSymbolLibraryRow[]):
     const typeKey = row.typeKey.trim();
     const plannerKey = row.plannerKey.trim();
     if (!signature || !typeKey || !plannerKey) continue;
+    if (archivedTypeKeys.has(typeKey)) continue;
     const stored = splitStoredTemplate(row.template);
     out.push({
       id: row.id,
