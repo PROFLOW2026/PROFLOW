@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { cadHtmlTextLine } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-text-bidi';
 import type { CatalogType, EffectiveDetection, TakeoffReviewReason, WorkerLegendEntry } from '../domain/contracts';
 import { devicesFromNote, tagWithDeviceCount } from '../domain/quantity-notes';
 import {
@@ -200,7 +201,7 @@ export function TakeoffDetectionSheet({
         {detection.originalText ? (
           <div>
             <dt className="text-xs text-[var(--pf-text-muted)]">{t('detection.originalLegendName')}</dt>
-            <dd>{detection.originalText}</dd>
+            <dd>{cadHtmlTextLine(detection.originalText)}</dd>
           </div>
         ) : null}
         {twin ? (

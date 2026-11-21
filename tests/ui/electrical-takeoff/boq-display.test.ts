@@ -119,6 +119,33 @@ describe('boqLineDisplayLabel', () => {
       ),
     ).toBe('לחצן חדר מדרגות');
   });
+
+  it('keeps stored legend digits and isolates them so RTL cannot flip 1.5', () => {
+    const storedVisual = 'צינור 02 + מוליכים 5.1 ממ"ר';
+    const shownVisual = boqLineDisplayLabel(
+      line({ typeKey: null, originalLabel: storedVisual, identitySource: 'legend', label: storedVisual }),
+      catalog,
+      'לא מסווג',
+    );
+    expect(shownVisual).toContain('5.1');
+    expect(shownVisual).toContain('02');
+    expect(shownVisual).not.toContain('1.5');
+    const shownLogical = boqLineDisplayLabel(
+      line({
+        typeKey: null,
+        originalLabel: 'חתך 1.5 ממ"ר',
+        identitySource: 'legend',
+        label: 'חתך 1.5 ממ"ר',
+      }),
+      catalog,
+      'לא מסווג',
+    );
+    expect(shownLogical).toContain('\u20661.5\u2069');
+    expect(shownLogical).not.toContain('5.1');
+    expect(
+      detectionDisplayLabel({ id: 'layout:F0#10', typeKey: null, originalText: storedVisual }, catalog, 'לא מסווג'),
+    ).toContain('5.1');
+  });
 });
 
 describe('boqLineStatus', () => {

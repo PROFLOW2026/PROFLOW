@@ -108,6 +108,22 @@ describe('dwg viewer upgrade', () => {
     expect(chooseTakeoffSheetId({ sheets, initialId: 'model' }, null, 'model', { nativeX: -2000, nativeY: 2500 })).toBe('layout:EL-k1');
   });
 
+  it('keeps an occurrence on its own layout when another paper viewport also covers the point', () => {
+    const window = { id: 3, cx: 0, cy: 0, w: 100, h: 100, vcx: -2000, vcy: 2500, vh: 1000, twist: 0, on: true };
+    const sheets: DisplaySheet[] = [
+      { id: 'model', label: 'Model', kind: 'model', space: '*Model_Space', stacks: [] },
+      { id: 'layout:IEC', label: 'IEC', kind: 'layout', space: '*Paper_IEC', stacks: [[window]] },
+      { id: 'layout:F0', label: 'F0', kind: 'layout', space: '*Paper_F0', stacks: [[{ ...window, id: 4 }]] },
+      { id: 'layout:SW', label: 'SW', kind: 'layout', space: '*Paper_SW', stacks: [[{ ...window, id: 5 }]] },
+    ];
+    const mark = { nativeX: -2000, nativeY: 2500 };
+    const plan = { sheets, initialId: 'layout:F0' };
+    expect(chooseTakeoffSheetId(plan, null, 'layout:IEC', mark, 'layout:F0')).toBe('layout:F0');
+    expect(chooseTakeoffSheetId(plan, null, 'layout:IEC', mark)).toBe('layout:F0');
+    expect(chooseTakeoffSheetId(plan, 'layout:IEC', 'layout:IEC', mark, 'layout:F0')).toBe('layout:IEC');
+    expect(chooseTakeoffSheetId(plan, null, 'layout:IEC', null, 'layout:F0')).toBe('layout:F0');
+  });
+
   it('changes the drawing only for a supported mode with known background layers', () => {
     expect(resolveArchitectureApply('gray', true, [2])).toEqual({ ok: true, mode: 'gray', indexes: [2] });
     expect(resolveArchitectureApply('mono', true, [2]).ok).toBe(true);

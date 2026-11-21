@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { cadHtmlTextLine } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-text-bidi';
 import type { Boq, BoqLine, CatalogType, EffectiveDetection, SheetDto } from '../domain/contracts';
 import { boqLineDisplayLabel, boqLineStatus, groupBoqLinesForDisplay } from './boq-display';
 import { TakeoffSymbolGlyph } from './takeoff-symbol-glyph';
@@ -159,9 +160,9 @@ export function TakeoffBoqPanel({
                         )}
                         <span className="min-w-0">
                           <span className="block break-words font-medium text-[var(--pf-text-primary)]">{displayName}</span>
-                          {line.originalLabel && line.originalLabel.trim() !== displayName ? (
+                          {line.originalLabel && cadHtmlTextLine(line.originalLabel) !== displayName ? (
                             <span className="mt-0.5 block break-words text-[11px] text-[var(--pf-text-secondary)]">
-                              {t('boq.originalLegend')}: {line.originalLabel}
+                              {t('boq.originalLegend')}: {cadHtmlTextLine(line.originalLabel)}
                             </span>
                           ) : null}
                           {identity ? (

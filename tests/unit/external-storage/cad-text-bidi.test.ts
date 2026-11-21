@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   cadCanvasTextLine,
+  cadHtmlTextLine,
   cadShxVisualLine,
   shouldApplyCadBackwardsMirror,
 } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-text-bidi';
@@ -41,5 +42,21 @@ describe('CAD mixed Hebrew / number order', () => {
     expect(multiply).toContain('\u202D3x1.5\u202C');
     expect(multiply).not.toContain('5.1x3');
     expect(cadCanvasTextLine('ROOM 101')).toBe('ROOM 101');
+  });
+
+  it('isolates stored numbers for RTL without guessing that 5.1 or 02 are reversed', () => {
+    const stored = 'צינור 02 + מוליכים 5.1 ממ"ר';
+    const html = cadHtmlTextLine(stored);
+    expect(html).toContain('\u20665.1\u2069');
+    expect(html).toContain('\u206602\u2069');
+    expect(html).not.toContain('1.5');
+    expect(html).not.toContain('20');
+    expect(html.startsWith('צינור')).toBe(true);
+    expect(cadCanvasTextLine(stored)).toContain('\u202D5.1\u202C');
+    expect(cadCanvasTextLine(stored)).not.toContain('1.5');
+    const logical = cadHtmlTextLine('חתך 1.5 ממ"ר');
+    expect(logical).toContain('\u20661.5\u2069');
+    expect(logical).not.toContain('5.1');
+    expect(cadHtmlTextLine(cadHtmlTextLine(stored))).toBe(html);
   });
 });

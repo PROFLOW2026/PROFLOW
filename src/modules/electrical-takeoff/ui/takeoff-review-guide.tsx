@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { cadHtmlTextLine } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-text-bidi';
 import type { CatalogType, EffectiveDetection, SheetDto, WorkerLegendEntry } from '../domain/contracts';
 import { canSaveReviewIdentity, reviewPlainKey } from '../domain/review-copy';
 import { classifyLegendText, isLegendNoteText } from '../domain/legend-identity';
@@ -114,7 +115,13 @@ export function TakeoffReviewGuide({
     new Set(matchedLegend.map((row) => legendDisplayText(row).trim()).filter(Boolean)),
   );
   const pickedTypeName = catalog.find((type) => type.key === pick)?.nameHe?.trim();
-  const proposedName = (form.rename.trim() || current.userLabel?.trim() || pickedTypeName || current.originalText?.trim() || detectionDisplayLabel(current, catalog, t('detection.unclassified')));
+  const proposedName = cadHtmlTextLine(
+    form.rename.trim() ||
+      current.userLabel?.trim() ||
+      pickedTypeName ||
+      current.originalText?.trim() ||
+      detectionDisplayLabel(current, catalog, t('detection.unclassified')),
+  );
   const libraryAllowed = canManageLibrary && canSaveReclassifyToLibrary(current, pick || null);
   const canConfirm = canSaveReviewIdentity(pick || null, current, form.rename);
   const groupPreview = resolveSaveReviewPlan({

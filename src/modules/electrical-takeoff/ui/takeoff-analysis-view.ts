@@ -1,3 +1,4 @@
+import { cadHtmlTextLine } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-text-bidi';
 import type { AnalysisView, TakeoffEdit } from '../domain/contracts';
 import { sharedSymbolToken, type SymbolGroupDetection } from './symbol-group';
 
@@ -52,9 +53,9 @@ export function legendDisplayText(row: {
   key: string;
 }): string {
   const decoded = row.decodedText?.trim();
-  if (decoded) return decoded;
+  if (decoded) return cadHtmlTextLine(decoded);
   const raw = row.rawText?.trim();
-  if (raw) return raw;
+  if (raw) return cadHtmlTextLine(raw);
   return row.key;
 }
 

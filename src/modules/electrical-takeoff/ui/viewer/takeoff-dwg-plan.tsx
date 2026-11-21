@@ -255,7 +255,13 @@ export function TakeoffDwgPlan({
 
   const focusedMark = marks.find((item) => item.id === focusId) ?? null;
   const pickScope = `${sheetKey}:${focusId ?? ''}`;
-  const sheetId = chooseTakeoffSheetId(plan, pickedFor === pickScope ? pickedSheetId : null, pickedSheetId, focusedMark);
+  const sheetId = chooseTakeoffSheetId(
+    plan,
+    pickedFor === pickScope ? pickedSheetId : null,
+    pickedSheetId,
+    focusedMark,
+    sheetKey,
+  );
   const sheet = plan?.sheets.find((item) => item.id === sheetId) ?? plan?.sheets[0] ?? null;
   const activeIds = useMemo(() => {
     const stored = windowsFor === `${sheetKey}:${sheet?.id ?? ''}` ? pickedWindows : [];

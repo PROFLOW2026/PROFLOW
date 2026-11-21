@@ -1,3 +1,4 @@
+import { cadHtmlTextLine } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-text-bidi';
 import type { BoqLine, CatalogType } from '../domain/contracts';
 import { plannerItemName } from '../domain/legend-identity';
 import { boqLineIdentityStatus, type IdentityReviewStatus } from '../domain/review-copy';
@@ -140,15 +141,15 @@ export function boqLineDisplayLabel(
   unclassifiedLabel: string,
 ): string {
   const original = line.originalLabel?.trim();
-  if (original) return original;
+  if (original) return cadHtmlTextLine(original);
   const trimmed = line.label.trim();
   const fromPlanner =
     line.identitySource === 'legend' || line.identitySource === 'library' || line.identitySource === 'manual';
-  if (fromPlanner && trimmed && !TECHNICAL_ID_LABEL.test(trimmed)) return trimmed;
+  if (fromPlanner && trimmed && !TECHNICAL_ID_LABEL.test(trimmed)) return cadHtmlTextLine(trimmed);
   if (!line.typeKey) return unclassifiedLabel;
   const fromCatalog = catalog.find((c) => c.key === line.typeKey)?.nameHe?.trim();
-  if (fromCatalog) return fromCatalog;
-  if (trimmed && !TECHNICAL_ID_LABEL.test(trimmed) && !trimmed.includes('#')) return trimmed;
+  if (fromCatalog) return cadHtmlTextLine(fromCatalog);
+  if (trimmed && !TECHNICAL_ID_LABEL.test(trimmed) && !trimmed.includes('#')) return cadHtmlTextLine(trimmed);
   return line.typeKey;
 }
 
@@ -177,9 +178,10 @@ export function detectionDisplayLabel(
   unclassifiedLabel: string,
 ): string {
   const fromPlanner = plannerItemName(detection);
-  if (fromPlanner) return fromPlanner;
+  if (fromPlanner) return cadHtmlTextLine(fromPlanner);
   if (detection.typeKey) {
-    return catalog.find((c) => c.key === detection.typeKey)?.nameHe?.trim() || detection.typeKey;
+    const fromCatalog = catalog.find((c) => c.key === detection.typeKey)?.nameHe?.trim() || detection.typeKey;
+    return cadHtmlTextLine(fromCatalog);
   }
   return unclassifiedLabel;
 }
