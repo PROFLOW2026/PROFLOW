@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import type { CatalogType, EffectiveDetection, SheetDto, WorkerLegendEntry } from '../domain/contracts';
-import { reviewPlainKey } from '../domain/review-copy';
+import { canSaveReviewIdentity, reviewPlainKey } from '../domain/review-copy';
 import { classifyLegendText, isLegendNoteText } from '../domain/legend-identity';
 import { detectionDisplayLabel } from './boq-display';
 import { defaultReviewScope, type ReviewGroup, type TypeSuggestion } from './review-guide';
@@ -43,6 +44,9 @@ export function TakeoffReviewGuide({
   onCatalogSaved,
   legendRows = [],
   planSvgMarkup = null,
+  feedback = null,
+  skippedCount = 0,
+  onRetry,
 }: {
   group: ReviewGroup;
   focus: EffectiveDetection;
@@ -63,6 +67,9 @@ export function TakeoffReviewGuide({
   onCatalogSaved?: (type: CatalogType) => void;
   legendRows?: readonly WorkerLegendEntry[];
   planSvgMarkup?: string | null;
+  feedback?: { tone: 'success' | 'danger' | 'info' | 'warning'; text: string } | null;
+  skippedCount?: number;
+  onRetry?: () => void;
 }) {
   const t = useTranslations('takeoff');
   const marks = occurrences.length > 0 ? occurrences : [focus];
@@ -76,7 +83,7 @@ export function TakeoffReviewGuide({
     saveLib: false,
     rename: '',
     legendPick: current.legendRowIds?.[0] ?? '',
-    showType: false,
+    showType: !group.typeKey,
     showRename: false,
     showLegend: false,
     context: false,
@@ -89,7 +96,7 @@ export function TakeoffReviewGuide({
       saveLib: false,
       rename: '',
       legendPick: current.legendRowIds?.[0] ?? '',
-      showType: false,
+      showType: !group.typeKey,
       showRename: false,
       showLegend: false,
       context: false,
@@ -103,10 +110,10 @@ export function TakeoffReviewGuide({
   const legendTexts = Array.from(
     new Set(matchedLegend.map((row) => legendDisplayText(row).trim()).filter(Boolean)),
   );
-  const proposedName = (form.rename.trim() || current.userLabel?.trim() || current.originalText?.trim() || detectionDisplayLabel(current, catalog, t('detection.unclassified')));
-  const hasLegendName = Boolean(current.originalText?.trim() || form.rename.trim() || current.userLabel?.trim());
+  const pickedTypeName = catalog.find((type) => type.key === pick)?.nameHe?.trim();
+  const proposedName = (form.rename.trim() || current.userLabel?.trim() || pickedTypeName || current.originalText?.trim() || detectionDisplayLabel(current, catalog, t('detection.unclassified')));
   const libraryAllowed = canManageLibrary && canSaveReclassifyToLibrary(current, pick || null);
-  const canConfirm = Boolean(pick || hasLegendName);
+  const canConfirm = canSaveReviewIdentity(pick || null, current, form.rename);
   const scopeCount = scope === 'group' ? group.occurrences : 1;
   const ids = scope === 'group' && !conflict ? group.detectionIds : [current.id];
   const plain = reviewPlainKey(current);
@@ -376,18 +383,52 @@ export function TakeoffReviewGuide({
       </label>
 
       {!canConfirm ? <p className="text-xs text-[var(--pf-status-warning-fg)]">{t('guide.pickOrNameRequired')}</p> : null}
+      {canConfirm ? (
+        <p className="text-sm font-medium text-[var(--pf-text-primary)]" data-testid="takeoff-about-to-confirm">
+          {scopeCount === 1
+            ? t('detection.aboutToConfirmOne', { type: proposedName })
+            : t('detection.aboutToConfirmGroup', { count: scopeCount, type: proposedName })}
+        </p>
+      ) : null}
+      {skippedCount > 0 ? (
+        <p className="text-xs text-[var(--pf-status-warning-fg)]">{t('detection.confirmSkipped', { count: skippedCount })}</p>
+      ) : null}
+      {feedback ? (
+        <Alert tone={feedback.tone} className="mt-2" data-testid="takeoff-action-feedback">
+          <p>{feedback.text}</p>
+          {feedback.tone === 'danger' && onRetry ? (
+            <Button type="button" size="sm" className="mt-2 min-h-11" onClick={onRetry} disabled={saving}>
+              {t('detection.retry')}
+            </Button>
+          ) : null}
+        </Alert>
+      ) : null}
 
       <Button
         type="button"
         data-testid="takeoff-guide-confirm"
         className="mt-2 min-h-11 w-full"
+        loading={saving}
         disabled={readOnly || saving || !canConfirm}
-        aria-busy={saving}
+        title={!canConfirm ? t('guide.pickOrNameRequired') : undefined}
         onClick={() => submit(true)}
       >
         <Check className="size-4" />
         {saving ? t('guide.saving') : t('guide.confirmMatch', { count: scopeCount })}
       </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        data-testid="takeoff-guide-save-only"
+        className="mt-1 min-h-11 w-full"
+        loading={saving}
+        disabled={readOnly || saving || !canConfirm}
+        title={t('detection.applyTypeHint')}
+        onClick={() => submit(false)}
+      >
+        {t('guide.saveWithoutConfirm')}
+      </Button>
+      <p className="text-xs text-[var(--pf-text-muted)]">{t('detection.applyTypeHint')}</p>
     </section>
   );
 }

@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   boqLineIdentityStatus,
+  canSaveReviewIdentity,
   detectionIdentityStatus,
+  hasConfirmableLegendName,
   reviewPlainKey,
 } from '@/modules/electrical-takeoff/domain/review-copy';
 import type { EffectiveDetection } from '@/modules/electrical-takeoff/domain/contracts';
@@ -117,5 +119,39 @@ describe('review-copy identity statuses', () => {
         }),
       ),
     ).toBe('manuallyApproved');
+  });
+
+  it('allows save-and-confirm from an unambiguous legend name without a catalog type', () => {
+    const row = detection({
+      id: 'light-1',
+      originalText: 'נקודת מאור',
+      legendUnambiguous: true,
+      identitySource: 'legend',
+      reasons: [],
+    });
+    expect(hasConfirmableLegendName(row)).toBe(true);
+    expect(canSaveReviewIdentity(null, row)).toBe(true);
+  });
+
+  it('blocks save-and-confirm when there is no legend name and no catalog type', () => {
+    const row = detection({
+      id: 'empty-1',
+      reasons: ['unclassified', 'legend_unmapped'],
+    });
+    expect(canSaveReviewIdentity(null, row)).toBe(false);
+    expect(canSaveReviewIdentity('light.point', row)).toBe(true);
+  });
+
+  it('does not treat a legend conflict as a confirmable name', () => {
+    const row = detection({
+      id: 'conflict-1',
+      originalText: 'מפסק מאור',
+      identitySource: 'legend',
+      legendUnambiguous: false,
+      reasons: ['type_ambiguous'],
+      legendRowIds: ['a', 'b'],
+    });
+    expect(hasConfirmableLegendName(row)).toBe(false);
+    expect(canSaveReviewIdentity(null, row)).toBe(false);
   });
 });

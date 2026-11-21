@@ -1,5 +1,6 @@
 import type { CatalogType, EffectiveDetection, ElectricalCategory, TakeoffReviewReason } from '../domain/contracts';
 import { isDetectionCountable } from '../domain/counting-policy';
+import { hasConfirmableLegendName } from '../domain/review-copy';
 import { visibleDetectionReasons } from './takeoff-analysis-view';
 import { sameSymbolDetections, symbolGroupKey } from './symbol-group';
 import { occurrenceFocusRect, symbolContextRect, symbolThumbnailRect } from './viewer/viewer-math';
@@ -61,7 +62,7 @@ export function needsGuidedReview(detection: EffectiveDetection): boolean {
 
 export function reviewKind(detection: EffectiveDetection): ReviewKind | null {
   if (!needsGuidedReview(detection)) return null;
-  if (!detection.typeKey) return 'missingType';
+  if (!detection.typeKey && !hasConfirmableLegendName(detection)) return 'missingType';
   if (detection.reasons.some((reason) => UNCERTAIN_REASONS.has(reason))) return 'uncertain';
   return 'confirmType';
 }

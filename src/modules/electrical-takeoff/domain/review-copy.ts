@@ -1,5 +1,35 @@
 import type { EffectiveDetection, TakeoffReviewReason } from './contracts';
-import { classifyLegendText, isLegendNoteText } from './legend-identity';
+import { classifyLegendText, isLegendHoldText, isLegendNoteText } from './legend-identity';
+
+type ConfirmableLegendDetection = Pick<
+  EffectiveDetection,
+  'originalText' | 'userLabel' | 'legendUnambiguous' | 'identitySource' | 'reasons'
+>;
+
+/**
+ * A planner legend name can be approved without inventing a catalog typeKey.
+ * Conflict, unread, note and cable rows still need a catalog pick or a user name.
+ */
+export function hasConfirmableLegendName(
+  detection: ConfirmableLegendDetection,
+  extraName?: string,
+): boolean {
+  if (detection.reasons.includes('type_ambiguous')) return false;
+  const userName = extraName?.trim() || detection.userLabel?.trim() || '';
+  if (userName) return true;
+  const legendName = detection.originalText?.trim() || '';
+  if (!legendName || isLegendHoldText(legendName)) return false;
+  return Boolean(detection.legendUnambiguous || detection.identitySource === 'legend');
+}
+
+export function canSaveReviewIdentity(
+  typeKey: string | null | undefined,
+  detection: ConfirmableLegendDetection,
+  extraName?: string,
+): boolean {
+  if (typeKey?.trim()) return true;
+  return hasConfirmableLegendName(detection, extraName);
+}
 
 /** Identity of one mark for control / quantities — not the final BOQ document approval. */
 export type IdentityReviewStatus = 'autoIdentified' | 'needsCheck' | 'unclassified' | 'manuallyApproved';

@@ -69,6 +69,7 @@ export function PlanViewer({
   const fittedSheet = useRef<string | null>(null);
   const userAdjusted = useRef(false);
   const holdOccurrenceFocus = useRef(false);
+  const focusTargetRef = useRef<{ id: string; x: number; y: number; w: number; h: number } | undefined>(undefined);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
   const pinchRef = useRef<{ startDist: number; startScale: number } | null>(null);
   const activePointers = useRef(new Map<number, { x: number; y: number }>());
@@ -83,6 +84,9 @@ export function PlanViewer({
     return selected ?? sheetDetections.find((detection) => highlightedIds.has(detection.id));
   }, [highlightedIds, selectedId, sheetDetections]);
   const focusUnavailable = Boolean((selectedId || highlightedIds.size > 0) && (!focusTarget || !hasReliableOccurrenceBounds(focusTarget)));
+  useEffect(() => {
+    focusTargetRef.current = focusTarget;
+  }, [focusTarget]);
 
   const applyFit = useCallback((width: number, height: number, force: boolean) => {
     if (width < 40 || height < 40) return;
@@ -132,18 +136,18 @@ export function PlanViewer({
     };
   }, [applyFit, focusTarget]);
 
+  const focusTargetId = focusTarget?.id ?? null;
   useEffect(() => {
     const el = containerRef.current;
     if (!el || el.clientWidth < 40 || el.clientHeight < 40) return;
-    const target = focusTarget;
+    const target = focusTargetRef.current;
     if (!target || !hasReliableOccurrenceBounds(target)) {
-      holdOccurrenceFocus.current = false;
       return;
     }
     holdOccurrenceFocus.current = true;
     userAdjusted.current = true;
     setViewport(fitSelection({ width: el.clientWidth, height: el.clientHeight }, occurrenceFocusRect(target), 72));
-  }, [focusNonce, focusTarget]);
+  }, [focusNonce, focusTargetId]);
 
   const zoomAtCenter = useCallback((factor: number) => {
     const el = containerRef.current;

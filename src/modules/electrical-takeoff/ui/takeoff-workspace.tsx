@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
+import { useOptionalToast } from '@/components/ui/toast';
 import {
   Check,
   Download,
@@ -32,12 +33,12 @@ import { TakeoffSheetControls } from './takeoff-sheet-controls';
 import { TakeoffSheetsPanel } from './takeoff-sheets-panel';
 import { waitForExportReady } from './takeoff-export';
 import {
-  buildGroupReclassifyEdits,
   buildLegendLibraryEdit,
   hasBlockingWorkerWarnings,
   legendConflictOnDetection,
   legendDisplayText,
 } from './takeoff-analysis-view';
+import { buildSaveReviewEdits, nextUnconfirmedId, resolveSaveReviewPlan } from './save-review-action';
 import { detectionsForSheet, parseSheetRefId, sheetRefId } from './sheet-ref';
 import { sameSymbolDetections, undecodedLegendExemplars } from './symbol-group';
 import { buildReviewGroups, typeSuggestions } from './review-guide';
@@ -59,6 +60,7 @@ export function TakeoffWorkspace({
 }) {
   const t = useTranslations('takeoff');
   const api = useTakeoffApi();
+  const toast = useOptionalToast();
   const router = useRouter();
   const [state, setState] = useState(initialWorkspaceState);
   const [areaDraft, setAreaDraft] = useState<[number, number][]>([]);
@@ -69,6 +71,12 @@ export function TakeoffWorkspace({
   const [guideIndex, setGuideIndex] = useState(0);
   const [shownOccurrenceId, setShownOccurrenceId] = useState<string | null>(null);
   const [guideSaving, setGuideSaving] = useState(false);
+  const actionSavingRef = useRef(false);
+  const lastSaveRetryRef = useRef<null | (() => Promise<boolean>)>(null);
+  const [actionFeedback, setActionFeedback] = useState<{
+    tone: 'success' | 'danger' | 'info' | 'warning';
+    text: string;
+  } | null>(null);
   const [libraryEntries, setLibraryEntries] = useState<SymbolLibraryEntry[]>([]);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -86,8 +94,8 @@ export function TakeoffWorkspace({
   const [planFocusNonce, setPlanFocusNonce] = useState(0);
   const sheetsPanelRef = useRef<HTMLElement>(null);
 
-  const load = useCallback(async () => {
-    setState((s) => ({ ...s, loading: true, error: null }));
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setState((s) => ({ ...s, loading: true, error: null }));
     try {
       const view = await api.getAnalysisView(analysisId);
       const defaultSheet =
@@ -99,7 +107,7 @@ export function TakeoffWorkspace({
         ...s,
         view,
         loading: false,
-        activeSheetKey: defaultSheet ? sheetRefId(defaultSheet) : null,
+        activeSheetKey: s.activeSheetKey ?? (defaultSheet ? sheetRefId(defaultSheet) : null),
       }));
     } catch {
       setState((s) => ({ ...s, loading: false, error: t('errors.loadFailed') }));
@@ -171,6 +179,15 @@ export function TakeoffWorkspace({
     return lines.filter((l) => l.typeKey != null || l.identitySource === 'legend' || l.identitySource === 'library' || l.identitySource === 'manual');
   }, [showUnclassifiedBoq, state.view?.boq.lines]);
 
+  const announce = useCallback(
+    (tone: 'success' | 'danger' | 'info' | 'warning', text: string) => {
+      setActionFeedback({ tone, text });
+      setState((s) => ({ ...s, saveNotice: text }));
+      toast?.push(text, tone === 'warning' ? 'info' : tone);
+    },
+    [toast],
+  );
+
   const flushEdits = useCallback(
     async (edits: TakeoffEdit[]): Promise<AnalysisView | null> => {
       if (!state.view || !edits.length) return state.view;
@@ -181,15 +198,19 @@ export function TakeoffWorkspace({
       } catch (err) {
         if (isRevisionConflictError(err)) {
           setConflictBanner(t('workspace.revisionConflict'));
-          setState((s) => ({ ...s, saveNotice: null }));
-          await load();
+          announce('warning', t('workspace.revisionConflict'));
+          await load({ silent: true });
           return null;
         }
-        setState((s) => ({ ...s, saveNotice: t('workspace.saveFailed') }));
+        const timedOut =
+          err instanceof Error &&
+          (err.message === 'timeout' || (err as { takeoffCode?: string }).takeoffCode === 'timeout');
+        const message = timedOut ? t('workspace.saveTimeout') : t('workspace.saveFailed');
+        announce('danger', message);
         return null;
       }
     },
-    [analysisId, api, load, state.view, t],
+    [analysisId, announce, api, load, state.view, t],
   );
   useEffect(() => {
     flushRef.current = flushEdits;
@@ -209,11 +230,20 @@ export function TakeoffWorkspace({
   const queueEdit = useCallback((edit: TakeoffEdit) => queueEdits([edit]), [queueEdits]);
 
   const commitEdits = useCallback(async (edits: TakeoffEdit[]) => {
+    if (actionSavingRef.current) return null;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     const batch = [...pendingRef.current, ...edits];
     pendingRef.current = [];
-    return flushRef.current(batch);
-  }, []);
+    if (!batch.length) return state.view;
+    actionSavingRef.current = true;
+    setGuideSaving(true);
+    try {
+      return await flushRef.current(batch);
+    } finally {
+      actionSavingRef.current = false;
+      setGuideSaving(false);
+    }
+  }, [state.view]);
 
   useEffect(() => {
     return () => {
@@ -481,7 +511,8 @@ export function TakeoffWorkspace({
               type="button"
               data-testid="takeoff-approve"
               className="min-h-11 shrink-0"
-              disabled={!canClickApprove}
+              disabled={!canClickApprove || guideSaving}
+              loading={guideSaving}
               title={
                 !canClickApprove && approvalBlockedByReview
                   ? t('approval.blockedHint')
@@ -851,50 +882,79 @@ export function TakeoffWorkspace({
                 saving={guideSaving}
                 progress={guidedProgress}
                 shownId={shownOccurrenceId ?? guideFocus.id}
+                feedback={actionFeedback}
+                onRetry={() => {
+                  void lastSaveRetryRef.current?.();
+                }}
                 onShowOccurrence={(detectionId) => {
                   focusOccurrence(detectionId);
                 }}
                 onConfirm={async (choice) => {
-                  setGuideSaving(true);
-                  const edits: TakeoffEdit[] = [];
-                  if (choice.label) {
-                    for (const id of choice.detectionIds) {
-                      edits.push({ op: 'set_label', detectionId: id, label: choice.label });
+                  const run = async () => {
+                    const current = view.detections.find((item) => item.id === choice.detectionIds[0]) ?? guideFocus;
+                    const plan = resolveSaveReviewPlan({
+                      selected: current,
+                      detections: view.detections,
+                      applyToGroup: choice.detectionIds.length > 1,
+                      candidateIds: choice.detectionIds,
+                      typeKey: choice.typeKey,
+                      confirm: choice.confirm,
+                      saveToLibrary: choice.saveToLibrary,
+                    });
+                    const ids = plan.ids;
+                    const edits: TakeoffEdit[] = [];
+                    if (choice.label) {
+                      for (const id of ids) {
+                        edits.push({ op: 'set_label', detectionId: id, label: choice.label });
+                      }
                     }
-                  }
-                  if (choice.legendRowId !== undefined) {
-                    for (const id of choice.detectionIds) {
-                      edits.push({ op: 'assign_legend', detectionId: id, legendRowId: choice.legendRowId });
+                    if (choice.legendRowId !== undefined) {
+                      for (const id of ids) {
+                        edits.push({ op: 'assign_legend', detectionId: id, legendRowId: choice.legendRowId });
+                      }
                     }
-                  }
-                  const typeChanged = choice.typeKey !== (activeGuide.typeKey ?? '');
-                  if ((choice.typeKey && typeChanged) || choice.saveToLibrary) {
-                    edits.push(
-                      ...buildGroupReclassifyEdits(
-                        choice.detectionIds,
-                        view.detections,
-                        choice.typeKey,
-                        choice.saveToLibrary,
-                      ),
-                    );
-                  }
-                  if (choice.confirm) {
-                    edits.push({ op: 'confirm', detectionIds: choice.detectionIds });
-                  }
-                  const next = await commitEdits(edits);
-                  setGuideSaving(false);
-                  if (!next) return false;
-                  const nextGroups = buildReviewGroups(next.detections);
-                  const still = nextGroups.findIndex((group) => group.key === activeGuide.key);
-                  const nextIndex = still >= 0 ? still : Math.min(guideIndex, Math.max(0, nextGroups.length - 1));
-                  if (still < 0) {
-                    setCompletedReviewKeys((prev) =>
-                      prev.includes(activeGuide.key) ? prev : [...prev, activeGuide.key],
-                    );
-                  }
-                  setGuideIndex(nextIndex);
-                  focusGuide(nextGroups[nextIndex] ?? null);
-                  return true;
+                    edits.push(...buildSaveReviewEdits({ ...plan, ids }, view.detections));
+                    if (edits.length === 0) {
+                      announce('info', t('detection.nothingToSave'));
+                      return false;
+                    }
+                    const next = await commitEdits(edits);
+                    if (!next) return false;
+                    const saved = ids.filter((id) => {
+                      const row = next.detections.find((item) => item.id === id);
+                      if (!row) return false;
+                      if (choice.confirm) return row.status === 'confirmed';
+                      return (choice.typeKey ?? null) === (row.typeKey ?? null) || Boolean(choice.label);
+                    }).length;
+                    const message =
+                      plan.skippedCount > 0
+                        ? t('detection.savedPartial', {
+                            saved,
+                            requested: plan.requestedCount,
+                            skipped: plan.skippedCount,
+                          })
+                        : choice.confirm
+                          ? saved === 1
+                            ? t('detection.savedAndConfirmedOne')
+                            : t('detection.savedAndConfirmed', { count: saved })
+                          : saved === 1
+                            ? t('detection.savedWithoutConfirmOne')
+                            : t('detection.savedWithoutConfirm', { count: saved });
+                    announce('success', message);
+                    const nextGroups = buildReviewGroups(next.detections);
+                    const still = nextGroups.findIndex((group) => group.key === activeGuide.key);
+                    if (still < 0) {
+                      setCompletedReviewKeys((prev) =>
+                        prev.includes(activeGuide.key) ? prev : [...prev, activeGuide.key],
+                      );
+                      const nextIndex = Math.min(guideIndex, Math.max(0, nextGroups.length - 1));
+                      setGuideIndex(nextIndex);
+                      focusGuide(nextGroups[nextIndex] ?? null);
+                    }
+                    return true;
+                  };
+                  lastSaveRetryRef.current = run;
+                  return run();
                 }}
               />
             ) : (
@@ -1077,6 +1137,7 @@ export function TakeoffWorkspace({
         <TakeoffDetectionSheet
           key={selected.id}
           detection={selected}
+          detections={view.detections}
           catalog={state.view.catalog}
           readOnly={readOnly}
           groupSize={selectedSymbolGroup.length}
@@ -1087,15 +1148,77 @@ export function TakeoffWorkspace({
           onCatalogSaved={onCatalogSaved}
           legendRows={view.legend ?? []}
           reasonLabel={reasonLabel}
+          saving={guideSaving}
+          feedback={actionFeedback}
+          onRetry={() => {
+            void lastSaveRetryRef.current?.();
+          }}
           onClose={() => setState((s) => ({ ...s, selectedDetectionId: null }))}
-          onReclassify={(typeKey, saveToLibrary, applyToGroup) => {
-            const ids = applyToGroup ? selectedSymbolGroup.map((detection) => detection.id) : [selected.id];
-            queueEdits(buildGroupReclassifyEdits(ids, view.detections, typeKey, saveToLibrary));
+          onCommit={(input) => {
+            const run = async () => {
+              const plan = resolveSaveReviewPlan({
+                selected,
+                detections: view.detections,
+                applyToGroup: input.applyToGroup,
+                typeKey: input.typeKey,
+                confirm: input.confirm,
+                saveToLibrary: input.saveToLibrary,
+              });
+              const edits = buildSaveReviewEdits(plan, view.detections);
+              if (edits.length === 0) {
+                announce('info', t('detection.nothingToSave'));
+                return false;
+              }
+              const next = await commitEdits(edits);
+              if (!next) return false;
+              const saved = plan.ids.filter((id) => {
+                const row = next.detections.find((item) => item.id === id);
+                if (!row) return false;
+                if (input.confirm) return row.status === 'confirmed';
+                return (input.typeKey ?? null) === (row.typeKey ?? null);
+              }).length;
+              const message =
+                plan.skippedCount > 0
+                  ? t('detection.savedPartial', {
+                      saved,
+                      requested: plan.requestedCount,
+                      skipped: plan.skippedCount,
+                    })
+                  : input.confirm
+                    ? saved === 1
+                      ? t('detection.savedAndConfirmedOne')
+                      : t('detection.savedAndConfirmed', { count: saved })
+                    : saved === 1
+                      ? t('detection.savedWithoutConfirmOne')
+                      : t('detection.savedWithoutConfirm', { count: saved });
+              announce('success', message);
+              if (input.confirm) {
+                const groupIds = sameSymbolDetections(selected, next.detections).map((item) => item.id);
+                const nextId =
+                  nextUnconfirmedId(selected.id, groupIds, next.detections) ??
+                  nextUnconfirmedId(
+                    selected.id,
+                    next.detections.map((item) => item.id),
+                    next.detections,
+                  );
+                if (nextId) focusOccurrence(nextId);
+              }
+              return true;
+            };
+            lastSaveRetryRef.current = run;
+            void run();
           }}
           onSetNote={(tagText) => queueEdit({ op: 'set_note', detectionId: selected.id, tagText })}
-          onConfirm={() => queueEdit({ op: 'confirm', detectionIds: [selected.id] })}
-          onDelete={() => queueEdit({ op: 'delete', detectionId: selected.id })}
-          onRestore={() => queueEdit({ op: 'restore', detectionId: selected.id })}
+          onDelete={() => {
+            void commitEdits([{ op: 'delete', detectionId: selected.id }]).then((next) => {
+              if (next) announce('success', t('detection.deleted'));
+            });
+          }}
+          onRestore={() => {
+            void commitEdits([{ op: 'restore', detectionId: selected.id }]).then((next) => {
+              if (next) announce('success', t('detection.restored'));
+            });
+          }}
         />
       ) : null}
 

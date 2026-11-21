@@ -1,18 +1,29 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import type { CatalogType, EffectiveDetection, TakeoffReviewReason, WorkerLegendEntry } from '../domain/contracts';
 import { devicesFromNote, tagWithDeviceCount } from '../domain/quantity-notes';
 import {
   canSaveReclassifyToLibrary,
   detectionTwinLabel,
+  legendConflictOnDetection,
   legendDisplayText,
   visibleDetectionReasons,
 } from './takeoff-analysis-view';
+import { canSaveReviewIdentity } from '../domain/review-copy';
 import { detectionDisplayLabel } from './boq-display';
+import { resolveSaveReviewPlan } from './save-review-action';
 import { TakeoffTypePicker, type TakeoffCatalogMutations } from './takeoff-type-picker';
+
+export type DetectionSaveRequest = {
+  typeKey: string | null;
+  saveToLibrary: boolean;
+  applyToGroup: boolean;
+  confirm: boolean;
+};
 
 export function TakeoffDetectionSheet({
   detection,
@@ -26,12 +37,15 @@ export function TakeoffDetectionSheet({
   catalogMutations,
   onCatalogSaved,
   legendRows = [],
+  saving = false,
+  feedback = null,
+  detections,
   onClose,
-  onReclassify,
+  onCommit,
   onSetNote,
-  onConfirm,
   onDelete,
   onRestore,
+  onRetry,
 }: {
   detection: EffectiveDetection;
   catalog: readonly CatalogType[];
@@ -45,19 +59,24 @@ export function TakeoffDetectionSheet({
   catalogMutations?: TakeoffCatalogMutations;
   onCatalogSaved?: (type: CatalogType) => void;
   legendRows?: readonly WorkerLegendEntry[];
+  saving?: boolean;
+  feedback?: { tone: 'success' | 'danger' | 'info' | 'warning'; text: string } | null;
+  detections?: readonly EffectiveDetection[];
   reasonLabel: (r: TakeoffReviewReason | string) => string;
   onClose: () => void;
-  onReclassify: (typeKey: string | null, saveToLibrary: boolean, applyToGroup: boolean) => void;
+  onCommit: (input: DetectionSaveRequest) => void;
   onSetNote: (tagText: string | null) => void;
-  onConfirm: () => void;
   onDelete: () => void;
   onRestore: () => void;
+  onRetry?: () => void;
 }) {
   const t = useTranslations('takeoff');
+  const conflict = legendConflictOnDetection(detection);
   const [saveLib, setSaveLib] = useState(false);
-  const [applyToGroup, setApplyToGroup] = useState(defaultApplyToGroup && groupSize > 1);
+  const [applyToGroup, setApplyToGroup] = useState(defaultApplyToGroup && groupSize > 1 && !conflict);
   const [pick, setPick] = useState(detection.typeKey ?? '');
   const [deviceCount, setDeviceCount] = useState(() => devicesFromNote(detection.tagText));
+  const [missingType, setMissingType] = useState(false);
 
   const confidenceBadge =
     detection.confidence === 'high'
@@ -68,6 +87,28 @@ export function TakeoffDetectionSheet({
   const libraryAllowed = canManageLibrary && canSaveReclassifyToLibrary(detection, pick || null);
   const matchedLegend = legendRows.filter((row) => detection.legendRowIds?.includes(row.key));
   const reasons = visibleDetectionReasons(detection);
+  const selectedTypeKey = pick || detection.typeKey || null;
+  const typeName = useMemo(() => {
+    return (
+      catalog.find((item) => item.key === selectedTypeKey)?.nameHe?.trim() ||
+      detection.userLabel?.trim() ||
+      detection.originalText?.trim() ||
+      t('detection.unclassified')
+    );
+  }, [catalog, detection.originalText, detection.userLabel, selectedTypeKey, t]);
+  const groupOn = applyToGroup && groupSize > 1 && !conflict;
+  const planPreview = resolveSaveReviewPlan({
+    selected: detection,
+    detections: detections ?? [detection],
+    applyToGroup: groupOn,
+    typeKey: selectedTypeKey,
+    confirm: true,
+    saveToLibrary: false,
+  });
+  const count = planPreview.includedCount;
+  const skippedCount = planPreview.skippedCount;
+  const canSave = canSaveReviewIdentity(selectedTypeKey, detection);
+  const missingHint = t('guide.pickOrNameRequired');
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -76,6 +117,20 @@ export function TakeoffDetectionSheet({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  const commit = (confirm: boolean) => {
+    if (!canSave) {
+      setMissingType(true);
+      return;
+    }
+    setMissingType(false);
+    onCommit({
+      typeKey: selectedTypeKey,
+      saveToLibrary: saveLib && libraryAllowed,
+      applyToGroup: groupOn,
+      confirm,
+    });
+  };
 
   return (
     <div
@@ -90,7 +145,6 @@ export function TakeoffDetectionSheet({
             {detectionDisplayLabel(detection, catalog, t('detection.unclassified'))}
           </h3>
           <p className="text-xs text-[var(--pf-text-muted)]">
-            <span className="text-[var(--pf-text-secondary)]">{t('detection.title')}</span>
             <span className="ms-1 font-mono">{detection.id}</span>
           </p>
         </div>
@@ -104,6 +158,16 @@ export function TakeoffDetectionSheet({
           {t('common.close')} (Esc)
         </Button>
       </header>
+      {feedback ? (
+        <Alert tone={feedback.tone} className="mb-3" data-testid="takeoff-action-feedback">
+          <p>{feedback.text}</p>
+          {feedback.tone === 'danger' && onRetry ? (
+            <Button type="button" size="sm" className="mt-2 min-h-11" onClick={onRetry} disabled={saving}>
+              {t('detection.retry')}
+            </Button>
+          ) : null}
+        </Alert>
+      ) : null}
       <dl className="space-y-2 text-sm">
         <div>
           <dt className="text-xs text-[var(--pf-text-muted)]">{t('detection.confidence')}</dt>
@@ -184,9 +248,12 @@ export function TakeoffDetectionSheet({
           <TakeoffTypePicker
             catalog={catalog}
             value={pick}
-            disabled={readOnly}
+            disabled={readOnly || saving}
             testId="takeoff-edit-type"
-            onChange={setPick}
+            onChange={(value) => {
+              setPick(value);
+              setMissingType(false);
+            }}
             canManageCatalog={canManageCatalog}
             mutations={catalogMutations}
             onCatalogSaved={onCatalogSaved}
@@ -196,7 +263,7 @@ export function TakeoffDetectionSheet({
               type="checkbox"
               data-testid="takeoff-save-to-library"
               checked={saveLib}
-              disabled={!libraryAllowed}
+              disabled={!libraryAllowed || saving}
               onChange={(e) => setSaveLib(e.target.checked)}
             />
             {t('detection.saveToLibrary')}
@@ -216,56 +283,90 @@ export function TakeoffDetectionSheet({
               data-testid="takeoff-device-count"
               className="min-h-11 w-20 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-page)] px-2 text-end tabular-nums"
               value={deviceCount}
-              disabled={readOnly}
+              disabled={readOnly || saving}
               onChange={(e) => {
                 const next = Number(e.target.value);
                 if (!Number.isFinite(next)) return;
-                const count = Math.min(99, Math.max(1, Math.floor(next)));
-                setDeviceCount(count);
-                onSetNote(tagWithDeviceCount(detection.tagText, count));
+                const countValue = Math.min(99, Math.max(1, Math.floor(next)));
+                setDeviceCount(countValue);
+                onSetNote(tagWithDeviceCount(detection.tagText, countValue));
               }}
             />
           </label>
           <p className="text-xs text-[var(--pf-text-muted)]">{t('detection.deviceCountHint')}</p>
           {groupSize > 1 ? (
-            <label className="flex min-h-11 items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                data-testid="takeoff-apply-symbol-group"
-                checked={applyToGroup}
-                onChange={(e) => setApplyToGroup(e.target.checked)}
-              />
-              {t('detection.applyToSymbolGroup', { count: groupSize })}
-            </label>
+            <fieldset className="space-y-1" disabled={readOnly || saving || conflict}>
+              <legend className="text-xs font-medium text-[var(--pf-text-secondary)]">{t('guide.scopeTitle')}</legend>
+              <label className="flex min-h-11 items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name={`takeoff-sheet-scope-${detection.id}`}
+                  data-testid="takeoff-scope-one"
+                  checked={!groupOn}
+                  onChange={() => setApplyToGroup(false)}
+                />
+                {t('guide.scopeOne')}
+              </label>
+              <label className="flex min-h-11 items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name={`takeoff-sheet-scope-${detection.id}`}
+                  data-testid="takeoff-apply-symbol-group"
+                  checked={groupOn}
+                  disabled={conflict}
+                  onChange={() => setApplyToGroup(true)}
+                />
+                {t('detection.applyToSymbolGroup', { count: groupSize })}
+              </label>
+              <p className="text-xs text-[var(--pf-text-secondary)]">
+                {conflict ? t('guide.conflictForcesOne') : groupOn ? t('guide.appliesGroup', { count: groupSize }) : t('guide.appliesOne')}
+              </p>
+            </fieldset>
           ) : null}
-          <Button
-            type="button"
-            data-testid="takeoff-apply-type"
-            className="min-h-11 w-full"
-            disabled={readOnly}
-            onClick={() => onReclassify(pick || null, saveLib && libraryAllowed, applyToGroup && groupSize > 1)}
-          >
-            {t('detection.applyType')}
-          </Button>
+          {canSave ? (
+            <p className="text-sm font-medium text-[var(--pf-text-primary)]" data-testid="takeoff-about-to-confirm">
+              {count === 1
+                ? t('detection.aboutToConfirmOne', { type: typeName })
+                : t('detection.aboutToConfirmGroup', { count, type: typeName })}
+            </p>
+          ) : null}
+          {skippedCount > 0 ? (
+            <p className="text-xs text-[var(--pf-status-warning-fg)]">{t('detection.confirmSkipped', { count: skippedCount })}</p>
+          ) : null}
+          {missingType || !canSave ? (
+            <p className="text-xs text-[var(--pf-status-warning-fg)]" data-testid="takeoff-need-type">
+              {missingHint}
+            </p>
+          ) : null}
           <Button
             type="button"
             data-testid="takeoff-confirm-detection"
             className="min-h-11 w-full"
-            disabled={readOnly || !(pick || detection.typeKey)}
-            onClick={() => {
-              if (pick !== (detection.typeKey ?? '')) {
-                onReclassify(pick || null, false, false);
-              }
-              onConfirm();
-            }}
+            loading={saving}
+            disabled={readOnly || saving || !canSave}
+            title={!canSave ? missingHint : undefined}
+            onClick={() => commit(true)}
           >
-            {t('detection.confirmMark')}
+            {saving ? t('guide.saving') : t('detection.saveAndConfirmCount', { count })}
           </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            data-testid="takeoff-apply-type"
+            className="min-h-11 w-full"
+            loading={saving}
+            disabled={readOnly || saving || !canSave}
+            title={!canSave ? missingHint : t('detection.applyTypeHint')}
+            onClick={() => commit(false)}
+          >
+            {t('detection.applyType')}
+          </Button>
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('detection.applyTypeHint')}</p>
           <div className="flex gap-2">
-            <Button type="button" data-testid="takeoff-delete-detection" variant="danger" className="min-h-11 flex-1" onClick={onDelete}>
+            <Button type="button" data-testid="takeoff-delete-detection" variant="danger" className="min-h-11 flex-1" loading={saving} disabled={saving} onClick={onDelete}>
               {t('detection.delete')}
             </Button>
-            <Button type="button" variant="secondary" className="min-h-11 flex-1" onClick={onRestore}>
+            <Button type="button" variant="secondary" className="min-h-11 flex-1" loading={saving} disabled={saving} onClick={onRestore}>
               {t('detection.restore')}
             </Button>
           </div>

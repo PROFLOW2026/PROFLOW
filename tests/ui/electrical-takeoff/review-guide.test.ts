@@ -53,6 +53,18 @@ describe('guided review groups', () => {
     expect(reviewKind(mark({ id: '9', typeKey: 'light.recessed', confidence: 'low', reasons: ['type_ambiguous'] }))).toBe(
       'uncertain',
     );
+    expect(
+      reviewKind(
+        mark({
+          id: 'legend-1',
+          typeKey: null,
+          originalText: 'נקודת מאור',
+          legendUnambiguous: true,
+          identitySource: 'legend',
+          reasons: [],
+        }),
+      ),
+    ).toBe('confirmType');
   });
 
   it('defaults bulk apply only when the group has no type conflict', () => {

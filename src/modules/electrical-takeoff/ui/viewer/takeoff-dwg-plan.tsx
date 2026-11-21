@@ -139,6 +139,8 @@ export function TakeoffDwgPlan({
   const drawnRef = useRef<Float32Array>(new Float32Array(0));
   const shownRef = useRef<ShownMark[]>([]);
   const fittedRef = useRef(false);
+  const lastFitKeyRef = useRef('');
+  const lastFocusIdRef = useRef<string | null>(null);
   const fittedSizeRef = useRef({ w: 0, h: 0 });
   const selectRef = useRef(onSelectMark);
   const planClickRef = useRef(onPlanClick);
@@ -471,7 +473,10 @@ export function TakeoffDwgPlan({
     );
     extentRef.current = drawing.extent;
     drawnRef.current = drawing.segments;
-    fittedRef.current = false;
+    const fitKey = `${current.id}:${current.kind}:${activeIds.join(',')}`;
+    const shouldFitWhole = lastFitKeyRef.current !== fitKey;
+    lastFitKeyRef.current = fitKey;
+    if (shouldFitWhole) fittedRef.current = false;
     const layers = model.layers;
     void renderer.setDrawingAsync(
       drawing.segments,
@@ -483,7 +488,7 @@ export function TakeoffDwgPlan({
     ).then(() => {
       if (cancelled) return;
       renderer.setArchitectureDisplay(architecturalRef.current, { mode: archModeRef.current, strength: archStrengthRef.current });
-      renderer.focusExtent(drawing.extent, 28);
+      if (shouldFitWhole) renderer.focusExtent(drawing.extent, 28);
       fittedRef.current = true;
       const rect = glRef.current?.getBoundingClientRect();
       fittedSizeRef.current = { w: rect?.width ?? 0, h: rect?.height ?? 0 };
@@ -506,6 +511,8 @@ export function TakeoffDwgPlan({
     const located = Boolean(active?.located && isPlausibleSymbolBox(active));
     const level = focusLevel(Boolean(active), located);
     setFocused(focusId ? { id: focusId, level } : null);
+    const focusChanged = lastFocusIdRef.current !== focusId;
+    lastFocusIdRef.current = focusId;
     if (!focusId) {
       drawRef.current();
       return;
@@ -514,10 +521,12 @@ export function TakeoffDwgPlan({
       drawRef.current();
       return;
     }
-    if (level === 'point' || !isPlausibleSymbolBox(active)) {
-      renderer.focusExtent(cadInsertFocusExtent(active.x, active.y), 28);
-    } else {
-      renderer.focusExtent(cadSymbolFocusExtent(active), 24);
+    if (focusChanged) {
+      if (level === 'point' || !isPlausibleSymbolBox(active)) {
+        renderer.focusExtent(cadInsertFocusExtent(active.x, active.y), 28);
+      } else {
+        renderer.focusExtent(cadSymbolFocusExtent(active), 24);
+      }
     }
     if (active.located && isPlausibleSymbolBox(active) && onSymbolGlyphs) {
       const source = marks.find((item) => item.id === active.id);

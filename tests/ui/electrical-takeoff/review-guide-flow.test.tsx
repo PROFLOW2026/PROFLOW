@@ -55,8 +55,8 @@ describe('guided takeoff review', () => {
     expect(screen.getByTestId('takeoff-guide-scope-group')).toBeChecked();
     fireEvent.click(screen.getByTestId('takeoff-guide-scope-one'));
     expect(screen.getByTestId('takeoff-guide-scope-one')).toBeChecked();
-    expect(screen.getByTestId('takeoff-guide-reason')).toHaveTextContent(heTakeoff.guide.reason.missingType);
-    expect(screen.getByTestId('takeoff-guide-symbol')).toHaveAttribute('data-symbol-state', 'ready');
+    expect(screen.getByTestId('takeoff-guide-reason')).toHaveTextContent(heTakeoff.guide.plain.missingType);
+    expect(screen.getByTestId('takeoff-guide-symbol')).toHaveAttribute('data-glyph-state');
     fireEvent.click(screen.getByTestId('takeoff-guide-next-occurrence'));
     expect(screen.getByTestId('takeoff-review-guide').getAttribute('data-focus-id')).not.toBe(focusId);
     fireEvent.click(screen.getByTestId('takeoff-guide-prev-occurrence'));
@@ -134,7 +134,83 @@ describe('guided takeoff review', () => {
     const focusId = guide.getAttribute('data-focus-id');
     fireEvent.change(screen.getByTestId('takeoff-guide-type'), { target: { value: 'control.switch' } });
     fireEvent.click(screen.getByTestId('takeoff-guide-confirm'));
-    expect(await screen.findByText(heTakeoff.workspace.saveFailed)).toBeInTheDocument();
+    expect((await screen.findAllByText(heTakeoff.workspace.saveFailed)).length).toBeGreaterThan(0);
     expect(screen.getByTestId('takeoff-review-guide').getAttribute('data-focus-id')).toBe(focusId);
+  });
+
+  it('saves and confirms the whole group from the detection drawer', async () => {
+    const api = createMockTakeoffApi('default');
+    const seen: TakeoffEdit[] = [];
+    const applyEdits = api.applyEdits.bind(api);
+    api.applyEdits = (analysisId, edits, expectedRevision) => {
+      seen.push(...edits);
+      return applyEdits(analysisId, edits, expectedRevision);
+    };
+    render(
+      wrap(
+        <TakeoffApiProvider api={api}>
+          <TakeoffWorkspace analysisId={DEMO_ANALYSIS_ID} projectId={DEMO_PROJECT_ID} />
+        </TakeoffApiProvider>,
+      ),
+    );
+    const exemplar = (await screen.findAllByTestId('takeoff-legend-exemplar', undefined, { timeout: 15_000 }))[0];
+    fireEvent.click(exemplar!);
+    fireEvent.change(screen.getByTestId('takeoff-edit-type'), { target: { value: 'control.switch' } });
+    const groupBox = screen.getByTestId('takeoff-apply-symbol-group') as HTMLInputElement;
+    expect(groupBox.checked).toBe(true);
+    expect(screen.getByTestId('takeoff-about-to-confirm')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('takeoff-confirm-detection'));
+    await waitFor(() => {
+      const confirmed = seen.filter((edit) => edit.op === 'confirm');
+      expect(confirmed).toHaveLength(1);
+      expect(confirmed[0]?.op === 'confirm' && confirmed[0].detectionIds.length).toBeGreaterThan(1);
+    });
+    expect((await screen.findAllByTestId('takeoff-action-feedback')).length).toBeGreaterThan(0);
+  });
+
+  it('ignores a second click while a save is in flight', async () => {
+    const api = createMockTakeoffApi('default');
+    let calls = 0;
+    const applyEdits = api.applyEdits.bind(api);
+    api.applyEdits = (analysisId, edits, expectedRevision) => {
+      calls += 1;
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(applyEdits(analysisId, edits, expectedRevision));
+        }, 80);
+      });
+    };
+    render(
+      wrap(
+        <TakeoffApiProvider api={api}>
+          <TakeoffWorkspace analysisId={DEMO_ANALYSIS_ID} projectId={DEMO_PROJECT_ID} />
+        </TakeoffApiProvider>,
+      ),
+    );
+    await screen.findByTestId('takeoff-review-guide', undefined, { timeout: 15_000 });
+    fireEvent.click(screen.getByRole('button', { name: heTakeoff.workspace.reviewNow }));
+    fireEvent.change(screen.getByTestId('takeoff-guide-type'), { target: { value: 'control.switch' } });
+    fireEvent.click(screen.getByTestId('takeoff-guide-scope-one'));
+    fireEvent.click(screen.getByTestId('takeoff-guide-confirm'));
+    fireEvent.click(screen.getByTestId('takeoff-guide-confirm'));
+    await waitFor(() => expect(calls).toBe(1));
+  });
+
+  it('shows a Hebrew timeout message when the server does not confirm in time', async () => {
+    const api = createMockTakeoffApi('default');
+    api.applyEdits = () =>
+      Promise.reject(Object.assign(new Error('timeout'), { takeoffCode: 'timeout' }));
+    render(
+      wrap(
+        <TakeoffApiProvider api={api}>
+          <TakeoffWorkspace analysisId={DEMO_ANALYSIS_ID} projectId={DEMO_PROJECT_ID} />
+        </TakeoffApiProvider>,
+      ),
+    );
+    await screen.findByTestId('takeoff-review-guide', undefined, { timeout: 15_000 });
+    fireEvent.change(screen.getByTestId('takeoff-guide-type'), { target: { value: 'control.switch' } });
+    fireEvent.click(screen.getByTestId('takeoff-guide-confirm'));
+    expect((await screen.findAllByText(heTakeoff.workspace.saveTimeout)).length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: heTakeoff.detection.retry })).toBeInTheDocument();
   });
 });

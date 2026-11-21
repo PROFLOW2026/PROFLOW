@@ -95,9 +95,8 @@ describe('takeoff mobile overflow containment (~390px)', () => {
           reasonLabel={(r) => r}
           groupSize={1}
           onClose={() => {}}
-          onReclassify={() => {}}
+          onCommit={() => {}}
           onSetNote={() => {}}
-          onConfirm={() => {}}
           onDelete={() => {}}
           onRestore={() => {}}
         />,
