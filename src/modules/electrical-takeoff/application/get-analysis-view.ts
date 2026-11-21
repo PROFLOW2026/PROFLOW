@@ -168,6 +168,7 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
         message: job.message,
         startedAtIso: job.startedAt?.toISOString() ?? null,
         finishedAtIso: job.finishedAt?.toISOString() ?? null,
+        updatedAtIso: job.updatedAt?.toISOString() ?? null,
         error: job.error,
         stats: Object.keys(workerStats).length ? workerStats : undefined,
       }

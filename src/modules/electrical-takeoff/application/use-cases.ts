@@ -392,6 +392,7 @@ export async function getJobProgressUseCase(context: OrgContext, jobId: string):
     message: row.message,
     startedAtIso: row.startedAt?.toISOString() ?? null,
     finishedAtIso: row.finishedAt?.toISOString() ?? null,
+    updatedAtIso: row.updatedAt?.toISOString() ?? null,
     error: row.error,
   };
 }

@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { randomUUID } from 'node:crypto';
+import { sql } from 'drizzle-orm';
 import {
   findArtifactByJobAndName,
   findJob,
@@ -12,7 +13,19 @@ import {
 import { parseWorkerProgressPayload, parseWorkerResultPayload } from '../domain/worker-json';
 import { formatWorkerIngestError, WorkerIngestError } from '../domain/worker-ingest-error';
 import { verifyJobBearer, verifyStoredTokenHash } from './worker-token';
+import { withTransaction } from '@/shared/db/client';
 import type { DbExecutor } from '@/shared/db/types';
+
+/** Worker callbacks have no org JWT. FORCE RLS hides takeoff_jobs unless this transaction is service_role. */
+export async function withTakeoffWorkerCallbackTx<T>(
+  db: DbExecutor,
+  fn: (tx: DbExecutor) => Promise<T>,
+): Promise<T> {
+  return withTransaction(db, async (tx) => {
+    await tx.execute(sql`set local role service_role`);
+    return fn(tx);
+  });
+}
 
 export type WorkerCallbackDenyReason = 'bad_token' | 'job_mismatch' | 'job_missing' | 'cancelled';
 

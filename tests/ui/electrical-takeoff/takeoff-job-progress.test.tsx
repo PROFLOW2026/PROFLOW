@@ -149,4 +149,71 @@ describe('TakeoffJobProgress', () => {
     await vi.waitFor(() => expect(screen.getByText('progress.stalledTitle')).toBeInTheDocument());
     vi.useRealTimers();
   });
+
+  it('shows live percent, elapsed time and cancel during a long run', async () => {
+    const started = new Date(Date.now() - 12_000).toISOString();
+    const updated = new Date(Date.now() - 2_000).toISOString();
+    renderProgress(
+      makeApi(() => ({
+        id: 'job-1',
+        status: 'running',
+        stage: 'extract',
+        percent: 42,
+        message: 'Sheet A',
+        startedAtIso: started,
+        finishedAtIso: null,
+        updatedAtIso: updated,
+        error: null,
+      })),
+    );
+    await waitFor(() => expect(screen.getByTestId('takeoff-job-progress-bar')).toHaveAttribute('data-percent', '42'));
+    expect(screen.getByTestId('takeoff-job-progress-bar')).toHaveAttribute('data-pulse', 'true');
+    expect(screen.getByTestId('takeoff-job-elapsed')).toBeInTheDocument();
+    expect(screen.getByTestId('takeoff-job-last-progress')).toBeInTheDocument();
+    expect(screen.getByText('progress.cancel')).toBeInTheDocument();
+  });
+
+  it('uses an animated bar when the stage has no exact percent', async () => {
+    renderProgress(
+      makeApi(() => ({
+        id: 'job-1',
+        status: 'running',
+        stage: 'extract',
+        percent: 0,
+        message: null,
+        startedAtIso: new Date().toISOString(),
+        finishedAtIso: null,
+        updatedAtIso: new Date().toISOString(),
+        error: null,
+      })),
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('takeoff-job-progress-bar')).toHaveAttribute('data-indeterminate', 'true'),
+    );
+    expect(screen.getByText('progress.indeterminate')).toBeInTheDocument();
+  });
+
+  it('reconnects after a dropped poll then keeps tracking', async () => {
+    let n = 0;
+    renderProgress(
+      makeApi(() => {
+        n += 1;
+        if (n === 1) return Promise.reject(new Error('network'));
+        return {
+          id: 'job-1',
+          status: 'running',
+          stage: 'extract',
+          percent: 11,
+          message: 'Loading DXF',
+          startedAtIso: new Date().toISOString(),
+          finishedAtIso: null,
+          updatedAtIso: new Date().toISOString(),
+          error: null,
+        };
+      }),
+    );
+    await waitFor(() => expect(screen.getByTestId('takeoff-job-reconnecting')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByTestId('takeoff-job-progress-bar')).toHaveAttribute('data-percent', '11'));
+    expect(screen.queryByTestId('takeoff-job-reconnecting')).not.toBeInTheDocument();
+  });
 });

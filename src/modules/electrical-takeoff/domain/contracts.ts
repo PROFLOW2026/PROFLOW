@@ -544,6 +544,7 @@ export const jobDtoSchema = z.object({
   message: z.string().nullable(),
   startedAtIso: z.string().nullable(),
   finishedAtIso: z.string().nullable(),
+  updatedAtIso: z.string().nullable().optional(),
   error: z.string().nullable(),
   /** Numeric pipeline stats plus optional workerBuild / engineVersions from JSONB. */
   stats: z.record(z.string(), z.union([z.number(), z.string(), z.record(z.string(), z.string())])).optional(),

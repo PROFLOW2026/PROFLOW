@@ -13,6 +13,7 @@ import {
   applyWorkerResult,
   authorizeWorkerJob,
   inspectWorkerCallbackAuth,
+  withTakeoffWorkerCallbackTx,
   type WorkerCallbackDenyReason,
 } from './application/worker-callbacks';
 import { isWorkerIngestError } from './domain/worker-ingest-error';
@@ -104,14 +105,15 @@ function logWorkerCallbackDeny(route: 'progress' | 'artifact' | 'result', jobId:
   console.info(`[takeoff-worker-callback] deny route=${route} jobId=${jobId} reason=${reason}`);
 }
 
-async function requireWorkerCallbackJob(
+async function gateWorkerCallback(
+  db: DbExecutor,
   request: Request,
   jobId: string,
   route: 'progress' | 'artifact' | 'result',
 ) {
   const secret = process.env.TAKEOFF_WORKER_SECRET;
   if (!secret) return { job: null, deny: new Response(null, { status: 503 }) };
-  const inspected = await inspectWorkerCallbackAuth(takeoffAdminDb(), jobId, bearer(request), secret);
+  const inspected = await inspectWorkerCallbackAuth(db, jobId, bearer(request), secret);
   if (!inspected.job) {
     logWorkerCallbackDeny(route, jobId, inspected.reason);
     return { job: null, deny: new Response(null, { status: 401 }) };
@@ -120,11 +122,15 @@ async function requireWorkerCallbackJob(
 }
 
 export async function handleWorkerResult(request: Request, jobId: string): Promise<Response> {
-  const gate = await requireWorkerCallbackJob(request, jobId, 'result');
-  if (gate.deny) return gate.deny;
+  const secret = process.env.TAKEOFF_WORKER_SECRET;
+  if (!secret) return new Response(null, { status: 503 });
   try {
-    await applyWorkerResult(takeoffAdminDb(), jobId, await request.json());
-    return new Response(null, { status: 204 });
+    return await withTakeoffWorkerCallbackTx(takeoffAdminDb(), async (db) => {
+      const gate = await gateWorkerCallback(db, request, jobId, 'result');
+      if (gate.deny) return gate.deny;
+      await applyWorkerResult(db, jobId, await request.json());
+      return new Response(null, { status: 204 });
+    });
   } catch (error) {
     if (isWorkerIngestError(error)) {
       return Response.json({ error: error.message }, { status: 422 });
@@ -134,17 +140,23 @@ export async function handleWorkerResult(request: Request, jobId: string): Promi
 }
 
 export async function handleWorkerProgress(request: Request, jobId: string): Promise<Response> {
-  const gate = await requireWorkerCallbackJob(request, jobId, 'progress');
-  if (gate.deny) return gate.deny;
-  await applyWorkerProgress(takeoffAdminDb(), jobId, await request.json());
-  return new Response(null, { status: 204 });
+  const secret = process.env.TAKEOFF_WORKER_SECRET;
+  if (!secret) return new Response(null, { status: 503 });
+  return withTakeoffWorkerCallbackTx(takeoffAdminDb(), async (db) => {
+    const gate = await gateWorkerCallback(db, request, jobId, 'progress');
+    if (gate.deny) return gate.deny;
+    await applyWorkerProgress(db, jobId, await request.json());
+    return new Response(null, { status: 204 });
+  });
 }
 
 export async function handleWorkerXref(request: Request, jobId: string): Promise<Response> {
   const secret = process.env.TAKEOFF_WORKER_SECRET;
   if (!secret) return new Response(null, { status: 503 });
   const db = takeoffAdminDb();
-  const job = await authorizeWorkerJob(db, jobId, bearer(request), secret);
+  const job = await withTakeoffWorkerCallbackTx(db, (tx) =>
+    authorizeWorkerJob(tx, jobId, bearer(request), secret),
+  );
   if (!job) return new Response(null, { status: 401 });
   const url = new URL(request.url);
   const fileId = url.searchParams.get('fileId') ?? '';
@@ -180,23 +192,28 @@ export async function handleWorkerXref(request: Request, jobId: string): Promise
 }
 
 export async function handleWorkerArtifact(request: Request, jobId: string): Promise<Response> {
-  const gate = await requireWorkerCallbackJob(request, jobId, 'artifact');
-  if (gate.deny) return gate.deny;
-  const db = takeoffAdminDb();
+  const secret = process.env.TAKEOFF_WORKER_SECRET;
+  if (!secret) return new Response(null, { status: 503 });
   const form = await request.formData();
   const name = String(form.get('name') ?? 'artifact.bin');
   const mimeType = String(form.get('mimeType') ?? 'application/octet-stream');
   const file = form.get('file');
   const bytes = file instanceof Blob ? new Uint8Array(await file.arrayBuffer()) : new Uint8Array();
-  const id = await applyWorkerArtifact(db, jobId, name, bytes, mimeType);
-  return Response.json({ artifactId: id });
+  return withTakeoffWorkerCallbackTx(takeoffAdminDb(), async (db) => {
+    const gate = await gateWorkerCallback(db, request, jobId, 'artifact');
+    if (gate.deny) return gate.deny;
+    const id = await applyWorkerArtifact(db, jobId, name, bytes, mimeType);
+    return Response.json({ artifactId: id });
+  });
 }
 
 export async function handleWorkerFile(request: Request, jobId: string, fileId: string): Promise<Response> {
   const secret = process.env.TAKEOFF_WORKER_SECRET;
   if (!secret) return new Response(null, { status: 503 });
   const db = takeoffAdminDb();
-  const job = await authorizeWorkerJob(db, jobId, bearer(request), secret);
+  const job = await withTakeoffWorkerCallbackTx(db, (tx) =>
+    authorizeWorkerJob(tx, jobId, bearer(request), secret),
+  );
   if (!job) return new Response(null, { status: 401 });
   const store = await resolveTakeoffFileStoreForAnalysis(db, job.organizationId, job.analysisId);
   const stream = await store.openReadStream({

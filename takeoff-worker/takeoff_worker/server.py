@@ -61,10 +61,18 @@ def _log_callback_401(exc: urllib.error.HTTPError, *, job_id: str, kind: str) ->
     )
 
 
-def _post_json(url: str, token: str, payload: dict[str, Any], *, job_id: str = "", kind: str = "json") -> None:
+def _post_json(
+    url: str,
+    token: str,
+    payload: dict[str, Any],
+    *,
+    job_id: str = "",
+    kind: str = "json",
+    attempts: int = 3,
+) -> None:
     data = json.dumps(payload).encode("utf-8")
     last: urllib.error.URLError | None = None
-    for attempt in range(3):
+    for attempt in range(max(1, attempts)):
         try:
             req = urllib.request.Request(
                 url,
@@ -226,9 +234,25 @@ async def create_job(body: WorkerJobRequest) -> JSONResponse:
             from takeoff_worker.pipeline import run_job
 
             result = run_job(body, workdir, progress, put_artifact, download)
-            _post_json(body.callback.resultUrl, token, result.model_dump(), job_id=job_id, kind="result")
+            dumped = result.model_dump()
             with _lock:
+                _jobs[job_id]["result"] = dumped
                 _jobs[job_id]["status"] = result.status
+            try:
+                _post_json(
+                    body.callback.resultUrl,
+                    token,
+                    dumped,
+                    job_id=job_id,
+                    kind="result",
+                    attempts=6,
+                )
+                with _lock:
+                    _jobs[job_id]["callbackStatus"] = "delivered"
+            except Exception:
+                log.exception("result callback failed %s", job_id)
+                with _lock:
+                    _jobs[job_id]["callbackStatus"] = "failed"
         except Exception:
             log.exception("job failed %s", job_id)
             with _lock:

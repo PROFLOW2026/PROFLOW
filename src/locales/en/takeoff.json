@@ -94,6 +94,14 @@
     "cancel": "Cancel analysis",
     "stalledTitle": "This is taking longer than expected",
     "stalledHint": "Progress reached 100% but results are not ready yet. Refresh status or check again shortly.",
+    "silentTitle": "No new progress update",
+    "silentHint": "The analysis is still running, but the server has not sent a progress update for {seconds} seconds. Checking job status again.",
+    "working": "The system is working on this step",
+    "indeterminate": "This step is running without an exact percent",
+    "elapsed": "Elapsed: {time}",
+    "lastProgress": "Last progress update {seconds}s ago",
+    "lastCheck": "Last server check {seconds}s ago",
+    "reconnecting": "Reconnecting to progress tracking…",
     "refresh": "Refresh status"
   },
   "viewer": {
