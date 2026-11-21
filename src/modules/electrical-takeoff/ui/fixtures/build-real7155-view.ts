@@ -132,6 +132,7 @@ export function buildAnalysisViewFromWorkerResult(
     boq,
     workerWarnings,
     workerStats: result.stats,
+    legend: result.legend ?? [],
     permissions: {
       canRun: true,
       canEdit: true,

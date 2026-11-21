@@ -28,6 +28,24 @@ def build_legend_indices(legend: list[WorkerLegendEntry]) -> dict[str, dict[str,
     by_block: dict[str, TypeHint] = {}
     by_key: dict[str, TypeHint] = {}
     conflict: set[str] = set()
+    grouped: dict[str, list[WorkerLegendEntry]] = {}
+    for row in legend:
+        if row.continuation or row.signatureKind != "dwg-block":
+            continue
+        if not str(row.decodedText or row.rawText or "").strip():
+            continue
+        if not row.signature:
+            continue
+        grouped.setdefault(row.signature, []).append(row)
+    for sig, items in grouped.items():
+        if len(items) < 2:
+            continue
+        keys = {item.typeKey for item in items if item.typeKey}
+        agreed = len(keys) == 1 and all(item.typeKey == next(iter(keys)) for item in items)
+        if agreed:
+            continue
+        conflict.add(sig)
+        conflict.add(sig.lower())
     for row in legend:
         if not row.typeKey or not row.signature:
             continue

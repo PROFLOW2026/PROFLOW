@@ -240,6 +240,7 @@ export function buildDemoAnalysisView(detections: EffectiveDetection[] = buildDe
       },
     ],
     workerStats: { classified_count: 0.42, detection_count: detections.length },
+    legend: [],
     permissions: {
       canRun: true,
       canEdit: true,

@@ -10,12 +10,14 @@ import {
   takeoffEdits,
   takeoffFiles,
   takeoffJobs,
+  takeoffLegendEntries,
   takeoffPlannerSymbolLibrary,
   takeoffRuleSets,
   takeoffSheets,
   takeoffWarnings,
 } from '@drizzle/schema';
-import type { TakeoffEdit, WorkerDetection, WorkerResult, WorkerSheet } from '../domain/contracts';
+import type { TakeoffEdit, WorkerDetection, WorkerLegendEntry, WorkerResult, WorkerSheet } from '../domain/contracts';
+import { persistableWorkerJobStats } from '../domain/job-stats';
 import { collectWorkerWarningsFromResult, warningRowPayload } from '../domain/worker-warnings';
 
 export const TAKEOFF_CHUNK_BYTES = 4 * 1024 * 1024;
@@ -229,6 +231,18 @@ export async function appendEdits(db: DbExecutor, rows: (typeof takeoffEdits.$in
   await db.insert(takeoffEdits).values(rows);
 }
 
+export async function listLegendEntriesForJob(
+  db: DbExecutor,
+  organizationId: string,
+  jobId: string,
+): Promise<WorkerLegendEntry[]> {
+  const rows = await db
+    .select()
+    .from(takeoffLegendEntries)
+    .where(and(eq(takeoffLegendEntries.organizationId, organizationId), eq(takeoffLegendEntries.jobId, jobId)));
+  return rows.map((r) => r.payload as unknown as WorkerLegendEntry);
+}
+
 export async function listDetectionsForJob(db: DbExecutor, organizationId: string, jobId: string): Promise<WorkerDetection[]> {
   const rows = await db
     .select()
@@ -310,6 +324,24 @@ export async function ingestWorkerResult(
         })),
       );
     }
+    if (result.legend.length > 0) {
+      const seen = new Set<string>();
+      const legendRows: Array<typeof takeoffLegendEntries.$inferInsert> = [];
+      for (const entry of result.legend) {
+        if (!entry.key || seen.has(entry.key)) continue;
+        seen.add(entry.key);
+        legendRows.push({
+          organizationId,
+          projectId,
+          jobId,
+          entryKey: entry.key,
+          payload: entry as unknown as Record<string, unknown>,
+        });
+      }
+      if (legendRows.length > 0) {
+        await tx.insert(takeoffLegendEntries).values(legendRows);
+      }
+    }
 
     await tx
       .delete(takeoffWarnings)
@@ -335,7 +367,7 @@ export async function ingestWorkerResult(
         percent: 100,
         finishedAt: new Date(),
         resultIngestedAt: new Date(),
-        resultStats: Object.keys(result.stats ?? {}).length ? result.stats : null,
+        resultStats: persistableWorkerJobStats(result),
         updatedAt: new Date(),
       })
       .where(and(eq(takeoffJobs.organizationId, organizationId), eq(takeoffJobs.id, jobId)));

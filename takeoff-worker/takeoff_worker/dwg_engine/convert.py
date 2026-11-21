@@ -23,6 +23,13 @@ class ConvertResult:
     cache_hit: bool = False
 
 
+def libredwg_engine_label(exe: Path | None) -> str:
+    """Version slot for engineVersions — basename only, never a host path."""
+    if exe is None:
+        return "not_found"
+    return exe.name
+
+
 def find_dwg2dxf() -> Path | None:
     env = os.environ.get("LIBREDWG_DWG2DXF")
     if env and Path(env).is_file():

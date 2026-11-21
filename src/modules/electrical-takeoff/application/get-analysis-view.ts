@@ -12,6 +12,7 @@ import {
   listDetectionsForJob,
   listEdits,
   listFilesForAnalysis,
+  listLegendEntriesForJob,
   listSheetsForJob,
   listWarningsForJob,
   listCatalogOverrides,
@@ -33,7 +34,11 @@ import { takeoffNotFound } from '../domain/errors';
 import { attachSheetPreviewUrls } from './resolve-sheet-previews';
 import { formatTakeoffDisplayName, sanitizeWorkerSheetName } from '../domain/format-display-name';
 import { planReviewConfirmed } from '../domain/plan-review';
-import { sanitizeTakeoffSheetXrefsForActor } from './takeoff-analysis-xref-view';
+import {
+  sanitizeTakeoffLegendForActor,
+  sanitizeTakeoffSheetXrefsForActor,
+  sanitizeTakeoffWorkerStatsForActor,
+} from './takeoff-analysis-xref-view';
 
 export async function buildAnalysisView(actor: TakeoffActor, analysisId: string): Promise<AnalysisView> {
   const orgId = actor.kind === 'internal' ? actor.context.organizationId : actor.context.grants[0]?.organizationId;
@@ -100,7 +105,18 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
 
   const ruleSet = await loadRuleSetForAnalysis(db, orgId, analysis.ruleSetId);
   const approved = analysis.status === 'approved';
-  const workerStats = (job?.resultStats ?? {}) as Record<string, number>;
+  const workerStats = sanitizeTakeoffWorkerStatsForActor(
+    actor,
+    (job?.resultStats ?? {}) as Record<string, number | string | Record<string, string>>,
+  );
+  const mergeMatched =
+    typeof workerStats.merge_matched_pairs === 'number'
+      ? workerStats.merge_matched_pairs
+      : typeof workerStats['merge_matched_pairs:lightg'] === 'number'
+        ? workerStats['merge_matched_pairs:lightg']
+        : undefined;
+  const legendRows = job ? await listLegendEntriesForJob(db, orgId, job.id) : [];
+  const legend = sanitizeTakeoffLegendForActor(actor, legendRows);
   const boq = computeBoq({
     detections,
     workerDetections: baseDetections,
@@ -118,12 +134,7 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
     twinIdByDetectionId,
     detectionFileIdById,
     includedSheetRefIds,
-    mergeMatchedPairs:
-      typeof workerStats.merge_matched_pairs === 'number'
-        ? workerStats.merge_matched_pairs
-        : typeof workerStats['merge_matched_pairs:lightg'] === 'number'
-          ? workerStats['merge_matched_pairs:lightg']
-          : undefined,
+    mergeMatchedPairs: mergeMatched,
   });
 
   const summary: AnalysisSummary = {
@@ -196,6 +207,7 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
     lastJob,
     workerWarnings,
     workerStats,
+    legend,
     permissions,
     appliedEdits: editList,
     planReviewConfirmed: planReviewConfirmed(editList),

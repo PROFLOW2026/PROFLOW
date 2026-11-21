@@ -31,7 +31,13 @@ import { TakeoffLimitationsBanner } from './takeoff-limitations-banner';
 import { TakeoffSheetControls } from './takeoff-sheet-controls';
 import { TakeoffSheetsPanel } from './takeoff-sheets-panel';
 import { waitForExportReady } from './takeoff-export';
-import { buildGroupReclassifyEdits, buildLegendLibraryEdit, hasBlockingWorkerWarnings } from './takeoff-analysis-view';
+import {
+  buildGroupReclassifyEdits,
+  buildLegendLibraryEdit,
+  hasBlockingWorkerWarnings,
+  legendConflictOnDetection,
+  legendDisplayText,
+} from './takeoff-analysis-view';
 import { detectionsForSheet, parseSheetRefId, sheetRefId } from './sheet-ref';
 import { sameSymbolDetections, undecodedLegendExemplars } from './symbol-group';
 import { buildReviewGroups, typeSuggestions } from './review-guide';
@@ -314,6 +320,20 @@ export function TakeoffWorkspace({
             <p className="mb-2 text-xs text-[var(--pf-text-secondary)]">
               {t('boq.markCounts', { total: census.total, typed: census.typed, untyped: census.untyped })}
               {census.typedNeedingCheck > 0 ? ` · ${t('boq.typedNeedCheck', { count: census.typedNeedingCheck })}` : ''}
+            </p>
+            <p className="mb-2 text-xs text-[var(--pf-text-muted)]" data-testid="takeoff-job-meta">
+              {t('workspace.jobFinished', {
+                time: view.lastJob?.finishedAtIso
+                  ? new Date(view.lastJob.finishedAtIso).toLocaleString('he-IL')
+                  : t('workspace.unknown'),
+              })}
+              {' · '}
+              {t('workspace.workerBuild', {
+                build:
+                  typeof view.workerStats.workerBuild === 'string'
+                    ? view.workerStats.workerBuild
+                    : t('workspace.unknown'),
+              })}
             </p>
             <TakeoffLimitationsBanner
               view={state.view}
@@ -751,6 +771,7 @@ export function TakeoffWorkspace({
                   ).length - activeGuide.detectionIds.length,
                 )}
                 readOnly={readOnly}
+                canManageLibrary={view.permissions.canManageLibrary}
                 saving={guideSaving}
                 progress={guidedProgress}
                 shownId={shownOccurrenceId ?? guideFocus.id}
@@ -850,9 +871,10 @@ export function TakeoffWorkspace({
               <div className="mt-2">
                 <TakeoffTypeFilterChips catalog={state.view.catalog} filter={state.typeFilter} onChange={setFilter} />
               </div>
-              {legendExemplars.length > 0 ? (
+              {(view.legend ?? []).some((row) => !row.typeKey && !row.continuation) || legendExemplars.length > 0 ? (
                 <section aria-label={t('detection.undecodedLegendTitle')} data-testid="takeoff-undecoded-legend" className="mt-2 min-w-0 overflow-x-hidden rounded-lg border border-[var(--pf-border-default)] p-2">
                   <p className="text-xs font-medium text-[var(--pf-text-primary)]">{t('detection.undecodedLegendTitle')}</p>
+                  <p className="mb-1 text-xs text-[var(--pf-text-muted)]">{t('detection.undecodedLegendHint')}</p>
                   <label className="mb-1 flex min-w-0 flex-col gap-1 text-xs text-[var(--pf-text-secondary)]">
                     <span>{t('detection.pickType')}</span>
                     <select
@@ -870,7 +892,54 @@ export function TakeoffWorkspace({
                     </select>
                   </label>
                   <div className="flex flex-wrap gap-1">
-                    {legendExemplars.map((row) => (
+                    {(view.legend ?? [])
+                      .filter((row) => !row.typeKey && !row.continuation)
+                      .map((row) => (
+                      <div key={row.key} className="flex max-w-full flex-wrap items-center gap-1">
+                        <button
+                          type="button"
+                          data-testid="takeoff-legend-exemplar"
+                          data-legend-key={row.key}
+                          data-count={row.count ?? 0}
+                          className="min-h-11 max-w-full truncate rounded-md border border-[var(--pf-border-default)] px-2 text-start text-xs hover:bg-[var(--pf-action-subtle-hover)]"
+                          onClick={() => {
+                            const hostId = view.detections.find((mark) => mark.legendRowIds?.includes(row.key))?.id;
+                            if (!hostId) return;
+                            const host = view.sheets.find((item) =>
+                              detectionsForSheet(view.detections, item).some((mark) => mark.id === hostId),
+                            );
+                            setState((current) => ({
+                              ...current,
+                              selectedDetectionId: hostId,
+                              activeSheetKey: host ? sheetRefId(host) : current.activeSheetKey,
+                              mobilePanel: 'plan',
+                            }));
+                          }}
+                        >
+                          {t('detection.undecodedLegendRow', { key: legendDisplayText(row), count: row.count ?? 0 })}
+                        </button>
+                        {view.permissions.canManageLibrary ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          className="min-h-11"
+                          data-testid="takeoff-legend-save-library"
+                          data-legend-key={row.key}
+                          data-count={row.count ?? 0}
+                          disabled={readOnly || !legendLibraryType}
+                          onClick={() => {
+                            const edit = buildLegendLibraryEdit(row.key, legendLibraryType);
+                            if (edit) queueEdit(edit);
+                          }}
+                        >
+                          {t('detection.saveToLibrary')}
+                        </Button>
+                        ) : null}
+                      </div>
+                    ))}
+                    {legendExemplars.length > 0 && (view.legend ?? []).length === 0
+                      ? legendExemplars.map((row) => (
                       <div key={row.legendKey} className="flex max-w-full flex-wrap items-center gap-1">
                         <button
                           type="button"
@@ -894,24 +963,9 @@ export function TakeoffWorkspace({
                         >
                           {t('detection.undecodedLegendRow', { key: row.legendKey, count: row.count })}
                         </button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="secondary"
-                          className="min-h-11"
-                          data-testid="takeoff-legend-save-library"
-                          data-legend-key={row.legendKey}
-                          data-count={row.count}
-                          disabled={readOnly || !legendLibraryType}
-                          onClick={() => {
-                            const edit = buildLegendLibraryEdit(row.legendKey, legendLibraryType);
-                            if (edit) queueEdit(edit);
-                          }}
-                        >
-                          {t('detection.saveToLibrary')}
-                        </Button>
                       </div>
-                    ))}
+                    ))
+                      : null}
                   </div>
                 </section>
               ) : null}
@@ -936,7 +990,9 @@ export function TakeoffWorkspace({
           catalog={state.view.catalog}
           readOnly={readOnly}
           groupSize={selectedSymbolGroup.length}
-          defaultApplyToGroup={selectedSymbolGroup.length > 1}
+          defaultApplyToGroup={selectedSymbolGroup.length > 1 && !legendConflictOnDetection(selected)}
+          canManageLibrary={view.permissions.canManageLibrary}
+          legendRows={view.legend ?? []}
           reasonLabel={reasonLabel}
           onClose={() => setState((s) => ({ ...s, selectedDetectionId: null }))}
           onReclassify={(typeKey, saveToLibrary, applyToGroup) => {

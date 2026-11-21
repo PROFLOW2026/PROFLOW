@@ -174,6 +174,7 @@ export function buildPinsAnalysisView(): { view: AnalysisView; workerBase: Worke
     boq,
     workerWarnings: [],
     workerStats: { plan_n: workerBase.length },
+    legend: [],
     permissions: {
       canRun: true,
       canEdit: true,

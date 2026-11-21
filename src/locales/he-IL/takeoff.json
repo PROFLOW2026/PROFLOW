@@ -188,7 +188,7 @@
     "applyToSymbolGroup": "החל על כל המופעים של אותו סמל ({count})",
     "selectSymbolGroup": "בחר את כל המופעים של אותו סמל ({count})",
     "undecodedLegendTitle": "סמלי מקרא שלא נקראו",
-    "undecodedLegendHint": "בחרו סמל אחד, בחרו סוג מהקטלוג, והחילו אותו על כל המופעים בתוכנית.",
+    "undecodedLegendHint": "מוצג המשפט מהמקרא. בחרו סוג מהקטלוג לניתוח זה. שמירה לספרייה חלה רק על השורה שנבחרה.",
     "undecodedLegendRow": "סמל {key} · {count} מופעים בתוכנית",
     "applyType": "החל סיווג",
     "delete": "הסר מהכמות",
@@ -205,7 +205,8 @@
       "dwg_only": "רק ב-DWG"
     },
     "libraryRequiresLegend": "אפשר לשמור בספרייה רק סמל שזוהה בתוכנית ויש לו חתימה. סימון שנוסף ידנית לא נשמר.",
-    "libraryMaskHint": "השמירה רושמת את חתימת הסמל בספרייה, כדי שאותו סמל יסווג בניתוח הבא."
+    "libraryMaskHint": "השמירה רושמת את חתימת הסמל בספרייה, כדי שאותו סמל יסווג בניתוח הבא.",
+    "legendRows": "תיאורי מקרא"
   },
   "confidence": {
     "high": "גבוה",
@@ -314,6 +315,9 @@
     "groupsLeft": "נותרו {count} קבוצות סמלים לבדיקה",
     "saveFailed": "השמירה נכשלה. לא עברנו לפריט הבא.",
     "exportBlocked": "הייצוא נפתח אחרי אישור",
+    "jobFinished": "סיום העבודה: {time}",
+    "workerBuild": "גרסת worker: {build}",
+    "unknown": "לא ידוע",
     "approveNeedsReview": "לאישור: סיימו את הבדיקה",
     "approveNeedsPlan": "לאישור: סמנו שבדקתם את התוכנית"
   },

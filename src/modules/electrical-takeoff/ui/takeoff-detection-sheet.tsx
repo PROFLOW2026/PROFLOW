@@ -3,9 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import type { CatalogType, EffectiveDetection, TakeoffReviewReason } from '../domain/contracts';
+import type { CatalogType, EffectiveDetection, TakeoffReviewReason, WorkerLegendEntry } from '../domain/contracts';
 import { devicesFromNote, tagWithDeviceCount } from '../domain/quantity-notes';
-import { canSaveReclassifyToLibrary, detectionTwinLabel, visibleDetectionReasons } from './takeoff-analysis-view';
+import {
+  canSaveReclassifyToLibrary,
+  detectionTwinLabel,
+  legendDisplayText,
+  visibleDetectionReasons,
+} from './takeoff-analysis-view';
 import { detectionDisplayLabel } from './boq-display';
 import { TakeoffTypePicker } from './takeoff-type-picker';
 
@@ -16,6 +21,8 @@ export function TakeoffDetectionSheet({
   reasonLabel,
   groupSize,
   defaultApplyToGroup = false,
+  canManageLibrary = false,
+  legendRows = [],
   onClose,
   onReclassify,
   onSetNote,
@@ -30,6 +37,8 @@ export function TakeoffDetectionSheet({
   groupSize: number;
   /** When the mark belongs to a symbol group, applying the type covers that group. */
   defaultApplyToGroup?: boolean;
+  canManageLibrary?: boolean;
+  legendRows?: readonly WorkerLegendEntry[];
   reasonLabel: (r: TakeoffReviewReason | string) => string;
   onClose: () => void;
   onReclassify: (typeKey: string | null, saveToLibrary: boolean, applyToGroup: boolean) => void;
@@ -50,7 +59,8 @@ export function TakeoffDetectionSheet({
       : t(`confidence.${detection.confidence}`);
 
   const twin = detectionTwinLabel(detection);
-  const libraryAllowed = canSaveReclassifyToLibrary(detection, pick || null);
+  const libraryAllowed = canManageLibrary && canSaveReclassifyToLibrary(detection, pick || null);
+  const matchedLegend = legendRows.filter((row) => detection.legendRowIds?.includes(row.key));
   const reasons = visibleDetectionReasons(detection);
 
   useEffect(() => {
@@ -117,6 +127,18 @@ export function TakeoffDetectionSheet({
           <div>
             <dt className="text-xs text-[var(--pf-text-muted)]">{t('detection.tag')}</dt>
             <dd>{detection.tagText}</dd>
+          </div>
+        ) : null}
+        {matchedLegend.length > 0 ? (
+          <div>
+            <dt className="text-xs text-[var(--pf-text-muted)]">{t('detection.legendRows')}</dt>
+            <dd className="space-y-1">
+              {matchedLegend.map((row) => (
+                <p key={row.key} data-testid="takeoff-detection-legend-row" className="text-sm">
+                  {legendDisplayText(row)}
+                </p>
+              ))}
+            </dd>
           </div>
         ) : null}
         {reasons.length ? (

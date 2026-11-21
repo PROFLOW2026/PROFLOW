@@ -45,6 +45,26 @@ def reverse_visual_hebrew(s: str) -> str:
     return " ".join(rev)
 
 
+# נקודה לטלפון → נקודת טלפון. Extra words after X stay as written, so a location word cannot pick a type.
+_POINT_TO_ONE = re.compile(r"נקודה\s+ל[\u05be\-–]?\s*([\u0590-\u05FF]+)\s*$")
+# מפסק מאור חילוף → מפסק חילוף. Bare מפסק מאור → מפסק תאורה.
+_SWITCH_MAOR = re.compile(r"מפסק\s+מאור(?:\s+(כפול|חילוף|ביניים|תריס))?")
+
+
+def _expand_point_to(t: str) -> str:
+    return _POINT_TO_ONE.sub(r"נקודת \1", t)
+
+
+def _expand_switch_maor(t: str) -> str:
+    def repl(match: re.Match[str]) -> str:
+        extra = match.group(1)
+        if extra:
+            return f"מפסק {extra}"
+        return "מפסק תאורה"
+
+    return _SWITCH_MAOR.sub(repl, t)
+
+
 _ABBREV: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r'ג"ג'), "גמר גימור"),
     (re.compile(r'ת"ד'), "תאורה דלקת"),
@@ -95,6 +115,8 @@ def normalize_legend_text(raw: str, *, decoded_by: str | None = None) -> str:
         t = _repair_shx_final_tsadi(t)
     t = _expand_abbreviations(t)
     t = _expand_gimel_tav(t)
+    t = _expand_point_to(t)
+    t = _expand_switch_maor(t)
     t = _join_hebrew_hyphen(t)
     t = _expand_bet_taka(t)
     t = reverse_visual_hebrew(t)

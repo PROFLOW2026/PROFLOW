@@ -129,13 +129,18 @@ function applyOne(base: EffectiveDetection[], edit: TakeoffEdit): EffectiveDetec
 
 export function applyEditsLocal(view: AnalysisView, edits: TakeoffEdit[]): AnalysisView {
   let detections = [...view.detections];
+  let legend = [...(view.legend ?? [])];
   for (const edit of edits) {
     detections = applyOne(detections, edit);
+    if (edit.op === 'save_legend') {
+      legend = legend.map((row) => (row.key === edit.legendKey ? { ...row, typeKey: edit.typeKey } : row));
+    }
   }
   const visible = detections.filter((d) => !deletedIds.has(d.id));
   return {
     ...view,
     detections: visible,
+    legend,
     boq: recomputeBoq(view, visible),
     summary: { ...view.summary, revision: view.summary.revision + edits.length },
   };

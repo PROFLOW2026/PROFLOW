@@ -45,6 +45,25 @@ export function buildGroupReclassifyEdits(
   });
 }
 
+export function legendDisplayText(row: {
+  decodedText?: string | null;
+  rawText?: string | null;
+  key: string;
+}): string {
+  const decoded = row.decodedText?.trim();
+  if (decoded) return decoded;
+  const raw = row.rawText?.trim();
+  if (raw) return raw;
+  return row.key;
+}
+
+export function legendConflictOnDetection(detection: {
+  legendRowIds?: readonly string[];
+  reasons: readonly string[];
+}): boolean {
+  return (detection.legendRowIds?.length ?? 0) > 1 || detection.reasons.includes('type_ambiguous');
+}
+
 /** Legend-library save. Works when the symbol has no plan detection. */
 export function buildLegendLibraryEdit(legendKey: string, typeKey: string): TakeoffEdit | null {
   const key = legendKey.trim();

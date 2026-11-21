@@ -292,6 +292,7 @@ def raw_to_worker(
     height_px: int,
     library_map: dict[str, tuple[str, str]],
     legend_types: dict[str, tuple[str, str]] | None = None,
+    skip_library_signatures: set[str] | None = None,
 ) -> dict:
     """typeKey comes from a library signature or from a legend row on this drawing.
 
@@ -302,12 +303,14 @@ def raw_to_worker(
     signature, raw_class = signature_and_class(raw.resolved)
     px, py = model_to_preview(raw.x, raw.y, reg, width_px, height_px)
     legend_types = legend_types or {}
+    skip_library = skip_library_signatures or set()
     scrap = "possible_exploded_symbol" in raw.reasons
     type_key = None
     classified = "none"
     conf = "none"
+    library_blocked = signature in skip_library or signature.lower() in skip_library
     if not scrap:
-        stored = _lookup_type(library_map, signature)
+        stored = None if library_blocked else _lookup_type(library_map, signature)
         type_key = None
         if isinstance(stored, tuple):
             stored_type, stored_hash = stored

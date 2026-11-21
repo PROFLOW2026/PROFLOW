@@ -16,6 +16,7 @@ os.environ.setdefault("MPLBACKEND", "Agg")
 
 from .ai.legend_reader import get_legend_reader
 from .classify import classify_detections, classify_legend_entries
+from .classify.pipeline_classify import uncertain_legend_signatures
 from .classify.ai_enrich import ai_rows_for_legend
 from .classify.confidence import calibrate_confidences
 from .classify.counting_policy import boq_count_summary
@@ -71,6 +72,16 @@ def _pct(base: float, span: float, local: float) -> float:
     return base + span * max(0.0, min(1.0, local))
 
 
+def _legend_rows_matched(legend: list, detections: list) -> int:
+    present = {d.signature for d in detections if d.signature}
+    present_l = {s.lower() for s in present}
+    return sum(1 for e in legend if e.signature and (e.signature in present or e.signature.lower() in present_l))
+
+
+def _legend_conflict_count(legend: list) -> int:
+    return len({sig.lower() for sig in uncertain_legend_signatures(legend)})
+
+
 def run_job(
     request: WorkerJobRequest,
     workdir: Path,
@@ -97,7 +108,7 @@ def run_job(
     paths: dict[str, Path] = {}
     errors: list[WorkerError] = []
     warnings: list[WorkerWarning] = []
-    engine_versions: dict[str, str] = {}
+    engine_versions: dict[str, str] = {"workerBuild": os.getenv("TAKEOFF_WORKER_BUILD", "unknown")}
     artifacts: dict[str, bytes] = {}
 
     for wf in request.files:
@@ -266,7 +277,9 @@ def run_job(
             except Exception as exc:  # noqa: BLE001
                 log.exception("ai legend enrich failed")
                 warnings.append(WorkerWarning(code="ai_failed", severity="warning", message=str(exc)))
-        legend = classify_legend_entries(legend, catalog, ai_rows=ai_rows or None)
+        legend = classify_legend_entries(
+            legend, catalog, ai_rows=ai_rows or None, library=request.symbolLibrary
+        )
         detections = classify_detections(detections, catalog=catalog, library=request.symbolLibrary, legend=legend)
         sym_groups = assign_symbol_group_labels(detections)
     except Exception as exc:  # noqa: BLE001
@@ -301,6 +314,11 @@ def run_job(
         "legend_text_undecodable_count": float(legend_text_undecodable),
         "legend_rows_classified": float(sum(1 for e in legend if e.typeKey)),
         "plan_quantity_detections": float(len(plan_dets)),
+        "legend_rows_read": float(len(legend)),
+        "legend_rows_matched": float(_legend_rows_matched(legend, detections)),
+        "legend_conflicts": float(_legend_conflict_count(legend)),
+        "classified_legend_text": float(sum(1 for d in detections if d.typeKey and d.classifiedBy == "legend_text")),
+        "classified_library": float(sum(1 for d in detections if d.typeKey and d.classifiedBy == "library")),
         **extract_stats,
     }
 
@@ -412,6 +430,11 @@ def run_job(
     stats["unclassified_plan_count"] = float(sum(1 for d in plan_dets_final if not d.typeKey))
     stats["plan_quantity_detections"] = float(len(plan_dets_final))
     stats["legend_rows_classified"] = float(sum(1 for e in legend if e.typeKey))
+    stats["legend_rows_read"] = float(len(legend))
+    stats["legend_rows_matched"] = float(_legend_rows_matched(legend, detections))
+    stats["legend_conflicts"] = float(_legend_conflict_count(legend))
+    stats["classified_legend_text"] = float(sum(1 for d in detections if d.typeKey and d.classifiedBy == "legend_text"))
+    stats["classified_library"] = float(sum(1 for d in detections if d.typeKey and d.classifiedBy == "library"))
     stats.update(side_stats(detections))
     for k, v in top_type_table(detections).items():
         stats[f"type_top_{k}_pdf"] = v["pdf"]

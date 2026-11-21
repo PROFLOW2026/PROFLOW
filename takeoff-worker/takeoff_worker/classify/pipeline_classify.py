@@ -14,8 +14,33 @@ log = logging.getLogger(__name__)
 
 def legend_key_signature(legend_key: str) -> str:
     """Same identity the app stores: legend: + first 16 hex chars of SHA1(utf-8 key)."""
-    digest = hashlib.sha1(legend_key.strip().encode("utf-8")).hexdigest()[:16]
+    digest = hashlib.sha1(legend_key.strip().encode("utf-8", errors="replace")).hexdigest()[:16]
     return f"legend:{digest}"
+
+
+def uncertain_legend_signatures(legend: list[WorkerLegendEntry]) -> set[str]:
+    """Several DWG legend rows on one block, without one agreed catalog type."""
+    grouped: dict[str, list[WorkerLegendEntry]] = {}
+    for row in legend:
+        if row.continuation or row.signatureKind != "dwg-block":
+            continue
+        if not str(row.decodedText or row.rawText or "").strip():
+            continue
+        sig = str(row.signature or "")
+        if not sig:
+            continue
+        grouped.setdefault(sig, []).append(row)
+    out: set[str] = set()
+    for sig, items in grouped.items():
+        if len(items) < 2:
+            continue
+        keys = {item.typeKey for item in items if item.typeKey}
+        agreed = len(keys) == 1 and all(item.typeKey == next(iter(keys)) for item in items)
+        if agreed:
+            continue
+        out.add(sig)
+        out.add(sig.lower())
+    return out
 
 
 def _planner_library_index(library: list[SymbolLibraryEntry]) -> dict[tuple[str, str], SymbolLibraryEntry]:
@@ -46,13 +71,13 @@ def classify_legend_entries(
     catalog: list[CatalogType],
     *,
     ai_rows: dict[int, list] | None = None,
+    library: list[SymbolLibraryEntry] | None = None,
 ) -> list[WorkerLegendEntry]:
+    lib = _planner_library_index(library or [])
     result: list[WorkerLegendEntry] = []
     for row in entries:
         copy = row.model_copy(deep=True)
         text = _legend_match_text(row)
-        if text:
-            copy.decodedText = text
 
         match = match_legend_text(text, catalog) if text else None
         if ai_rows and row.rowIndex is not None and row.rowIndex in ai_rows:
@@ -69,6 +94,20 @@ def classify_legend_entries(
         else:
             copy.typeKey = None
             copy.confidence = "none" if "legend_text_undecodable" in copy.reasons else "low"
+
+        if text:
+            text_sig = legend_key_signature(text)
+            lib_hit = lib.get(("legend-key", text_sig)) or lib.get(("legend-key", text_sig.lower()))
+            if lib_hit:
+                copy.typeKey = lib_hit.typeKey
+                copy.confidence = "high"
+
+        reasons = list(copy.reasons)
+        if copy.typeKey:
+            reasons = [reason for reason in reasons if reason != "legend_unmapped"]
+        elif "legend_text_undecodable" not in reasons and "legend_unmapped" not in reasons:
+            reasons.append("legend_unmapped")
+        copy.reasons = list(dict.fromkeys(reasons))
         result.append(copy)
     return result
 
@@ -111,6 +150,7 @@ def classify_detections(
 ) -> list[WorkerDetection]:
     lib = _planner_library_index(library)
     indices = build_legend_indices(legend)
+    uncertain = uncertain_legend_signatures(legend)
 
     out: list[WorkerDetection] = []
     for det in detections:
@@ -126,6 +166,21 @@ def classify_detections(
         engine_conf: Confidence | None = d.confidence if d.confidence != "none" else None
         if d.typeKey:
             engine_conf = engine_conf or d.confidence
+
+        legend_conflict = d.signatureKind == "dwg-block" and (
+            d.signature in uncertain or d.signature.lower() in uncertain
+        )
+        if legend_conflict:
+            d.typeKey = None
+            d.classifiedBy = "none"
+            d.confidence = "none"
+            if "type_ambiguous" not in reasons:
+                reasons.append("type_ambiguous")
+            if d.legendRowIds and "legend_unmapped" not in reasons:
+                reasons.append("legend_unmapped")
+            d.reasons = list(dict.fromkeys(reasons))
+            out.append(d)
+            continue
 
         lib_hit = lib.get((d.signatureKind, d.signature)) or lib.get((d.signatureKind, d.signature.lower()))
         if lib_hit is not None and d.signatureKind == "dwg-block":

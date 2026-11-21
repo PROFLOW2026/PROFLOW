@@ -28,14 +28,20 @@ from ..models import (
     XrefRefRecord,
 )
 from .blocks import is_xref_block
-from .convert import convert_dwg_to_dxf, find_dwg2dxf
+from .convert import convert_dwg_to_dxf, find_dwg2dxf, libredwg_engine_label
 from .corpus_cache import ensure_dxf
 from .xref_merge import collect_merged_xref_inserts, sheet_has_missing_xref_content
 from .detections import collect_layout_symbols, dedupe, raw_to_worker
 from .doc_context import DocContext
 from .exploded import find_exploded_symbols
 from .legend import collect_drawing_legend_rows, count_anchor_points, count_anchor_rows
-from .legend_types import accepted_legend_rows, socket_bank_signatures, type_map_from_legend_rows
+from .legend_types import (
+    accepted_legend_rows,
+    make_legend_row_id,
+    socket_bank_signatures,
+    type_map_from_legend_rows,
+    uncertain_block_signatures,
+)
 from .linear_extract import extract_linear
 from .preview import render_viewport_png
 from .rules import LayerRules
@@ -68,7 +74,7 @@ class DwgEngine:
         stats: dict[str, float] = {}
         versions: dict[str, str] = {"ezdxf": ezdxf.__version__}
         exe = find_dwg2dxf()
-        versions["libredwg"] = str(exe) if exe else "not_found"
+        versions["libredwg"] = libredwg_engine_label(exe)
 
         library_map: dict[str, tuple[str, str]] = {}
         for entry in library:
@@ -183,6 +189,7 @@ class DwgEngine:
                 )
             legend_rows = accepted_legend_rows(collected_rows, catalog)
             legend_types = type_map_from_legend_rows(legend_rows, catalog)
+            legend_uncertain = uncertain_block_signatures(legend_rows, catalog)
             warnings.append(
                 WorkerWarning(
                     code="legend_rows_read",
@@ -478,6 +485,7 @@ class DwgEngine:
                 legend_types=legend_types,
                 bank_sigs=bank_sigs,
                 block_counts=block_counts,
+                skip_library_signatures=legend_uncertain,
             )
             for sheet in sheets_out:
                 if any(d.sheetKey == sheet.sheetKey and "xref_missing" in d.reasons for d in detections):
@@ -488,6 +496,7 @@ class DwgEngine:
             legend_entries = self._build_legend(
                 file_id, legend_rows, legend_types, block_counts, bank_sigs
             )
+            _attach_legend_row_ids(detections, legend_entries)
 
             stats["detections"] = float(len(detections))
             stats["analyze_secs"] = round(time.perf_counter() - t0, 3)
@@ -697,9 +706,22 @@ class DwgEngine:
             sig = row["signature"]
             hit = legend_types.get(sig) or legend_types.get(sig.lower())
             is_bank = sig in bank_sigs or sig.lower() in bank_sigs
+            text = str(row.get("decodedText") or row.get("rawText") or "")
+            row_id = make_legend_row_id(
+                file_id,
+                sig,
+                float(row.get("x") or 0.0),
+                float(row.get("y") or 0.0),
+                text,
+            )
+            reasons: list[str] = []
+            if is_bank and not hit:
+                reasons.append("unclassified")
+            if not hit and not is_bank:
+                reasons.append("legend_unmapped")
             out.append(
                 WorkerLegendEntry(
-                    key=sig,
+                    key=row_id,
                     fileId=file_id,
                     sheetKey=row.get("sheetKey") or "model",
                     rowIndex=row.get("rowIndex"),
@@ -711,7 +733,8 @@ class DwgEngine:
                     count=int(block_counts.get(sig, 0)),
                     typeKey=hit[0] if hit else None,
                     confidence=hit[1] if hit else ("none" if is_bank else None),
-                    reasons=["unclassified"] if is_bank and not hit else [],
+                    reasons=reasons,
+                    continuation=bool(row.get("continuation")),
                 )
             )
         return out
@@ -735,6 +758,7 @@ def _emit_owned_detections(
     legend_types: dict,
     bank_sigs: set[str],
     block_counts: Counter,
+    skip_library_signatures: set[str] | None = None,
 ) -> tuple[int, list[WorkerDetection], Counter]:
     groups: dict[tuple, list[dict]] = {}
     order: list[tuple] = []
@@ -768,6 +792,7 @@ def _emit_owned_detections(
             height_px=chosen["height_px"],
             library_map=library_map,
             legend_types=legend_types,
+            skip_library_signatures=skip_library_signatures,
         )
         if decision.needs_review:
             if "sheet_unassigned" not in d["reasons"]:
@@ -781,6 +806,18 @@ def _emit_owned_detections(
         detections.append(WorkerDetection(**d))
         block_counts[d["signature"]] += 1
     return seq, detections, block_counts
+
+
+def _attach_legend_row_ids(detections: list[WorkerDetection], legend: list[WorkerLegendEntry]) -> None:
+    by_sig: dict[str, list[str]] = {}
+    for row in legend:
+        if not row.signature or not row.key:
+            continue
+        by_sig.setdefault(row.signature, []).append(row.key)
+        by_sig.setdefault(row.signature.lower(), []).append(row.key)
+    for det in detections:
+        ids = by_sig.get(det.signature) or by_sig.get(det.signature.lower()) or []
+        det.legendRowIds = list(dict.fromkeys(ids))
 
 
 def _is_legend_anchor(x: float, y: float, anchors: list[tuple[float, float]]) -> bool:

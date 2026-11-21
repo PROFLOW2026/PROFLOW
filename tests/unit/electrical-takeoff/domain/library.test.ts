@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { blockSignature, buildLibraryEntry, findLibraryMatch, legendKeySignature, shapeSignatureFromMaskB64 } from '@/modules/electrical-takeoff/domain/library';
+import {
+  blockSignature,
+  buildLegendLibraryEntry,
+  buildLibraryEntry,
+  findLibraryMatch,
+  legendKeySignature,
+  legendTextLibrarySignature,
+  shapeSignatureFromMaskB64,
+} from '@/modules/electrical-takeoff/domain/library';
 import { workerDet } from './fixtures';
 
 describe('library', () => {
@@ -59,5 +67,20 @@ describe('library', () => {
     expect(entry.signatureKind).toBe('legend-key');
     expect(entry.signature).toBe(legendKeySignature('L4'));
     expect(entry.template?.maskB64).toBe('AQIDBA==');
+  });
+
+  it('hashes legend sentence text, not the block or row id', () => {
+    const fromText = buildLegendLibraryEntry({
+      id: 'e-leg',
+      plannerKey: 'office-a',
+      legendKey: 'row:ffffffffffff',
+      legendText: 'נקודה לטלפון חוץ',
+      typeKey: 'comm.phone',
+    });
+    expect(fromText.signatureKind).toBe('legend-key');
+    expect(fromText.signature).toBe(legendTextLibrarySignature('נקודה לטלפון חוץ'));
+    expect(fromText.signature).not.toBe(legendKeySignature('row:ffffffffffff'));
+    expect(fromText.signature).not.toContain('12e');
+    expect(findLibraryMatch([fromText], 'other-office', { signature: fromText.signature, signatureKind: 'legend-key' })).toBeNull();
   });
 });

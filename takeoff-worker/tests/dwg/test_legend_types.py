@@ -239,3 +239,83 @@ def test_conflicting_legend_text_does_not_invent_a_type():
     mapped = type_map_from_legend_rows(rows, catalog)
     assert "block:SO1" not in mapped
     assert "block:so1" not in mapped
+
+
+def test_unmatched_legend_sentence_is_kept_and_stays_untyped():
+    catalog = load_default_catalog()
+    rows = [dict(signature="block:12e", rawText="נקודה לטלפון חוץ", decodedText="נקודה לטלפון חוץ")]
+    kept = accepted_legend_rows(rows, catalog)
+    assert kept[0]["decodedText"] == "נקודה לטלפון חוץ"
+    assert "block:12e" not in type_map_from_legend_rows(rows, catalog)
+    from takeoff_worker.classify.legend_map import match_legend_text
+
+    hit = match_legend_text("נקודה לטלפון חוץ", catalog)
+    assert hit is None or hit.type_key != "light.outdoor"
+
+
+def test_typed_and_untyped_rows_on_same_block_are_uncertain():
+    catalog = load_default_catalog()
+    rows = [
+        dict(signature="block:36e", rawText="נקודת מאור חירום", decodedText="נקודת מאור חירום"),
+        dict(signature="block:36e", rawText="תאורה שקועה במשרד", decodedText="תאורה שקועה במשרד"),
+    ]
+    mapped = type_map_from_legend_rows(rows, catalog)
+    assert "block:36e" not in mapped
+
+
+def test_switch_light_wording_maps_after_generic_normalize():
+    catalog = load_default_catalog()
+    rows = [dict(signature="block:SW", rawText="מפסק מאור", decodedText="מפסק מאור")]
+    mapped = type_map_from_legend_rows(rows, catalog)
+    assert mapped["block:SW"][0] == "control.switch.single"
+
+
+def test_unique_legend_row_ids_and_library_does_not_override_conflict(tmp_path: Path):
+    from takeoff_worker.dwg_engine.legend_types import make_legend_row_id
+
+    a = make_legend_row_id("f1", "block:36e", 10.0, 20.0, "נקודת מאור חירום")
+    b = make_legend_row_id("f1", "block:36e", 10.0, 40.0, "תאורה שקועה")
+    assert a != b
+    assert a != "block:36e"
+
+    doc = ezdxf.new("R2010", setup=True)
+    doc.layers.add("S-LIGHT")
+    doc.layers.add("ELC")
+    doc.styles.add("HEB", font="heb.shx")
+    msp = doc.modelspace()
+    for name in ("SO1", "SW1", "LAMP"):
+        blk = doc.blocks.new(name)
+        blk.add_circle((0, 0), 1)
+    msp.add_blockref("SO1", (200, 20), dxfattribs={"layer": "ELC"})
+    msp.add_text("שקע כוח", height=3.5, dxfattribs={"insert": (150, 20), "style": "HEB", "height": 3.5})
+    msp.add_blockref("SO1", (200, 40), dxfattribs={"layer": "ELC"})
+    msp.add_text("מפסק יחיד", height=3.5, dxfattribs={"insert": (150, 40), "style": "HEB", "height": 3.5})
+    msp.add_blockref("LAMP", (200, 60), dxfattribs={"layer": "S-LIGHT"})
+    msp.add_text("גוף תאורה שקוע", height=3.5, dxfattribs={"insert": (150, 60), "style": "HEB", "height": 3.5})
+    msp.add_blockref("SO1", (40, 20), dxfattribs={"layer": "ELC"})
+    p = tmp_path / "conflict.dxf"
+    _sheet(doc, p)
+    probed = _analyze(p)
+    shape = next(d.geometryHash for d in probed.detections if d.blockName == "SO1")
+    keys = [row.key for row in probed.legend if row.signature.lower() == "block:so1"]
+    assert len(keys) >= 2
+    assert len(set(keys)) == len(keys)
+    assert all(not d.legendKey for d in probed.detections if d.blockName == "SO1")
+    so_plan = [d for d in probed.detections if d.blockName == "SO1"]
+    assert all(d.legendRowIds for d in so_plan)
+    assert all(d.typeKey is None for d in so_plan)
+    lib = [
+        SymbolLibraryEntry(
+            id="1",
+            plannerKey="p",
+            signatureKind="dwg-block",
+            signature="block:SO1",
+            geometryHash=shape,
+            typeKey="light.recessed",
+        )
+    ]
+    out = _analyze(p, library=lib)
+    plan = [d for d in out.detections if d.blockName == "SO1"]
+    assert plan
+    assert all(d.typeKey is None for d in plan)
+    assert all(d.classifiedBy != "library" for d in plan)

@@ -207,6 +207,8 @@ class WorkerDetection(_M):
     geometryHash: Optional[str] = None
     native: Optional[Native] = None
     candidateSheetKeys: list[str] = Field(default_factory=list)
+    """Legend rows in this file whose block signature matches this insert. Never the block name."""
+    legendRowIds: list[str] = Field(default_factory=list)
 
 
 class LegendTextBox(_M):
@@ -232,6 +234,7 @@ class WorkerLegendEntry(_M):
     typeKey: Optional[str] = None
     confidence: Optional[Confidence] = None
     count: Optional[int] = None
+    continuation: bool = False
 
 
 class WorkerLinear(_M):

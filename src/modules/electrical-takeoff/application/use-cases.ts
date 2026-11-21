@@ -38,6 +38,7 @@ import {
   setAnalysisRuleSetId,
   latestSuccessfulJob,
   listDetectionsForJob,
+  listLegendEntriesForJob,
   listCatalogOverrides,
   listLibrary,
   listRuleSets,
@@ -53,7 +54,7 @@ import {
 import { TakeoffError, takeoffApprovedLocked, takeoffRevisionConflict, takeoffWorkerUnavailable } from '../domain/errors';
 import { sanitizeTakeoffUploadFilename } from '../domain/upload-filename';
 import { buildLegendLibraryEntry, buildLibraryEntry } from '../domain/library';
-import { assertAnyPermission } from '@/shared/permissions/assert';
+import { assertAnyPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import { buildWorkerPairingAndSheetSelection } from '../domain/worker-job-request-build';
@@ -428,17 +429,27 @@ async function persistLibraryFromReclassify(
   const legendSaves = edits.filter((op) => op.op === 'save_legend');
   const saves = edits.filter((op) => op.op === 'reclassify' && op.saveToLibrary && op.typeKey);
   if (legendSaves.length === 0 && saves.length === 0) return;
+  if (!hasPermission(context, PERMISSIONS.TAKEOFF_LIBRARY_MANAGE)) return;
 
-  const job = saves.length > 0 ? await latestSuccessfulJob(context.db, context.organizationId, analysisId) : null;
-  const detections = job ? await listDetectionsForJob(context.db, context.organizationId, job.id) : [];
+  const job =
+    saves.length > 0 || legendSaves.length > 0
+      ? await latestSuccessfulJob(context.db, context.organizationId, analysisId)
+      : null;
+  const detections = job && saves.length > 0 ? await listDetectionsForJob(context.db, context.organizationId, job.id) : [];
+  const legendRows =
+    job && legendSaves.length > 0 ? await listLegendEntriesForJob(context.db, context.organizationId, job.id) : [];
 
   await asServiceRoleWrite(context.db, async () => {
     for (const op of legendSaves) {
+      const stored = legendRows.find((row) => row.key === op.legendKey);
+      const legendText = (stored?.decodedText || stored?.rawText || op.legendKey).replace(/\s+/g, ' ').trim();
       const entry = buildLegendLibraryEntry({
         id: crypto.randomUUID(),
         plannerKey,
         legendKey: op.legendKey,
+        legendText,
         typeKey: op.typeKey,
+        label: legendText,
       });
       await upsertLibraryEntry(context.db, {
         organizationId: context.organizationId,

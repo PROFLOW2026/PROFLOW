@@ -26,6 +26,7 @@ export function TakeoffReviewGuide({
   onShowOccurrence,
   onConfirm,
   vectorPlan = false,
+  canManageLibrary = false,
 }: {
   group: ReviewGroup;
   focus: EffectiveDetection;
@@ -42,6 +43,7 @@ export function TakeoffReviewGuide({
   onConfirm: (choice: { typeKey: string; saveToLibrary: boolean; detectionIds: string[] }) => Promise<boolean>;
   /** The plan pane is the vector drawing, so the review card does not crop the raster. */
   vectorPlan?: boolean;
+  canManageLibrary?: boolean;
 }) {
   const t = useTranslations('takeoff');
   const marks = occurrences.length > 0 ? occurrences : [focus];
@@ -69,7 +71,7 @@ export function TakeoffReviewGuide({
   const setSaveLib = (value: boolean) => setForm((currentForm) => ({ ...currentForm, saveLib: value }));
   const identity = symbolIdentityLabel(current);
   const showTypeChoice = symbolReady;
-  const libraryAllowed = canSaveReclassifyToLibrary(current, pick || null);
+  const libraryAllowed = canManageLibrary && canSaveReclassifyToLibrary(current, pick || null);
   const needsType = !pick;
   const scopeCount = scope === 'group' ? group.occurrences : 1;
 

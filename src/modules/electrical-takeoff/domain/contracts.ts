@@ -305,6 +305,8 @@ export const workerDetectionSchema = z.object({
   native: z.object({ x: z.number(), y: z.number() }).optional(), // pdf pt (unrotated page) or dwg model units
   /** Partial sheets that contain this symbol when the sheet itself was not chosen. */
   candidateSheetKeys: z.array(z.string()).optional(),
+  /** Legend row ids in this file that share the block signature. Absent on older jobs. */
+  legendRowIds: z.array(z.string()).optional(),
 });
 export type WorkerDetection = z.infer<typeof workerDetectionSchema>;
 
@@ -331,6 +333,7 @@ export const workerLegendEntrySchema = z.object({
   typeKey: z.string().nullable().optional(),
   confidence: confidenceSchema.optional(),
   count: z.number().int().nonnegative().nullish(),
+  continuation: z.boolean().optional(),
 });
 export type WorkerLegendEntry = z.infer<typeof workerLegendEntrySchema>;
 
@@ -432,6 +435,8 @@ export const effectiveDetectionSchema = z.object({
   needsReview: z.boolean(),
   /** DWG model units (or PDF points) from the worker. Absent after a manual move. */
   native: z.object({ x: z.number(), y: z.number() }).optional(),
+  legendRowIds: z.array(z.string()).optional(),
+  legendKey: z.string().optional(),
 });
 export type EffectiveDetection = z.infer<typeof effectiveDetectionSchema>;
 
@@ -522,8 +527,8 @@ export const jobDtoSchema = z.object({
   startedAtIso: z.string().nullable(),
   finishedAtIso: z.string().nullable(),
   error: z.string().nullable(),
-  /** Numeric pipeline stats from the last ingested worker result (timings, classified %, …). */
-  stats: z.record(z.string(), z.number()).optional(),
+  /** Numeric pipeline stats plus optional workerBuild / engineVersions from JSONB. */
+  stats: z.record(z.string(), z.union([z.number(), z.string(), z.record(z.string(), z.string())])).optional(),
 });
 export type TakeoffJobDto = z.infer<typeof jobDtoSchema>;
 
@@ -602,7 +607,9 @@ export const analysisViewSchema = z.object({
   /** Warnings/errors from the latest successful job (`[]` when none). Includes persisted worker + sheet-derived rows. */
   workerWarnings: z.array(analysisWorkerWarningSchema).default([]),
   /** Same as `lastJob.stats` when present; convenience for limits/metrics panels. */
-  workerStats: z.record(z.string(), z.number()).default({}),
+  workerStats: z.record(z.string(), z.union([z.number(), z.string(), z.record(z.string(), z.string())])).default({}),
+  /** Legend rows from the latest ingested job. Empty on older analyses. */
+  legend: z.array(workerLegendEntrySchema).default([]),
   permissions: z.object({
     canRun: z.boolean(),
     canEdit: z.boolean(),

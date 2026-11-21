@@ -34,6 +34,8 @@ type MutableRow = {
   rawClass: string;
   signature: string | null;
   native: { x: number; y: number } | null;
+  legendRowIds: string[];
+  legendKey: string | undefined;
 };
 
 export function deriveNeedsReview(input: {
@@ -77,6 +79,8 @@ function toRow(d: WorkerDetection): MutableRow {
     rawClass: d.rawClass,
     signature: d.signature,
     native: d.native ? { x: d.native.x, y: d.native.y } : null,
+    legendRowIds: d.legendRowIds ?? [],
+    legendKey: d.legendKey,
   };
 }
 
@@ -152,6 +156,8 @@ export function applyEdits(
           rawClass: 'user',
           signature: null,
           native: null,
+          legendRowIds: [],
+          legendKey: undefined,
         });
         break;
       }
@@ -269,6 +275,8 @@ function toEffective(
     areaId: resolveAreaId(row.x, row.y, sheetKey, areas),
     needsReview,
     ...(row.native ? { native: row.native } : {}),
+    ...(row.legendRowIds.length > 0 ? { legendRowIds: row.legendRowIds } : {}),
+    ...(row.legendKey ? { legendKey: row.legendKey } : {}),
   };
 }
 

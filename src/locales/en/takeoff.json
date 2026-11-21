@@ -188,7 +188,7 @@
     "applyToSymbolGroup": "Apply to every instance of this symbol ({count})",
     "selectSymbolGroup": "Select every instance of this symbol ({count})",
     "undecodedLegendTitle": "Unread legend symbols",
-    "undecodedLegendHint": "Pick one symbol, choose a catalog type, and apply it to every matching mark on the plan.",
+    "undecodedLegendHint": "The legend sentence is shown. Choose a catalog type for this analysis. Saving to the library applies only to the selected row.",
     "undecodedLegendRow": "Symbol {key} · {count} on the plan",
     "applyType": "Apply classification",
     "delete": "Remove from quantities",
@@ -205,7 +205,8 @@
       "dwg_only": "DWG only"
     },
     "libraryRequiresLegend": "Only a symbol found on the plan, with a signature, can be saved to the library. A mark added by hand is not saved.",
-    "libraryMaskHint": "Saving stores this symbol signature in the library so the same symbol is labeled next time."
+    "libraryMaskHint": "Saving stores this symbol signature in the library so the same symbol is labeled next time.",
+    "legendRows": "Legend descriptions"
   },
   "confidence": {
     "high": "High",
@@ -314,6 +315,9 @@
     "groupsLeft": "{count} symbol groups still need a check",
     "saveFailed": "Save failed. Staying on this item.",
     "exportBlocked": "Export opens after approval",
+    "jobFinished": "Job finished: {time}",
+    "workerBuild": "Worker build: {build}",
+    "unknown": "unknown",
     "approveNeedsReview": "To approve: finish the check",
     "approveNeedsPlan": "To approve: confirm you checked the plan"
   },

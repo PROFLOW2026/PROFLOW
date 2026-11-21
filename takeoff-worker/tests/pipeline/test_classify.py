@@ -24,6 +24,61 @@ def test_hebrew_legend_phrases_from_7155():
         match_legend_text(row["desc"], catalog)
 
 
+def test_library_does_not_override_current_legend_conflict():
+    catalog = load_default_catalog()
+    det = WorkerDetection(
+        id="d1",
+        sheetKey="p1",
+        fileId="f",
+        source="dwg",
+        x=1,
+        y=2,
+        signature="block:36e",
+        signatureKind="dwg-block",
+        rawClass="36e",
+        blockName="36e",
+        geometryHash="block:*geom:aaaaaaaaaaaaaaaa",
+        typeKey=None,
+        classifiedBy="none",
+        confidence="none",
+        legendRowIds=["row:aaaa", "row:bbbb"],
+    )
+    lib = [
+        SymbolLibraryEntry(
+            id="lib1",
+            plannerKey="test",
+            signatureKind="dwg-block",
+            signature="block:36e",
+            geometryHash="block:*geom:aaaaaaaaaaaaaaaa",
+            typeKey="light.recessed",
+        )
+    ]
+    legend = [
+        WorkerLegendEntry(
+            key="row:aaaa",
+            fileId="f",
+            signature="block:36e",
+            signatureKind="dwg-block",
+            decodedText="נקודת מאור חירום",
+            typeKey="light.emergency",
+            confidence="medium",
+        ),
+        WorkerLegendEntry(
+            key="row:bbbb",
+            fileId="f",
+            signature="block:36e",
+            signatureKind="dwg-block",
+            decodedText="גוף תאורה שקוע",
+            typeKey="light.recessed",
+            confidence="medium",
+        ),
+    ]
+    out = classify_detections([det], catalog=catalog, library=lib, legend=legend)[0]
+    assert out.typeKey is None
+    assert out.classifiedBy == "none"
+    assert "type_ambiguous" in out.reasons
+
+
 def test_library_precedence():
     catalog = load_default_catalog()
     det = WorkerDetection(

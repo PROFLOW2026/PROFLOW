@@ -140,7 +140,7 @@ export const takeoffJobs = pgTable(
     workerJobId: text('worker_job_id'),
     attempts: integer('attempts').notNull().default(0),
     resultIngestedAt: ts('result_ingested_at'),
-    resultStats: jsonb('result_stats').$type<Record<string, number>>(),
+    resultStats: jsonb('result_stats').$type<Record<string, number | string | Record<string, string>>>(),
     createdAt: ts('created_at').notNull().defaultNow(),
     updatedAt: ts('updated_at').notNull().defaultNow(),
   },

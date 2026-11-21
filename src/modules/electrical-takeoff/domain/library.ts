@@ -17,6 +17,11 @@ export function legendKeySignature(legendKey: string): string {
   return `legend:${sha1Hex(key).slice(0, 16)}`;
 }
 
+/** Planner library identity for a legend description. Hash of the text, never the block name. */
+export function legendTextLibrarySignature(decodedText: string): string {
+  return legendKeySignature(decodedText.replace(/\s+/g, ' ').trim());
+}
+
 export function shapeSignatureFromMaskB64(maskB64: string): string {
   const norm = maskB64.trim();
   return `shape:${sha1Hex(norm)}`;
@@ -33,16 +38,19 @@ export function buildLegendLibraryEntry(input: {
   readonly typeKey: string;
   readonly label?: string;
   readonly createdAtIso?: string;
+  /** Normalized legend sentence. When present, this is the library identity — not the row id. */
+  readonly legendText?: string;
 }): SymbolLibraryEntry {
   const legendKey = input.legendKey.trim();
   const typeKey = input.typeKey.trim();
+  const text = (input.legendText ?? legendKey).replace(/\s+/g, ' ').trim();
   return {
     id: input.id,
     plannerKey: normalizePlannerKey(input.plannerKey),
     signatureKind: 'legend-key',
-    signature: legendKeySignature(legendKey),
+    signature: legendTextLibrarySignature(text),
     typeKey,
-    label: input.label ?? legendKey,
+    label: input.label ?? text,
     createdAtIso: input.createdAtIso,
   };
 }
