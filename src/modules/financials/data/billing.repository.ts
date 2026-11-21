@@ -995,6 +995,9 @@ export async function loadCashFlowOpenBillingRows(
           WHEN COALESCE(p.paid_net, 0) >= b.billed_net
            AND (b.billed_net - COALESCE(p.paid_net, 0) - b.retention_net) >= 0
             THEN 0
+          -- Display-scale dust (rounds to 0.00) is not forecastable inflow; ₪0.01 stays open.
+          WHEN ROUND(b.billed_net - COALESCE(p.paid_net, 0) - b.retention_net, 2) = 0
+            THEN 0
           ELSE ROUND(b.billed_net - COALESCE(p.paid_net, 0) - b.retention_net, 6)
         END AS open_net
       FROM billed b

@@ -81,9 +81,70 @@ describe('computeTaxAmountBreakdown', () => {
     expect(missing.net.amount).toBe('50000.000000');
   });
 
-  it('keeps money precision on inclusive reverse calculation', () => {
+  it('keeps exact agorot on clean inclusive reverse calculation', () => {
     const gross = money('118000.00', 'ILS');
     const net = netFromInclusiveGross(gross, '18');
     expect(net.amount).toBe('100000.000000');
+  });
+
+  it('rounds inclusive NET to agorot and keeps tax as gross remainder (101675 @ 18%)', () => {
+    const result = computeTaxAmountBreakdown({
+      enteredAmount: '101675',
+      currency: 'ILS',
+      amountIncludesTax: true,
+      resolved: rate18,
+    });
+
+    expect(result.gross.amount).toBe('101675.000000');
+    expect(result.net.amount).toBe('86165.250000');
+    expect(result.tax.amount).toBe('15509.750000');
+    expect(result.net.amount).not.toBe('86165.254237');
+  });
+
+  it('rounds inclusive NET for other non-divisible gross totals', () => {
+    const a = computeTaxAmountBreakdown({
+      enteredAmount: '42298',
+      currency: 'ILS',
+      amountIncludesTax: true,
+      resolved: rate18,
+    });
+    expect(a.net.amount).toBe('35845.760000');
+    expect(a.tax.amount).toBe('6452.240000');
+
+    const b = computeTaxAmountBreakdown({
+      enteredAmount: '108064',
+      currency: 'ILS',
+      amountIncludesTax: true,
+      resolved: rate18,
+    });
+    expect(b.net.amount).toBe('91579.660000');
+    expect(b.tax.amount).toBe('16484.340000');
+  });
+
+  it('full NET payment after inclusive rounding clears open balance', async () => {
+    const { computeRecordRevenuePosition } = await import(
+      '@/modules/billing/domain/revenue-position'
+    );
+    const breakdown = computeTaxAmountBreakdown({
+      enteredAmount: '101675',
+      currency: 'ILS',
+      amountIncludesTax: true,
+      resolved: rate18,
+    });
+    const position = computeRecordRevenuePosition(
+      {
+        kind: 'invoice',
+        status: 'finalized',
+        subtotalAmount: breakdown.net,
+        taxAmount: breakdown.tax,
+        totalAmount: breakdown.gross,
+        payments: [
+          { amount: breakdown.net, amountBasis: 'net', status: 'recorded' },
+        ],
+      },
+      'ILS',
+    );
+    expect(Number(position!.open.net.amount)).toBe(0);
+    expect(Number(position!.open.gross.amount)).toBe(0);
   });
 });

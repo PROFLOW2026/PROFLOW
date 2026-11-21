@@ -47,6 +47,18 @@ describe('payment entry', () => {
     expect(Number(net)).toBeCloseTo(50, 2);
   });
 
+  it('does not auto-close an intentional ₪0.01 gross shortfall', () => {
+    const net = netStringForPaymentEntry({
+      entered: '117.99',
+      basis: 'gross',
+      currency: ILS,
+      invoice,
+    });
+    expect(net).toBeTruthy();
+    expect(Number(net)).toBeLessThan(100);
+    expect(Number(money(net!, ILS).amount)).toBeCloseTo(99.99, 2);
+  });
+
   it('fills the net balance when the entry basis is before VAT', () => {
     expect(fillOutstandingDisplay(invoice, 'net')).toBe('100.00');
     expect(

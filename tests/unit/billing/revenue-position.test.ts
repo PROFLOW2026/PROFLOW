@@ -130,3 +130,75 @@ describe('resolvePaymentTriplet', () => {
     expect(Number(triplet.gross.amount)).toBeCloseTo(1000, 2);
   });
 });
+
+describe('open triplet agora materiality', () => {
+  it('keeps a real ₪0.01 NET shortfall open on net and gross', () => {
+    const position = computeRecordRevenuePosition(
+      {
+        ...invoice118,
+        payments: [{ amount: money('99999.99', ILS), amountBasis: 'net', status: 'recorded' }],
+      },
+      ILS,
+    );
+    expect(Number(position!.open.net.amount)).toBeCloseTo(0.01, 2);
+    expect(Number(position!.open.gross.amount)).toBeGreaterThanOrEqual(0.01);
+  });
+
+  it('clears sub-agora dust so forecasts do not show phantom inflow', () => {
+    const position = computeRecordRevenuePosition(
+      {
+        ...invoice118,
+        payments: [{ amount: money('99999.996', ILS), amountBasis: 'net', status: 'recorded' }],
+      },
+      ILS,
+    );
+    expect(Number(position!.open.net.amount)).toBe(0);
+    expect(Number(position!.open.vat.amount)).toBe(0);
+    expect(Number(position!.open.gross.amount)).toBe(0);
+  });
+
+  it('clears when GROSS cash covers the invoice even if NET legs have dust', () => {
+    const position = computeRecordRevenuePosition(
+      {
+        ...invoice118,
+        payments: [{ amount: money('118000', ILS), amountBasis: 'gross', status: 'recorded' }],
+      },
+      ILS,
+    );
+    expect(Number(position!.open.net.amount)).toBe(0);
+    expect(Number(position!.open.gross.amount)).toBe(0);
+  });
+
+  it('clears after inclusive agorot-normalized header matches rounded NET payment (0019 shape)', () => {
+    const position = computeRecordRevenuePosition(
+      {
+        kind: 'invoice',
+        status: 'finalized',
+        subtotalAmount: money('86165.25', ILS),
+        taxAmount: money('15509.75', ILS),
+        totalAmount: money('101675', ILS),
+        payments: [{ amount: money('86165.25', ILS), amountBasis: 'net', status: 'recorded' }],
+      },
+      ILS,
+    );
+    expect(Number(position!.open.net.amount)).toBe(0);
+    expect(Number(position!.open.vat.amount)).toBe(0);
+    expect(Number(position!.open.gross.amount)).toBe(0);
+  });
+
+  it('partial NET payment on inclusive invoice leaves exact remainder', () => {
+    const position = computeRecordRevenuePosition(
+      {
+        kind: 'invoice',
+        status: 'finalized',
+        subtotalAmount: money('86165.25', ILS),
+        taxAmount: money('15509.75', ILS),
+        totalAmount: money('101675', ILS),
+        payments: [{ amount: money('40000', ILS), amountBasis: 'net', status: 'recorded' }],
+      },
+      ILS,
+    );
+    expect(Number(position!.open.net.amount)).toBeCloseTo(46165.25, 2);
+    expect(Number(position!.paid.net.amount)).toBeCloseTo(40000, 2);
+  });
+});

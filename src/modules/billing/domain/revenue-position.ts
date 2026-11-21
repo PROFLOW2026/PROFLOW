@@ -178,7 +178,27 @@ export function computeOpenTriplet(
   const openVat = subtractMoney(subtractMoney(billed.vat, paid.vat), retention.vat);
   const openGross = subtractMoney(subtractMoney(billed.gross, paid.gross), retention.gross);
 
+  // NET fully covered → clear all legs (avoids phantom VAT/gross from rate recomputation).
   if (compareMoney(paid.net, billed.net) >= 0 && !isNegativeMoney(openNet)) {
+    return zeroTriplet(currency);
+  }
+  // GROSS cash fully covered (and open NET is not a real underpayment below display scale)
+  // → clear. Handles proportional gross→net conversion drift without hiding a material ₪0.01 debt.
+  if (
+    compareMoney(paid.gross, billed.gross) >= 0 &&
+    !isNegativeMoney(openGross) &&
+    !isMaterialPositiveMoney(openNet)
+  ) {
+    return zeroTriplet(currency);
+  }
+  // Sub-agora ledger dust (rounds to 0.00 ILS) is not collectible — align open
+  // triplets with deriveCollectionStatusFromOpen / alert materiality. A displayed
+  // ₪0.01 remainder stays open (isMaterialPositiveMoney).
+  if (
+    !isMaterialPositiveMoney(openNet) &&
+    !isMaterialPositiveMoney(openVat) &&
+    !isMaterialPositiveMoney(openGross)
+  ) {
     return zeroTriplet(currency);
   }
 

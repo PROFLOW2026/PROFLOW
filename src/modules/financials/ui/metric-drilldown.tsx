@@ -72,6 +72,20 @@ export function MetricDrilldown({
   const hasDetails = expandable && (lines.length > 0 || links.length > 0 || Boolean(basis) || Boolean(detail));
   const panelId = React.useId();
 
+  const amountColumn = unavailable ? (
+    <span className="shrink-0 text-[var(--pf-text-muted)]">{unavailableLabel}</span>
+  ) : (
+    <span className="shrink-0">
+      <MoneyText value={value} className={emphasis ? 'font-semibold' : undefined} />
+    </span>
+  );
+
+  const surfaceBasisLine = surfaceBasis ? (
+    <p className="mt-0.5 max-w-full break-words text-[10px] leading-snug text-[var(--pf-text-muted)]">
+      {surfaceBasis}
+    </p>
+  ) : null;
+
   return (
     <div className="min-w-0">
       {hasDetails ? (
@@ -79,7 +93,7 @@ export function MetricDrilldown({
           type="button"
           className={cn(
             pressableClassName,
-            'flex min-h-11 w-full min-w-0 items-start justify-between gap-3 rounded py-2 text-start',
+            'flex w-full min-w-0 flex-col gap-0.5 rounded py-2 text-start',
             'active:bg-[var(--pf-action-subtle-active)]',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--pf-border-focus)]',
             muted
@@ -92,71 +106,53 @@ export function MetricDrilldown({
           aria-controls={panelId}
           onClick={() => setOpen((current) => !current)}
         >
-          <span className="min-w-0 flex-1">
-            <span className="inline-flex max-w-full items-start gap-1">
-              <span className="min-w-0 break-words">
-                {label}
+          <span className="flex min-h-11 w-full min-w-0 items-start justify-between gap-3">
+            <span className="min-w-0 flex-1">
+              <span className="inline-flex max-w-full items-start gap-1">
+                <span className="min-w-0 break-words">{label}</span>
+                <ChevronDown
+                  className={cn(
+                    'mt-0.5 size-4 shrink-0 text-[var(--pf-text-muted)] transition-transform',
+                    open ? 'rotate-180' : null,
+                  )}
+                  aria-hidden
+                />
               </span>
-              <ChevronDown
-                className={cn(
-                  'mt-0.5 size-4 shrink-0 text-[var(--pf-text-muted)] transition-transform',
-                  open ? 'rotate-180' : null,
-                )}
-                aria-hidden
-              />
-            </span>
-            {explanation ? (
-              <span className="mt-0.5 block text-xs font-normal text-[var(--pf-text-muted)]">
-                {explanation}
-              </span>
-            ) : null}
-            {whyLabel ? (
-              <span className="mt-0.5 block text-xs font-normal text-[var(--pf-text-brand)] underline-offset-2 hover:underline">
-                {whyLabel}
-              </span>
-            ) : null}
-          </span>
-          {unavailable ? (
-            <span className="shrink-0 text-[var(--pf-text-muted)]">{unavailableLabel}</span>
-          ) : (
-            <span className="flex shrink-0 flex-col items-end gap-0.5">
-              <MoneyText value={value} className={emphasis ? 'font-semibold' : undefined} />
-              {surfaceBasis ? (
-                <span className="text-[10px] leading-tight text-[var(--pf-text-muted)]">
-                  {surfaceBasis}
+              {explanation ? (
+                <span className="mt-0.5 block text-xs font-normal text-[var(--pf-text-muted)]">
+                  {explanation}
+                </span>
+              ) : null}
+              {whyLabel ? (
+                <span className="mt-0.5 block text-xs font-normal text-[var(--pf-text-brand)] underline-offset-2 hover:underline">
+                  {whyLabel}
                 </span>
               ) : null}
             </span>
-          )}
+            {amountColumn}
+          </span>
+          {surfaceBasisLine}
         </button>
       ) : (
-        <div className="flex min-h-11 min-w-0 items-start justify-between gap-3 py-2">
-          <span
-            className={
-              muted
-                ? 'min-w-0 break-words text-[var(--pf-text-muted)]'
-                : emphasis
-                  ? 'min-w-0 break-words font-medium'
-                  : 'min-w-0 break-words text-[var(--pf-text-secondary)]'
-            }
-          >
-            {label}
-            {explanation ? (
-              <span className="mt-0.5 block text-xs text-[var(--pf-text-muted)]">{explanation}</span>
-            ) : null}
-          </span>
-          {unavailable ? (
-            <span className="shrink-0 text-[var(--pf-text-muted)]">{unavailableLabel}</span>
-          ) : (
-            <span className="flex shrink-0 flex-col items-end gap-0.5">
-              <MoneyText value={value} className={emphasis ? 'font-semibold' : undefined} />
-              {surfaceBasis ? (
-                <span className="text-[10px] leading-tight text-[var(--pf-text-muted)]">
-                  {surfaceBasis}
-                </span>
+        <div className="flex min-w-0 flex-col gap-0.5 py-2">
+          <div className="flex min-h-11 min-w-0 items-start justify-between gap-3">
+            <span
+              className={
+                muted
+                  ? 'min-w-0 flex-1 break-words text-[var(--pf-text-muted)]'
+                  : emphasis
+                    ? 'min-w-0 flex-1 break-words font-medium'
+                    : 'min-w-0 flex-1 break-words text-[var(--pf-text-secondary)]'
+              }
+            >
+              {label}
+              {explanation ? (
+                <span className="mt-0.5 block text-xs text-[var(--pf-text-muted)]">{explanation}</span>
               ) : null}
             </span>
-          )}
+            {amountColumn}
+          </div>
+          {surfaceBasisLine}
         </div>
       )}
 

@@ -4,6 +4,7 @@ import {
   divideMoney,
   money,
   percentOfMoney,
+  roundMoney,
   subtractMoney,
   toDecimalValue,
   zeroMoney,
@@ -76,6 +77,8 @@ export function computeTaxAmountBreakdown(input: {
   }
 
   if (input.amountIncludesTax) {
+    // Gross stays as entered. NET is rounded to currency agorot; VAT is the
+    // remainder so net + tax === gross with no sub-agora invoice legs.
     const gross = entered;
     const net = netFromInclusiveGross(gross, ratePercent!);
     const tax = subtractMoney(gross, net);
@@ -91,7 +94,8 @@ export function computeTaxAmountBreakdown(input: {
   }
 
   const net = entered;
-  const tax = percentOfMoney(net, ratePercent!);
+  // Exclusive: round VAT to display scale so invoice components stay in agorot.
+  const tax = roundMoney(percentOfMoney(net, ratePercent!));
   const gross = addMoney(net, tax);
   return {
     entered,
@@ -104,13 +108,16 @@ export function computeTaxAmountBreakdown(input: {
   };
 }
 
-/** net = gross / (1 + ratePercent/100) with money-scale normalisation. */
+/**
+ * net = round(gross / (1 + ratePercent/100)) at the currency display scale
+ * (2 decimals for ILS). Callers must set tax = gross − net so the triplet stays exact.
+ */
 export function netFromInclusiveGross(gross: MoneyValue, ratePercent: string): MoneyValue {
   const factor = new Decimal(1).plus(new Decimal(ratePercent).dividedBy(100));
   if (factor.lte(0)) {
     throw new Error(`Invalid tax rate factor for inclusive amount: ${ratePercent}`);
   }
-  return divideMoney(gross, factor);
+  return roundMoney(divideMoney(gross, factor));
 }
 
 export function buildContractTaxSnapshot(

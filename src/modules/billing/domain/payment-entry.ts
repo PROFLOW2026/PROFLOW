@@ -7,6 +7,7 @@ import {
   isZeroMoney,
   money,
   roundMoney,
+  subtractMoney,
   toDecimalValue,
   toNumericString,
   type MoneyValue,
@@ -108,8 +109,20 @@ export function netStringForPaymentEntry(input: {
 
   const rate = vatRate(input.invoice);
   if (!rate) return toNumericString(roundedEntered);
-  const net = tripletFromGross(roundedEntered, invoiceTripletInput(input.invoice)).net;
-  return toNumericString(roundMoney(net));
+  const net = roundMoney(
+    tripletFromGross(roundedEntered, invoiceTripletInput(input.invoice)).net,
+  );
+  // Closing snap: if conversion would leave only sub-agora dust on the invoice,
+  // store the exact remaining NET so a "full cash" entry cannot invent a ₪0.01 AR.
+  // Intentional ₪0.01 remainders stay open (material at display scale).
+  const outstandingNet = roundMoney(input.invoice.outstandingAmount);
+  if (isPositiveMoney(outstandingNet) && compareMoney(net, outstandingNet) <= 0) {
+    const remainder = subtractMoney(outstandingNet, net);
+    if (!isMaterialPositiveMoney(remainder)) {
+      return toNumericString(outstandingNet);
+    }
+  }
+  return toNumericString(net);
 }
 
 /** Visible field text for a stored net amount in the selected VAT basis. */

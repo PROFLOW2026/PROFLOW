@@ -185,6 +185,33 @@ describe('MetricDrilldown', () => {
       expect.stringContaining('/expenses'),
     );
   });
+
+  it('keeps long surfaceBasis on a full-width row so labels are not squeezed', () => {
+    const longBasis =
+      'חיוב לפני מע״מ - הכנסת הפרויקט. מע״מ אינו יתרת חוזה לאחר עלויות מוכרות.';
+    const { container } = renderWithIntl(
+      <div style={{ width: 360, maxWidth: 360 }}>
+        <MetricDrilldown
+          label="חיוב לפני מע״מ"
+          value={{ amount: '351879.920000', currency: 'ILS' }}
+          explanation="סכום החיובים שהופקו ללקוח."
+          surfaceBasis={longBasis}
+          whyLabel="למה המספר הזה?"
+          lines={[{ label: 'Detail', value: { amount: '1.000000', currency: 'ILS' } }]}
+        />
+      </div>,
+      { locale: 'he-IL' },
+    );
+
+    const basis = screen.getByText(longBasis);
+    expect(basis.tagName).toBe('P');
+    expect(basis.className).toMatch(/break-words/);
+
+    const label = screen.getByText('חיוב לפני מע״מ');
+    const amountColumn = container.querySelector('.shrink-0');
+    expect(amountColumn?.textContent ?? '').not.toContain('הכנסת הפרויקט');
+    expect(label.compareDocumentPosition(basis) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });
 
 describe('ProjectFinancialsKpiPanel', () => {
