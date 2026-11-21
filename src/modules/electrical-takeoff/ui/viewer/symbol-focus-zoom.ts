@@ -25,6 +25,23 @@ export function highlightMarkerRadiusPx(level: number, devicePixelRatio = 1): nu
   return css * dpr;
 }
 
+/**
+ * Ring around the accessory on screen. Slider size is a pixel floor/extra,
+ * never a camera zoom. A near-zero box does not shrink the ring to a pin.
+ */
+export function highlightRingRadiusPx(
+  accessoryHalfPx: number | null,
+  sliderPx: number,
+  gapPx: number,
+): number {
+  const slider = Number.isFinite(sliderPx) && sliderPx > 0 ? sliderPx : 0;
+  const gap = Number.isFinite(gapPx) && gapPx > 0 ? gapPx : 0;
+  if (accessoryHalfPx != null && Number.isFinite(accessoryHalfPx) && accessoryHalfPx > 1) {
+    return Math.max(accessoryHalfPx + gap, slider);
+  }
+  return Math.max(slider, gap);
+}
+
 const listeners = new Set<() => void>();
 let memoryLevel = SYMBOL_FOCUS_ZOOM_DEFAULT;
 

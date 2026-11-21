@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { applyEdits } from '@/modules/electrical-takeoff/domain/edits';
 import {
   cadInsertFocusExtent,
+  cadOccurrenceFocusExtent,
   cadSymbolFocusExtent,
   chooseCadSheetFrame,
   isPlausibleSymbolBox,
@@ -179,5 +180,20 @@ describe('cad sheet frame', () => {
     const insert = cadInsertFocusExtent(10, 20);
     expect(insert[2] - insert[0]).toBe(64);
     expect(insert[3] - insert[1]).toBe(64);
+  });
+
+  it('focuses an occurrence with nearby plan context instead of a pin-sized window', () => {
+    const drawing: [number, number, number, number] = [0, 0, 1189, 841];
+    const tiny = cadOccurrenceFocusExtent({ x: 400, y: 300 }, { located: true, minX: 400, minY: 300, maxX: 401, maxY: 300.5 }, drawing);
+    const span = tiny[2] - tiny[0];
+    expect(span).toBeGreaterThan(80);
+    expect(span).toBeLessThan(841 * 0.3);
+    const pin = cadOccurrenceFocusExtent({ x: 400, y: 300 }, { located: false, minX: 400, minY: 300, maxX: 400, maxY: 300 }, drawing);
+    expect(pin[2] - pin[0]).toBeCloseTo(span);
+    const box = { located: true as const, minX: 390, minY: 292, maxX: 410, maxY: 308 };
+    const around = cadOccurrenceFocusExtent({ x: 400, y: 300 }, box, drawing);
+    expect((around[0] + around[2]) / 2).toBe(400);
+    expect(around[2] - around[0]).toBeGreaterThan(20 * 7);
+    expect(around[2] - around[0]).toBeLessThan(841 * 0.3);
   });
 });

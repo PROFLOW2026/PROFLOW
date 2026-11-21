@@ -466,6 +466,11 @@ export function symbolGlyphSvg(
 export const CAD_SYMBOL_FOCUS_PAD_DEFAULT = 0.37;
 const CAD_SYMBOL_FOCUS_PAD_MIN = 0.125;
 export const CAD_INSERT_FOCUS_HALF_DEFAULT = 32;
+/** Context window: enough wall/room around the accessory, never a 1-unit pin. */
+export const CAD_OCCURRENCE_CONTEXT_MIN_RATIO = 0.12;
+export const CAD_OCCURRENCE_CONTEXT_MAX_RATIO = 0.28;
+export const CAD_OCCURRENCE_CONTEXT_BODY_FACTOR = 8;
+export const CAD_OCCURRENCE_CONTEXT_FALLBACK_SPAN = 160;
 
 /** Tight native window around one located CAD symbol — not the sheet or the whole group. */
 export function cadSymbolFocusExtent(
@@ -491,6 +496,42 @@ export function isPlausibleSymbolBox(box: Pick<SymbolBox, 'located' | 'minX' | '
   if (!box.located) return false;
   const span = Math.max(box.maxX - box.minX, box.maxY - box.minY);
   return span > 0 && span <= 96;
+}
+
+/** True when the located strokes are large enough to be the accessory, not a pin. */
+export function isReliableSymbolGeometry(
+  box: Pick<SymbolBox, 'located' | 'minX' | 'minY' | 'maxX' | 'maxY'>,
+): boolean {
+  if (!box.located) return false;
+  const span = Math.max(box.maxX - box.minX, box.maxY - box.minY);
+  return span >= 2 && span <= 96;
+}
+
+export type CadDrawingExtent = readonly [number, number, number, number];
+
+/**
+ * Camera window for one occurrence: the accessory plus nearby plan context.
+ * Never fits a single insert, a near-zero box, or the whole sheet.
+ */
+export function cadOccurrenceFocusExtent(
+  center: { x: number; y: number },
+  box: Pick<SymbolBox, 'located' | 'minX' | 'minY' | 'maxX' | 'maxY'> | null,
+  drawing: CadDrawingExtent | null | undefined,
+): [number, number, number, number] {
+  const reliable = box != null && isReliableSymbolGeometry(box);
+  const cx = reliable ? (box.minX + box.maxX) / 2 : center.x;
+  const cy = reliable ? (box.minY + box.maxY) / 2 : center.y;
+  const body = reliable ? Math.max(box.maxX - box.minX, box.maxY - box.minY) : 0;
+  const drawW = drawing ? drawing[2] - drawing[0] : 0;
+  const drawH = drawing ? drawing[3] - drawing[1] : 0;
+  const shortSide = Math.min(drawW, drawH);
+  const minSpan =
+    shortSide > 8 ? shortSide * CAD_OCCURRENCE_CONTEXT_MIN_RATIO : CAD_OCCURRENCE_CONTEXT_FALLBACK_SPAN;
+  const maxSpan =
+    shortSide > 8 ? shortSide * CAD_OCCURRENCE_CONTEXT_MAX_RATIO : CAD_OCCURRENCE_CONTEXT_FALLBACK_SPAN * 2;
+  const span = Math.min(Math.max(body * CAD_OCCURRENCE_CONTEXT_BODY_FACTOR, minSpan), maxSpan);
+  const half = span / 2;
+  return [cx - half, cy - half, cx + half, cy + half];
 }
 
 export function segmentNear(segments: Float32Array, x: number, y: number, radius: number): boolean {

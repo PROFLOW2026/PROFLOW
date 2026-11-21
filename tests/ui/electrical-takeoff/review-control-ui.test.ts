@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { occurrenceFocusRect, symbolContextRect, symbolThumbnailRect, unionRects } from '@/modules/electrical-takeoff/ui/viewer/viewer-math';
 import { symbolCropSource } from '@/modules/electrical-takeoff/ui/review-guide';
 import { boqLineIdentityStatus } from '@/modules/electrical-takeoff/domain/review-copy';
-import { cadSymbolFocusExtent } from '@/modules/electrical-takeoff/domain/cad-sheet-frame';
+import { cadOccurrenceFocusExtent } from '@/modules/electrical-takeoff/domain/cad-sheet-frame';
 
 describe('per-occurrence focus windows', () => {
   it('zooms each contact in a 120-mark group to that mark, not the union of the group', () => {
@@ -37,12 +37,14 @@ describe('per-occurrence focus windows', () => {
     expect(symbolContextRect(mark).width).toBeLessThanOrEqual(260);
   });
 
-  it('tightens a CAD focus window to the located symbol box', () => {
-    const box = { minX: 100, minY: 200, maxX: 118, maxY: 218 };
-    const extent = cadSymbolFocusExtent(box);
+  it('keeps a CAD occurrence window around the accessory plus nearby context', () => {
+    const box = { located: true as const, minX: 100, minY: 200, maxX: 118, maxY: 218 };
+    const drawing: [number, number, number, number] = [0, 0, 1189, 841];
+    const extent = cadOccurrenceFocusExtent({ x: 109, y: 209 }, box, drawing);
     const width = extent[2] - extent[0];
-    expect(width).toBeLessThan(80);
-    expect(width).toBeGreaterThan(18);
+    expect(width).toBeGreaterThan(80);
+    expect(width).toBeLessThan(841 * 0.3);
+    expect(width).toBeGreaterThan(18 * 7);
   });
 });
 

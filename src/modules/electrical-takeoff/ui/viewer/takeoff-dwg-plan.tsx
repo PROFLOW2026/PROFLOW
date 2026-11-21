@@ -22,9 +22,9 @@ import type { XrefDepBytes } from '@/modules/external-storage/ui/cad/pf-cad-v3/x
 import { displayArchitecturalLayerIndexes, xrefDependencyPaths } from '../../domain/architectural-background';
 import { solveModelWindow } from '../../domain/cad-sheet-frame';
 import {
-  cadInsertFocusExtent,
-  cadSymbolFocusExtent,
+  cadOccurrenceFocusExtent,
   isPlausibleSymbolBox,
+  isReliableSymbolGeometry,
   symbolFrame,
   symbolGlyphStrokes,
   symbolGlyphSvg,
@@ -34,6 +34,7 @@ import {
 import { chooseTakeoffSheetId, focusLevel, type FocusLevel } from '../../domain/focus-level';
 import {
   highlightMarkerRadiusPx,
+  highlightRingRadiusPx,
   readStoredSymbolFocusZoom,
   stepStoredSymbolFocusZoom,
   subscribeSymbolFocusZoom,
@@ -90,21 +91,32 @@ type ShownMark = {
 };
 
 function markCenter(active: ShownMark): { x: number; y: number } {
-  if (active.located && isPlausibleSymbolBox(active)) {
+  if (isReliableSymbolGeometry(active)) {
     return { x: (active.minX + active.maxX) / 2, y: (active.minY + active.maxY) / 2 };
   }
   return { x: active.x, y: active.y };
 }
 
-function applyOccurrenceFocus(renderer: CadRendererHandle, active: ShownMark) {
+function applyOccurrenceFocus(
+  renderer: CadRendererHandle,
+  active: ShownMark,
+  drawing: Extent,
+) {
   const viewport = renderer.getRenderer().getViewport();
   if (viewport.width < 8 || viewport.height < 8) return;
-  if (active.located && isPlausibleSymbolBox(active)) {
-    renderer.focusExtent(cadSymbolFocusExtent(active), 28);
-    return;
-  }
-  const center = markCenter(active);
-  renderer.focusExtent(cadInsertFocusExtent(center.x, center.y), 28);
+  renderer.focusExtent(cadOccurrenceFocusExtent(markCenter(active), active, drawing), 28);
+}
+
+function accessoryScreenHalfPx(
+  active: ShownMark,
+  view: Parameters<typeof worldToScreen>[2],
+  viewport: { width: number; height: number },
+): number | null {
+  if (!isReliableSymbolGeometry(active)) return null;
+  const [ax, ay] = worldToScreen(active.minX, active.minY, view, viewport);
+  const [bx, by] = worldToScreen(active.maxX, active.maxY, view, viewport);
+  const half = Math.max(Math.abs(bx - ax), Math.abs(by - ay)) / 2;
+  return Number.isFinite(half) && half > 1 ? half : null;
 }
 
 function drawHighlightMarker(
@@ -114,16 +126,20 @@ function drawHighlightMarker(
   radius: number,
 ) {
   ctx.strokeStyle = '#ea580c';
-  ctx.lineWidth = Math.max(2, radius * 0.08);
+  ctx.lineWidth = Math.max(2, Math.min(3, radius * 0.04));
   ctx.beginPath();
   ctx.arc(sx, sy, radius, 0, Math.PI * 2);
   ctx.stroke();
-  const arm = radius * 1.15;
+  const tick = Math.max(6, radius * 0.12);
   ctx.beginPath();
-  ctx.moveTo(sx - arm, sy);
-  ctx.lineTo(sx + arm, sy);
-  ctx.moveTo(sx, sy - arm);
-  ctx.lineTo(sx, sy + arm);
+  ctx.moveTo(sx - radius - tick, sy);
+  ctx.lineTo(sx - radius, sy);
+  ctx.moveTo(sx + radius, sy);
+  ctx.lineTo(sx + radius + tick, sy);
+  ctx.moveTo(sx, sy - radius - tick);
+  ctx.lineTo(sx, sy - radius);
+  ctx.moveTo(sx, sy + radius);
+  ctx.lineTo(sx, sy + radius + tick);
   ctx.stroke();
 }
 
@@ -311,7 +327,9 @@ export function TakeoffDwgPlan({
       const center = markCenter(active);
       const [sx, sy] = worldToScreen(center.x, center.y, view, viewport);
       const dpr = overlay.clientWidth > 0 ? overlay.width / overlay.clientWidth : 1;
-      drawHighlightMarker(ctx, sx, sy, highlightMarkerRadiusPx(focusZoomRef.current, dpr));
+      const slider = highlightMarkerRadiusPx(focusZoomRef.current, dpr);
+      const ring = highlightRingRadiusPx(accessoryScreenHalfPx(active, view, viewport), slider, 6 * dpr);
+      drawHighlightMarker(ctx, sx, sy, ring);
     }
   };
   const drawRef = useRef(drawOverlay);
@@ -378,7 +396,7 @@ export function TakeoffDwgPlan({
       if (extentReady && ((!fittedRef.current && width >= 64 && height >= 64) || grewFromEmpty)) {
         const active = shownRef.current.find((item) => item.id === focusIdRef.current);
         if (active) {
-          applyOccurrenceFocus(renderer, active);
+          applyOccurrenceFocus(renderer, active, extentRef.current);
         } else {
           renderer.focusExtent(extentRef.current, 28);
         }
@@ -590,7 +608,7 @@ export function TakeoffDwgPlan({
       if (shouldFitWhole) {
         const active = shownRef.current.find((item) => item.id === focusIdRef.current);
         if (active) {
-          applyOccurrenceFocus(renderer, active);
+          applyOccurrenceFocus(renderer, active, drawing.extent);
         } else {
           renderer.focusExtent(drawing.extent, 28);
         }
@@ -626,10 +644,10 @@ export function TakeoffDwgPlan({
       drawRef.current();
       return;
     }
-    const focusKey = `${focusId}:${viewToken}:${current.id}:${level}`;
+    const focusKey = `${focusId}:${viewToken}:${current.id}`;
     if (lastFocusKeyRef.current !== focusKey) {
       lastFocusKeyRef.current = focusKey;
-      applyOccurrenceFocus(renderer, active);
+      applyOccurrenceFocus(renderer, active, extentRef.current);
     }
     if (active.located && isPlausibleSymbolBox(active) && onSymbolGlyphs) {
       const source = marks.find((item) => item.id === active.id);
