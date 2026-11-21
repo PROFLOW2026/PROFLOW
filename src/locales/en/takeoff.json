@@ -177,6 +177,17 @@
     "statusVerified": "Verified",
     "statusForReview": "For review",
     "statusNeedsReview": "Needs review",
+    "checkAndApprove": "Check and approve",
+    "statusAutoIdentified": "Identified automatically",
+    "statusNeedsCheck": "Needs a check",
+    "statusUnclassified": "Unclassified",
+    "statusManuallyApproved": "Approved manually",
+    "statusBoqReady": "Ready for BOQ approval",
+    "originalLegend": "Original legend text",
+    "identityLegend": "Legend",
+    "identityCatalog": "Catalog",
+    "identityLibrary": "Planner library",
+    "identityManual": "Manual classification",
     "countingSummary": "Counted {counted} (PDF {pdf}, DWG {dwg}, merged {merged}) · twins {twins} · PDF-only {pdfOnly} · legend {legend} · sheets excluded {sheetExcluded}"
   },
   "detection": {
@@ -325,7 +336,39 @@
     "pickRequired": "Choose a device type to continue",
     "suggestLibrary": "The library already knows this symbol: {name}",
     "suggestSame": "This symbol already has a type on the plan: {name}",
-    "done": "Every symbol group has been checked"
+    "done": "Every symbol group has been checked",
+    "planSide": "Symbol found on the plan",
+    "legendSide": "Legend",
+    "showContext": "Show nearby context",
+    "legendMissing": "There is no matching legend row for this symbol.",
+    "legendNoSeparateCrop": "There is no separate legend crop. The original decoded text is shown.",
+    "proposedName": "Proposed BOQ name",
+    "match": {
+      "unambiguous": "The match between the symbol and the legend is unambiguous.",
+      "uncertain": "There is a proposed match, but it still needs a check.",
+      "conflict": "The legend has conflicting descriptions.",
+      "missing": "There is no clear match between the symbol and the legend."
+    },
+    "plain": {
+      "missingType": "The accessory type was not identified.",
+      "legendConflict": "The legend has two conflicting descriptions.",
+      "legendUnmapped": "There is no clear match between the symbol and the legend.",
+      "legendUnread": "The legend text was not read in full.",
+      "sheetUnassigned": "Sheet assignment still needs a check.",
+      "looksLikeNote": "The text looks like a note or manufacturer detail, not an accessory name.",
+      "uncertain": "There is a proposed match, but a doubt still needs to be resolved."
+    },
+    "confirmMatch": "Confirm match ({count})",
+    "actionRename": "Fix name",
+    "actionPickType": "Pick another type",
+    "actionAssignLegend": "Assign a different legend row",
+    "renameLabel": "Accessory name on the BOQ",
+    "assignLegendLabel": "Legend row",
+    "assignLegendNone": "No legend assignment",
+    "pickOrNameRequired": "Confirm a legend name or pick a catalog type.",
+    "technicalOnly": "Technical id (not shown as the name): {name}",
+    "symbolUnavailableShort": "No symbol image",
+    "conflictForcesOne": "There is a conflict — approval applies only to this occurrence."
   },
   "workspace": {
     "saved": "Changes saved",
@@ -350,7 +393,8 @@
     "workerBuild": "Worker build: {build}",
     "unknown": "unknown",
     "approveNeedsReview": "To approve: finish the check",
-    "approveNeedsPlan": "To approve: confirm you checked the plan"
+    "approveNeedsPlan": "To approve: confirm you checked the plan",
+    "boqReady": "No open issues are blocking BOQ approval"
   },
   "approval": {
     "approve": "Approve BOQ",

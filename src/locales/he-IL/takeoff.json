@@ -177,6 +177,17 @@
     "statusVerified": "מאומת",
     "statusForReview": "לבדיקה",
     "statusNeedsReview": "דורש בדיקה",
+    "checkAndApprove": "בדוק ואשר",
+    "statusAutoIdentified": "זוהה אוטומטית",
+    "statusNeedsCheck": "דורש בדיקה",
+    "statusUnclassified": "לא מסווג",
+    "statusManuallyApproved": "אושר ידנית",
+    "statusBoqReady": "מוכן לאישור כתב הכמויות",
+    "originalLegend": "תיאור המקרא",
+    "identityLegend": "מקרא",
+    "identityCatalog": "קטלוג",
+    "identityLibrary": "ספריית מתכנן",
+    "identityManual": "סיווג ידני",
     "countingSummary": "נספרו {counted} (PDF {pdf}, DWG {dwg}, מיזוג {merged}) · תאומים {twins} · PDF בלבד {pdfOnly} · מקרא {legend} · גליונות מוחרגים {sheetExcluded}"
   },
   "detection": {
@@ -325,7 +336,39 @@
     "pickRequired": "בחרו סוג אביזר כדי להמשיך",
     "suggestLibrary": "הספרייה כבר מכירה את הסמל: {name}",
     "suggestSame": "לסמל הזה כבר יש סוג בתוכנית: {name}",
-    "done": "כל קבוצות הסמלים נבדקו"
+    "done": "כל קבוצות הסמלים נבדקו",
+    "planSide": "הסמל שזוהה בתוכנית",
+    "legendSide": "המקרא",
+    "showContext": "הצג גם את הסביבה הקרובה",
+    "legendMissing": "אין שורת מקרא מתאימה לסמל זה.",
+    "legendNoSeparateCrop": "אין גזיר נפרד של הסמל מהמקרא. מוצג התיאור המקורי כפי שנקרא.",
+    "proposedName": "השם המוצע לכתב הכמויות",
+    "match": {
+      "unambiguous": "ההתאמה בין הסמל למקרא חד־משמעית.",
+      "uncertain": "יש התאמה מוצעת, אך קיים ספק שצריך לאשר.",
+      "conflict": "קיימים תיאורים סותרים במקרא.",
+      "missing": "לא נמצאה התאמה ברורה בין הסמל למקרא."
+    },
+    "plain": {
+      "missingType": "לא זוהה סוג אביזר.",
+      "legendConflict": "קיימים שני תיאורים סותרים במקרא.",
+      "legendUnmapped": "לא נמצאה התאמה ברורה בין הסמל למקרא.",
+      "legendUnread": "תיאור המקרא לא נקרא במלואו.",
+      "sheetUnassigned": "נדרש בירור שיוך לגיליון.",
+      "looksLikeNote": "התיאור נראה כמו הערה או פרט יצרן ולא שם אביזר.",
+      "uncertain": "יש התאמה מוצעת, אבל קיים ספק שצריך לפתור."
+    },
+    "confirmMatch": "אשר התאמה ({count})",
+    "actionRename": "תקן שם",
+    "actionPickType": "בחר סוג אחר",
+    "actionAssignLegend": "שייך למקרא אחר",
+    "renameLabel": "שם האביזר בכתב הכמויות",
+    "assignLegendLabel": "שורת מקרא",
+    "assignLegendNone": "ללא שיוך למקרא",
+    "pickOrNameRequired": "אשרו שם מהמקרא או בחרו סוג מהקטלוג.",
+    "technicalOnly": "מזהה טכני (לא מוצג כשם): {name}",
+    "symbolUnavailableShort": "אין תמונת סמל",
+    "conflictForcesOne": "יש סתירה — האישור יחול רק על המופע הנוכחי."
   },
   "workspace": {
     "saved": "השינויים נשמרו",
@@ -350,7 +393,8 @@
     "workerBuild": "גרסת worker: {build}",
     "unknown": "לא ידוע",
     "approveNeedsReview": "לאישור: סיימו את הבדיקה",
-    "approveNeedsPlan": "לאישור: סמנו שבדקתם את התוכנית"
+    "approveNeedsPlan": "לאישור: סמנו שבדקתם את התוכנית",
+    "boqReady": "אין בעיות פתוחות שמונעות אישור כתב הכמויות"
   },
   "approval": {
     "approve": "אישור כתב כמויות",

@@ -19,7 +19,14 @@ import type { ScenePayload } from '@/modules/external-storage/ui/cad/pf-cad-v3/t
 import type { XrefDepBytes } from '@/modules/external-storage/ui/cad/pf-cad-v3/xref-resolver';
 import { displayArchitecturalLayerIndexes, xrefDependencyPaths } from '../../domain/architectural-background';
 import { solveModelWindow } from '../../domain/cad-sheet-frame';
-import { symbolFrame, type CadNativeSample, type CadSheetMark } from '../../domain/cad-sheet-frame';
+import {
+  cadSymbolFocusExtent,
+  symbolFrame,
+  symbolGlyphStrokes,
+  symbolGlyphSvg,
+  type CadNativeSample,
+  type CadSheetMark,
+} from '../../domain/cad-sheet-frame';
 import { chooseTakeoffSheetId, focusLevel, type FocusLevel } from '../../domain/focus-level';
 import {
   buildDisplaySheets,
@@ -88,6 +95,7 @@ export function TakeoffDwgPlan({
   onUnavailable,
   onSelectMark,
   onPlanClick,
+  onSymbolGlyphs,
 }: {
   url: string;
   fileName: string;
@@ -104,6 +112,7 @@ export function TakeoffDwgPlan({
   onUnavailable: () => void;
   onSelectMark?: (id: string) => void;
   onPlanClick?: (x: number, y: number) => void;
+  onSymbolGlyphs?: (glyphs: Record<string, string>) => void;
 }) {
   const t = useTranslations('takeoff');
   const [archMode, setArchMode] = useState<ArchitectureMode>('original');
@@ -495,16 +504,65 @@ export function TakeoffDwgPlan({
     if (!active || level === 'region') {
       renderer.focusExtent(extentRef.current, 48);
     } else if (level === 'point') {
-      renderer.focusExtent([active.x - 80, active.y - 80, active.x + 80, active.y + 80], 36);
+      const body = Math.max(active.maxX - active.minX, active.maxY - active.minY, 8);
+      renderer.focusExtent(cadSymbolFocusExtent({
+        minX: active.x - body / 2,
+        minY: active.y - body / 2,
+        maxX: active.x + body / 2,
+        maxY: active.y + body / 2,
+      }), 28);
     } else {
-      const span = Math.max(active.maxX - active.minX, active.maxY - active.minY, 1);
-      const pad = Math.max(span * 5, 24);
-      const cx = (active.minX + active.maxX) / 2;
-      const cy = (active.minY + active.maxY) / 2;
-      renderer.focusExtent([cx - pad, cy - pad, cx + pad, cy + pad], 36);
+      renderer.focusExtent(cadSymbolFocusExtent(active), 24);
+    }
+    if (active?.located && onSymbolGlyphs) {
+      const source = marks.find((item) => item.id === active.id);
+      const box = {
+        half: Math.max(active.maxX - active.minX, active.maxY - active.minY, 1) / 2,
+        minX: active.minX,
+        minY: active.minY,
+        maxX: active.maxX,
+        maxY: active.maxY,
+        located: true as const,
+      };
+      const svg = symbolGlyphSvg(
+        symbolGlyphStrokes(drawnRef.current, box, architecturalRef.current),
+        box,
+        source?.colorHex,
+      );
+      if (svg) {
+        const next: Record<string, string> = { [active.id]: svg };
+        if (source?.signature) next[`sig:${source.signature}`] = svg;
+        onSymbolGlyphs(next);
+      }
     }
     drawRef.current();
-  }, [activeIds, focusId, marks, phase, sheet, viewToken]);
+  }, [activeIds, focusId, marks, onSymbolGlyphs, phase, sheet, viewToken]);
+
+  useEffect(() => {
+    if (phase !== 'ready' || viewToken === 0 || !onSymbolGlyphs || !sheet) return;
+    const model = modelRef.current;
+    if (!model) return;
+    const segments = drawnRef.current;
+    const placed = marks.flatMap((mark) => {
+      const point = toDisplay(mark.nativeX, mark.nativeY, sheet, activeIds, model);
+      return point ? [{ ...mark, ...point }] : [];
+    });
+    const seen = new Set<string>();
+    const glyphs: Record<string, string> = {};
+    for (const mark of placed) {
+      const key = mark.signature || mark.id;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const box = symbolFrame(segments, mark.x, mark.y, placed, mark.id, architecturalRef.current);
+      if (!box.located) continue;
+      const svg = symbolGlyphSvg(symbolGlyphStrokes(segments, box, architecturalRef.current), box, mark.colorHex);
+      if (!svg) continue;
+      glyphs[mark.id] = svg;
+      if (mark.signature) glyphs[`sig:${mark.signature}`] = svg;
+      if (Object.keys(glyphs).length >= 48) break;
+    }
+    if (Object.keys(glyphs).length > 0) onSymbolGlyphs(glyphs);
+  }, [activeIds, marks, onSymbolGlyphs, phase, sheet, viewToken]);
 
   useEffect(() => {
     const renderer = rendererRef.current;

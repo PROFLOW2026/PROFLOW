@@ -88,7 +88,7 @@ describe('boqLineDisplayLabel', () => {
     expect(
       boqLineDisplayLabel(line({ typeKey: null, label: 'SOCKET_BLOCK — לבדיקה' }), catalog, 'לא מסווג — לבדיקה'),
     ).toBe('לא מסווג — לבדיקה');
-    expect(boqLineStatus(line({ typeKey: null, verified: true }), false)).toBe('forReview');
+    expect(boqLineStatus(line({ typeKey: null, verified: true }), false)).toBe('manuallyApproved');
   });
 
   it('shows an org-custom accessory name', () => {
@@ -118,6 +118,23 @@ describe('boqLineDisplayLabel', () => {
         'לא מסווג — לבדיקה',
       ),
     ).toBe('לחצן חדר מדרגות');
+  });
+});
+
+describe('boqLineStatus', () => {
+  it('does not send an unambiguous legend quantity line to check-and-approve', () => {
+    expect(
+      boqLineStatus(
+        line({
+          typeKey: null,
+          identitySource: 'legend',
+          originalLabel: 'תוצרת אלקטרולייט שקע יחיד',
+          quantity: 50,
+          verified: false,
+        }),
+        false,
+      ),
+    ).toBe('autoIdentified');
   });
 });
 

@@ -37,6 +37,9 @@ type MutableRow = {
   legendRowIds: string[];
   legendKey: string | undefined;
   classifiedBy: WorkerDetection['classifiedBy'] | undefined;
+  maskB64: string | undefined;
+  colorHex: string | undefined;
+  userLabel: string | null;
 };
 
 export function deriveNeedsReview(input: {
@@ -96,6 +99,9 @@ function toRow(d: WorkerDetection): MutableRow {
     legendRowIds: d.legendRowIds ?? [],
     legendKey: d.legendKey,
     classifiedBy: d.classifiedBy,
+    maskB64: d.maskB64,
+    colorHex: d.colorHex,
+    userLabel: null,
   };
 }
 
@@ -174,6 +180,9 @@ export function applyEdits(
           legendRowIds: [],
           legendKey: undefined,
           classifiedBy: undefined,
+          maskB64: undefined,
+          colorHex: undefined,
+          userLabel: null,
         });
         break;
       }
@@ -190,6 +199,21 @@ export function applyEdits(
         const row = byId.get(edit.detectionId);
         if (!row || row.deleted) break;
         row.tagText = edit.tagText;
+        row.origin = row.userAdded ? 'user_added' : 'user_changed';
+        break;
+      }
+      case 'set_label': {
+        const row = byId.get(edit.detectionId);
+        if (!row || row.deleted) break;
+        row.userLabel = edit.label.trim();
+        row.origin = row.userAdded ? 'user_added' : 'user_changed';
+        break;
+      }
+      case 'assign_legend': {
+        const row = byId.get(edit.detectionId);
+        if (!row || row.deleted) break;
+        row.legendRowIds = edit.legendRowId ? [edit.legendRowId] : [];
+        row.legendKey = edit.legendRowId ?? undefined;
         row.origin = row.userAdded ? 'user_added' : 'user_changed';
         break;
       }
@@ -294,6 +318,9 @@ function toEffective(
     ...(row.legendRowIds.length > 0 ? { legendRowIds: row.legendRowIds } : {}),
     ...(row.legendKey ? { legendKey: row.legendKey } : {}),
     ...(row.classifiedBy ? { classifiedBy: row.classifiedBy } : {}),
+    ...(row.maskB64 ? { maskB64: row.maskB64 } : {}),
+    ...(row.colorHex ? { colorHex: row.colorHex } : {}),
+    ...(row.userLabel ? { userLabel: row.userLabel } : {}),
   };
 }
 

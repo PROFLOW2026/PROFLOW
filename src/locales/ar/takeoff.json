@@ -177,6 +177,17 @@
     "statusVerified": "معتمد",
     "statusForReview": "للمراجعة",
     "statusNeedsReview": "يتطلب مراجعة",
+    "checkAndApprove": "تحقق واعتمد",
+    "statusAutoIdentified": "تعرّف تلقائيًا",
+    "statusNeedsCheck": "يتطلب فحصًا",
+    "statusUnclassified": "غير مصنّف",
+    "statusManuallyApproved": "اعتمد يدويًا",
+    "statusBoqReady": "جاهز لاعتماد جدول الكميات",
+    "originalLegend": "نص المفتاح الأصلي",
+    "identityLegend": "المفتاح",
+    "identityCatalog": "الكتالوج",
+    "identityLibrary": "مكتبة المخطط",
+    "identityManual": "تصنيف يدوي",
     "countingSummary": "المحسوب: {counted} (PDF {pdf}، DWG {dwg}، دمج {merged}) · توائم {twins} · PDF فقط {pdfOnly} · المفتاح {legend} · صفحات مستثناة {sheetExcluded}"
   },
   "detection": {
@@ -325,7 +336,39 @@
     "pickRequired": "اختاروا نوع التجهيز للمتابعة",
     "suggestLibrary": "المكتبة تعرف هذا الرمز: {name}",
     "suggestSame": "لهذا الرمز نوع موجود في المخطط: {name}",
-    "done": "اكتمل فحص كل مجموعات الرموز"
+    "done": "اكتمل فحص كل مجموعات الرموز",
+    "planSide": "الرمز الموجود في المخطط",
+    "legendSide": "المفتاح",
+    "showContext": "اعرض أيضًا المحيط القريب",
+    "legendMissing": "لا توجد صف مفتاح مطابق لهذا الرمز.",
+    "legendNoSeparateCrop": "لا يوجد قص منفصل لرمز المفتاح. يُعرض النص الأصلي كما قُرئ.",
+    "proposedName": "الاسم المقترح لجدول الكميات",
+    "match": {
+      "unambiguous": "المطابقة بين الرمز والمفتاح واضحة.",
+      "uncertain": "هناك مطابقة مقترحة، لكن ما زال هناك شك يحتاج فحصًا.",
+      "conflict": "يوجد وصفان متعارضان في المفتاح.",
+      "missing": "لا توجد مطابقة واضحة بين الرمز والمفتاح."
+    },
+    "plain": {
+      "missingType": "لم يُتعرف على نوع التجهيز.",
+      "legendConflict": "يوجد وصفان متعارضان في المفتاح.",
+      "legendUnmapped": "لا توجد مطابقة واضحة بين الرمز والمفتاح.",
+      "legendUnread": "لم يُقرأ نص المفتاح بالكامل.",
+      "sheetUnassigned": "يلزم التحقق من ربط اللوحة.",
+      "looksLikeNote": "النص يبدو ملاحظة أو تفصيل مُصنّع وليس اسم تجهيز.",
+      "uncertain": "هناك مطابقة مقترحة، لكن ما زال هناك شك يحتاج حسمًا."
+    },
+    "confirmMatch": "اعتماد المطابقة ({count})",
+    "actionRename": "تصحيح الاسم",
+    "actionPickType": "اختيار نوع آخر",
+    "actionAssignLegend": "ربط بصف مفتاح آخر",
+    "renameLabel": "اسم التجهيز في جدول الكميات",
+    "assignLegendLabel": "صف المفتاح",
+    "assignLegendNone": "بدون ربط بالمفتاح",
+    "pickOrNameRequired": "اعتمدوا اسمًا من المفتاح أو اختاروا نوعًا من الكتالوج.",
+    "technicalOnly": "معرّف تقني (لا يُعرض كاسم): {name}",
+    "symbolUnavailableShort": "لا توجد صورة للرمز",
+    "conflictForcesOne": "هناك تعارض — الاعتماد يسري على هذا الظهور فقط."
   },
   "workspace": {
     "saved": "تم حفظ التغييرات",
@@ -350,7 +393,8 @@
     "workerBuild": "إصدار العامل: {build}",
     "unknown": "غير معروف",
     "approveNeedsReview": "للاعتماد: أنهوا الفحص",
-    "approveNeedsPlan": "للاعتماد: أكّدوا أنكم فحصتم المخطط"
+    "approveNeedsPlan": "للاعتماد: أكّدوا أنكم فحصتم المخطط",
+    "boqReady": "لا توجد مشاكل مفتوحة تمنع اعتماد جدول الكميات"
   },
   "approval": {
     "approve": "اعتماد جدول الكميات",

@@ -35,4 +35,28 @@ describe('applyEdits', () => {
     expect(added?.w).toBe(18);
     expect(added?.h).toBe(18);
   });
+
+  it('confirms a legend name without requiring a catalog type', () => {
+    const out = applyEdits(base, [{ op: 'confirm', detectionIds: ['d2'] }]);
+    const row = out.find((d) => d.id === 'd2');
+    expect(row?.typeKey).toBeNull();
+    expect(row?.status).toBe('confirmed');
+    expect(row?.needsReview).toBe(false);
+  });
+
+  it('renames and reassigns a legend row, then keeps the decision on replay', () => {
+    const edits = [
+      { op: 'set_label' as const, detectionId: 'd2', label: 'שקע יחיד' },
+      { op: 'assign_legend' as const, detectionId: 'd2', legendRowId: 'L-socket' },
+      { op: 'confirm' as const, detectionIds: ['d2'] },
+    ];
+    const once = applyEdits(base, edits);
+    const again = applyEdits(base, edits);
+    expect(once.find((d) => d.id === 'd2')).toMatchObject({
+      userLabel: 'שקע יחיד',
+      legendRowIds: ['L-socket'],
+      status: 'confirmed',
+    });
+    expect(again.find((d) => d.id === 'd2')?.userLabel).toBe('שקע יחיד');
+  });
 });

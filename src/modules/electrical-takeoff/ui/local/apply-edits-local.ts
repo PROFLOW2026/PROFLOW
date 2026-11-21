@@ -115,6 +115,14 @@ function applyOne(base: EffectiveDetection[], edit: TakeoffEdit): EffectiveDetec
       return base.map((d) => (d.id === edit.detectionId ? { ...d, x: edit.x, y: edit.y } : d));
     case 'set_note':
       return base.map((d) => (d.id === edit.detectionId ? { ...d, tagText: edit.tagText } : d));
+    case 'set_label':
+      return base.map((d) => (d.id === edit.detectionId ? { ...d, userLabel: edit.label } : d));
+    case 'assign_legend':
+      return base.map((d) =>
+        d.id === edit.detectionId
+          ? { ...d, legendRowIds: edit.legendRowId ? [edit.legendRowId] : [], legendKey: edit.legendRowId ?? undefined }
+          : d,
+      );
     case 'upsert_area':
     case 'delete_area':
     case 'set_floor':

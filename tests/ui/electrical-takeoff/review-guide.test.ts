@@ -154,6 +154,10 @@ describe('guided review groups', () => {
     expect(sheetWidth).toBeCloseTo(sheetHeight, 3);
     expect(sheetWidth).toBeCloseTo(l39Focus.width, 3);
     expect(l39Focus.width).toBeLessThan(l39Sheet.widthPx * 0.05);
+    const context = symbolCropSource(l39, l39Sheet, l39Image, 'context');
+    const thumb = symbolCropSource(l39, l39Sheet, l39Image, 'thumb');
+    expect(thumb.sw).toBeLessThan(l39Crop.sw);
+    expect(l39Crop.sw).toBeLessThan(context.sw);
   });
 
   it('counts a group as checked only after it leaves the queue', () => {

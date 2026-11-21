@@ -109,8 +109,8 @@ export function computeBoq(input: ComputeBoqInput): Boq {
   const byBucket = new Map<string, CountableDetection[]>();
   for (const d of withFloor) {
     const manualType = (d.origin === 'user_changed' || d.origin === 'user_added') && d.typeKey;
-    if (!manualType && hasLegendQuantityIdentity(d) && d.originalText) {
-      const key = bucketKey('legend', d.originalText, d.floor, d.areaId, 'legend-count');
+    if (!manualType && hasLegendQuantityIdentity(d) && (d.userLabel?.trim() || d.originalText)) {
+      const key = bucketKey('legend', d.userLabel?.trim() || d.originalText!, d.floor, d.areaId, 'legend-count');
       const list = byBucket.get(key) ?? [];
       list.push(d);
       byBucket.set(key, list);
@@ -145,7 +145,11 @@ export function computeBoq(input: ComputeBoqInput): Boq {
 
   for (const [, group] of byBucket) {
     const sample = group[0]!;
-    if (hasLegendQuantityIdentity(sample) && sample.originalText && !(sample.origin === 'user_changed' || sample.origin === 'user_added')) {
+    if (
+      hasLegendQuantityIdentity(sample) &&
+      (sample.userLabel?.trim() || sample.originalText) &&
+      !((sample.origin === 'user_changed' || sample.origin === 'user_added') && sample.typeKey)
+    ) {
       lines.push(buildLegendLine(group, sample, catalogMap, input.ruleSet.rules, input.state, completeness));
       continue;
     }
@@ -432,7 +436,7 @@ function buildLegendLine(
   const cat = typeKey ? catalogMap.get(typeKey) : undefined;
   const category = cat?.category ?? 'unknown';
   const rule = typeKey ? resolveRuleForType(rules, typeKey, category) ?? LEGEND_COUNT_RULE : LEGEND_COUNT_RULE;
-  const name = sample.originalText!.trim();
+  const name = (sample.userLabel?.trim() || sample.originalText || '').trim();
   const deviceCount = cluster.reduce((sum, detection) => sum + devicesFromNote(detection.tagText), 0);
   const line = buildQuantityLine({
     cluster,

@@ -32,6 +32,8 @@ export type CadSheetMark = {
   id: string;
   nativeX: number;
   nativeY: number;
+  signature?: string | null;
+  colorHex?: string;
 };
 
 export type CadSheetFrame = {
@@ -412,6 +414,59 @@ export function symbolFrame(
     maxY: maxY + pad,
     located: true,
   };
+}
+
+/** Real CAD strokes inside a located symbol box, for a glyph thumbnail. */
+export function symbolGlyphStrokes(
+  segments: Float32Array,
+  box: SymbolBox,
+  skipLayers?: ReadonlySet<number>,
+): Array<[number, number, number, number]> {
+  if (!box.located) return [];
+  const pad = Math.max(box.maxX - box.minX, box.maxY - box.minY, 1) * 0.08;
+  const minX = box.minX - pad;
+  const minY = box.minY - pad;
+  const maxX = box.maxX + pad;
+  const maxY = box.maxY + pad;
+  const out: Array<[number, number, number, number]> = [];
+  for (let i = 0; i + STRIDE - 1 < segments.length; i += STRIDE) {
+    if (skipLayers?.has(Math.trunc(segments[i + 5] ?? 0))) continue;
+    const x1 = segments[i] ?? 0;
+    const y1 = segments[i + 1] ?? 0;
+    const x2 = segments[i + 2] ?? 0;
+    const y2 = segments[i + 3] ?? 0;
+    const inside =
+      x1 >= minX && x1 <= maxX && y1 >= minY && y1 <= maxY && x2 >= minX && x2 <= maxX && y2 >= minY && y2 <= maxY;
+    if (!inside) continue;
+    out.push([x1, y1, x2, y2]);
+  }
+  return out;
+}
+
+export function symbolGlyphSvg(
+  strokes: readonly [number, number, number, number][],
+  box: SymbolBox,
+  colorHex = '#111827',
+): string | null {
+  if (!box.located || strokes.length === 0) return null;
+  const width = Math.max(box.maxX - box.minX, 1);
+  const height = Math.max(box.maxY - box.minY, 1);
+  const pad = Math.max(width, height) * 0.12;
+  const minX = box.minX - pad;
+  const maxY = box.maxY + pad;
+  const viewW = width + pad * 2;
+  const viewH = height + pad * 2;
+  const d = strokes
+    .map(([x1, y1, x2, y2]) => `M ${(x1 - minX).toFixed(2)} ${(maxY - y1).toFixed(2)} L ${(x2 - minX).toFixed(2)} ${(maxY - y2).toFixed(2)}`)
+    .join(' ');
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${viewW.toFixed(2)} ${viewH.toFixed(2)}" fill="none" stroke="${colorHex}" stroke-width="${Math.max(viewW, viewH) * 0.035}" stroke-linecap="round" stroke-linejoin="round"><path d="${d}" /></svg>`;
+}
+
+/** Tight native window around one located CAD symbol — not the sheet or the whole group. */
+export function cadSymbolFocusExtent(box: Pick<SymbolBox, 'minX' | 'minY' | 'maxX' | 'maxY'>): [number, number, number, number] {
+  const body = Math.max(box.maxX - box.minX, box.maxY - box.minY, 1);
+  const pad = body * 0.8;
+  return [box.minX - pad, box.minY - pad, box.maxX + pad, box.maxY + pad];
 }
 
 export function segmentNear(segments: Float32Array, x: number, y: number, radius: number): boolean {

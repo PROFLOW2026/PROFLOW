@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { applyEdits } from '@/modules/electrical-takeoff/domain/edits';
 import {
+  cadSymbolFocusExtent,
   chooseCadSheetFrame,
   modelToWorld,
   paperRects,
@@ -8,6 +9,8 @@ import {
   solveModelWindow,
   planExtent,
   symbolFrame,
+  symbolGlyphStrokes,
+  symbolGlyphSvg,
   textMatchesSheet,
 } from '@/modules/electrical-takeoff/domain/cad-sheet-frame';
 import type { WorkerDetection } from '@/modules/electrical-takeoff/domain/contracts';
@@ -157,5 +160,18 @@ describe('cad sheet frame', () => {
     ] as WorkerDetection[];
     expect(applyEdits(base, [])[0]?.native).toEqual({ x: 10, y: 20 });
     expect(applyEdits(base, [{ op: 'move', detectionId: 'a', x: 3, y: 4 }])[0]?.native).toBeUndefined();
+  });
+
+  it('builds an SVG glyph from the real strokes inside a located box', () => {
+    const segments = rectSegments(10, 20, 16, 12);
+    const box = symbolFrame(segments, 10, 20, [{ x: 80, y: 20 }]);
+    expect(box.located).toBe(true);
+    const strokes = symbolGlyphStrokes(segments, box);
+    expect(strokes.length).toBeGreaterThan(0);
+    const svg = symbolGlyphSvg(strokes, box, '#111827');
+    expect(svg).toContain('<svg');
+    expect(svg).toContain('path');
+    const extent = cadSymbolFocusExtent(box);
+    expect(extent[2] - extent[0]).toBeLessThan(80);
   });
 });

@@ -1,28 +1,52 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { Boq, BoqLine, CatalogType } from '../domain/contracts';
+import type { Boq, BoqLine, CatalogType, EffectiveDetection, SheetDto } from '../domain/contracts';
 import { boqLineDisplayLabel, boqLineStatus, groupBoqLinesForDisplay } from './boq-display';
+import { TakeoffSymbolGlyph } from './takeoff-symbol-glyph';
+import { detectionIdentityStatus } from '../domain/review-copy';
+
+function identityCopyKey(source: string | undefined): 'identityLegend' | 'identityCatalog' | 'identityLibrary' | 'identityManual' | null {
+  if (source === 'legend') return 'identityLegend';
+  if (source === 'catalog') return 'identityCatalog';
+  if (source === 'library') return 'identityLibrary';
+  if (source === 'manual') return 'identityManual';
+  return null;
+}
+
+function glyphKey(detection: Pick<EffectiveDetection, 'id' | 'signature'>): string {
+  return detection.signature ? `sig:${detection.signature}` : detection.id;
+}
 
 export function TakeoffBoqPanel({
   boq,
   lines,
   catalog,
+  detections = [],
+  sheets = [],
+  glyphByKey = {},
   focusKey,
   onLineClick,
+  onCheckAndApprove,
   suppressVerified,
   showUnclassified,
   onToggleUnclassified,
+  boqReady = false,
 }: {
   boq: Boq;
   lines: readonly BoqLine[];
   catalog: readonly CatalogType[];
+  detections?: readonly EffectiveDetection[];
+  sheets?: readonly SheetDto[];
+  glyphByKey?: Record<string, string>;
   focusKey: string | null;
   onLineClick: (lineKey: string, detectionIds: string[]) => void;
+  onCheckAndApprove?: (lineKey: string, detectionIds: string[]) => void;
   /** When worker warnings block verification, never show “verified” badges. */
   suppressVerified?: boolean;
   showUnclassified?: boolean;
   onToggleUnclassified?: () => void;
+  boqReady?: boolean;
 }) {
   const t = useTranslations('takeoff');
   const classifiedQty = boq.lines
@@ -30,12 +54,14 @@ export function TakeoffBoqPanel({
     .reduce((s, l) => s + l.quantity, 0);
   const unclassifiedLabel = t('detection.unclassified');
   const displayLines = groupBoqLinesForDisplay(lines, catalog, unclassifiedLabel, Boolean(suppressVerified));
+  const byId = new Map(detections.map((item) => [item.id, item]));
 
-  const statusLabel = (line: BoqLine) => {
+  const statusCopy = (line: BoqLine) => {
     const status = boqLineStatus(line, Boolean(suppressVerified));
-    if (status === 'verified') return t('boq.statusVerified');
-    if (status === 'needsReview') return t('boq.statusNeedsReview');
-    return t('boq.statusForReview');
+    if (status === 'autoIdentified') return t('boq.statusAutoIdentified');
+    if (status === 'needsCheck') return t('boq.statusNeedsCheck');
+    if (status === 'manuallyApproved') return t('boq.statusManuallyApproved');
+    return t('boq.statusUnclassified');
   };
 
   return (
@@ -57,6 +83,11 @@ export function TakeoffBoqPanel({
           </button>
         ) : null}
       </header>
+      {boqReady ? (
+        <p className="border-b border-[var(--pf-border-default)] px-2 py-1 text-xs text-[var(--pf-status-success-fg)]" data-testid="takeoff-boq-ready">
+          {t('workspace.boqReady')}
+        </p>
+      ) : null}
       <div className="min-w-0">
         <table className="w-full min-w-0 table-fixed border-collapse text-sm">
           <thead className="sticky top-0 z-[1] bg-[var(--pf-bg-surface)]">
@@ -67,7 +98,7 @@ export function TakeoffBoqPanel({
               <th scope="col" className="w-16 px-2 py-2 text-end font-medium">
                 {t('boq.columnQuantity')}
               </th>
-              <th scope="col" className="w-[7.5rem] px-2 py-2 text-start font-medium">
+              <th scope="col" className="w-[8.5rem] px-2 py-2 text-start font-medium">
                 {t('boq.columnStatus')}
               </th>
             </tr>
@@ -82,40 +113,50 @@ export function TakeoffBoqPanel({
             ) : (
               displayLines.map((line) => {
                 const displayName = boqLineDisplayLabel(line, catalog, unclassifiedLabel);
-                const status = statusLabel(line);
                 const tone = boqLineStatus(line, Boolean(suppressVerified));
                 const toneClass =
-                  tone === 'verified'
+                  tone === 'manuallyApproved' || tone === 'autoIdentified'
                     ? 'bg-[var(--pf-status-success-bg)] text-[var(--pf-status-success-fg)]'
-                    : tone === 'needsReview'
+                    : tone === 'needsCheck'
                       ? 'bg-[var(--pf-status-warning-bg)] text-[var(--pf-status-warning-fg)]'
                       : 'bg-[var(--pf-bg-muted)] text-[var(--pf-text-primary)]';
+                const sample = line.detectionIds.map((id) => byId.get(id)).find((item): item is EffectiveDetection => Boolean(item));
+                const sheet = sample ? sheets.find((item) => item.sheetKey === sample.sheetKey) : undefined;
+                const identity = identityCopyKey(line.identitySource);
+                const needsAction = tone === 'needsCheck' || tone === 'unclassified';
+                const sampleStatus = sample ? detectionIdentityStatus(sample) : tone;
                 return (
-                  <tr key={line.key}>
+                  <tr key={line.key} data-identity-status={sampleStatus}>
                     <td className="p-0">
                       <button
                         type="button"
                         data-testid={line.typeKey == null && line.identitySource !== 'legend' ? 'takeoff-boq-line-unclassified' : 'takeoff-boq-line'}
-                        className={`flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md px-2 py-2 text-start hover:bg-[var(--pf-action-subtle-hover)] ${
+                        className={`flex min-h-11 w-full min-w-0 items-start gap-2 rounded-md px-2 py-2 text-start hover:bg-[var(--pf-action-subtle-hover)] ${
                           focusKey === line.key ? 'bg-[var(--pf-action-subtle-active)]' : ''
                         }`}
                         onClick={() => onLineClick(line.key, line.detectionIds)}
                       >
-                        <span
-                          className="size-2.5 shrink-0 rounded-full"
-                          style={{
-                            backgroundColor: line.typeKey
-                              ? (catalog.find((c) => c.key === line.typeKey)?.colorHex ?? '#64748b')
-                              : '#94a3b8',
-                          }}
-                          aria-hidden
-                        />
-                        <span className="min-w-0 truncate font-medium text-[var(--pf-text-primary)]">
-                          {displayName}
-                          {line.identitySource === 'legend' ? (
-                            <span className="ms-1 text-[11px] font-normal text-[var(--pf-text-secondary)]">
-                              {t('detection.identityLegend')}
+                        {sample ? (
+                          <TakeoffSymbolGlyph
+                            detection={sample}
+                            sheet={sheet}
+                            svgMarkup={glyphByKey[glyphKey(sample)] ?? glyphByKey[sample.id]}
+                            mode="thumb"
+                            className="size-12 shrink-0"
+                            testId="takeoff-boq-glyph"
+                          />
+                        ) : (
+                          <span className="size-12 shrink-0 rounded-md border border-dashed border-[var(--pf-border-default)]" />
+                        )}
+                        <span className="min-w-0">
+                          <span className="block break-words font-medium text-[var(--pf-text-primary)]">{displayName}</span>
+                          {line.originalLabel && line.originalLabel.trim() !== displayName ? (
+                            <span className="mt-0.5 block break-words text-[11px] text-[var(--pf-text-secondary)]">
+                              {t('boq.originalLegend')}: {line.originalLabel}
                             </span>
+                          ) : null}
+                          {identity ? (
+                            <span className="mt-0.5 block text-[11px] text-[var(--pf-text-muted)]">{t(`boq.${identity}`)}</span>
                           ) : null}
                         </span>
                       </button>
@@ -129,7 +170,21 @@ export function TakeoffBoqPanel({
                       ) : null}
                     </td>
                     <td className="px-2 py-2 align-middle text-xs">
-                      <span className={`inline-flex rounded px-1.5 py-0.5 ${toneClass}`}>{status}</span>
+                      {needsAction && onCheckAndApprove ? (
+                        <button
+                          type="button"
+                          data-testid="takeoff-boq-check-approve"
+                          className={`inline-flex min-h-11 items-center rounded px-2 py-1 font-medium ${toneClass}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onCheckAndApprove(line.key, line.detectionIds);
+                          }}
+                        >
+                          {t('boq.checkAndApprove')}
+                        </button>
+                      ) : (
+                        <span className={`inline-flex rounded px-1.5 py-0.5 ${toneClass}`}>{statusCopy(line)}</span>
+                      )}
                     </td>
                   </tr>
                 );

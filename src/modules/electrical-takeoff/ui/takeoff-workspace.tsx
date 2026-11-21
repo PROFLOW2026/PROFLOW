@@ -23,7 +23,7 @@ import { formatTakeoffDisplayName } from '../domain/format-display-name';
 import { detectionCensus, detectionDisplayLabel } from './boq-display';
 import { isRevisionConflictError, takeoffErrorCode } from './takeoff-errors';
 import { TakeoffConflictBanner, TakeoffLibraryDialog, TakeoffRuleSetDialog } from './takeoff-workspace-panels';
-import { initialWorkspaceState, type TypeFilterState } from './workspace/takeoff-workspace-state';
+import { colorForDetection, initialWorkspaceState, type TypeFilterState } from './workspace/takeoff-workspace-state';
 import { TakeoffTypeFilterChips } from './takeoff-type-filter-chips';
 import { TakeoffBoqPanel } from './takeoff-boq-panel';
 import { TakeoffDetectionSheet } from './takeoff-detection-sheet';
@@ -42,6 +42,8 @@ import { detectionsForSheet, parseSheetRefId, sheetRefId } from './sheet-ref';
 import { sameSymbolDetections, undecodedLegendExemplars } from './symbol-group';
 import { buildReviewGroups, typeSuggestions } from './review-guide';
 import { TakeoffReviewGuide } from './takeoff-review-guide';
+import { TakeoffSymbolGlyph } from './takeoff-symbol-glyph';
+import { reviewPlainKey } from '../domain/review-copy';
 
 export function TakeoffWorkspace({
   analysisId,
@@ -80,6 +82,8 @@ export function TakeoffWorkspace({
   const [focusMode, setFocusMode] = useState<'split' | 'plan' | 'table'>('split');
   const [sideTab, setSideTab] = useState<'boq' | 'review' | 'sheet'>('boq');
   const [legendLibraryType, setLegendLibraryType] = useState('');
+  const [cadGlyphsBySheet, setCadGlyphsBySheet] = useState<Record<string, Record<string, string>>>({});
+  const [planFocusNonce, setPlanFocusNonce] = useState(0);
   const sheetsPanelRef = useRef<HTMLElement>(null);
 
   const load = useCallback(async () => {
@@ -128,10 +132,31 @@ export function TakeoffWorkspace({
     [sheetDetections],
   );
   const dwgMarks = useMemo(
-    () => sheetDetections.flatMap((mark) => (mark.native ? [{ id: mark.id, nativeX: mark.native.x, nativeY: mark.native.y }] : [])),
-    [sheetDetections],
+    () =>
+      sheetDetections.flatMap((mark) =>
+        mark.native
+          ? [
+              {
+                id: mark.id,
+                nativeX: mark.native.x,
+                nativeY: mark.native.y,
+                signature: mark.signature,
+                colorHex: state.view ? colorForDetection(mark, state.view.catalog) : undefined,
+              },
+            ]
+          : [],
+      ),
+    [sheetDetections, state.view],
   );
   const sheetLiveKey = sheet ? `${sheet.fileId}:${sheet.sheetKey}` : '';
+  const cadGlyphs = cadGlyphsBySheet[sheetLiveKey] ?? {};
+  const mergeCadGlyphs = useCallback((glyphs: Record<string, string>) => {
+    if (!sheetLiveKey) return;
+    setCadGlyphsBySheet((current) => ({
+      ...current,
+      [sheetLiveKey]: { ...(current[sheetLiveKey] ?? {}), ...glyphs },
+    }));
+  }, [sheetLiveKey]);
   const showDwgPlan = Boolean(
     sourceApiBase &&
       sheet &&
@@ -233,20 +258,26 @@ export function TakeoffWorkspace({
     total: completedReviewKeys.length + reviewGroups.filter((group) => !completedReviewKeys.includes(group.key)).length,
   };
 
-  const focusGuide = (group: (typeof reviewGroups)[number] | null) => {
-    if (!group) return;
+  const focusOccurrence = (detectionId: string, lineKey?: string | null) => {
+    setShownOccurrenceId(detectionId);
+    setPlanFocusNonce((value) => value + 1);
     setState((current) => {
       const host = current.view?.sheets.find((item) =>
-        detectionsForSheet(current.view?.detections ?? [], item).some((mark) => mark.id === group.focusId),
+        detectionsForSheet(current.view?.detections ?? [], item).some((mark) => mark.id === detectionId),
       );
       return {
         ...current,
-        selectedDetectionId: null,
-        highlightedDetectionIds: new Set([group.focusId]),
+        selectedDetectionId: detectionId,
+        highlightedDetectionIds: new Set([detectionId]),
         activeSheetKey: host ? sheetRefId(host) : current.activeSheetKey,
+        ...(lineKey ? { focusBoqLineKey: lineKey } : {}),
       };
     });
-    setShownOccurrenceId(group.focusId);
+  };
+
+  const focusGuide = (group: (typeof reviewGroups)[number] | null) => {
+    if (!group) return;
+    focusOccurrence(group.focusId);
   };
 
   const setFilter = (updater: (f: TypeFilterState) => TypeFilterState) => {
@@ -254,11 +285,28 @@ export function TakeoffWorkspace({
   };
 
   const focusBoqLine = (lineKey: string, detectionIds: string[]) => {
-    setState((s) => ({
-      ...s,
-      focusBoqLineKey: lineKey,
-      highlightedDetectionIds: new Set(detectionIds),
-    }));
+    const preferredSheet = sheet?.sheetKey;
+    const detections = state.view?.detections ?? [];
+    const onSheet = preferredSheet
+      ? detectionIds.find((id) => detections.find((item) => item.id === id)?.sheetKey === preferredSheet)
+      : undefined;
+    const focusId = onSheet ?? detectionIds[0];
+    if (!focusId) return;
+    focusOccurrence(focusId, lineKey);
+  };
+
+  const openCheckAndApprove = (lineKey: string, detectionIds: string[]) => {
+    const index = reviewGroups.findIndex((group) => group.detectionIds.some((id) => detectionIds.includes(id)));
+    if (index >= 0) {
+      setGuideIndex(index);
+      setSideTab('review');
+      const group = reviewGroups[index];
+      const first = detectionIds.find((id) => group?.detectionIds.includes(id)) ?? group?.focusId;
+      if (first) focusOccurrence(first, lineKey);
+      return;
+    }
+    setSideTab('review');
+    focusBoqLine(lineKey, detectionIds);
   };
 
   const reasonLabel = (r: TakeoffReviewReason | string) => {
@@ -643,7 +691,8 @@ export function TakeoffWorkspace({
               heightPx={sheet.heightPx}
               samples={dwgSamples}
               marks={dwgMarks}
-              focusId={sideTab === 'review' ? (shownOccurrenceId ?? activeGuide?.focusId ?? null) : state.selectedDetectionId}
+              focusId={shownOccurrenceId ?? state.selectedDetectionId ?? activeGuide?.focusId ?? null}
+              onSymbolGlyphs={mergeCadGlyphs}
               backgroundRefs={(sheet.xrefRefs?.length ? sheet.xrefRefs : sheet.xrefsMissing) ?? []}
               areas={state.view.areas.filter((area) => area.sheetKey === sheet.sheetKey)}
               onUnavailable={() => setDwgDownKey(sheetLiveKey)}
@@ -673,7 +722,8 @@ export function TakeoffWorkspace({
             catalog={state.view.catalog}
             filter={state.typeFilter}
             highlightedIds={state.highlightedDetectionIds}
-            selectedId={sideTab === 'review' ? (shownOccurrenceId ?? activeGuide?.focusId ?? null) : state.selectedDetectionId}
+            selectedId={shownOccurrenceId ?? state.selectedDetectionId ?? activeGuide?.focusId ?? null}
+            focusNonce={planFocusNonce}
             dimOthers={dimOthers}
             addMode={state.viewerTool === 'add'}
             expanded={planExpanded}
@@ -744,11 +794,16 @@ export function TakeoffWorkspace({
               boq={state.view.boq}
               lines={boqDisplayLines}
               catalog={state.view.catalog}
+              detections={view.detections}
+              sheets={view.sheets}
+              glyphByKey={cadGlyphs}
               focusKey={state.focusBoqLineKey}
               onLineClick={focusBoqLine}
+              onCheckAndApprove={openCheckAndApprove}
               suppressVerified={hasBlockingWorkerWarnings(view)}
               showUnclassified={showUnclassifiedBoq}
               onToggleUnclassified={() => setShowUnclassifiedBoq((v) => !v)}
+              boqReady={reviewGroups.length === 0}
             />
           </div>
 
@@ -762,7 +817,6 @@ export function TakeoffWorkspace({
                   const mark = view.detections.find((item) => item.id === id);
                   return mark ? [mark] : [];
                 })}
-                vectorPlan={showDwgPlan}
                 sheet={
                   view.sheets.find((item) =>
                     detectionsForSheet(view.detections, item).some(
@@ -770,6 +824,11 @@ export function TakeoffWorkspace({
                     ),
                   ) ?? sheet
                 }
+                planSvgMarkup={(() => {
+                  const shown = view.detections.find((item) => item.id === (shownOccurrenceId ?? guideFocus.id));
+                  if (!shown) return null;
+                  return cadGlyphs[shown.signature ? `sig:${shown.signature}` : shown.id] ?? cadGlyphs[shown.id] ?? null;
+                })()}
                 catalog={view.catalog}
                 suggestions={typeSuggestions(
                   guideFocus,
@@ -793,22 +852,23 @@ export function TakeoffWorkspace({
                 progress={guidedProgress}
                 shownId={shownOccurrenceId ?? guideFocus.id}
                 onShowOccurrence={(detectionId) => {
-                  const host = view.sheets.find((item) =>
-                    detectionsForSheet(view.detections, item).some((mark) => mark.id === detectionId),
-                  );
-                  setShownOccurrenceId(detectionId);
-                  setState((current) => ({
-                    ...current,
-                    selectedDetectionId: null,
-                    highlightedDetectionIds: new Set([detectionId]),
-                    activeSheetKey: host ? sheetRefId(host) : current.activeSheetKey,
-                  }));
+                  focusOccurrence(detectionId);
                 }}
                 onConfirm={async (choice) => {
                   setGuideSaving(true);
                   const edits: TakeoffEdit[] = [];
+                  if (choice.label) {
+                    for (const id of choice.detectionIds) {
+                      edits.push({ op: 'set_label', detectionId: id, label: choice.label });
+                    }
+                  }
+                  if (choice.legendRowId !== undefined) {
+                    for (const id of choice.detectionIds) {
+                      edits.push({ op: 'assign_legend', detectionId: id, legendRowId: choice.legendRowId });
+                    }
+                  }
                   const typeChanged = choice.typeKey !== (activeGuide.typeKey ?? '');
-                  if (typeChanged || choice.saveToLibrary) {
+                  if ((choice.typeKey && typeChanged) || choice.saveToLibrary) {
                     edits.push(
                       ...buildGroupReclassifyEdits(
                         choice.detectionIds,
@@ -818,7 +878,9 @@ export function TakeoffWorkspace({
                       ),
                     );
                   }
-                  edits.push({ op: 'confirm', detectionIds: choice.detectionIds });
+                  if (choice.confirm) {
+                    edits.push({ op: 'confirm', detectionIds: choice.detectionIds });
+                  }
                   const next = await commitEdits(edits);
                   setGuideSaving(false);
                   if (!next) return false;
@@ -847,7 +909,10 @@ export function TakeoffWorkspace({
                   const label = sample
                     ? detectionDisplayLabel(sample, view.catalog, t('detection.unclassified'))
                     : t('detection.unclassified');
-                  const status = t(`guide.kindShort.${group.kind}`);
+                  const status = sample ? t(`guide.plain.${reviewPlainKey(sample)}`) : t(`guide.kindShort.${group.kind}`);
+                  const hostSheet = sample
+                    ? view.sheets.find((item) => item.sheetKey === sample.sheetKey)
+                    : undefined;
                   return (
                     <li key={group.key} className="border-b border-[var(--pf-border-default)] last:border-b-0">
                       <button
@@ -858,17 +923,27 @@ export function TakeoffWorkspace({
                           quantity: group.occurrences,
                           status,
                         })}
-                        className={`flex min-h-11 w-full min-w-0 items-center gap-2 px-2 text-start text-xs hover:bg-[var(--pf-action-subtle-hover)] ${group.key === activeGuide?.key ? 'bg-[var(--pf-action-subtle-hover)]' : ''}`}
+                        className={`flex min-h-11 w-full min-w-0 items-start gap-2 px-2 py-1 text-start text-xs hover:bg-[var(--pf-action-subtle-hover)] ${group.key === activeGuide?.key ? 'bg-[var(--pf-action-subtle-hover)]' : ''}`}
                         onClick={() => {
                           setGuideIndex(index);
                           focusGuide(group);
                         }}
                       >
-                        <span className="min-w-0 flex-1 truncate font-medium text-[var(--pf-text-primary)]">{label}</span>
-                        <span className="shrink-0 tabular-nums font-semibold text-[var(--pf-text-brand)]">{group.occurrences}</span>
-                        <span className="shrink-0 rounded bg-[var(--pf-status-warning-bg)] px-1.5 py-0.5 text-[var(--pf-status-warning-fg)]">
-                          {status}
+                        {sample ? (
+                          <TakeoffSymbolGlyph
+                            detection={sample}
+                            sheet={hostSheet}
+                            svgMarkup={cadGlyphs[sample.signature ? `sig:${sample.signature}` : sample.id] ?? cadGlyphs[sample.id]}
+                            mode="thumb"
+                            className="size-10 shrink-0"
+                            testId="takeoff-group-glyph"
+                          />
+                        ) : null}
+                        <span className="min-w-0 flex-1">
+                          <span className="block break-words font-medium text-[var(--pf-text-primary)]">{label}</span>
+                          <span className="block text-[11px] text-[var(--pf-status-warning-fg)]">{status}</span>
                         </span>
+                        <span className="shrink-0 tabular-nums font-semibold text-[var(--pf-text-brand)]">{group.occurrences}</span>
                       </button>
                     </li>
                   );

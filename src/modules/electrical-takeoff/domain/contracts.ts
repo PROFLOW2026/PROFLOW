@@ -463,6 +463,11 @@ export const effectiveDetectionSchema = z.object({
   originalText: z.string().nullable().optional(),
   legendLabel: z.string().nullable().optional(),
   legendUnambiguous: z.boolean().optional(),
+  /** Packed 64×64 symbol mask from the worker, when stored. */
+  maskB64: z.string().optional(),
+  colorHex: z.string().optional(),
+  /** User-chosen bill-of-quantities name. Does not change the counted quantity. */
+  userLabel: z.string().nullable().optional(),
 });
 export type EffectiveDetection = z.infer<typeof effectiveDetectionSchema>;
 
@@ -586,6 +591,10 @@ export const takeoffEditSchema = z.discriminatedUnion('op', [
   z.object({ op: z.literal('reclassify'), detectionId: z.string(), typeKey: z.string().nullable(), saveToLibrary: z.boolean().default(false) }),
   /** Set or clear an X2 note on one symbol. Null clears the note and leaves the type. */
   z.object({ op: z.literal('set_note'), detectionId: z.string(), tagText: z.string().nullable() }),
+  /** Rename the displayed accessory name in the BOQ. Quantity is unchanged. */
+  z.object({ op: z.literal('set_label'), detectionId: z.string(), label: z.string().min(1).max(200) }),
+  /** Point this mark at a different stored legend row, or clear the match. */
+  z.object({ op: z.literal('assign_legend'), detectionId: z.string(), legendRowId: z.string().nullable() }),
   /** Save a legend key to the planner library. No detection is required (zero plan occurrences). */
   z.object({ op: z.literal('save_legend'), legendKey: z.string().min(1), typeKey: z.string().min(1) }),
   z.object({ op: z.literal('confirm'), detectionIds: z.array(z.string()).min(1) }),

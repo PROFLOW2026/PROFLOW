@@ -2,7 +2,7 @@ import type { CatalogType, EffectiveDetection, ElectricalCategory, TakeoffReview
 import { isDetectionCountable } from '../domain/counting-policy';
 import { visibleDetectionReasons } from './takeoff-analysis-view';
 import { sameSymbolDetections, symbolGroupKey } from './symbol-group';
-import { occurrenceFocusRect } from './viewer/viewer-math';
+import { occurrenceFocusRect, symbolContextRect, symbolThumbnailRect } from './viewer/viewer-math';
 
 /** Why a countable mark is in the guided review. Derived only from the engine fields already on the mark. */
 export type ReviewKind = 'missingType' | 'confirmType' | 'uncertain';
@@ -104,8 +104,14 @@ export function symbolCropSource(
   detection: { x: number; y: number; w: number; h: number },
   sheet: { widthPx: number; heightPx: number },
   image: { width: number; height: number },
+  mode: 'thumb' | 'focus' | 'context' = 'focus',
 ): SymbolCropSource {
-  const focus = occurrenceFocusRect(detection);
+  const focus =
+    mode === 'thumb'
+      ? symbolThumbnailRect(detection)
+      : mode === 'context'
+        ? symbolContextRect(detection)
+        : occurrenceFocusRect(detection);
   const scaleX = image.width / sheet.widthPx;
   const scaleY = image.height / sheet.heightPx;
   const sw = Math.max(1, focus.width * scaleX);

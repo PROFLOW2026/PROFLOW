@@ -11,7 +11,6 @@ import {
   occurrenceFocusRect,
   panBy,
   screenToPlan,
-  unionRects,
   clampScale,
   planPointInViewport,
   wheelZoomsPlan,
@@ -30,6 +29,8 @@ interface PlanViewerProps {
   filter: TypeFilterState;
   highlightedIds: ReadonlySet<string>;
   selectedId: string | null;
+  /** Increment to re-fit the current occurrence even if the id stayed the same. */
+  focusNonce?: number;
   dimOthers: boolean;
   addMode: boolean;
   expanded?: boolean;
@@ -47,6 +48,7 @@ export function PlanViewer({
   filter,
   highlightedIds,
   selectedId,
+  focusNonce = 0,
   dimOthers,
   addMode,
   expanded = false,
@@ -110,17 +112,12 @@ export function PlanViewer({
     const el = containerRef.current;
     if (!el || el.clientWidth < 40 || el.clientHeight < 40) return;
     const selected = selectedId ? sheetDetections.find((detection) => detection.id === selectedId) : undefined;
-    const union = selected
-      ? occurrenceFocusRect(selected)
-      : unionRects(
-          sheetDetections
-            .filter((detection) => highlightedIds.has(detection.id))
-            .map((detection) => ({ x: detection.x, y: detection.y, width: detection.w, height: detection.h })),
-        );
-    if (!union) return;
+    const highlighted = sheetDetections.filter((detection) => highlightedIds.has(detection.id));
+    const target = selected ?? highlighted[0];
+    if (!target) return;
     userAdjusted.current = true;
-    setViewport(fitSelection({ width: el.clientWidth, height: el.clientHeight }, union, 72));
-  }, [highlightedIds, selectedId, sheetDetections]);
+    setViewport(fitSelection({ width: el.clientWidth, height: el.clientHeight }, occurrenceFocusRect(target), 72));
+  }, [focusNonce, highlightedIds, selectedId, sheetDetections]);
 
   const zoomAtCenter = useCallback((factor: number) => {
     const el = containerRef.current;

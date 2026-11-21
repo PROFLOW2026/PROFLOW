@@ -1,8 +1,9 @@
 import type { BoqLine, CatalogType } from '../domain/contracts';
+import { boqLineIdentityStatus, type IdentityReviewStatus } from '../domain/review-copy';
 
 const TECHNICAL_ID_LABEL = /^p\d+#\d+/i;
 
-export type BoqLineStatus = 'verified' | 'forReview' | 'needsReview';
+export type BoqLineStatus = IdentityReviewStatus;
 
 export type DetectionCensus = {
   total: number;
@@ -120,7 +121,12 @@ export function groupBoqLinesForDisplay(
     existing.symbolCount = undefined;
     existing.detectionIds = [...existing.detectionIds, ...line.detectionIds];
   }
-  const rank: Record<BoqLineStatus, number> = { needsReview: 0, forReview: 1, verified: 2 };
+  const rank: Record<BoqLineStatus, number> = {
+    unclassified: 0,
+    needsCheck: 1,
+    autoIdentified: 2,
+    manuallyApproved: 3,
+  };
   return [...groups.values()].sort((a, b) => {
     const statusDelta = rank[boqLineStatus(a, suppressVerified)] - rank[boqLineStatus(b, suppressVerified)];
     return statusDelta || b.quantity - a.quantity || a.label.localeCompare(b.label, 'he');
@@ -146,14 +152,14 @@ export function boqLineDisplayLabel(
 }
 
 export function boqLineStatus(line: BoqLine, suppressVerified: boolean): BoqLineStatus {
-  if (!line.typeKey && line.identitySource !== 'legend' && line.identitySource !== 'library' && line.identitySource !== 'manual') {
-    return 'forReview';
-  }
-  if (line.breakdown.unclassified > 0) return 'needsReview';
-  if (line.verified && !suppressVerified) return 'verified';
-  if (line.identitySource === 'legend' && !line.typeKey) return 'forReview';
-  if (line.breakdown.low > 0 || line.breakdown.medium > 0) return 'needsReview';
-  return 'forReview';
+  return boqLineIdentityStatus({
+    verified: line.verified,
+    identitySource: line.identitySource,
+    typeKey: line.typeKey,
+    originalLabel: line.originalLabel,
+    breakdown: line.breakdown,
+    suppressVerified,
+  });
 }
 
 export function detectionDisplayLabel(
@@ -164,11 +170,13 @@ export function detectionDisplayLabel(
     tagText?: string | null;
     originalText?: string | null;
     legendLabel?: string | null;
+    userLabel?: string | null;
   },
   catalog: readonly CatalogType[],
   unclassifiedLabel: string,
 ): string {
-  const fromLegend = detection.originalText?.trim() || detection.legendLabel?.trim();
+  const fromLegend =
+    detection.userLabel?.trim() || detection.originalText?.trim() || detection.legendLabel?.trim();
   if (fromLegend) return fromLegend;
   if (detection.typeKey) {
     return catalog.find((c) => c.key === detection.typeKey)?.nameHe?.trim() || detection.typeKey;
