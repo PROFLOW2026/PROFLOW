@@ -465,11 +465,11 @@ export function symbolGlyphSvg(
 /** Tight native window around one located CAD symbol — not the sheet or the whole group. */
 export function cadSymbolFocusExtent(box: Pick<SymbolBox, 'minX' | 'minY' | 'maxX' | 'maxY'>): [number, number, number, number] {
   const body = Math.max(box.maxX - box.minX, box.maxY - box.minY, 1);
-  const pad = body * 0.8;
+  const pad = body * 0.37;
   return [box.minX - pad, box.minY - pad, box.maxX + pad, box.maxY + pad];
 }
 
-const INSERT_FOCUS_HALF = 48;
+const INSERT_FOCUS_HALF = 32;
 
 /** Window around an insert whose own strokes were not located. Tight enough to identify, not a sheet fit. */
 export function cadInsertFocusExtent(x: number, y: number): [number, number, number, number] {

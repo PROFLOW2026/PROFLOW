@@ -1,8 +1,8 @@
 import type { CatalogType, EffectiveDetection, ElectricalCategory, TakeoffReviewReason } from '../domain/contracts';
 import { isDetectionCountable } from '../domain/counting-policy';
 import { hasConfirmableLegendName } from '../domain/review-copy';
-import { visibleDetectionReasons } from './takeoff-analysis-view';
-import { sameSymbolDetections, symbolGroupKey } from './symbol-group';
+import { confirmIdentityKey, hasRealLegendConflict, visibleDetectionReasons } from './takeoff-analysis-view';
+import { sameSymbolDetections } from './symbol-group';
 import { occurrenceFocusRect, symbolContextRect, symbolThumbnailRect } from './viewer/viewer-math';
 
 /** Why a countable mark is in the guided review. Derived only from the engine fields already on the mark. */
@@ -67,19 +67,22 @@ export function reviewKind(detection: EffectiveDetection): ReviewKind | null {
   return 'confirmType';
 }
 
-const CONFLICT_SCOPE_REASONS = new Set<TakeoffReviewReason>([
-  'type_ambiguous',
+const HARD_SCOPE_REASONS = new Set<TakeoffReviewReason>([
   'pdf_dwg_mismatch',
   'possible_duplicate',
 ]);
 
-/** Bulk apply is the default only for identical marks with no legend/type conflict. */
+function reviewIdentityCluster(detection: EffectiveDetection): string {
+  const conflict = hasRealLegendConflict(detection) ? 'conflict' : 'ok';
+  return `${confirmIdentityKey(detection)}::${conflict}`;
+}
+
+/** Bulk apply is the default for identical marks. Real overlay conflicts stay one-by-one. */
 export function defaultReviewScope(
   group: Pick<ReviewGroup, 'kind' | 'occurrences' | 'reasons'>,
 ): 'one' | 'group' {
   if (group.occurrences <= 1) return 'one';
-  if (group.kind === 'uncertain') return 'one';
-  if (group.reasons.some((reason) => CONFLICT_SCOPE_REASONS.has(reason))) return 'one';
+  if (group.reasons.some((reason) => HARD_SCOPE_REASONS.has(reason))) return 'one';
   return 'group';
 }
 
@@ -134,8 +137,14 @@ export function buildReviewGroups(detections: readonly EffectiveDetection[]): Re
     if (used.has(detection.id)) continue;
     const kind = reviewKind(detection);
     if (!kind) continue;
+    const cluster = reviewIdentityCluster(detection);
     const mates = sameSymbolDetections(detection, detections)
-      .filter((item) => reviewKind(item) === kind && item.typeKey === detection.typeKey)
+      .filter(
+        (item) =>
+          reviewKind(item) === kind &&
+          item.typeKey === detection.typeKey &&
+          reviewIdentityCluster(item) === cluster,
+      )
       .sort((a, b) => a.id.localeCompare(b.id, 'en'));
     for (const mate of mates) used.add(mate.id);
     const reasons = new Set<TakeoffReviewReason>();
@@ -143,7 +152,7 @@ export function buildReviewGroups(detections: readonly EffectiveDetection[]): Re
       for (const reason of visibleDetectionReasons(mate)) reasons.add(reason);
     }
     groups.push({
-      key: `${kind}::${detection.typeKey ?? ''}::${symbolGroupKey(detection)}`,
+      key: `${kind}::${detection.typeKey ?? ''}::${cluster}`,
       kind,
       typeKey: detection.typeKey,
       detectionIds: mates.map((mate) => mate.id),

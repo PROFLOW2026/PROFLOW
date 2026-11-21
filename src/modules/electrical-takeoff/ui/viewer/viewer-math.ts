@@ -123,8 +123,16 @@ function clampedSymbolWindow(
 }
 
 /** Tight window around one mark. Never the union of a group or the whole sheet. */
+export const OCCURRENCE_FOCUS_FACTOR = 2.13;
+export const OCCURRENCE_FOCUS_MIN = 20;
+export const OCCURRENCE_FOCUS_MAX = 64;
+
 export function occurrenceFocusRect(mark: { x: number; y: number; w: number; h: number }): Rect {
-  return clampedSymbolWindow(mark, 3.2, 28, 96);
+  const window = clampedSymbolWindow(mark, OCCURRENCE_FOCUS_FACTOR, OCCURRENCE_FOCUS_MIN, OCCURRENCE_FOCUS_MAX);
+  const body = Math.max(mark.w, mark.h, 8);
+  const minVisible = body * 1.25;
+  if (window.width >= minVisible) return window;
+  return { x: mark.x, y: mark.y, width: minVisible, height: minVisible };
 }
 
 /** Even tighter crop for a list thumbnail of the real symbol. */

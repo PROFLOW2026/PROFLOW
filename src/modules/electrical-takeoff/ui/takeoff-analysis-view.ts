@@ -1,4 +1,5 @@
 import type { AnalysisView, TakeoffEdit } from '../domain/contracts';
+import { sharedSymbolToken, type SymbolGroupDetection } from './symbol-group';
 
 export function workerWarningsForView(view: AnalysisView): AnalysisView['workerWarnings'] {
   return view.workerWarnings ?? [];
@@ -57,6 +58,36 @@ export function legendDisplayText(row: {
   return row.key;
 }
 
+/** Two legend rows / two texts on the same mark. Catalog-family `type_ambiguous` is not this. */
+export function hasRealLegendConflict(detection: {
+  legendRowIds?: readonly string[];
+  originalText?: string | null;
+  legendUnambiguous?: boolean;
+}): boolean {
+  const rows = detection.legendRowIds ?? [];
+  if (rows.length <= 1) return false;
+  if (detection.legendUnambiguous === true) return false;
+  return true;
+}
+
+export function confirmIdentityKey(
+  detection: SymbolGroupDetection & {
+    originalText?: string | null;
+    legendRowIds?: readonly string[];
+  },
+): string {
+  const text = (detection.originalText ?? '').trim();
+  const rows = [...(detection.legendRowIds ?? [])].map((id) => id.trim()).filter(Boolean).sort().join(',');
+  return `${sharedSymbolToken(detection)}|${text}|${rows}`;
+}
+
+export function sameConfirmIdentity(
+  left: Parameters<typeof confirmIdentityKey>[0],
+  right: Parameters<typeof confirmIdentityKey>[0],
+): boolean {
+  return confirmIdentityKey(left) === confirmIdentityKey(right);
+}
+
 export function legendConflictOnDetection(detection: {
   legendRowIds?: readonly string[];
   reasons: readonly string[];
@@ -64,9 +95,7 @@ export function legendConflictOnDetection(detection: {
   originalText?: string | null;
   legendUnambiguous?: boolean;
 }): boolean {
-  if (detection.reasons.includes('type_ambiguous')) return true;
-  if (detection.legendUnambiguous) return false;
-  return (detection.legendRowIds?.length ?? 0) > 1 && !detection.originalText;
+  return hasRealLegendConflict(detection);
 }
 
 /** Legend-library save. Works when the symbol has no plan detection. */

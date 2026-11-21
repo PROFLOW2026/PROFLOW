@@ -1,8 +1,11 @@
-import type { EffectiveDetection, TakeoffEdit } from '../domain/contracts';
+import type { EffectiveDetection, TakeoffEdit, TakeoffReviewReason } from '../domain/contracts';
 import { canSaveReviewIdentity } from '../domain/review-copy';
-import { reviewKind } from './review-guide';
 import { sameSymbolDetections } from './symbol-group';
-import { buildGroupReclassifyEdits, legendConflictOnDetection } from './takeoff-analysis-view';
+import {
+  buildGroupReclassifyEdits,
+  hasRealLegendConflict,
+  sameConfirmIdentity,
+} from './takeoff-analysis-view';
 
 export type SaveReviewPlan = {
   ids: string[];
@@ -11,14 +14,33 @@ export type SaveReviewPlan = {
   skippedCount: number;
   skippedConflict: number;
   skippedUncertain: number;
+  inseparableConflict: boolean;
   typeKey: string | null;
   confirm: boolean;
   saveToLibrary: boolean;
 };
 
+/** Geometry / overlay doubts that must not ride along with a group confirm. */
+const HARD_UNCERTAIN_REASONS = new Set<TakeoffReviewReason>([
+  'possible_duplicate',
+  'pdf_dwg_mismatch',
+  'pdf_only',
+  'dwg_only',
+  'xref_missing',
+  'dynamic_block_unresolved',
+  'tag_unread',
+  'overlapping_symbols_peeled',
+  'possible_exploded_symbol',
+]);
+
+function hasHardUncertainty(item: EffectiveDetection): boolean {
+  return item.reasons.some((reason) => HARD_UNCERTAIN_REASONS.has(reason));
+}
+
 /**
  * Group save never spills onto a conflicting or uncertain mark just because it
  * shares a block/signature. The selected mark is always included.
+ * Catalog-family `type_ambiguous` on an identical legend identity can be confirmed together.
  */
 export function resolveSaveReviewPlan(input: {
   selected: EffectiveDetection;
@@ -28,14 +50,22 @@ export function resolveSaveReviewPlan(input: {
   confirm: boolean;
   saveToLibrary: boolean;
   candidateIds?: readonly string[];
+  sheetOnly?: boolean;
+  explicitGroupConfirm?: boolean;
 }): SaveReviewPlan {
-  const conflictSelected = legendConflictOnDetection(input.selected);
-  const useGroup = input.applyToGroup && !conflictSelected;
-  const pool = input.candidateIds?.length
+  const explicit = Boolean(input.explicitGroupConfirm);
+  const useGroup = input.applyToGroup;
+  let pool = input.candidateIds?.length
     ? input.detections.filter((item) => input.candidateIds!.includes(item.id))
     : useGroup
       ? sameSymbolDetections(input.selected, input.detections)
       : [input.selected];
+  if (!useGroup) {
+    pool = pool.filter((item) => item.id === input.selected.id);
+  } else if (input.sheetOnly) {
+    pool = pool.filter((item) => item.id === input.selected.id || item.sheetKey === input.selected.sheetKey);
+  }
+
   const ids: string[] = [];
   let skippedConflict = 0;
   let skippedUncertain = 0;
@@ -44,26 +74,37 @@ export function resolveSaveReviewPlan(input: {
       ids.push(item.id);
       continue;
     }
-    if (input.confirm) {
-      if (legendConflictOnDetection(item)) {
-        skippedConflict += 1;
-        continue;
-      }
-      if (reviewKind(item) === 'uncertain') {
-        skippedUncertain += 1;
-        continue;
-      }
-      if (input.typeKey && item.typeKey && item.typeKey !== input.typeKey) {
-        skippedConflict += 1;
-        continue;
-      }
-      if (!input.typeKey && !canSaveReviewIdentity(null, item)) {
-        skippedUncertain += 1;
-        continue;
-      }
+    if (!sameConfirmIdentity(input.selected, item)) {
+      skippedConflict += 1;
+      continue;
+    }
+    if (hasRealLegendConflict(item) && !explicit) {
+      skippedConflict += 1;
+      continue;
+    }
+    if (input.confirm && !explicit && hasHardUncertainty(item)) {
+      skippedUncertain += 1;
+      continue;
+    }
+    if (input.confirm && input.typeKey && item.typeKey && item.typeKey !== input.typeKey) {
+      skippedConflict += 1;
+      continue;
+    }
+    if (input.confirm && !explicit && !input.typeKey && !canSaveReviewIdentity(null, item)) {
+      skippedUncertain += 1;
+      continue;
     }
     ids.push(item.id);
   }
+
+  const mates = pool.filter((item) => item.id !== input.selected.id);
+  const inseparableConflict =
+    hasRealLegendConflict(input.selected) &&
+    mates.length > 0 &&
+    mates.every((item) => hasRealLegendConflict(item) && sameConfirmIdentity(input.selected, item)) &&
+    !explicit &&
+    ids.length === 1;
+
   return {
     ids,
     requestedCount: pool.length,
@@ -71,6 +112,7 @@ export function resolveSaveReviewPlan(input: {
     skippedCount: skippedConflict + skippedUncertain,
     skippedConflict,
     skippedUncertain,
+    inseparableConflict,
     typeKey: input.typeKey,
     confirm: input.confirm,
     saveToLibrary: input.saveToLibrary,

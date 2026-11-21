@@ -12,6 +12,7 @@ import { detectionDisplayLabel } from './boq-display';
 import { defaultReviewScope, type ReviewGroup, type TypeSuggestion } from './review-guide';
 import { symbolIdentityLabel } from './review-guide';
 import { canSaveReclassifyToLibrary, legendConflictOnDetection, legendDisplayText } from './takeoff-analysis-view';
+import { resolveSaveReviewPlan } from './save-review-action';
 import { TakeoffTypePicker, type TakeoffCatalogMutations } from './takeoff-type-picker';
 import { TakeoffSymbolGlyph } from './takeoff-symbol-glyph';
 
@@ -22,6 +23,7 @@ export type ReviewDecision = {
   saveToLibrary: boolean;
   label?: string;
   legendRowId?: string | null;
+  explicitGroupConfirm?: boolean;
 };
 
 export function TakeoffReviewGuide({
@@ -45,7 +47,6 @@ export function TakeoffReviewGuide({
   legendRows = [],
   planSvgMarkup = null,
   feedback = null,
-  skippedCount = 0,
   onRetry,
 }: {
   group: ReviewGroup;
@@ -79,7 +80,7 @@ export function TakeoffReviewGuide({
   const [form, setForm] = useState({
     key: group.key,
     pick: group.typeKey ?? '',
-    scope: defaultReviewScope({ ...group, reasons: conflict ? [...group.reasons, 'type_ambiguous'] : group.reasons }),
+    scope: defaultReviewScope(group),
     saveLib: false,
     rename: '',
     legendPick: current.legendRowIds?.[0] ?? '',
@@ -87,6 +88,7 @@ export function TakeoffReviewGuide({
     showRename: false,
     showLegend: false,
     context: false,
+    explicitGroup: false,
   });
   if (form.key !== group.key) {
     setForm({
@@ -100,10 +102,11 @@ export function TakeoffReviewGuide({
       showRename: false,
       showLegend: false,
       context: false,
+      explicitGroup: false,
     });
   }
   const pick = form.pick;
-  const scope = conflict ? 'one' : form.scope;
+  const scope = conflict && !form.explicitGroup ? 'one' : form.scope;
   const saveLib = form.saveLib;
   const identity = symbolIdentityLabel(current);
   const matchedLegend = legendRows.filter((row) => (current.legendRowIds ?? []).includes(row.key));
@@ -114,8 +117,28 @@ export function TakeoffReviewGuide({
   const proposedName = (form.rename.trim() || current.userLabel?.trim() || pickedTypeName || current.originalText?.trim() || detectionDisplayLabel(current, catalog, t('detection.unclassified')));
   const libraryAllowed = canManageLibrary && canSaveReclassifyToLibrary(current, pick || null);
   const canConfirm = canSaveReviewIdentity(pick || null, current, form.rename);
-  const scopeCount = scope === 'group' ? group.occurrences : 1;
-  const ids = scope === 'group' && !conflict ? group.detectionIds : [current.id];
+  const groupPreview = resolveSaveReviewPlan({
+    selected: current,
+    detections: marks,
+    applyToGroup: true,
+    candidateIds: group.detectionIds,
+    typeKey: pick || null,
+    confirm: true,
+    saveToLibrary: false,
+    explicitGroupConfirm: form.explicitGroup,
+  });
+  const ids = scope === 'group' ? group.detectionIds : [current.id];
+  const planPreview = resolveSaveReviewPlan({
+    selected: current,
+    detections: marks,
+    applyToGroup: scope === 'group',
+    candidateIds: ids,
+    typeKey: pick || null,
+    confirm: true,
+    saveToLibrary: false,
+    explicitGroupConfirm: form.explicitGroup,
+  });
+  const scopeCount = planPreview.includedCount;
   const plain = reviewPlainKey(current);
   const matchState = conflict
     ? 'conflict'
@@ -133,6 +156,7 @@ export function TakeoffReviewGuide({
       saveToLibrary: saveLib && libraryAllowed,
       label: form.rename.trim() || undefined,
       legendRowId: form.showLegend ? form.legendPick || null : undefined,
+      explicitGroupConfirm: form.explicitGroup,
     });
   };
 
@@ -335,7 +359,7 @@ export function TakeoffReviewGuide({
       ) : null}
 
       {group.occurrences > 1 ? (
-        <fieldset className="mt-2 space-y-1" disabled={readOnly || saving || conflict}>
+        <fieldset className="mt-2 space-y-1" disabled={readOnly || saving}>
           <legend className="text-xs font-medium text-[var(--pf-text-secondary)]">{t('guide.scopeTitle')}</legend>
           <label className="flex min-h-11 items-center gap-2 text-sm">
             <input
@@ -353,14 +377,49 @@ export function TakeoffReviewGuide({
               name={`takeoff-guide-scope-${group.key}`}
               data-testid="takeoff-guide-scope-group"
               checked={scope === 'group'}
-              disabled={conflict}
+              disabled={conflict && !form.explicitGroup}
               onChange={() => setForm((cur) => ({ ...cur, scope: 'group' }))}
             />
-            {t('guide.scopeGroup', { count: group.occurrences })}
+            {t('guide.scopeGroup', { count: groupPreview.includedCount })}
           </label>
+          {conflict ? (
+            <label className="flex min-h-11 items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="mt-1"
+                data-testid="takeoff-guide-explicit-group"
+                checked={form.explicitGroup}
+                onChange={(event) =>
+                  setForm((cur) => ({
+                    ...cur,
+                    explicitGroup: event.target.checked,
+                    scope: event.target.checked ? 'group' : 'one',
+                  }))
+                }
+              />
+              <span>
+                {t('detection.explicitGroupConfirm', { count: group.occurrences })}
+                <span className="mt-0.5 block text-xs text-[var(--pf-text-muted)]">
+                  {t('detection.explicitGroupHint')}
+                </span>
+              </span>
+            </label>
+          ) : null}
           <p className="text-xs text-[var(--pf-text-secondary)]" data-testid="takeoff-guide-scope-note">
-            {conflict ? t('guide.conflictForcesOne') : scope === 'one' ? t('guide.appliesOne') : t('guide.appliesGroup', { count: group.occurrences })}
+            {groupPreview.inseparableConflict
+              ? t('detection.confirmInseparable', { count: group.occurrences })
+              : scope === 'one'
+                ? t('guide.appliesOne')
+                : t('guide.appliesGroup', { count: scopeCount })}
           </p>
+          {groupPreview.skippedCount > 0 && !groupPreview.inseparableConflict ? (
+            <p className="text-xs text-[var(--pf-status-warning-fg)]" data-testid="takeoff-confirm-safe-subset">
+              {t('detection.confirmSafeSubset', {
+                safe: groupPreview.includedCount,
+                blocked: groupPreview.skippedCount,
+              })}
+            </p>
+          ) : null}
           {separateOccurrences > 0 ? (
             <p className="text-xs text-[var(--pf-text-muted)]">{t('guide.othersSeparate', { count: separateOccurrences })}</p>
           ) : null}
@@ -389,9 +448,6 @@ export function TakeoffReviewGuide({
             ? t('detection.aboutToConfirmOne', { type: proposedName })
             : t('detection.aboutToConfirmGroup', { count: scopeCount, type: proposedName })}
         </p>
-      ) : null}
-      {skippedCount > 0 ? (
-        <p className="text-xs text-[var(--pf-status-warning-fg)]">{t('detection.confirmSkipped', { count: skippedCount })}</p>
       ) : null}
       {feedback ? (
         <Alert tone={feedback.tone} className="mt-2" data-testid="takeoff-action-feedback">

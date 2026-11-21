@@ -88,6 +88,21 @@ export function symbolGroupKey(detection: SymbolGroupDetection): string {
   return symbolGroupKeys(detection)[0] ?? `solo:${detection.id}`;
 }
 
+/**
+ * Stable token for "this is the same symbol" without unique per-mark UI signatures.
+ * DWG blocks keep `signature:block:14e`; legend rows keep `legend:l1`.
+ */
+export function sharedSymbolToken(detection: SymbolGroupDetection): string {
+  const keys = symbolGroupKeys(detection).filter((key) => !key.startsWith('solo:'));
+  const legend = keys.find((key) => key.startsWith('legend:'));
+  if (legend) return legend;
+  const block = keys.find((key) => key.startsWith('signature:') && !key.startsWith('signature:ui:'));
+  if (block) return block;
+  const symbol = keys.find((key) => key.startsWith('symbol:') || key.startsWith('sheet-cluster:') || key.startsWith('sheet-signature:'));
+  if (symbol) return symbol;
+  return keys[0] ?? `solo:${detection.id}`;
+}
+
 export function sameSymbolDetections<T extends SymbolGroupDetection>(selected: T, all: readonly T[]): T[] {
   if (selected.reasons?.includes('drawing_noise')) return [selected];
   const keys = new Set(symbolGroupKeys(selected).filter((key) => !key.startsWith('solo:')));

@@ -177,7 +177,7 @@ describe('cad sheet frame', () => {
     expect(extent[2] - extent[0]).toBeLessThan(80);
     expect(isPlausibleSymbolBox(box)).toBe(true);
     const insert = cadInsertFocusExtent(10, 20);
-    expect(insert[2] - insert[0]).toBe(96);
-    expect(insert[3] - insert[1]).toBe(96);
+    expect(insert[2] - insert[0]).toBe(64);
+    expect(insert[3] - insert[1]).toBe(64);
   });
 });

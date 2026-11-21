@@ -56,7 +56,11 @@ describe('takeoff viewer-math', () => {
     const b = occurrenceFocusRect({ x: 2400, y: 1800, w: 14, h: 14 });
     expect(a.x).toBe(80);
     expect(b.x).toBe(2400);
-    expect(a.width).toBeLessThanOrEqual(96);
-    expect(a.width).toBeGreaterThanOrEqual(28);
+    expect(a.width).toBeLessThanOrEqual(64);
+    expect(a.width).toBeGreaterThanOrEqual(20);
+    expect(a.width).toBeGreaterThanOrEqual(14 * 1.25);
+    const previous = Math.min(Math.max(14 * 3.2, 28), 96);
+    expect(previous / a.width).toBeGreaterThan(1.4);
+    expect(previous / a.width).toBeLessThan(1.7);
   });
 });

@@ -67,6 +67,40 @@ describe('guided review groups', () => {
     ).toBe('confirmType');
   });
 
+  it('splits a same-block cluster into a safe subgroup and a real legend-conflict subgroup', () => {
+    const safe = Array.from({ length: 60 }, (_, index) =>
+      mark({
+        id: `ok-${index + 1}`,
+        typeKey: 'control.switch.single',
+        originalText: 'מפסק מאור',
+        legendRowIds: ['row:light'],
+        signature: 'block:14e',
+        rawClass: 'block:14e',
+        reasons: ['type_ambiguous'],
+        confidence: 'low',
+      }),
+    );
+    const blocked = Array.from({ length: 8 }, (_, index) =>
+      mark({
+        id: `conflict-${index + 1}`,
+        typeKey: 'control.switch.single',
+        originalText: 'מפסק מאור',
+        legendRowIds: ['row:light', 'row:cross'],
+        legendUnambiguous: false,
+        signature: 'block:14e',
+        rawClass: 'block:14e',
+        reasons: ['type_ambiguous'],
+        confidence: 'low',
+      }),
+    );
+    const groups = buildReviewGroups([...safe, ...blocked]);
+    const safeGroup = groups.find((group) => group.detectionIds.includes('ok-1'));
+    const conflictGroup = groups.find((group) => group.detectionIds.includes('conflict-1'));
+    expect(safeGroup?.occurrences).toBe(60);
+    expect(conflictGroup?.occurrences).toBe(8);
+    expect(safeGroup?.key).not.toBe(conflictGroup?.key);
+  });
+
   it('defaults bulk apply only when the group has no type conflict', () => {
     expect(
       defaultReviewScope({
@@ -81,12 +115,19 @@ describe('guided review groups', () => {
         occurrences: 8,
         reasons: ['unclassified', 'type_ambiguous'],
       }),
-    ).toBe('one');
+    ).toBe('group');
     expect(
       defaultReviewScope({
         kind: 'uncertain',
         occurrences: 8,
         reasons: ['type_ambiguous'],
+      }),
+    ).toBe('group');
+    expect(
+      defaultReviewScope({
+        kind: 'uncertain',
+        occurrences: 8,
+        reasons: ['pdf_dwg_mismatch'],
       }),
     ).toBe('one');
     expect(

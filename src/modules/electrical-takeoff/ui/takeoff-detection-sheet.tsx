@@ -23,6 +23,7 @@ export type DetectionSaveRequest = {
   saveToLibrary: boolean;
   applyToGroup: boolean;
   confirm: boolean;
+  explicitGroupConfirm?: boolean;
 };
 
 export function TakeoffDetectionSheet({
@@ -73,7 +74,8 @@ export function TakeoffDetectionSheet({
   const t = useTranslations('takeoff');
   const conflict = legendConflictOnDetection(detection);
   const [saveLib, setSaveLib] = useState(false);
-  const [applyToGroup, setApplyToGroup] = useState(defaultApplyToGroup && groupSize > 1 && !conflict);
+  const [explicitGroup, setExplicitGroup] = useState(false);
+  const [applyToGroup, setApplyToGroup] = useState(defaultApplyToGroup && groupSize > 1);
   const [pick, setPick] = useState(detection.typeKey ?? '');
   const [deviceCount, setDeviceCount] = useState(() => devicesFromNote(detection.tagText));
   const [missingType, setMissingType] = useState(false);
@@ -96,7 +98,7 @@ export function TakeoffDetectionSheet({
       t('detection.unclassified')
     );
   }, [catalog, detection.originalText, detection.userLabel, selectedTypeKey, t]);
-  const groupOn = applyToGroup && groupSize > 1 && !conflict;
+  const groupOn = applyToGroup && groupSize > 1 && (!conflict || explicitGroup);
   const planPreview = resolveSaveReviewPlan({
     selected: detection,
     detections: detections ?? [detection],
@@ -104,9 +106,20 @@ export function TakeoffDetectionSheet({
     typeKey: selectedTypeKey,
     confirm: true,
     saveToLibrary: false,
+    explicitGroupConfirm: explicitGroup,
+  });
+  const groupPreview = resolveSaveReviewPlan({
+    selected: detection,
+    detections: detections ?? [detection],
+    applyToGroup: true,
+    typeKey: selectedTypeKey,
+    confirm: true,
+    saveToLibrary: false,
+    explicitGroupConfirm: explicitGroup,
   });
   const count = planPreview.includedCount;
-  const skippedCount = planPreview.skippedCount;
+  const safeGroupCount = groupPreview.includedCount;
+  const blockedGroupCount = groupPreview.skippedCount;
   const canSave = canSaveReviewIdentity(selectedTypeKey, detection);
   const missingHint = t('guide.pickOrNameRequired');
 
@@ -129,6 +142,7 @@ export function TakeoffDetectionSheet({
       saveToLibrary: saveLib && libraryAllowed,
       applyToGroup: groupOn,
       confirm,
+      explicitGroupConfirm: explicitGroup,
     });
   };
 
@@ -295,7 +309,7 @@ export function TakeoffDetectionSheet({
           </label>
           <p className="text-xs text-[var(--pf-text-muted)]">{t('detection.deviceCountHint')}</p>
           {groupSize > 1 ? (
-            <fieldset className="space-y-1" disabled={readOnly || saving || conflict}>
+            <fieldset className="space-y-1" disabled={readOnly || saving}>
               <legend className="text-xs font-medium text-[var(--pf-text-secondary)]">{t('guide.scopeTitle')}</legend>
               <label className="flex min-h-11 items-center gap-2 text-sm">
                 <input
@@ -313,14 +327,43 @@ export function TakeoffDetectionSheet({
                   name={`takeoff-sheet-scope-${detection.id}`}
                   data-testid="takeoff-apply-symbol-group"
                   checked={groupOn}
-                  disabled={conflict}
+                  disabled={conflict && !explicitGroup}
                   onChange={() => setApplyToGroup(true)}
                 />
-                {t('detection.applyToSymbolGroup', { count: groupSize })}
+                {t('detection.applyToSymbolGroup', { count: safeGroupCount })}
               </label>
+              {conflict ? (
+                <label className="flex min-h-11 items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="mt-1"
+                    data-testid="takeoff-explicit-group"
+                    checked={explicitGroup}
+                    onChange={(event) => {
+                      setExplicitGroup(event.target.checked);
+                      if (event.target.checked) setApplyToGroup(true);
+                    }}
+                  />
+                  <span>
+                    {t('detection.explicitGroupConfirm', { count: groupSize })}
+                    <span className="mt-0.5 block text-xs text-[var(--pf-text-muted)]">
+                      {t('detection.explicitGroupHint')}
+                    </span>
+                  </span>
+                </label>
+              ) : null}
               <p className="text-xs text-[var(--pf-text-secondary)]">
-                {conflict ? t('guide.conflictForcesOne') : groupOn ? t('guide.appliesGroup', { count: groupSize }) : t('guide.appliesOne')}
+                {groupPreview.inseparableConflict
+                  ? t('detection.confirmInseparable', { count: groupSize })
+                  : groupOn
+                    ? t('guide.appliesGroup', { count: count })
+                    : t('guide.appliesOne')}
               </p>
+              {blockedGroupCount > 0 && !groupPreview.inseparableConflict ? (
+                <p className="text-xs text-[var(--pf-status-warning-fg)]" data-testid="takeoff-confirm-safe-subset">
+                  {t('detection.confirmSafeSubset', { safe: safeGroupCount, blocked: blockedGroupCount })}
+                </p>
+              ) : null}
             </fieldset>
           ) : null}
           {canSave ? (
@@ -329,9 +372,6 @@ export function TakeoffDetectionSheet({
                 ? t('detection.aboutToConfirmOne', { type: typeName })
                 : t('detection.aboutToConfirmGroup', { count, type: typeName })}
             </p>
-          ) : null}
-          {skippedCount > 0 ? (
-            <p className="text-xs text-[var(--pf-status-warning-fg)]">{t('detection.confirmSkipped', { count: skippedCount })}</p>
           ) : null}
           {missingType || !canSave ? (
             <p className="text-xs text-[var(--pf-status-warning-fg)]" data-testid="takeoff-need-type">

@@ -87,12 +87,13 @@ describe('resolveSaveReviewPlan', () => {
     expect(plan.skippedUncertain).toBe(1);
   });
 
-  it('forces one occurrence when the selected mark itself has a legend conflict', () => {
+  it('does not auto-include other identities when the selected mark has a legend conflict', () => {
     const selected = detection({
       id: 'sel',
       typeKey: null,
       reasons: ['type_ambiguous'],
       legendRowIds: ['a', 'b'],
+      legendUnambiguous: false,
     });
     const mate = detection({ id: 'mate', typeKey: null, reasons: ['unclassified'] });
     const plan = resolveSaveReviewPlan({
@@ -104,7 +105,151 @@ describe('resolveSaveReviewPlan', () => {
       saveToLibrary: false,
     });
     expect(plan.ids).toEqual(['sel']);
-    expect(plan.requestedCount).toBe(1);
+    expect(plan.requestedCount).toBe(2);
+    expect(plan.skippedConflict).toBe(1);
+  });
+
+  it('confirms all 68 identical lighting-switch marks that only have catalog-family ambiguity', () => {
+    const marks = Array.from({ length: 68 }, (_, index) => {
+      const sheet = index < 7 ? 'layout:F0' : index < 20 ? 'layout:F1' : 'layout:F2-5';
+      return detection({
+        id: `${sheet}#14e-${index + 1}`,
+        sheetKey: sheet,
+        typeKey: 'control.switch.single',
+        originalText: 'מפסק מאור',
+        legendRowIds: ['row:fce0d938b617f15e'],
+        signature: 'block:14e',
+        rawClass: 'block:14e',
+        reasons: ['type_ambiguous'],
+        needsReview: true,
+      });
+    });
+    const plan = resolveSaveReviewPlan({
+      selected: marks[0]!,
+      detections: marks,
+      applyToGroup: true,
+      typeKey: 'control.switch.single',
+      confirm: true,
+      saveToLibrary: false,
+    });
+    expect(plan.includedCount).toBe(68);
+    expect(plan.skippedCount).toBe(0);
+    expect(plan.inseparableConflict).toBe(false);
+    expect(buildSaveReviewEdits(plan, marks)).toEqual([
+      { op: 'confirm', detectionIds: marks.map((item) => item.id) },
+    ]);
+  });
+
+  it('confirms the safe identical subgroup and leaves real legend conflicts for a separate check', () => {
+    const safe = Array.from({ length: 60 }, (_, index) =>
+      detection({
+        id: `ok-${index + 1}`,
+        typeKey: 'control.switch.single',
+        originalText: 'מפסק מאור',
+        legendRowIds: ['row:light'],
+        signature: 'block:14e',
+        rawClass: 'block:14e',
+        reasons: ['type_ambiguous'],
+        needsReview: true,
+      }),
+    );
+    const blocked = Array.from({ length: 8 }, (_, index) =>
+      detection({
+        id: `conflict-${index + 1}`,
+        typeKey: 'control.switch.single',
+        originalText: 'מפסק מאור',
+        legendRowIds: ['row:light', 'row:cross'],
+        legendUnambiguous: false,
+        signature: 'block:14e',
+        rawClass: 'block:14e',
+        reasons: ['type_ambiguous'],
+        needsReview: true,
+      }),
+    );
+    const plan = resolveSaveReviewPlan({
+      selected: safe[0]!,
+      detections: [...safe, ...blocked],
+      applyToGroup: true,
+      typeKey: 'control.switch.single',
+      confirm: true,
+      saveToLibrary: false,
+    });
+    expect(plan.includedCount).toBe(60);
+    expect(plan.skippedConflict).toBe(8);
+    expect(plan.ids).toEqual(safe.map((item) => item.id));
+    expect(buildSaveReviewEdits(plan, [...safe, ...blocked])).toEqual([
+      { op: 'confirm', detectionIds: safe.map((item) => item.id) },
+    ]);
+  });
+
+  it('keeps an inseparable same-sheet legend conflict blocked until an explicit manual group confirm', () => {
+    const marks = Array.from({ length: 8 }, (_, index) =>
+      detection({
+        id: `p1#36e-${index + 1}`,
+        sheetKey: 'layout:F1',
+        typeKey: null,
+        originalText: 'תיאור א',
+        legendRowIds: ['row:a', 'row:b'],
+        legendUnambiguous: false,
+        signature: 'block:36e',
+        rawClass: 'block:36e',
+        reasons: ['type_ambiguous'],
+        needsReview: true,
+      }),
+    );
+    const auto = resolveSaveReviewPlan({
+      selected: marks[0]!,
+      detections: marks,
+      applyToGroup: true,
+      typeKey: 'control.switch.single',
+      confirm: true,
+      saveToLibrary: false,
+    });
+    expect(auto.ids).toEqual([marks[0]!.id]);
+    expect(auto.inseparableConflict).toBe(true);
+    expect(auto.skippedConflict).toBe(7);
+
+    const manual = resolveSaveReviewPlan({
+      selected: marks[0]!,
+      detections: marks,
+      applyToGroup: true,
+      typeKey: 'control.switch.single',
+      confirm: true,
+      saveToLibrary: false,
+      explicitGroupConfirm: true,
+    });
+    expect(manual.includedCount).toBe(8);
+    expect(manual.inseparableConflict).toBe(false);
+    expect(manual.ids).toEqual(marks.map((item) => item.id));
+  });
+
+  it('does not let an explicit confirm change a different symbol group', () => {
+    const selected = detection({
+      id: 'sw-1',
+      originalText: 'מפסק מאור',
+      legendRowIds: ['row:light'],
+      signature: 'block:14e',
+      rawClass: 'block:14e',
+      reasons: ['type_ambiguous'],
+    });
+    const other = detection({
+      id: 'cross-1',
+      originalText: 'מפסק מאור צלב',
+      legendRowIds: ['row:cross'],
+      signature: 'block:19e',
+      rawClass: 'block:19e',
+      reasons: ['type_ambiguous'],
+    });
+    const plan = resolveSaveReviewPlan({
+      selected,
+      detections: [selected, other],
+      applyToGroup: true,
+      typeKey: 'control.switch.single',
+      confirm: true,
+      saveToLibrary: false,
+      explicitGroupConfirm: true,
+    });
+    expect(plan.ids).toEqual(['sw-1']);
   });
 
   it('still classifies unread legend mates when saving without approval', () => {
@@ -171,7 +316,7 @@ describe('resolveSaveReviewPlan', () => {
       saveToLibrary: false,
     });
     expect(plan.ids).toEqual(['named']);
-    expect(plan.skippedUncertain).toBe(1);
+    expect(plan.skippedCount).toBe(1);
     expect(buildSaveReviewEdits(plan, [named, unnamed])).toEqual([
       { op: 'confirm', detectionIds: ['named'] },
     ]);

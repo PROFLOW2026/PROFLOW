@@ -900,6 +900,7 @@ export function TakeoffWorkspace({
                       typeKey: choice.typeKey,
                       confirm: choice.confirm,
                       saveToLibrary: choice.saveToLibrary,
+                      explicitGroupConfirm: choice.explicitGroupConfirm,
                     });
                     const ids = plan.ids;
                     const edits: TakeoffEdit[] = [];
@@ -1163,6 +1164,7 @@ export function TakeoffWorkspace({
                 typeKey: input.typeKey,
                 confirm: input.confirm,
                 saveToLibrary: input.saveToLibrary,
+                explicitGroupConfirm: input.explicitGroupConfirm,
               });
               const edits = buildSaveReviewEdits(plan, view.detections);
               if (edits.length === 0) {
