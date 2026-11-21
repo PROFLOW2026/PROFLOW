@@ -61,10 +61,11 @@ describe('guided review groups', () => {
           originalText: 'נקודת מאור',
           legendUnambiguous: true,
           identitySource: 'legend',
-          reasons: [],
+          needsReview: true,
+          reasons: ['unclassified', 'legend_unmapped', 'type_ambiguous'],
         }),
       ),
-    ).toBe('confirmType');
+    ).toBeNull();
   });
 
   it('splits a same-block cluster into a safe subgroup and a real legend-conflict subgroup', () => {
@@ -235,10 +236,7 @@ describe('guided review groups', () => {
     const pending = mark({
       id: 'open',
       typeKey: null,
-      originalText: 'נקודת מאור',
-      legendUnambiguous: true,
-      identitySource: 'legend',
-      reasons: ['unclassified'],
+      reasons: ['unclassified', 'legend_unmapped'],
     });
     const confirmed = mark({
       id: 'done',

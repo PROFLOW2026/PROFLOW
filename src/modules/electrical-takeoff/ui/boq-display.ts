@@ -1,4 +1,5 @@
 import type { BoqLine, CatalogType } from '../domain/contracts';
+import { plannerItemName } from '../domain/legend-identity';
 import { boqLineIdentityStatus, type IdentityReviewStatus } from '../domain/review-copy';
 
 const TECHNICAL_ID_LABEL = /^p\d+#\d+/i;
@@ -175,9 +176,8 @@ export function detectionDisplayLabel(
   catalog: readonly CatalogType[],
   unclassifiedLabel: string,
 ): string {
-  const fromLegend =
-    detection.userLabel?.trim() || detection.originalText?.trim() || detection.legendLabel?.trim();
-  if (fromLegend) return fromLegend;
+  const fromPlanner = plannerItemName(detection);
+  if (fromPlanner) return fromPlanner;
   if (detection.typeKey) {
     return catalog.find((c) => c.key === detection.typeKey)?.nameHe?.trim() || detection.typeKey;
   }

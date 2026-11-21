@@ -48,9 +48,11 @@ const SITE_WORK =
 const INSTRUCTION_PREFIX =
   /^(?:מיקום סופי|במידה\s*ו|הכנה\s+ל|גובה אותיות|יש להתקין|לפי תוכנית|עפ["״']י תוכנית)/;
 
-/** Reasons that still require a person even when the legend text is unique. */
+/**
+ * Reasons that still require a person even when the legend text is unique.
+ * Catalog-family `type_ambiguous` is not a legend conflict.
+ */
 export const LEGEND_HOLD_REASONS: ReadonlySet<TakeoffReviewReason> = new Set([
-  'type_ambiguous',
   'possible_duplicate',
   'pdf_dwg_mismatch',
   'sheet_unassigned',
@@ -154,10 +156,21 @@ function sourceFromOrigin(
   typeKey: string | null,
 ): IdentitySource {
   if ((origin === 'user_changed' || origin === 'user_added') && typeKey) return 'manual';
-  if (classifiedBy === 'library' && typeKey) return 'library';
   if (unambiguousLegend) return 'legend';
+  if (classifiedBy === 'library' && typeKey) return 'library';
   if (typeKey) return 'catalog';
   return 'uncertain';
+}
+
+/** Planner wording for BOQ / lists: a manual name wins, then the legend sentence. */
+export function plannerItemName(detection: {
+  userLabel?: string | null;
+  originalText?: string | null;
+  legendLabel?: string | null;
+}): string | null {
+  const name =
+    detection.userLabel?.trim() || detection.originalText?.trim() || detection.legendLabel?.trim() || '';
+  return name || null;
 }
 
 export function resolveLegendIdentity(
@@ -223,13 +236,13 @@ export function resolveLegendIdentity(
     if (!unique.has(text)) unique.set(text, { text, key: row.key });
   }
 
-  if (unique.size > 1 || detection.reasons.includes('type_ambiguous')) {
+  if (unique.size > 1) {
     const first = unique.values().next().value as { text: string; key: string } | undefined;
     return {
       source: 'uncertain',
       originalText: first?.text ?? null,
-      displayName: unique.size === 1 ? first?.text ?? null : null,
-      legendRowId: unique.size === 1 ? first?.key ?? null : null,
+      displayName: null,
+      legendRowId: null,
       unambiguous: false,
       holdReason: 'conflict',
     };

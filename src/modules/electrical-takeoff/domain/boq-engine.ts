@@ -35,7 +35,7 @@ import { applyUnpairedPdfPolicy } from './unpaired-pdf-policy';
 import { catalogByKey } from './catalog';
 import { distancePx } from './geometry';
 import { resolveRuleForType, roleToLineKind } from './measurement';
-import { classifyLegendText, hasLegendQuantityIdentity, isLegendHoldText } from './legend-identity';
+import { classifyLegendText, hasLegendQuantityIdentity, isLegendHoldText, plannerItemName } from './legend-identity';
 
 export type ComputeBoqInput = {
   readonly detections: readonly EffectiveDetection[];
@@ -109,14 +109,14 @@ export function computeBoq(input: ComputeBoqInput): Boq {
   const byBucket = new Map<string, CountableDetection[]>();
   for (const d of withFloor) {
     const manualType = (d.origin === 'user_changed' || d.origin === 'user_added') && d.typeKey;
-    if (!manualType && hasLegendQuantityIdentity(d) && (d.userLabel?.trim() || d.originalText)) {
-      const key = bucketKey('legend', d.userLabel?.trim() || d.originalText!, d.floor, d.areaId, 'legend-count');
+    if (!manualType && hasLegendQuantityIdentity(d) && plannerItemName(d)) {
+      const key = bucketKey('legend', plannerItemName(d)!, d.floor, d.areaId, 'legend-count');
       const list = byBucket.get(key) ?? [];
       list.push(d);
       byBucket.set(key, list);
       continue;
     }
-    const holdText = d.originalText?.trim() || d.legendLabel?.trim() || '';
+    const holdText = plannerItemName(d) ?? '';
     if (!manualType && holdText && isLegendHoldText(holdText)) {
       const kind = classifyLegendText(holdText);
       const key = bucketKey('legend-hold', holdText, d.floor, d.areaId, kind);
@@ -196,7 +196,7 @@ export function computeBoq(input: ComputeBoqInput): Boq {
     const deviceCount = group.reduce((sum, detection) => sum + devicesFromNote(detection.tagText), 0);
     const quantity = rule.mode === 'group_by_proximity' ? clusters.length : deviceCount;
     const rep = group[0]!;
-    const legendName = sample.originalText?.trim() || sample.legendLabel?.trim() || null;
+    const legendName = plannerItemName(sample);
     lines.push(
       buildQuantityLine({
         cluster: group,
@@ -454,7 +454,7 @@ function buildLegendLine(
   const cat = typeKey ? catalogMap.get(typeKey) : undefined;
   const category = cat?.category ?? 'unknown';
   const rule = typeKey ? resolveRuleForType(rules, typeKey, category) ?? LEGEND_COUNT_RULE : LEGEND_COUNT_RULE;
-  const name = (sample.userLabel?.trim() || sample.originalText || '').trim();
+  const name = plannerItemName(sample) ?? '';
   const deviceCount = cluster.reduce((sum, detection) => sum + devicesFromNote(detection.tagText), 0);
   const line = buildQuantityLine({
     cluster,

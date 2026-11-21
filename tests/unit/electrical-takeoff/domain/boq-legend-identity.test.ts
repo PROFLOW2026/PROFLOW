@@ -66,6 +66,40 @@ describe('BOQ from planner legend', () => {
     expect(buildReviewGroups(detections)).toHaveLength(0);
   });
 
+  it('puts the original planner sentence on the BOQ and skips guided review even when the catalog has no typeKey', () => {
+    const base = Array.from({ length: 7 }, (_, i) =>
+      workerDet({
+        id: `s${i}`,
+        sheetKey: 'p1',
+        typeKey: 'power.socket.single',
+        classifiedBy: 'legend_text',
+        confidence: 'low',
+        signature: 'block:8e',
+        rawClass: '8e',
+        legendRowIds: ['row:socket'],
+        reasons: ['type_ambiguous'],
+      }),
+    );
+    const detections = enrichDetectionsWithLegendIdentity(applyEdits(base, []), [
+      legend({ key: 'row:socket', decodedText: 'בית תקע חד פאזי 16 אמפר מוגן מים', signature: 'block:8e' }),
+    ]);
+    const boq = computeBoq({
+      detections,
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+      areas: [],
+      catalog,
+      ruleSet: DEFAULT_RULE_SET,
+      linear: [],
+      state: 'draft',
+    });
+    const line = boq.lines.find((row) => row.originalLabel === 'בית תקע חד פאזי 16 אמפר מוגן מים');
+    expect(line?.label).toBe('בית תקע חד פאזי 16 אמפר מוגן מים');
+    expect(line?.quantity).toBe(7);
+    expect(line?.identitySource).toBe('legend');
+    expect(boq.needsReviewCount).toBe(0);
+    expect(buildReviewGroups(detections)).toHaveLength(0);
+  });
+
   it('does not merge two different legend names that share a catalog type', () => {
     const base = [
       workerDet({

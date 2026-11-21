@@ -1,5 +1,6 @@
 import type { CatalogType, EffectiveDetection, ElectricalCategory, TakeoffReviewReason } from '../domain/contracts';
 import { isDetectionCountable } from '../domain/counting-policy';
+import { hasLegendQuantityIdentity } from '../domain/legend-identity';
 import { hasConfirmableLegendName } from '../domain/review-copy';
 import { confirmIdentityKey, hasRealLegendConflict, visibleDetectionReasons } from './takeoff-analysis-view';
 import { sameSymbolDetections } from './symbol-group';
@@ -57,7 +58,7 @@ export function needsGuidedReview(detection: EffectiveDetection): boolean {
   if (!isDetectionCountable(detection)) return false;
   if (detection.status === 'confirmed') return false;
   if (detection.reasons.includes('drawing_noise') || detection.reasons.includes('legend_zone')) return false;
-  if (detection.legendUnambiguous && detection.originalText && !detection.needsReview) return false;
+  if (hasLegendQuantityIdentity(detection)) return false;
   return detection.needsReview || detection.typeKey == null;
 }
 

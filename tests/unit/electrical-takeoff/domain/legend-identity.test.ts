@@ -258,6 +258,26 @@ describe('enrichDetectionsWithLegendIdentity', () => {
     expect(row?.identitySource).toBe('legend');
   });
 
+  it('does not treat a catalog type_ambiguous flag as a legend conflict when the planner text is unique', () => {
+    const base = workerDet({
+      id: 'a',
+      sheetKey: 'p1',
+      typeKey: null,
+      classifiedBy: 'none',
+      confidence: 'low',
+      legendRowIds: ['row:1'],
+      reasons: ['unclassified', 'legend_unmapped', 'type_ambiguous'],
+    });
+    const [row] = enrichDetectionsWithLegendIdentity(applyEdits([base], []), [
+      legend({ key: 'row:1', decodedText: 'בית תקע חד פאזי 16 אמפר מוגן מים' }),
+    ]);
+    expect(row?.legendUnambiguous).toBe(true);
+    expect(row?.needsReview).toBe(false);
+    expect(row?.identitySource).toBe('legend');
+    expect(row?.originalText).toBe('בית תקע חד פאזי 16 אמפר מוגן מים');
+    expect(hasLegendQuantityIdentity(row!)).toBe(true);
+  });
+
   it('does not overwrite a stored manual classification', () => {
     const base = workerDet({
       id: 'a',

@@ -1,0 +1,1013 @@
+{
+  "geometric": 1702,
+  "legendRows": 118,
+  "contactCount": 120,
+  "contactSheets": {
+    "layout:F0": 27,
+    "layout:SW": 93
+  },
+  "samples": [
+    {
+      "needle": "שקע",
+      "rows": [
+        {
+          "key": "row:107718aa0a2797d4",
+          "signature": "block:nfpa72",
+          "block": "nfpa72",
+          "text": "מיקום סופי עפ\"י תוכנית יועץ בטיחות שקע טלפון כבאים - ע\"פי            ע\"י קבלן חשמל",
+          "planCount": 1,
+          "planBlocks": {
+            "nfpa72": 1
+          },
+          "sheets": {
+            "layout:F0": 1
+          }
+        },
+        {
+          "key": "row:f590feeff525d466",
+          "signature": "block:e-usb",
+          "block": "e-usb",
+          "text": "במידה ומותקן באותה הקופסה + לחצן דו קוטבי לניתוק יש להתקין מחיצה בין חשמל לתקשורת ודנ שקע",
+          "planCount": 1,
+          "planBlocks": {
+            "e-usb": 1
+          },
+          "sheets": {
+            "layout:F0": 1
+          }
+        },
+        {
+          "key": "row:6ea36c5c4bf7482c",
+          "signature": "block:33e",
+          "block": "33e",
+          "text": "הכנה לתנור חימום צינור    מ\"מ +מוליכים גמר בשקע מ\"מ בגובה 02ס\"מ מתקרה",
+          "planCount": 13,
+          "planBlocks": {
+            "33e": 13
+          },
+          "sheets": {
+            "layout:F0": 3,
+            "layout:F1": 3,
+            "layout:F2-5": 4,
+            "layout:F6": 2,
+            "layout:M1": 1
+          }
+        },
+        {
+          "key": "row:d713df97853c06fa",
+          "signature": "block:6ae",
+          "block": "6ae",
+          "text": "עם שקעים אחרים בית תקע כח משולב",
+          "planCount": 7,
+          "planBlocks": {
+            "6ae": 7
+          },
+          "sheets": {
+            "layout:F0": 2,
+            "layout:F1": 2,
+            "layout:F2-5": 2,
+            "layout:F6": 1
+          }
+        }
+      ]
+    },
+    {
+      "needle": "מפסק מאור",
+      "rows": [
+        {
+          "key": "row:fce0d938b617f15e",
+          "signature": "block:14e",
+          "block": "14e",
+          "text": "מפסק מאור",
+          "planCount": 68,
+          "planBlocks": {
+            "14e": 68
+          },
+          "sheets": {
+            "layout:F0": 7,
+            "layout:F1": 13,
+            "layout:F2-5": 13,
+            "layout:F6": 13,
+            "layout:M2": 11,
+            "layout:M1": 8,
+            "layout:M3": 3
+          }
+        },
+        {
+          "key": "row:3fd99fdc64eeb215",
+          "signature": "block:19e",
+          "block": "19e",
+          "text": "מפסק מאור צלב",
+          "planCount": 2,
+          "planBlocks": {
+            "19e": 2
+          },
+          "sheets": {
+            "layout:F0": 2
+          }
+        }
+      ]
+    },
+    {
+      "needle": "לחצן",
+      "rows": [
+        {
+          "key": "row:4826ca52afd8b19a",
+          "signature": "block:21e",
+          "block": "21e",
+          "text": "לחצן מע' גילוי אש/עשן",
+          "planCount": 13,
+          "planBlocks": {
+            "21e": 13
+          },
+          "sheets": {
+            "layout:F0": 4,
+            "layout:F1": 1,
+            "layout:F2-5": 1,
+            "layout:F6": 1,
+            "layout:M1": 3,
+            "layout:M2": 3
+          }
+        },
+        {
+          "key": "row:be9a0ef4125e7509",
+          "signature": "block:nipuz",
+          "block": "nipuz",
+          "text": "לחצן ניפוץ לשחרור אלקטרומגנטים",
+          "planCount": 1,
+          "planBlocks": {
+            "nipuz": 1
+          },
+          "sheets": {
+            "layout:F0": 1
+          }
+        },
+        {
+          "key": "row:e1f9895d4ff58e4e",
+          "signature": "block:Door control",
+          "block": "door control",
+          "text": "דלת או כל אביזר אחר , צינור בקוטר 02 מ\"מ + חוט משיכה לקופסת חיבורים הכנה למקודד לפתיחת דלת \\ קורא כרטיסים \\ פנקוד \\ פנטל \\ לחצן לפתיחת",
+          "planCount": 0,
+          "planBlocks": {},
+          "sheets": {}
+        },
+        {
+          "key": "row:f590feeff525d466",
+          "signature": "block:e-usb",
+          "block": "e-usb",
+          "text": "במידה ומותקן באותה הקופסה + לחצן דו קוטבי לניתוק יש להתקין מחיצה בין חשמל לתקשורת ודנ שקע",
+          "planCount": 1,
+          "planBlocks": {
+            "e-usb": 1
+          },
+          "sheets": {
+            "layout:F0": 1
+          }
+        },
+        {
+          "key": "row:4be4f4ea499d2774",
+          "signature": "block:emergency_stop_key",
+          "block": "emergency_stop_key",
+          "text": "לחצן פטריה עם מפתח ניתוק חשמל",
+          "planCount": 1,
+          "planBlocks": {
+            "emergency_stop_key": 1
+          },
+          "sheets": {
+            "layout:F0": 1
+          }
+        },
+        {
+          "key": "row:1d5e56d7422c8eeb",
+          "signature": "block:32e",
+          "block": "32e",
+          "text": "לחצן ניפוץ ניתוק חשמל",
+          "planCount": 1,
+          "planBlocks": {
+            "32e": 1
+          },
+          "sheets": {
+            "layout:F0": 1
+          }
+        },
+        {
+          "key": "row:2f67a295c952fd48",
+          "signature": "block:24e",
+          "block": "24e",
+          "text": "לחצן לפעמון דירתי כולל נורה. מותקן על הקיר",
+          "planCount": 7,
+          "planBlocks": {
+            "24e": 7
+          },
+          "sheets": {
+            "layout:F0": 2,
+            "layout:F1": 2,
+            "layout:F2-5": 2,
+            "layout:F6": 1
+          }
+        },
+        {
+          "key": "row:183c9f34924d612e",
+          "signature": "block:23e",
+          "block": "23e",
+          "text": "לחצן תאורת חדר מדרגות ללוח חשמל\\ריכוז ספקים של וילונות",
+          "planCount": 74,
+          "planBlocks": {
+            "23e": 74
+          },
+          "sheets": {
+            "layout:F0": 10,
+            "layout:F1": 7,
+            "layout:F2-5": 8,
+            "layout:F6": 6,
+            "layout:M3": 14,
+            "layout:M2": 17,
+            "layout:M1": 11,
+            "layout:SW": 1
+          }
+        },
+        {
+          "key": "row:e012411c10598f5c",
+          "signature": "block:18SV",
+          "block": "18sv",
+          "text": "לחצן וילון חשמלי, הכנת צינור",
+          "planCount": 1,
+          "planBlocks": {
+            "18sv": 1
+          },
+          "sheets": {
+            "layout:F0": 1
+          }
+        },
+        {
+          "key": "row:e45f99e707383a64",
+          "signature": "block:18Se",
+          "block": "18se",
+          "text": "לחצן להפעלת תריס חשמלי",
+          "planCount": 39,
+          "planBlocks": {
+            "18se": 39
+          },
+          "sheets": {
+            "layout:F0": 8,
+            "layout:F1": 11,
+            "layout:F2-5": 13,
+            "layout:F6": 7
+          }
+        },
+        {
+          "key": "row:8b29c15438fc52c6",
+          "signature": "block:3Pbutton",
+          "block": "3pbutton",
+          "text": "לחצן קפיצי",
+          "planCount": 0,
+          "planBlocks": {},
+          "sheets": {}
+        }
+      ]
+    },
+    {
+      "needle": "תריס",
+      "rows": [
+        {
+          "key": "row:c228ce88a09085aa",
+          "signature": "block:18Me",
+          "block": "18me",
+          "text": "מנוע תריס חשמלי",
+          "planCount": 39,
+          "planBlocks": {
+            "18me": 39
+          },
+          "sheets": {
+            "layout:F0": 8,
+            "layout:F1": 11,
+            "layout:F2-5": 13,
+            "layout:F6": 7
+          }
+        },
+        {
+          "key": "row:e45f99e707383a64",
+          "signature": "block:18Se",
+          "block": "18se",
+          "text": "לחצן להפעלת תריס חשמלי",
+          "planCount": 39,
+          "planBlocks": {
+            "18se": 39
+          },
+          "sheets": {
+            "layout:F0": 8,
+            "layout:F1": 11,
+            "layout:F2-5": 13,
+            "layout:F6": 7
+          }
+        }
+      ]
+    },
+    {
+      "needle": "N2XY",
+      "rows": [
+        {
+          "key": "row:bf9ce1a0a0aa3971",
+          "signature": "block:LU24",
+          "block": "lu24",
+          "text": "(4x150) N2XY+70CU-",
+          "planCount": 91,
+          "planBlocks": {
+            "*u172": 47,
+            "lu24": 42,
+            "*u690": 1,
+            "*u687": 1
+          },
+          "sheets": {
+            "layout:SW": 91
+          }
+        }
+      ]
+    },
+    {
+      "needle": "אלקטרולייט",
+      "rows": [
+        {
+          "key": "row:10bef5f6e502e49e",
+          "signature": "block:7-L",
+          "block": "7-l",
+          "text": "להתקנה שקועה ג\"ת חירום לד מדגם \"236-ךק\" תוצרת אלקטרולייט או ש\"ע",
+          "planCount": 12,
+          "planBlocks": {
+            "7-l": 12
+          },
+          "sheets": {
+            "layout:F0": 3,
+            "layout:F1": 3,
+            "layout:F2-5": 3,
+            "layout:F6": 2,
+            "layout:M1": 1
+          }
+        },
+        {
+          "key": "row:f9eab45eda842579",
+          "signature": "block:4-L",
+          "block": "4-l",
+          "text": "תוצרת אלקטרולייט או ש\"ע ג\"ת חירום לד מדגם \"127-ךק\"",
+          "planCount": 49,
+          "planBlocks": {
+            "4-l": 49
+          },
+          "sheets": {
+            "layout:F0": 5,
+            "layout:F1": 2,
+            "layout:F2-5": 2,
+            "layout:F6": 2,
+            "layout:M3": 16,
+            "layout:M2": 12,
+            "layout:M1": 10
+          }
+        },
+        {
+          "key": "row:8ad7928a7c0d9dc8",
+          "signature": "block:5-L-E-RIGHT",
+          "block": "5-l-e-right",
+          "text": "תוצרת אלקטרולייט או ש\"ע",
+          "planCount": 1,
+          "planBlocks": {
+            "5-l-e-right": 1
+          },
+          "sheets": {
+            "layout:F0": 1
+          }
+        },
+        {
+          "key": "row:2473fa4b1344e526",
+          "signature": "block:Light Fixture COVER (right) One-sided",
+          "block": "light fixture cover (right) one-sided",
+          "text": "גובה אותיות לפחות 51ס\"מ, עובי לפחות 51 מ\"מת מרווח אותיות 01 מ\"מ תוצרת אלקטרולייט או ש\"ע",
+          "planCount": 1,
+          "planBlocks": {
+            "light fixture cover (right) one-sided": 1
+          },
+          "sheets": {
+            "layout:F0": 1
+          }
+        }
+      ]
+    },
+    {
+      "needle": "תוצרת",
+      "rows": [
+        {
+          "key": "row:9b4271b5c7bc0cb2",
+          "signature": "block:EL-371",
+          "block": "el-371",
+          "text": "תוצרת ניסקו או ש\"ע ג\"ת 56פן מ'םג צמוד קיר",
+          "planCount": 1,
+          "planBlocks": {
+            "el-371": 1
+          },
+          "sheets": {
+            "layout:F0": 1
+          }
+        },
+        {
+          "key": "row:10bef5f6e502e49e",
+          "signature": "block:7-L",
+          "block": "7-l",
+          "text": "להתקנה שקועה ג\"ת חירום לד מדגם \"236-ךק\" תוצרת אלקטרולייט או ש\"ע",
+          "planCount": 12,
+          "planBlocks": {
+            "7-l": 12
+          },
+          "sheets": {
+            "layout:F0": 3,
+            "layout:F1": 3,
+            "layout:F2-5": 3,
+            "layout:F6": 2,
+            "layout:M1": 1
+          }
+        },
+        {
+          "key": "row:f9eab45eda842579",
+          "signature": "block:4-L",
+          "block": "4-l",
+          "text": "תוצרת אלקטרולייט או ש\"ע ג\"ת חירום לד מדגם \"127-ךק\"",
+          "planCount": 49,
+          "planBlocks": {
+            "4-l": 49
+          },
+          "sheets": {
+            "layout:F0": 5,
+            "layout:F1": 2,
+            "layout:F2-5": 2,
+            "layout:F6": 2,
+            "layout:M3": 16,
+            "layout:M2": 12,
+            "layout:M1": 10
+          }
+        },
+        {
+          "key": "row:8ad7928a7c0d9dc8",
+          "signature": "block:5-L-E-RIGHT",
+          "block": "5-l-e-right",
+          "text": "תוצרת אלקטרולייט או ש\"ע",
+          "planCount": 1,
+          "planBlocks": {
+            "5-l-e-right": 1
+          },
+          "sheets": {
+            "layout:F0": 1
+          }
+        },
+        {
+          "key": "row:2473fa4b1344e526",
+          "signature": "block:Light Fixture COVER (right) One-sided",
+          "block": "light fixture cover (right) one-sided",
+          "text": "גובה אותיות לפחות 51ס\"מ, עובי לפחות 51 מ\"מת מרווח אותיות 01 מ\"מ תוצרת אלקטרולייט או ש\"ע",
+          "planCount": 1,
+          "planBlocks": {
+            "light fixture cover (right) one-sided": 1
+          },
+          "sheets": {
+            "layout:F0": 1
+          }
+        },
+        {
+          "key": "row:0e81bd5d486eb4ba",
+          "signature": "block:13-L",
+          "block": "13-l",
+          "text": "תוצרת ניסקו או ש\"ע ג\"ת לד מדגם אןנרם",
+          "planCount": 4,
+          "planBlocks": {
+            "13-l": 4
+          },
+          "sheets": {
+            "layout:F0": 3,
+            "layout:F7": 1
+          }
+        },
+        {
+          "key": "row:3aed5703b4c6c81a",
+          "signature": "block:12-L",
+          "block": "12-l",
+          "text": "ג\"ת לד מדגם \"תיבת אור\" תוצרת געש או ש\"ע",
+          "planCount": 5,
+          "planBlocks": {
+            "12-l": 5
+          },
+          "sheets": {
+            "layout:F0": 1,
+            "layout:F7": 4
+          }
+        },
+        {
+          "key": "row:94332ce840276c13",
+          "signature": "block:11-L",
+          "block": "11-l",
+          "text": "ג\"ת לד מדגם \"ניסקורית\" תוצרת ניסקו או ש\"ע",
+          "planCount": 2,
+          "planBlocks": {
+            "11-l": 2
+          },
+          "sheets": {
+            "layout:F0": 2
+          }
+        },
+        {
+          "key": "row:ac3d214b06890015",
+          "signature": "block:10-L",
+          "block": "10-l",
+          "text": "תוצרת ניסקו או ש\"ע ג\"ת עמודון מדגם סילבניה גובה 08ס\"מ",
+          "planCount": 1,
+          "planBlocks": {
+            "10-l": 1
+          },
+          "sheets": {
+            "layout:F0": 1
+          }
+        },
+        {
+          "key": "row:8d1da55416df92ea",
+          "signature": "block:6-L",
+          "block": "6-l",
+          "text": "תוצרת ניסקו או ש\"ע ג\"ת לד מדגם סם",
+          "planCount": 21,
+          "planBlocks": {
+            "6-l": 21
+          },
+          "sheets": {
+            "layout:F0": 9,
+            "layout:F1": 4,
+            "layout:F2-5": 4,
+            "layout:F6": 3,
+            "layout:M1": 1
+          }
+        }
+      ]
+    },
+    {
+      "needle": "contact",
+      "rows": []
+    },
+    {
+      "needle": "36e",
+      "rows": [
+        {
+          "key": "row:a62155c96d3dd23e",
+          "signature": "block:36e",
+          "block": "36e",
+          "text": "נקודת מאור חירום",
+          "planCount": 1,
+          "planBlocks": {
+            "36e": 1
+          },
+          "sheets": {
+            "layout:F6": 1
+          }
+        },
+        {
+          "key": "row:0be32d443d33c281",
+          "signature": "block:36e",
+          "block": "36e",
+          "text": "נקודת תאורה שקועה בתקרה מונמכת/גבס",
+          "planCount": 1,
+          "planBlocks": {
+            "36e": 1
+          },
+          "sheets": {
+            "layout:F6": 1
+          }
+        }
+      ]
+    }
+  ],
+  "topCounts": [
+    {
+      "key": "row:cb0688cd2b40f702",
+      "signature": "block:WP",
+      "block": "wp",
+      "text": "מבוצעת ע\"פ התקן הישראלי. נקודת ריתוך בין 2 מוליכי טבעת הארקת יסוד",
+      "planCount": 163,
+      "planBlocks": {
+        "wp": 163
+      },
+      "sheets": {
+        "layout:F0": 19,
+        "layout:F2-5": 20,
+        "layout:F6": 4,
+        "layout:F7": 105,
+        "layout:M3": 15
+      }
+    },
+    {
+      "key": "row:bf9ce1a0a0aa3971",
+      "signature": "block:LU24",
+      "block": "lu24",
+      "text": "(4x150) N2XY+70CU-",
+      "planCount": 91,
+      "planBlocks": {
+        "*u172": 47,
+        "lu24": 42,
+        "*u690": 1,
+        "*u687": 1
+      },
+      "sheets": {
+        "layout:SW": 91
+      }
+    },
+    {
+      "key": "row:be9379dda59e12bd",
+      "signature": "block:1e",
+      "block": "1e",
+      "text": "תאורה פנדל תלוי ובית נורה מפלסטיק נק' לתאורה תקרתית, צינור 02­ + מוליכים 5.1 ממ\"ר, סיום בגוף",
+      "planCount": 85,
+      "planBlocks": {
+        "1e": 85
+      },
+      "sheets": {
+        "layout:F0": 9,
+        "layout:F1": 19,
+        "layout:F2-5": 18,
+        "layout:F6": 15,
+        "layout:M2": 10,
+        "layout:M1": 10,
+        "layout:M3": 3,
+        "layout:SW": 1
+      }
+    },
+    {
+      "key": "row:183c9f34924d612e",
+      "signature": "block:23e",
+      "block": "23e",
+      "text": "לחצן תאורת חדר מדרגות ללוח חשמל\\ריכוז ספקים של וילונות",
+      "planCount": 74,
+      "planBlocks": {
+        "23e": 74
+      },
+      "sheets": {
+        "layout:F0": 10,
+        "layout:F1": 7,
+        "layout:F2-5": 8,
+        "layout:F6": 6,
+        "layout:M3": 14,
+        "layout:M2": 17,
+        "layout:M1": 11,
+        "layout:SW": 1
+      }
+    },
+    {
+      "key": "row:fce0d938b617f15e",
+      "signature": "block:14e",
+      "block": "14e",
+      "text": "מפסק מאור",
+      "planCount": 68,
+      "planBlocks": {
+        "14e": 68
+      },
+      "sheets": {
+        "layout:F0": 7,
+        "layout:F1": 13,
+        "layout:F2-5": 13,
+        "layout:F6": 13,
+        "layout:M2": 11,
+        "layout:M1": 8,
+        "layout:M3": 3
+      }
+    },
+    {
+      "key": "row:a2caab9a560a97c8",
+      "signature": "block:3-L",
+      "block": "3-l",
+      "text": "להתקנה קיר/תקרה ג\"ת לד מדגם דרשצ",
+      "planCount": 52,
+      "planBlocks": {
+        "3-l": 52
+      },
+      "sheets": {
+        "layout:F0": 3,
+        "layout:F1": 2,
+        "layout:F2-5": 2,
+        "layout:F6": 2,
+        "layout:M3": 17,
+        "layout:M2": 17,
+        "layout:M1": 9
+      }
+    },
+    {
+      "key": "row:f9eab45eda842579",
+      "signature": "block:4-L",
+      "block": "4-l",
+      "text": "תוצרת אלקטרולייט או ש\"ע ג\"ת חירום לד מדגם \"127-ךק\"",
+      "planCount": 49,
+      "planBlocks": {
+        "4-l": 49
+      },
+      "sheets": {
+        "layout:F0": 5,
+        "layout:F1": 2,
+        "layout:F2-5": 2,
+        "layout:F6": 2,
+        "layout:M3": 16,
+        "layout:M2": 12,
+        "layout:M1": 10
+      }
+    },
+    {
+      "key": "row:c228ce88a09085aa",
+      "signature": "block:18Me",
+      "block": "18me",
+      "text": "מנוע תריס חשמלי",
+      "planCount": 39,
+      "planBlocks": {
+        "18me": 39
+      },
+      "sheets": {
+        "layout:F0": 8,
+        "layout:F1": 11,
+        "layout:F2-5": 13,
+        "layout:F6": 7
+      }
+    },
+    {
+      "key": "row:e45f99e707383a64",
+      "signature": "block:18Se",
+      "block": "18se",
+      "text": "לחצן להפעלת תריס חשמלי",
+      "planCount": 39,
+      "planBlocks": {
+        "18se": 39
+      },
+      "sheets": {
+        "layout:F0": 8,
+        "layout:F1": 11,
+        "layout:F2-5": 13,
+        "layout:F6": 7
+      }
+    },
+    {
+      "key": "row:ec4475fa3aa3f8b0",
+      "signature": "block:8-L",
+      "block": "8-l",
+      "text": "ג\"ת לד מדגם  ספיד-לד פלוס",
+      "planCount": 25,
+      "planBlocks": {
+        "8-l": 25
+      },
+      "sheets": {
+        "layout:F0": 3,
+        "layout:M1": 8,
+        "layout:M3": 9,
+        "layout:M2": 5
+      }
+    },
+    {
+      "key": "row:5e51e586155170cc",
+      "signature": "block:1PSW",
+      "block": "1psw",
+      "text": "מא\"ז חד פאזי",
+      "planCount": 24,
+      "planBlocks": {
+        "1psw": 24
+      },
+      "sheets": {
+        "layout:F0": 23,
+        "layout:SW": 1
+      }
+    },
+    {
+      "key": "row:7eab137ff0c478b2",
+      "signature": "block:44ce",
+      "block": "44ce",
+      "text": "עלייה ברזל עגול 01 מ''מ",
+      "planCount": 23,
+      "planBlocks": {
+        "44ce": 23
+      },
+      "sheets": {
+        "layout:F0": 3,
+        "layout:F1": 6,
+        "layout:F2-5": 2,
+        "layout:F6": 6,
+        "layout:M3": 2,
+        "layout:M2": 2,
+        "layout:M1": 2
+      }
+    },
+    {
+      "key": "row:8d1da55416df92ea",
+      "signature": "block:6-L",
+      "block": "6-l",
+      "text": "תוצרת ניסקו או ש\"ע ג\"ת לד מדגם סם",
+      "planCount": 21,
+      "planBlocks": {
+        "6-l": 21
+      },
+      "sheets": {
+        "layout:F0": 9,
+        "layout:F1": 4,
+        "layout:F2-5": 4,
+        "layout:F6": 3,
+        "layout:M1": 1
+      }
+    },
+    {
+      "key": "row:921021e8a6c555e1",
+      "signature": "block:80e",
+      "block": "80e",
+      "text": "כנ\"ל אך מוגן מים",
+      "planCount": 21,
+      "planBlocks": {
+        "80e": 21
+      },
+      "sheets": {
+        "layout:F0": 2,
+        "layout:F1": 6,
+        "layout:F2-5": 6,
+        "layout:F6": 3,
+        "layout:M1": 2,
+        "layout:M3": 2
+      }
+    },
+    {
+      "key": "row:bf09cba0cd7326fe",
+      "signature": "block:12e",
+      "block": "12e",
+      "text": "נקודה לטלפון חוץ",
+      "planCount": 19,
+      "planBlocks": {
+        "12e": 19
+      },
+      "sheets": {
+        "layout:F0": 4,
+        "layout:F1": 5,
+        "layout:F2-5": 5,
+        "layout:F6": 3,
+        "layout:M1": 2
+      }
+    },
+    {
+      "key": "row:cb55fc12c21beffe",
+      "signature": "block:111e",
+      "block": "111e",
+      "text": "נקודת מאור",
+      "planCount": 18,
+      "planBlocks": {
+        "111e": 18
+      },
+      "sheets": {
+        "layout:F0": 2,
+        "layout:F1": 6,
+        "layout:F2-5": 8,
+        "layout:F6": 2
+      }
+    },
+    {
+      "key": "row:938b2477153bb14e",
+      "signature": "block:fi3",
+      "block": "fi3",
+      "text": "גלאי אש/עשן עצמאי עם חיבור לחשמל ללא רכזת",
+      "planCount": 18,
+      "planBlocks": {
+        "fi3": 18
+      },
+      "sheets": {
+        "layout:F0": 4,
+        "layout:F1": 4,
+        "layout:F2-5": 4,
+        "layout:F6": 3,
+        "layout:M1": 3
+      }
+    },
+    {
+      "key": "row:7865d11c30a1994f",
+      "signature": "block:fi3",
+      "block": "fi3",
+      "text": "גלאי עצמאי עם סוללת גיבוי מחובר לחשמל ללא רכזת",
+      "planCount": 18,
+      "planBlocks": {
+        "fi3": 18
+      },
+      "sheets": {
+        "layout:F0": 4,
+        "layout:F1": 4,
+        "layout:F2-5": 4,
+        "layout:F6": 3,
+        "layout:M1": 3
+      }
+    },
+    {
+      "key": "row:220d098e2f04d104",
+      "signature": "block:111e",
+      "block": "111e",
+      "text": "תאורה מוגן מים נק' לתאורה תקרתית, צינור 02­ + מוליכים 5.1 ממ\"ר, סיום בגוף",
+      "planCount": 18,
+      "planBlocks": {
+        "111e": 18
+      },
+      "sheets": {
+        "layout:F0": 2,
+        "layout:F1": 6,
+        "layout:F2-5": 8,
+        "layout:F6": 2
+      }
+    },
+    {
+      "key": "row:de22e0e2298519c2",
+      "signature": "block:4pol",
+      "block": "4pol",
+      "text": "מפסק בטחון 4-קוטבי",
+      "planCount": 16,
+      "planBlocks": {
+        "4pol": 16
+      },
+      "sheets": {
+        "layout:F0": 1,
+        "layout:F7": 12,
+        "layout:M3": 3
+      }
+    },
+    {
+      "key": "row:9916700effa2a5c7",
+      "signature": "block:222e",
+      "block": "222e",
+      "text": "תאורה קירי )ארמטורה( וכיסוי מוגן מים 002=י ס\"מ נק' לתאורה קירית, צינור 02­ + מוליכים 5.1 ממ\"ר. סיום בגוף",
+      "planCount": 16,
+      "planBlocks": {
+        "222e": 16
+      },
+      "sheets": {
+        "layout:F0": 2,
+        "layout:F1": 3,
+        "layout:F2-5": 2,
+        "layout:F6": 8,
+        "layout:M1": 1
+      }
+    },
+    {
+      "key": "row:4826ca52afd8b19a",
+      "signature": "block:21e",
+      "block": "21e",
+      "text": "לחצן מע' גילוי אש/עשן",
+      "planCount": 13,
+      "planBlocks": {
+        "21e": 13
+      },
+      "sheets": {
+        "layout:F0": 4,
+        "layout:F1": 1,
+        "layout:F2-5": 1,
+        "layout:F6": 1,
+        "layout:M1": 3,
+        "layout:M2": 3
+      }
+    },
+    {
+      "key": "row:d4c762ec6e780329",
+      "signature": "block:fz",
+      "block": "fz",
+      "text": "צופר 85גנ פנימי מע' גילוי אש/עשן עם נצנץ",
+      "planCount": 13,
+      "planBlocks": {
+        "fz": 13
+      },
+      "sheets": {
+        "layout:F0": 4,
+        "layout:F1": 1,
+        "layout:F2-5": 1,
+        "layout:F6": 1,
+        "layout:M1": 3,
+        "layout:M2": 3
+      }
+    },
+    {
+      "key": "row:6ea36c5c4bf7482c",
+      "signature": "block:33e",
+      "block": "33e",
+      "text": "הכנה לתנור חימום צינור    מ\"מ +מוליכים גמר בשקע מ\"מ בגובה 02ס\"מ מתקרה",
+      "planCount": 13,
+      "planBlocks": {
+        "33e": 13
+      },
+      "sheets": {
+        "layout:F0": 3,
+        "layout:F1": 3,
+        "layout:F2-5": 4,
+        "layout:F6": 2,
+        "layout:M1": 1
+      }
+    },
+    {
+      "key": "row:b8aa9e2884f3872c",
+      "signature": "block:8e",
+      "block": "8e",
+      "text": "בית תקע כח ישר ללוח",
+      "planCount": 13,
+      "planBlocks": {
+        "8e": 13
+      },
+      "sheets": {
+        "layout:F0": 3,
+        "layout:F1": 4,
+        "layout:F2-5": 4,
+        "layout:F6": 2
+      }
+    }
+  ]
+}

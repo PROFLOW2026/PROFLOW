@@ -89,7 +89,7 @@ export async function exportTakeoffBoqXlsx(input: ExportTakeoffXlsxInput): Promi
   ];
   const typeName = new Map(input.catalog.map((c) => [c.key, c.nameHe]));
   for (const d of input.detections) {
-    const legendName = d.originalText?.trim() || d.legendLabel?.trim();
+    const legendName = d.userLabel?.trim() || d.originalText?.trim() || d.legendLabel?.trim();
     detail.addRow({
       id: d.id,
       sheet: sheetName.get(d.sheetKey) ?? d.sheetKey,

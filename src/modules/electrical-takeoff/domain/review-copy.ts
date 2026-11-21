@@ -14,7 +14,7 @@ export function hasConfirmableLegendName(
   detection: ConfirmableLegendDetection,
   extraName?: string,
 ): boolean {
-  if (detection.reasons.includes('type_ambiguous')) return false;
+  if (detection.reasons.includes('type_ambiguous') && detection.legendUnambiguous !== true) return false;
   const userName = extraName?.trim() || detection.userLabel?.trim() || '';
   if (userName) return true;
   const legendName = detection.originalText?.trim() || '';

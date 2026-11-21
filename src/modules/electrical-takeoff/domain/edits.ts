@@ -55,7 +55,6 @@ export function deriveNeedsReview(input: {
   if (input.legendUnambiguous) {
     return input.reasons.some(
       (reason) =>
-        reason === 'type_ambiguous' ||
         reason === 'possible_duplicate' ||
         reason === 'pdf_dwg_mismatch' ||
         reason === 'sheet_unassigned' ||
