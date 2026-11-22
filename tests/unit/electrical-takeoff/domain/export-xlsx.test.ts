@@ -231,6 +231,74 @@ describe('exportTakeoffBoqXlsx', () => {
     expect(originals.join(' ')).toContain('לחצן חדר מדרגות');
   });
 
+  it('omits an explicit user exclude from the summary and the detail sheet', async () => {
+    const catalog = mergeCatalog();
+    const legend: WorkerLegendEntry = {
+      key: 'row:1',
+      fileId: 'f1',
+      sheetKey: 'layout:F0',
+      signature: 'block:stair',
+      signatureKind: 'dwg-block',
+      rawText: 'לחצן חדר מדרגות',
+      decodedText: 'לחצן חדר מדרגות',
+      reasons: [],
+    };
+    const detections = enrichDetectionsWithLegendIdentity(
+      applyEdits(
+        [
+          workerDet({
+            id: 'keep',
+            sheetKey: 'p1',
+            typeKey: null,
+            classifiedBy: 'none',
+            confidence: 'none',
+            signature: 'block:stair',
+            legendRowIds: ['row:1'],
+            reasons: ['unclassified'],
+          }),
+          workerDet({
+            id: 'skip',
+            sheetKey: 'p1',
+            typeKey: null,
+            classifiedBy: 'none',
+            confidence: 'none',
+            signature: 'block:noise',
+            reasons: ['unclassified'],
+          }),
+        ],
+        [{ op: 'set_boq_excluded', detectionId: 'skip', excluded: true }],
+      ),
+      [legend],
+    );
+    const boq = computeBoq({
+      detections,
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+      areas: [],
+      catalog,
+      ruleSet: DEFAULT_RULE_SET,
+      linear: [],
+      state: 'draft',
+    });
+    const buf = await exportTakeoffBoqXlsx({
+      title: 'החרגה',
+      boq,
+      catalog,
+      detections,
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+    });
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buf as unknown as Parameters<typeof wb.xlsx.load>[0]);
+    const ids: string[] = [];
+    wb.getWorksheet('פירוט זיהויים')?.eachRow((row, index) => {
+      if (index === 1) return;
+      ids.push(String(row.getCell(1).value ?? ''));
+    });
+    expect(ids).toContain('keep');
+    expect(ids).not.toContain('skip');
+    const summary = String(wb.getWorksheet('סיכום כתב כמויות')?.getRow(2).getCell(1).value ?? '');
+    expect(summary).toContain('לחצן חדר מדרגות');
+  });
+
   it('exports full 7155 corpus view without throwing', async () => {
     const { view } = getReal7155Fixture();
     const buf = await exportTakeoffBoqXlsx({

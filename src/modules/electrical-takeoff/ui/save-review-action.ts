@@ -76,6 +76,9 @@ export function resolveSaveReviewPlan(input: {
     if (item.status === 'confirmed') {
       continue;
     }
+    if (item.reasons.includes('user_excluded')) {
+      continue;
+    }
     if (!sameConfirmIdentity(input.selected, item)) {
       skippedConflict += 1;
       continue;
@@ -119,6 +122,37 @@ export function resolveSaveReviewPlan(input: {
     confirm: input.confirm,
     saveToLibrary: input.saveToLibrary,
   };
+}
+
+/** Explicit “not a BOQ item”: only the chosen mark, or the chosen same-identity group. */
+export function resolveExcludeFromBoqIds(input: {
+  selected: EffectiveDetection;
+  detections: readonly EffectiveDetection[];
+  applyToGroup: boolean;
+  candidateIds?: readonly string[];
+  explicitGroupConfirm?: boolean;
+}): string[] {
+  if (!input.applyToGroup) return [input.selected.id];
+  const pool = input.candidateIds?.length
+    ? input.detections.filter((item) => input.candidateIds!.includes(item.id))
+    : sameSymbolDetections(input.selected, input.detections);
+  const ids: string[] = [];
+  for (const item of pool) {
+    if (item.id === input.selected.id) {
+      ids.push(item.id);
+      continue;
+    }
+    if (item.status === 'confirmed') continue;
+    if (item.reasons.includes('user_excluded')) continue;
+    if (!sameConfirmIdentity(input.selected, item)) continue;
+    if (hasRealLegendConflict(item) && !input.explicitGroupConfirm) continue;
+    ids.push(item.id);
+  }
+  return ids;
+}
+
+export function buildExcludeFromBoqEdits(detectionIds: readonly string[]): TakeoffEdit[] {
+  return detectionIds.map((detectionId) => ({ op: 'set_boq_excluded' as const, detectionId, excluded: true }));
 }
 
 export function buildSaveReviewEdits(

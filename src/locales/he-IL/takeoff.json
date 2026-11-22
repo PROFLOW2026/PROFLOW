@@ -264,10 +264,14 @@
     "legendDescription": "תיאור מקרא",
     "editLegendDescription": "עריכה",
     "saveLegendDescription": "שמור",
-    "legendDescriptionSaved": "תיאור האביזר עודכן בכתב הכמויות"
+    "legendDescriptionSaved": "תיאור האביזר עודכן בכתב הכמויות",
+    "excludeFromBoq": "ללא סיווג",
+    "excludedFromBoq": "{count} מופעים הוחרגו מכתב הכמויות",
+    "excludedFromBoqOne": "מופע אחד הוחרג מכתב הכמויות"
   },
   "catalog": {
     "addAccessory": "הוסף אביזר חדש",
+    "excludeFromBoq": "ללא סיווג",
     "addNamed": "הוסף \"{name}\"",
     "addTitle": "אביזר חדש לקטלוג הארגון",
     "editAccessory": "עריכת שם",
@@ -323,7 +327,8 @@
     "legend_text_undecodable": "טקסט מקרא לא נקרא",
     "symbol_group_candidate": "קבוצת סמל ללא סוג",
     "drawing_noise": "רעש שרטוט",
-    "sheet_unassigned": "לא משויך לגיליון"
+    "sheet_unassigned": "לא משויך לגיליון",
+    "user_excluded": "הוחרג מכתב הכמויות"
   },
   "catalogCategory": {
     "all": "הכל",

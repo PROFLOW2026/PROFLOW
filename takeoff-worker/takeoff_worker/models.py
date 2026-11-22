@@ -22,6 +22,7 @@ ReviewReason = Literal[
     "symbol_group_candidate",
     "drawing_noise",
     "sheet_unassigned",
+    "user_excluded",
 ]
 ElectricalCategory = Literal[
     "lighting", "emergency_lighting", "power", "communication", "low_voltage", "fire_detection",

@@ -15,6 +15,7 @@ import {
   legendDisplayText,
   visibleDetectionReasons,
 } from './takeoff-analysis-view';
+import { isUserExcludedFromBoq } from '../domain/counting-policy';
 import { canSaveReviewIdentity } from '../domain/review-copy';
 import { detectionDisplayLabel } from './boq-display';
 import { resolveSaveReviewPlan } from './save-review-action';
@@ -25,6 +26,11 @@ export type DetectionSaveRequest = {
   saveToLibrary: boolean;
   applyToGroup: boolean;
   confirm: boolean;
+  explicitGroupConfirm?: boolean;
+};
+
+export type DetectionExcludeRequest = {
+  applyToGroup: boolean;
   explicitGroupConfirm?: boolean;
 };
 
@@ -45,6 +51,7 @@ export function TakeoffDetectionSheet({
   detections,
   onClose,
   onCommit,
+  onExcludeFromBoq,
   onSetLabel,
   onSetNote,
   onDelete,
@@ -69,6 +76,7 @@ export function TakeoffDetectionSheet({
   reasonLabel: (r: TakeoffReviewReason | string) => string;
   onClose: () => void;
   onCommit: (input: DetectionSaveRequest) => void;
+  onExcludeFromBoq?: (input: DetectionExcludeRequest) => void;
   onSetLabel?: (label: string) => void;
   onSetNote: (tagText: string | null) => void;
   onDelete: () => void;
@@ -357,6 +365,16 @@ export function TakeoffDetectionSheet({
             canManageCatalog={canManageCatalog}
             mutations={catalogMutations}
             onCatalogSaved={onCatalogSaved}
+            excludeDisabled={isUserExcludedFromBoq(detection)}
+            onExcludeFromBoq={
+              onExcludeFromBoq
+                ? () =>
+                    onExcludeFromBoq({
+                      applyToGroup: groupOn,
+                      explicitGroupConfirm: explicitGroup,
+                    })
+                : undefined
+            }
           />
           <label className="flex min-h-11 items-center gap-2 text-sm">
             <input

@@ -1,10 +1,15 @@
 import type { EffectiveDetection, TakeoffReviewReason } from './contracts';
 
-/** Reasons that always exclude a detection from BOQ quantities (still visible in review UI). */
+/** Reasons that always exclude a detection from BOQ quantities. Geometry may still remain on the plan. */
 export const ALWAYS_NON_COUNTABLE: ReadonlySet<TakeoffReviewReason> = new Set([
   'legend_zone',
   'drawing_noise',
+  'user_excluded',
 ]);
+
+export function isUserExcludedFromBoq(detection: Pick<EffectiveDetection, 'reasons'>): boolean {
+  return detection.reasons.includes('user_excluded');
+}
 
 /**
  * Paired PDF+DWG plan: DWG is primary; PDF is verification.

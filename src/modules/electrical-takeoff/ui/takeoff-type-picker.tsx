@@ -35,6 +35,8 @@ export function TakeoffTypePicker({
   canManageCatalog = false,
   mutations,
   onCatalogSaved,
+  onExcludeFromBoq,
+  excludeDisabled = false,
 }: {
   catalog: readonly CatalogType[];
   value: string;
@@ -44,6 +46,8 @@ export function TakeoffTypePicker({
   canManageCatalog?: boolean;
   mutations?: TakeoffCatalogMutations;
   onCatalogSaved?: (type: CatalogType) => void;
+  onExcludeFromBoq?: () => void;
+  excludeDisabled?: boolean;
 }) {
   const t = useTranslations('takeoff');
   const [category, setCategory] = useState<'all' | ElectricalCategory>('all');
@@ -187,13 +191,27 @@ export function TakeoffTypePicker({
           </optgroup>
         ))}
       </select>
-      {showManage ? (
-        <div className="flex min-w-0 flex-wrap gap-1">
+      {showManage || onExcludeFromBoq ? (
+        <div className="flex min-w-0 w-full flex-wrap gap-1">
+          {onExcludeFromBoq ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              className="min-h-11 min-w-[8.5rem] flex-1"
+              data-testid={`${testId}-exclude`}
+              disabled={disabled || saving || excludeDisabled}
+              onClick={onExcludeFromBoq}
+            >
+              {t('catalog.excludeFromBoq')}
+            </Button>
+          ) : null}
+          {showManage ? (
           <Button
             type="button"
             size="sm"
             variant="secondary"
-            className="min-h-11"
+            className="min-h-11 min-w-[8.5rem] flex-1"
             data-testid={`${testId}-add`}
             disabled={saving}
             onClick={() => {
@@ -207,7 +225,8 @@ export function TakeoffTypePicker({
           >
             {t('catalog.addAccessory')}
           </Button>
-          {selected && !selected.archived ? (
+          ) : null}
+          {showManage && selected && !selected.archived ? (
             <Button
               type="button"
               size="sm"

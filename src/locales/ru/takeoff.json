@@ -264,10 +264,14 @@
     "legendDescription": "Описание легенды",
     "editLegendDescription": "Изменить",
     "saveLegendDescription": "Сохранить",
-    "legendDescriptionSaved": "Описание изделия обновлено в ведомости"
+    "legendDescriptionSaved": "Описание изделия обновлено в ведомости",
+    "excludeFromBoq": "Без позиции",
+    "excludedFromBoq": "{count} вхождений исключены из ведомости",
+    "excludedFromBoqOne": "Одно вхождение исключено из ведомости"
   },
   "catalog": {
     "addAccessory": "Добавить изделие",
+    "excludeFromBoq": "Без позиции",
     "addNamed": "Добавить «{name}»",
     "addTitle": "Новое изделие организации",
     "editAccessory": "Изменить имя",
@@ -323,7 +327,8 @@
     "legend_text_undecodable": "Текст легенды не прочитан",
     "symbol_group_candidate": "Группа символов без типа",
     "drawing_noise": "Шум чертежа",
-    "sheet_unassigned": "Лист не назначен"
+    "sheet_unassigned": "Лист не назначен",
+    "user_excluded": "Исключено из ведомости"
   },
   "catalogCategory": {
     "all": "Все",

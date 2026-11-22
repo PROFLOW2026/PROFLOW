@@ -2,6 +2,7 @@ import ExcelJS from 'exceljs';
 
 import { BOQ_XLSX_DRAFT_BANNER } from '../domain/boq-warnings';
 import type { Boq, CatalogType, EffectiveDetection, SheetDto } from '../domain/contracts';
+import { isUserExcludedFromBoq } from '../domain/counting-policy';
 import {
   boqQuantityDisplay,
   classifyLegendText,
@@ -89,6 +90,7 @@ export async function exportTakeoffBoqXlsx(input: ExportTakeoffXlsxInput): Promi
   ];
   const typeName = new Map(input.catalog.map((c) => [c.key, c.nameHe]));
   for (const d of input.detections) {
+    if (isUserExcludedFromBoq(d)) continue;
     const legendName = d.userLabel?.trim() || d.originalText?.trim() || d.legendLabel?.trim();
     detail.addRow({
       id: d.id,

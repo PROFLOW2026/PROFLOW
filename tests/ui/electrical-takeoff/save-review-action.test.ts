@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { EffectiveDetection } from '@/modules/electrical-takeoff/domain/contracts';
 import {
+  buildExcludeFromBoqEdits,
   buildSaveReviewEdits,
   nextUnconfirmedId,
+  resolveExcludeFromBoqIds,
   resolveSaveReviewPlan,
 } from '@/modules/electrical-takeoff/ui/save-review-action';
 
@@ -442,6 +444,53 @@ describe('resolveSaveReviewPlan', () => {
     });
     expect(buildSaveReviewEdits(plan, [mark])).toEqual([
       { op: 'reclassify', detectionId: 'a', typeKey: 'light.point', saveToLibrary: false },
+    ]);
+  });
+});
+
+describe('resolveExcludeFromBoqIds', () => {
+  it('excludes only the selected mark unless the group was chosen', () => {
+    const selected = detection({ id: 'a', originalText: 'שקע' });
+    const mate = detection({ id: 'b', originalText: 'שקע' });
+    const other = detection({ id: 'c', originalText: 'מפסק מאור', signature: 'block:other' });
+    expect(
+      resolveExcludeFromBoqIds({
+        selected,
+        detections: [selected, mate, other],
+        applyToGroup: false,
+      }),
+    ).toEqual(['a']);
+    expect(
+      resolveExcludeFromBoqIds({
+        selected,
+        detections: [selected, mate, other],
+        applyToGroup: true,
+      }),
+    ).toEqual(['a', 'b']);
+  });
+
+  it('does not overwrite a confirmed sibling that was not selected', () => {
+    const selected = detection({ id: 'open', originalText: 'שקע' });
+    const done = detection({
+      id: 'done',
+      originalText: 'שקע',
+      status: 'confirmed',
+      needsReview: false,
+      reasons: [],
+    });
+    expect(
+      resolveExcludeFromBoqIds({
+        selected,
+        detections: [selected, done],
+        applyToGroup: true,
+      }),
+    ).toEqual(['open']);
+  });
+
+  it('builds persistable exclude edits for the chosen ids', () => {
+    expect(buildExcludeFromBoqEdits(['a', 'b'])).toEqual([
+      { op: 'set_boq_excluded', detectionId: 'a', excluded: true },
+      { op: 'set_boq_excluded', detectionId: 'b', excluded: true },
     ]);
   });
 });

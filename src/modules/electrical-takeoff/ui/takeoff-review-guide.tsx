@@ -7,6 +7,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { cadHtmlTextLine } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-text-bidi';
 import type { CatalogType, EffectiveDetection, SheetDto, WorkerLegendEntry } from '../domain/contracts';
+import { isUserExcludedFromBoq } from '../domain/counting-policy';
 import { canSaveReviewIdentity, hasConfirmableLegendName, reviewPlainKey } from '../domain/review-copy';
 import { classifyLegendText, isLegendNoteText } from '../domain/legend-identity';
 import { detectionDisplayLabel } from './boq-display';
@@ -27,6 +28,11 @@ export type ReviewDecision = {
   explicitGroupConfirm?: boolean;
 };
 
+export type ReviewExcludeRequest = {
+  detectionIds: string[];
+  explicitGroupConfirm?: boolean;
+};
+
 export function TakeoffReviewGuide({
   group,
   focus,
@@ -41,6 +47,7 @@ export function TakeoffReviewGuide({
   shownId,
   onShowOccurrence,
   onConfirm,
+  onExcludeFromBoq,
   canManageLibrary = false,
   canManageCatalog = false,
   catalogMutations,
@@ -63,6 +70,7 @@ export function TakeoffReviewGuide({
   shownId: string;
   onShowOccurrence: (detectionId: string) => void;
   onConfirm: (choice: ReviewDecision) => Promise<boolean>;
+  onExcludeFromBoq?: (choice: ReviewExcludeRequest) => void;
   canManageLibrary?: boolean;
   canManageCatalog?: boolean;
   catalogMutations?: TakeoffCatalogMutations;
@@ -312,6 +320,24 @@ export function TakeoffReviewGuide({
         <Button type="button" size="sm" variant="secondary" className="min-h-11" disabled={readOnly} onClick={() => setForm((cur) => ({ ...cur, showType: !cur.showType }))}>
           {t('guide.actionPickType')}
         </Button>
+        {onExcludeFromBoq && !form.showType ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            className="min-h-11"
+            data-testid="takeoff-guide-exclude"
+            disabled={readOnly || saving || isUserExcludedFromBoq(current)}
+            onClick={() =>
+              onExcludeFromBoq({
+                detectionIds: ids,
+                explicitGroupConfirm: form.explicitGroup,
+              })
+            }
+          >
+            {t('catalog.excludeFromBoq')}
+          </Button>
+        ) : null}
         {legendRows.length > 0 ? (
           <Button type="button" size="sm" variant="secondary" className="min-h-11" disabled={readOnly} onClick={() => setForm((cur) => ({ ...cur, showLegend: !cur.showLegend }))}>
             {t('guide.actionAssignLegend')}
@@ -342,6 +368,16 @@ export function TakeoffReviewGuide({
             canManageCatalog={canManageCatalog}
             mutations={catalogMutations}
             onCatalogSaved={onCatalogSaved}
+            excludeDisabled={isUserExcludedFromBoq(current)}
+            onExcludeFromBoq={
+              onExcludeFromBoq
+                ? () =>
+                    onExcludeFromBoq({
+                      detectionIds: ids,
+                      explicitGroupConfirm: form.explicitGroup,
+                    })
+                : undefined
+            }
           />
         </div>
       ) : null}

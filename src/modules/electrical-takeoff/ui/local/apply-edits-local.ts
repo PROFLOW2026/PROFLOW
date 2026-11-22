@@ -9,6 +9,7 @@ import type {
   EffectiveDetection,
   TakeoffEdit,
 } from '../../domain/contracts';
+import { isUserExcludedFromBoq } from '../../domain/counting-policy';
 import { devicesFromNote } from '../../domain/quantity-notes';
 
 const deletedIds = new Set<string>();
@@ -16,7 +17,7 @@ const deletedIds = new Set<string>();
 function recomputeBoq(view: AnalysisView, detections: EffectiveDetection[]): Boq {
   const byType = new Map<string, { ids: string[]; devices: number; label: string; category: BoqLine['category'] }>();
   for (const d of detections) {
-    if (deletedIds.has(d.id)) continue;
+    if (deletedIds.has(d.id) || isUserExcludedFromBoq(d)) continue;
     const key = d.typeKey ?? '__unclassified__';
     const cat = view.catalog.find((c) => c.key === d.typeKey)?.category ?? 'unknown';
     const label = view.catalog.find((c) => c.key === d.typeKey)?.nameHe ?? 'לא מסווג';
@@ -49,7 +50,9 @@ function recomputeBoq(view: AnalysisView, detections: EffectiveDetection[]): Boq
     verified: false,
     excluded: false,
   }));
-  const unclassifiedCount = detections.filter((d) => !deletedIds.has(d.id) && !d.typeKey).length;
+  const unclassifiedCount = detections.filter(
+    (d) => !deletedIds.has(d.id) && !isUserExcludedFromBoq(d) && !d.typeKey,
+  ).length;
   const needsReviewCount = detections.filter((d) => !deletedIds.has(d.id) && d.needsReview).length;
   return {
     ...view.boq,
@@ -76,7 +79,9 @@ function applyOne(base: EffectiveDetection[], edit: TakeoffEdit): EffectiveDetec
               typeKey: edit.typeKey,
               origin: 'user_changed' as const,
               needsReview: edit.typeKey == null,
-              reasons: edit.typeKey ? d.reasons.filter((r) => r !== 'unclassified') : ['unclassified', ...d.reasons],
+              reasons: edit.typeKey
+                ? d.reasons.filter((r) => r !== 'unclassified' && r !== 'user_excluded')
+                : ['unclassified', ...d.reasons.filter((r) => r !== 'unclassified' && r !== 'user_excluded')],
             }
           : d,
       );
@@ -117,6 +122,20 @@ function applyOne(base: EffectiveDetection[], edit: TakeoffEdit): EffectiveDetec
       return base.map((d) => (d.id === edit.detectionId ? { ...d, tagText: edit.tagText } : d));
     case 'set_label':
       return base.map((d) => (d.id === edit.detectionId ? { ...d, userLabel: edit.label } : d));
+    case 'set_boq_excluded':
+      return base.map((d) =>
+        d.id === edit.detectionId
+          ? {
+              ...d,
+              needsReview: edit.excluded ? false : d.typeKey == null,
+              reasons: edit.excluded
+                ? (['user_excluded', ...d.reasons.filter((reason) => reason !== 'user_excluded' && reason !== 'unclassified')] as EffectiveDetection['reasons'])
+                : ((d.reasons.includes('unclassified') || d.typeKey
+                    ? d.reasons.filter((reason) => reason !== 'user_excluded')
+                    : ['unclassified', ...d.reasons.filter((reason) => reason !== 'user_excluded')]) as EffectiveDetection['reasons']),
+            }
+          : d,
+      );
     case 'assign_legend':
       return base.map((d) =>
         d.id === edit.detectionId

@@ -147,7 +147,13 @@ export function undecodedLegendExemplars<T extends SymbolGroupDetection & { type
   const exemplars = new Map<string, T>();
   for (const detection of detections) {
     if (detection.typeKey) continue;
-    if (detection.reasons?.includes('drawing_noise') || detection.reasons?.includes('legend_zone')) continue;
+    if (
+      detection.reasons?.includes('drawing_noise') ||
+      detection.reasons?.includes('legend_zone') ||
+      detection.reasons?.includes('user_excluded')
+    ) {
+      continue;
+    }
     const legend = legendIdentity(detection);
     if (!legend) continue;
     const token = legend.toLowerCase();

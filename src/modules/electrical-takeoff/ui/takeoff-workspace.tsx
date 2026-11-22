@@ -40,7 +40,13 @@ import {
   legendConflictOnDetection,
   legendDisplayText,
 } from './takeoff-analysis-view';
-import { buildSaveReviewEdits, nextUnconfirmedId, resolveSaveReviewPlan } from './save-review-action';
+import {
+  buildExcludeFromBoqEdits,
+  buildSaveReviewEdits,
+  nextUnconfirmedId,
+  resolveExcludeFromBoqIds,
+  resolveSaveReviewPlan,
+} from './save-review-action';
 import { detectionsForSheet, parseSheetRefId, sheetRefId } from './sheet-ref';
 import { sameSymbolDetections, undecodedLegendExemplars } from './symbol-group';
 import { buildReviewGroups, typeSuggestions } from './review-guide';
@@ -895,6 +901,35 @@ export function TakeoffWorkspace({
                 onShowOccurrence={(detectionId) => {
                   focusOccurrence(detectionId);
                 }}
+                onExcludeFromBoq={(choice) => {
+                  const current = view.detections.find((item) => item.id === choice.detectionIds[0]) ?? guideFocus;
+                  const ids = resolveExcludeFromBoqIds({
+                    selected: current,
+                    detections: view.detections,
+                    applyToGroup: choice.detectionIds.length > 1,
+                    candidateIds: choice.detectionIds,
+                    explicitGroupConfirm: choice.explicitGroupConfirm,
+                  });
+                  const edits = buildExcludeFromBoqEdits(ids);
+                  if (edits.length === 0) return;
+                  void commitEdits(edits).then((next) => {
+                    if (!next) return;
+                    announce(
+                      'success',
+                      ids.length === 1 ? t('detection.excludedFromBoqOne') : t('detection.excludedFromBoq', { count: ids.length }),
+                    );
+                    const nextGroups = buildReviewGroups(next.detections);
+                    const still = nextGroups.findIndex((group) => group.key === activeGuide.key);
+                    if (still < 0) {
+                      setCompletedReviewKeys((prev) =>
+                        prev.includes(activeGuide.key) ? prev : [...prev, activeGuide.key],
+                      );
+                      const nextIndex = Math.min(guideIndex, Math.max(0, nextGroups.length - 1));
+                      setGuideIndex(nextIndex);
+                      focusGuide(nextGroups[nextIndex] ?? null);
+                    }
+                  });
+                }}
                 onConfirm={async (choice) => {
                   const run = async () => {
                     const current = view.detections.find((item) => item.id === choice.detectionIds[0]) ?? guideFocus;
@@ -1163,6 +1198,23 @@ export function TakeoffWorkspace({
             void lastSaveRetryRef.current?.();
           }}
           onClose={() => setState((s) => ({ ...s, selectedDetectionId: null }))}
+          onExcludeFromBoq={(input) => {
+            const ids = resolveExcludeFromBoqIds({
+              selected,
+              detections: view.detections,
+              applyToGroup: input.applyToGroup,
+              explicitGroupConfirm: input.explicitGroupConfirm,
+            });
+            const edits = buildExcludeFromBoqEdits(ids);
+            if (edits.length === 0) return;
+            void commitEdits(edits).then((next) => {
+              if (!next) return;
+              announce(
+                'success',
+                ids.length === 1 ? t('detection.excludedFromBoqOne') : t('detection.excludedFromBoq', { count: ids.length }),
+              );
+            });
+          }}
           onSetLabel={(label) => {
             const edits = buildSetLabelEdits(
               detectionsSharingBoqItem(selected.id, view.boq.lines),

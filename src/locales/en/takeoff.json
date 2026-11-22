@@ -264,10 +264,14 @@
     "legendDescription": "Legend description",
     "editLegendDescription": "Edit",
     "saveLegendDescription": "Save",
-    "legendDescriptionSaved": "The accessory description was updated on the BOQ"
+    "legendDescriptionSaved": "The accessory description was updated on the BOQ",
+    "excludeFromBoq": "Not a BOQ item",
+    "excludedFromBoq": "{count} occurrences were excluded from the BOQ",
+    "excludedFromBoqOne": "One occurrence was excluded from the BOQ"
   },
   "catalog": {
     "addAccessory": "Add new accessory",
+    "excludeFromBoq": "Not a BOQ item",
     "addNamed": "Add \"{name}\"",
     "addTitle": "New organization accessory",
     "editAccessory": "Edit name",
@@ -323,7 +327,8 @@
     "legend_text_undecodable": "Legend text was not read",
     "symbol_group_candidate": "Symbol group without a type",
     "drawing_noise": "Drawing noise",
-    "sheet_unassigned": "Sheet not assigned"
+    "sheet_unassigned": "Sheet not assigned",
+    "user_excluded": "Excluded from the BOQ"
   },
   "catalogCategory": {
     "all": "All",

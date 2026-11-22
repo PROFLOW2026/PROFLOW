@@ -52,6 +52,8 @@ export const reviewReasonSchema = z.enum([
   'drawing_noise',
   /** The symbol sits on two partial sheets. Counted once. The sheet is not chosen. */
   'sheet_unassigned',
+  /** User marked this plan symbol as not a BOQ item. The geometry stays; quantities do not. */
+  'user_excluded',
 ]);
 export type TakeoffReviewReason = z.infer<typeof reviewReasonSchema>;
 
@@ -608,6 +610,8 @@ export const takeoffEditSchema = z.discriminatedUnion('op', [
   }),
   z.object({ op: z.literal('delete'), detectionId: z.string() }),
   z.object({ op: z.literal('restore'), detectionId: z.string() }),
+  /** Keep the mark on the plan, but drop it from BOQ / review / export. */
+  z.object({ op: z.literal('set_boq_excluded'), detectionId: z.string(), excluded: z.boolean() }),
   z.object({ op: z.literal('add'), tempId: z.string(), sheetKey: z.string(), x: z.number(), y: z.number(), typeKey: z.string().nullable() }),
   z.object({ op: z.literal('move'), detectionId: z.string(), x: z.number(), y: z.number() }),
   z.object({ op: z.literal('set_floor'), sheetKey: z.string(), floorLabel: z.string().nullable() }),

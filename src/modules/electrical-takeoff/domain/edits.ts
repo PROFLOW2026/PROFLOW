@@ -51,7 +51,13 @@ export function deriveNeedsReview(input: {
   readonly legendUnambiguous?: boolean;
 }): boolean {
   if (input.status === 'confirmed') return false;
-  if (input.reasons.includes('legend_zone') || input.reasons.includes('drawing_noise')) return false;
+  if (
+    input.reasons.includes('legend_zone') ||
+    input.reasons.includes('drawing_noise') ||
+    input.reasons.includes('user_excluded')
+  ) {
+    return false;
+  }
   if (input.userChangedType && input.typeKey !== null && input.confidence !== 'none') return false;
   if (input.legendUnambiguous) {
     return input.reasons.some(
@@ -129,8 +135,8 @@ export function applyEdits(
           row.status = 'suggested';
         }
         if (edit.typeKey) {
-          row.reasons = row.reasons.filter((reason) => reason !== 'unclassified');
-        } else if (!row.reasons.includes('unclassified')) {
+          row.reasons = row.reasons.filter((reason) => reason !== 'unclassified' && reason !== 'user_excluded');
+        } else if (!row.reasons.includes('unclassified') && !row.reasons.includes('user_excluded')) {
           row.reasons = ['unclassified', ...row.reasons];
         }
         break;
@@ -154,6 +160,22 @@ export function applyEdits(
       case 'restore': {
         const row = byId.get(edit.detectionId);
         if (row) row.deleted = false;
+        break;
+      }
+      case 'set_boq_excluded': {
+        const row = byId.get(edit.detectionId);
+        if (!row || row.deleted) break;
+        if (edit.excluded) {
+          row.reasons = [
+            'user_excluded',
+            ...row.reasons.filter((reason) => reason !== 'user_excluded' && reason !== 'unclassified'),
+          ];
+        } else {
+          row.reasons = row.reasons.filter((reason) => reason !== 'user_excluded');
+          if (!row.typeKey && !row.reasons.includes('unclassified')) {
+            row.reasons = ['unclassified', ...row.reasons];
+          }
+        }
         break;
       }
       case 'add': {

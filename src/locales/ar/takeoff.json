@@ -264,10 +264,14 @@
     "legendDescription": "وصف المفتاح",
     "editLegendDescription": "تعديل",
     "saveLegendDescription": "حفظ",
-    "legendDescriptionSaved": "تم تحديث وصف التجهيز في جدول الكميات"
+    "legendDescriptionSaved": "تم تحديث وصف التجهيز في جدول الكميات",
+    "excludeFromBoq": "بدون تصنيف",
+    "excludedFromBoq": "تم استبعاد {count} مواضع من جدول الكميات",
+    "excludedFromBoqOne": "تم استبعاد موضع واحد من جدول الكميات"
   },
   "catalog": {
     "addAccessory": "إضافة ملحق جديد",
+    "excludeFromBoq": "بدون تصنيف",
     "addNamed": "إضافة \"{name}\"",
     "addTitle": "ملحق جديد لمؤسسة",
     "editAccessory": "تعديل الاسم",
@@ -323,7 +327,8 @@
     "legend_text_undecodable": "لم يُقرأ نص المفتاح",
     "symbol_group_candidate": "مجموعة رموز بلا نوع",
     "drawing_noise": "ضوضاء الرسم",
-    "sheet_unassigned": "غير مرتبط بورقة"
+    "sheet_unassigned": "غير مرتبط بورقة",
+    "user_excluded": "مُستبعد من جدول الكميات"
   },
   "catalogCategory": {
     "all": "الكل",

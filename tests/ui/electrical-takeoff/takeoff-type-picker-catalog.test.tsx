@@ -15,6 +15,28 @@ function wrap(ui: ReactNode) {
 }
 
 describe('TakeoffTypePicker org catalog', () => {
+  it('shows ללא סיווג next to הוסף אביזר חדש without using the type select', () => {
+    const onExcludeFromBoq = vi.fn();
+    render(
+      wrap(
+        <TakeoffTypePicker
+          catalog={loadDefaultCatalog()}
+          value=""
+          onChange={vi.fn()}
+          testId="takeoff-edit-type"
+          canManageCatalog
+          mutations={{ create: vi.fn(), update: vi.fn(), archive: vi.fn() }}
+          onExcludeFromBoq={onExcludeFromBoq}
+        />,
+      ),
+    );
+    fireEvent.click(screen.getByTestId('takeoff-edit-type-exclude'));
+    expect(onExcludeFromBoq).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('takeoff-edit-type-add')).toHaveTextContent(heTakeoff.catalog.addAccessory);
+    expect(screen.getByTestId('takeoff-edit-type-exclude')).toHaveTextContent(heTakeoff.catalog.excludeFromBoq);
+    expect(screen.getByTestId('takeoff-edit-type')).toHaveTextContent(heTakeoff.detection.unclassified);
+  });
+
   it('adds לחצן דירה ייעודי under מפסקים and selects it immediately', async () => {
     const created = {
       key: 'custom.control.stairbtn01',

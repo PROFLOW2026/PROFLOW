@@ -305,4 +305,59 @@ describe('BOQ from planner legend', () => {
     expect(detections.find((row) => row.id === 'cross')?.userLabel).toBeUndefined();
     expect(detections.find((row) => row.id === 'cross')?.status).toBe('suggested');
   });
+
+  it('drops an explicit user exclude from BOQ lines, summaries and review without deleting the mark', () => {
+    const waiting = workerDet({
+      id: 'wait',
+      sheetKey: 'p1',
+      typeKey: null,
+      classifiedBy: 'none',
+      confidence: 'none',
+      signature: 'block:noise',
+      rawClass: 'noise',
+      reasons: ['unclassified'],
+    });
+    const stillWaiting = workerDet({
+      id: 'queue',
+      sheetKey: 'p1',
+      typeKey: null,
+      classifiedBy: 'none',
+      confidence: 'none',
+      signature: 'block:unknown',
+      rawClass: 'unknown',
+      reasons: ['unclassified'],
+    });
+    const counted = workerDet({
+      id: 'keep',
+      sheetKey: 'p1',
+      typeKey: null,
+      classifiedBy: 'none',
+      confidence: 'none',
+      signature: 'block:stair',
+      rawClass: 'stair',
+      legendRowIds: ['row:1'],
+      reasons: ['unclassified', 'legend_unmapped'],
+    });
+    const detections = enrichDetectionsWithLegendIdentity(
+      applyEdits([waiting, stillWaiting, counted], [{ op: 'set_boq_excluded', detectionId: 'wait', excluded: true }]),
+      [legend({ key: 'row:1', decodedText: 'לחצן חדר מדרגות' })],
+    );
+    const excluded = detections.find((row) => row.id === 'wait');
+    expect(excluded).toMatchObject({ reasons: ['user_excluded'], needsReview: false });
+    expect(excluded?.x).toBe(100);
+    const boq = computeBoq({
+      detections,
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+      areas: [],
+      catalog,
+      ruleSet: DEFAULT_RULE_SET,
+      linear: [],
+      state: 'draft',
+    });
+    expect(boq.lines.some((row) => row.detectionIds.includes('wait'))).toBe(false);
+    expect(boq.lines.find((row) => row.originalLabel === 'לחצן חדר מדרגות')?.quantity).toBe(1);
+    expect(boq.unclassifiedCount).toBe(1);
+    expect(boq.needsReviewCount).toBe(1);
+    expect(buildReviewGroups(detections).flatMap((group) => group.detectionIds)).toEqual(['queue']);
+  });
 });

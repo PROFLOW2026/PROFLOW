@@ -104,4 +104,51 @@ describe('applyEdits', () => {
     expect(other?.typeKey).toBe('power.socket.single');
     expect(other?.status).toBe('suggested');
   });
+
+  it('keeps an excluded mark on the plan and out of review after replay', () => {
+    const edits = [{ op: 'set_boq_excluded' as const, detectionId: 'd2', excluded: true }];
+    const once = applyEdits(base, edits);
+    const again = applyEdits(base, edits);
+    const row = once.find((item) => item.id === 'd2');
+    expect(row).toMatchObject({
+      id: 'd2',
+      reasons: ['user_excluded'],
+      needsReview: false,
+      typeKey: null,
+    });
+    expect(row?.x).toBe(100);
+    expect(again.find((item) => item.id === 'd2')?.reasons).toEqual(['user_excluded']);
+    expect(once.find((item) => item.id === 'd1')?.reasons).toEqual([]);
+  });
+
+  it('does not treat waiting unclassified the same as an explicit exclude', () => {
+    expect(
+      deriveNeedsReview({
+        reasons: ['unclassified'],
+        confidence: 'none',
+        typeKey: null,
+        status: 'suggested',
+        userChangedType: false,
+      }),
+    ).toBe(true);
+    expect(
+      deriveNeedsReview({
+        reasons: ['user_excluded'],
+        confidence: 'none',
+        typeKey: null,
+        status: 'suggested',
+        userChangedType: false,
+      }),
+    ).toBe(false);
+  });
+
+  it('clears an exclude when the mark is reclassified to a real type', () => {
+    const out = applyEdits(base, [
+      { op: 'set_boq_excluded', detectionId: 'd2', excluded: true },
+      { op: 'reclassify', detectionId: 'd2', typeKey: 'light.point', saveToLibrary: false },
+    ]);
+    const row = out.find((item) => item.id === 'd2');
+    expect(row?.reasons.includes('user_excluded')).toBe(false);
+    expect(row?.typeKey).toBe('light.point');
+  });
 });

@@ -398,6 +398,18 @@ describe('guided review groups', () => {
     expect(groups[0]?.detectionIds).toEqual(['plan']);
   });
 
+  it('keeps waiting unclassified in review and leaves an explicit exclude out', () => {
+    const waiting = mark({ id: 'wait', reasons: ['unclassified'], needsReview: true });
+    const excluded = mark({
+      id: 'skip',
+      reasons: ['user_excluded'],
+      needsReview: false,
+    });
+    expect(needsGuidedReview(waiting)).toBe(true);
+    expect(needsGuidedReview(excluded)).toBe(false);
+    expect(buildReviewGroups([waiting, excluded]).flatMap((group) => group.detectionIds)).toEqual(['wait']);
+  });
+
   it('counts a group as checked only after it leaves the queue', () => {
     const seen = new Set(['missingType::::signature:sig-a']);
     expect(reviewProgress(seen, [{ key: 'missingType::::signature:sig-a' }])).toEqual({ checked: 0, total: 1 });

@@ -119,7 +119,8 @@ function lastOpByDetection(edits: readonly TakeoffEdit[]): Map<string, TakeoffEd
       edit.op === 'move' ||
       edit.op === 'assign_legend' ||
       edit.op === 'set_label' ||
-      edit.op === 'set_note'
+      edit.op === 'set_note' ||
+      edit.op === 'set_boq_excluded'
     ) {
       last.set(edit.detectionId, edit.op);
     }
