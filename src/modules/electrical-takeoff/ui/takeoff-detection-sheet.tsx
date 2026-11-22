@@ -52,6 +52,7 @@ export function TakeoffDetectionSheet({
   onClose,
   onCommit,
   onExcludeFromBoq,
+  onRestoreToBoq,
   onSetLabel,
   onSetNote,
   onDelete,
@@ -77,6 +78,7 @@ export function TakeoffDetectionSheet({
   onClose: () => void;
   onCommit: (input: DetectionSaveRequest) => void;
   onExcludeFromBoq?: (input: DetectionExcludeRequest) => void;
+  onRestoreToBoq?: () => void;
   onSetLabel?: (label: string) => void;
   onSetNote: (tagText: string | null) => void;
   onDelete: () => void;
@@ -138,6 +140,7 @@ export function TakeoffDetectionSheet({
   const blockedGroupCount = groupPreview.skippedCount;
   const canSave = canSaveReviewIdentity(selectedTypeKey, detection);
   const missingHint = t('guide.pickOrNameRequired');
+  const excluded = isUserExcludedFromBoq(detection);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -178,7 +181,9 @@ export function TakeoffDetectionSheet({
       <header className="mb-3 flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="text-sm font-semibold">
-            {detectionDisplayLabel(detection, catalog, t('detection.unclassified'))}
+            {excluded
+              ? t('detection.excludedFromBoqTitle')
+              : detectionDisplayLabel(detection, catalog, t('detection.unclassified'))}
           </h3>
           <p className="text-xs text-[var(--pf-text-muted)]">
             <span className="ms-1 font-mono">{detection.id}</span>
@@ -350,7 +355,27 @@ export function TakeoffDetectionSheet({
         ) : null}
       </dl>
 
-      {!readOnly ? (
+      {!readOnly && excluded ? (
+        <div className="mt-4 space-y-2">
+          <p className="text-sm font-medium text-[var(--pf-text-primary)]" data-testid="takeoff-excluded-status">
+            {t('detection.excludedFromBoqTitle')}
+          </p>
+          <p className="text-xs text-[var(--pf-text-secondary)]">{t('detection.excludedFromBoqHint')}</p>
+          {onRestoreToBoq ? (
+            <Button
+              type="button"
+              variant="secondary"
+              className="min-h-11 w-full"
+              data-testid="takeoff-undo-exclude"
+              loading={saving}
+              disabled={saving}
+              onClick={onRestoreToBoq}
+            >
+              {t('detection.undoExcludeFromBoq')}
+            </Button>
+          ) : null}
+        </div>
+      ) : !readOnly ? (
         <div className="mt-4 space-y-2">
           <label className="block text-xs font-medium text-[var(--pf-text-secondary)]">{t('detection.pickType')}</label>
           <TakeoffTypePicker

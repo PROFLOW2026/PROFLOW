@@ -267,7 +267,11 @@
     "legendDescriptionSaved": "תיאור האביזר עודכן בכתב הכמויות",
     "excludeFromBoq": "ללא סיווג",
     "excludedFromBoq": "{count} מופעים הוחרגו מכתב הכמויות",
-    "excludedFromBoqOne": "מופע אחד הוחרג מכתב הכמויות"
+    "excludedFromBoqOne": "מופע אחד הוחרג מכתב הכמויות",
+    "excludedFromBoqTitle": "הוחרג מכתב הכמויות",
+    "excludedFromBoqHint": "הסימון נשמר בתוכנית ואינו נכלל בכתב הכמויות, בסיכומים או בייצוא.",
+    "undoExcludeFromBoq": "בטל החרגה",
+    "restoredToReview": "הסימון הוחזר לבדיקה"
   },
   "catalog": {
     "addAccessory": "הוסף אביזר חדש",

@@ -6,6 +6,7 @@ import {
   buildReviewGroups,
   defaultReviewScope,
   needsGuidedReview,
+  nextReviewFocusAfterExclude,
   reviewKind,
   reviewProgress,
   symbolCropSource,
@@ -408,6 +409,38 @@ describe('guided review groups', () => {
     expect(needsGuidedReview(waiting)).toBe(true);
     expect(needsGuidedReview(excluded)).toBe(false);
     expect(buildReviewGroups([waiting, excluded]).flatMap((group) => group.detectionIds)).toEqual(['wait']);
+  });
+
+  it('moves review focus off excluded marks to the next waiting item', () => {
+    const first = [
+      mark({ id: 'a1', originalText: 'שקע' }),
+      mark({ id: 'a2', originalText: 'שקע' }),
+    ];
+    const next = mark({ id: 'b1', originalText: 'מפסק', signature: 'sig-b', rawClass: 'BLOCK_B' });
+    const before = buildReviewGroups([...first, next]);
+    const afterAll = [...first, next].map((item) =>
+      item.id.startsWith('a') ? mark({ id: item.id, originalText: item.originalText, reasons: ['user_excluded'], needsReview: false }) : item,
+    );
+    const moved = nextReviewFocusAfterExclude({
+      excludedIds: ['a1', 'a2'],
+      previousKey: before[0]?.key ?? null,
+      previousIndex: 0,
+      detections: afterAll,
+    });
+    expect(moved.completedKey).toBe(before[0]?.key);
+    expect(moved.focusId).toBe('b1');
+
+    const afterOne = first.map((item) =>
+      item.id === 'a1' ? mark({ id: item.id, originalText: item.originalText, reasons: ['user_excluded'], needsReview: false }) : item,
+    );
+    const remaining = nextReviewFocusAfterExclude({
+      excludedIds: ['a1'],
+      previousKey: before[0]?.key ?? null,
+      previousIndex: 0,
+      detections: [...afterOne, next],
+    });
+    expect(remaining.completedKey).toBeNull();
+    expect(remaining.focusId).toBe('a2');
   });
 
   it('counts a group as checked only after it leaves the queue', () => {

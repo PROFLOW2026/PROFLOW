@@ -48,6 +48,7 @@ export function TakeoffReviewGuide({
   onShowOccurrence,
   onConfirm,
   onExcludeFromBoq,
+  onRestoreToBoq,
   canManageLibrary = false,
   canManageCatalog = false,
   catalogMutations,
@@ -71,6 +72,7 @@ export function TakeoffReviewGuide({
   onShowOccurrence: (detectionId: string) => void;
   onConfirm: (choice: ReviewDecision) => Promise<boolean>;
   onExcludeFromBoq?: (choice: ReviewExcludeRequest) => void;
+  onRestoreToBoq?: (choice: ReviewExcludeRequest) => void;
   canManageLibrary?: boolean;
   canManageCatalog?: boolean;
   catalogMutations?: TakeoffCatalogMutations;
@@ -132,6 +134,7 @@ export function TakeoffReviewGuide({
   );
   const libraryAllowed = canManageLibrary && canSaveReclassifyToLibrary(current, pick || null);
   const canConfirm = canSaveReviewIdentity(pick || null, current, form.rename);
+  const excluded = isUserExcludedFromBoq(current);
   const groupPreview = resolveSaveReviewPlan({
     selected: current,
     detections: marks,
@@ -320,14 +323,14 @@ export function TakeoffReviewGuide({
         <Button type="button" size="sm" variant="secondary" className="min-h-11" disabled={readOnly} onClick={() => setForm((cur) => ({ ...cur, showType: !cur.showType }))}>
           {t('guide.actionPickType')}
         </Button>
-        {onExcludeFromBoq && !form.showType ? (
+        {onExcludeFromBoq && !form.showType && !excluded ? (
           <Button
             type="button"
             size="sm"
             variant="secondary"
             className="min-h-11"
             data-testid="takeoff-guide-exclude"
-            disabled={readOnly || saving || isUserExcludedFromBoq(current)}
+            disabled={readOnly || saving}
             onClick={() =>
               onExcludeFromBoq({
                 detectionIds: ids,
@@ -357,7 +360,7 @@ export function TakeoffReviewGuide({
         </label>
       ) : null}
 
-      {form.showType ? (
+      {form.showType && !excluded ? (
         <div className="mt-2">
           <TakeoffTypePicker
             catalog={catalog}
@@ -484,14 +487,22 @@ export function TakeoffReviewGuide({
         {t('detection.saveToLibrary')}
       </label>
 
-      {!canConfirm ? <p className="text-xs text-[var(--pf-status-warning-fg)]">{t('guide.pickOrNameRequired')}</p> : null}
-      {canConfirm ? (
+      {excluded ? (
+        <div className="mt-2 space-y-2">
+          <p className="text-sm font-medium text-[var(--pf-text-primary)]" data-testid="takeoff-excluded-status">
+            {t('detection.excludedFromBoqTitle')}
+          </p>
+          <p className="text-xs text-[var(--pf-text-secondary)]">{t('detection.excludedFromBoqHint')}</p>
+        </div>
+      ) : !canConfirm ? (
+        <p className="text-xs text-[var(--pf-status-warning-fg)]">{t('guide.pickOrNameRequired')}</p>
+      ) : (
         <p className="text-sm font-medium text-[var(--pf-text-primary)]" data-testid="takeoff-about-to-confirm">
           {scopeCount === 1
             ? t('detection.aboutToConfirmOne', { type: proposedName })
             : t('detection.aboutToConfirmGroup', { count: scopeCount, type: proposedName })}
         </p>
-      ) : null}
+      )}
       {feedback ? (
         <Alert tone={feedback.tone} className="mt-2" data-testid="takeoff-action-feedback">
           <p>{feedback.text}</p>
@@ -503,31 +514,54 @@ export function TakeoffReviewGuide({
         </Alert>
       ) : null}
 
-      <Button
-        type="button"
-        data-testid="takeoff-guide-confirm"
-        className="mt-2 min-h-11 w-full"
-        loading={saving}
-        disabled={readOnly || saving || !canConfirm}
-        title={!canConfirm ? t('guide.pickOrNameRequired') : undefined}
-        onClick={() => submit(true)}
-      >
-        <Check className="size-4" />
-        {saving ? t('guide.saving') : t('guide.confirmMatch', { count: scopeCount })}
-      </Button>
-      <Button
-        type="button"
-        variant="secondary"
-        data-testid="takeoff-guide-save-only"
-        className="mt-1 min-h-11 w-full"
-        loading={saving}
-        disabled={readOnly || saving || !canConfirm}
-        title={t('detection.applyTypeHint')}
-        onClick={() => submit(false)}
-      >
-        {t('guide.saveWithoutConfirm')}
-      </Button>
-      <p className="text-xs text-[var(--pf-text-muted)]">{t('detection.applyTypeHint')}</p>
+      {excluded ? (
+        onRestoreToBoq ? (
+          <Button
+            type="button"
+            variant="secondary"
+            data-testid="takeoff-undo-exclude"
+            className="mt-2 min-h-11 w-full"
+            loading={saving}
+            disabled={readOnly || saving}
+            onClick={() =>
+              onRestoreToBoq({
+                detectionIds: [current.id],
+                explicitGroupConfirm: form.explicitGroup,
+              })
+            }
+          >
+            {t('detection.undoExcludeFromBoq')}
+          </Button>
+        ) : null
+      ) : (
+        <>
+          <Button
+            type="button"
+            data-testid="takeoff-guide-confirm"
+            className="mt-2 min-h-11 w-full"
+            loading={saving}
+            disabled={readOnly || saving || !canConfirm}
+            title={!canConfirm ? t('guide.pickOrNameRequired') : undefined}
+            onClick={() => submit(true)}
+          >
+            <Check className="size-4" />
+            {saving ? t('guide.saving') : t('guide.confirmMatch', { count: scopeCount })}
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            data-testid="takeoff-guide-save-only"
+            className="mt-1 min-h-11 w-full"
+            loading={saving}
+            disabled={readOnly || saving || !canConfirm}
+            title={t('detection.applyTypeHint')}
+            onClick={() => submit(false)}
+          >
+            {t('guide.saveWithoutConfirm')}
+          </Button>
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('detection.applyTypeHint')}</p>
+        </>
+      )}
     </section>
   );
 }

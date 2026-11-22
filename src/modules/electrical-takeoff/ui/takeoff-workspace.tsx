@@ -42,6 +42,7 @@ import {
 } from './takeoff-analysis-view';
 import {
   buildExcludeFromBoqEdits,
+  buildRestoreToBoqEdits,
   buildSaveReviewEdits,
   nextUnconfirmedId,
   resolveExcludeFromBoqIds,
@@ -49,7 +50,7 @@ import {
 } from './save-review-action';
 import { detectionsForSheet, parseSheetRefId, sheetRefId } from './sheet-ref';
 import { sameSymbolDetections, undecodedLegendExemplars } from './symbol-group';
-import { buildReviewGroups, typeSuggestions } from './review-guide';
+import { buildReviewGroups, nextReviewFocusAfterExclude, typeSuggestions } from './review-guide';
 import { TakeoffReviewGuide } from './takeoff-review-guide';
 import { TakeoffSymbolGlyph } from './takeoff-symbol-glyph';
 import { reviewPlainKey } from '../domain/review-copy';
@@ -317,6 +318,27 @@ export function TakeoffWorkspace({
   const focusGuide = (group: (typeof reviewGroups)[number] | null) => {
     if (!group) return;
     focusOccurrence(group.focusId);
+  };
+
+  const advanceAfterExclude = (next: AnalysisView, excludedIds: readonly string[]) => {
+    const result = nextReviewFocusAfterExclude({
+      excludedIds,
+      previousKey: activeGuide?.key ?? null,
+      previousIndex: guideIndex,
+      detections: next.detections,
+    });
+    if (result.completedKey) {
+      setCompletedReviewKeys((prev) =>
+        prev.includes(result.completedKey!) ? prev : [...prev, result.completedKey!],
+      );
+    }
+    setGuideIndex(result.groupIndex);
+    if (result.focusId) {
+      focusOccurrence(result.focusId);
+      return;
+    }
+    setShownOccurrenceId(null);
+    setState((current) => ({ ...current, selectedDetectionId: null }));
   };
 
   const setFilter = (updater: (f: TypeFilterState) => TypeFilterState) => {
@@ -855,7 +877,7 @@ export function TakeoffWorkspace({
                 focus={guideFocus}
                 occurrences={activeGuide.detectionIds.flatMap((id) => {
                   const mark = view.detections.find((item) => item.id === id);
-                  return mark ? [mark] : [];
+                  return mark && !mark.reasons.includes('user_excluded') ? [mark] : [];
                 })}
                 sheet={
                   view.sheets.find((item) =>
@@ -918,16 +940,15 @@ export function TakeoffWorkspace({
                       'success',
                       ids.length === 1 ? t('detection.excludedFromBoqOne') : t('detection.excludedFromBoq', { count: ids.length }),
                     );
-                    const nextGroups = buildReviewGroups(next.detections);
-                    const still = nextGroups.findIndex((group) => group.key === activeGuide.key);
-                    if (still < 0) {
-                      setCompletedReviewKeys((prev) =>
-                        prev.includes(activeGuide.key) ? prev : [...prev, activeGuide.key],
-                      );
-                      const nextIndex = Math.min(guideIndex, Math.max(0, nextGroups.length - 1));
-                      setGuideIndex(nextIndex);
-                      focusGuide(nextGroups[nextIndex] ?? null);
-                    }
+                    advanceAfterExclude(next, ids);
+                  });
+                }}
+                onRestoreToBoq={(choice) => {
+                  const edits = buildRestoreToBoqEdits(choice.detectionIds);
+                  if (edits.length === 0) return;
+                  void commitEdits(edits).then((next) => {
+                    if (!next) return;
+                    announce('success', t('detection.restoredToReview'));
                   });
                 }}
                 onConfirm={async (choice) => {
@@ -1213,6 +1234,15 @@ export function TakeoffWorkspace({
                 'success',
                 ids.length === 1 ? t('detection.excludedFromBoqOne') : t('detection.excludedFromBoq', { count: ids.length }),
               );
+              advanceAfterExclude(next, ids);
+            });
+          }}
+          onRestoreToBoq={() => {
+            const edits = buildRestoreToBoqEdits([selected.id]);
+            if (edits.length === 0) return;
+            void commitEdits(edits).then((next) => {
+              if (!next) return;
+              announce('success', t('detection.restoredToReview'));
             });
           }}
           onSetLabel={(label) => {

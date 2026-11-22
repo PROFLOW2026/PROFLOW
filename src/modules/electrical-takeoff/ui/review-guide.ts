@@ -168,6 +168,28 @@ export function buildReviewGroups(detections: readonly EffectiveDetection[]): Re
   );
 }
 
+/** After an exclude save, leave the excluded marks and land on the next real review item. */
+export function nextReviewFocusAfterExclude(input: {
+  excludedIds: readonly string[];
+  previousKey: string | null;
+  previousIndex: number;
+  detections: readonly EffectiveDetection[];
+}): { groupIndex: number; focusId: string | null; completedKey: string | null } {
+  const groups = buildReviewGroups(input.detections);
+  const excluded = new Set(input.excludedIds);
+  const same = input.previousKey ? groups.findIndex((group) => group.key === input.previousKey) : -1;
+  if (same >= 0) {
+    const group = groups[same]!;
+    const focusId = group.detectionIds.find((id) => !excluded.has(id)) ?? group.focusId;
+    return { groupIndex: same, focusId, completedKey: null };
+  }
+  if (groups.length === 0) {
+    return { groupIndex: 0, focusId: null, completedKey: input.previousKey };
+  }
+  const groupIndex = Math.min(Math.max(0, input.previousIndex), groups.length - 1);
+  return { groupIndex, focusId: groups[groupIndex]!.focusId, completedKey: input.previousKey };
+}
+
 export function reviewProgress(
   seen: ReadonlySet<string>,
   groups: readonly { key: string }[],

@@ -267,7 +267,11 @@
     "legendDescriptionSaved": "تم تحديث وصف التجهيز في جدول الكميات",
     "excludeFromBoq": "بدون تصنيف",
     "excludedFromBoq": "تم استبعاد {count} مواضع من جدول الكميات",
-    "excludedFromBoqOne": "تم استبعاد موضع واحد من جدول الكميات"
+    "excludedFromBoqOne": "تم استبعاد موضع واحد من جدول الكميات",
+    "excludedFromBoqTitle": "مُستبعد من جدول الكميات",
+    "excludedFromBoqHint": "يبقى الرمز في المخطط ولا يُدرج في جدول الكميات أو الملخصات أو التصدير.",
+    "undoExcludeFromBoq": "إلغاء الاستبعاد",
+    "restoredToReview": "أُعيد الرمز إلى المراجعة"
   },
   "catalog": {
     "addAccessory": "إضافة ملحق جديد",

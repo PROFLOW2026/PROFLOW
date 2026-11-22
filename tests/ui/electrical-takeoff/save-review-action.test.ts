@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { EffectiveDetection } from '@/modules/electrical-takeoff/domain/contracts';
 import {
   buildExcludeFromBoqEdits,
+  buildRestoreToBoqEdits,
   buildSaveReviewEdits,
   nextUnconfirmedId,
   resolveExcludeFromBoqIds,
@@ -492,6 +493,12 @@ describe('resolveExcludeFromBoqIds', () => {
       { op: 'set_boq_excluded', detectionId: 'a', excluded: true },
       { op: 'set_boq_excluded', detectionId: 'b', excluded: true },
     ]);
+  });
+});
+
+describe('buildRestoreToBoqEdits', () => {
+  it('clears the exclude without deleting the mark', () => {
+    expect(buildRestoreToBoqEdits(['a'])).toEqual([{ op: 'set_boq_excluded', detectionId: 'a', excluded: false }]);
   });
 });
 

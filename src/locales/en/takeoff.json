@@ -267,7 +267,11 @@
     "legendDescriptionSaved": "The accessory description was updated on the BOQ",
     "excludeFromBoq": "Not a BOQ item",
     "excludedFromBoq": "{count} occurrences were excluded from the BOQ",
-    "excludedFromBoqOne": "One occurrence was excluded from the BOQ"
+    "excludedFromBoqOne": "One occurrence was excluded from the BOQ",
+    "excludedFromBoqTitle": "Excluded from the BOQ",
+    "excludedFromBoqHint": "The mark stays on the plan and is not included in the BOQ, summaries, or export.",
+    "undoExcludeFromBoq": "Undo exclusion",
+    "restoredToReview": "The mark was returned for review"
   },
   "catalog": {
     "addAccessory": "Add new accessory",

@@ -267,7 +267,11 @@
     "legendDescriptionSaved": "Описание изделия обновлено в ведомости",
     "excludeFromBoq": "Без позиции",
     "excludedFromBoq": "{count} вхождений исключены из ведомости",
-    "excludedFromBoqOne": "Одно вхождение исключено из ведомости"
+    "excludedFromBoqOne": "Одно вхождение исключено из ведомости",
+    "excludedFromBoqTitle": "Исключено из ведомости",
+    "excludedFromBoqHint": "Обозначение остаётся на плане и не входит в ведомость, итоги и экспорт.",
+    "undoExcludeFromBoq": "Отменить исключение",
+    "restoredToReview": "Обозначение возвращено на проверку"
   },
   "catalog": {
     "addAccessory": "Добавить изделие",

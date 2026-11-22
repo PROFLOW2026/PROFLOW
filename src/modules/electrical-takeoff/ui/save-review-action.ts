@@ -155,6 +155,10 @@ export function buildExcludeFromBoqEdits(detectionIds: readonly string[]): Takeo
   return detectionIds.map((detectionId) => ({ op: 'set_boq_excluded' as const, detectionId, excluded: true }));
 }
 
+export function buildRestoreToBoqEdits(detectionIds: readonly string[]): TakeoffEdit[] {
+  return detectionIds.map((detectionId) => ({ op: 'set_boq_excluded' as const, detectionId, excluded: false }));
+}
+
 export function buildSaveReviewEdits(
   plan: SaveReviewPlan,
   detections: readonly EffectiveDetection[],
