@@ -163,6 +163,44 @@ describe('boqLineStatus', () => {
       ),
     ).toBe('autoIdentified');
   });
+
+  it('treats a fully confirmed legend line as manually approved even without a catalog type', () => {
+    expect(
+      boqLineStatus(
+        line({
+          typeKey: null,
+          identitySource: 'legend',
+          originalLabel: 'מפסק בטחון 3-קוטבי',
+          breakdown: { high: 0, medium: 0, low: 72, unclassified: 0, userAdded: 0, userConfirmed: 72 },
+          verified: false,
+        }),
+        false,
+      ),
+    ).toBe('manuallyApproved');
+  });
+
+  it('keeps mixed rows separate from fully unapproved rows', () => {
+    const mixed = line({
+      key: 'mixed',
+      typeKey: null,
+      identitySource: 'legend',
+      originalLabel: 'מפסק בטחון 3-קוטבי',
+      breakdown: { high: 0, medium: 0, low: 72, unclassified: 1, userAdded: 0, userConfirmed: 72 },
+      verified: false,
+    });
+    const pending = line({
+      key: 'pending',
+      typeKey: null,
+      identitySource: 'legend',
+      originalLabel: 'מפסק מאור',
+      breakdown: { high: 0, medium: 0, low: 0, unclassified: 5, userAdded: 0, userConfirmed: 0 },
+      verified: false,
+    });
+    expect(boqLineStatus(mixed, false)).toBe('partiallyApproved');
+    expect(boqLineStatus(pending, false)).toBe('needsCheck');
+    const grouped = groupBoqLinesForDisplay([mixed, pending], catalog, 'לא מסווג', false);
+    expect(grouped.map((row) => boqLineStatus(row, false))).toEqual(['needsCheck', 'partiallyApproved']);
+  });
 });
 
 describe('groupDetectionsForControl', () => {

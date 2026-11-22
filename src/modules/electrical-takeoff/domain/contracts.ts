@@ -600,7 +600,12 @@ export const takeoffEditSchema = z.discriminatedUnion('op', [
   z.object({ op: z.literal('assign_legend'), detectionId: z.string(), legendRowId: z.string().nullable() }),
   /** Save a legend key to the planner library. No detection is required (zero plan occurrences). */
   z.object({ op: z.literal('save_legend'), legendKey: z.string().min(1), typeKey: z.string().min(1) }),
-  z.object({ op: z.literal('confirm'), detectionIds: z.array(z.string()).min(1) }),
+  z.object({
+    op: z.literal('confirm'),
+    detectionIds: z.array(z.string()).min(1),
+    /** Set when this confirm was copied from a prior analysis of the same DWG. */
+    reusedFromAnalysisId: z.string().uuid().optional(),
+  }),
   z.object({ op: z.literal('delete'), detectionId: z.string() }),
   z.object({ op: z.literal('restore'), detectionId: z.string() }),
   z.object({ op: z.literal('add'), tempId: z.string(), sheetKey: z.string(), x: z.number(), y: z.number(), typeKey: z.string().nullable() }),

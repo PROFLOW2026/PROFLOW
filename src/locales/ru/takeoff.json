@@ -186,6 +186,7 @@
     "statusNeedsCheck": "Требует проверки",
     "statusUnclassified": "Не классифицировано",
     "statusManuallyApproved": "Подтверждено вручную",
+    "statusPartiallyApproved": "Подтверждено {confirmed} из {total}. Осталось проверить {pending}.",
     "statusBoqReady": "Готово к утверждению ведомости",
     "originalLegend": "Исходный текст легенды",
     "identityLegend": "Легенда",

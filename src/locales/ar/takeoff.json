@@ -186,6 +186,7 @@
     "statusNeedsCheck": "يتطلب فحصًا",
     "statusUnclassified": "غير مصنّف",
     "statusManuallyApproved": "اعتمد يدويًا",
+    "statusPartiallyApproved": "تم اعتماد {confirmed} من {total}. تبقّى {pending} للفحص.",
     "statusBoqReady": "جاهز لاعتماد جدول الكميات",
     "originalLegend": "نص المفتاح الأصلي",
     "identityLegend": "المفتاح",

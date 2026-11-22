@@ -32,7 +32,32 @@ export function canSaveReviewIdentity(
 }
 
 /** Identity of one mark for control / quantities — not the final BOQ document approval. */
-export type IdentityReviewStatus = 'autoIdentified' | 'needsCheck' | 'unclassified' | 'manuallyApproved';
+export type IdentityReviewStatus =
+  | 'autoIdentified'
+  | 'needsCheck'
+  | 'unclassified'
+  | 'manuallyApproved'
+  | 'partiallyApproved';
+
+export type BoqIdentityBreakdown = {
+  unclassified: number;
+  high?: number;
+  low: number;
+  medium: number;
+  userConfirmed: number;
+};
+
+export function boqLineConfirmationCounts(breakdown: BoqIdentityBreakdown): {
+  total: number;
+  confirmed: number;
+  pending: number;
+} {
+  const total =
+    (breakdown.high ?? 0) + breakdown.medium + breakdown.low + breakdown.unclassified;
+  const confirmed = Math.max(0, Math.min(breakdown.userConfirmed, total || breakdown.userConfirmed));
+  const pending = Math.max(0, total - confirmed);
+  return { total, confirmed, pending };
+}
 
 export type ReviewPlainKey =
   | 'missingType'
@@ -71,13 +96,13 @@ export function boqLineIdentityStatus(input: {
   readonly identitySource?: string;
   readonly typeKey: string | null;
   readonly originalLabel?: string | null;
-  readonly breakdown: { unclassified: number; low: number; medium: number; userConfirmed: number };
+  readonly breakdown: BoqIdentityBreakdown;
   readonly suppressVerified: boolean;
 }): IdentityReviewStatus {
   if (input.verified && !input.suppressVerified) return 'manuallyApproved';
-  if (input.breakdown.userConfirmed > 0 && input.breakdown.unclassified === 0 && input.breakdown.low === 0) {
-    return 'manuallyApproved';
-  }
+  const { total, confirmed, pending } = boqLineConfirmationCounts(input.breakdown);
+  if (confirmed > 0 && total > 0 && pending === 0) return 'manuallyApproved';
+  if (confirmed > 0 && pending > 0) return 'partiallyApproved';
   const identified = Boolean(
     input.typeKey ||
       input.identitySource === 'legend' ||

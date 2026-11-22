@@ -186,6 +186,7 @@
     "statusNeedsCheck": "Needs a check",
     "statusUnclassified": "Unclassified",
     "statusManuallyApproved": "Approved manually",
+    "statusPartiallyApproved": "{confirmed} of {total} approved. {pending} still need a check.",
     "statusBoqReady": "Ready for BOQ approval",
     "originalLegend": "Original legend text",
     "identityLegend": "Legend",

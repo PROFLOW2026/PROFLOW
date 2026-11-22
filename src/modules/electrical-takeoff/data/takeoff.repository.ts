@@ -1,4 +1,4 @@
-import { and, desc, eq, max, sql } from 'drizzle-orm';
+import { and, desc, eq, max, ne, sql } from 'drizzle-orm';
 import type { DbExecutor } from '@/shared/db/types';
 import {
   takeoffAnalyses,
@@ -151,6 +151,44 @@ export async function listFilesForAnalysis(db: DbExecutor, organizationId: strin
     .select()
     .from(takeoffFiles)
     .where(and(eq(takeoffFiles.organizationId, organizationId), eq(takeoffFiles.analysisId, analysisId)));
+}
+
+/** Older analyses in the same project whose source file is the same DWG/PDF (name+size, or sha256). */
+export async function listPriorSameSourceAnalysisIds(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  analysisId: string,
+): Promise<string[]> {
+  const currentFiles = await listFilesForAnalysis(db, organizationId, analysisId);
+  if (currentFiles.length === 0) return [];
+  const rows = await db
+    .select({
+      analysisId: takeoffFiles.analysisId,
+      name: takeoffFiles.name,
+      sizeBytes: takeoffFiles.sizeBytes,
+      sha256: takeoffFiles.sha256,
+      updatedAt: takeoffAnalyses.updatedAt,
+    })
+    .from(takeoffFiles)
+    .innerJoin(takeoffAnalyses, eq(takeoffAnalyses.id, takeoffFiles.analysisId))
+    .where(
+      and(
+        eq(takeoffFiles.organizationId, organizationId),
+        eq(takeoffFiles.projectId, projectId),
+        ne(takeoffFiles.analysisId, analysisId),
+      ),
+    )
+    .orderBy(desc(takeoffAnalyses.updatedAt));
+  const matched = new Set<string>();
+  for (const row of rows) {
+    const same = currentFiles.some((file) => {
+      if (file.sha256 && row.sha256 && file.sha256 === row.sha256) return true;
+      return file.name === row.name && file.sizeBytes === row.sizeBytes;
+    });
+    if (same) matched.add(row.analysisId);
+  }
+  return [...matched];
 }
 
 export async function insertFile(db: DbExecutor, row: typeof takeoffFiles.$inferInsert) {

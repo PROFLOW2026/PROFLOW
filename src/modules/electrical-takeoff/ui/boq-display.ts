@@ -1,7 +1,11 @@
 import { cadHtmlTextLine } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-text-bidi';
 import type { BoqLine, CatalogType } from '../domain/contracts';
 import { plannerItemName } from '../domain/legend-identity';
-import { boqLineIdentityStatus, type IdentityReviewStatus } from '../domain/review-copy';
+import {
+  boqLineConfirmationCounts,
+  boqLineIdentityStatus,
+  type IdentityReviewStatus,
+} from '../domain/review-copy';
 
 const TECHNICAL_ID_LABEL = /^p\d+#\d+/i;
 
@@ -126,8 +130,9 @@ export function groupBoqLinesForDisplay(
   const rank: Record<BoqLineStatus, number> = {
     unclassified: 0,
     needsCheck: 1,
-    autoIdentified: 2,
-    manuallyApproved: 3,
+    partiallyApproved: 2,
+    autoIdentified: 3,
+    manuallyApproved: 4,
   };
   return [...groups.values()].sort((a, b) => {
     const statusDelta = rank[boqLineStatus(a, suppressVerified)] - rank[boqLineStatus(b, suppressVerified)];
@@ -162,6 +167,14 @@ export function boqLineStatus(line: BoqLine, suppressVerified: boolean): BoqLine
     breakdown: line.breakdown,
     suppressVerified,
   });
+}
+
+export function boqLineApprovalCounts(line: Pick<BoqLine, 'breakdown'>): {
+  total: number;
+  confirmed: number;
+  pending: number;
+} {
+  return boqLineConfirmationCounts(line.breakdown);
 }
 
 export function detectionDisplayLabel(

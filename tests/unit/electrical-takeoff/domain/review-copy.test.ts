@@ -119,6 +119,55 @@ describe('review-copy identity statuses', () => {
         }),
       ),
     ).toBe('manuallyApproved');
+    expect(
+      boqLineIdentityStatus({
+        verified: false,
+        identitySource: 'legend',
+        typeKey: null,
+        originalLabel: 'שקע יחיד',
+        breakdown: { unclassified: 85, low: 0, medium: 0, userConfirmed: 85 },
+        suppressVerified: false,
+      }),
+    ).toBe('manuallyApproved');
+  });
+
+  it('keeps a fully confirmed line approved even when automatic confidence is low', () => {
+    expect(
+      boqLineIdentityStatus({
+        verified: false,
+        identitySource: 'legend',
+        typeKey: null,
+        originalLabel: 'מפסק בטחון 3-קוטבי',
+        breakdown: { unclassified: 0, low: 72, medium: 0, userConfirmed: 72 },
+        suppressVerified: false,
+      }),
+    ).toBe('manuallyApproved');
+  });
+
+  it('shows mixed confirmation counts instead of treating the whole row as unapproved', () => {
+    expect(
+      boqLineIdentityStatus({
+        verified: false,
+        identitySource: 'legend',
+        typeKey: null,
+        originalLabel: 'מפסק בטחון 3-קוטבי',
+        breakdown: { unclassified: 1, low: 72, medium: 0, userConfirmed: 72 },
+        suppressVerified: false,
+      }),
+    ).toBe('partiallyApproved');
+  });
+
+  it('keeps an unresolved legend conflict in needs-check when nothing is confirmed', () => {
+    expect(
+      boqLineIdentityStatus({
+        verified: false,
+        identitySource: 'legend',
+        typeKey: null,
+        originalLabel: 'מפסק מאור',
+        breakdown: { unclassified: 5, low: 0, medium: 0, userConfirmed: 0 },
+        suppressVerified: false,
+      }),
+    ).toBe('needsCheck');
   });
 
   it('allows save-and-confirm from an unambiguous legend name without a catalog type', () => {

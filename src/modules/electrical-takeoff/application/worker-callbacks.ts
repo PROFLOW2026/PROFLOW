@@ -13,6 +13,7 @@ import {
 import { parseWorkerProgressPayload, parseWorkerResultPayload } from '../domain/worker-json';
 import { formatWorkerIngestError, WorkerIngestError } from '../domain/worker-ingest-error';
 import { verifyJobBearer, verifyStoredTokenHash } from './worker-token';
+import { reuseConfirmedMarksFromPriorAnalyses } from './reuse-confirmed-marks';
 import { withTransaction } from '@/shared/db/client';
 import type { DbExecutor } from '@/shared/db/types';
 
@@ -79,7 +80,15 @@ export async function applyWorkerResult(db: DbExecutor, jobId: string, body: unk
     throw new WorkerIngestError(message, err);
   }
   try {
-    return await ingestWorkerResult(db, job.organizationId, job.projectId, job.analysisId, jobId, result);
+    const ingested = await ingestWorkerResult(db, job.organizationId, job.projectId, job.analysisId, jobId, result);
+    if (!ingested.alreadyIngested && result.status !== 'failed') {
+      try {
+        await reuseConfirmedMarksFromPriorAnalyses(db, job.organizationId, job.projectId, job.analysisId);
+      } catch (reuseErr) {
+        console.error('[takeoff-confirm-reuse] failed after ingest', job.analysisId, reuseErr);
+      }
+    }
+    return ingested;
   } catch (err) {
     const message = formatWorkerIngestError(err);
     await markJobIngestFailed(db, job.organizationId, jobId, message);

@@ -186,6 +186,7 @@
     "statusNeedsCheck": "דורש בדיקה",
     "statusUnclassified": "לא מסווג",
     "statusManuallyApproved": "אושר ידנית",
+    "statusPartiallyApproved": "אושרו {confirmed} מתוך {total}. נותרו {pending} לבדיקה.",
     "statusBoqReady": "מוכן לאישור כתב הכמויות",
     "originalLegend": "תיאור המקרא",
     "identityLegend": "מקרא",

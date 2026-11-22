@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { cadHtmlTextLine } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-text-bidi';
 import type { Boq, BoqLine, CatalogType, EffectiveDetection, SheetDto } from '../domain/contracts';
-import { boqLineDisplayLabel, boqLineStatus, groupBoqLinesForDisplay } from './boq-display';
+import { boqLineApprovalCounts, boqLineDisplayLabel, boqLineStatus, groupBoqLinesForDisplay } from './boq-display';
 import { TakeoffSymbolGlyph } from './takeoff-symbol-glyph';
 import { detectionIdentityStatus } from '../domain/review-copy';
 import { boqQuantityDisplay, classifyLegendText, isUndeterminedQuantityLine } from '../domain/legend-identity';
@@ -62,6 +62,10 @@ export function TakeoffBoqPanel({
     const status = boqLineStatus(line, Boolean(suppressVerified));
     if (status === 'autoIdentified') return t('boq.statusAutoIdentified');
     if (status === 'needsCheck') return t('boq.statusNeedsCheck');
+    if (status === 'partiallyApproved') {
+      const counts = boqLineApprovalCounts(line);
+      return t('boq.statusPartiallyApproved', counts);
+    }
     if (status === 'manuallyApproved') return t('boq.statusManuallyApproved');
     return t('boq.statusUnclassified');
   };
@@ -116,10 +120,11 @@ export function TakeoffBoqPanel({
               displayLines.map((line) => {
                 const displayName = boqLineDisplayLabel(line, catalog, unclassifiedLabel);
                 const tone = boqLineStatus(line, Boolean(suppressVerified));
+                const approvalCounts = boqLineApprovalCounts(line);
                 const toneClass =
                   tone === 'manuallyApproved' || tone === 'autoIdentified'
                     ? 'bg-[var(--pf-status-success-bg)] text-[var(--pf-status-success-fg)]'
-                    : tone === 'needsCheck'
+                    : tone === 'needsCheck' || tone === 'partiallyApproved'
                       ? 'bg-[var(--pf-status-warning-bg)] text-[var(--pf-status-warning-fg)]'
                       : 'bg-[var(--pf-bg-muted)] text-[var(--pf-text-primary)]';
                 const sample = line.detectionIds.map((id) => byId.get(id)).find((item): item is EffectiveDetection => Boolean(item));
@@ -128,7 +133,8 @@ export function TakeoffBoqPanel({
                 const holdKind = line.originalLabel ? classifyLegendText(line.originalLabel) : 'device';
                 const holdLine = isUndeterminedQuantityLine(line);
                 const diagnosticCount = line.symbolCount ?? line.detectionIds.length;
-                const needsAction = tone === 'needsCheck' || tone === 'unclassified' || holdLine;
+                const needsAction =
+                  tone === 'needsCheck' || tone === 'unclassified' || tone === 'partiallyApproved' || holdLine;
                 const sampleStatus = sample ? detectionIdentityStatus(sample) : tone;
                 return (
                   <tr key={line.key} data-identity-status={sampleStatus}>
@@ -200,7 +206,30 @@ export function TakeoffBoqPanel({
                       ) : null}
                     </td>
                     <td className="px-2 py-2 align-middle text-xs">
-                      {needsAction && onCheckAndApprove ? (
+                      {tone === 'partiallyApproved' ? (
+                        <div className="space-y-1">
+                          <span
+                            className={`inline-flex rounded px-1.5 py-0.5 ${toneClass}`}
+                            data-testid="takeoff-boq-partial-status"
+                          >
+                            {t('boq.statusPartiallyApproved', approvalCounts)}
+                          </span>
+                          {onCheckAndApprove ? (
+                            <button
+                              type="button"
+                              data-testid="takeoff-boq-check-approve"
+                              className={`inline-flex min-h-11 items-center rounded px-2 py-1 font-medium ${toneClass}`}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                const pendingIds = line.detectionIds.filter((id) => byId.get(id)?.status !== 'confirmed');
+                                onCheckAndApprove(line.key, pendingIds.length > 0 ? pendingIds : line.detectionIds);
+                              }}
+                            >
+                              {t('boq.checkAndApprove')}
+                            </button>
+                          ) : null}
+                        </div>
+                      ) : needsAction && onCheckAndApprove ? (
                         <button
                           type="button"
                           data-testid="takeoff-boq-check-approve"
