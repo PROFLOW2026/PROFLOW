@@ -26,7 +26,6 @@ import { NotFoundError, ServiceUnavailableError } from '@/shared/errors';
 import { type ExternalCapability, type ExternalContext } from '@/shared/external';
 import {
   outcomeToHttpStatus,
-  resolveStorageXrefPath,
   resolveStorageXrefPathAsync,
   type XrefResolveOutcome,
 } from '@/modules/external-storage/application/resolve-storage-xref';

@@ -1,8 +1,4 @@
-import {
-  resolveOrgStorageXrefs,
-  resolveProjectStorageXrefs,
-  xrefApiHttpStatus,
-} from '@/modules/external-storage/server';
+import { resolveOrgStorageXrefs, resolveProjectStorageXrefs } from '@/modules/external-storage/server';
 import type { XrefBatchItem } from '@/modules/external-storage/application/resolve-storage-xrefs-batch';
 import { requireSession, runInOrgContext } from '@/shared/auth/session';
 import { apiRouteErrorFromUnknown, apiRouteErrorResponse } from '@/shared/errors';

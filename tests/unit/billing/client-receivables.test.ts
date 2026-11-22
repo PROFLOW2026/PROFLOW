@@ -129,7 +129,8 @@ describe('computeClientReceivablesSnapshot', () => {
 
     const snapshot = computeClientReceivablesSnapshot(records, currency, asOf);
     expect(snapshot.invoiced.amount).toBe('800.000000');
-    expect(snapshot.outstanding.amount).toBe('800.000000');
+    // Credit notes net GROSS billed; open AR stays on the invoice until cash/allocations.
+    expect(snapshot.outstanding.amount).toBe('1000.000000');
   });
 
   it('surfaces held retention only when finalized invoices still hold a positive remainder', () => {

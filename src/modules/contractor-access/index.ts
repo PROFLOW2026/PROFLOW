@@ -98,3 +98,7 @@ export {
 export { checkContractorPassword, CONTRACTOR_PASSWORD_MIN_LENGTH, type PasswordRuleViolation } from './domain/password-policy';
 export { contractorAuthEmail, isContractorAuthEmail, validateContractorUsername } from './domain/username';
 export { hashThrottleKey } from './domain/rate-limit';
+export {
+  findContractorPrincipalByAuthUser,
+  listLiveGrantsForPrincipal,
+} from './data/contractor-access.repository';

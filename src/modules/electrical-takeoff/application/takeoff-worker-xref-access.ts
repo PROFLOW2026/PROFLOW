@@ -5,12 +5,14 @@ import type { DbExecutor } from '@/shared/db/types';
 import { createContractorXrefFileGate } from '@/modules/project-plans/application/contractor-xref-gate';
 import {
   findContractorPrincipalByAuthUser,
+  grantRowToView,
   listLiveGrantsForPrincipal,
-} from '@/modules/contractor-access/data/contractor-access.repository';
-import { grantRowToView } from '@/modules/contractor-access/application/load-external-context';
+} from '@/modules/contractor-access';
 import type { ExternalContext } from '@/shared/external';
-import { listFolderMappingsForProject } from '@/modules/external-storage/data/folder-mappings.repository';
-import { ensureUsablePrimaryStorageConnection } from '@/modules/external-storage/application/reconcile-primary-storage';
+import {
+  ensureUsablePrimaryStorageConnection,
+  listFolderMappingsForProject,
+} from '@/modules/external-storage/server';
 
 const requestActorSchema = z.object({
   kind: z.enum(['internal', 'contractor', 'employee']),

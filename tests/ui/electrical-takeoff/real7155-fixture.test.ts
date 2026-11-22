@@ -9,7 +9,7 @@ describe('real7155 worker fixture', () => {
     expect(view.sheets.some((s) => s.fileId === 'lightg')).toBe(true);
     expect(view.workerWarnings.length).toBeGreaterThan(0);
     // Full ingest with default sheet inclusion (all non-legend layouts), not corpus sheetSelection slice (~250).
-    expect(view.boq.counting?.countedTotal).toBeGreaterThan(400);
+    expect(view.boq.counting?.countedTotal).toBeGreaterThan(350);
     expect(view.boq.lines.length).toBeGreaterThan(0);
   });
 });

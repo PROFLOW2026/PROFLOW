@@ -2,7 +2,7 @@ import 'server-only';
 
 import { findDocumentById } from '@/modules/documents';
 import type { DbExecutor } from '@/shared/db/types';
-import { findRevision } from '@/modules/project-plans/data/plans.repository';
+import { findRevision } from '@/modules/project-plans';
 import { ensureUsablePrimaryStorageConnection } from './reconcile-primary-storage';
 import { resolveValidAccessToken } from './connection-service';
 import { getStorageProviderAdapter } from '../providers/registry';

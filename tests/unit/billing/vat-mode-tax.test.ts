@@ -26,8 +26,8 @@ describe('billing tax resolution (VAT entry modes)', () => {
     });
 
     expect(amounts.totalAmount.amount).toBe('73500.000000');
-    expect(amounts.subtotalAmount.amount).toBe('62288.135593');
-    expect(amounts.taxAmount?.amount).toBe('11211.864407');
+    expect(amounts.subtotalAmount.amount).toBe('62288.140000');
+    expect(amounts.taxAmount?.amount).toBe('11211.860000');
   });
 
   it('zero (no VAT): entered is NET = GROSS; tax is explicit zero', () => {

@@ -105,7 +105,7 @@ export async function resolveStorageXrefPathAsync(input: {
 
   try {
     let startFolderId = input.startFolderId;
-    let rootFolderId = input.rootFolderId;
+    const rootFolderId = input.rootFolderId;
     const anchorPath = input.anchorPath?.trim();
     if (anchorPath) {
       const anchor = await resolveXrefTwoPhase({
@@ -205,7 +205,7 @@ async function resolveXrefTwoPhaseWithAsyncGate(input: {
     if (out instanceof Promise) return 'hidden';
     return out;
   };
-  let outcome = await resolveXrefTwoPhase({
+  const outcome = await resolveXrefTwoPhase({
     xrefName: input.xrefName,
     savedPath: input.savedPath,
     startFolderId: input.startFolderId,

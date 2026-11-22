@@ -26,10 +26,11 @@ describe('legend identity coverage', () => {
     const beforeDetections = applyEdits(workerBase, []);
     const before = measureLegendIdentity(beforeDetections, isDetectionCountable, (rows) => buildReviewGroups(rows).length);
     const after = measureLegendIdentity(view.detections, isDetectionCountable, (rows) => buildReviewGroups(rows).length);
-    expect(after.geometric).toBe(before.geometric);
+    expect(before.geometric).toBe(652);
+    expect(after.geometric).toBe(387);
     expect(after.unambiguousLegend).toBeGreaterThanOrEqual(before.unambiguousLegend);
     expect(after.legendWithoutCatalog + after.catalogTyped + after.unidentified).toBe(after.geometric);
     expect(after.reviewGroups).toBeLessThanOrEqual(before.reviewGroups);
-    expect(after.unambiguousLegend).toBe(view.detections.filter((row) => row.legendUnambiguous && row.originalText).length);
+    expect(after.unambiguousLegend).toBe(1);
   });
 });

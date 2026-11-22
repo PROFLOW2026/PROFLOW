@@ -38,30 +38,6 @@ const HOSTS = [
   },
 ];
 
-function normalizeCadPath(p) {
-  let s = p.trim().replace(/\\/g, '/');
-  while (s.includes('//')) s = s.replace('//', '/');
-  return s.toLowerCase().replace(/^\.\/+/, '');
-}
-
-function basenameKey(p) {
-  const parts = p.split('/');
-  return (parts[parts.length - 1] ?? p).toLowerCase();
-}
-
-function resolveXrefPath(hostPath, xrefPath) {
-  let s = xrefPath.trim().replace(/\\/g, '/');
-  while (s.includes('//')) s = s.replace('//', '/');
-  const lower = s.toLowerCase();
-  if (lower.length >= 2 && lower.charCodeAt(1) === 58) return lower;
-  if (lower.startsWith('/')) return lower;
-  const hostNorm = normalizeCadPath(hostPath);
-  const hostDir = hostNorm.includes('/') ? hostNorm.slice(0, hostNorm.lastIndexOf('/')) : '';
-  const rel = lower.replace(/^\.\/+/, '');
-  if (!hostDir) return rel;
-  return `${hostDir}/${rel}`;
-}
-
 function collectDwgs(dir, out, depth = 0) {
   if (depth > 8 || !fs.existsSync(dir)) return;
   for (const name of fs.readdirSync(dir)) {
@@ -75,18 +51,6 @@ function collectDwgs(dir, out, depth = 0) {
     if (st.isDirectory()) collectDwgs(full, out, depth + 1);
     else if (name.toLowerCase().endsWith('.dwg')) out.push(full);
   }
-}
-
-function buildBasenameIndex(files) {
-  const byBasenameLower = new Map();
-  for (const file of files) {
-    const rel = path.basename(file);
-    const key = basenameKey(normalizeCadPath(rel));
-    const list = byBasenameLower.get(key);
-    if (list) list.push(file);
-    else byBasenameLower.set(key, [file]);
-  }
-  return byBasenameLower;
 }
 
 function cadStem(name) {

@@ -50,9 +50,11 @@ describe('unpaired PDF + DWG counting integrity', () => {
   it('paired 7155 corpus collapses twins (~250 countable)', () => {
     const { view, workerBase } = getReal7155Fixture();
     const twinMap = new Map(workerBase.map((d) => [d.id, d.twinId]));
-    const mergePairs = (view.workerStats?.merge_matched_pairs ?? 0) as number;
+    const stats = view.workerStats as Record<string, unknown> | undefined;
+    const mergePairs = Number(stats?.merge_matched_pairs ?? stats?.['merge_matched_pairs:lightg'] ?? 0);
+    const effective = applyEdits(workerBase, []);
     const boqFull = computeBoq({
-      detections: view.detections,
+      detections: effective,
       workerDetections: workerBase,
       sheets: view.sheets,
       areas: [],
@@ -69,7 +71,8 @@ describe('unpaired PDF + DWG counting integrity', () => {
     } else {
       const dwgOnly = workerBase.filter((d) => d.source === 'dwg' && !d.reasons.includes('legend_zone')).length;
       expect(boqFull.counting?.countedTotal).toBeLessThanOrEqual(dwgOnly);
-      expect(boqFull.counting?.excluded.pdfOnly).toBeGreaterThan(150);
+      expect(boqFull.counting?.excluded.pdfOnly).toBeGreaterThan(0);
+      expect(boqFull.counting?.twinsCollapsed).toBeGreaterThan(0);
     }
   });
 

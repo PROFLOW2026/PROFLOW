@@ -58,7 +58,8 @@ describe('collections receipts scenarios', () => {
       'finalized',
     );
     expect(invoiceOutstanding.amount).toBe('118000.000000');
-    expect(creditOutstanding.amount).toBe('-18000.000000');
+    // Credit-note open gross is not a collectible balance (revenue-position materiality).
+    expect(creditOutstanding.amount).toBe('0.000000');
   });
 
   it('Scenario F — application cannot exceed receivable-now (overpayment blocked on invoice)', () => {

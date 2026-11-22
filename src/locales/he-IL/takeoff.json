@@ -195,7 +195,7 @@
     "identityManual": "סיווג ידני",
     "quantityUndetermined": "כמות לא נקבעה",
     "cableNoLength": "חסר אורך מדיד במטרים. {count} מופעי CAD הם ראיה בלבד, לא אורך הכבל.",
-    "noteNotQuantity": "הערה או פרט יצרן — לא שורת כמות.",
+    "noteNotQuantity": "הערה או פרט יצרן, לא שורת כמות.",
     "siteWorkNeedsConfirm": "פריט עבודה שניתן לספור ביחידות רק אחרי אישור שהסמל תואם. {count} מופעי CAD הם ראיה, לא כמות מאושרת.",
     "countingSummary": "נספרו {counted} (PDF {pdf}, DWG {dwg}, מיזוג {merged}) · תאומים {twins} · PDF בלבד {pdfOnly} · מקרא {legend} · גליונות מוחרגים {sheetExcluded}"
   },
@@ -404,7 +404,7 @@
     "pickOrNameRequired": "אשרו שם מהמקרא או בחרו סוג מהקטלוג.",
     "technicalOnly": "מזהה טכני (לא מוצג כשם): {name}",
     "symbolUnavailableShort": "תצוגת סמל אינה זמינה",
-    "conflictForcesOne": "יש סתירה — האישור יחול רק על המופע הנוכחי."
+    "conflictForcesOne": "יש סתירה. האישור יחול רק על המופע הנוכחי."
   },
   "workspace": {
     "saved": "השינויים נשמרו",

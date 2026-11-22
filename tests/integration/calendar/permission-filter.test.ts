@@ -9,6 +9,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { assets, complianceArtifacts, maintenanceRecords } from '@drizzle/schema';
 import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
 import { addOrgMember } from '@tests/setup/dg-fixtures';
+import { grantRolePermission } from '@tests/setup/dg-fixtures-permissions';
 import { createTestOrganization, createTestUser, seedSystem } from '@tests/setup/fixtures';
 
 describe('calendar permission filter (U08)', () => {
@@ -120,6 +121,7 @@ describe('calendar permission filter (U08)', () => {
 
   it('shows CRM follow-ups when crm.read is granted', async () => {
     await seedCrossModuleSources();
+    await grantRolePermission(database, orgId, 'worker', PERMISSIONS.CRM_READ);
     const worker = await addOrgMember(database, orgId, 'cal-crm', 'worker');
     const range = { from: '2026-06-01', to: '2026-06-30' };
 

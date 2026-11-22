@@ -20,6 +20,13 @@ const ALLOW_MULTIPLE = new Set([
   'takeoff-boq-line',
   'takeoff-boq-line-unclassified',
   'takeoff-detection-reason',
+  'takeoff-boq-glyph',
+  'takeoff-boq-check-approve',
+  'takeoff-group-glyph',
+  'takeoff-legend-exemplar',
+  'takeoff-legend-save-library',
+  // Guide panel + detection sheet can both show the safe-subset hint.
+  'takeoff-confirm-safe-subset',
 ]);
 
 function isAllowedDuplicate(id: string): boolean {
@@ -76,7 +83,7 @@ describe('takeoff workspace data-testid uniqueness (real7155)', () => {
 
     expect(screen.getByTestId('takeoff-guide-type')).toBeInTheDocument();
     fireEvent.click(rows[0]!);
-    expect(screen.queryByTestId('takeoff-edit-type')).not.toBeInTheDocument();
+    expect(screen.getByTestId('takeoff-edit-type')).toBeInTheDocument();
     assertUniqueTestIds(container);
   });
 });

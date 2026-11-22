@@ -156,7 +156,8 @@ export function splitSqlStatements(source: string): string[] {
     }
 
     if (char === '$') {
-      const match = /^\$[A-Za-z_]*\$/.exec(source.slice(index));
+      // PostgreSQL dollar tags allow digits (e.g. $takeoff_0216$); letters/underscore alone miss those.
+      const match = /^\$[A-Za-z0-9_]*\$/.exec(source.slice(index));
       if (match) {
         dollarTag = match[0];
         current += dollarTag;

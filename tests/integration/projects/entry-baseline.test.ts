@@ -166,10 +166,9 @@ describe('project entry baseline (opening reduction)', () => {
         contractValueCurrency: 'ILS',
         amountIncludesTax: false,
       });
-      return Promise.all([
-        getProjectDetail(context, a.projectId),
-        getProjectDetail(context, b.projectId),
-      ]);
+      const detailA = await getProjectDetail(context, a.projectId);
+      const detailB = await getProjectDetail(context, b.projectId);
+      return [detailA, detailB] as const;
     });
 
     for (const detail of [withZero, without]) {

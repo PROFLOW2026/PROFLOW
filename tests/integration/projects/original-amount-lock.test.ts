@@ -126,7 +126,7 @@ describe('original contract amount lock after approved change', () => {
       });
       detail = await getProjectDetail(context, created.project.id);
       expect(detail.contract?.amountIncludesTax).toBe(true);
-      expect(detail.contract?.originalValueAmount).toBe('93220.338983');
+      expect(detail.contract?.originalValueAmount).toBe('93220.340000');
     });
   });
 

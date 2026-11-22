@@ -3,7 +3,7 @@ import 'server-only';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import type { DbExecutor } from '@/shared/db/types';
 import type { ExternalContext } from '@/shared/external';
-import { findStorageFileByExternalId } from '@/modules/external-storage/data/files.repository';
+import { findStorageFileByExternalId } from '@/modules/external-storage/server';
 import {
   contractorMayAccessUnlinkedXrefFile,
   contractorMayAccessXrefDrawing,

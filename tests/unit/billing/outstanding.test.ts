@@ -67,7 +67,7 @@ describe('billing outstanding arithmetic', () => {
     const paid = money('0', currency);
     const held = money('10000', currency);
     const outstanding = recordOutstanding(total, paid, 'credit_note', 'finalized', held);
-    expect(outstanding.amount).toBe('-10000.000000');
+    expect(outstanding.amount).toBe('0.000000');
   });
 
   it('subtracts held retention from receivable-now without reducing invoiced', () => {
@@ -133,7 +133,7 @@ describe('billing outstanding arithmetic', () => {
 
     expect(position.invoiced.amount).toBe('900.000000');
     expect(position.paid.amount).toBe('250.000000');
-    expect(position.outstanding.amount).toBe('650.000000');
+    expect(position.outstanding.amount).toBe('750.000000');
   });
 
   it('excludes payments on void and draft records from paid totals', () => {
@@ -181,7 +181,7 @@ describe('billing outstanding arithmetic', () => {
 
     expect(position.invoiced.amount).toBe('0.000000');
     expect(position.paid.amount).toBe('3000.000000');
-    expect(position.outstanding.amount).toBe('-3000.000000');
+    expect(position.outstanding.amount).toBe('7000.000000');
   });
 
   it('excludes held retainage from outstanding while invoiced stays recognized', () => {

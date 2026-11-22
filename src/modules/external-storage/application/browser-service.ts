@@ -34,11 +34,7 @@ import type {
 import type { StorageProviderAdapter } from '../domain/provider-interface';
 import { ProviderHttpError } from '../providers/http-utils';
 import { getStorageProviderAdapter } from '../providers/registry';
-import {
-  resolveStorageXrefPath,
-  resolveStorageXrefPathAsync,
-  type ResolvedStorageXref,
-} from './resolve-storage-xref';
+import { resolveStorageXrefPathAsync, type ResolvedStorageXref } from './resolve-storage-xref';
 import { resolveStorageXrefsBatch, type XrefBatchItem } from './resolve-storage-xrefs-batch';
 import { xrefApiHttpStatus, xrefOutcomeToApi, type XrefResolveApiBody } from '../domain/xref-resolve-response';
 import {
