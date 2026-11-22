@@ -207,7 +207,6 @@ export function applyEdits(
         const row = byId.get(edit.detectionId);
         if (!row || row.deleted) break;
         row.userLabel = edit.label.trim();
-        row.origin = row.userAdded ? 'user_added' : 'user_changed';
         break;
       }
       case 'assign_legend': {

@@ -34,6 +34,8 @@ import { TakeoffSheetsPanel } from './takeoff-sheets-panel';
 import { waitForExportReady } from './takeoff-export';
 import {
   buildLegendLibraryEdit,
+  buildSetLabelEdits,
+  detectionsSharingBoqItem,
   hasBlockingWorkerWarnings,
   legendConflictOnDetection,
   legendDisplayText,
@@ -1161,6 +1163,16 @@ export function TakeoffWorkspace({
             void lastSaveRetryRef.current?.();
           }}
           onClose={() => setState((s) => ({ ...s, selectedDetectionId: null }))}
+          onSetLabel={(label) => {
+            const edits = buildSetLabelEdits(
+              detectionsSharingBoqItem(selected.id, view.boq.lines),
+              label,
+            );
+            if (edits.length === 0) return;
+            void commitEdits(edits).then((next) => {
+              if (next) announce('success', t('detection.legendDescriptionSaved'));
+            });
+          }}
           onCommit={(input) => {
             const run = async () => {
               const plan = resolveSaveReviewPlan({

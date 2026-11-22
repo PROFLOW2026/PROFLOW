@@ -145,12 +145,12 @@ export function boqLineDisplayLabel(
   catalog: readonly CatalogType[],
   unclassifiedLabel: string,
 ): string {
-  const original = line.originalLabel?.trim();
-  if (original) return cadHtmlTextLine(original);
   const trimmed = line.label.trim();
+  const original = line.originalLabel?.trim();
   const fromPlanner =
     line.identitySource === 'legend' || line.identitySource === 'library' || line.identitySource === 'manual';
   if (fromPlanner && trimmed && !TECHNICAL_ID_LABEL.test(trimmed)) return cadHtmlTextLine(trimmed);
+  if (original) return cadHtmlTextLine(original);
   if (!line.typeKey) return unclassifiedLabel;
   const fromCatalog = catalog.find((c) => c.key === line.typeKey)?.nameHe?.trim();
   if (fromCatalog) return cadHtmlTextLine(fromCatalog);

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { Pencil } from 'lucide-react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { cadHtmlTextLine } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-text-bidi';
@@ -44,6 +45,7 @@ export function TakeoffDetectionSheet({
   detections,
   onClose,
   onCommit,
+  onSetLabel,
   onSetNote,
   onDelete,
   onRestore,
@@ -67,6 +69,7 @@ export function TakeoffDetectionSheet({
   reasonLabel: (r: TakeoffReviewReason | string) => string;
   onClose: () => void;
   onCommit: (input: DetectionSaveRequest) => void;
+  onSetLabel?: (label: string) => void;
   onSetNote: (tagText: string | null) => void;
   onDelete: () => void;
   onRestore: () => void;
@@ -80,6 +83,10 @@ export function TakeoffDetectionSheet({
   const [pick, setPick] = useState(detection.typeKey ?? '');
   const [deviceCount, setDeviceCount] = useState(() => devicesFromNote(detection.tagText));
   const [missingType, setMissingType] = useState(false);
+  const originalLegend = detection.originalText?.trim() || '';
+  const displayedLegend = detection.userLabel?.trim() || originalLegend;
+  const [editingLegend, setEditingLegend] = useState(false);
+  const [legendDraft, setLegendDraft] = useState(originalLegend);
 
   const confidenceBadge =
     detection.confidence === 'high'
@@ -126,11 +133,17 @@ export function TakeoffDetectionSheet({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key !== 'Escape') return;
+      if (editingLegend) {
+        setEditingLegend(false);
+        setLegendDraft(originalLegend);
+        return;
+      }
+      onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [editingLegend, onClose, originalLegend]);
 
   const commit = (confirm: boolean) => {
     if (!canSave) {
@@ -198,10 +211,82 @@ export function TakeoffDetectionSheet({
             <dd>{t(`detection.identity${detection.identitySource === 'legend' ? 'Legend' : detection.identitySource === 'library' ? 'Library' : detection.identitySource === 'manual' ? 'Manual' : 'Catalog'}`)}</dd>
           </div>
         ) : null}
-        {detection.originalText ? (
+        {displayedLegend ? (
           <div>
-            <dt className="text-xs text-[var(--pf-text-muted)]">{t('detection.originalLegendName')}</dt>
-            <dd>{cadHtmlTextLine(detection.originalText)}</dd>
+            <div className="flex items-start justify-between gap-2">
+              <dt className="text-xs text-[var(--pf-text-muted)]">{t('detection.legendDescription')}</dt>
+              {!readOnly && onSetLabel && !editingLegend ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="min-h-11 shrink-0 px-2"
+                  data-testid="takeoff-edit-legend-description"
+                  disabled={saving}
+                  onClick={() => {
+                    setLegendDraft(originalLegend || displayedLegend);
+                    setEditingLegend(true);
+                  }}
+                >
+                  <Pencil className="size-4" />
+                  {t('detection.editLegendDescription')}
+                </Button>
+              ) : null}
+            </div>
+            {editingLegend ? (
+              <div className="mt-1 space-y-2">
+                <label className="block text-xs">
+                  <span className="sr-only">{t('detection.legendDescription')}</span>
+                  <textarea
+                    className="min-h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-page)] px-2 py-2 text-sm"
+                    value={legendDraft}
+                    maxLength={200}
+                    data-testid="takeoff-legend-description-input"
+                    disabled={saving}
+                    onChange={(event) => setLegendDraft(event.target.value)}
+                  />
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="min-h-11"
+                    data-testid="takeoff-save-legend-description"
+                    loading={saving}
+                    disabled={saving || !legendDraft.trim()}
+                    onClick={() => {
+                      const next = legendDraft.replace(/\s+/g, ' ').trim();
+                      if (!next || !onSetLabel) return;
+                      onSetLabel(next);
+                      setEditingLegend(false);
+                    }}
+                  >
+                    {t('detection.saveLegendDescription')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="min-h-11"
+                    data-testid="takeoff-cancel-legend-description"
+                    disabled={saving}
+                    onClick={() => {
+                      setEditingLegend(false);
+                      setLegendDraft(originalLegend);
+                    }}
+                  >
+                    {t('common.cancel')}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <dd>{cadHtmlTextLine(displayedLegend)}</dd>
+            )}
+            {!editingLegend && originalLegend && displayedLegend !== originalLegend ? (
+              <p className="mt-1 text-[11px] text-[var(--pf-text-secondary)]">
+                {t('detection.originalLegendName')}: {cadHtmlTextLine(originalLegend)}
+              </p>
+            ) : null}
           </div>
         ) : null}
         {twin ? (

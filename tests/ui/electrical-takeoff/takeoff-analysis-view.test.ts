@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { buildDemoAnalysisView } from '@/modules/electrical-takeoff/ui/fixtures/demo-fixture';
 import {
   aiAssistState,
+  buildSetLabelEdits,
   canSaveReclassifyToLibrary,
+  detectionsSharingBoqItem,
   detectionTwinLabel,
   hasBlockingWorkerWarnings,
   workerWarningsForView,
@@ -32,5 +34,43 @@ describe('takeoff-analysis-view helpers', () => {
     expect(canSaveReclassifyToLibrary({ ...d, signature: null, rawClass: 'L7' }, 'light.recessed')).toBe(false);
     expect(canSaveReclassifyToLibrary({ ...d, source: 'manual', signature: 'shape:x', rawClass: 'L7' }, 'light.recessed')).toBe(false);
     expect(canSaveReclassifyToLibrary({ ...d, rawClass: 'L7' }, null)).toBe(false);
+  });
+
+  it('limits set_label to the same BOQ item, not a similar accessory', () => {
+    const switchLine = {
+      detectionIds: ['a', 'b'],
+      originalLabel: 'מפסק מאור',
+      label: 'מפסק מאור',
+      typeKey: null,
+      identitySource: 'legend' as const,
+      ruleId: 'legend-count',
+    };
+    const crossLine = {
+      detectionIds: ['c'],
+      originalLabel: 'מפסק מאור צלב',
+      label: 'מפסק מאור צלב',
+      typeKey: null,
+      identitySource: 'legend' as const,
+      ruleId: 'legend-count',
+    };
+    const similarLine = {
+      detectionIds: ['d'],
+      originalLabel: 'מפסק מאור יחיד',
+      label: 'מפסק מאור יחיד',
+      typeKey: null,
+      identitySource: 'legend' as const,
+      ruleId: 'legend-count',
+    };
+    const otherFloor = {
+      ...switchLine,
+      detectionIds: ['e'],
+    };
+    expect(detectionsSharingBoqItem('a', [switchLine, crossLine, similarLine])).toEqual(['a', 'b']);
+    expect(detectionsSharingBoqItem('a', [switchLine, otherFloor])).toEqual(['a', 'b', 'e']);
+    expect(buildSetLabelEdits(['a', 'b'], '  מפסק מאור יחיד  ')).toEqual([
+      { op: 'set_label', detectionId: 'a', label: 'מפסק מאור יחיד' },
+      { op: 'set_label', detectionId: 'b', label: 'מפסק מאור יחיד' },
+    ]);
+    expect(buildSetLabelEdits(['a'], '   ')).toEqual([]);
   });
 });

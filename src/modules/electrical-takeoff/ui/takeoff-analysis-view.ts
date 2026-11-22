@@ -1,6 +1,37 @@
 import { cadHtmlTextLine } from '@/modules/external-storage/ui/cad/pf-cad-v3/cad-text-bidi';
-import type { AnalysisView, TakeoffEdit } from '../domain/contracts';
+import type { AnalysisView, BoqLine, TakeoffEdit } from '../domain/contracts';
 import { sharedSymbolToken, type SymbolGroupDetection } from './symbol-group';
+
+const SET_LABEL_MAX = 200;
+
+function normalizedLegendText(value: string | null | undefined): string {
+  return (value ?? '').replace(/\s+/g, ' ').trim();
+}
+
+type BoqItemLine = Pick<BoqLine, 'detectionIds' | 'originalLabel' | 'label' | 'typeKey' | 'identitySource' | 'ruleId'>;
+
+/** Marks on the same BOQ item as `selectedId`. Similar legend wording on a different line is not included. */
+export function detectionsSharingBoqItem(selectedId: string, lines: readonly BoqItemLine[]): string[] {
+  const home = lines.find((line) => line.detectionIds.includes(selectedId));
+  if (!home) return [selectedId];
+  const original = normalizedLegendText(home.originalLabel);
+  const name = home.label.trim();
+  const ids = lines
+    .filter((line) => {
+      if ((line.identitySource ?? null) !== (home.identitySource ?? null)) return false;
+      if ((line.typeKey ?? null) !== (home.typeKey ?? null)) return false;
+      if ((line.ruleId ?? null) !== (home.ruleId ?? null)) return false;
+      return normalizedLegendText(line.originalLabel) === original && line.label.trim() === name;
+    })
+    .flatMap((line) => line.detectionIds);
+  return ids.length > 0 ? [...new Set(ids)] : [selectedId];
+}
+
+export function buildSetLabelEdits(detectionIds: readonly string[], label: string): TakeoffEdit[] {
+  const trimmed = label.replace(/\s+/g, ' ').trim().slice(0, SET_LABEL_MAX);
+  if (!trimmed) return [];
+  return detectionIds.map((detectionId) => ({ op: 'set_label' as const, detectionId, label: trimmed }));
+}
 
 export function workerWarningsForView(view: AnalysisView): AnalysisView['workerWarnings'] {
   return view.workerWarnings ?? [];

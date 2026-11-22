@@ -260,7 +260,11 @@
     "identityCatalog": "Распознано по каталогу",
     "identityLibrary": "Распознано по библиотеке проектировщика",
     "identityManual": "Классифицировано вручную",
-    "originalLegendName": "Исходное имя из легенды"
+    "originalLegendName": "Исходное имя из легенды",
+    "legendDescription": "Описание легенды",
+    "editLegendDescription": "Изменить",
+    "saveLegendDescription": "Сохранить",
+    "legendDescriptionSaved": "Описание изделия обновлено в ведомости"
   },
   "catalog": {
     "addAccessory": "Добавить изделие",

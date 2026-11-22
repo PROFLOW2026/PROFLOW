@@ -251,4 +251,58 @@ describe('BOQ from planner legend', () => {
     expect(boq.unclassifiedCount).toBe(1);
     expect(boq.lines.some((row) => row.identitySource === 'legend')).toBe(false);
   });
+
+  it('renames a legend BOQ line with userLabel and keeps original text, quantity and type', () => {
+    const base = Array.from({ length: 4 }, (_, i) =>
+      workerDet({
+        id: `sw${i}`,
+        sheetKey: 'p1',
+        typeKey: null,
+        classifiedBy: 'none',
+        confidence: 'none',
+        signature: 'block:14e',
+        rawClass: '14e',
+        legendRowIds: ['row:switch'],
+        reasons: ['unclassified', 'legend_unmapped'],
+      }),
+    );
+    const other = workerDet({
+      id: 'cross',
+      sheetKey: 'p1',
+      typeKey: null,
+      classifiedBy: 'none',
+      confidence: 'none',
+      signature: 'block:19e',
+      rawClass: '19e',
+      legendRowIds: ['row:cross'],
+      reasons: ['unclassified', 'legend_unmapped'],
+    });
+    const legendRows: WorkerLegendEntry[] = [
+      legend({ key: 'row:switch', decodedText: 'מפסק מאור', signature: 'block:14e' }),
+      legend({ key: 'row:cross', decodedText: 'מפסק מאור צלב', signature: 'block:19e' }),
+    ];
+    const detections = enrichDetectionsWithLegendIdentity(
+      applyEdits([...base, other], base.map((row) => ({ op: 'set_label' as const, detectionId: row.id, label: 'מפסק מאור יחיד' }))),
+      legendRows,
+    );
+    const boq = computeBoq({
+      detections,
+      sheets: [sheetDto({ sheetKey: 'p1' })],
+      areas: [],
+      catalog,
+      ruleSet: DEFAULT_RULE_SET,
+      linear: [],
+      state: 'draft',
+    });
+    const renamed = boq.lines.find((row) => row.label === 'מפסק מאור יחיד');
+    const untouched = boq.lines.find((row) => row.label === 'מפסק מאור צלב');
+    expect(renamed?.quantity).toBe(4);
+    expect(renamed?.typeKey).toBeNull();
+    expect(renamed?.originalLabel).toBe('מפסק מאור');
+    expect(untouched?.quantity).toBe(1);
+    expect(untouched?.originalLabel).toBe('מפסק מאור צלב');
+    expect(detections.filter((row) => row.id.startsWith('sw')).every((row) => row.originalText === 'מפסק מאור')).toBe(true);
+    expect(detections.find((row) => row.id === 'cross')?.userLabel).toBeUndefined();
+    expect(detections.find((row) => row.id === 'cross')?.status).toBe('suggested');
+  });
 });

@@ -260,7 +260,11 @@
     "identityCatalog": "Identified from the catalog",
     "identityLibrary": "Identified from the planner library",
     "identityManual": "Manually classified",
-    "originalLegendName": "Original legend name"
+    "originalLegendName": "Original legend name",
+    "legendDescription": "Legend description",
+    "editLegendDescription": "Edit",
+    "saveLegendDescription": "Save",
+    "legendDescriptionSaved": "The accessory description was updated on the BOQ"
   },
   "catalog": {
     "addAccessory": "Add new accessory",

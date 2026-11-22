@@ -83,4 +83,25 @@ describe('applyEdits', () => {
     });
     expect(again.find((d) => d.id === 'd2')?.userLabel).toBe('שקע יחיד');
   });
+
+  it('stores userLabel without changing type, status, origin or other marks', () => {
+    const confirmed = applyEdits(base, [{ op: 'confirm', detectionIds: ['d2'] }]);
+    const out = applyEdits(base, [
+      { op: 'confirm', detectionIds: ['d2'] },
+      { op: 'set_label', detectionId: 'd2', label: 'שקע יחיד מואר' },
+    ]);
+    const renamed = out.find((row) => row.id === 'd2');
+    const other = out.find((row) => row.id === 'd1');
+    const before = confirmed.find((row) => row.id === 'd2');
+    expect(renamed).toMatchObject({
+      userLabel: 'שקע יחיד מואר',
+      typeKey: before?.typeKey,
+      status: 'confirmed',
+      origin: 'auto',
+      needsReview: false,
+    });
+    expect(other?.userLabel).toBeUndefined();
+    expect(other?.typeKey).toBe('power.socket.single');
+    expect(other?.status).toBe('suggested');
+  });
 });

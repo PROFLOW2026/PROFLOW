@@ -78,6 +78,21 @@ describe('boqLineDisplayLabel', () => {
     ).toBe('לחצן חדר מדרגות');
   });
 
+  it('prefers a saved user label over the original legend sentence', () => {
+    expect(
+      boqLineDisplayLabel(
+        line({
+          typeKey: null,
+          identitySource: 'legend',
+          label: 'שקע יחיד מואר',
+          originalLabel: 'תוצרת אלקטרולייט שקע יחיד',
+        }),
+        catalog,
+        'לא מסווג',
+      ),
+    ).toBe('שקע יחיד מואר');
+  });
+
   it('shows unclassified label when type is missing', () => {
     expect(boqLineDisplayLabel(line({ typeKey: null, label: 'p2#3' }), catalog, 'לא מסווג — לבדיקה')).toBe(
       'לא מסווג — לבדיקה',

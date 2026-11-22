@@ -260,7 +260,11 @@
     "identityCatalog": "זוהה לפי הקטלוג",
     "identityLibrary": "זוהה מספריית המתכנן",
     "identityManual": "סווג ידנית",
-    "originalLegendName": "שם מקורי מהמקרא"
+    "originalLegendName": "שם מקורי מהמקרא",
+    "legendDescription": "תיאור מקרא",
+    "editLegendDescription": "עריכה",
+    "saveLegendDescription": "שמור",
+    "legendDescriptionSaved": "תיאור האביזר עודכן בכתב הכמויות"
   },
   "catalog": {
     "addAccessory": "הוסף אביזר חדש",

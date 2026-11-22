@@ -260,7 +260,11 @@
     "identityCatalog": "حُدّد من الكتالوج",
     "identityLibrary": "حُدّد من مكتبة المخطط",
     "identityManual": "صُنّف يدوياً",
-    "originalLegendName": "الاسم الأصلي من المفتاح"
+    "originalLegendName": "الاسم الأصلي من المفتاح",
+    "legendDescription": "وصف المفتاح",
+    "editLegendDescription": "تعديل",
+    "saveLegendDescription": "حفظ",
+    "legendDescriptionSaved": "تم تحديث وصف التجهيز في جدول الكميات"
   },
   "catalog": {
     "addAccessory": "إضافة ملحق جديد",
