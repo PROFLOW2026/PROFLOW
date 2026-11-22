@@ -1,6 +1,7 @@
 import { applyEdits, type ApplyEditsContext } from '../domain/edits';
 import { computeBoq, type ComputeBoqInput } from '../domain/boq-engine';
 import { enrichDetectionsWithLegendIdentity } from '../domain/legend-identity';
+import { applyLegendZonePolicy } from '../domain/legend-zone-policy';
 import { resolveSheetInclusion } from '../domain/sheet-selection';
 import { planReviewConfirmed } from '../domain/plan-review';
 import type {
@@ -46,7 +47,11 @@ export function rebuildViewFromEdits(input: {
     floorBySheet: buildFloorMap(input.view),
   };
   const detections = enrichDetectionsWithLegendIdentity(
-    applyEdits(input.workerBase, input.edits, ctx),
+    applyLegendZonePolicy(applyEdits(input.workerBase, input.edits, ctx), {
+      legend: input.view.legend ?? [],
+      sheets: input.view.sheets,
+      files: input.view.files,
+    }),
     input.view.legend ?? [],
     { classifiedByById: new Map(input.workerBase.map((row) => [row.id, row.classifiedBy])) },
   );

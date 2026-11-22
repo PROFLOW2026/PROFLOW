@@ -15,6 +15,9 @@ export interface SymbolGroupDetection {
   readonly signature?: string | null;
   readonly legendKey?: string | null;
   readonly reasons?: readonly string[];
+  readonly originalText?: string | null;
+  readonly legendUnambiguous?: boolean;
+  readonly legendRowIds?: readonly string[];
 }
 
 const SIGNATURE_GROUP_TAG = /^סמל ללא סווג(?:\s*#\d+)?$/u;
@@ -58,11 +61,22 @@ function legendToken(key: string): string {
   return `legend:${key.toLowerCase()}`;
 }
 
+function legendTextToken(detection: SymbolGroupDetection): string | null {
+  const rows = detection.legendRowIds ?? [];
+  if (rows.length > 1 && detection.legendUnambiguous !== true) return null;
+  const text = (detection.originalText ?? '').replace(/\s+/g, ' ').trim();
+  if (!text) return null;
+  return `legend-text:${text.toLowerCase()}`;
+}
+
 export function symbolGroupKeys(detection: SymbolGroupDetection): string[] {
   if (detection.reasons?.includes('drawing_noise')) return [`solo:${detection.id}`];
   const keys: string[] = [];
   const signature = detection.signature?.trim() ?? '';
   if (signature) keys.push(`signature:${signature}`);
+
+  const legendText = legendTextToken(detection);
+  if (legendText) keys.push(legendText);
 
   const legend = legendIdentity(detection);
   if (legend) keys.push(legendToken(legend));
@@ -94,6 +108,8 @@ export function symbolGroupKey(detection: SymbolGroupDetection): string {
  */
 export function sharedSymbolToken(detection: SymbolGroupDetection): string {
   const keys = symbolGroupKeys(detection).filter((key) => !key.startsWith('solo:'));
+  const legendText = keys.find((key) => key.startsWith('legend-text:'));
+  if (legendText) return legendText;
   const legend = keys.find((key) => key.startsWith('legend:'));
   if (legend) return legend;
   const block = keys.find((key) => key.startsWith('signature:') && !key.startsWith('signature:ui:'));

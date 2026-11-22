@@ -21,6 +21,7 @@ import {
 import { warningFromRow } from '../domain/worker-warnings';
 import { computeBoq } from '../domain/boq-engine';
 import { enrichDetectionsWithLegendIdentity } from '../domain/legend-identity';
+import { applyLegendZonePolicy } from '../domain/legend-zone-policy';
 import { freezeApprovedBoq } from '../domain/approved-boq';
 import { DEFAULT_RULE_SET } from '../domain/measurement';
 import type { MeasurementRuleSet } from '../domain/contracts';
@@ -120,9 +121,13 @@ export async function buildAnalysisView(actor: TakeoffActor, analysisId: string)
         : undefined;
   const legendRows = job ? await listLegendEntriesForJob(db, orgId, job.id) : [];
   const legend = sanitizeTakeoffLegendForActor(actor, legendRows);
-  const detections = enrichDetectionsWithLegendIdentity(edited, legend, {
-    classifiedByById: new Map(baseDetections.map((row) => [row.id, row.classifiedBy])),
-  });
+  const detections = enrichDetectionsWithLegendIdentity(
+    applyLegendZonePolicy(edited, { legend, sheets: sheetDtos, files: fileDtos }),
+    legend,
+    {
+      classifiedByById: new Map(baseDetections.map((row) => [row.id, row.classifiedBy])),
+    },
+  );
   const liveBoq = computeBoq({
     detections,
     workerDetections: baseDetections,

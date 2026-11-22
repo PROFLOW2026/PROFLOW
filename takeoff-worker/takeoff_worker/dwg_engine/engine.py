@@ -8,15 +8,17 @@ import shutil
 import tempfile
 import time
 from collections import Counter
+from dataclasses import replace
 from pathlib import Path
 
 import ezdxf
 
 from ..data.catalog_loader import load_default_catalog
 from ..engine_api import EngineOutput, ProgressFn
+
 from ..models import (
     JobOptions,
-    Native,
+    LegendTextBox,
     SheetScale,
     SymbolLibraryEntry,
     WorkerDetection,
@@ -34,7 +36,7 @@ from .xref_merge import collect_merged_xref_inserts, sheet_has_missing_xref_cont
 from .detections import collect_layout_symbols, dedupe, raw_to_worker
 from .doc_context import DocContext
 from .exploded import find_exploded_symbols
-from .legend import collect_drawing_legend_rows, count_anchor_points, count_anchor_rows
+from .legend import LEGEND_NAME_RX, collect_drawing_legend_rows, count_anchor_points, count_anchor_rows
 from .legend_types import (
     accepted_legend_rows,
     make_legend_row_id,
@@ -204,6 +206,10 @@ class DwgEngine:
             bank_sigs = socket_bank_signatures(legend_rows)
             legend_names: set[str] = set()
             anchors = count_anchor_points(ctx)
+            for row in collected_rows:
+                if row.get("x") is None or row.get("y") is None:
+                    continue
+                anchors.append((float(row["x"]), float(row["y"])))
             # Only the rows that already named a block may pull it into the count.
             # A newly read legend row classifies; it does not add symbols.
             for row in count_anchor_rows(ctx):
@@ -369,7 +375,7 @@ class DwgEngine:
                         else find_exploded_symbols(ctx, measure_reg, layout_name=lname)
                     )
                     vis = vis + exploded
-                    vis = [r for r in vis if not _is_legend_anchor(r.x, r.y, anchors)]
+                    vis = _mark_legend_zone(vis, anchors, lname)
 
                     analyzed = "full"
                     if sheet_has_missing_xref_content(ctx, reg, missing_xrefs, lname):
@@ -719,6 +725,12 @@ class DwgEngine:
                 reasons.append("unclassified")
             if not hit and not is_bank:
                 reasons.append("legend_unmapped")
+            x = row.get("x")
+            y = row.get("y")
+            text_box = None
+            if x is not None and y is not None:
+                cx, cy = float(x), float(y)
+                text_box = LegendTextBox(x0=cx - 12.0, y0=cy - 12.0, x1=cx + 12.0, y1=cy + 12.0)
             out.append(
                 WorkerLegendEntry(
                     key=row_id,
@@ -728,6 +740,7 @@ class DwgEngine:
                     rawText=row.get("rawText"),
                     decodedText=row.get("decodedText"),
                     decodedBy=row.get("decodedBy") if row.get("decodedBy") != "none" else None,
+                    textBox=text_box,
                     signature=sig,
                     signatureKind="dwg-block",
                     count=int(block_counts.get(sig, 0)),
@@ -825,6 +838,21 @@ def _is_legend_anchor(x: float, y: float, anchors: list[tuple[float, float]]) ->
         if abs(x - ax) <= 12.0 and abs(y - ay) <= 12.0:
             return True
     return False
+
+
+def _mark_legend_zone(vis: list, anchors: list[tuple[float, float]], layout_name: str):
+    """Keep legend-table inserts for identification, but tag them so they are not counted."""
+    legend_sheet = bool(LEGEND_NAME_RX.search(layout_name or ""))
+    tagged = []
+    for raw in vis:
+        if not legend_sheet and not _is_legend_anchor(raw.x, raw.y, anchors):
+            tagged.append(raw)
+            continue
+        reasons = list(raw.reasons)
+        if "legend_zone" not in reasons:
+            reasons.append("legend_zone")
+        tagged.append(replace(raw, reasons=reasons))
+    return tagged
 
 
 def corpus_7155_path() -> str | None:

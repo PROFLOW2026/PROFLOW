@@ -58,7 +58,6 @@ export const LEGEND_HOLD_REASONS: ReadonlySet<TakeoffReviewReason> = new Set([
   'sheet_unassigned',
   'xref_missing',
   'legend_text_undecodable',
-  'dynamic_block_unresolved',
 ]);
 
 type LegendRow = Pick<
@@ -287,37 +286,23 @@ export function hasLegendQuantityIdentity(
   return Boolean(detection.legendUnambiguous && detection.originalText);
 }
 
-function normalizedSymbolSignature(signature: string | null | undefined): string {
-  return (signature ?? '').replace(/^block:/i, '').trim().toLowerCase();
-}
-
-function mixedSignatureLegendRows(
-  detections: readonly Pick<EffectiveDetection, 'legendRowIds' | 'signature'>[],
-): Set<string> {
-  const signatures = new Map<string, Set<string>>();
-  for (const detection of detections) {
-    const signature = normalizedSymbolSignature(detection.signature);
-    if (!signature) continue;
-    for (const id of detection.legendRowIds ?? []) {
-      const set = signatures.get(id) ?? new Set<string>();
-      set.add(signature);
-      signatures.set(id, set);
-    }
-  }
-  const mixed = new Set<string>();
-  for (const [id, set] of signatures) {
-    if (set.size > 1) mixed.add(id);
-  }
-  return mixed;
-}
-
-function detectionMatchesLegendRowSignature(
+/**
+ * True when this mark's block/signature is the canonical match of a *different*
+ * legend sentence. Rotation, mirror and anonymous `*U` copies of the same
+ * accessory do not own another sentence, so they stay with the unique match.
+ */
+function signatureOwnsDifferentLegendText(
   detection: Pick<EffectiveDetection, 'signature'>,
-  row: LegendRow | undefined,
+  identityText: string | null,
+  index: ReturnType<typeof legendIndex>,
 ): boolean {
-  const detectionSignature = normalizedSymbolSignature(detection.signature);
-  const rowSignature = normalizedSymbolSignature(row?.signature);
-  return Boolean(detectionSignature && rowSignature && detectionSignature === rowSignature);
+  const signature = detection.signature?.trim();
+  if (!signature || !identityText) return false;
+  const rows = index.bySignature.get(signature) ?? index.bySignature.get(signature.toLowerCase()) ?? [];
+  return rows.some((row) => {
+    const text = legendRowDisplayText(row);
+    return Boolean(text && text !== identityText);
+  });
 }
 
 export function enrichDetectionsWithLegendIdentity(
@@ -326,15 +311,13 @@ export function enrichDetectionsWithLegendIdentity(
   options?: { classifiedByById?: ReadonlyMap<string, WorkerDetection['classifiedBy']> },
 ): EffectiveDetection[] {
   const index = legendIndex(legend);
-  const mixedRows = mixedSignatureLegendRows(detections);
   return detections.map((detection) => {
     const classifiedBy = detection.classifiedBy ?? options?.classifiedByById?.get(detection.id);
     let identity = resolveLegendIdentity({ ...detection, classifiedBy }, legend, index);
     if (
       identity.unambiguous &&
-      identity.legendRowId &&
-      mixedRows.has(identity.legendRowId) &&
-      !detectionMatchesLegendRowSignature(detection, index.byKey.get(identity.legendRowId))
+      identity.originalText &&
+      signatureOwnsDifferentLegendText(detection, identity.originalText, index)
     ) {
       identity = {
         ...identity,

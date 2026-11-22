@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { applyEdits } from '@/modules/electrical-takeoff/domain/edits';
+import { applyEdits, deriveNeedsReview } from '@/modules/electrical-takeoff/domain/edits';
 import { workerDet } from './fixtures';
 
 describe('applyEdits', () => {
@@ -15,6 +15,19 @@ describe('applyEdits', () => {
     const twice = applyEdits(base, [...edits, ...edits]);
     expect(twice.find((d) => d.id === 'd2')?.status).toBe('confirmed');
     expect(once.find((d) => d.id === 'd2')?.needsReview).toBe(false);
+  });
+
+  it('does not hold an unambiguous legend match only because the anonymous block was unresolved', () => {
+    expect(
+      deriveNeedsReview({
+        reasons: ['unclassified', 'dynamic_block_unresolved'],
+        confidence: 'none',
+        typeKey: null,
+        status: 'suggested',
+        userChangedType: false,
+        legendUnambiguous: true,
+      }),
+    ).toBe(false);
   });
 
   it('confirm clears needsReview', () => {

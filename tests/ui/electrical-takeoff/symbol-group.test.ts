@@ -43,6 +43,34 @@ describe('symbol groups for manual legend', () => {
     expect(sameSymbolDetections(a, [a, b])).toEqual([a]);
   });
 
+  it('groups rotated copies by unique legend text instead of geometry hash', () => {
+    const named = {
+      id: 'named',
+      sheetKey: 'layout:M2',
+      signature: 'block:14e',
+      rawClass: 'block:14e',
+      originalText: 'מפסק מאור',
+      legendRowIds: ['row:light'],
+    };
+    const mirrored = {
+      id: 'mirrored',
+      sheetKey: 'layout:M2',
+      signature: 'block:*geom:abc',
+      rawClass: '*U172',
+      originalText: 'מפסק מאור',
+      legendRowIds: ['row:light'],
+    };
+    const cross = {
+      id: 'cross',
+      sheetKey: 'layout:M2',
+      signature: 'block:19e',
+      rawClass: 'block:19e',
+      originalText: 'מפסק מאור צלב',
+      legendRowIds: ['row:cross'],
+    };
+    expect(sameSymbolDetections(named, [named, mirrored, cross]).map((d) => d.id)).toEqual(['named', 'mirrored']);
+  });
+
   it('groups every plan mark of an unread legend row even when each mask signature differs', () => {
     const legend = { id: 'p1#1', sheetKey: 'p1', signature: 'shape:inst-1', rawClass: 'L7', legendKey: 'L7', typeKey: null };
     const otherSheet = { id: 'p2#4', sheetKey: 'p2', signature: 'shape:inst-2', rawClass: 'L7', typeKey: null };

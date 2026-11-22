@@ -51,6 +51,7 @@ export function deriveNeedsReview(input: {
   readonly legendUnambiguous?: boolean;
 }): boolean {
   if (input.status === 'confirmed') return false;
+  if (input.reasons.includes('legend_zone') || input.reasons.includes('drawing_noise')) return false;
   if (input.userChangedType && input.typeKey !== null && input.confidence !== 'none') return false;
   if (input.legendUnambiguous) {
     return input.reasons.some(
@@ -59,8 +60,7 @@ export function deriveNeedsReview(input: {
         reason === 'pdf_dwg_mismatch' ||
         reason === 'sheet_unassigned' ||
         reason === 'xref_missing' ||
-        reason === 'legend_text_undecodable' ||
-        reason === 'dynamic_block_unresolved',
+        reason === 'legend_text_undecodable',
     );
   }
   if (input.reasons.length > 0) return true;

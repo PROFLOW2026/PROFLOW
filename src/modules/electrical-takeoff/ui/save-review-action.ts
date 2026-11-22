@@ -27,7 +27,6 @@ const HARD_UNCERTAIN_REASONS = new Set<TakeoffReviewReason>([
   'pdf_only',
   'dwg_only',
   'xref_missing',
-  'dynamic_block_unresolved',
   'tag_unread',
   'overlapping_symbols_peeled',
   'possible_exploded_symbol',

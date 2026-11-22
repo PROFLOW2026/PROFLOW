@@ -75,11 +75,16 @@ export function confirmIdentityKey(
   detection: SymbolGroupDetection & {
     originalText?: string | null;
     legendRowIds?: readonly string[];
+    legendUnambiguous?: boolean;
   },
 ): string {
-  const text = (detection.originalText ?? '').trim();
-  const rows = [...(detection.legendRowIds ?? [])].map((id) => id.trim()).filter(Boolean).sort().join(',');
-  return `${sharedSymbolToken(detection)}|${text}|${rows}`;
+  const text = (detection.originalText ?? '').replace(/\s+/g, ' ').trim();
+  if (hasRealLegendConflict(detection)) {
+    const rows = [...(detection.legendRowIds ?? [])].map((id) => id.trim()).filter(Boolean).sort().join(',');
+    return `conflict:${sharedSymbolToken(detection)}|${text}|${rows}`;
+  }
+  if (text) return `legend-text:${text.toLowerCase()}`;
+  return sharedSymbolToken(detection);
 }
 
 export function sameConfirmIdentity(

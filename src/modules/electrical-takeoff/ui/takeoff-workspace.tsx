@@ -45,6 +45,7 @@ import { buildReviewGroups, typeSuggestions } from './review-guide';
 import { TakeoffReviewGuide } from './takeoff-review-guide';
 import { TakeoffSymbolGlyph } from './takeoff-symbol-glyph';
 import { reviewPlainKey } from '../domain/review-copy';
+import { firstPlanOccurrenceId } from '../domain/legend-zone-policy';
 
 export function TakeoffWorkspace({
   analysisId,
@@ -1057,7 +1058,9 @@ export function TakeoffWorkspace({
                           data-count={row.count ?? 0}
                           className="min-h-11 max-w-full truncate rounded-md border border-[var(--pf-border-default)] px-2 text-start text-xs hover:bg-[var(--pf-action-subtle-hover)]"
                           onClick={() => {
-                            const hostId = view.detections.find((mark) => mark.legendRowIds?.includes(row.key))?.id;
+                            const hostId = firstPlanOccurrenceId(view.detections, (mark) =>
+                              Boolean(mark.legendRowIds?.includes(row.key)),
+                            );
                             if (!hostId) return;
                             const host = view.sheets.find((item) =>
                               detectionsForSheet(view.detections, item).some((mark) => mark.id === hostId),

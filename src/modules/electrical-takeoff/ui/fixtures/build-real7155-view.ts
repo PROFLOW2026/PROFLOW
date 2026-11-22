@@ -10,6 +10,7 @@ import { workerResultSchema } from '../../domain/contracts';
 import { applyEdits } from '../../domain/edits';
 import { computeBoq } from '../../domain/boq-engine';
 import { enrichDetectionsWithLegendIdentity } from '../../domain/legend-identity';
+import { applyLegendZonePolicy } from '../../domain/legend-zone-policy';
 import { loadDefaultCatalog } from '../../domain/catalog';
 import { collectWorkerWarningsFromResult } from '../../domain/worker-warnings';
 
@@ -56,9 +57,6 @@ export function buildAnalysisViewFromWorkerResult(
 ): { view: AnalysisView; workerBase: WorkerDetection[] } {
   const catalog = loadDefaultCatalog();
   const workerBase = result.detections;
-  const detections = enrichDetectionsWithLegendIdentity(applyEdits(workerBase, [], {}), result.legend ?? [], {
-    classifiedByById: new Map(workerBase.map((row) => [row.id, row.classifiedBy])),
-  });
   const sheets: SheetDto[] = [...result.sheets]
     .sort((a, b) => {
       if (a.fileId === 'lightg') return -1;
@@ -80,6 +78,22 @@ export function buildAnalysisViewFromWorkerResult(
     xrefsMissing: s.xrefsMissing ?? [],
     hiddenByLayers: s.hiddenByLayers ?? 0,
   }));
+  const files = [
+    { id: 'legend', name: '7155-A1-מקרא.pdf', kind: 'pdf' as const, sizeBytes: 1_900_000, uploadedAtIso: result.startedAtIso, sha256: null },
+    { id: 'lightg', name: '7155-A1-תאורה ג.pdf', kind: 'pdf' as const, sizeBytes: 2_100_000, uploadedAtIso: result.startedAtIso, sha256: null },
+    { id: 'dwg', name: '7155-A1.dwg', kind: 'dwg' as const, sizeBytes: 6_400_000, uploadedAtIso: result.startedAtIso, sha256: null },
+  ];
+  const detections = enrichDetectionsWithLegendIdentity(
+    applyLegendZonePolicy(applyEdits(workerBase, [], {}), {
+      legend: result.legend ?? [],
+      sheets,
+      files,
+    }),
+    result.legend ?? [],
+    {
+      classifiedByById: new Map(workerBase.map((row) => [row.id, row.classifiedBy])),
+    },
+  );
 
   const summary: AnalysisSummary = {
     id: options?.analysisId ?? REAL7155_ANALYSIS_ID,
@@ -111,11 +125,7 @@ export function buildAnalysisViewFromWorkerResult(
 
   const view: AnalysisView = {
     summary,
-    files: [
-      { id: 'legend', name: '7155-A1-מקרא.pdf', kind: 'pdf', sizeBytes: 1_900_000, uploadedAtIso: result.startedAtIso, sha256: null },
-      { id: 'lightg', name: '7155-A1-תאורה ג.pdf', kind: 'pdf', sizeBytes: 2_100_000, uploadedAtIso: result.startedAtIso, sha256: null },
-      { id: 'dwg', name: '7155-A1.dwg', kind: 'dwg', sizeBytes: 6_400_000, uploadedAtIso: result.startedAtIso, sha256: null },
-    ],
+    files,
     sheets,
     detections,
     areas: [],

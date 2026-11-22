@@ -237,9 +237,79 @@ describe('enrichDetectionsWithLegendIdentity', () => {
     );
     expect(rows[0]?.legendUnambiguous).toBe(true);
     expect(hasLegendQuantityIdentity(rows[0]!)).toBe(true);
-    expect(rows[1]?.legendUnambiguous).toBe(false);
-    expect(hasLegendQuantityIdentity(rows[1]!)).toBe(false);
+    expect(rows[1]?.legendUnambiguous).toBe(true);
+    expect(hasLegendQuantityIdentity(rows[1]!)).toBe(true);
     expect(rows[0]?.originalText).toBe('מפסק מאור');
+    expect(rows[1]?.originalText).toBe('מפסק מאור');
+  });
+
+  it('auto-identifies named and rotated anonymous copies of the same unique legend accessory', () => {
+    const named = workerDet({
+      id: 'named',
+      sheetKey: 'layout:M2',
+      typeKey: null,
+      classifiedBy: 'none',
+      confidence: 'none',
+      signature: 'block:14e',
+      rawClass: '14e',
+      legendRowIds: ['row:c'],
+      reasons: ['unclassified'],
+    });
+    const rotated = Array.from({ length: 11 }, (_, index) =>
+      workerDet({
+        id: `rot-${index + 1}`,
+        sheetKey: 'layout:M2',
+        typeKey: null,
+        classifiedBy: 'none',
+        confidence: 'none',
+        signature: `block:*geom:sw${index + 1}`,
+        rawClass: `*U${100 + index}`,
+        legendRowIds: ['row:c'],
+        reasons: ['unclassified', 'dynamic_block_unresolved'],
+      }),
+    );
+    const rows = enrichDetectionsWithLegendIdentity(applyEdits([named, ...rotated], []), [
+      legend({ key: 'row:c', decodedText: 'מפסק מאור', signature: 'block:14e' }),
+    ]);
+    expect(rows).toHaveLength(12);
+    expect(rows.every((row) => hasLegendQuantityIdentity(row))).toBe(true);
+    expect(rows.every((row) => row.originalText === 'מפסק מאור')).toBe(true);
+    expect(rows.every((row) => row.needsReview)).toBe(false);
+  });
+
+  it('does not merge a unique lighting switch with a cross switch', () => {
+    const rows = enrichDetectionsWithLegendIdentity(
+      applyEdits(
+        [
+          workerDet({
+            id: 'single',
+            sheetKey: 'layout:F0',
+            typeKey: null,
+            classifiedBy: 'none',
+            signature: 'block:14e',
+            legendRowIds: ['row:light'],
+            reasons: ['unclassified'],
+          }),
+          workerDet({
+            id: 'cross',
+            sheetKey: 'layout:F0',
+            typeKey: null,
+            classifiedBy: 'none',
+            signature: 'block:19e',
+            legendRowIds: ['row:cross'],
+            reasons: ['unclassified'],
+          }),
+        ],
+        [],
+      ),
+      [
+        legend({ key: 'row:light', decodedText: 'מפסק מאור', signature: 'block:14e' }),
+        legend({ key: 'row:cross', decodedText: 'מפסק מאור צלב', signature: 'block:19e' }),
+      ],
+    );
+    expect(rows.find((row) => row.id === 'single')?.originalText).toBe('מפסק מאור');
+    expect(rows.find((row) => row.id === 'cross')?.originalText).toBe('מפסק מאור צלב');
+    expect(rows.every((row) => hasLegendQuantityIdentity(row))).toBe(true);
   });
 
   it('auto-identifies five 3-pole safety switches whose legend text is unique to that block', () => {

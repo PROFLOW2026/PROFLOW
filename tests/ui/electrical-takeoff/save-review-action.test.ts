@@ -272,6 +272,61 @@ describe('resolveSaveReviewPlan', () => {
     expect(plan.skippedCount).toBe(0);
   });
 
+  it('confirms rotated copies of the same unique accessory in one group action', () => {
+    const named = detection({
+      id: 'named',
+      originalText: 'מפסק מאור',
+      legendRowIds: ['row:light'],
+      signature: 'block:14e',
+      rawClass: 'block:14e',
+      reasons: ['unclassified'],
+    });
+    const rotated = Array.from({ length: 11 }, (_, index) =>
+      detection({
+        id: `rot-${index + 1}`,
+        originalText: 'מפסק מאור',
+        legendRowIds: ['row:light'],
+        signature: `block:*geom:sw${index + 1}`,
+        rawClass: `*U${index + 1}`,
+        reasons: ['unclassified', 'dynamic_block_unresolved'],
+      }),
+    );
+    const plan = resolveSaveReviewPlan({
+      selected: named,
+      detections: [named, ...rotated],
+      applyToGroup: true,
+      typeKey: null,
+      confirm: true,
+      saveToLibrary: false,
+    });
+    expect(plan.includedCount).toBe(12);
+    expect(plan.skippedCount).toBe(0);
+  });
+
+  it('does not group-confirm a cross switch with a lighting switch', () => {
+    const single = detection({
+      id: 'single',
+      originalText: 'מפסק מאור',
+      legendRowIds: ['row:light'],
+      signature: 'block:14e',
+    });
+    const cross = detection({
+      id: 'cross',
+      originalText: 'מפסק מאור צלב',
+      legendRowIds: ['row:cross'],
+      signature: 'block:19e',
+    });
+    const plan = resolveSaveReviewPlan({
+      selected: single,
+      detections: [single, cross],
+      applyToGroup: true,
+      typeKey: null,
+      confirm: true,
+      saveToLibrary: false,
+    });
+    expect(plan.ids).toEqual(['single']);
+  });
+
   it('confirms an unambiguous legend group without inventing a catalog type', () => {
     const marks = Array.from({ length: 85 }, (_, index) =>
       detection({

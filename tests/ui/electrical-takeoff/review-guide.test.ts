@@ -300,6 +300,104 @@ describe('guided review groups', () => {
     expect(groups[0]?.detectionIds).toEqual(['open']);
   });
 
+  it('groups rotated and mirrored copies of the same unique accessory for one confirm', () => {
+    const named = mark({
+      id: 'named',
+      originalText: 'מפסק מאור',
+      legendRowIds: ['row:light'],
+      signature: 'block:14e',
+      rawClass: 'block:14e',
+      reasons: ['unclassified'],
+    });
+    const rotated = Array.from({ length: 11 }, (_, index) =>
+      mark({
+        id: `rot-${index + 1}`,
+        originalText: 'מפסק מאור',
+        legendRowIds: ['row:light'],
+        signature: `block:*geom:sw${index + 1}`,
+        rawClass: `*U${index + 1}`,
+        reasons: ['unclassified', 'dynamic_block_unresolved'],
+      }),
+    );
+    const groups = buildReviewGroups([named, ...rotated]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.occurrences).toBe(12);
+    expect(groups[0]?.detectionIds).toContain('named');
+    expect(groups[0]?.detectionIds).toContain('rot-11');
+  });
+
+  it('does not put unique-legend lighting switches in the review queue', () => {
+    const marks = [
+      mark({
+        id: 'named',
+        originalText: 'מפסק מאור',
+        legendUnambiguous: true,
+        identitySource: 'legend',
+        needsReview: false,
+        signature: 'block:14e',
+        reasons: ['unclassified'],
+      }),
+      ...Array.from({ length: 11 }, (_, index) =>
+        mark({
+          id: `rot-${index + 1}`,
+          originalText: 'מפסק מאור',
+          legendUnambiguous: true,
+          identitySource: 'legend',
+          needsReview: false,
+          signature: `block:*geom:sw${index + 1}`,
+          reasons: ['unclassified', 'dynamic_block_unresolved'],
+        }),
+      ),
+    ];
+    expect(buildReviewGroups(marks)).toEqual([]);
+  });
+
+  it('keeps a lighting switch and a cross switch in separate review groups', () => {
+    const single = mark({
+      id: 'single',
+      originalText: 'מפסק מאור',
+      legendRowIds: ['row:light'],
+      signature: 'block:14e',
+      reasons: ['unclassified'],
+    });
+    const cross = mark({
+      id: 'cross',
+      originalText: 'מפסק מאור צלב',
+      legendRowIds: ['row:cross'],
+      signature: 'block:19e',
+      reasons: ['unclassified'],
+    });
+    const groups = buildReviewGroups([single, cross]);
+    expect(groups).toHaveLength(2);
+    expect(groups.find((group) => group.detectionIds.includes('single'))?.occurrences).toBe(1);
+    expect(groups.find((group) => group.detectionIds.includes('cross'))?.occurrences).toBe(1);
+  });
+
+  it('does not queue a legend-table insert or reopen a stored confirmation', () => {
+    const legendMark = mark({
+      id: 'legend-copy',
+      originalText: 'מפסק מאור',
+      reasons: ['legend_zone'],
+      needsReview: true,
+    });
+    const confirmed = mark({
+      id: 'done',
+      originalText: 'מפסק מאור',
+      status: 'confirmed',
+      needsReview: false,
+      reasons: ['unclassified'],
+    });
+    const pending = mark({
+      id: 'plan',
+      originalText: 'מפסק מאור',
+      legendRowIds: ['row:light'],
+      reasons: ['unclassified'],
+    });
+    const groups = buildReviewGroups([legendMark, confirmed, pending]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.detectionIds).toEqual(['plan']);
+  });
+
   it('counts a group as checked only after it leaves the queue', () => {
     const seen = new Set(['missingType::::signature:sig-a']);
     expect(reviewProgress(seen, [{ key: 'missingType::::signature:sig-a' }])).toEqual({ checked: 0, total: 1 });
