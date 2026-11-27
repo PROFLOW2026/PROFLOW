@@ -21,7 +21,15 @@ const EMPTY_SNAPSHOT: DesignFinanceSnapshot = {
   contract: null,
   marginVat: null,
   recognizedTitle: null,
-  recognizedNote: null,
+  monthCollected: null,
+  monthCollectedLabel: null,
+  monthCaption: null,
+  marginLabel: null,
+  marginHint: null,
+  rateLabel: null,
+  contractLabel: null,
+  collectedLabel: null,
+  receivableLabel: null,
   urgent: [],
   points: [],
 };
@@ -170,13 +178,51 @@ describe('finance copy follows the computed margin', () => {
       <DesignProvider design="v9">
         <DesignFinanceSwitch
           current={<p>גוף</p>}
-          snapshot={{ ...EMPTY_SNAPSHOT, margin: '12,000', marginRate: '18', marginVat: '2,040' }}
+          snapshot={{
+            ...EMPTY_SNAPSHOT,
+            margin: '12,000',
+            marginRate: '18',
+            marginVat: '2,040',
+            marginHint: 'אינו רווח מזומן',
+          }}
         />
       </DesignProvider>,
     );
-    await waitFor(() => expect(screen.getByText(/מרווח חוזי/)).toBeVisible());
+    await waitFor(() => expect(screen.getByText('מרווח חוזי בפרויקטים')).toBeVisible());
     expect(screen.getByText('12,000')).toBeVisible();
+    expect(screen.getByText('סיכום מצטבר')).toBeVisible();
+    expect(screen.queryByText('אינו רווח מזומן')).not.toBeInTheDocument();
     expect(screen.getByText('גוף')).toBeVisible();
+  });
+
+  it('keeps the selected month beside its own collections, outside the lifetime group', async () => {
+    render(
+      <DesignProvider design="v9">
+        <DesignFinanceSwitch
+          current={<p>גוף</p>}
+          snapshot={{
+            ...EMPTY_SNAPSHOT,
+            margin: '300 ₪',
+            contract: '1,000 ₪',
+            collected: '400 ₪',
+            recognized: '106 ₪',
+            monthCollected: '25 ₪',
+            monthCaption: 'נובמבר 2026',
+          }}
+        />
+      </DesignProvider>,
+    );
+    await waitFor(() => expect(document.querySelector('[data-pf-design-variant="v9"]')).not.toBeNull());
+    const lifetime = document.querySelector('[data-pf-design-landmark="baseline"]');
+    const month = document.querySelector('[data-pf-design-landmark="month"]');
+    expect(lifetime?.textContent).toContain('300 ₪');
+    expect(lifetime?.textContent).toContain('1,000 ₪');
+    expect(lifetime?.textContent).toContain('400 ₪');
+    expect(lifetime?.textContent).not.toContain('106 ₪');
+    expect(month?.textContent).toContain('נובמבר 2026');
+    expect(month?.textContent).toContain('106 ₪');
+    expect(month?.textContent).toContain('25 ₪');
+    expect(screen.queryByText(/לא תשלום/)).not.toBeInTheDocument();
   });
 
   it('hides the VAT control when the snapshot has no VAT figure', async () => {

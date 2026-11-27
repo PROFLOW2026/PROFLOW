@@ -27,10 +27,18 @@ export interface DesignFinanceSnapshot {
   readonly receivable: string | null;
   readonly contract: string | null;
   readonly marginVat: string | null;
-  /** Existing monthly KPI title. This figure is the selected month, not lifetime cost. */
   readonly recognizedTitle: string | null;
-  /** Existing monthly explanation, including which month the figure belongs to. */
-  readonly recognizedNote: string | null;
+  /** Selected-month collections from the existing organization summary. Not lifetime receipts. */
+  readonly monthCollected: string | null;
+  readonly monthCollectedLabel: string | null;
+  /** Selected month name. Headings only; not a calculation. */
+  readonly monthCaption: string | null;
+  readonly marginLabel: string | null;
+  readonly marginHint: string | null;
+  readonly rateLabel: string | null;
+  readonly contractLabel: string | null;
+  readonly collectedLabel: string | null;
+  readonly receivableLabel: string | null;
   readonly urgent: readonly DesignUrgentItem[];
   readonly points: readonly DesignChartPoint[];
 }
@@ -90,26 +98,113 @@ function Chart({ points }: { points: readonly DesignChartPoint[] }) {
   );
 }
 
-function Metrics({ snapshot }: { snapshot: DesignFinanceSnapshot }) {
-  const cells = (
-    [
-      [snapshot.recognizedTitle ?? 'עלות מוכרת החודש', snapshot.recognized, snapshot.recognizedNote],
-      ['נגבה', snapshot.collected, null],
-      ['יתרת חיוב', snapshot.receivable, null],
-      ['חוזה', snapshot.contract, null],
-    ] as const
-  ).flatMap(([label, value, note]) => (value ? [[label, value, note] as const] : []));
+function Metric({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint?: string | null;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <p className="pf-design-metric">
+      <span className="pf-design-metric-label">
+        {label}
+        {hint ? (
+          <button
+            type="button"
+            className="pf-design-info"
+            aria-expanded={open}
+            aria-label={`מידע: ${label}`}
+            onClick={() => setOpen((current) => !current)}
+          >
+            מידע
+          </button>
+        ) : null}
+      </span>
+      <MoneyFigure value={value} />
+      {hint && open ? <span className="pf-design-metric-note">{hint}</span> : null}
+    </p>
+  );
+}
+
+function MetricGrid({
+  cells,
+}: {
+  cells: readonly (readonly [string, string, string | null])[];
+}) {
   if (cells.length === 0) return null;
   return (
-    <div data-pf-design-landmark="baseline" className="pf-design-baseline">
-      {cells.map(([label, value, note]) => (
-        <p key={label} className="pf-design-metric">
-          <span>{label}</span>
-          <MoneyFigure value={value} />
-          {note ? <span className="pf-design-metric-note">{note}</span> : null}
-        </p>
+    <div className="pf-design-metrics">
+      {cells.map(([label, value, hint]) => (
+        <Metric key={label} label={label} value={value} hint={hint} />
       ))}
     </div>
+  );
+}
+
+function LifetimeGroup({ snapshot }: { snapshot: DesignFinanceSnapshot }) {
+  const cells = (
+    [
+      [snapshot.marginLabel ?? 'מרווח חוזי בפרויקטים', snapshot.margin, snapshot.marginHint],
+      [snapshot.rateLabel ?? 'שיעור מרווח חוזי', snapshot.marginRate ? formatPercentDisplay(snapshot.marginRate) : null, null],
+      [snapshot.contractLabel ?? 'שווי פרויקטים', snapshot.contract, null],
+      [snapshot.collectedLabel ?? 'התקבל מלקוחות בפועל', snapshot.collected, null],
+      [snapshot.receivableLabel ?? 'יתרה לגבייה מלקוחות', snapshot.receivable, null],
+    ] as const
+  ).flatMap(([label, value, hint]) => (value ? [[label, value, hint] as const] : []));
+  if (cells.length === 0) return null;
+  return (
+    <section data-pf-design-landmark="baseline" className="pf-design-group">
+      <h2 className="pf-design-group-title">סיכום מצטבר</h2>
+      <MetricGrid cells={cells} />
+    </section>
+  );
+}
+
+function MonthGroup({
+  snapshot,
+  vatOpen,
+  onToggleVat,
+}: {
+  snapshot: DesignFinanceSnapshot;
+  vatOpen: boolean;
+  onToggleVat: () => void;
+}) {
+  const cells = (
+    [
+      [snapshot.recognizedTitle ?? 'עלות מוכרת החודש', snapshot.recognized, null],
+      [snapshot.monthCollectedLabel ?? 'גבייה החודש', snapshot.monthCollected, null],
+    ] as const
+  ).flatMap(([label, value, hint]) => (value ? [[label, value, hint] as const] : []));
+  if (cells.length === 0 && !snapshot.marginVat) return null;
+  return (
+    <section data-pf-design-landmark="month" className="pf-design-group pf-design-month-group">
+      <h2 className="pf-design-group-title">
+        <bdi>{snapshot.monthCaption ?? 'החודש הנבחר'}</bdi>
+      </h2>
+      <MetricGrid cells={cells} />
+      {snapshot.marginVat ? (
+        <>
+          <button
+            type="button"
+            className="pf-design-vat-toggle"
+            aria-expanded={vatOpen}
+            onClick={onToggleVat}
+          >
+            מע״מ וברוטו
+          </button>
+          {vatOpen ? (
+            <p data-pf-design-landmark="v10-vat" className="pf-design-metric">
+              <span>כולל מע״מ</span>
+              <MoneyFigure value={snapshot.marginVat} />
+            </p>
+          ) : null}
+        </>
+      ) : null}
+    </section>
   );
 }
 
@@ -166,21 +261,6 @@ function MonthList({ points }: { points: readonly DesignChartPoint[] }) {
   );
 }
 
-function Hero({ snapshot }: { snapshot: DesignFinanceSnapshot }) {
-  if (!snapshot.margin) return null;
-  return (
-    <header data-pf-design-landmark="hero" className="pf-design-hero">
-      <p>מרווח חוזי · אינו רווח מזומן</p>
-      <MoneyFigure value={snapshot.margin} />
-      {snapshot.marginRate ? (
-        <span dir="ltr" className="pf-numeric">
-          {formatPercentDisplay(snapshot.marginRate)}
-        </span>
-      ) : null}
-    </header>
-  );
-}
-
 export function DesignFinanceSwitch({
   current,
   snapshot,
@@ -212,8 +292,12 @@ export function DesignFinanceSwitch({
       </div>
       {design === 'v9' ? (
         <div className="pf-design-finance-chrome">
-          <Hero snapshot={snapshot} />
-          <Metrics snapshot={snapshot} />
+          <LifetimeGroup snapshot={snapshot} />
+          <MonthGroup
+            snapshot={snapshot}
+            vatOpen={vatOpen}
+            onToggleVat={() => setVatOpen((value) => !value)}
+          />
           <div data-pf-design-landmark="v9-chart-full">
             <Chart points={snapshot.points} />
           </div>
@@ -222,7 +306,7 @@ export function DesignFinanceSwitch({
       {design === 'v10' ? (
         <div className="pf-design-finance-chrome">
           <div data-pf-design-landmark="v10-glance" className="pf-design-glance">
-            <Hero snapshot={snapshot} />
+            <LifetimeGroup snapshot={snapshot} />
             <aside data-pf-design-landmark="v10-urgent">
               <ul>
                 {urgent.map((item) => (
@@ -235,29 +319,16 @@ export function DesignFinanceSwitch({
                 </button>
               ) : null}
             </aside>
-            <Metrics snapshot={snapshot} />
           </div>
+          <MonthGroup
+            snapshot={snapshot}
+            vatOpen={vatOpen}
+            onToggleVat={() => setVatOpen((value) => !value)}
+          />
           <div data-pf-design-landmark="v10-chart-beside" className="pf-design-beside">
             <Chart points={snapshot.points} />
             <MonthList points={snapshot.points} />
           </div>
-          {snapshot.marginVat ? (
-            <>
-              <button
-                type="button"
-                className="pf-design-vat-toggle"
-                aria-expanded={vatOpen}
-                onClick={() => setVatOpen((value) => !value)}
-              >
-                מע״מ וברוטו
-              </button>
-              {vatOpen ? (
-                <p data-pf-design-landmark="v10-vat">
-                  <MoneyFigure value={snapshot.marginVat} />
-                </p>
-              ) : null}
-            </>
-          ) : null}
         </div>
       ) : null}
     </div>

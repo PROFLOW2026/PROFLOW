@@ -27,11 +27,8 @@
   gap: 1rem;
 }
 
-[data-pf-design='v10'] .pf-design-baseline {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.5rem;
+[data-pf-design='v10'] .pf-design-glance > .pf-design-group {
+  min-width: 0;
 }
 
 [data-pf-design='v10'] .pf-design-hero strong {
@@ -112,8 +109,7 @@
 
 @media (max-width: 800px) {
   [data-pf-design='v10'] .pf-design-glance,
-  [data-pf-design='v10'] .pf-design-beside,
-  [data-pf-design='v10'] .pf-design-baseline {
+  [data-pf-design='v10'] .pf-design-beside {
     grid-template-columns: 1fr;
   }
 
