@@ -13,7 +13,7 @@ import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { cn } from '@/shared/ui/cn';
-import { formatMoney, compareMoney, type MoneyValue } from '@/shared/money';
+import { formatMoney, formatMoneyString, compareMoney, type MoneyValue } from '@/shared/money';
 import { DesignFinanceSwitch } from '@/shared/theme/design/templates/design-finance-switch';
 import { listDashboardAttentionItems } from '../domain/dashboard-attention-routes';
 import { lifetimeCashDifference } from '../domain/lifetime-cash-difference';
@@ -250,6 +250,12 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
           month: month.yearMonth,
           collected: month.collected?.net.amount ?? '0',
           recognized: month.recognizedCost?.net.amount ?? '0',
+          collectedLabel: month.collected?.net
+            ? formatMoney(month.collected.net, locale)
+            : formatMoneyString('0', 'ILS', locale),
+          recognizedLabel: month.recognizedCost?.net
+            ? formatMoney(month.recognizedCost.net, locale)
+            : formatMoneyString('0', 'ILS', locale),
         })),
       }}
       current={

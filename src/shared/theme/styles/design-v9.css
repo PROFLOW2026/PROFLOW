@@ -44,10 +44,34 @@
   border-inline-end: 1px solid var(--pf-border-subtle);
 }
 
+[data-pf-design='v9'] .pf-design-hero,
+[data-pf-design='v10'] .pf-design-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+[data-pf-design='v9'] .pf-design-hero p,
+[data-pf-design='v10'] .pf-design-hero p {
+  margin: 0;
+}
+
 [data-pf-design='v9'] .pf-design-hero strong {
   font-size: 1.875rem;
   font-weight: 600;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
+}
+
+[data-pf-design='v9'] .pf-design-metric,
+[data-pf-design='v10'] .pf-design-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  min-width: 0;
+  margin: 0;
 }
 
 [data-pf-design='v9'] .pf-design-baseline {
@@ -71,7 +95,7 @@
   max-width: 100%;
   min-width: 0;
   height: 9rem;
-  overflow-x: auto;
+  overflow-x: hidden;
 }
 
 [data-pf-design='v9'] .pf-design-chart-col,
@@ -135,6 +159,13 @@
 @media (max-width: 800px) {
   [data-pf-design='v9'] .pf-design-baseline {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  [data-pf-design='v9'] .pf-design-baseline,
+  [data-pf-design='v10'] .pf-design-baseline {
+    grid-template-columns: 1fr;
   }
 }
 

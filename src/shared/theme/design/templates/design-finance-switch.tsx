@@ -1,12 +1,16 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
+import { formatPercentDisplay } from '@/shared/number/display';
 import { useMountedDesign } from '../use-mounted-design';
 
 export interface DesignChartPoint {
   readonly month: string;
   readonly collected: string;
   readonly recognized: string;
+  /** Already formatted for display. The raw fields stay available for bar height only. */
+  readonly collectedLabel: string;
+  readonly recognizedLabel: string;
 }
 
 export interface DesignUrgentItem {
@@ -32,6 +36,25 @@ function amount(value: string): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function monthCaption(yearMonth: string): string {
+  const match = /^(\d{4})-(\d{2})$/.exec(yearMonth);
+  if (!match) return yearMonth;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  if (month < 1 || month > 12) return yearMonth;
+  return new Intl.DateTimeFormat('he-IL', { month: 'long', year: 'numeric' }).format(
+    new Date(year, month - 1, 1),
+  );
+}
+
+function MoneyFigure({ value }: { value: string }) {
+  return (
+    <strong dir="ltr" className="pf-numeric">
+      {value}
+    </strong>
+  );
+}
+
 function Chart({ points }: { points: readonly DesignChartPoint[] }) {
   if (points.length === 0) {
     return <p data-pf-design-chart="empty">אין תנועה חודשית להצגה.</p>;
@@ -54,7 +77,9 @@ function Chart({ points }: { points: readonly DesignChartPoint[] }) {
               style={{ height: `${(amount(point.recognized) / max) * 100}%` }}
             />
           </span>
-          <span>{point.month.slice(5)}</span>
+          <span dir="ltr" className="pf-numeric">
+            {point.month.slice(5)}
+          </span>
         </div>
       ))}
     </div>
@@ -74,9 +99,9 @@ function Metrics({ snapshot }: { snapshot: DesignFinanceSnapshot }) {
   return (
     <div data-pf-design-landmark="baseline" className="pf-design-baseline">
       {cells.map(([label, value]) => (
-        <p key={label}>
+        <p key={label} className="pf-design-metric">
           <span>{label}</span>
-          <strong>{value ?? '—'}</strong>
+          <MoneyFigure value={value ?? '—'} />
         </p>
       ))}
     </div>
@@ -88,8 +113,12 @@ function Hero({ snapshot }: { snapshot: DesignFinanceSnapshot }) {
   return (
     <header data-pf-design-landmark="hero" className="pf-design-hero">
       <p>מרווח חוזי · אינו רווח מזומן</p>
-      <strong>{snapshot.margin}</strong>
-      <span>{snapshot.marginRate ? `${snapshot.marginRate}%` : ''}</span>
+      <MoneyFigure value={snapshot.margin} />
+      {snapshot.marginRate ? (
+        <span dir="ltr" className="pf-numeric">
+          {formatPercentDisplay(snapshot.marginRate)}
+        </span>
+      ) : null}
     </header>
   );
 }
@@ -152,11 +181,21 @@ export function DesignFinanceSwitch({
           </div>
           <div data-pf-design-landmark="v10-chart-beside" className="pf-design-beside">
             <Chart points={snapshot.points} />
-            <div data-pf-design-landmark="v10-month-detail">
+            <div data-pf-design-landmark="v10-month-detail" className="pf-design-month-list">
               {snapshot.points.map((point) => (
-                <p key={point.month}>
-                  <bdi>{point.month}</bdi> {point.collected} / {point.recognized}
-                </p>
+                <article key={point.month} className="pf-design-month">
+                  <h3 className="pf-design-month-title">
+                    <bdi>{monthCaption(point.month)}</bdi>
+                  </h3>
+                  <p className="pf-design-month-row">
+                    <span>נגבה</span>
+                    <MoneyFigure value={point.collectedLabel} />
+                  </p>
+                  <p className="pf-design-month-row">
+                    <span>עלות מוכרת</span>
+                    <MoneyFigure value={point.recognizedLabel} />
+                  </p>
+                </article>
               ))}
             </div>
           </div>
@@ -170,7 +209,11 @@ export function DesignFinanceSwitch({
               >
                 מע״מ וברוטו
               </button>
-              {vatOpen ? <p data-pf-design-landmark="v10-vat">{snapshot.marginVat}</p> : null}
+              {vatOpen ? (
+                <p data-pf-design-landmark="v10-vat">
+                  <MoneyFigure value={snapshot.marginVat} />
+                </p>
+              ) : null}
             </>
           ) : null}
         </div>
