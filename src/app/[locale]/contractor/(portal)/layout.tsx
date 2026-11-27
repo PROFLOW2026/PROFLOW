@@ -8,6 +8,7 @@ import {
 } from '@/modules/contractor-portal/application/load-portal-session';
 import { ContractorPortalShell } from '@/modules/contractor-portal/ui/portal-shell';
 import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
+import { DesignProductFrame } from '@/shared/theme/design/design-product-frame';
 
 export async function generateMetadata({
   params,
@@ -37,7 +38,9 @@ export default async function ContractorPortalLayout({ children }: { children: R
   return (
     <WithPortalClientMessages>
       <DemoModeBanner active={demoActive} />
-      <ContractorPortalShell shell={shell}>{children}</ContractorPortalShell>
+      <ContractorPortalShell shell={shell}>
+        <DesignProductFrame>{children}</DesignProductFrame>
+      </ContractorPortalShell>
     </WithPortalClientMessages>
   );
 }

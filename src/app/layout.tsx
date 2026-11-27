@@ -8,6 +8,7 @@ import { LOCALE_METADATA } from '@/shared/i18n/config';
 import { cn } from '@/shared/ui/cn';
 import { ThemeBootScript } from '@/shared/theme/theme-boot-script';
 import { STYLE_COOKIE_NAME, normalizeStylePreference } from '@/shared/theme/style/config';
+import { DESIGN_COOKIE_NAME, normalizeDesignPreference } from '@/shared/theme/design/config';
 import { premiumFont } from '@/shared/theme/styles/premium-font';
 import './globals.css';
 
@@ -40,12 +41,14 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const locale = documentLocale(pathname, cookieStore.get(LOCALE_COOKIE_NAME)?.value);
   const metadata = LOCALE_METADATA[locale];
   const style = normalizeStylePreference(cookieStore.get(STYLE_COOKIE_NAME)?.value);
+  const design = normalizeDesignPreference(cookieStore.get(DESIGN_COOKIE_NAME)?.value);
 
   return (
     <html
       lang={metadata.htmlLang}
       dir={metadata.dir}
       data-pf-style={style}
+      data-pf-design={design}
       className={cn(notoSans.variable, notoHebrew.variable, premiumFont.variable)}
       suppressHydrationWarning
     >

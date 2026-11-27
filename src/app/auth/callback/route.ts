@@ -13,6 +13,8 @@ import { localeCookieSecure } from '@/shared/proxy/locale-cookie';
 import type { Locale } from '@/shared/i18n/config';
 import { resolveThemePreference, themeFromAuthMetadata } from '@/shared/theme/auth-theme';
 import { themeCookieOptions, THEME_COOKIE_NAME } from '@/shared/theme/theme-cookie';
+import { resolveDesignPreference, designFromAuthMetadata } from '@/shared/theme/design/auth-design';
+import { designCookieOptions, DESIGN_COOKIE_NAME } from '@/shared/theme/design/cookie';
 
 /**
  * Exchanges the one-time code from a confirmation or reset email for a session.
@@ -27,7 +29,12 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code');
   const next = safeAppPath(searchParams.get('next')) ?? '/';
 
-  const redirectInLocale = (locale: Locale, pathWithQuery: string, themePreference?: string) => {
+  const redirectInLocale = (
+    locale: Locale,
+    pathWithQuery: string,
+    themePreference?: string,
+    designPreference?: string,
+  ) => {
     const response = NextResponse.redirect(joinLocalizedPath(origin, locale, pathWithQuery));
     // Mirror next-intl's cookie so subsequent bare redirects stay in this locale.
     response.cookies.set(LOCALE_COOKIE_NAME, locale, {
@@ -41,6 +48,13 @@ export async function GET(request: NextRequest) {
         THEME_COOKIE_NAME,
         themePreference,
         themeCookieOptions(localeCookieSecure(request.nextUrl.protocol)),
+      );
+    }
+    if (designPreference) {
+      response.cookies.set(
+        DESIGN_COOKIE_NAME,
+        designPreference,
+        designCookieOptions(localeCookieSecure(request.nextUrl.protocol)),
       );
     }
     return response;
@@ -83,6 +97,10 @@ export async function GET(request: NextRequest) {
     themeFromAuthMetadata(data.session?.user?.user_metadata as Record<string, unknown> | undefined),
     request.cookies.get(THEME_COOKIE_NAME)?.value,
   ]);
+  const designPreference = resolveDesignPreference([
+    designFromAuthMetadata(data.session?.user?.user_metadata as Record<string, unknown> | undefined),
+    request.cookies.get(DESIGN_COOKIE_NAME)?.value,
+  ]);
 
-  return redirectInLocale(locale, next, themePreference);
+  return redirectInLocale(locale, next, themePreference, designPreference);
 }

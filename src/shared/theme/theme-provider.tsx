@@ -8,6 +8,7 @@ import {
 } from './config';
 import { applyThemePreferenceToDocument } from './apply-theme-dom';
 import { clearStyleClientState } from './style/style-provider';
+import { clearDesignClientState } from './design/design-provider';
 import { persistThemePreferenceAction } from './persist-theme-preference';
 import { writeClientThemeCookie } from './theme-cookie';
 import { ThemePreferenceContext } from './theme-context';
@@ -92,4 +93,5 @@ export function clearThemeClientState(userId: string | null): void {
   );
   document.documentElement.dataset.pfTheme = DEFAULT_THEME_PREFERENCE;
   clearStyleClientState(userId);
+  clearDesignClientState();
 }

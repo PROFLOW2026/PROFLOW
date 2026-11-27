@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { DesignListShell } from '@/shared/theme/design/templates/design-list-shell';
 import { cn } from '@/shared/ui/cn';
 import { mainAppTableShellClass } from '@/shared/ui/main-app-surface-styles';
 
@@ -10,9 +11,5 @@ export function MainAppTableShell({
   children: ReactNode;
   className?: string;
 }) {
-  return (
-    <div data-pf-slot="table-shell" data-pf-ma-table-shell="" className={cn(mainAppTableShellClass, className)}>
-      {children}
-    </div>
-  );
+  return <DesignListShell className={cn(mainAppTableShellClass, className)}>{children}</DesignListShell>;
 }

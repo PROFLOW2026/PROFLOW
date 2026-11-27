@@ -1,0 +1,106 @@
+/* V10 Signature. Applies only when the design axis is v10. */
+[data-pf-design='v10'] {
+  --pf-bg-page: #f3f0e8;
+  --pf-bg-surface: #f7f4ee;
+  --pf-text-primary: #1c1915;
+  --pf-text-secondary: #4a453d;
+  --pf-border-subtle: #d9d2c6;
+  --pf-radius-md: 0px;
+  --pf-radius-lg: 0px;
+}
+
+.dark [data-pf-design='v10'],
+[data-pf-design='v10'].dark {
+  --pf-bg-page: #161513;
+  --pf-bg-surface: #1c1915;
+  --pf-text-primary: #f3f0e8;
+  --pf-border-subtle: #3a342c;
+}
+
+[data-pf-design='v10'] [data-pf-slot='sidebar'] {
+  border-inline-end: 1px solid var(--pf-border-subtle);
+}
+
+[data-pf-design='v10'] .pf-design-glance {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(12rem, 0.8fr);
+  gap: 1rem;
+}
+
+[data-pf-design='v10'] .pf-design-baseline {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+[data-pf-design='v10'] .pf-design-hero strong {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+[data-pf-design='v10'] .pf-design-beside {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 1rem;
+}
+
+[data-pf-design='v10'] .pf-design-chart {
+  display: flex;
+  align-items: end;
+  gap: 0.25rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 8rem;
+  overflow-x: auto;
+}
+
+[data-pf-design='v10'] .pf-design-bar-collected {
+  background: #0f766e;
+}
+
+[data-pf-design='v10'] .pf-design-bar {
+  display: block;
+  width: 0.45rem;
+}
+
+[data-pf-design='v10'] .pf-design-fold-toggle,
+[data-pf-design='v10'] .pf-design-vat-toggle {
+  min-height: 2.75rem;
+}
+
+@media (max-width: 800px) {
+  [data-pf-design='v10'] .pf-design-glance,
+  [data-pf-design='v10'] .pf-design-beside,
+  [data-pf-design='v10'] .pf-design-baseline {
+    grid-template-columns: 1fr;
+  }
+
+  [data-pf-design='v10'] [data-pf-design-fold='closed'] th:nth-child(n + 4),
+  [data-pf-design='v10'] [data-pf-design-fold='closed'] td:nth-child(n + 4) {
+    display: none;
+  }
+}
+
+[data-pf-design='v10'] .pf-design-family-band {
+  border-block-end: 1px solid var(--pf-border-subtle);
+  padding-block-end: 0.5rem;
+}
+
+[data-pf-design='v10'] .pf-design-kicker {
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+[data-pf-design='v10'] [data-pf-design-family='settings'],
+[data-pf-design='v10'] [data-pf-design-family='form'] {
+  font-size: 0.9375rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-pf-design='v10'] * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -10,5 +10,11 @@
     "classic": "Classic",
     "modern": "Modern",
     "premium": "Premium"
+  },
+  "design": {
+    "label": "Design",
+    "current": "Current",
+    "v9": "V9",
+    "v10": "V10"
   }
 }

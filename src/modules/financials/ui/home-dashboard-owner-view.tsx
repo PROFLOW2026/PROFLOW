@@ -13,7 +13,9 @@ import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { cn } from '@/shared/ui/cn';
-import { compareMoney, type MoneyValue } from '@/shared/money';
+import { formatMoney, compareMoney, type MoneyValue } from '@/shared/money';
+import { DesignFinanceSwitch } from '@/shared/theme/design/templates/design-finance-switch';
+import { listDashboardAttentionItems } from '../domain/dashboard-attention-routes';
 import { lifetimeCashDifference } from '../domain/lifetime-cash-difference';
 import { ProjectStatusBadge } from '@/app/[locale]/(app)/projects/project-status-badge';
 import type { ProjectStatus } from '@/modules/projects';
@@ -223,6 +225,34 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
       : null;
 
   return (
+    <DesignFinanceSwitch
+      snapshot={{
+        margin: data.actualProfitTotal ? formatMoney(data.actualProfitTotal, locale) : null,
+        marginRate: data.profitabilityPercent,
+        recognized: data.organizationSummary?.costsThisMonth
+          ? formatMoney(data.organizationSummary.costsThisMonth, locale)
+          : data.totalActualCost
+            ? formatMoney(data.totalActualCost, locale)
+            : null,
+        collected: data.billing?.netPaid ? formatMoney(data.billing.netPaid, locale) : null,
+        receivable: data.billing?.netOutstanding ? formatMoney(data.billing.netOutstanding, locale) : null,
+        contract: data.totalContractValue ? formatMoney(data.totalContractValue, locale) : null,
+        marginVat:
+          data.organizationSummary?.grossCostsThisMonth
+            ? formatMoney(data.organizationSummary.grossCostsThisMonth, locale)
+            : null,
+        urgent: listDashboardAttentionItems(data.attention).map((item) => ({
+          key: item.key,
+          href: item.href,
+          label: t(`attention.compact.${item.key}`, { count: item.count }),
+        })),
+        points: (data.monthlyLedger?.months ?? []).map((month) => ({
+          month: month.yearMonth,
+          collected: month.collected?.net.amount ?? '0',
+          recognized: month.recognizedCost?.net.amount ?? '0',
+        })),
+      }}
+      current={
     <div className="flex min-w-0 max-w-full flex-col gap-4">
       {data.pendingTime && showDashboardUi(data, 'common.pendingTime') ? (
         <HomePendingTimeAlert pendingTime={data.pendingTime} canApproveTime={data.canApproveTime} />
@@ -745,5 +775,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         </p>
       ) : null}
     </div>
+      }
+    />
   );
 }

@@ -13,6 +13,8 @@ import {
 import { pressableClassName } from '@/components/ui/pressable';
 import { THEME_PREFERENCES, type ThemePreference } from '@/shared/theme/config';
 import { STYLE_PREFERENCES, type StylePreference } from '@/shared/theme/style/config';
+import { DESIGN_PREFERENCES } from '@/shared/theme/design/config';
+import { useDesignPreference } from '@/shared/theme/design/design-context';
 import { useStylePreference } from '@/shared/theme/style/style-context';
 import { useThemePreference } from '@/shared/theme/theme-context';
 import { cn } from '@/shared/ui/cn';
@@ -48,6 +50,31 @@ function styleLabel(
   if (mode === 'classic') return t('style.classic');
   if (mode === 'modern') return t('style.modern');
   return t('style.premium');
+}
+function DesignOptions() {
+  const t = useTranslations('appearance');
+  const { design, setDesign, pending } = useDesignPreference();
+  return (
+    <>
+      <DropdownMenuSeparator />
+      <DropdownMenuLabel>{t('design.label')}</DropdownMenuLabel>
+      {DESIGN_PREFERENCES.map((mode) => (
+        <DropdownMenuItem
+          key={mode}
+          disabled={pending}
+          onSelect={() => {
+            if (mode === design) return;
+            setDesign(mode);
+          }}
+        >
+          <span className="min-w-0 flex-1 truncate">{t(`design.${mode}`)}</span>
+          {mode === design ? (
+            <Check className="size-4 text-[var(--pf-text-brand)]" aria-hidden />
+          ) : null}
+        </DropdownMenuItem>
+      ))}
+    </>
+  );
 }
 function StyleOptions() {
   const t = useTranslations('appearance');
@@ -116,6 +143,7 @@ export function ThemeHeaderToggle({ className }: { className?: string }) {
           </DropdownMenuItem>
         ))}
         <StyleOptions />
+        <DesignOptions />
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -147,6 +175,7 @@ export function ThemeMenuSection() {
         </DropdownMenuItem>
       ))}
       <StyleOptions />
+      <DesignOptions />
     </div>
   );
 }

@@ -12,6 +12,8 @@ import {
 import { themeCookieOptions, THEME_COOKIE_NAME } from './theme-cookie';
 import { DEFAULT_STYLE_PREFERENCE } from './style/config';
 import { styleCookieOptions, STYLE_COOKIE_NAME } from './style/style-cookie';
+import { DEFAULT_DESIGN_PREFERENCE } from './design/config';
+import { designCookieOptions, DESIGN_COOKIE_NAME } from './design/cookie';
 
 /** Persist UI theme for the signed-in user (auth metadata + cookie). No profile SQL. */
 export async function persistThemePreferenceAction(preference: string): Promise<void> {
@@ -42,6 +44,11 @@ export async function resetThemeCookieForSignOutAction(): Promise<void> {
     STYLE_COOKIE_NAME,
     DEFAULT_STYLE_PREFERENCE,
     styleCookieOptions(localeCookieSecure()),
+  );
+  cookieStore.set(
+    DESIGN_COOKIE_NAME,
+    DEFAULT_DESIGN_PREFERENCE,
+    designCookieOptions(localeCookieSecure()),
   );
 }
 

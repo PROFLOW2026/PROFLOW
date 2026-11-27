@@ -13,6 +13,7 @@ import { getSessionState, withOrgContext } from '@/shared/auth/session';
 import { redirect } from '@/shared/i18n/navigation';
 import { ScrollToTop } from '@/components/ui/scroll-to-top';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
+import { DesignProductFrame } from '@/shared/theme/design/design-product-frame';
 
 /**
  * Employee shell scroll model:
@@ -66,7 +67,7 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
             className="mx-auto w-full max-w-lg flex-1 px-4 pt-4 pb-[var(--pf-mobile-content-bottom)] md:max-w-6xl md:px-6 lg:pb-8"
           >
             <EmployeeShellHeader />
-            {children}
+            <DesignProductFrame>{children}</DesignProductFrame>
           </main>
           <ScrollToTop />
           <EmployeeBottomNav items={shell.nav} />

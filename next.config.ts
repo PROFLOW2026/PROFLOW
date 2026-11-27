@@ -10,6 +10,7 @@ function nextConfig(phase: string): NextConfig {
   return {
   reactStrictMode: true,
   poweredByHeader: false,
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   allowedDevOrigins: ['127.0.0.1', 'localhost'],
   // exceljs is large and export/import only — keep it out of the client graph.
   serverExternalPackages: ['postgres', 'exceljs', 'drizzle-orm', 'pdf-lib', '@pdf-lib/fontkit', 'bidi-js'],

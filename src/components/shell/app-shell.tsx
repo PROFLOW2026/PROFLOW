@@ -16,6 +16,7 @@ import { TopBar } from './top-bar';
 import { UserMenu } from './user-menu';
 import { ScrollToTop } from '@/components/ui/scroll-to-top';
 import { HiddenCapabilityNotice } from './hidden-capability-notice';
+import { DesignProductFrame } from '@/shared/theme/design/design-product-frame';
 
 /**
  * Authenticated application frame.
@@ -109,7 +110,9 @@ export async function AppShell({
           >
             <div className={contentClassName}>
               <HiddenCapabilityNotice modules={shell.modules} />
-              <Suspense fallback={null}>{children}</Suspense>
+              <DesignProductFrame>
+                <Suspense fallback={null}>{children}</Suspense>
+              </DesignProductFrame>
             </div>
           </main>
           <ScrollToTop />

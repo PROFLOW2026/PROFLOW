@@ -14,6 +14,7 @@ import { routing } from '@/shared/i18n/routing';
 import { getThemeBootstrap } from '@/shared/theme/get-theme-bootstrap';
 import { ThemeProvider } from '@/shared/theme/theme-provider';
 import { StyleProvider } from '@/shared/theme/style/style-provider';
+import { DesignProvider } from '@/shared/theme/design/design-provider';
 import { ThemeColorSync } from '@/shared/theme/theme-color-sync';
 import { PWA_THEME_COLOR_DARK, PWA_THEME_COLOR_LIGHT } from '@/shared/theme/pwa-theme-colors';
 
@@ -83,12 +84,14 @@ export default async function LocaleLayout({
     <IntlClientProvider locale={locale} messages={clientMessages}>
       <ThemeProvider preference={themeBootstrap.preference} userId={themeBootstrap.userId}>
         <StyleProvider style={themeBootstrap.style} userId={themeBootstrap.userId}>
+        <DesignProvider design={themeBootstrap.design}>
         <ThemeColorSync />
         <LocaleDocumentAttributes />
         <PwaBootstrap />
         <TooltipProvider delayDuration={200}>
           <ToastProvider>{children}</ToastProvider>
         </TooltipProvider>
+        </DesignProvider>
         </StyleProvider>
       </ThemeProvider>
     </IntlClientProvider>
