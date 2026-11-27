@@ -20,6 +20,8 @@ const EMPTY_SNAPSHOT: DesignFinanceSnapshot = {
   receivable: null,
   contract: null,
   marginVat: null,
+  recognizedTitle: null,
+  recognizedNote: null,
   urgent: [],
   points: [],
 };
@@ -185,5 +187,43 @@ describe('finance copy follows the computed margin', () => {
     );
     await waitFor(() => expect(document.querySelector('[data-pf-design-variant="v10"]')).not.toBeNull());
     expect(screen.queryByRole('button', { name: 'מע״מ וברוטו' })).not.toBeInTheDocument();
+  });
+
+  it('shows only the latest month that has figures, and opens the earlier months on request', async () => {
+    const user = userEvent.setup();
+    const point = (month: string, collected: string, recognized: string) => ({
+      month,
+      collected,
+      recognized,
+      collectedLabel: `${collected} ₪`,
+      recognizedLabel: `${recognized} ₪`,
+    });
+    render(
+      <DesignProvider design="v10">
+        <DesignFinanceSwitch
+          current={<p>גוף</p>}
+          snapshot={{
+            ...EMPTY_SNAPSHOT,
+            points: [
+              point('2026-01', '0', '0'),
+              point('2026-02', '10', '20'),
+              point('2026-03', '0', '0'),
+            ],
+          }}
+        />
+      </DesignProvider>,
+    );
+    await waitFor(() => expect(document.querySelector('[data-pf-design-variant="v10"]')).not.toBeNull());
+    expect(screen.getByRole('heading', { name: 'פברואר 2026' })).toBeVisible();
+    expect(screen.queryByRole('heading', { name: 'ינואר 2026' })).not.toBeInTheDocument();
+    expect(screen.getByText('10 ₪')).toBeVisible();
+    expect(screen.getByText('20 ₪')).toBeVisible();
+
+    await user.click(screen.getByRole('button', { name: 'הצג את שאר החודשים' }));
+    expect(screen.getByRole('heading', { name: 'ינואר 2026' })).toBeVisible();
+    expect(screen.queryByRole('heading', { name: 'מרץ 2026' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'הסתר את שאר החודשים' }));
+    expect(screen.queryByRole('heading', { name: 'ינואר 2026' })).not.toBeInTheDocument();
   });
 });

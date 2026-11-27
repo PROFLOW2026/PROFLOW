@@ -27,6 +27,10 @@ export interface DesignFinanceSnapshot {
   readonly receivable: string | null;
   readonly contract: string | null;
   readonly marginVat: string | null;
+  /** Existing monthly KPI title. This figure is the selected month, not lifetime cost. */
+  readonly recognizedTitle: string | null;
+  /** Existing monthly explanation, including which month the figure belongs to. */
+  readonly recognizedNote: string | null;
   readonly urgent: readonly DesignUrgentItem[];
   readonly points: readonly DesignChartPoint[];
 }
@@ -89,21 +93,75 @@ function Chart({ points }: { points: readonly DesignChartPoint[] }) {
 function Metrics({ snapshot }: { snapshot: DesignFinanceSnapshot }) {
   const cells = (
     [
-      ['עלות מוכרת', snapshot.recognized],
-      ['נגבה', snapshot.collected],
-      ['יתרת חיוב', snapshot.receivable],
-      ['חוזה', snapshot.contract],
+      [snapshot.recognizedTitle ?? 'עלות מוכרת החודש', snapshot.recognized, snapshot.recognizedNote],
+      ['נגבה', snapshot.collected, null],
+      ['יתרת חיוב', snapshot.receivable, null],
+      ['חוזה', snapshot.contract, null],
     ] as const
-  ).flatMap(([label, value]) => (value ? [[label, value] as const] : []));
+  ).flatMap(([label, value, note]) => (value ? [[label, value, note] as const] : []));
   if (cells.length === 0) return null;
   return (
     <div data-pf-design-landmark="baseline" className="pf-design-baseline">
-      {cells.map(([label, value]) => (
+      {cells.map(([label, value, note]) => (
         <p key={label} className="pf-design-metric">
           <span>{label}</span>
-          <MoneyFigure value={value ?? '—'} />
+          <MoneyFigure value={value} />
+          {note ? <span className="pf-design-metric-note">{note}</span> : null}
         </p>
       ))}
+    </div>
+  );
+}
+
+function latestDataIndex(points: readonly DesignChartPoint[]): number {
+  for (let index = points.length - 1; index >= 0; index -= 1) {
+    const point = points[index];
+    if (point && (amount(point.collected) !== 0 || amount(point.recognized) !== 0)) return index;
+  }
+  return Math.max(0, points.length - 1);
+}
+
+function MonthArticle({ point }: { point: DesignChartPoint }) {
+  return (
+    <article className="pf-design-month">
+      <h3 className="pf-design-month-title">
+        <bdi>{monthCaption(point.month)}</bdi>
+      </h3>
+      <p className="pf-design-month-row">
+        <span>נגבה</span>
+        <MoneyFigure value={point.collectedLabel} />
+      </p>
+      <p className="pf-design-month-row">
+        <span>עלות מוכרת</span>
+        <MoneyFigure value={point.recognizedLabel} />
+      </p>
+    </article>
+  );
+}
+
+function MonthList({ points }: { points: readonly DesignChartPoint[] }) {
+  const [open, setOpen] = useState(false);
+  if (points.length === 0) return null;
+  const latestIndex = latestDataIndex(points);
+  const latest = points[latestIndex];
+  if (!latest) return null;
+  const earlier = points.slice(0, latestIndex);
+  return (
+    <div data-pf-design-landmark="v10-month-detail" className="pf-design-month-list">
+      <MonthArticle point={latest} />
+      {earlier.length > 0 ? (
+        <button
+          type="button"
+          className="pf-design-month-toggle"
+          aria-expanded={open}
+          onClick={() => setOpen((value) => !value)}
+        >
+          {open ? 'הסתר את שאר החודשים' : 'הצג את שאר החודשים'}
+        </button>
+      ) : null}
+      {open
+        ? earlier.map((point) => <MonthArticle key={point.month} point={point} />)
+        : null}
     </div>
   );
 }
@@ -181,23 +239,7 @@ export function DesignFinanceSwitch({
           </div>
           <div data-pf-design-landmark="v10-chart-beside" className="pf-design-beside">
             <Chart points={snapshot.points} />
-            <div data-pf-design-landmark="v10-month-detail" className="pf-design-month-list">
-              {snapshot.points.map((point) => (
-                <article key={point.month} className="pf-design-month">
-                  <h3 className="pf-design-month-title">
-                    <bdi>{monthCaption(point.month)}</bdi>
-                  </h3>
-                  <p className="pf-design-month-row">
-                    <span>נגבה</span>
-                    <MoneyFigure value={point.collectedLabel} />
-                  </p>
-                  <p className="pf-design-month-row">
-                    <span>עלות מוכרת</span>
-                    <MoneyFigure value={point.recognizedLabel} />
-                  </p>
-                </article>
-              ))}
-            </div>
+            <MonthList points={snapshot.points} />
           </div>
           {snapshot.marginVat ? (
             <>

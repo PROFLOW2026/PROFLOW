@@ -173,6 +173,7 @@ export function HomeDashboardMonthlyLedger({
 }) {
   const t = useTranslations('dashboard.monthlyLedger');
   const locale = useLocale();
+  const [open, setOpen] = useState(false);
   const fields: {
     key: string;
     label: string;
@@ -199,10 +200,22 @@ export function HomeDashboardMonthlyLedger({
 
   return (
     <section className="flex min-w-0 max-w-full flex-col gap-3">
-      <div className="flex min-w-0 items-center justify-between gap-2">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
         <h2 className="text-sm font-semibold">{t('title')}</h2>
-        <LedgerNotes />
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+          >
+            {open ? 'הסתר פירוט כספי חודשי' : 'הצג פירוט כספי חודשי'}
+          </Button>
+          <LedgerNotes />
+        </div>
       </div>
+      {open ? (
       <div className="flex min-w-0 flex-col gap-3">
         {ledger.months.map((month) => {
           const label = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(
@@ -230,6 +243,7 @@ export function HomeDashboardMonthlyLedger({
           );
         })}
       </div>
+      ) : null}
     </section>
   );
 }

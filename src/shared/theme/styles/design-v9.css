@@ -74,6 +74,15 @@
   margin: 0;
 }
 
+[data-pf-design='v9'] .pf-design-metric-note,
+[data-pf-design='v10'] .pf-design-metric-note {
+  max-width: 16rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--pf-text-secondary);
+}
+
 [data-pf-design='v9'] .pf-design-baseline {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

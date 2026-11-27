@@ -80,6 +80,13 @@
   font-weight: 600;
 }
 
+[data-pf-design='v10'] .pf-design-month-toggle {
+  min-height: 2.75rem;
+  width: 100%;
+  max-width: 100%;
+  text-align: start;
+}
+
 [data-pf-design='v10'] .pf-design-month-row {
   display: flex;
   align-items: baseline;

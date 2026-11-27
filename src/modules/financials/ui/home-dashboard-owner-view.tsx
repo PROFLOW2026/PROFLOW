@@ -231,9 +231,15 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         marginRate: data.profitabilityPercent,
         recognized: data.organizationSummary?.costsThisMonth
           ? formatMoney(data.organizationSummary.costsThisMonth, locale)
-          : data.totalActualCost
-            ? formatMoney(data.totalActualCost, locale)
-            : null,
+          : null,
+        recognizedTitle: data.organizationSummary?.costsThisMonth
+          ? t('businessSummary.costsThisMonth')
+          : null,
+        recognizedNote: data.organizationSummary?.costsThisMonth
+          ? `${new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(
+              new Date(`${data.selectedMonth}-01T00:00:00`),
+            )}. ${detailCopy.costsThisMonthWhat}`
+          : null,
         collected: data.billing?.netPaid ? formatMoney(data.billing.netPaid, locale) : null,
         receivable: data.billing?.netOutstanding ? formatMoney(data.billing.netOutstanding, locale) : null,
         contract: data.totalContractValue ? formatMoney(data.totalContractValue, locale) : null,
