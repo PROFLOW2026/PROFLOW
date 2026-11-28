@@ -30,18 +30,29 @@ def _host_xref_instances(host: DocContext) -> list[Insert]:
     return [ins for ins in host.inserts if is_xref_block(host.doc, ins.dxf.name)]
 
 
+def xref_binding_key(parent_id: str, block_name: str, saved_path: str) -> tuple[str, str, str]:
+    """(parent logical id, block name, saved path). The block name alone is not a key."""
+    return (parent_id, block_name, saved_path)
+
+
 def collect_merged_xref_inserts(
     host: DocContext,
     xref_ctxs: dict[str, DocContext],
     reg,
     *,
     layout_name: str,
+    bindings: dict[tuple[str, str, str], DocContext] | None = None,
+    host_id: str = "",
 ) -> list[RawInsert]:
     """For each loaded xref, expand xref modelspace symbols under host xref INSERT transforms."""
     out: list[RawInsert] = []
+    path_of = {str(xr.get("name") or ""): str(xr.get("path") or "") for xr in host.xrefs}
     for host_ins in _host_xref_instances(host):
         name = host_ins.dxf.name
-        xctx = xref_ctxs.get(name)
+        if bindings is not None:
+            xctx = bindings.get(xref_binding_key(host_id, name, path_of.get(name, "")))
+        else:
+            xctx = xref_ctxs.get(name)
         if xctx is None:
             continue
         tx, ty = host_ins.dxf.insert.x, host_ins.dxf.insert.y

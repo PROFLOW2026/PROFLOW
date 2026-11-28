@@ -53,6 +53,9 @@ export const PORTAL_ROUTES = [
   { key: 'portal.more', track: 'R', scope: 'portal', path: 'more', pageFile: '(portal)/more/page.tsx', capability: null, placement: 'hidden', labelKey: 'nav.more', implemented: true },
   { key: 'notifications', track: 'R', scope: 'portal', path: 'notifications', pageFile: '(portal)/notifications/page.tsx', capability: null, placement: 'primary', labelKey: 'nav.notifications', implemented: true },
   { key: 'account', track: 'C', scope: 'portal', path: 'account', pageFile: '(portal)/account/page.tsx', capability: null, placement: 'primary', labelKey: 'nav.account', implemented: true },
+  { key: 'portal.tools', track: 'R', scope: 'portal', path: 'tools', pageFile: '(portal)/tools/page.tsx', capability: { anyOf: [CAP.TOOLS_VIEWER, CAP.TOOLS_TAKEOFF] }, placement: 'hidden', labelKey: 'nav.professionalTools', implemented: true },
+  { key: 'portal.tools.view', track: 'R', scope: 'portal', path: 'tools/view', pageFile: '(portal)/tools/view/page.tsx', capability: { anyOf: [CAP.TOOLS_VIEWER, CAP.TOOLS_TAKEOFF] }, placement: 'hidden', labelKey: 'nav.professionalTools', implemented: true },
+  { key: 'portal.tools.session', track: 'R', scope: 'portal', path: 'tools/sessions/[sessionId]', pageFile: '(portal)/tools/sessions/[sessionId]/page.tsx', capability: { anyOf: [CAP.TOOLS_VIEWER, CAP.TOOLS_TAKEOFF] }, placement: 'detail', labelKey: 'nav.professionalTools', implemented: true },
   { key: 'project.home', track: 'R', scope: 'project', path: 'projects/[projectId]', pageFile: '(portal)/projects/[projectId]/page.tsx', capability: CAP.PROJECT_VIEW, placement: 'project', labelKey: 'nav.projectHome', implemented: true },
 
   // Track G - tasks

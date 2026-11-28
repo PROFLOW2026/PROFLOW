@@ -220,6 +220,10 @@ export const workerCallbackSchema = z.object({
   /** Bearer token, single job, expires; the worker never sees user sessions or provider tokens. */
   token: z.string(),
   xrefUrl: z.string().optional(),
+  heartbeatUrl: z.string().optional(),
+  terminalUrl: z.string().optional(),
+  progressToken: z.string().optional(),
+  terminalToken: z.string().optional(),
 });
 
 export const workerJobRequestSchema = z.object({
@@ -240,6 +244,8 @@ export const workerJobRequestSchema = z.object({
       legendRegionHints: z
         .array(z.object({ fileId: z.string(), sheetKey: z.string(), legend: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(), plan: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional() }))
         .default([]),
+      /** External sessions only. Project jobs omit this and keep the previous xref load. */
+      resolveXrefByAnchor: z.boolean().optional(),
     })
     .default({ previewMaxEdgePx: 6000, renderPreview: true, useAi: false, legendRegionHints: [] }),
   catalog: z.array(catalogTypeSchema),

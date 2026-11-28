@@ -36,13 +36,27 @@ def cache_dir() -> Path:
         return fallback
 
 
+def _is_dxf_document(path: Path) -> bool:
+    """A DXF download may keep a neutral suffix. Do not send that text to the DWG converter."""
+    if path.suffix.lower() == ".dxf":
+        return True
+    try:
+        head = path.read_bytes()[:512]
+    except OSError:
+        return False
+    if head.startswith(b"AC10"):
+        return False
+    text = head.decode("latin-1", errors="ignore").lstrip("\ufeff \t\r\n")
+    return text.startswith("0") and "SECTION" in text.upper()
+
+
 def ensure_dxf(dwg_path: str | Path, *, cache: Path | None = None) -> tuple[Path, ConvertResult | None, bool]:
     """Return (dxf_path, convert_result_if_ran, cache_hit)."""
     cache = cache or cache_dir()
     dwg_path = Path(dwg_path)
     if not dwg_path.is_file():
         raise FileNotFoundError(dwg_path)
-    if dwg_path.suffix.lower() == ".dxf":
+    if _is_dxf_document(dwg_path):
         return dwg_path, None, True
     digest = sha256_file(dwg_path)
     out = cache / f"{digest}.dxf"

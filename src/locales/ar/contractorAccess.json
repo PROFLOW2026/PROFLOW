@@ -246,6 +246,8 @@
       "ext_takeoff_manage": "تشغيل وتحرير تحليلات الحصر",
       "ext_takeoff_approve": "اعتماد كميات الحصر",
       "ext_takeoff_library_manage": "إدارة مكتبة رموز الحصر",
+      "ext_tools_viewer": "عرض المخططات بدون مشروع",
+      "ext_tools_takeoff": "حصر الكميات بدون مشروع",
       "ext_rfi_view": "عرض طلبات الاستيضاح",
       "ext_rfi_raise": "فتح طلبات استيضاح",
       "ext_submittal_submit": "تقديم مستندات الاعتماد",

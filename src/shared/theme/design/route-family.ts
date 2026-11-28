@@ -27,7 +27,7 @@ export const EXCLUDED_DESIGN_FAMILIES = ['dev-harness', 'public-auth', 'public-l
 export type ExcludedDesignFamily = (typeof EXCLUDED_DESIGN_FAMILIES)[number];
 
 /** Recounted from src/app page.tsx. The coverage test fails if the tree drifts. */
-export const EXPECTED_DESIGN_PAGE_COUNT = 440;
+export const EXPECTED_DESIGN_PAGE_COUNT = 449;
 
 const EXCLUSION_REASON: Record<ExcludedDesignFamily, string> = {
   'dev-harness': 'Development harness, including the design lab. Not a product screen.',
@@ -47,13 +47,25 @@ function isForm(rel: string): boolean {
   return /\/(new|edit|allocate|approve|price|add|create-task|connect-developer)(\/|$)/.test(rel);
 }
 
+function isToolsHome(rel: string): boolean {
+  return (
+    rel.endsWith('/(app)/tools/page.tsx') ||
+    rel.endsWith('/employee/(shell)/tools/page.tsx') ||
+    rel.endsWith('/contractor/(portal)/tools/page.tsx')
+  );
+}
+
 function isEngine(rel: string): boolean {
   return (
+    isToolsHome(rel) ||
     rel.includes('/takeoff/') ||
     rel.endsWith('/takeoff/page.tsx') ||
     rel.includes('/infrastructure/') ||
     rel.includes('/boq-measure/') ||
-    rel.includes('/plans/')
+    rel.includes('/plans/') ||
+    rel.includes('/tools/view/') ||
+    rel.endsWith('/tools/view/page.tsx') ||
+    rel.includes('/tools/sessions/')
   );
 }
 
@@ -166,6 +178,8 @@ function isSurfaceHref(path: string): boolean {
 }
 
 function isEngineHref(path: string): boolean {
+  if (path === 'tools' || path === 'employee/tools' || path === 'contractor/tools') return true;
+  if (/(^|\/)tools\/(view|sessions)(\/|$)/.test(path)) return true;
   return /(^|\/)(takeoff|infrastructure|boq-measure|plans)(\/|$)/.test(path);
 }
 

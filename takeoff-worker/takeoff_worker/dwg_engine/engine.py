@@ -32,7 +32,7 @@ from ..models import (
 from .blocks import is_xref_block
 from .convert import convert_dwg_to_dxf, find_dwg2dxf, libredwg_engine_label
 from .corpus_cache import ensure_dxf
-from .xref_merge import collect_merged_xref_inserts, sheet_has_missing_xref_content
+from .xref_merge import collect_merged_xref_inserts, sheet_has_missing_xref_content, xref_binding_key
 from .detections import collect_layout_symbols, dedupe, raw_to_worker
 from .doc_context import DocContext
 from .exploded import find_exploded_symbols
@@ -93,7 +93,8 @@ class DwgEngine:
                 if progress:
                     progress("detect_type", 5, "Converting DWG to DXF")
                 try:
-                    dxf_cached, conv, cache_hit = ensure_dxf(path)
+                    anchor_mode = bool(getattr(options, "resolveXrefByAnchor", False))
+                    dxf_cached, conv, cache_hit = ensure_dxf(path, cache=Path(tmp) if anchor_mode else None)
                     dxf_path = str(dxf_cached)
                     cleanup_dxf = False
                     stats["dwg_convert_secs"] = float(conv.convert_secs if conv else 0)
@@ -163,13 +164,15 @@ class DwgEngine:
                 )
 
             host_bytes = int(src.stat().st_size) if src.is_file() else 0
-            loaded_xrefs, xref_docs, xref_records = self._load_xrefs(
+            loaded_xrefs, xref_docs, xref_records, xref_bindings = self._load_xrefs(
                 ctx,
                 xref_paths,
                 warnings,
                 file_id,
                 host_bytes=host_bytes,
                 xref_fetch=xref_fetch,
+                resolve_by_anchor=bool(getattr(options, "resolveXrefByAnchor", False)),
+                xref_cache=Path(tmp) if bool(getattr(options, "resolveXrefByAnchor", False)) else None,
             )
             missing_xrefs = self._missing_xrefs(ctx, loaded_xrefs, warnings, file_id, xref_records)
 
@@ -297,7 +300,7 @@ class DwgEngine:
                             legend_names=legend_names,
                         )
                         xref_extra = collect_merged_xref_inserts(
-                            ctx, xref_docs, reg, layout_name=lname
+                            ctx, xref_docs, reg, layout_name=lname, bindings=xref_bindings, host_id=file_id,
                         )
                         if xref_extra:
                             vis, xref_dups = dedupe(vis + xref_extra)
@@ -339,7 +342,7 @@ class DwgEngine:
                             fallback=primary,
                         ) or primary
                         xref_extra = collect_merged_xref_inserts(
-                            ctx, xref_docs, reg, layout_name=lname
+                            ctx, xref_docs, reg, layout_name=lname, bindings=xref_bindings, host_id=file_id,
                         )
                         if xref_extra:
                             vis, xref_dups = dedupe(vis + xref_extra)
@@ -542,6 +545,165 @@ class DwgEngine:
             note="insunits + viewport",
         )
 
+    def _load_xrefs_by_anchor(
+        self,
+        ctx: DocContext,
+        xref_paths: dict[str, str],
+        warnings: list[WorkerWarning],
+        file_id: str,
+        *,
+        host_bytes: int,
+        xref_fetch,
+        xref_cache: Path | None,
+    ) -> tuple[set[str], dict[str, DocContext], list[XrefRefRecord], dict[tuple[str, str, str], DocContext]]:
+        """Bind each reference by (parent, block, saved path). Convert each logical id once.
+
+        A repeated logical id is another reference, not a cycle. A cycle is that id
+        already sitting on the ancestor stack. Project jobs never call this.
+        """
+        budget = XrefBudget(host_bytes, len(ctx.inserts))
+        loaded: set[str] = set()
+        docs: dict[str, DocContext] = {}
+        bindings: dict[tuple[str, str, str], DocContext] = {}
+        converted: dict[str, DocContext] = {}
+        records: list[XrefRefRecord] = []
+        if budget.host_over_budget:
+            warnings.append(
+                WorkerWarning(
+                    code="xref_budget",
+                    severity="warning",
+                    message="Host file is over 150 MB, so no XREF was loaded",
+                    fileId=file_id,
+                )
+            )
+            for xr in ctx.xrefs:
+                records.append(XrefRefRecord(name=xr["name"], path=xr.get("path") or None, loaded=False))
+            return loaded, docs, records, bindings
+
+        queue: list[tuple[str, str, str, tuple[str, ...]]] = []
+        for xr in ctx.xrefs:
+            queue.append((xr["name"], str(xr.get("path") or ""), file_id, ()))
+        for name, xpath in xref_paths.items():
+            if name not in {item[0] for item in queue}:
+                queue.append((name, "", file_id, ()))
+                xref_paths.setdefault(name, xpath)
+
+        while queue:
+            name, saved_path, parent_id, ancestors = queue.pop(0)
+            key = xref_binding_key(parent_id, name, saved_path)
+            if key in bindings:
+                continue
+            if budget.timed_out():
+                warnings.append(
+                    WorkerWarning(
+                        code="xref_budget",
+                        severity="warning",
+                        message="XREF closure stopped after 600 seconds",
+                        fileId=file_id,
+                    )
+                )
+                records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=False))
+                break
+            local = None
+            size = None
+            identity = ""
+            if xref_fetch is not None:
+                try:
+                    fetched = xref_fetch(name, saved_path, parent_id)
+                except Exception as ex:
+                    warnings.append(
+                        WorkerWarning(
+                            code="xref_missing",
+                            severity="warning",
+                            message=f"Xref {name}: {ex}"[:300],
+                            fileId=file_id,
+                        )
+                    )
+                    records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=False))
+                    continue
+                if fetched:
+                    local, size, identity = fetched
+            if local is None:
+                named = xref_paths.get(name, "")
+                if named and os.path.isfile(named):
+                    local = named
+                    size = os.path.getsize(local)
+            if not identity:
+                identity = saved_path
+            if identity and identity in ancestors:
+                warnings.append(
+                    WorkerWarning(
+                        code="xref_cycle",
+                        severity="warning",
+                        message=f"Xref {name} skipped (cycle)",
+                        fileId=file_id,
+                    )
+                )
+                records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=False))
+                continue
+            if not local or not os.path.isfile(local):
+                records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=False))
+                continue
+            if size is None:
+                size = os.path.getsize(local)
+            doc = converted.get(identity) if identity else None
+            if doc is None:
+                reason = budget.reject_new_bytes(size)
+                if reason:
+                    warnings.append(
+                        WorkerWarning(
+                            code="xref_budget",
+                            severity="warning",
+                            message=f"Xref {name} skipped ({reason})",
+                            fileId=file_id,
+                        )
+                    )
+                    records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=False))
+                    continue
+                try:
+                    dxf_p, _, _ = ensure_dxf(local, cache=xref_cache)
+                    doc = DocContext(str(dxf_p), self.rules)
+                except Exception as ex:
+                    warnings.append(
+                        WorkerWarning(
+                            code="xref_missing",
+                            severity="warning",
+                            message=f"Xref {name}: load failed: {ex}"[:300],
+                            fileId=file_id,
+                        )
+                    )
+                    records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=False))
+                    continue
+                if budget.reject_inserts(len(doc.inserts)):
+                    warnings.append(
+                        WorkerWarning(
+                            code="xref_budget",
+                            severity="warning",
+                            message=f"Xref {name} not merged: INSERT budget {budget.max_inserts}",
+                            fileId=file_id,
+                        )
+                    )
+                    records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=False))
+                    continue
+                budget.note_file(size, identity or name)
+                budget.note_inserts(len(doc.inserts))
+                if identity:
+                    converted[identity] = doc
+            bindings[key] = doc
+            if parent_id == file_id:
+                docs[name] = doc
+            loaded.add(name)
+            records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=True))
+            next_ancestors = ancestors + ((identity,) if identity else ())
+            for child in doc.xrefs:
+                if int(child.get("inserted") or 0) <= 0:
+                    continue
+                child_name = str(child.get("name") or "")
+                if not child_name:
+                    continue
+                queue.append((child_name, str(child.get("path") or ""), identity or parent_id, next_ancestors))
+        return loaded, docs, records, bindings
+
     def _load_xrefs(
         self,
         ctx: DocContext,
@@ -551,9 +713,22 @@ class DwgEngine:
         *,
         host_bytes: int,
         xref_fetch,
-    ) -> tuple[set[str], dict[str, DocContext], list[XrefRefRecord]]:
+        resolve_by_anchor: bool = False,
+        xref_cache: Path | None = None,
+    ) -> tuple[set[str], dict[str, DocContext], list[XrefRefRecord], dict[tuple[str, str, str], DocContext] | None]:
+        if resolve_by_anchor:
+            return self._load_xrefs_by_anchor(
+                ctx,
+                xref_paths,
+                warnings,
+                file_id,
+                host_bytes=host_bytes,
+                xref_fetch=xref_fetch,
+                xref_cache=xref_cache,
+            )
         budget = XrefBudget(host_bytes, len(ctx.inserts))
         loaded: set[str] = set()
+        loaded_slots: set[tuple[str, str, str]] = set()
         docs: dict[str, DocContext] = {}
         records: list[XrefRefRecord] = []
         if budget.host_over_budget:
@@ -567,7 +742,7 @@ class DwgEngine:
             )
             for xr in ctx.xrefs:
                 records.append(XrefRefRecord(name=xr["name"], path=xr.get("path") or None, loaded=False))
-            return loaded, docs, records
+            return loaded, docs, records, None
 
         queue: list[tuple[str, str, str]] = []
         for xr in ctx.xrefs:
@@ -579,7 +754,11 @@ class DwgEngine:
 
         while queue:
             name, saved_path, anchor = queue.pop(0)
-            if name in loaded or any(record.name == name for record in records):
+            slot = (anchor, name, saved_path)
+            if resolve_by_anchor:
+                if slot in loaded_slots:
+                    continue
+            elif name in loaded or any(record.name == name for record in records):
                 continue
             if budget.timed_out():
                 warnings.append(
@@ -595,7 +774,7 @@ class DwgEngine:
             local = xref_paths.get(name) if os.path.isfile(xref_paths.get(name, "")) else None
             size = os.path.getsize(local) if local else None
             identity = saved_path or name
-            if local is None and xref_fetch is not None and saved_path:
+            if local is None and xref_fetch is not None and (saved_path or resolve_by_anchor):
                 try:
                     fetched = xref_fetch(name, saved_path, anchor)
                 except Exception as ex:
@@ -616,7 +795,10 @@ class DwgEngine:
                 continue
             if size is None:
                 size = os.path.getsize(local)
-            reason = budget.reject(size, identity)
+            if resolve_by_anchor and identity in budget.seen:
+                reason = budget.reject_new_bytes(size)
+            else:
+                reason = budget.reject(size, identity)
             if reason:
                 warnings.append(
                     WorkerWarning(
@@ -629,7 +811,7 @@ class DwgEngine:
                 records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=False))
                 continue
             try:
-                dxf_p, _, _ = ensure_dxf(local)
+                dxf_p, _, _ = ensure_dxf(local, cache=xref_cache)
                 doc = DocContext(str(dxf_p), self.rules)
             except Exception as ex:
                 warnings.append(
@@ -653,21 +835,28 @@ class DwgEngine:
                 )
                 records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=False))
                 continue
-            budget.note_file(size, identity)
-            if saved_path:
-                budget.seen.add(saved_path)
-            budget.note_inserts(len(doc.inserts))
-            docs[name] = doc
+            already = resolve_by_anchor and identity in budget.seen
+            if not already:
+                budget.note_file(size, identity)
+                if saved_path:
+                    budget.seen.add(saved_path)
+                budget.note_inserts(len(doc.inserts))
+            if resolve_by_anchor:
+                if not anchor or name not in docs:
+                    docs[name] = doc
+                loaded_slots.add(slot)
+            else:
+                docs[name] = doc
             loaded.add(name)
             records.append(XrefRefRecord(name=name, path=saved_path or None, loaded=True))
             for child in doc.xrefs:
                 if int(child.get("inserted") or 0) <= 0:
                     continue
                 child_name = str(child.get("name") or "")
-                if not child_name or child_name in loaded:
+                if not child_name or (not resolve_by_anchor and child_name in loaded):
                     continue
-                queue.append((child_name, str(child.get("path") or ""), saved_path))
-        return loaded, docs, records
+                queue.append((child_name, str(child.get("path") or ""), identity if resolve_by_anchor else saved_path))
+        return loaded, docs, records, None
 
     def _missing_xrefs(
         self,

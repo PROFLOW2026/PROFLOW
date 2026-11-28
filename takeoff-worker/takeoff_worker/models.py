@@ -89,6 +89,10 @@ class WorkerCallback(_M):
     artifactUrl: str
     token: str
     xrefUrl: Optional[str] = None
+    heartbeatUrl: Optional[str] = None
+    terminalUrl: Optional[str] = None
+    progressToken: Optional[str] = None
+    terminalToken: Optional[str] = None
 
 
 class Pairing(_M):
@@ -113,6 +117,7 @@ class JobOptions(_M):
     renderPreview: bool = True
     useAi: bool = False
     legendRegionHints: list[LegendRegionHint] = Field(default_factory=list)
+    resolveXrefByAnchor: bool = False
 
 
 class WorkerJobRequest(_M):

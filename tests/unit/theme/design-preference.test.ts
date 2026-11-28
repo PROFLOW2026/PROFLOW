@@ -53,6 +53,10 @@ describe('design href families', () => {
     expect(classifyDesignHref('/he-IL/contractor/projects/11111111-1111-1111-1111-111111111111')).toBe('project-home');
     expect(classifyDesignHref('/he-IL/work/list')).toBe('list');
     expect(classifyDesignHref('/he-IL/projects/11111111-1111-1111-1111-111111111111/takeoff')).toBe('engine');
+    expect(classifyDesignHref('/he-IL/tools')).toBe('engine');
+    expect(classifyDesignHref('/he-IL/employee/tools')).toBe('engine');
+    expect(classifyDesignHref('/he-IL/contractor/tools')).toBe('engine');
+    expect(classifyDesignHref('/he-IL/projects')).toBe('list');
     expect(classifyDesignHref('/he-IL/settings')).toBe('settings');
     expect(classifyDesignHref('/he-IL/sign-in')).toBe('public-auth');
     expect(classifyDesignHref('/he-IL/dev/design-lab')).toBe('dev-harness');

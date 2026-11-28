@@ -1,11 +1,15 @@
 # dependencies
 node_modules/
+.scratch/
 .pnp
 .pnp.js
 
 # next.js
 .next/
 .next-design-dev/
+.next-exlfy-external-tools/
+scripts/isolated/exlfy-external-tools/.env.test
+scripts/isolated/exlfy-external-tools/supabase/.temp
 out/
 next-env.d.ts
 

@@ -171,7 +171,7 @@ def _libredwg_status() -> str:
 
 
 WORKER_PROTOCOL = 1
-WORKER_CAPABILITIES = ["xrefFetch", "xrefRefs"]
+WORKER_CAPABILITIES = ["xrefFetch", "xrefRefs", "externalSessionV2"]
 
 
 @app.get("/healthz")
@@ -203,13 +203,16 @@ async def create_job(body: WorkerJobRequest) -> JSONResponse:
         workdir = Path(tempfile.mkdtemp(prefix="takeoff_job_"))
         token = body.callback.token
 
+        progress_token = getattr(body.callback, "progressToken", None) or token
+        stop_heartbeat = threading.Event()
+
         def progress(stage: str, pct: float, msg: str | None = None) -> None:
             if job_id in _cancelled:
                 raise RuntimeError("cancelled")
             try:
                 _post_json(
                     body.callback.progressUrl,
-                    token,
+                    progress_token,
                     {"jobId": job_id, "stage": stage, "percent": int(pct), "message": msg},
                     job_id=job_id,
                     kind="progress",
@@ -225,6 +228,20 @@ async def create_job(body: WorkerJobRequest) -> JSONResponse:
 
         def download(url: str, dest: Path) -> Path:
             return _download(url, token, dest)
+
+        heartbeat_url = getattr(body.callback, "heartbeatUrl", None)
+
+        def heartbeat_loop() -> None:
+            while not stop_heartbeat.wait(30):
+                if not heartbeat_url:
+                    return
+                try:
+                    _post_json(heartbeat_url, progress_token, {"jobId": job_id}, job_id=job_id, kind="progress")
+                except Exception:
+                    log.warning("heartbeat failed %s", job_id)
+
+        if heartbeat_url:
+            threading.Thread(target=heartbeat_loop, daemon=True).start()
 
         try:
             with _lock:
@@ -258,6 +275,22 @@ async def create_job(body: WorkerJobRequest) -> JSONResponse:
             with _lock:
                 _jobs[job_id]["status"] = "failed"
         finally:
+            stop_heartbeat.set()
+            terminal_url = getattr(body.callback, "terminalUrl", None)
+            if terminal_url:
+                outcome = "failed"
+                with _lock:
+                    outcome = "ready" if _jobs.get(job_id, {}).get("status") == "succeeded" else "failed"
+                try:
+                    _post_json(
+                        terminal_url,
+                        getattr(body.callback, "terminalToken", None) or token,
+                        {"jobId": job_id, "outcome": outcome},
+                        job_id=job_id,
+                        kind="result",
+                    )
+                except Exception:
+                    log.warning("terminal callback failed %s", job_id)
             shutil.rmtree(workdir, ignore_errors=True)
 
     _executor.submit(run)

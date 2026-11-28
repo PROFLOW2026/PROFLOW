@@ -18,7 +18,11 @@ import { cadViewportDevicePixelRatio } from '@/modules/external-storage/ui/cad/p
 import { createCadRenderer, type CadRendererHandle } from '@/modules/external-storage/ui/cad/pf-cad-v3/pf-renderer-bridge';
 import { worldToScreen } from '@/modules/external-storage/ui/cad/pf-cad-v3/renderer/view-math';
 import type { ScenePayload } from '@/modules/external-storage/ui/cad/pf-cad-v3/types';
-import type { XrefDepBytes } from '@/modules/external-storage/ui/cad/pf-cad-v3/xref-resolver';
+import {
+  buildFileIndex,
+  type CadIndexedFile,
+  type XrefDepBytes,
+} from '@/modules/external-storage/ui/cad/pf-cad-v3/xref-resolver';
 import { displayArchitecturalLayerIndexes, xrefDependencyPaths } from '../../domain/architectural-background';
 import { solveModelWindow } from '../../domain/cad-sheet-frame';
 import {
@@ -56,6 +60,15 @@ import {
   type Extent,
 } from '../../domain/layout-display';
 
+export type ExternalPlanSource = {
+  wasmBaseUrl?: string;
+  hostBytes: Uint8Array;
+  deps?: Array<{ path: string; bytes: Uint8Array; blockName: string; logicalId: string; parentId?: number }>;
+  hostLogicalId?: string;
+  xrefChoices?: readonly { parentLogicalId: string; blockName: string; savedPath: string; logicalId: string }[];
+  indexedFiles?: readonly CadIndexedFile[];
+};
+
 const EMPTY_INDEX = {
   byRelativePath: new Map(),
   byRelativePathLower: new Map(),
@@ -88,6 +101,7 @@ type ShownMark = {
   maxX: number;
   maxY: number;
   located: boolean;
+  colorHex?: string;
 };
 
 function markCenter(active: ShownMark): { x: number; y: number } {
@@ -165,6 +179,7 @@ export function TakeoffDwgPlan({
   onSelectMark,
   onPlanClick,
   onSymbolGlyphs,
+  externalPlan,
 }: {
   url: string;
   fileName: string;
@@ -182,6 +197,8 @@ export function TakeoffDwgPlan({
   onSelectMark?: (id: string) => void;
   onPlanClick?: (x: number, y: number) => void;
   onSymbolGlyphs?: (glyphs: Record<string, string>) => void;
+  /** External review only. Project screens omit this and keep the existing background load. */
+  externalPlan?: ExternalPlanSource;
 }) {
   const t = useTranslations('takeoff');
   const [archMode, setArchMode] = useState<ArchitectureMode>('original');
@@ -304,6 +321,14 @@ export function TakeoffDwgPlan({
     const view = renderer.getView();
     const viewport = { width: overlay.width, height: overlay.height };
     const frame = shownRef.current;
+    const dot = Math.max(4, 3.5 * (overlay.clientWidth > 0 ? overlay.width / overlay.clientWidth : 1));
+    for (const mark of frame) {
+      const [mx, my] = worldToScreen(mark.x, mark.y, view, viewport);
+      ctx.beginPath();
+      ctx.fillStyle = mark.colorHex || '#2563eb';
+      ctx.arc(mx, my, mark.id === focusIdRef.current ? dot + 1.5 : dot, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.strokeStyle = 'rgba(234, 88, 12, 0.45)';
     ctx.lineWidth = 1.5;
     for (const area of areas) {
@@ -471,11 +496,13 @@ export function TakeoffDwgPlan({
       try {
         setPhase('download');
         setPercent(null);
-        const hostBytes = await readBytes(url, (ratio) => {
-          if (!cancelled) setPercent(Math.round(ratio * 100));
-        }, abort.signal);
+        const hostBytes = externalPlan
+          ? externalPlan.hostBytes
+          : await readBytes(url, (ratio) => {
+              if (!cancelled) setPercent(Math.round(ratio * 100));
+            }, abort.signal);
         if (cancelled) return;
-        const refs = backgroundKey
+        const refs = externalPlan ? [] : backgroundKey
           .split('\n')
           .filter((row) => row.length > 0)
           .map((row) => {
@@ -498,12 +525,17 @@ export function TakeoffDwgPlan({
         if (cancelled) return;
         setPhase('parse');
         setPercent(null);
+        const useLocalIndex = (externalPlan?.indexedFiles?.length ?? 0) > 0;
         const parsed = await client.parseDwgFromStorage({
           fileName,
           hostBytes,
-          fileIndex: EMPTY_INDEX,
-          skipXrefClosure: true,
-          cachedDeps: deps,
+          fileIndex: useLocalIndex ? buildFileIndex([...(externalPlan?.indexedFiles ?? [])]) : EMPTY_INDEX,
+          skipXrefClosure: !useLocalIndex,
+          cachedDeps: externalPlan ? undefined : deps,
+          wasmBaseUrl: externalPlan?.wasmBaseUrl,
+          hostLogicalId: externalPlan?.hostLogicalId,
+          xrefChoices: externalPlan?.xrefChoices,
+          parentDeps: externalPlan?.deps && externalPlan.deps.length > 0 ? externalPlan.deps : undefined,
         });
         if (cancelled) return;
         setPhase('prepare');
@@ -517,7 +549,18 @@ export function TakeoffDwgPlan({
         setToolTexts((scene.texts ?? []).map((row) => ({ text: row.t, x: row.x, y: row.y, layer: row.layer })));
         architecturalRef.current = architectural;
         const resolved = scene.report?.resolvedXrefs ?? 0;
-        const nextBackground = refs.length === 0 ? 'none' : missing || resolved === 0 || architectural.size === 0 ? 'missing' : 'shown';
+        const xrefCount = Object.keys(scene.report?.xrefs ?? {}).length;
+        const nextBackground = useLocalIndex
+          ? xrefCount === 0
+            ? 'none'
+            : resolved > 0
+              ? 'shown'
+              : 'missing'
+          : refs.length === 0
+            ? 'none'
+            : missing || resolved === 0 || architectural.size === 0
+              ? 'missing'
+              : 'shown';
         backgroundRef.current = nextBackground;
         setBackground(nextBackground);
         const origin = scene.origin ?? [0, 0];
@@ -555,7 +598,7 @@ export function TakeoffDwgPlan({
       abort.abort();
       client.dispose();
     };
-  }, [attempt, backgroundKey, fileName, url]);
+  }, [attempt, backgroundKey, externalPlan, fileName, url]);
 
   useEffect(() => {
     const model = modelRef.current;
@@ -1019,11 +1062,12 @@ function placeMarks(
     return point ? [{ id: mark.id, ...point }] : [];
   });
   return placed.map((mark) => {
+    const source = marks.find((item) => item.id === mark.id);
     if (mark.id !== focusId) {
-      return { ...mark, minX: mark.x, minY: mark.y, maxX: mark.x, maxY: mark.y, located: false };
+      return { ...mark, minX: mark.x, minY: mark.y, maxX: mark.x, maxY: mark.y, located: false, colorHex: source?.colorHex };
     }
     const box = symbolFrame(segments, mark.x, mark.y, placed, mark.id, skipLayers);
-    return { ...mark, ...box };
+    return { ...mark, ...box, colorHex: source?.colorHex };
   });
 }
 

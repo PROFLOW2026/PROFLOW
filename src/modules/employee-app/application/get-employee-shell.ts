@@ -94,6 +94,15 @@ export function buildEmployeeNavItems(context: OrgContext): EmployeeNavItem[] {
       group: 'planner',
     },
     {
+      href: '/employee/tools',
+      labelKey: 'employeeApp.nav.professionalTools',
+      visible:
+        process.env.PF_EXTERNAL_TOOLS === '1' &&
+        (employeeHasPermission(context, PERMISSIONS.TOOLS_EXTERNAL_VIEWER) ||
+          employeeHasPermission(context, PERMISSIONS.TOOLS_EXTERNAL_TAKEOFF)),
+      group: 'planner',
+    },
+    {
       href: '/employee/tasks',
       labelKey: 'employeeApp.nav.tasks',
       visible:

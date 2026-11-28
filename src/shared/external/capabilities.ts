@@ -30,6 +30,8 @@ export const EXTERNAL_CAPABILITIES = {
   TAKEOFF_MANAGE: 'ext.takeoff.manage',
   TAKEOFF_APPROVE: 'ext.takeoff.approve',
   TAKEOFF_LIBRARY_MANAGE: 'ext.takeoff.library.manage',
+  TOOLS_VIEWER: 'ext.tools.viewer',
+  TOOLS_TAKEOFF: 'ext.tools.takeoff',
   // Per project semantic folder (1:1). Stored in existing scopes jsonb — no schema change.
   // Not included in operational templates; managers grant each folder explicitly (custom).
   FOLDER_QUOTES: 'ext.folder.quotes',
@@ -100,11 +102,17 @@ export function isFolderExternalCapability(value: string): boolean {
   return FOLDER_EXTERNAL_SET.has(value);
 }
 
+const ORG_TOOL_EXTERNAL: ReadonlySet<string> = new Set([
+  EXTERNAL_CAPABILITIES.TOOLS_VIEWER,
+  EXTERNAL_CAPABILITIES.TOOLS_TAKEOFF,
+]);
+
 const OPERATIONAL_EXTERNAL: readonly ExternalCapability[] = ALL_EXTERNAL_CAPABILITIES.filter(
   (capability) =>
     !FINANCIAL_EXTERNAL_CAPABILITIES.includes(capability) &&
     capability !== EXTERNAL_CAPABILITIES.BID_SUBMIT &&
-    !FOLDER_EXTERNAL_SET.has(capability),
+    !FOLDER_EXTERNAL_SET.has(capability) &&
+    !ORG_TOOL_EXTERNAL.has(capability),
 );
 
 /** Grant templates used by the invite UI. Keys are stable identifiers (not role names to branch on). */

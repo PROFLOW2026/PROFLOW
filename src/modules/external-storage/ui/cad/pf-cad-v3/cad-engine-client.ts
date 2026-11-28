@@ -64,13 +64,14 @@ function isWorkerOut(data: unknown): data is WorkerOut {
   );
 }
 
-function depsToWire(deps: XrefDepBytes[]): WorkerParseDep[] {
+function depsToWire(deps: Array<XrefDepBytes & { blockName?: string; logicalId?: string; parentId?: number }>): WorkerParseDep[] {
   return deps.map((d) => ({
     path: d.path,
     bytes: d.bytes.buffer.slice(
       d.bytes.byteOffset,
       d.bytes.byteOffset + d.bytes.byteLength,
     ) as ArrayBuffer,
+    ...(d.blockName ? { blockName: d.blockName, logicalId: d.logicalId, parentId: d.parentId } : {}),
   }));
 }
 
@@ -197,6 +198,7 @@ export class CadEngineClient {
     hostBytes: Uint8Array,
     hostPath: string,
     deps: XrefDepBytes[],
+    wasmBaseUrl?: string,
   ): Promise<WorkerParseOk> {
     const id = nextId();
     const wireDeps = depsToWire(deps);
@@ -214,6 +216,7 @@ export class CadEngineClient {
         deps: wireDeps,
         space: '',
         omitSegments: true,
+        ...(wasmBaseUrl ? { wasmBaseUrl } : {}),
       },
       transfer,
       false,
@@ -229,6 +232,10 @@ export class CadEngineClient {
     cachedDeps?: XrefDepBytes[];
     plotMode?: boolean;
     plotCtbBytes?: ArrayBuffer;
+    wasmBaseUrl?: string;
+    hostLogicalId?: string;
+    xrefChoices?: readonly { parentLogicalId: string; blockName: string; savedPath: string; logicalId: string }[];
+    parentDeps?: Array<{ path: string; bytes: Uint8Array; blockName: string; logicalId: string; parentId?: number }>;
   }): Promise<WorkerParseOk> {
     const hostPath = normalizeCadPath(input.fileName);
     const hostBytes = input.hostBytes;
@@ -240,6 +247,7 @@ export class CadEngineClient {
     const xrefStats = { downloadMs: 0 };
 
     const deps =
+      input.parentDeps ??
       input.cachedDeps ??
       (input.skipXrefClosure
         ? []
@@ -249,13 +257,16 @@ export class CadEngineClient {
               hostPath,
               hostBytes,
               index: input.fileIndex,
+              parentIdentity: Boolean(input.wasmBaseUrl),
+              hostLogicalId: input.hostLogicalId,
+              xrefChoices: input.xrefChoices,
               stats: xrefStats,
               onFetchProgress: (loaded, total) => {
                 lerpPhase('xref', total > 0 ? loaded / total : 0.5, this.callbacks, `${loaded}/${total}`);
               },
               probeParse: async (bytes, path, closureDeps) => {
                 const t0 = performance.now();
-                const res = await this.probeScene(bytes, path, closureDeps);
+                const res = await this.probeScene(bytes, path, closureDeps, input.wasmBaseUrl);
                 xrefProbeMs += performance.now() - t0;
                 xrefProbeCount += 1;
                 totalParseMs += res.timings.parseMs;
@@ -294,6 +305,8 @@ export class CadEngineClient {
         space: input.space ?? '',
         plotMode: input.plotMode ?? false,
         plotCtbBytes: input.plotCtbBytes,
+        ...(input.wasmBaseUrl ? { wasmBaseUrl: input.wasmBaseUrl } : {}),
+        ...(input.parentDeps || deps.some((dep) => dep.blockName && dep.logicalId) ? { parentMode: true as const } : {}),
       },
       transfer,
       true,

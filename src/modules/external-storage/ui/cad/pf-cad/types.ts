@@ -97,6 +97,9 @@ export const SEGMENT_STRIDE = 8;
 export type WorkerParseDep = {
   path: string;
   bytes: ArrayBuffer;
+  blockName?: string;
+  logicalId?: string;
+  parentId?: number;
 };
 
 export type WorkerParseRequest = {
@@ -106,6 +109,8 @@ export type WorkerParseRequest = {
   space?: string;
   hostPath?: string;
   deps?: WorkerParseDep[];
+  wasmBaseUrl?: string;
+  parentMode?: boolean;
   /** XREF probe: skip segment buffer transfer (report-only). */
   omitSegments?: boolean;
   /** CTB-like plot preview (display only). */

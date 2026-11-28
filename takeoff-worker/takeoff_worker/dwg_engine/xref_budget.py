@@ -27,6 +27,20 @@ class XrefBudget:
     def timed_out(self) -> bool:
         return time.monotonic() - self.started >= XREF_MAX_CLOSURE_SEC
 
+    def reject_new_bytes(self, size: int | None) -> str | None:
+        """Size and count stops without treating a second reference to a known file as a cycle."""
+        if self.host_over_budget:
+            return "host_over_budget"
+        if self.count >= XREF_MAX_FILES:
+            return "count"
+        if self.timed_out():
+            return "time"
+        if size is not None and size > XREF_MAX_FILE_BYTES:
+            return "file_size"
+        if size is not None and self.host_bytes + self.loaded_bytes + size > XREF_MAX_CLOSURE_BYTES:
+            return "total_size"
+        return None
+
     def reject(self, size: int | None, identity: str) -> str | None:
         if self.host_over_budget:
             return "host_over_budget"

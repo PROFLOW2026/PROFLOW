@@ -246,6 +246,8 @@
       "ext_takeoff_manage": "Run and edit takeoff analyses",
       "ext_takeoff_approve": "Approve takeoff quantities",
       "ext_takeoff_library_manage": "Manage takeoff symbol library",
+      "ext_tools_viewer": "View drawings without a project",
+      "ext_tools_takeoff": "Quantity takeoff without a project",
       "ext_rfi_view": "View RFIs",
       "ext_rfi_raise": "Raise RFIs",
       "ext_submittal_submit": "Submit submittals",

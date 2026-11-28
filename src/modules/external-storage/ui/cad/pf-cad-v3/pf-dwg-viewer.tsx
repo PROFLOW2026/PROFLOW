@@ -144,6 +144,10 @@ export function PfDwgViewer({
   scope,
   projectId,
   devCadIndexedFiles,
+  wasmBaseUrl,
+  hostLogicalId,
+  xrefChoices,
+  onXrefReport,
   viewerVersion,
   onViewerVersionChange,
 }: {
@@ -157,6 +161,10 @@ export function PfDwgViewer({
   projectId?: string;
   /** Dev-only: satisfy XREF/fonts without storage OAuth. */
   devCadIndexedFiles?: readonly CadIndexedFile[];
+  wasmBaseUrl?: string;
+  hostLogicalId?: string;
+  xrefChoices?: readonly { parentLogicalId: string; blockName: string; savedPath: string; logicalId: string }[];
+  onXrefReport?: (rows: readonly { blockName: string; savedPath: string }[]) => void;
   viewerVersion?: CadViewerVersion;
   onViewerVersionChange?: (version: CadViewerVersion) => void;
 }) {
@@ -171,6 +179,10 @@ export function PfDwgViewer({
       scope={scope}
       projectId={projectId}
       devCadIndexedFiles={devCadIndexedFiles}
+      wasmBaseUrl={wasmBaseUrl}
+      hostLogicalId={hostLogicalId}
+      xrefChoices={xrefChoices}
+      onXrefReport={onXrefReport}
       viewerVersion={viewerVersion}
       onViewerVersionChange={onViewerVersionChange}
     />
@@ -186,6 +198,10 @@ function PfDwgViewerInner({
   scope,
   projectId,
   devCadIndexedFiles,
+  wasmBaseUrl,
+  hostLogicalId,
+  xrefChoices,
+  onXrefReport,
   viewerVersion,
   onViewerVersionChange,
 }: {
@@ -197,6 +213,10 @@ function PfDwgViewerInner({
   scope: StorageBrowserScope;
   projectId?: string;
   devCadIndexedFiles?: readonly CadIndexedFile[];
+  wasmBaseUrl?: string;
+  hostLogicalId?: string;
+  xrefChoices?: readonly { parentLogicalId: string; blockName: string; savedPath: string; logicalId: string }[];
+  onXrefReport?: (rows: readonly { blockName: string; savedPath: string }[]) => void;
   viewerVersion?: CadViewerVersion;
   onViewerVersionChange?: (version: CadViewerVersion) => void;
 }) {
@@ -578,8 +598,12 @@ function PfDwgViewerInner({
           fileIndex,
           plotMode: plotOn,
           plotCtbBytes,
+          ...(wasmBaseUrl ? { wasmBaseUrl, hostLogicalId, xrefChoices } : {}),
         });
         if (cancelled || applyGen !== sceneApplyGenRef.current) return;
+        onXrefReport?.(
+          Object.entries(res.scene.report.xrefs ?? {}).map(([blockName, savedPath]) => ({ blockName, savedPath })),
+        );
         const fontResolve = await resolveCadFontsFromStorage({
           fonts: res.scene.report.fonts,
           textStyleTable: res.scene.textStyleTable,
@@ -675,7 +699,7 @@ function PfDwgViewerInner({
       loadContextRef.current = null;
       cachedDepsRef.current = [];
     };
-  }, [devCadIndexedFiles, fileIndex, fileName, syncRasterScene, t, url]);
+  }, [devCadIndexedFiles, fileIndex, fileName, hostLogicalId, onXrefReport, syncRasterScene, t, url, wasmBaseUrl, xrefChoices]);
 
   const handleFitView = useCallback(() => {
     rendererRef.current?.fitFull();
@@ -760,6 +784,7 @@ function PfDwgViewerInner({
             cachedDeps: cachedDepsRef.current,
             plotMode: plotOn,
             plotCtbBytes,
+          ...(wasmBaseUrl ? { wasmBaseUrl, hostLogicalId, xrefChoices } : {}),
           });
           if (applyGen !== sceneApplyGenRef.current) return;
           const fontResolve =
@@ -814,7 +839,7 @@ function PfDwgViewerInner({
         }
       })();
     },
-    [fileName, syncRasterScene, t],
+    [fileName, hostLogicalId, syncRasterScene, t, wasmBaseUrl, xrefChoices],
   );
 
   const handlePlotViewChange = useCallback(
@@ -843,6 +868,7 @@ function PfDwgViewerInner({
             cachedDeps: cachedDepsRef.current,
             plotMode: on,
             plotCtbBytes,
+          ...(wasmBaseUrl ? { wasmBaseUrl, hostLogicalId, xrefChoices } : {}),
           });
           const fontResolve = resolvedFontsRef.current;
           const reportWithFonts = mergeMissingFontsIntoReport(
@@ -884,7 +910,7 @@ function PfDwgViewerInner({
         }
       })();
     },
-    [activeSpace, fileName, syncRasterScene, t],
+    [activeSpace, fileName, hostLogicalId, syncRasterScene, t, wasmBaseUrl, xrefChoices],
   );
 
   const publishLayers = useCallback((rows: readonly { index: number; visible: boolean }[]) => {

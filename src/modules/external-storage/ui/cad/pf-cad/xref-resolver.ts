@@ -3,6 +3,7 @@ import type { ScenePayload } from './types';
 export type CadIndexedFile = {
   name: string;
   sizeBytes?: number | null;
+  logicalId?: string;
   getBytes: () => Promise<Uint8Array>;
 };
 
@@ -117,7 +118,20 @@ export function lookupInIndex(
   return null;
 }
 
-export type XrefDepBytes = { path: string; bytes: Uint8Array };
+function fileByLogicalId(index: FileIndex, logicalId: string): CadIndexedFile | null {
+  for (const file of index.byRelativePath.values()) {
+    if (file.logicalId === logicalId) return file;
+  }
+  return null;
+}
+
+export type XrefDepBytes = {
+  path: string;
+  bytes: Uint8Array;
+  blockName?: string;
+  logicalId?: string;
+  parentId?: number;
+};
 
 export type ProbeParseFn = (
   hostBytes: Uint8Array,
@@ -183,10 +197,14 @@ export async function collectXrefClosure(options: {
   fetchConcurrency?: number;
   onFetchProgress?: (loaded: number, targetBatch: number) => void;
   stats?: XrefClosureStats;
+  parentIdentity?: boolean;
+  hostLogicalId?: string;
+  xrefChoices?: readonly { parentLogicalId: string; blockName: string; savedPath: string; logicalId: string }[];
 }): Promise<XrefDepBytes[]> {
   const maxFiles = options.maxFiles ?? DEFAULT_MAX_FILES;
   const fetchConcurrency = options.fetchConcurrency ?? DEFAULT_XREF_FETCH_CONCURRENCY;
   const depsByPath = new Map<string, Uint8Array>();
+  const parentWanted = new Map<string, { hit: CadIndexedFile; blockName: string; saved: string }>();
   const hostPath = normalizeCadPath(options.hostPath);
   const started = performance.now();
   const closureLimit = 150 * 1024 * 1024;
@@ -224,6 +242,26 @@ export async function collectXrefClosure(options: {
       pending.push({ depKey, hit });
     }
 
+    if (options.parentIdentity) {
+      const raw = scene.report?.xrefs ?? {};
+      for (const [blockName, savedRaw] of Object.entries(raw)) {
+        const saved = savedRaw.trim();
+        const lookup = saved || (blockName.toLowerCase().endsWith('.dwg') ? blockName : `${blockName}.dwg`);
+        const choice = options.xrefChoices?.find(
+          (row) => row.parentLogicalId === options.hostLogicalId && row.blockName === blockName && row.savedPath === saved,
+        );
+        const chosen = choice ? fileByLogicalId(options.index, choice.logicalId) : null;
+        const hit = chosen ?? lookupInIndex(options.index, hostPath, lookup);
+        if (!hit?.logicalId) continue;
+        const key = `${blockName}\0${saved}`;
+        if (!parentWanted.has(key)) parentWanted.set(key, { hit, blockName, saved });
+        const depKey = normalizeCadPath(hit.name);
+        if (!depsByPath.has(depKey) && !pending.some((item) => item.depKey === depKey)) {
+          pending.push({ depKey, hit });
+        }
+      }
+    }
+
     if (pending.length === 0) {
       break;
     }
@@ -250,5 +288,20 @@ export async function collectXrefClosure(options: {
     });
   }
 
-  return [...depsByPath.entries()].map(([path, bytes]) => ({ path, bytes }));
+  if (!options.parentIdentity) {
+    return [...depsByPath.entries()].map(([path, bytes]) => ({ path, bytes }));
+  }
+  const parentDeps: XrefDepBytes[] = [];
+  for (const wanted of parentWanted.values()) {
+    const bytes = depsByPath.get(normalizeCadPath(wanted.hit.name));
+    if (!bytes || !wanted.hit.logicalId) continue;
+    parentDeps.push({
+      path: wanted.saved,
+      bytes,
+      blockName: wanted.blockName,
+      logicalId: wanted.hit.logicalId,
+      parentId: 1,
+    });
+  }
+  return parentDeps;
 }

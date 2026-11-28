@@ -134,6 +134,8 @@ export const PERMISSIONS = {
   TAKEOFF_MANAGE: 'takeoff.manage',
   TAKEOFF_APPROVE: 'takeoff.approve',
   TAKEOFF_LIBRARY_MANAGE: 'takeoff.library.manage',
+  TOOLS_EXTERNAL_VIEWER: 'tools.external_viewer',
+  TOOLS_EXTERNAL_TAKEOFF: 'tools.external_takeoff',
 
   FORMS_READ: 'forms.read',
   FORMS_SUBMIT: 'forms.submit',
@@ -426,6 +428,8 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
     category: 'commercial',
     description: 'Manage planner symbol library entries',
   },
+  { key: PERMISSIONS.TOOLS_EXTERNAL_VIEWER, category: 'commercial', description: 'Open an external drawing with no project' },
+  { key: PERMISSIONS.TOOLS_EXTERNAL_TAKEOFF, category: 'commercial', description: 'Run an external quantity takeoff with no project' },
 
   { key: PERMISSIONS.FORMS_READ, category: 'projects', description: 'View field forms and submissions' },
   { key: PERMISSIONS.FORMS_SUBMIT, category: 'projects', description: 'Fill and submit field forms' },

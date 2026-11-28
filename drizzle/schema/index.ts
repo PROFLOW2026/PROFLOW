@@ -81,5 +81,6 @@ export * from './dg-notifications';
 export * from './dg-surfaces';
 export * from './infra-mapping';
 export * from './electrical-takeoff';
+export * from './external-tools';
 export * from './connected-projects';
 

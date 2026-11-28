@@ -112,7 +112,7 @@ def run_job(
     artifacts: dict[str, bytes] = {}
 
     for wf in request.files:
-        dest = workdir / f"{wf.fileId}_{wf.name}"
+        dest = workdir / f"{wf.fileId}_{Path(wf.name).name}"
         try:
             paths[wf.fileId] = download(wf.downloadUrl, dest)
         except OSError as exc:
@@ -188,15 +188,24 @@ def run_job(
                         warnings.append(
                             WorkerWarning(code="xref_missing", severity="warning", message=f"xref חסר: {xr.name}", fileId=wf.fileId)
                         )
+                anchor_mode = bool(getattr(request.options, "resolveXrefByAnchor", False))
+
                 def fetch_xref(name: str, saved_path: str, anchor: str):
                     xref_url = getattr(request.callback, "xrefUrl", None)
-                    if not xref_url or not saved_path:
+                    if not xref_url or (not saved_path and not anchor_mode):
                         return None
                     from urllib.parse import urlencode
 
-                    query = urlencode({"fileId": wf.fileId, "path": saved_path, "anchor": anchor})
+                    parent_id = anchor if anchor_mode and anchor else wf.fileId
+                    query_args = {"fileId": parent_id, "path": saved_path, "anchor": anchor}
+                    if anchor_mode:
+                        query_args["block"] = name
+                    query = urlencode(query_args)
                     joiner = "&" if "?" in xref_url else "?"
-                    dest = workdir / f"xr_{wf.fileId}_{abs(hash((anchor, saved_path))) & 0xFFFFFFFF}.bin"
+                    suffix = Path(saved_path).suffix.lower()
+                    if suffix not in {".dxf", ".dwg"}:
+                        suffix = ".bin"
+                    dest = workdir / f"xr_{wf.fileId}_{abs(hash((anchor, saved_path))) & 0xFFFFFFFF}{suffix}"
                     try:
                         download(xref_url + joiner + query, dest)
                     except OSError:

@@ -1,0 +1,11 @@
+{
+    "abi":  "xref-parent-1",
+    "exports":  [
+                    "begin_host",
+                    "begin_xref_parent_mode",
+                    "add_xref_dep_in_parent"
+                ],
+    "sourceDirty":  true,
+    "engineCommitSha":  "8749c95d793cca26f082c9c5062d7e9315b50387",
+    "builtAt":  "2026-11-27T17:36:00+02:00"
+}

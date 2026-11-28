@@ -1,0 +1,88 @@
+{
+  "label": "Working-tree worker after the last xref/choice/pairing fixes, compared with the saved 2026-11-27 comparison.",
+  "off": [
+    {
+      "file": "3643-EL.dwg",
+      "savedDetections": 1713,
+      "freshDetections": 1713,
+      "savedSheets": 10,
+      "freshSheets": 10,
+      "onlySaved": 0,
+      "onlyFresh": 0,
+      "ok": true
+    },
+    {
+      "file": "1545-all-01.dwg",
+      "savedDetections": 1397,
+      "freshDetections": 1397,
+      "savedSheets": 1,
+      "freshSheets": 1,
+      "onlySaved": 0,
+      "onlyFresh": 0,
+      "ok": true
+    },
+    {
+      "file": "7155-A1.dwg",
+      "savedDetections": 446,
+      "freshDetections": 446,
+      "savedSheets": 8,
+      "freshSheets": 8,
+      "onlySaved": 0,
+      "onlyFresh": 0,
+      "ok": true
+    },
+    {
+      "file": "3096-EL.dwg",
+      "savedDetections": 64,
+      "freshDetections": 64,
+      "savedSheets": 3,
+      "freshSheets": 3,
+      "onlySaved": 0,
+      "onlyFresh": 0,
+      "ok": true
+    }
+  ],
+  "on": [
+    {
+      "file": "3643-EL.dwg",
+      "savedDetections": 1713,
+      "freshDetections": 1713,
+      "savedSheets": 10,
+      "freshSheets": 10,
+      "onlySaved": 0,
+      "onlyFresh": 0,
+      "ok": true
+    },
+    {
+      "file": "1545-all-01.dwg",
+      "savedDetections": 1397,
+      "freshDetections": 1397,
+      "savedSheets": 1,
+      "freshSheets": 1,
+      "onlySaved": 0,
+      "onlyFresh": 0,
+      "ok": true
+    },
+    {
+      "file": "7155-A1.dwg",
+      "savedDetections": 446,
+      "freshDetections": 446,
+      "savedSheets": 8,
+      "freshSheets": 8,
+      "onlySaved": 0,
+      "onlyFresh": 0,
+      "ok": true
+    },
+    {
+      "file": "3096-EL.dwg",
+      "savedDetections": 64,
+      "freshDetections": 64,
+      "savedSheets": 3,
+      "freshSheets": 3,
+      "onlySaved": 0,
+      "onlyFresh": 0,
+      "ok": true
+    }
+  ],
+  "ok": true
+}

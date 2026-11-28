@@ -69,6 +69,12 @@ describe('contractor password policy', () => {
 describe('contractor grant policy', () => {
   it('adds project.view, orders by catalog and rejects non-external keys', () => {
     expect(normalizeExternalCapabilities([X.TASK_WORK])).toEqual([X.PROJECT_VIEW, X.TASK_WORK]);
+    expect(normalizeExternalCapabilities([X.TOOLS_TAKEOFF, X.TOOLS_VIEWER])).toEqual([
+      X.TOOLS_VIEWER,
+      X.TOOLS_TAKEOFF,
+    ]);
+    expect(resolveGrantCapabilities('site_contractor', undefined)).not.toContain(X.TOOLS_VIEWER);
+    expect(resolveGrantCapabilities('site_contractor', undefined)).not.toContain(X.TOOLS_TAKEOFF);
     expect(() => normalizeExternalCapabilities(['expenses.manage'])).toThrow(GrantRuleError);
     expect(() => normalizeExternalCapabilities([])).toThrow(GrantRuleError);
     expect(resolveGrantCapabilities('read_only', undefined)).toContain(X.PLAN_VIEW);

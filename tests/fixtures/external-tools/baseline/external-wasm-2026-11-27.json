@@ -1,0 +1,30 @@
+{
+  "capturedAt": "2026-11-27T17:36:00+02:00",
+  "toolchain": "c:\\Users\\ERAN YOSEF\\Desktop\\final projects\\cad-viewer-rnd\\toolchain",
+  "buildScript": "projectflow-cad-engine/scripts/build-wasm.ps1",
+  "abi": "xref-parent-1",
+  "publishedPath": "public/pf-cad/external/wasm/pf_cad_wasm_bg.wasm",
+  "newBinary": {
+    "sha256": "75230F86B8F41008037ED53E625F877A9F4E38465C67BBAF2995833267B42F40",
+    "bytes": 5887448,
+    "exports": ["begin_host", "begin_xref_parent_mode", "add_xref_dep_in_parent"]
+  },
+  "existingBinariesBeforeAndAfter": {
+    "v1": {
+      "path": "public/pf-cad/v1/wasm/pf_cad_wasm_bg.wasm",
+      "sha256": "C99C606F116937A1ED6CD05A2466AD8E53D83E381349B7E43A6C7883B02AC458",
+      "bytes": 4369229
+    },
+    "v2": {
+      "path": "public/pf-cad/v2/wasm/pf_cad_wasm_bg.wasm",
+      "sha256": "C9A5BB4229A484DCC4C802E3540FDD379FFD16360FC82775DC8FF8D405C8822D",
+      "bytes": 5874217
+    },
+    "v3": {
+      "path": "public/pf-cad/v3/wasm/pf_cad_wasm_bg.wasm",
+      "sha256": "C9A5BB4229A484DCC4C802E3540FDD379FFD16360FC82775DC8FF8D405C8822D",
+      "bytes": 5874217
+    }
+  },
+  "note": "Hashes of v1, v2 and v3 were measured immediately before the copy and again immediately after. They did not change. This file is a binary lock, not a quantity baseline of drawings 3643, 1545, 7155 or 3096."
+}

@@ -19,6 +19,10 @@ type ViewerProps = {
   scope: StorageBrowserScope;
   projectId?: string;
   devCadIndexedFiles?: readonly CadIndexedFile[];
+  wasmBaseUrl?: string;
+  hostLogicalId?: string;
+  xrefChoices?: readonly { parentLogicalId: string; blockName: string; savedPath: string; logicalId: string }[];
+  onXrefReport?: (rows: readonly { blockName: string; savedPath: string }[]) => void;
   viewerVersion: CadViewerVersion;
   onViewerVersionChange: (version: CadViewerVersion) => void;
 };
@@ -56,6 +60,16 @@ export function PfDwgVersionedViewer(props: Omit<ViewerProps, 'viewerVersion' | 
   }, [requested]);
 
   const Viewer = active?.Viewer;
+  const shownFiles =
+    active?.version === 'v3' && props.devCadIndexedFiles
+      ? props.devCadIndexedFiles.filter((file) => {
+          const base = (file.name.split(/[\\/]/).pop() ?? file.name).toLowerCase();
+          const same = props.devCadIndexedFiles?.filter(
+            (other) => (other.name.split(/[\\/]/).pop() ?? other.name).toLowerCase() === base,
+          ).length;
+          return same === 1;
+        })
+      : props.devCadIndexedFiles;
 
   return (
     <div data-pf-style="classic" data-cad-tree={cadViewerTree(active?.version ?? requested)} className="flex min-h-0 flex-1 flex-col">
@@ -68,6 +82,11 @@ export function PfDwgVersionedViewer(props: Omit<ViewerProps, 'viewerVersion' | 
         <Viewer
           key={active.version}
           {...props}
+          devCadIndexedFiles={shownFiles}
+          wasmBaseUrl={active.version === 'v3' ? undefined : props.wasmBaseUrl}
+          hostLogicalId={active.version === 'v3' ? undefined : props.hostLogicalId}
+          xrefChoices={active.version === 'v3' ? undefined : props.xrefChoices}
+          onXrefReport={props.onXrefReport}
           viewerVersion={active.version}
           onViewerVersionChange={setRequested}
         />

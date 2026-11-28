@@ -9,7 +9,8 @@
 #>
 param(
   [string[]]$RequiredFunctions = @(),
-  [switch]$Wait
+  [switch]$Wait,
+  [switch]$LocalBuild
 )
 $ErrorActionPreference = 'Stop'
 
@@ -24,7 +25,11 @@ $running = docker ps --filter "name=^${Container}$" --format '{{.Names}}'
 if ($running) { throw "A build is already running ($Container). Do not start a second one." }
 
 $sha = (git rev-parse HEAD).Trim()
-"Building committed HEAD $sha (uncommitted changes are NOT included)."
+if ($LocalBuild) {
+  "Local build of the working tree at HEAD $sha. Deploy will not run."
+} else {
+  "Building committed HEAD $sha (uncommitted changes are NOT included)."
+}
 
 # --- Production variables: must exist and be real values (the Vercel pull returns [SENSITIVE] placeholders) ---
 New-Item -ItemType Directory -Force -Path $Work, $Out | Out-Null
@@ -47,8 +52,23 @@ if ($problems.Count) { throw ("Production variables invalid: " + ($problems -joi
 'Production public variables look valid (values not printed).'
 
 # --- Inputs for the container ---
-git archive --format=tar -o (Join-Path $Work 'src.tar') HEAD
-if ($LASTEXITCODE -ne 0) { throw 'git archive failed' }
+$srcTar = Join-Path $Work 'src.tar'
+if ($LocalBuild) {
+  # The working tree, not HEAD: tracked files plus untracked files that are not ignored.
+  # Windows tar cannot pack this tree (paths longer than MAX_PATH), so Linux tar reads the list.
+  $list = Join-Path $Work 'files.z'
+  $names = @(git ls-files -c -o --exclude-standard)
+  if ($LASTEXITCODE -ne 0) { throw 'working-tree file list failed' }
+  $skip = '^(?:\.cursor/|takeoff-worker/\.(?:proof-run|cache|venv|tmp)/|docs/audits/)'
+  $kept = $names | Where-Object { $_ -and $_ -notmatch $skip }
+  $utf8 = New-Object Text.UTF8Encoding $false
+  [IO.File]::WriteAllBytes($list, $utf8.GetBytes(($kept -join "`0") + "`0"))
+  docker run --rm -v "${pwd}:/src:ro" -v "${Work}:/out" node:22-bookworm tar -cf /out/src.tar -C /src --null -T /out/files.z
+  if ($LASTEXITCODE -ne 0) { throw 'working-tree archive failed' }
+} else {
+  git archive --format=tar -o $srcTar HEAD
+  if ($LASTEXITCODE -ne 0) { throw 'git archive failed' }
+}
 Copy-Item .vercel/project.json (Join-Path $Work 'project.json') -Force
 # The script must have LF endings (CRLF breaks bash with "set: invalid option").
 $script = (Get-Content scripts/deploy/linux-prebuilt.sh -Raw) -replace "`r`n", "`n"
@@ -67,7 +87,8 @@ if ($whoamiExit -ne 0) { throw "vercel whoami failed (exit code $whoamiExit): no
 $tok = (Get-Content (Join-Path $env:APPDATA 'com.vercel.cli/Data/auth.json') -Raw | ConvertFrom-Json).token
 $pj = Get-Content .vercel/project.json -Raw | ConvertFrom-Json
 $tokenEnv = Join-Path $Work 'token.env'
-$lines = "VERCEL_TOKEN=$tok`nVERCEL_ORG_ID=$($pj.orgId)`nVERCEL_PROJECT_ID=$($pj.projectId)`nREQUIRED_FUNCS=$($RequiredFunctions -join ' ')`n"
+$stage = if ($LocalBuild) { 'build' } else { 'all' }
+$lines = "VERCEL_TOKEN=$tok`nVERCEL_ORG_ID=$($pj.orgId)`nVERCEL_PROJECT_ID=$($pj.projectId)`nREQUIRED_FUNCS=$($RequiredFunctions -join ' ')`nSTAGE=$stage`n"
 [IO.File]::WriteAllText($tokenEnv, $lines, (New-Object Text.UTF8Encoding($false)))
 
 docker run -d --name $Container --cpuset-cpus 0-5 --env-file $tokenEnv `
@@ -78,6 +99,8 @@ Remove-Item $tokenEnv -Force
 
 if ($Wait) {
   while ((Get-Content (Join-Path $Out 'status') -ErrorAction SilentlyContinue) -eq 'RUNNING') { Start-Sleep 10 }
-  "Result: " + (Get-Content (Join-Path $Out 'status'))
+  $result = Get-Content (Join-Path $Out 'status') -Raw
+  "Result: $($result.Trim())"
   Get-Content (Join-Path $Out 'steps.log')
+  if ($result.Trim() -ne 'BUILT' -and $result.Trim() -ne 'SUCCEEDED') { throw "build failed: $($result.Trim())" }
 }

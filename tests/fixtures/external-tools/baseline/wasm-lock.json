@@ -1,0 +1,29 @@
+{
+  "capturedBeforeEngineEdits": true,
+  "purpose": "SHA-256 of the three published viewer binaries before the external parent-identity binary. A later build must fail if any of these change.",
+  "binaries": [
+    {
+      "slot": "v1-frozen",
+      "path": "public/pf-cad/v1/wasm/pf_cad_wasm_bg.wasm",
+      "sha256": "C99C606F116937A1ED6CD05A2466AD8E53D83E381349B7E43A6C7883B02AC458",
+      "bytes": 4369229
+    },
+    {
+      "slot": "v2",
+      "path": "public/pf-cad/v2/wasm/pf_cad_wasm_bg.wasm",
+      "sha256": "C9A5BB4229A484DCC4C802E3540FDD379FFD16360FC82775DC8FF8D405C8822D",
+      "bytes": 5874217
+    },
+    {
+      "slot": "v3-button-default-tree",
+      "path": "public/pf-cad/v3/wasm/pf_cad_wasm_bg.wasm",
+      "sha256": "C9A5BB4229A484DCC4C802E3540FDD379FFD16360FC82775DC8FF8D405C8822D",
+      "bytes": 5874217
+    }
+  ],
+  "analysisArtifactsAlreadyInRepo": [
+    "docs/audits/3643-legend-identity-dump-2026-11-21.json",
+    "docs/audits/blueprint-takeoff-research-2026-11/phase2/outputs/res7155_all_runs.json"
+  ],
+  "engineReRun": "not executed in this capture. LibreDWG conversion writes a DXF cache; the lock above is the pre-change display binary. Comparison fixtures for collisions are expected results, not the old overwrite."
+}

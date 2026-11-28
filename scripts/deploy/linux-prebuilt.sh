@@ -6,7 +6,9 @@
 # Mounts:   /in  (read-only)  src.tar, project.json, env.production.local, this script
 #           /out (writable)   status + logs
 # Env:      VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID  (passed with --env-file, deleted by the launcher)
-#           STAGE=all (default) | deploy   (deploy = reuse the build already in /work, e.g. after a token problem)
+#           STAGE=all (default) | build | deploy
+#           build = same Linux build as all, then stop before deploy
+#           deploy = reuse the build already in /work, e.g. after a token problem
 #           REQUIRED_FUNCS="functions/[locale]/live/[token].func ..."  (optional, space separated, relative to .vercel/output)
 set -u
 OUT=/out
@@ -19,7 +21,7 @@ date -u +%FT%TZ > "$OUT/started_at"
 step() { echo "$(date -u +%T) $*" >> "$OUT/steps.log"; }
 fail() { echo "$1" > "$OUT/status"; step "FAILED: $1"; exit 1; }
 
-if [ "$STAGE" = "all" ]; then
+if [ "$STAGE" = "all" ] || [ "$STAGE" = "build" ]; then
   step "extract source"
   mkdir -p /work && cd /work || fail "FAILED_SETUP"
   tar -xf /in/src.tar || fail "FAILED_EXTRACT"
@@ -112,6 +114,13 @@ step "checks exit=$crc"
 # No env files and no token anywhere in what is about to be uploaded.
 [ "$(find .vercel/output \( -name '.env*' -o -name '*.env' \) | wc -l)" = "0" ] || fail "FAILED_ENV_FILES_IN_OUTPUT"
 [ "$(grep -rlF "$VERCEL_TOKEN" .vercel/output 2>/dev/null | wc -l)" = "0" ] || fail "FAILED_TOKEN_IN_OUTPUT"
+
+# STAGE=build is the local working-tree build. It stops after the output checks and does not deploy.
+if [ "$STAGE" = "build" ]; then
+  echo "BUILT" > "$OUT/status"
+  step "local build finished; deploy not run"
+  exit 0
+fi
 
 # --archive=tgz uploads ONE compressed archive instead of thousands of files: the per-file upload quota of the
 # Vercel plan ("api-upload-free", 5000 files / 24 h) is no longer consumed by every deployment.

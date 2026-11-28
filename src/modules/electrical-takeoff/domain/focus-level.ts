@@ -47,13 +47,15 @@ export function chooseTakeoffSheetId(
     if (preferred) {
       const preferredSheet = plan.sheets.find((item) => item.id === preferred);
       if (preferredSheet?.kind === 'model') return preferred;
-      if (preferredSheet) return preferred;
+      if (preferredSheet && viewportForMark(preferredSheet, mark.nativeX, mark.nativeY, [])) {
+        return preferred;
+      }
     }
     const owner = plan.sheets.find(
       (item) => item.kind === 'layout' && viewportForMark(item, mark.nativeX, mark.nativeY, []),
     );
     if (owner) return owner.id;
-    return preferred ?? 'model';
+    return 'model';
   }
   if (preferred) return preferred;
   const stay = known(lastPick);

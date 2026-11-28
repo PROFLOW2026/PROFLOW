@@ -1,5 +1,6 @@
 import type { PermissionKey } from '@/shared/permissions/catalog';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { externalToolsEnabled } from '@/modules/external-tools/domain/flags';
 import type { ModuleVisibility, OptionalModuleKey } from '@/modules/tenancy/domain/types';
 import type { WorkMix } from '@/modules/tenancy/domain/work-mix';
 import {
@@ -594,6 +595,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'documents',
   },
   {
+    key: 'professionalTools',
+    href: '/tools',
+    labelKey: 'professionalTools',
+    iconKey: 'documents',
+    anyPermissions: [PERMISSIONS.TOOLS_EXTERNAL_VIEWER, PERMISSIONS.TOOLS_EXTERNAL_TAKEOFF],
+    moreGroup: 'documents',
+  },
+  {
     key: 'companyFiles',
     href: '/company-files',
     labelKey: 'companyFiles',
@@ -800,6 +809,7 @@ export function visibleNavItems(
   const forceJobs = workMixSurfacesJobs(workMix);
 
   const filtered = NAV_ITEMS.filter((item) => {
+    if (item.key === 'professionalTools' && !externalToolsEnabled()) return false;
     if (item.anyPermissions && item.anyPermissions.length > 0) {
       if (!item.anyPermissions.some((key) => permissions.has(key))) return false;
     } else if (item.permission && !permissions.has(item.permission)) {

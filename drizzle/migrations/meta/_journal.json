@@ -1492,6 +1492,13 @@
             "when": 1795238400000,
             "tag": "0216_takeoff_catalog_types_library_write",
             "breakpoints": true
+        },
+        {
+            "idx": 213,
+            "version": "7",
+            "when": 1795324800000,
+            "tag": "0217_external_professional_tools",
+            "breakpoints": true
         }
     ]
 }

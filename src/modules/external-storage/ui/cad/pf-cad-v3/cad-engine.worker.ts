@@ -57,8 +57,29 @@ function reply(msg: WorkerOut): void {
   self.postMessage(msg);
 }
 
-async function ensureWasm(): Promise<WasmApi> {
-  if (wasm) return wasm;
+let loadedBase: string | null = null;
+
+async function ensureWasm(baseUrl?: string): Promise<WasmApi> {
+  const wanted = baseUrl ?? null;
+  if (wasm) {
+    if (wanted !== loadedBase) throw new Error('abi_mismatch');
+    return wasm;
+  }
+  if (baseUrl) {
+    const manifest = (await fetch(`${baseUrl}/version.json`, { cache: 'no-store' }).then((res) =>
+      res.ok ? res.json() : null,
+    )) as { abi?: string; engineCommitSha?: string } | null;
+    if (manifest?.abi !== 'xref-parent-1') throw new Error('abi_mismatch');
+    const revision = encodeURIComponent(manifest.engineCommitSha ?? 'dev');
+    const mod = (await import(
+      /* webpackIgnore: true */
+      `${baseUrl}/pf_cad_wasm.js?v=${revision}`
+    )) as WasmInitModule;
+    wasm = await mod.default({ module_or_path: `${baseUrl}/pf_cad_wasm_bg.wasm?v=${revision}` });
+    loadedBase = baseUrl;
+    return wasm;
+  }
+  loadedBase = null;
   const t0 = performance.now();
   const manifest = (await fetch(PF_CAD_WASM_VERSION_URL, { cache: 'no-store' }).then((res) =>
     res.ok ? res.json() : null,
@@ -127,9 +148,38 @@ self.onmessage = async (event: MessageEvent<WorkerIn>) => {
   if (!req || req.type !== 'parse') return;
 
   try {
-    const w = await ensureWasm();
+    const w = await ensureWasm(req.wasmBaseUrl);
     const t0 = performance.now();
-    applyXrefDeps(w, req.hostPath, req.deps);
+    if (req.parentMode) {
+      const api = w as WasmApi & {
+        begin_xref_parent_mode?: () => number;
+        add_xref_dep_in_parent?: (...args: number[]) => number;
+      };
+      if (!api.begin_xref_parent_mode || !api.add_xref_dep_in_parent) throw new Error('abi_mismatch');
+      api.begin_xref_parent_mode();
+      for (const dep of req.deps ?? []) {
+        const block = writeUtf8(w, dep.blockName ?? '');
+        const saved = writeUtf8(w, dep.path);
+        const logical = writeUtf8(w, dep.logicalId ?? '');
+        const data = new Uint8Array(dep.bytes);
+        const dataPtr = w.alloc(data.length);
+        new Uint8Array(w.memory.buffer, dataPtr, data.length).set(data);
+        const rc = api.add_xref_dep_in_parent(
+          dep.parentId ?? 1,
+          block.ptr,
+          block.len,
+          saved.ptr,
+          saved.len,
+          logical.ptr,
+          logical.len,
+          dataPtr,
+          data.length,
+        );
+        if (rc <= 0) throw new Error(`add_xref_dep_in_parent failed (${rc})`);
+      }
+    } else {
+      applyXrefDeps(w, req.hostPath, req.deps);
+    }
     plotMode = req.plotMode === true;
     w.set_plot_mode(plotMode ? 1 : 0);
     w.set_p8_gpu_text_handoff(P8_GPU_TEXT_HANDOFF_ENABLED ? 1 : 0);

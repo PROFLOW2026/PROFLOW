@@ -19,7 +19,7 @@ import type { AnalysisView, CatalogType, SymbolLibraryEntry, TakeoffEdit, Takeof
 import { TakeoffTypePicker, type TakeoffCatalogMutations } from './takeoff-type-picker';
 import { useTakeoffApi } from './api-provider';
 import { PlanViewer } from './viewer/plan-viewer';
-import { TakeoffDwgPlan } from './viewer/takeoff-dwg-plan';
+import { TakeoffDwgPlan, type ExternalPlanSource } from './viewer/takeoff-dwg-plan';
 import { formatTakeoffDisplayName } from '../domain/format-display-name';
 import { detectionCensus, detectionDisplayLabel } from './boq-display';
 import { isRevisionConflictError, takeoffErrorCode } from './takeoff-errors';
@@ -61,12 +61,15 @@ export function TakeoffWorkspace({
   projectId,
   listPath = '/',
   sourceApiBase,
+  externalPlan,
 }: {
   analysisId: string;
   projectId: string;
   listPath?: string;
   /** Permission-checked DWG bytes, for example `/api/takeoff/source`. */
   sourceApiBase?: string;
+  /** External review only. Project screens omit this. */
+  externalPlan?: ExternalPlanSource;
 }) {
   const t = useTranslations('takeoff');
   const api = useTakeoffApi();
@@ -130,13 +133,27 @@ export function TakeoffWorkspace({
     return () => cancelAnimationFrame(id);
   }, [load]);
 
+  const reviewGroups = useMemo(
+    () => (state.view ? buildReviewGroups(state.view.detections) : []),
+    [state.view],
+  );
+  const activeGuide = reviewGroups[Math.min(guideIndex, Math.max(reviewGroups.length - 1, 0))] ?? null;
+  const guidedFocusId = shownOccurrenceId ?? state.selectedDetectionId ?? activeGuide?.focusId ?? null;
+  const focusSheetKey = useMemo(() => {
+    if (!guidedFocusId || !state.view) return null;
+    const host = state.view.sheets.find((item) =>
+      detectionsForSheet(state.view?.detections ?? [], item).some((mark) => mark.id === guidedFocusId),
+    );
+    return host ? sheetRefId(host) : null;
+  }, [guidedFocusId, state.view]);
+  const resolvedSheetKey = focusSheetKey ?? state.activeSheetKey;
   const sheets = state.view?.sheets;
   const sheet = useMemo(() => {
     if (!sheets?.length) return null;
-    if (!state.activeSheetKey) return sheets[0] ?? null;
-    const ref = parseSheetRefId(state.activeSheetKey);
+    if (!resolvedSheetKey) return sheets[0] ?? null;
+    const ref = parseSheetRefId(resolvedSheetKey);
     return sheets.find((s) => s.fileId === ref.fileId && s.sheetKey === ref.sheetKey) ?? sheets[0] ?? null;
-  }, [state.activeSheetKey, sheets]);
+  }, [resolvedSheetKey, sheets]);
 
   const sheetDetections = useMemo(
     () => (sheet && state.view ? detectionsForSheet(state.view.detections, sheet) : []),
@@ -179,7 +196,7 @@ export function TakeoffWorkspace({
     sourceApiBase &&
       sheet &&
       (sheet.kind === 'dwg_layout' || sheet.kind === 'dwg_model') &&
-      dwgSamples.length >= 2 &&
+      (externalPlan ? true : dwgSamples.length >= 2) &&
       dwgDownKey !== sheetLiveKey,
   );
 
@@ -273,11 +290,6 @@ export function TakeoffWorkspace({
     () => (state.view ? undecodedLegendExemplars(state.view.detections) : []),
     [state.view],
   );
-  const reviewGroups = useMemo(
-    () => (state.view ? buildReviewGroups(state.view.detections) : []),
-    [state.view],
-  );
-
   useEffect(() => {
     const plannerKey = state.view?.summary.plannerKey;
     if (!plannerKey) return;
@@ -292,7 +304,6 @@ export function TakeoffWorkspace({
     };
   }, [api, state.view?.summary.plannerKey, state.view?.summary.revision]);
 
-  const activeGuide = reviewGroups[Math.min(guideIndex, Math.max(reviewGroups.length - 1, 0))] ?? null;
   const guidedProgress = {
     checked: completedReviewKeys.length,
     total: completedReviewKeys.length + reviewGroups.filter((group) => !completedReviewKeys.includes(group.key)).length,
@@ -640,7 +651,7 @@ export function TakeoffWorkspace({
                   key={id}
                   type="button"
                   size="sm"
-                  variant={id === state.activeSheetKey ? 'primary' : 'secondary'}
+                  variant={id === resolvedSheetKey ? 'primary' : 'secondary'}
                   className="min-h-9 max-w-full shrink-0 truncate"
                   onClick={() => setState((st) => ({ ...st, activeSheetKey: id }))}
                 >
@@ -755,6 +766,7 @@ export function TakeoffWorkspace({
               marks={dwgMarks}
               focusId={shownOccurrenceId ?? state.selectedDetectionId ?? activeGuide?.focusId ?? null}
               onSymbolGlyphs={mergeCadGlyphs}
+              externalPlan={externalPlan}
               backgroundRefs={(sheet.xrefRefs?.length ? sheet.xrefRefs : sheet.xrefsMissing) ?? []}
               areas={state.view.areas.filter((area) => area.sheetKey === sheet.sheetKey)}
               onUnavailable={() => setDwgDownKey(sheetLiveKey)}

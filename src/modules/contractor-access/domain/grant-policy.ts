@@ -40,8 +40,12 @@ export function normalizeExternalCapabilities(values: readonly string[]): Extern
   if (unknown) throw new GrantRuleError('unknown_capability');
   const wanted = new Set(values);
   if (wanted.size === 0) throw new GrantRuleError('empty_capabilities');
-  // Every contractor capability is meaningless without seeing the project.
-  wanted.add(EXTERNAL_CAPABILITIES.PROJECT_VIEW);
+  const orgToolsOnly = [...wanted].every(
+    (capability) =>
+      capability === EXTERNAL_CAPABILITIES.TOOLS_VIEWER || capability === EXTERNAL_CAPABILITIES.TOOLS_TAKEOFF,
+  );
+  // A project grant needs project view. An org-level tools grant does not.
+  if (!orgToolsOnly) wanted.add(EXTERNAL_CAPABILITIES.PROJECT_VIEW);
   return ALL_EXTERNAL_CAPABILITIES.filter((capability) => wanted.has(capability));
 }
 

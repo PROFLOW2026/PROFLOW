@@ -88,7 +88,16 @@ export async function loadPortalShellData(session: PortalSession): Promise<Porta
     authUserId: session.context.authUserId,
     principalName: session.context.displayName,
     avatarUrl,
-    primaryNav: buildPortalPrimaryNav(),
+    primaryNav: [
+      ...buildPortalPrimaryNav(),
+      ...(session.context.grants.some(
+        (grant) =>
+          grant.projectId === null &&
+          (grant.capabilities.has('ext.tools.viewer') || grant.capabilities.has('ext.tools.takeoff')),
+      ) && process.env.PF_EXTERNAL_TOOLS === '1'
+        ? [{ key: 'portal.tools', href: '/contractor/tools', labelKey: 'nav.professionalTools' }]
+        : []),
+    ],
     projects: session.projects.map((project) => ({
       projectId: project.projectId,
       organizationId: project.organizationId,

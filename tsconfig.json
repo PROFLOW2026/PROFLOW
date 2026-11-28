@@ -46,7 +46,9 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     ".next-design-dev/types/**/*.ts",
-    ".next-design-dev/dev/types/**/*.ts"
+    ".next-design-dev/dev/types/**/*.ts",
+    ".next-exlfy-external-tools/types/**/*.ts",
+    ".next-exlfy-external-tools/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

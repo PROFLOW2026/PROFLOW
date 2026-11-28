@@ -246,6 +246,8 @@
       "ext_takeoff_manage": "הרצה ועריכה של ניתוחי כתב כמויות",
       "ext_takeoff_approve": "אישור כמויות מניתוח",
       "ext_takeoff_library_manage": "ניהול ספריית סמלים לכתב כמויות",
+      "ext_tools_viewer": "צפייה בשרטוטים בלי פרויקט",
+      "ext_tools_takeoff": "כתב כמויות בלי פרויקט",
       "ext_rfi_view": "צפייה בבקשות הבהרה",
       "ext_rfi_raise": "פתיחת בקשות הבהרה",
       "ext_submittal_submit": "הגשת מסמכי אישור",

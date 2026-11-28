@@ -124,6 +124,27 @@ describe('dwg viewer upgrade', () => {
     expect(chooseTakeoffSheetId(plan, null, 'layout:IEC', null, 'layout:F0')).toBe('layout:F0');
   });
 
+  it('leaves a layout that does not contain the symbol and uses one that does', () => {
+    const covering = { id: 3, cx: 0, cy: 0, w: 100, h: 100, vcx: -2000, vcy: 2500, vh: 1000, twist: 0, on: true };
+    const elsewhere = { id: 9, cx: 0, cy: 0, w: 100, h: 100, vcx: 9000, vcy: 9000, vh: 1000, twist: 0, on: true };
+    const sheets: DisplaySheet[] = [
+      { id: 'model', label: 'Model', kind: 'model', space: '*Model_Space', stacks: [] },
+      { id: 'layout:EMPTY', label: 'EMPTY', kind: 'layout', space: '*Paper_EMPTY', stacks: [[elsewhere]] },
+      { id: 'layout:EL-k1', label: 'EL-k1', kind: 'layout', space: '*Paper_EL', stacks: [[covering]] },
+    ];
+    const mark = { nativeX: -2000, nativeY: 2500 };
+    expect(chooseTakeoffSheetId({ sheets, initialId: 'layout:EMPTY' }, null, null, mark, 'layout:EMPTY')).toBe('layout:EL-k1');
+    expect(
+      chooseTakeoffSheetId(
+        { sheets: sheets.slice(0, 2), initialId: 'layout:EMPTY' },
+        null,
+        null,
+        { nativeX: 0, nativeY: 0 },
+        'layout:EMPTY',
+      ),
+    ).toBe('model');
+  });
+
   it('changes the drawing only for a supported mode with known background layers', () => {
     expect(resolveArchitectureApply('gray', true, [2])).toEqual({ ok: true, mode: 'gray', indexes: [2] });
     expect(resolveArchitectureApply('mono', true, [2]).ok).toBe(true);
