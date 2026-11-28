@@ -20,6 +20,27 @@ describe('manual xref choice', () => {
     expect(lookupInIndex(index, 'host.dwg', '')).toBeNull();
   });
 
+  it('finds 3643 nested backgrounds only when the host path includes the selected folder', () => {
+    const index = buildFileIndex([
+      file('3643-EL - Standard/3643-EL.dwg', 'host'),
+      file('3643-EL - Standard/02.06.26/vtk-100_Layout1.dwg', 'bg-a'),
+      file('3643-EL - Standard/15.06.26/vtk-103.dwg', 'bg-b'),
+    ]);
+    expect(
+      lookupInIndex(index, '3643-EL.dwg', '.\\15.06.26\\vtk-103.dwg'),
+    ).toBeNull();
+    expect(
+      lookupInIndex(index, '3643-EL - Standard/3643-EL.dwg', '.\\15.06.26\\vtk-103.dwg')?.logicalId,
+    ).toBe('bg-b');
+    expect(
+      lookupInIndex(
+        index,
+        '3643-EL - Standard/3643-EL.dwg',
+        '.\\02.06.26\\vtk-100_Layout1.dwg',
+      )?.logicalId,
+    ).toBe('bg-a');
+  });
+
   it('loads the chosen file when two files share a name', async () => {
     const plans = new Uint8Array([1, 2, 3, 4]);
     const alt = new Uint8Array([9, 9, 9, 9]);

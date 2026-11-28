@@ -528,7 +528,7 @@ export function ExternalToolsHome({
         <div className="flex h-[min(70dvh,32rem)] min-h-[420px] min-w-0 flex-col overflow-hidden">
           <Viewer
             url={blobUrl}
-            fileName={rows.find((row) => row.logicalId === hostId)?.name ?? 'plan.dwg'}
+            fileName={rows.find((row) => row.logicalId === hostId)?.relativePath ?? 'plan.dwg'}
             reloadKey={1}
             onRetry={() => undefined}
             scope="org"
