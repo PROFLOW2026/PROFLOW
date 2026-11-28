@@ -49,6 +49,13 @@ function resetFileInput(input: HTMLInputElement | null) {
   if (input) input.value = '';
 }
 
+/** Snapshot first: FileList is live, and clearing the input empties it. */
+function takeInputFiles(input: HTMLInputElement): File[] {
+  const files = Array.from(input.files ?? []);
+  resetFileInput(input);
+  return files;
+}
+
 const fileAccept = '.dwg,.dxf,.pdf,.ctb,.zip';
 
 export function ExternalToolsHome({
@@ -376,9 +383,8 @@ export function ExternalToolsHome({
               multiple
               accept={fileAccept}
               onChange={(event) => {
-                const files = event.target.files;
-                resetFileInput(event.target);
-                if (files && files.length > 0) void startView(files);
+                const files = takeInputFiles(event.target);
+                if (files.length > 0) void startView(files);
               }}
             />
             <input
@@ -388,9 +394,8 @@ export function ExternalToolsHome({
               multiple
               {...{ webkitdirectory: '', directory: '' }}
               onChange={(event) => {
-                const files = event.target.files;
-                resetFileInput(event.target);
-                if (files && files.length > 0) void startView(files);
+                const files = takeInputFiles(event.target);
+                if (files.length > 0) void startView(files);
               }}
             />
           </section>
@@ -438,9 +443,8 @@ export function ExternalToolsHome({
               multiple
               accept={fileAccept}
               onChange={(event) => {
-                const files = event.target.files;
-                resetFileInput(event.target);
-                if (files && files.length > 0) void startTakeoff(files);
+                const files = takeInputFiles(event.target);
+                if (files.length > 0) void startTakeoff(files);
               }}
             />
             <input
@@ -450,9 +454,8 @@ export function ExternalToolsHome({
               multiple
               {...{ webkitdirectory: '', directory: '' }}
               onChange={(event) => {
-                const files = event.target.files;
-                resetFileInput(event.target);
-                if (files && files.length > 0) void startTakeoff(files);
+                const files = takeInputFiles(event.target);
+                if (files.length > 0) void startTakeoff(files);
               }}
             />
           </section>
