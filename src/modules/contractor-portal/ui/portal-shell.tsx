@@ -419,6 +419,17 @@ export function ContractorPortalShell({ shell, children }: { shell: PortalShellD
                   <MobileTabSideLink item={item} active={item.key === activeMobileTab} t={t} />
                 </li>
               ))}
+              {shell.primaryNav
+                .filter((item) => item.key === 'portal.tools')
+                .map((item) => (
+                  <li key={item.key}>
+                    <SideNavLink
+                      item={item}
+                      active={pathname === item.href || pathname.startsWith(`${item.href}/`)}
+                      t={t}
+                    />
+                  </li>
+                ))}
             </ul>
           </div>
 

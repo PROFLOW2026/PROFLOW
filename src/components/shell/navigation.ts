@@ -83,6 +83,7 @@ export const NAV_ICON_KEYS = [
   'assistant',
   'automations',
   'fieldHome',
+  'professionalTools',
   // UWM additions
   'myWork',
   'portfolio',
@@ -598,9 +599,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
     key: 'professionalTools',
     href: '/tools',
     labelKey: 'professionalTools',
-    iconKey: 'documents',
+    iconKey: 'professionalTools',
     anyPermissions: [PERMISSIONS.TOOLS_EXTERNAL_VIEWER, PERMISSIONS.TOOLS_EXTERNAL_TAKEOFF],
-    moreGroup: 'documents',
   },
   {
     key: 'companyFiles',
@@ -775,6 +775,10 @@ export function applyExperienceNavLayout(
 
     if (item.key === 'dashboard') {
       return { ...item, moreGroup: undefined, primaryOnMobile: true };
+    }
+
+    if (item.key === 'professionalTools') {
+      return { ...item, moreGroup: undefined, primaryOnMobile: false };
     }
 
     if (item.key === 'today') {

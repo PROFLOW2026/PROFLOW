@@ -33,7 +33,7 @@ export interface MobileNavMoreProps {
 export function MobileNavMore({ open, onOpenChange, items, pathname, footer }: MobileNavMoreProps) {
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
-  const { groups, standalone } = partitionNavItems(items);
+  const { core, groups, standalone } = partitionNavItems(items);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -47,6 +47,27 @@ export function MobileNavMore({ open, onOpenChange, items, pathname, footer }: M
         </DialogHeader>
         <DialogBody>
           <div className="flex flex-col gap-3">
+            {core.length > 0 ? (
+              <ul className="flex flex-col gap-0.5">
+                {core.map((item) => {
+                  const active = isNavItemActive(pathname, item.href);
+                  return (
+                    <li key={item.key}>
+                      <ShellNavLink
+                        href={item.href}
+                        label={t(item.labelKey)}
+                        iconKey={item.iconKey}
+                        active={active}
+                        variant="sidebar"
+                        muteIcon
+                        className="min-h-11 py-3"
+                        onNavigate={() => onOpenChange(false)}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
             {groups.length > 0 ? (
               <NavAccordionSections
                 groups={groups}

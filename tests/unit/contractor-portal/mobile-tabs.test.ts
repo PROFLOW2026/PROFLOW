@@ -42,6 +42,7 @@ describe('contractor portal five-tab mobile navigation', () => {
     expect(activeContractorMobileTab('/contractor/projects/p1/plans')).toBe('work');
     expect(activeContractorMobileTab('/contractor/projects/p1/plans/d1')).toBe('work');
     expect(activeContractorMobileTab('/contractor/account')).toBe('more');
+    expect(activeContractorMobileTab('/contractor/tools')).toBe('more');
   });
 
   it('keeps TODAY dashboard sections limited to urgent surfaces', () => {

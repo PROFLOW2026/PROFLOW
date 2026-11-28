@@ -93,6 +93,9 @@ export const CONTRACTOR_FINANCE_PROJECT_ROUTE_KEYS = new Set<PortalRouteKey>([
 /** Routes and portal pages grouped under MORE. */
 export const CONTRACTOR_MORE_TAB_ROUTE_KEYS = new Set<PortalRouteKey>([
   'portal.more',
+  'portal.tools',
+  'portal.tools.view',
+  'portal.tools.session',
   'account',
   'notifications',
 ]);

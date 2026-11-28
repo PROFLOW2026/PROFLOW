@@ -17,6 +17,7 @@ import {
   Inbox,
   LayoutDashboard,
   Package,
+  PencilRuler,
   Receipt,
   RefreshCw,
   Repeat2,
@@ -89,6 +90,7 @@ const NAV_ICONS: Record<NavIconKey, LucideIcon> = {
   assistant: Sparkles,
   automations: Workflow,
   fieldHome: HardHat,
+  professionalTools: PencilRuler,
   // UWM additions
   myWork: CheckSquare,
   portfolio: BarChart3,

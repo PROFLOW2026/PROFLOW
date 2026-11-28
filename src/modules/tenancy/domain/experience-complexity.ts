@@ -114,6 +114,7 @@ export const SIMPLE_SHELL_NAV_KEYS = new Set([
   'crm',
   'billing',
   'documents',
+  'professionalTools',
   'workforce',
   'attendance',
   'timesheets',

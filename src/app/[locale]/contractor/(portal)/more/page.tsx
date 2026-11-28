@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Bell, Building2, UserRound } from 'lucide-react';
+import { Bell, Building2, PencilRuler, UserRound } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { loadPortalSession, loadPortalShellData } from '@/modules/contractor-portal/application/load-portal-session';
 import { buildPortalHref } from '@/modules/contractor-portal/domain/routes';
@@ -33,6 +33,7 @@ export default async function ContractorPortalMoreHubPage() {
 
   const accountHref = buildPortalHref('account');
   const notificationsHref = buildPortalHref('notifications');
+  const toolsItem = shell.primaryNav.find((item) => item.key === 'portal.tools');
 
   return (
     <div className={portalPageStackClass}>
@@ -40,6 +41,24 @@ export default async function ContractorPortalMoreHubPage() {
         <h1 className={portalPageTitleClass}>{t('nav.more')}</h1>
         <p className={portalPageSubtitleClass}>{t('hub.more.subtitle')}</p>
       </header>
+
+      {toolsItem ? (
+        <section className={portalPanelClass} aria-labelledby="pf-portal-more-tools">
+          <h2 id="pf-portal-more-tools" className={portalSectionLabelClass}>
+            {t('nav.professionalTools')}
+          </h2>
+          <ul className="mt-3 flex flex-col gap-2.5">
+            <li>
+              <Link href={toolsItem.href} className={portalHubCardClass}>
+                <span className={portalIconTileClass}>
+                  <PencilRuler className="size-4" aria-hidden />
+                </span>
+                <span className="text-sm font-medium text-[var(--pf-text-primary)]">{t('nav.professionalTools')}</span>
+              </Link>
+            </li>
+          </ul>
+        </section>
+      ) : null}
 
       <section className={portalPanelClass} aria-labelledby="pf-portal-more-account">
         <h2 id="pf-portal-more-account" className={portalSectionLabelClass}>

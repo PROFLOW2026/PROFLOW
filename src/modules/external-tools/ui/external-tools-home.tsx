@@ -1,7 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { pressableClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 import { indexLocalFiles, isDrawingName, type IndexedLocalFile, type LocalFileRow } from '../domain/local-files';
 import { manualChoiceKey } from '../domain/identity';
 import { PART_SIZE } from '../domain/session-rules';
@@ -36,6 +40,17 @@ const Viewer = dynamic(
   { ssr: false },
 );
 
+function firstHostId(list: readonly LocalFileRow[]): string | null {
+  const drawing = list.find((row) => isDrawingName(row.name));
+  return drawing?.logicalId ?? list[0]?.logicalId ?? null;
+}
+
+function resetFileInput(input: HTMLInputElement | null) {
+  if (input) input.value = '';
+}
+
+const fileAccept = '.dwg,.dxf,.pdf,.ctb,.zip';
+
 export function ExternalToolsHome({
   canView,
   canTakeoff,
@@ -49,15 +64,20 @@ export function ExternalToolsHome({
   const [notice, setNotice] = useState<string | null>(null);
   const [reviewSessionId, setReviewSessionId] = useState<string | null>(null);
   const [hostId, setHostId] = useState<string | null>(null);
+  const [busy, setBusy] = useState<'view' | 'takeoff' | null>(null);
   const [reports, setReports] = useState<readonly { blockName: string; savedPath: string }[]>([]);
   const [choices, setChoices] = useState<
     readonly { parentLogicalId: string; blockName: string; savedPath: string; logicalId: string }[]
   >([]);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const viewFilesRef = useRef<HTMLInputElement>(null);
+  const viewFolderRef = useRef<HTMLInputElement>(null);
+  const takeoffFilesRef = useRef<HTMLInputElement>(null);
+  const takeoffFolderRef = useRef<HTMLInputElement>(null);
   const indexed = useMemo(() => indexLocalFiles(rows), [rows]);
   const collisions = indexed.some((row) => row.ambiguous);
 
-  async function takeFiles(list: FileList | File[]) {
+  async function collectFiles(list: FileList | File[]): Promise<LocalFileRow[]> {
     const next: LocalFileRow[] = [];
     for (const file of Array.from(list)) {
       const relativePath = file.webkitRelativePath || file.name;
@@ -84,16 +104,11 @@ export function ExternalToolsHome({
       }
       next.push({ logicalId: crypto.randomUUID(), relativePath, name: file.name, bytes });
     }
-    setRows(next);
-    setHostId(null);
-    setBlobUrl((current) => {
-      if (current) URL.revokeObjectURL(current);
-      return null;
-    });
+    return next;
   }
 
-  function openHost(logicalId: string) {
-    const row = rows.find((item) => item.logicalId === logicalId);
+  function openHost(logicalId: string, source = rows) {
+    const row = source.find((item) => item.logicalId === logicalId);
     if (!row) return;
     const copy = row.bytes.buffer.slice(row.bytes.byteOffset, row.bytes.byteOffset + row.bytes.byteLength) as ArrayBuffer;
     const url = URL.createObjectURL(new Blob([copy]));
@@ -102,6 +117,172 @@ export function ExternalToolsHome({
       return url;
     });
     setHostId(logicalId);
+  }
+
+  async function loadRows(list: FileList | File[]): Promise<LocalFileRow[]> {
+    const next = await collectFiles(list);
+    setRows(next);
+    setHostId(null);
+    setChoices([]);
+    setReports([]);
+    setReviewSessionId(null);
+    setBlobUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
+    return next;
+  }
+
+  async function startView(list?: FileList | File[]) {
+    if (!canView || busy) return;
+    setBusy('view');
+    setNotice(null);
+    try {
+      const source = list ? await loadRows(list) : rows;
+      const nextHost = firstHostId(source);
+      if (!nextHost) {
+        setNotice('בחרו תוכנית DWG, DXF או PDF לצפייה.');
+        return;
+      }
+      openHost(nextHost, source);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function runTakeoff(
+    source: LocalFileRow[],
+    nextHostId: string,
+    xrefChoices: typeof choices,
+  ) {
+    setNotice('פותחים סשן זמני...');
+    const response = await fetch('/api/tools/external/sessions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ choices: xrefChoices }),
+    });
+    const payload = (await response.json().catch(() => null)) as { error?: string; sessionId?: string } | null;
+    if (response.status === 503 || payload?.error === 'migration_required') {
+      setNotice('סשן הניתוח מחכה לאישור SQL של מיגרציה 0217. לא נוצרה שורה.');
+      return;
+    }
+    if (!response.ok || !payload?.sessionId) {
+      setNotice('פתיחת הסשן נכשלה.');
+      return;
+    }
+    const sessionId = payload.sessionId;
+    for (const row of source) {
+      const fileResponse = await fetch(`/api/tools/external/sessions/${sessionId}/files`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          logicalId: row.logicalId,
+          relativePath: row.relativePath,
+          role: row.logicalId === nextHostId ? 'host' : 'xref',
+          size: row.bytes.byteLength,
+        }),
+      });
+      if (!fileResponse.ok) {
+        setNotice('רישום הקבצים נכשל. לא הופעל ניתוח.');
+        return;
+      }
+    }
+    for (const choice of xrefChoices) {
+      const choiceResponse = await fetch(`/api/tools/external/sessions/${sessionId}/xrefs`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(choice),
+      });
+      if (!choiceResponse.ok) {
+        setNotice('שמירת הבחירה נכשלה. לא הופעל ניתוח.');
+        return;
+      }
+    }
+    for (const row of source) {
+      const hash = await sha256Hex(row.bytes);
+      const partTotal = Math.max(1, Math.ceil(row.bytes.byteLength / PART_SIZE));
+      for (let index = 0; index < partTotal; index += 1) {
+        const slice = row.bytes.subarray(index * PART_SIZE, (index + 1) * PART_SIZE);
+        const copy = new Uint8Array(slice.byteLength);
+        copy.set(slice);
+        const partResponse = await fetch(
+          `/api/tools/external/sessions/${sessionId}/files/${row.logicalId}/part?partIndex=${index}`,
+          { method: 'PUT', headers: { 'content-type': 'application/octet-stream' }, body: new Blob([copy]) },
+        );
+        if (!partResponse.ok) {
+          setNotice('העלאת חלק נכשלה. לא הופעל ניתוח.');
+          return;
+        }
+      }
+      const completeResponse = await fetch(`/api/tools/external/sessions/${sessionId}/files/${row.logicalId}/complete`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ sha256: hash }),
+      });
+      if (!completeResponse.ok) {
+        setNotice('אימות הקובץ נכשל. לא הופעל ניתוח.');
+        return;
+      }
+    }
+    const analyzeResponse = await fetch(`/api/tools/external/sessions/${sessionId}/analyze`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ requestId: crypto.randomUUID() }),
+    });
+    if (!analyzeResponse.ok) {
+      setNotice('הקבצים ננעלו, והשיגור לניתוח נכשל.');
+      return;
+    }
+    let ready = false;
+    for (let attempt = 0; attempt < 150; attempt += 1) {
+      const review = await fetch(`/api/tools/external/sessions/${sessionId}/review`);
+      if (review.ok) {
+        ready = true;
+        break;
+      }
+      if (attempt === 0 || attempt % 5 === 0) setNotice('הניתוח רץ. הסקירה נפתחת כשהתוצאה נשמרת.');
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+    if (ready) {
+      setReviewSessionId(sessionId);
+      setNotice('התוצאה נקלטת. מסך הסקירה הקיים מציג את הגיליונות ואת כתב הכמויות.');
+    } else {
+      setNotice('הקבצים ננעלו והניתוח שוגר. מסך הסקירה נפתח רק אחרי קליטת תוצאה מאומתת.');
+    }
+  }
+
+  async function startTakeoff(list?: FileList | File[]) {
+    if (!canTakeoff || busy) return;
+    setBusy('takeoff');
+    setNotice(null);
+    try {
+      const source = list ? await loadRows(list) : rows;
+      const nextHost = firstHostId(source);
+      if (!nextHost) {
+        setNotice('בחרו תוכנית כדי להפיק כתב כמויות.');
+        return;
+      }
+      setHostId(nextHost);
+      await runTakeoff(source, nextHost, list ? [] : choices);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  function onViewCardClick() {
+    if (rows.length > 0) {
+      void startView();
+      return;
+    }
+    viewFilesRef.current?.click();
+  }
+
+  function onTakeoffCardClick() {
+    if (rows.length > 0) {
+      void startTakeoff();
+      return;
+    }
+    takeoffFilesRef.current?.click();
   }
 
   const visibleIndex = wasmReady ? indexed : indexed.filter((row) => !row.ambiguous);
@@ -136,51 +317,146 @@ export function ExternalToolsHome({
     };
   }, [blobUrl]);
 
+  const actionCardClass = cn(
+    pressableClassName,
+    'flex min-h-28 w-full min-w-0 flex-col items-stretch gap-1 rounded-lg border p-4 text-start',
+    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
+    'disabled:pointer-events-none disabled:opacity-60',
+  );
+
   return (
     <div className="flex min-w-0 flex-col gap-4 overflow-x-hidden" dir="rtl">
+      <header className="min-w-0">
+        <h1 className="text-xl font-semibold">כלים מקצועיים</h1>
+        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">שתי פעולות נפרדות: צפייה בתוכנית, או הפקת כתב כמויות.</p>
+      </header>
       <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
-        <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
-          <h2 className="text-base font-semibold">פתיחת תוכנית</h2>
-          <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">הקובץ נשאר במכשיר. אין העלאה ואין פרויקט.</p>
-        </section>
-        <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
-          <h2 className="text-base font-semibold">כתב כמויות</h2>
-          <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">ניתוח זמני לשש שעות, בלי שורה בפרויקט.</p>
-        </section>
-      </div>
-      <div
-        className="flex min-w-0 flex-col gap-3"
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={(event) => {
-          event.preventDefault();
-          if (event.dataTransfer.files.length > 0) void takeFiles(event.dataTransfer.files);
-        }}
-      >
-        <label className="flex min-w-0 flex-col gap-2 text-sm">
-          בחירת קבצים
-          <input
-            className="min-w-0 max-w-full"
-            type="file"
-            multiple
-            accept=".dwg,.dxf,.pdf,.ctb,.zip"
-            onChange={(event) => {
-              if (event.target.files) void takeFiles(event.target.files);
+        {canView ? (
+          <section
+            className="min-w-0"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              if (event.dataTransfer.files.length > 0) void startView(event.dataTransfer.files);
             }}
-          />
-        </label>
-        <label className="flex min-w-0 flex-col gap-2 text-sm">
-          בחירת תיקייה
-          <input
-            className="min-w-0 max-w-full"
-            type="file"
-            multiple
-            // The folder picker is a browser attribute, not a React prop.
-            {...{ webkitdirectory: '', directory: '' }}
-            onChange={(event) => {
-              if (event.target.files) void takeFiles(event.target.files);
+          >
+            <button
+              type="button"
+              data-pf="external-tools-view"
+              className={cn(
+                actionCardClass,
+                'border-[var(--pf-border-strong)] bg-[var(--pf-action-secondary)] text-[var(--pf-text-primary)]',
+                'hover:bg-[var(--pf-action-secondary-hover)] active:bg-[var(--pf-action-secondary-active)]',
+              )}
+              disabled={busy !== null}
+              aria-busy={busy === 'view' || undefined}
+              onClick={onViewCardClick}
+            >
+              <span className="flex items-center gap-2 text-base font-semibold">
+                {busy === 'view' ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+                פתיחת תוכנית לצפייה
+              </span>
+              <span className="text-sm font-normal text-[var(--pf-text-secondary)]">
+                הקובץ נשאר במכשיר. אין העלאה ואין פרויקט.
+              </span>
+            </button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="mt-1"
+              disabled={busy !== null}
+              onClick={() => viewFolderRef.current?.click()}
+            >
+              בחירת תיקייה לצפייה
+            </Button>
+            <input
+              ref={viewFilesRef}
+              className="sr-only"
+              type="file"
+              multiple
+              accept={fileAccept}
+              onChange={(event) => {
+                const files = event.target.files;
+                resetFileInput(event.target);
+                if (files && files.length > 0) void startView(files);
+              }}
+            />
+            <input
+              ref={viewFolderRef}
+              className="sr-only"
+              type="file"
+              multiple
+              {...{ webkitdirectory: '', directory: '' }}
+              onChange={(event) => {
+                const files = event.target.files;
+                resetFileInput(event.target);
+                if (files && files.length > 0) void startView(files);
+              }}
+            />
+          </section>
+        ) : null}
+        {canTakeoff ? (
+          <section
+            className="min-w-0"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              if (event.dataTransfer.files.length > 0) void startTakeoff(event.dataTransfer.files);
             }}
-          />
-        </label>
+          >
+            <button
+              type="button"
+              data-pf="external-tools-takeoff"
+              className={cn(
+                actionCardClass,
+                'border-transparent bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)]',
+                'hover:bg-[var(--pf-action-primary-hover)] active:bg-[var(--pf-action-primary-active)]',
+              )}
+              disabled={busy !== null}
+              aria-busy={busy === 'takeoff' || undefined}
+              onClick={onTakeoffCardClick}
+            >
+              <span className="flex items-center gap-2 text-base font-semibold">
+                {busy === 'takeoff' ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+                הפקת כתב כמויות
+              </span>
+              <span className="text-sm font-normal opacity-90">ניתוח זמני לשש שעות, בלי שורה בפרויקט.</span>
+            </button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="mt-1"
+              disabled={busy !== null}
+              onClick={() => takeoffFolderRef.current?.click()}
+            >
+              בחירת תיקייה לכתב כמויות
+            </Button>
+            <input
+              ref={takeoffFilesRef}
+              className="sr-only"
+              type="file"
+              multiple
+              accept={fileAccept}
+              onChange={(event) => {
+                const files = event.target.files;
+                resetFileInput(event.target);
+                if (files && files.length > 0) void startTakeoff(files);
+              }}
+            />
+            <input
+              ref={takeoffFolderRef}
+              className="sr-only"
+              type="file"
+              multiple
+              {...{ webkitdirectory: '', directory: '' }}
+              onChange={(event) => {
+                const files = event.target.files;
+                resetFileInput(event.target);
+                if (files && files.length > 0) void startTakeoff(files);
+              }}
+            />
+          </section>
+        ) : null}
       </div>
       {hostId
         ? reports.map((row) => {
@@ -221,125 +497,21 @@ export function ExternalToolsHome({
           גרסה 3 הקפואה לא מבדילה בין קבצים באותו שם, והם לא נשלחים אליה.
         </p>
       ) : null}
-      <ul className="flex min-w-0 flex-col gap-2">
-        {indexed.map((row) => (
-          <li key={row.logicalId} className="min-w-0 rounded-md border border-[var(--pf-border-default)] p-3">
-            <p className="break-words text-sm">{row.relativePath}</p>
-            {canView ? (
-              <button type="button" className="mt-2 min-h-11 text-sm" onClick={() => openHost(row.logicalId)}>
-                פתיחה
-              </button>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-      {notice ? <p className="text-sm">{notice}</p> : null}
-      {canTakeoff ? (
-        <button
-          type="button"
-          className="min-h-11 self-start rounded-md bg-[var(--pf-action-primary)] px-4 text-sm text-[var(--pf-action-primary-fg)]"
-          onClick={() => {
-            void (async () => {
-              setNotice('פותחים סשן זמני...');
-              const response = await fetch('/api/tools/external/sessions', {
-                method: 'POST',
-                headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ choices }),
-              });
-              const payload = (await response.json().catch(() => null)) as { error?: string; sessionId?: string } | null;
-              if (response.status === 503 || payload?.error === 'migration_required') {
-                setNotice('סשן הניתוח מחכה לאישור SQL של מיגרציה 0217. לא נוצרה שורה.');
-                return;
-              }
-              if (!response.ok || !payload?.sessionId) {
-                setNotice('פתיחת הסשן נכשלה.');
-                return;
-              }
-              const sessionId = payload.sessionId;
-              for (const row of rows) {
-                const fileResponse = await fetch(`/api/tools/external/sessions/${sessionId}/files`, {
-                  method: 'POST',
-                  headers: { 'content-type': 'application/json' },
-                  body: JSON.stringify({
-                    logicalId: row.logicalId,
-                    relativePath: row.relativePath,
-                    role: row.logicalId === hostId ? 'host' : 'xref',
-                    size: row.bytes.byteLength,
-                  }),
-                });
-                if (!fileResponse.ok) {
-                  setNotice('רישום הקבצים נכשל. לא הופעל ניתוח.');
-                  return;
-                }
-              }
-              for (const choice of choices) {
-                const choiceResponse = await fetch(`/api/tools/external/sessions/${sessionId}/xrefs`, {
-                  method: 'POST',
-                  headers: { 'content-type': 'application/json' },
-                  body: JSON.stringify(choice),
-                });
-                if (!choiceResponse.ok) {
-                  setNotice('שמירת הבחירה נכשלה. לא הופעל ניתוח.');
-                  return;
-                }
-              }
-              for (const row of rows) {
-                const hash = await sha256Hex(row.bytes);
-                const partTotal = Math.max(1, Math.ceil(row.bytes.byteLength / PART_SIZE));
-                for (let index = 0; index < partTotal; index += 1) {
-                  const slice = row.bytes.subarray(index * PART_SIZE, (index + 1) * PART_SIZE);
-                  const copy = new Uint8Array(slice.byteLength);
-                  copy.set(slice);
-                  const partResponse = await fetch(
-                    `/api/tools/external/sessions/${sessionId}/files/${row.logicalId}/part?partIndex=${index}`,
-                    { method: 'PUT', headers: { 'content-type': 'application/octet-stream' }, body: new Blob([copy]) },
-                  );
-                  if (!partResponse.ok) {
-                    setNotice('העלאת חלק נכשלה. לא הופעל ניתוח.');
-                    return;
-                  }
-                }
-                const completeResponse = await fetch(`/api/tools/external/sessions/${sessionId}/files/${row.logicalId}/complete`, {
-                  method: 'POST',
-                  headers: { 'content-type': 'application/json' },
-                  body: JSON.stringify({ sha256: hash }),
-                });
-                if (!completeResponse.ok) {
-                  setNotice('אימות הקובץ נכשל. לא הופעל ניתוח.');
-                  return;
-                }
-              }
-              const analyzeResponse = await fetch(`/api/tools/external/sessions/${sessionId}/analyze`, {
-                method: 'POST',
-                headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ requestId: crypto.randomUUID() }),
-              });
-              if (!analyzeResponse.ok) {
-                setNotice('הקבצים ננעלו, והשיגור לניתוח נכשל.');
-                return;
-              }
-              let ready = false;
-              for (let attempt = 0; attempt < 150; attempt += 1) {
-                const review = await fetch(`/api/tools/external/sessions/${sessionId}/review`);
-                if (review.ok) {
-                  ready = true;
-                  break;
-                }
-                if (attempt === 0 || attempt % 5 === 0) setNotice('הניתוח רץ. הסקירה נפתחת כשהתוצאה נשמרת.');
-                await new Promise((resolve) => setTimeout(resolve, 2000));
-              }
-              if (ready) {
-                setReviewSessionId(sessionId);
-                setNotice('התוצאה נקלטת. מסך הסקירה הקיים מציג את הגיליונות ואת כתב הכמויות.');
-              } else {
-                setNotice('הקבצים ננעלו והניתוח שוגר. מסך הסקירה נפתח רק אחרי קליטת תוצאה מאומתת.');
-              }
-            })();
-          }}
-        >
-          כתב כמויות מהקבצים שנבחרו
-        </button>
+      {indexed.length > 0 ? (
+        <ul className="flex min-w-0 flex-col gap-2">
+          {indexed.map((row) => (
+            <li key={row.logicalId} className="min-w-0 rounded-md border border-[var(--pf-border-default)] p-3">
+              <p className="break-words text-sm">{row.relativePath}</p>
+              {canView ? (
+                <Button type="button" variant="secondary" className="mt-2" onClick={() => openHost(row.logicalId)}>
+                  פתיחה לצפייה
+                </Button>
+              ) : null}
+            </li>
+          ))}
+        </ul>
       ) : null}
+      {notice ? <p className="text-sm">{notice}</p> : null}
       {reviewSessionId ? (
         <ExternalReview
           sessionId={reviewSessionId}

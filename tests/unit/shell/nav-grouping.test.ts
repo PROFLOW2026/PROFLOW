@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   MORE_GROUP_ORDER,
   NAV_ITEMS,
@@ -59,6 +59,9 @@ describe('nav grouping', () => {
     expect(byKey.quotes?.moreGroup).toBe('business');
     expect(byKey.crm?.moreGroup).toBe('business');
 
+    expect(byKey.professionalTools?.href).toBe('/tools');
+    expect(byKey.professionalTools?.moreGroup).toBeUndefined();
+    expect(byKey.professionalTools?.iconKey).toBe('professionalTools');
     expect(byKey.assets?.moreGroup).toBe('field');
     expect(byKey.compliance?.moreGroup).toBe('documents');
     expect(byKey.vendorBills?.moreGroup).toBe('purchasing');
@@ -256,5 +259,23 @@ describe('nav grouping', () => {
       .filter((item) => item.primaryOnMobile)
       .map((item) => item.key);
     expect(small.join(',')).not.toEqual(service.join(','));
+  });
+
+  it('keeps professional tools as a direct main-nav destination when the flag is on', () => {
+    vi.stubEnv('PF_EXTERNAL_TOOLS', '1');
+    try {
+      const items = visibleNavItems(
+        new Set([PERMISSIONS.TOOLS_EXTERNAL_VIEWER, PERMISSIONS.TOOLS_EXTERNAL_TAKEOFF]),
+        allModulesOn(),
+        { workMix: 'projects', persona: 'mixed', roleSurface: 'owner' },
+      );
+      const { core, groups } = partitionNavItems(items);
+      expect(core.some((item) => item.key === 'professionalTools')).toBe(true);
+      expect(groups.some((group) => group.items.some((item) => item.key === 'professionalTools'))).toBe(
+        false,
+      );
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

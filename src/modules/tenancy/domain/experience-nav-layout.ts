@@ -63,6 +63,7 @@ export const NAV_KEY_TO_EXPERIENCE_GROUP: Readonly<Record<string, ExperienceNavG
   forms: 'field',
   assets: 'field',
   documents: 'documents',
+  professionalTools: 'documents',
   companyFiles: 'documents',
   imports: 'documents',
   compliance: 'documents',
